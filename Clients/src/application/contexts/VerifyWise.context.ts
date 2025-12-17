@@ -32,6 +32,8 @@ interface VerifyWiseContextProps {
   refreshUsers: () => void;
   userRoleName: string;
   organizationId: number | null;
+  photoRefreshFlag: boolean;
+  setPhotoRefreshFlag: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -65,6 +67,8 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   refreshUsers: () => {},
   userRoleName: "",
   organizationId: null,
+  photoRefreshFlag: false,
+  setPhotoRefreshFlag: () => {},
 });
 
 export { VerifyWiseContext };

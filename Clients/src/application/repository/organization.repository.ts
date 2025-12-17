@@ -1,6 +1,6 @@
-import { GetRequestParams } from "../../domain/interfaces/iRequestParams";
+import { GetRequestParams } from "../../domain/interfaces/i.requestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { RequestParams } from "../../domain/interfaces/iRequestParams";
+import { RequestParams } from "../../domain/interfaces/i.requestParams";
 
 /**
  * Retrieves the current user's organization details.

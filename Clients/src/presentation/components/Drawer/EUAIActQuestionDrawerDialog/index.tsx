@@ -53,7 +53,7 @@ import {
   EUAIACT_STATUS_OPTIONS,
 } from "./types";
 import { FileData } from "../../../../domain/types/File";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import { getPriorityColors } from "../../../pages/Assessment/1.0AssessmentTracker/euaiact.style";
 
 // Hooks & Utilities
@@ -1519,7 +1519,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                         .filter((risk) => !deletedRisks.includes(risk))}
                       setSelectecRisks={setSelectedRisks}
                       _setDeletedRisks={setDeletedRisks}
-                      projectId={currentProjectId}
+                      frameworkId={1}
                     />
                   </Suspense>
                 )}

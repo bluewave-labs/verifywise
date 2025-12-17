@@ -42,7 +42,7 @@ const titleOfTableColumns = [
   { id: "vendor_name", label: "name", sortable: true },
   { id: "assignee", label: "assignee", sortable: true },
   { id: "review_status", label: "status", sortable: true },
-  { id: "risk", label: "risk", sortable: false },
+  { id: "risk", label: "risks", sortable: true },
   { id: "scorecard", label: "scorecard", sortable: true },
   { id: "review_date", label: "review date", sortable: true },
   { id: "actions", label: "", sortable: false },
@@ -68,20 +68,11 @@ const SortableTableHead: React.FC<{
       }}
     >
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {columns.map((column, index) => (
+        {columns.map((column) => (
           <TableCell
             key={column.id}
             sx={{
               ...singleTheme.tableStyles.primary.header.cell,
-              ...(index === columns.length - 1
-                ? {
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
-                    backgroundColor:
-                      singleTheme.tableStyles.primary.header.backgroundColors,
-                  }
-                : {}),
               ...(column.sortable
                 ? {
                     cursor: "pointer",
@@ -106,7 +97,8 @@ const SortableTableHead: React.FC<{
                 variant="body2"
                 sx={{
                   fontWeight: 500,
-                  color: sortConfig.key === column.id ? "primary.main" : "inherit",
+                  color:
+                    sortConfig.key === column.id ? "primary.main" : "inherit",
                 }}
               >
                 {column.label}
@@ -116,18 +108,17 @@ const SortableTableHead: React.FC<{
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                    color:
+                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
                   }}
                 >
-                  {sortConfig.key === column.id && sortConfig.direction === "asc" && (
-                    <ChevronUp size={16} />
-                  )}
-                  {sortConfig.key === column.id && sortConfig.direction === "desc" && (
-                    <ChevronDown size={16} />
-                  )}
-                  {sortConfig.key !== column.id && (
-                    <ChevronsUpDown size={16} />
-                  )}
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "asc" && <ChevronUp size={16} />}
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "desc" && (
+                      <ChevronDown size={16} />
+                    )}
+                  {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
                 </Box>
               )}
             </Box>
@@ -144,6 +135,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   onDelete,
   onEdit,
   hidePagination = false,
+  vendorRisks = [],
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -188,6 +180,14 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
+
+  // Get risk count for a specific vendor
+  const getVendorRiskCount = useCallback(
+    (vendorId: number) => {
+      return vendorRisks.filter((risk) => risk.vendor_id === vendorId).length;
+    },
+    [vendorRisks]
+  );
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -263,6 +263,11 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
           bValue = b.risk_score ?? 0;
           break;
 
+        case "risk":
+          aValue = getVendorRiskCount(a.id!);
+          bValue = getVendorRiskCount(b.id!);
+          break;
+
         default:
           return 0;
       }
@@ -278,7 +283,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
-  }, [vendors, sortConfig]);
+  }, [vendors, sortConfig, getVendorRiskCount]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -321,7 +326,9 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
           sortedVendors
             .slice(
               hidePagination ? 0 : page * rowsPerPage,
-              hidePagination ? Math.min(sortedVendors.length, 100) : page * rowsPerPage + rowsPerPage
+              hidePagination
+                ? Math.min(sortedVendors.length, 100)
+                : page * rowsPerPage + rowsPerPage
             )
             .map((row: VendorModel, index: number) => (
               <TableRow
@@ -348,11 +355,12 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: sortConfig.key === "vendor_name" ? "#e8e8e8" : "#fafafa",
+                    backgroundColor:
+                      sortConfig.key === "vendor_name" ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   <VendorLogo
-                    website={row.website || ''}
+                    website={row.website || ""}
                     vendorName={row.vendor_name}
                     size={32}
                     showName={true}
@@ -361,19 +369,24 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                 <TableCell
                   sx={{
                     ...cellStyle,
-                    backgroundColor: sortConfig.key === "assignee" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "assignee" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {row.assignee
                     ? formattedUsers?.find(
-                        (user: {_id: number; name: string;}) => user._id === row.assignee
+                        (user: { _id: number; name: string }) =>
+                          user._id === row.assignee
                       )?.name || "Unassigned"
                     : "Unassigned"}
                 </TableCell>
                 <TableCell
                   sx={{
                     ...cellStyle,
-                    backgroundColor: sortConfig.key === "review_status" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "review_status"
+                        ? "#f5f5f5"
+                        : "inherit",
                   }}
                 >
                   {row.review_status}
@@ -381,23 +394,34 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                 <TableCell
                   sx={{
                     ...cellStyle,
-                    backgroundColor: sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
                   }}
                 >
-                  <VWLink
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openVendorRisksDialog(row.id!, row.vendor_name);
-                    }}
-                    showIcon={false}
-                  >
-                    View risks
-                  </VWLink>
+                  {(() => {
+                    const riskCount = getVendorRiskCount(row.id!);
+                    return riskCount > 0 ? (
+                      <VWLink
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openVendorRisksDialog(row.id!, row.vendor_name);
+                        }}
+                        showIcon={false}
+                      >
+                        {riskCount} risk{riskCount !== 1 ? "s" : ""}
+                      </VWLink>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: "#98A2B3" }}>
+                        No risks
+                      </Typography>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell
                   sx={{
                     ...cellStyle,
-                    backgroundColor: sortConfig.key === "scorecard" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "scorecard" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <Box display="flex" alignItems="center" gap={1}>
@@ -405,7 +429,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                       // Use only backend provided risk_score, no client-side calculations
                       const riskScore = row.risk_score ?? 0;
                       const riskColor = getRiskScoreColor(riskScore);
-                      
+
                       return (
                         <Box
                           sx={{
@@ -427,7 +451,14 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                               backgroundColor: riskColor,
                             }}
                           />
-                          <Typography variant="body2" sx={{ fontSize: "11px", fontWeight: 500, color: riskColor }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontSize: "11px",
+                              fontWeight: 500,
+                              color: riskColor,
+                            }}
+                          >
                             {riskScore}%
                           </Typography>
                         </Box>
@@ -438,7 +469,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                 <TableCell
                   sx={{
                     ...cellStyle,
-                    backgroundColor: sortConfig.key === "review_date" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "review_date" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {row.review_date
@@ -448,9 +480,6 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
                   }}
                 >
                   <IconButton
@@ -478,15 +507,19 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       onEdit,
       onDelete,
       isDeletingAllowed,
-      theme,
       sortConfig.key,
+      getVendorRiskCount,
+      hidePagination,
     ]
   );
 
   return (
     <>
       {!sortedVendors || sortedVendors.length === 0 ? (
-        <EmptyState message="There is currently no data in this table." showBorder />
+        <EmptyState
+          message="There is currently no data in this table."
+          showBorder
+        />
       ) : (
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>
@@ -516,73 +549,73 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     Showing {getRange} of {sortedVendors?.length} vendor(s)
                   </TableCell>
                   <TablePagination
-                  count={sortedVendors?.length}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  rowsPerPage={rowsPerPage}
-                  rowsPerPageOptions={[5, 10, 15, 25]}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  ActionsComponent={(props) => (
-                    <TablePaginationActions {...props} />
-                  )}
-                  labelRowsPerPage="Rows per page"
-                  labelDisplayedRows={({ page, count }) =>
-                    `Page ${page + 1} of ${Math.max(
-                      0,
-                      Math.ceil(count / rowsPerPage)
-                    )}`
-                  }
-                  slotProps={{
-                    select: {
-                      MenuProps: {
-                        keepMounted: true,
-                        PaperProps: {
-                          className: "pagination-dropdown",
-                          sx: {
-                            mt: 0,
-                            mb: theme.spacing(2),
+                    count={sortedVendors?.length}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={rowsPerPage}
+                    rowsPerPageOptions={[5, 10, 15, 25]}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    ActionsComponent={(props) => (
+                      <TablePaginationActions {...props} />
+                    )}
+                    labelRowsPerPage="Rows per page"
+                    labelDisplayedRows={({ page, count }) =>
+                      `Page ${page + 1} of ${Math.max(
+                        0,
+                        Math.ceil(count / rowsPerPage)
+                      )}`
+                    }
+                    slotProps={{
+                      select: {
+                        MenuProps: {
+                          keepMounted: true,
+                          PaperProps: {
+                            className: "pagination-dropdown",
+                            sx: {
+                              mt: 0,
+                              mb: theme.spacing(2),
+                            },
+                          },
+                          transformOrigin: {
+                            vertical: "bottom",
+                            horizontal: "left",
+                          },
+                          anchorOrigin: {
+                            vertical: "top",
+                            horizontal: "left",
+                          },
+                          sx: { mt: theme.spacing(-2) },
+                        },
+                        inputProps: { id: "pagination-dropdown" },
+                        IconComponent: SelectorVertical,
+                        sx: {
+                          ml: theme.spacing(4),
+                          mr: theme.spacing(12),
+                          minWidth: theme.spacing(20),
+                          textAlign: "left",
+                          "&.Mui-focused > div": {
+                            backgroundColor: theme.palette.background.main,
                           },
                         },
-                        transformOrigin: {
-                          vertical: "bottom",
-                          horizontal: "left",
-                        },
-                        anchorOrigin: {
-                          vertical: "top",
-                          horizontal: "left",
-                        },
-                        sx: { mt: theme.spacing(-2) },
                       },
-                      inputProps: { id: "pagination-dropdown" },
-                      IconComponent: SelectorVertical,
-                      sx: {
-                        ml: theme.spacing(4),
-                        mr: theme.spacing(12),
-                        minWidth: theme.spacing(20),
-                        textAlign: "left",
-                        "&.Mui-focused > div": {
-                          backgroundColor: theme.palette.background.main,
-                        },
+                    }}
+                    sx={{
+                      mt: theme.spacing(6),
+                      color: theme.palette.text.secondary,
+                      "& .MuiSelect-icon": {
+                        width: "24px",
+                        height: "fit-content",
                       },
-                    },
-                  }}
-                  sx={{
-                    mt: theme.spacing(6),
-                    color: theme.palette.text.secondary,
-                    "& .MuiSelect-icon": {
-                      width: "24px",
-                      height: "fit-content",
-                    },
-                    "& .MuiSelect-select": {
-                      width: theme.spacing(10),
-                      borderRadius: theme.shape.borderRadius,
-                      border: `1px solid ${theme.palette.border.light}`,
-                      padding: theme.spacing(4),
-                    },
-                  }}
-                />
-              </TableRow>
-            </TableFooter>
+                      "& .MuiSelect-select": {
+                        width: theme.spacing(10),
+                        borderRadius: theme.shape.borderRadius,
+                        border: `1px solid ${theme.palette.border.light}`,
+                        padding: theme.spacing(4),
+                      },
+                    }}
+                  />
+                </TableRow>
+              </TableFooter>
             )}
           </Table>
         </TableContainer>

@@ -4,7 +4,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker as MuiDatePicker } from "@mui/x-date-pickers/DatePicker";
 import "./index.css";
 import dayjs from "dayjs";
-import { DatePickerProps } from "../../../../domain/interfaces/iWidget";
+import { DatePickerProps } from "../../../../domain/interfaces/i.widget";
 import { DatePickerStyle } from "./style";
 import { getDatePickerStyles } from "../../../utils/inputStyles";
 

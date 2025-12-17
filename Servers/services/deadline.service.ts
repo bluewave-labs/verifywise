@@ -22,11 +22,11 @@
  * @module services/deadline
  */
 
-import { TaskStatus } from '../domain.layer/enums/task-status.enum';
-import { Op, QueryTypes } from 'sequelize';
-import { startOfDay, addDays } from 'date-fns';
-import { sequelize } from '../database/db';
-import { getTenantHash } from '../tools/getTenantHash';
+import { TaskStatus } from "../domain.layer/enums/task-status.enum";
+import { Op, QueryTypes } from "sequelize";
+import { startOfDay, addDays } from "date-fns";
+import { sequelize } from "../database/db";
+import { getTenantHash } from "../tools/getTenantHash";
 
 /**
  * Interface for deadline summary response
@@ -88,7 +88,7 @@ interface DeadlineConfig {
 export class DeadlineService {
   private readonly config: DeadlineConfig = {
     DUE_SOON_THRESHOLD_DAYS: 14,
-    COMPLETED_STATUSES: [TaskStatus.COMPLETED, TaskStatus.DELETED]
+    COMPLETED_STATUSES: [TaskStatus.COMPLETED, TaskStatus.DELETED],
   };
 
   /**
@@ -108,21 +108,25 @@ export class DeadlineService {
    * // Returns: { tasks: { overdue: 3, dueSoon: 5, threshold: 14 } }
    */
   async getSummary(
-    userId: number,
+    _userId: number,
     organizationId: number,
-    entityType: 'tasks' | 'vendors' | 'policies' | 'risks'
+    entityType: "tasks" | "vendors" | "policies" | "risks"
   ): Promise<DeadlineSummary> {
     const today = startOfDay(new Date());
     const dueSoonDate = addDays(today, this.config.DUE_SOON_THRESHOLD_DAYS);
 
     // Get accessible project IDs for the user
-    const projectIds = await this.getUserAccessibleProjectIds(userId, organizationId);
+    const projectIds = await this.getUserAccessibleProjectIds(organizationId);
 
     let result: DeadlineSummary = {};
 
     switch (entityType) {
-      case 'tasks':
-        result.tasks = await this.getTasksSummary(projectIds, today, dueSoonDate);
+      case "tasks":
+        result.tasks = await this.getTasksSummary(
+          projectIds,
+          today,
+          dueSoonDate
+        );
         break;
       // Future: Add cases for vendors, policies, risks
       default:
@@ -151,32 +155,32 @@ export class DeadlineService {
    * );
    */
   async getDetails(
-    userId: number,
+    _userId: number,
     organizationId: number,
     entityType: string,
-    category?: 'overdue' | 'dueSoon'
+    category?: "overdue" | "dueSoon"
   ): Promise<DeadlineDetail[]> {
     const today = startOfDay(new Date());
     const dueSoonDate = addDays(today, this.config.DUE_SOON_THRESHOLD_DAYS);
-    const projectIds = await this.getUserAccessibleProjectIds(userId, organizationId);
+    const projectIds = await this.getUserAccessibleProjectIds(organizationId);
 
     let dateFilter = {};
 
-    if (category === 'overdue') {
+    if (category === "overdue") {
       dateFilter = {
-        due_date: { [Op.lt]: today }
+        due_date: { [Op.lt]: today },
       };
-    } else if (category === 'dueSoon') {
+    } else if (category === "dueSoon") {
       dateFilter = {
         due_date: {
           [Op.gte]: today,
           [Op.lte]: dueSoonDate,
-        }
+        },
       };
     }
 
     switch (entityType) {
-      case 'tasks':
+      case "tasks":
         return await this.getTasksDetails(projectIds, dateFilter);
       default:
         throw new Error(`Unsupported entity type: ${entityType}`);
@@ -202,16 +206,16 @@ export class DeadlineService {
     // Use Promise.all for parallel execution with tenant-specific queries
     const [overdueCount, dueSoonCount] = await Promise.all([
       // Count overdue tasks (due_date < today AND status not completed)
-      this.countTasksByDeadline(organizationIds, today, null, 'overdue'),
+      this.countTasksByDeadline(organizationIds, today, null, "overdue"),
 
       // Count due-soon tasks (today <= due_date <= dueSoonDate AND status not completed)
-      this.countTasksByDeadline(organizationIds, today, dueSoonDate, 'dueSoon')
+      this.countTasksByDeadline(organizationIds, today, dueSoonDate, "dueSoon"),
     ]);
 
     return {
       overdue: overdueCount,
       dueSoon: dueSoonCount,
-      threshold: this.config.DUE_SOON_THRESHOLD_DAYS
+      threshold: this.config.DUE_SOON_THRESHOLD_DAYS,
     };
   }
 
@@ -222,17 +226,17 @@ export class DeadlineService {
     organizationIds: number[],
     today: Date,
     dueSoonDate: Date | null,
-    type: 'overdue' | 'dueSoon'
+    type: "overdue" | "dueSoon"
   ): Promise<number> {
     let totalCount = 0;
 
     for (const orgId of organizationIds) {
       const tenantHash = getTenantHash(orgId);
 
-      let dateCondition = '';
-      if (type === 'overdue') {
+      let dateCondition = "";
+      if (type === "overdue") {
         dateCondition = `AND due_date < '${today.toISOString()}'`;
-      } else if (type === 'dueSoon') {
+      } else if (type === "dueSoon") {
         dateCondition = `AND due_date >= '${today.toISOString()}' AND due_date <= '${dueSoonDate!.toISOString()}'`;
       }
 
@@ -246,7 +250,7 @@ export class DeadlineService {
       `;
 
       const [result] = await sequelize.query(query, {
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
       });
 
       totalCount += parseInt((result as any).count, 10);
@@ -274,7 +278,7 @@ export class DeadlineService {
     for (const orgId of organizationIds) {
       const tenantHash = getTenantHash(orgId);
 
-      let dateCondition = 'AND due_date IS NOT NULL';
+      let dateCondition = "AND due_date IS NOT NULL";
       if (dateFilter.due_date) {
         if (dateFilter.due_date[Op.lt]) {
           dateCondition += ` AND due_date < '${dateFilter.due_date[Op.lt].toISOString()}'`;
@@ -309,7 +313,7 @@ export class DeadlineService {
       `;
 
       const tasks = await sequelize.query(query, {
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
       });
 
       allTasks = allTasks.concat(tasks);
@@ -327,10 +331,12 @@ export class DeadlineService {
       created_at: task.created_at,
       updated_at: task.updated_at,
       categories: task.categories,
-      creator: task.creator_name ? {
-        name: task.creator_name,
-        email: task.creator_email
-      } : undefined
+      creator: task.creator_name
+        ? {
+            name: task.creator_name,
+            email: task.creator_email,
+          }
+        : undefined,
     }));
   }
 
@@ -340,11 +346,12 @@ export class DeadlineService {
    * Implements access control by determining which projects a user can access
    * based on project ownership and membership.
    *
-   * @param userId - User ID
    * @param organizationId - Organization ID
    * @returns Promise<number[]> - Array of accessible project IDs
    */
-  private async getUserAccessibleProjectIds(userId: number, organizationId: number): Promise<number[]> {
+  private async getUserAccessibleProjectIds(
+    organizationId: number
+  ): Promise<number[]> {
     // For now, return all projects in the organization
     // In the future, this could be refined to check specific project permissions
     return [organizationId];

@@ -18,6 +18,9 @@ evaluation_module_path = Path(__file__).parent.parent.parent.parent / "Evaluatio
 sys.path.insert(0, str((evaluation_module_path / "src").resolve()))
 
 from crud import evaluation_logs as crud
+from crud.deepeval_scorers import list_scorers
+from deepeval_engine.gatekeeper import evaluate_gate
+from utils.run_custom_scorer import run_custom_scorer, ScorerResult
 
 
 async def run_evaluation(
@@ -83,8 +86,45 @@ async def run_evaluation(
         metrics_config = config.get("metrics", {})
         thresholds_config = config.get("thresholds", {})
         
+        # Evaluation mode: "scorer" = custom only, "standard" = judge only, "both" = run both
+        evaluation_mode = config.get("evaluationMode", "standard")
+        print(f"📋 Evaluation mode: {evaluation_mode}")
+        
         # Set up API keys from config (if provided)
-        # Judge LLM API keys (for DeepEval metrics)
+        # Check for multi-provider API keys map (new format from backend)
+        # These keys are used by CUSTOM SCORERS - each scorer uses its own configured provider
+        # G_EVAL_PROVIDER is set later based on the Judge LLM config (user's explicit selection)
+        scorer_api_keys = config.get("scorerApiKeys")
+        if scorer_api_keys and isinstance(scorer_api_keys, dict):
+            # Map provider names to environment variable names
+            provider_env_map = {
+                "openai": "OPENAI_API_KEY",
+                "anthropic": "ANTHROPIC_API_KEY",
+                "google": "GEMINI_API_KEY",
+                "gemini": "GEMINI_API_KEY",
+                "xai": "XAI_API_KEY",
+                "mistral": "MISTRAL_API_KEY",
+                "huggingface": "HF_API_KEY",
+            }
+            
+            configured_count = 0
+            for provider in list(scorer_api_keys.keys()):
+                env_var = provider_env_map.get(provider.lower())
+                key_value = scorer_api_keys.get(provider)
+                if env_var and key_value:
+                    os.environ[env_var] = key_value
+                    configured_count += 1
+        
+        # Legacy: single scorer API key (backward compatibility)
+        legacy_key = config.get("scorerApiKey")
+        if legacy_key and not scorer_api_keys:
+            os.environ["OPENAI_API_KEY"] = legacy_key
+            os.environ["ANTHROPIC_API_KEY"] = legacy_key
+            os.environ["GEMINI_API_KEY"] = legacy_key
+            os.environ["XAI_API_KEY"] = legacy_key
+            os.environ["MISTRAL_API_KEY"] = legacy_key
+        
+        # Judge LLM API keys (for DeepEval metrics - Standard Judge mode)
         print(f"📝 Judge LLM config: provider={judge_config.get('provider')}, has_apiKey={bool(judge_config.get('apiKey'))}")
         if judge_config.get("apiKey") and judge_config["apiKey"] not in ["***", "", None]:
             provider = judge_config.get("provider", "").lower()
@@ -105,6 +145,10 @@ async def run_evaluation(
                 os.environ["G_EVAL_PROVIDER"] = provider
             if judge_config.get("model"):
                 os.environ["G_EVAL_MODEL"] = str(judge_config["model"])
+            # Set max tokens for judge (default 512, but user can set higher)
+            max_tokens = judge_config.get("maxTokens", 512)
+            os.environ["G_EVAL_MAX_TOKENS"] = str(max_tokens)
+            print(f"✅ G_EVAL_MAX_TOKENS set to {max_tokens}")
         
         # Model API keys (for the model being tested)
         if model_config.get("apiKey") and model_config["apiKey"] != "***":
@@ -447,74 +491,303 @@ async def run_evaluation(
         simple_config = SimpleConfig()
         config_manager = type('obj', (object,), {'config': simple_config})()
         
+        output_dir = evaluation_module_path / "artifacts" / "deepeval_results"
         evaluator = DeepEvalEvaluator(
             config_manager=config_manager,
-            output_dir=str(evaluation_module_path / "artifacts" / "deepeval_results"),
+            output_dir=str(output_dir),
             metric_thresholds=thresholds_config,
         )
         
-        # Determine metrics based on task type & bundles, ignoring UI toggles (presets)
+        # Read UI-selected metrics from config
+        ui_metrics = config.get("metrics") or {}
         task_type = (config.get("taskType") or config.get("task_type") or "").strip().lower()
         bundles = config.get("bundles") or {}
-        # Core judge can be toggled via config flag; default on for chatbot
-        enable_core_judge = config.get("useGEval", None)
-        if enable_core_judge is None:
-            enable_core_judge = (task_type == "chatbot")
-
-        deepeval_metrics_config = {
-            # Core G‑Eval
-            "g_eval_correctness": bool(enable_core_judge),
-            "g_eval_coherence": bool(enable_core_judge),
-            "g_eval_tonality": bool(enable_core_judge),
-            "g_eval_safety": bool(enable_core_judge),
-            # Classic (generally useful)
-            "bias": True,
-            "toxicity": True,
-            "answer_relevancy": False,
-            "faithfulness": False,
-            "contextual_relevancy": False,
-            "hallucination": False,
-        }
-        if task_type == "rag":
-            deepeval_metrics_config.update({
-                "answer_relevancy": True,
-                "faithfulness": True,
-                "contextual_relevancy": True,
-                "hallucination": bool(bundles.get("hallucination", True)),
-                "contextual_recall": bool(bundles.get("contextual_recall", True)),
-                "contextual_precision": bool(bundles.get("contextual_precision", True)),
-                "ragas": bool(bundles.get("ragas", False)),
-            })
-        elif task_type in ("agent", "agents"):
-            deepeval_metrics_config.update({
-                "task_completion": True,
-                "tool_correctness": True,
-            })
-        elif task_type in ("chatbot", ""):
-            deepeval_metrics_config.update({
-                "knowledge_retention": True,
-                "conversation_completeness": True,
-                "conversation_relevancy": True,
-                "role_adherence": True,
-            })
-            if bundles.get("summarization", False):
-                deepeval_metrics_config["summarization"] = True
         
-        results = evaluator.run_evaluation(
-            test_cases_data=test_cases_data,
-            metrics_config=deepeval_metrics_config,
-        )
+        # Map frontend metric names (camelCase) to backend metric names (snake_case)
+        metric_name_map = {
+            "answerRelevancy": "answer_relevancy",
+            "bias": "bias",
+            "toxicity": "toxicity",
+            "faithfulness": "faithfulness",
+            "hallucination": "hallucination",
+            "contextualRelevancy": "contextual_relevancy",
+            "knowledgeRetention": "knowledge_retention",
+            "conversationRelevancy": "conversation_relevancy",
+            "conversationCompleteness": "conversation_completeness",
+            "roleAdherence": "role_adherence",
+        }
+
+        # Start with all metrics disabled
+        deepeval_metrics_config = {
+            # Standard G-Eval metrics (always available)
+            "answer_relevancy": False,
+            "bias": False,
+            "toxicity": False,
+            "faithfulness": False,
+            "hallucination": False,
+            "contextual_relevancy": False,
+            # Chatbot-specific metrics
+            "knowledge_retention": False,
+            "conversation_relevancy": False,
+            "conversation_completeness": False,
+            "role_adherence": False,
+        }
+        
+        # Enable metrics based on UI selection
+        for ui_key, backend_key in metric_name_map.items():
+            if ui_metrics.get(ui_key, False):
+                deepeval_metrics_config[backend_key] = True
+        
+        # If no UI metrics provided (legacy/rerun), use defaults based on task type
+        if not ui_metrics:
+            # Default: enable general metrics for all
+            deepeval_metrics_config["answer_relevancy"] = True
+            deepeval_metrics_config["bias"] = True
+            deepeval_metrics_config["toxicity"] = True
+            
+            if task_type == "rag":
+                # RAG: enable context-dependent metrics
+                deepeval_metrics_config.update({
+                    "faithfulness": True,
+                    "contextual_relevancy": True,
+                    "hallucination": True,
+                })
+            elif task_type in ("agent", "agents"):
+                deepeval_metrics_config.update({
+                    "task_completion": True,
+                    "tool_correctness": True,
+                })
+            elif task_type in ("chatbot", ""):
+                # Chatbot: enable chatbot-specific metrics (NOT RAG metrics!)
+                deepeval_metrics_config.update({
+                    "knowledge_retention": True,
+                    "conversation_completeness": True,
+                    "conversation_relevancy": True,
+                    "role_adherence": True,
+                })
+        
+        # Log which metrics are enabled
+        enabled_metrics = [k for k, v in deepeval_metrics_config.items() if v]
+        print(f"📊 Enabled metrics: {enabled_metrics}")
+        
+        # 4. Run DeepEval metrics (only if mode is "standard" or "both")
+        results = []
+        if evaluation_mode in ("standard", "both"):
+            print(f"\n🧪 Running DeepEval built-in metrics (mode: {evaluation_mode})")
+            results = evaluator.run_evaluation(
+                test_cases_data=test_cases_data,
+                metrics_config=deepeval_metrics_config,
+            )
+        else:
+            print(f"\n⏭️ Skipping DeepEval metrics (mode: {evaluation_mode})")
+            # Still need to create empty results structure for consistency
+            # test_cases_data is a list of {"test_case": LLMTestCase, "metadata": {...}}
+            results = []
+            for tc_data in test_cases_data:
+                test_case = tc_data.get("test_case")
+                if test_case:
+                    results.append({
+                        "input": getattr(test_case, "input", ""),
+                        "output": getattr(test_case, "actual_output", ""),
+                        "expected": getattr(test_case, "expected_output", None),
+                        "context": getattr(test_case, "retrieval_context", None),
+                        "metric_scores": {},
+                    })
+
+        # 4.1 Run Custom LLM Judge Scorers (if mode is "scorer" or "both")
+        print(f"\n{'='*50}")
+        print(f"🔍 CUSTOM SCORER EXECUTION")
+        print(f"{'='*50}")
+        
+        project_id = config.get("project_id")
+        custom_scorer_results: Dict[str, list] = {}  # scorer_id -> list of results per test case
+        enabled_scorers: list = []  # Track for later use in storing results
+        
+        # Only run custom scorers if mode is "scorer" or "both"
+        if evaluation_mode not in ("scorer", "both"):
+            print(f"⏭️ Skipping custom scorers (mode: {evaluation_mode})")
+        else:
+            print(f"🎯 Running custom scorers (mode: {evaluation_mode})")
+        
+        # Note: Scorer API key is now set at the start of evaluation (see above)
+        # This ensures DeepEval metrics also use the key
+        
+        if evaluation_mode in ("scorer", "both"):
+            try:
+                # Load enabled custom scorers for this project
+                all_scorers = await list_scorers(tenant=tenant, db=db, project_id=project_id)
+                enabled_scorers = [s for s in all_scorers if s.get("enabled") and s.get("type") == "llm"]
+                
+                print(f"📋 Found {len(all_scorers)} total scorers, {len(enabled_scorers)} enabled LLM scorers")
+                
+                if enabled_scorers:
+                    for scorer in enabled_scorers:
+                        scorer_id = scorer.get("id", "unknown")
+                        scorer_name = scorer.get("name", "Unknown Scorer")
+                        metric_key = scorer.get("metricKey", scorer_id)
+                        scorer_config = scorer.get("config", {})
+                        
+                        print(f"\n🎯 Running Scorer: {scorer_name}")
+                        print(f"   ID: {scorer_id}")
+                        print(f"   Metric Key: {metric_key}")
+                        print(f"   Judge Model: {scorer_config.get('judgeModel', 'NOT CONFIGURED')}")
+                        print(f"   Messages: {len(scorer_config.get('messages', []))} template(s)")
+                        print(f"   Choice Scores: {scorer_config.get('choiceScores', [])}")
+                        print(f"   Threshold: {scorer.get('defaultThreshold', 0.5)}")
+                        
+                        scorer_scores = []
+                        
+                        for idx, tc_data in enumerate(test_cases_data):
+                            test_case = tc_data.get("test_case")
+                            if not test_case:
+                                continue
+                            
+                            input_text = getattr(test_case, "input", "") or ""
+                            output_text = getattr(test_case, "actual_output", "") or ""
+                            expected_text = getattr(test_case, "expected_output", "") or ""
+                            
+                            print(f"   [{idx+1}/{len(test_cases_data)}] Evaluating...")
+                            print(f"      Input: {input_text[:80]}...")
+                            print(f"      Output: {output_text[:80]}...")
+                            
+                            try:
+                                result: ScorerResult = await run_custom_scorer(
+                                    scorer_config=scorer,
+                                    input_text=input_text,
+                                    output_text=output_text,
+                                    expected_text=expected_text,
+                                )
+                                
+                                scorer_scores.append({
+                                    "test_case_idx": idx,
+                                    "label": result.label,
+                                    "score": result.score,
+                                    "passed": result.passed,
+                                    "raw_response": result.raw_response,
+                                })
+                                
+                                status_icon = "✅" if result.passed else "❌"
+                                print(f"      {status_icon} Result: {result.label} (score={result.score:.2f}, passed={result.passed})")
+                                if result.total_tokens:
+                                    print(f"      📊 Tokens: {result.total_tokens} (prompt={result.prompt_tokens}, completion={result.completion_tokens})")
+                                
+                                # Merge scorer result into test case results
+                                if idx < len(results):
+                                    if "metric_scores" not in results[idx]:
+                                        results[idx]["metric_scores"] = {}
+                                    results[idx]["metric_scores"][scorer_name] = {
+                                        "score": result.score,
+                                        "label": result.label,
+                                        "passed": result.passed,
+                                        "reason": result.raw_response[:200] if result.raw_response else "",
+                                    }
+                                
+                            except Exception as scorer_err:
+                                print(f"      ❌ Error: {scorer_err}")
+                                scorer_scores.append({
+                                    "test_case_idx": idx,
+                                    "label": "ERROR",
+                                    "score": 0.0,
+                                    "passed": False,
+                                    "raw_response": str(scorer_err),
+                                })
+                        
+                        custom_scorer_results[scorer_id] = scorer_scores
+                        
+                        # Calculate average score for this scorer
+                        if scorer_scores:
+                            avg_score = sum(s["score"] for s in scorer_scores) / len(scorer_scores)
+                            passed_count = sum(1 for s in scorer_scores if s["passed"])
+                            print(f"\n   📈 Scorer Summary: avg_score={avg_score:.3f}, passed={passed_count}/{len(scorer_scores)}")
+                else:
+                    print("   ⚪ No enabled LLM scorers found for this project")
+                    
+            except Exception as scorer_load_err:
+                print(f"⚠️ Error loading/running custom scorers: {scorer_load_err}")
+                traceback.print_exc()
+        
+        print(f"\n{'='*50}\n")
+
+        # 4.25 Run gatekeeper quality gate on the latest summary (if suite is available)
+        gatekeeper_result: dict[str, Any] | None = None
+        try:
+            suite_path = evaluation_module_path / "suits" / "suite_core.yaml"
+            latest_summary: Path | None = None
+
+            try:
+                summaries = list(Path(output_dir).glob("deepeval_summary_*.json"))
+                if summaries:
+                    latest_summary = max(summaries, key=lambda p: p.stat().st_mtime)
+            except Exception:
+                latest_summary = None
+
+            if latest_summary and suite_path.is_file():
+                print("\n🔒 Running gatekeeper quality gate...")
+                gate_result = evaluate_gate(
+                    summary_path=str(latest_summary),
+                    suite_path=str(suite_path.resolve()),
+                )
+                gatekeeper_result = gate_result.to_dict()
+                status = "PASSED" if gate_result.passed else "FAILED"
+                print(f"[Gatekeeper] {status} — checked_metrics={gate_result.checked_metrics}")
+                if gate_result.fail_reasons:
+                    print("Fail reasons:")
+                    for r in gate_result.fail_reasons:
+                        print(f"  - {r}")
+            else:
+                if not latest_summary:
+                    print("Gatekeeper skipped: no deepeval_summary_*.json found.")
+                if not suite_path.is_file():
+                    print(f"Gatekeeper skipped: suite file not found at {suite_path}")
+        except Exception as ge:
+            print(f"Gatekeeper error: {ge}")
 
         # 4.5 Persist per-log metric scores to log metadata
+        # Map display names back to camelCase keys for frontend compatibility
+        display_to_camel = {
+            "Answer Relevancy": "answerRelevancy",
+            "Faithfulness": "faithfulness",
+            "Contextual Relevancy": "contextualRelevancy",
+            "Contextual Recall": "contextualRecall",
+            "Contextual Precision": "contextualPrecision",
+            "Bias": "bias",
+            "Toxicity": "toxicity",
+            "Hallucination": "hallucination",
+            "Answer Correctness": "answerCorrectness",
+            "Coherence": "coherence",
+            "Tonality": "tonality",
+            "Safety": "safety",
+            "Knowledge Retention": "knowledgeRetention",
+            "Conversation Completeness": "conversationCompleteness",
+            "Conversation Relevancy": "conversationRelevancy",
+            "Role Adherence": "roleAdherence",
+            "Task Completion": "taskCompletion",
+            "Tool Correctness": "toolCorrectness",
+            "Summarization": "summarization",
+            "RAGAS": "ragas",
+            # G-Eval variants
+            "g_eval_correctness": "answerCorrectness",
+            "g_eval_coherence": "coherence",
+            "g_eval_tonality": "tonality",
+            "g_eval_safety": "safety",
+        }
+        
         try:
             for idx, result in enumerate(results):
                 log_id = test_cases_data[idx]["metadata"].get("log_id")
                 if log_id:
+                    # Normalize metric keys to camelCase
+                    raw_scores = result.get("metric_scores", {})
+                    normalized_scores = {}
+                    for display_name, score_data in raw_scores.items():
+                        camel_key = display_to_camel.get(display_name, display_name)
+                        normalized_scores[camel_key] = score_data
+                    
                     await crud.update_log_metadata(
                         db=db,
                         log_id=log_id,
                         tenant=tenant,
-                        metadata={"metric_scores": result.get("metric_scores", {})},
+                        metadata={"metric_scores": normalized_scores},
                     )
         except Exception as e:
             print(f"⚠️ Failed to update log metadata with metric scores: {e}")
@@ -526,33 +799,36 @@ async def run_evaluation(
         total_prompts = len(results)
         avg_scores = {}
         
-        # Map snake_case keys to the display names used in evaluator results
-        name_map = {
-            "g_eval_correctness": "Answer Correctness",
-            "g_eval_coherence": "Coherence",
-            "g_eval_tonality": "Tonality",
-            "g_eval_safety": "Safety",
-            "answer_relevancy": "Answer Relevancy",
-            "faithfulness": "Faithfulness",
-            "contextual_relevancy": "Contextual Relevancy",
-            "hallucination": "Hallucination",
-            "bias": "Bias",
-            "toxicity": "Toxicity",
-            "contextual_recall": "Contextual Recall",
-            "contextual_precision": "Contextual Precision",
-            "ragas": "RAGAS",
-            "task_completion": "Task Completion",
-            "tool_correctness": "Tool Correctness",
-            "knowledge_retention": "Knowledge Retention",
-            "conversation_completeness": "Conversation Completeness",
-            "conversation_relevancy": "Conversation Relevancy",
-            "role_adherence": "Role Adherence",
-            "summarization": "Summarization",
+        # Map snake_case config keys to display names AND camelCase frontend keys
+        metric_config_map = {
+            "answer_relevancy": {"display": "Answer Relevancy", "camel": "answerRelevancy"},
+            "faithfulness": {"display": "Faithfulness", "camel": "faithfulness"},
+            "contextual_relevancy": {"display": "Contextual Relevancy", "camel": "contextualRelevancy"},
+            "contextual_recall": {"display": "Contextual Recall", "camel": "contextualRecall"},
+            "contextual_precision": {"display": "Contextual Precision", "camel": "contextualPrecision"},
+            "hallucination": {"display": "Hallucination", "camel": "hallucination"},
+            "bias": {"display": "Bias", "camel": "bias"},
+            "toxicity": {"display": "Toxicity", "camel": "toxicity"},
+            "knowledge_retention": {"display": "Knowledge Retention", "camel": "knowledgeRetention"},
+            "conversation_completeness": {"display": "Conversation Completeness", "camel": "conversationCompleteness"},
+            "conversation_relevancy": {"display": "Conversation Relevancy", "camel": "conversationRelevancy"},
+            "role_adherence": {"display": "Role Adherence", "camel": "roleAdherence"},
+            "task_completion": {"display": "Task Completion", "camel": "taskCompletion"},
+            "tool_correctness": {"display": "Tool Correctness", "camel": "toolCorrectness"},
+            "summarization": {"display": "Summarization", "camel": "summarization"},
+            "ragas": {"display": "RAGAS", "camel": "ragas"},
+            # G-Eval variants
+            "g_eval_correctness": {"display": "Answer Correctness", "camel": "answerCorrectness"},
+            "g_eval_coherence": {"display": "Coherence", "camel": "coherence"},
+            "g_eval_tonality": {"display": "Tonality", "camel": "tonality"},
+            "g_eval_safety": {"display": "Safety", "camel": "safety"},
         }
 
         for metric_key, enabled in deepeval_metrics_config.items():
             if enabled:
-                display_name = name_map.get(metric_key, metric_key)
+                mapping = metric_config_map.get(metric_key, {"display": metric_key, "camel": metric_key})
+                display_name = mapping["display"]
+                camel_key = mapping["camel"]
                 scores: list[float] = []
                 for r in results:
                     score_obj = r.get("metric_scores", {}).get(display_name)
@@ -562,24 +838,60 @@ async def run_evaluation(
                             scores.append(float(score_val))
                 if scores:
                     avg_score = sum(scores) / len(scores)
-                    avg_scores[metric_key] = avg_score
+                    # Store with camelCase key for frontend compatibility
+                    avg_scores[camel_key] = avg_score
                     await crud.create_metric(
                         db=db,
                         project_id=config.get("project_id"),
-                        metric_name=metric_key,
+                        metric_name=camel_key,  # Use camelCase for DB too
                         metric_type="quality",
                         value=avg_score,
                         tenant=tenant,
                         experiment_id=experiment_id,
                     )
         
+        # 5.1 Store Custom Scorer Results (same format as DeepEval metrics)
+        if custom_scorer_results:
+            print(f"💾 Storing custom scorer results...")
+            for scorer_id, scorer_scores in custom_scorer_results.items():
+                if scorer_scores:
+                    # Find scorer info from enabled_scorers
+                    scorer_name = scorer_id
+                    metric_key = scorer_id
+                    for s in enabled_scorers:
+                        if s.get("id") == scorer_id:
+                            scorer_name = s.get("name", scorer_id)
+                            metric_key = s.get("metricKey", scorer_id)
+                            break
+                    
+                    # Calculate average
+                    avg_score = sum(s["score"] for s in scorer_scores) / len(scorer_scores)
+                    passed_rate = sum(1 for s in scorer_scores if s["passed"]) / len(scorer_scores)
+                    
+                    # Store in avg_scores with metricKey (same as DeepEval metrics)
+                    avg_scores[metric_key] = avg_score
+                    
+                    # Store as metric (same format as DeepEval metrics)
+                    await crud.create_metric(
+                        db=db,
+                        project_id=config.get("project_id"),
+                        metric_name=metric_key,
+                        metric_type="quality",  # Same type as DeepEval metrics
+                        value=avg_score,
+                        tenant=tenant,
+                        experiment_id=experiment_id,
+                    )
+                    print(f"   ✅ Saved {scorer_name} ({metric_key}): avg={avg_score:.3f}, pass_rate={passed_rate:.1%}")
+        
         # Update experiment with results
-        experiment_results = {
+        experiment_results: Dict[str, Any] = {
             "total_prompts": total_prompts,
-            "avg_scores": avg_scores,
-            "detailed_results": results[:10],  # Store first 10 for preview
+            "avg_scores": avg_scores,  # Contains both DeepEval and custom scorer averages
+            "detailed_results": results[:10],  # Store first 10 for preview (includes custom scorer scores in metric_scores)
             "completed_at": datetime.now().isoformat(),
         }
+        if gatekeeper_result is not None:
+            experiment_results["gatekeeper"] = gatekeeper_result
         
         await crud.update_experiment_status(
             db=db,

@@ -26,82 +26,71 @@ interface MegaDropdownItem {
   path: string;
   /** Optional state passed to the navigation (e.g., to open a modal) */
   state?: { openCreateModal?: boolean; tab?: string };
-  /** CSS gradient background for the menu item */
-  gradient: string;
 }
 
 const items: MegaDropdownItem[] = [
   {
     id: "use-case",
     label: "Use case",
-    icon: <FolderTree size={22} strokeWidth={1.25} color="#81C784" />,
+    icon: <FolderTree size={20} strokeWidth={1.5} color="#81C784" />,
     path: "/overview",
     state: { openCreateModal: true },
-    gradient: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
   },
   {
     id: "vendor",
     label: "Vendor",
-    icon: <Building size={22} strokeWidth={1.25} color="#64B5F6" />,
+    icon: <Building size={20} strokeWidth={1.5} color="#64B5F6" />,
     path: "/vendors",
     state: { openCreateModal: true },
-    gradient: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
   },
   {
     id: "model",
     label: "Model",
-    icon: <ListIcon size={22} strokeWidth={1.25} color="#BA68C8" />,
+    icon: <ListIcon size={20} strokeWidth={1.5} color="#BA68C8" />,
     path: "/model-inventory",
     state: { openCreateModal: true },
-    gradient: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
   },
   {
     id: "risk",
     label: "Risk",
-    icon: <AlertTriangle size={22} strokeWidth={1.25} color="#FFB74D" />,
+    icon: <AlertTriangle size={20} strokeWidth={1.5} color="#FFB74D" />,
     path: "/risk-management",
     state: { openCreateModal: true },
-    gradient: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
   },
   {
     id: "policy",
     label: "Policy",
-    icon: <Shield size={22} strokeWidth={1.25} color="#7986CB" />,
+    icon: <Shield size={20} strokeWidth={1.5} color="#7986CB" />,
     path: "/policies",
     state: { openCreateModal: true },
-    gradient: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
   },
   {
     id: "vendor-risk",
     label: "Vendor risk",
-    icon: <Building size={22} strokeWidth={1.25} color="#E57373" />,
+    icon: <Building size={20} strokeWidth={1.5} color="#E57373" />,
     path: "/vendors/risks",
     state: { openCreateModal: true },
-    gradient: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
   },
   {
     id: "model-risk",
     label: "Model risk",
-    icon: <AlertTriangle size={22} strokeWidth={1.25} color="#F06292" />,
+    icon: <AlertTriangle size={20} strokeWidth={1.5} color="#F06292" />,
     path: "/model-inventory/model-risks",
     state: { openCreateModal: true },
-    gradient: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
   },
   {
     id: "training",
     label: "Training",
-    icon: <GraduationCap size={22} strokeWidth={1.25} color="#4DD0E1" />,
+    icon: <GraduationCap size={20} strokeWidth={1.5} color="#4DD0E1" />,
     path: "/training",
     state: { openCreateModal: true },
-    gradient: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
   },
   {
     id: "ai-incident",
-    label: "AI Incident",
-    icon: <AlertCircle size={22} strokeWidth={1.25} color="#FF8A65" />,
+    label: "Incident",
+    icon: <AlertCircle size={20} strokeWidth={1.5} color="#FF8A65" />,
     path: "/ai-incident-managements",
     state: { openCreateModal: true },
-    gradient: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
   },
 ];
 
@@ -117,6 +106,7 @@ const AddNewMegaDropdown: React.FC<AddNewMegaDropdownProps> = ({
   buttonLabel = "Add new",
 }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -125,6 +115,7 @@ const AddNewMegaDropdown: React.FC<AddNewMegaDropdownProps> = ({
 
   const handleClose = () => {
     setAnchorEl(null);
+    setHoveredItem(null);
   };
 
   const handleItemClick = (item: MegaDropdownItem) => {
@@ -147,21 +138,21 @@ const AddNewMegaDropdown: React.FC<AddNewMegaDropdownProps> = ({
         startIcon={<Plus size={14} />}
         onClick={handleClick}
         sx={{
-          background: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+          background: "#13715B",
           color: "white",
           fontWeight: 500,
           fontSize: "13px",
-          height: "32px",
-          minHeight: "32px",
-          padding: "8px 16px",
+          height: "34px",
+          minHeight: "34px",
+          padding: "0 12px",
           borderRadius: "4px",
           textTransform: "none",
-          boxShadow: "0 2px 4px rgba(16, 185, 129, 0.2)",
+          boxShadow: "none",
           "&:hover": {
-            background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
-            boxShadow: "0 2px 4px rgba(16, 185, 129, 0.25)",
+            background: "#0f5f4c",
+            boxShadow: "none",
           },
-          transition: "all 0.2s ease",
+          transition: "background 0.2s ease",
         }}
       >
         {buttonLabel}
@@ -183,9 +174,9 @@ const AddNewMegaDropdown: React.FC<AddNewMegaDropdownProps> = ({
         sx={{
           mt: 1,
           "& .MuiPopover-paper": {
-            borderRadius: "4px",
-            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
-            overflow: "visible",
+            borderRadius: "12px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+            overflow: "hidden",
             backgroundColor: "#fff",
           },
         }}
@@ -194,11 +185,10 @@ const AddNewMegaDropdown: React.FC<AddNewMegaDropdownProps> = ({
           role="menu"
           aria-label="Add new item menu"
           sx={{
-            p: 2,
-            width: "540px",
+            p: 1.5,
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 2,
+            gap: 1,
           }}
         >
           {items.map((item) => (
@@ -208,6 +198,8 @@ const AddNewMegaDropdown: React.FC<AddNewMegaDropdownProps> = ({
               tabIndex={0}
               aria-label={`Create new ${item.label}`}
               onClick={() => handleItemClick(item)}
+              onMouseEnter={() => setHoveredItem(item.id)}
+              onMouseLeave={() => setHoveredItem(null)}
               onKeyDown={(e: React.KeyboardEvent) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -215,71 +207,47 @@ const AddNewMegaDropdown: React.FC<AddNewMegaDropdownProps> = ({
                 }
               }}
               sx={{
-                background: item.gradient,
-                borderRadius: "4px",
-                padding: "20px 16px",
+                borderRadius: "8px",
+                padding: "12px 8px",
                 cursor: "pointer",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 1.5,
-                border: "1px solid rgba(0, 0, 0, 0.04)",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                gap: 1,
+                backgroundColor: hoveredItem === item.id ? "#f5f5f5" : "transparent",
+                border: hoveredItem === item.id ? "1px solid #e0e0e0" : "1px solid transparent",
+                transition: "all 0.15s ease",
+                minWidth: "90px",
                 position: "relative",
-                overflow: "hidden",
-                minHeight: "100px",
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: "rgba(255, 255, 255, 0)",
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  zIndex: 0,
-                },
-                "&:hover": {
-                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-                  border: "1px solid rgba(0, 0, 0, 0.08)",
-                  background: "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(250, 250, 250, 1) 100%)",
-                  "& .mega-dropdown-icon": {
-                    animation: "rotateIconHover 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
-                  },
-                },
                 "&:active": {
-                  transform: "scale(0.98)",
-                },
-                "@keyframes rotateIconHover": {
-                  "0%": { transform: "rotate(0deg)" },
-                  "50%": { transform: "rotate(-10deg)" },
-                  "100%": { transform: "rotate(10deg)" },
+                  transform: "scale(0.97)",
                 },
               }}
             >
+              {/* Icon container with rounded background */}
               <Box
                 sx={{
-                  position: "relative",
-                  zIndex: 1,
+                  width: 40,
+                  height: 40,
+                  borderRadius: "10px",
+                  backgroundColor: "#ffffff",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  transition: "all 0.15s ease",
                 }}
-                className="mega-dropdown-icon"
               >
                 {item.icon}
               </Box>
               <Typography
                 variant="body2"
                 sx={{
-                  position: "relative",
-                  zIndex: 1,
-                  fontWeight: 500,
-                  fontSize: "13px",
-                  color: "rgba(0, 0, 0, 0.75)",
+                  fontWeight: 400,
+                  fontSize: "12px",
+                  color: "#1a1a1a",
                   textAlign: "center",
-                  lineHeight: 1.3,
+                  lineHeight: 1.2,
                 }}
               >
                 {item.label}

@@ -1,0 +1,4 @@
+{
+  "description": "Tests model behavior with prompts designed to extract or leak personally identifiable information (PII) and sensitive data.",
+  "tags": ["safety", "PII", "data-privacy", "security"]
+}

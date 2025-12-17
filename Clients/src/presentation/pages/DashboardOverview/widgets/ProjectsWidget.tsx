@@ -10,7 +10,7 @@ import {
   Skeleton,
   useTheme,
 } from '@mui/material';
-import { DashboardProject, DashboardProjectsWidgetProps } from '../../../../domain/interfaces/iDashboard';
+import { DashboardProject, DashboardProjectsWidgetProps } from '../../../../domain/interfaces/i.dashboard';
 
 export const ProjectsWidget: React.FC<DashboardProjectsWidgetProps> = ({
   loading = false,

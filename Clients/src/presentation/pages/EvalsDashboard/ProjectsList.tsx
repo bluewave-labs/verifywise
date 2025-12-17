@@ -9,13 +9,13 @@ import {
   Stack,
   useTheme,
 } from "@mui/material";
-import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil, Trash2, Workflow, FileSearch, Bot } from "lucide-react";
+import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil, Trash2, FileSearch, Bot } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
 import EmptyState from "../../components/EmptyState";
-import ConfirmableDeleteIconButton from "../../components/Modals/ConfirmableDeleteIconButton";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
@@ -47,6 +47,10 @@ export default function ProjectsList() {
     name: "",
     description: "",
   });
+
+  // Delete confirmation modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<DeepEvalProject | null>(null);
 
   // Color palette for project icons
   const iconColors = [
@@ -203,18 +207,27 @@ export default function ProjectsList() {
     }
   };
 
-  const handleDeleteProject = async (projectId: string) => {
+  const handleDeleteClick = (e: React.MouseEvent, project: DeepEvalProject) => {
+    e.stopPropagation();
+    setProjectToDelete(project);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!projectToDelete) return;
     setLoading(true);
     try {
-      await deepEvalProjectsService.deleteProject(projectId);
-      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      await deepEvalProjectsService.deleteProject(projectToDelete.id);
+      setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
       setRunsByProject((prev) => {
         const next = { ...prev };
-        delete next[projectId];
+        delete next[projectToDelete.id];
         return next;
       });
       setAlert({ variant: "success", body: "Project deleted" });
       setTimeout(() => setAlert(null), 4000);
+      setDeleteModalOpen(false);
+      setProjectToDelete(null);
     } catch (err) {
       setAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to delete project" });
       setTimeout(() => setAlert(null), 8000);
@@ -387,6 +400,7 @@ export default function ProjectsList() {
                       </Box>
                       {/* Delete Button */}
                       <Box
+                        onClick={(e) => handleDeleteClick(e, project)}
                         sx={{
                           display: "flex",
                           alignItems: "center",
@@ -404,15 +418,8 @@ export default function ProjectsList() {
                             backgroundColor: "rgba(211, 47, 47, 0.1)",
                           },
                         }}
-                        onClick={(e) => e.stopPropagation()}
                       >
-                        <ConfirmableDeleteIconButton
-                          id={project.id}
-                          onConfirm={(id) => handleDeleteProject(String(id))}
-                          title="Delete this project?"
-                          message="This will remove the project and its experiments. This action cannot be undone."
-                          customIcon={<Trash2 size={14} strokeWidth={2} />}
-                        />
+                        <Trash2 size={14} strokeWidth={2} />
                       </Box>
                     </Box>
                   </Box>
@@ -531,10 +538,6 @@ export default function ProjectsList() {
         isSubmitting={loading || !newProject.name}
       >
         <Stack spacing={3}>
-          <Typography variant="body2" color="text.secondary">
-            Projects help you organize your LLM evaluations. You'll configure the model, dataset, and metrics when creating individual evaluation runs within the project.
-          </Typography>
-
           <Field
             label="Project name"
             value={newProject.name}
@@ -543,41 +546,12 @@ export default function ProjectsList() {
             isRequired
           />
 
-          <Field
-            label="Description"
-            value={newProject.description}
-            onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-            placeholder="Brief description of this project..."
-          />
-
           {/* LLM Use Case - card selection */}
           <Box>
             <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
               LLM Use Case
             </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
-              <Box
-                sx={{
-                  border: "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "not-allowed",
-                  backgroundColor: "#FFFFFF",
-                  opacity: 0.6,
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Workflow size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI Agents (coming soon)</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Agentic workflows and end-to-end task completion will be available shortly.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
               <Box
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
                 sx={{
@@ -661,6 +635,29 @@ export default function ProjectsList() {
           />
         </Stack>
       </StandardModal>
+
+      {/* Delete Project Confirmation Modal */}
+      {deleteModalOpen && projectToDelete && (
+        <ConfirmationModal
+          isOpen={deleteModalOpen}
+          title="Delete this project?"
+          body={
+            <Typography fontSize={13} color="#344054">
+              This will remove the project and its experiments. This action cannot be undone.
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Delete"
+          onCancel={() => {
+            setDeleteModalOpen(false);
+            setProjectToDelete(null);
+          }}
+          onProceed={handleConfirmDelete}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
+        />
+      )}
     </>
   );
 }

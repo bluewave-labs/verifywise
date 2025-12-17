@@ -4,7 +4,7 @@ DeepEval Router
 Endpoints for running DeepEval LLM evaluations.
 """
 
-from fastapi import APIRouter, BackgroundTasks, Request, Body, HTTPException, UploadFile, File
+from fastapi import APIRouter, BackgroundTasks, Request, Body, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from pathlib import Path
 import json
@@ -25,6 +25,7 @@ from controllers.deepeval import (
     create_deepeval_scorer_controller,
     update_deepeval_scorer_controller,
     delete_deepeval_scorer_controller,
+    test_deepeval_scorer_controller,
 )
 
 router = APIRouter()
@@ -214,7 +215,11 @@ async def get_dataset_info():
 
 
 @router.post("/datasets/upload")
-async def upload_dataset(request: Request, dataset: UploadFile = File(...)):
+async def upload_dataset(
+    request: Request, 
+    dataset: UploadFile = File(...),
+    dataset_type: str = Form("chatbot"),
+):
     """
     Upload a custom JSON dataset to be used in evaluations.
     
@@ -224,12 +229,14 @@ async def upload_dataset(request: Request, dataset: UploadFile = File(...)):
         "path": "data/uploads/{tenant}/{filename}.json",
         "filename": "{filename}.json",
         "size": 12345,
-        "tenant": "default"
+        "tenant": "default",
+        "datasetType": "chatbot"
     }
     """
     return await upload_deepeval_dataset_controller(
         dataset=dataset,
         tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")),
+        dataset_type=dataset_type,
     )
 
 @router.get("/datasets/list")
@@ -325,4 +332,20 @@ async def delete_scorer_endpoint(request: Request, scorer_id: str):
     """
     tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     return await delete_deepeval_scorer_controller(scorer_id, tenant=tenant)
+
+
+@router.post("/scorers/{scorer_id}/test")
+async def test_scorer_endpoint(request: Request, scorer_id: str, payload: dict = Body(...)):
+    """
+    Test a scorer with sample input/output.
+    
+    Expected payload:
+    {
+      "input": "The source text...",
+      "output": "The model's output...",
+      "expected": "Optional expected output..."
+    }
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    return await test_deepeval_scorer_controller(scorer_id, tenant=tenant, payload=payload)
 

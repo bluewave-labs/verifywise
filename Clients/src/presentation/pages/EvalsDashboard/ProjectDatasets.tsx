@@ -613,8 +613,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   };
 
   const handleRowClick = async (dataset: BuiltInDataset) => {
-    // Open drawer when clicking on a row
-    await handleViewPrompts(dataset);
+    // Navigate directly to editor when clicking on a row
+    await handleOpenInEditor(dataset);
   };
 
 

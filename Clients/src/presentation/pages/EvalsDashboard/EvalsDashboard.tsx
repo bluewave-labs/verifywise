@@ -26,6 +26,7 @@ import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg
 import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
 import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
 import { ReactComponent as HuggingFaceLogo } from "../../assets/icons/huggingface_logo.svg";
+import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
 
 // Tab components
 import ProjectsList from "./ProjectsList";
@@ -44,6 +45,7 @@ const LLM_PROVIDERS = [
   { _id: "xai", name: "xAI", Logo: XAILogo },
   { _id: "mistral", name: "Mistral", Logo: MistralLogo },
   { _id: "huggingface", name: "Hugging Face", Logo: HuggingFaceLogo },
+  { _id: "openrouter", name: "OpenRouter", Logo: OpenRouterLogo },
 ];
 
 /**
@@ -79,6 +81,11 @@ const API_KEY_PATTERNS: Record<string, { pattern: RegExp; example: string; descr
     pattern: /^hf_[a-zA-Z0-9]{20,}$/,
     example: 'hf_...',
     description: 'Hugging Face keys start with "hf_"',
+  },
+  openrouter: {
+    pattern: /^sk-or-v1-[a-zA-Z0-9]{40,}$/,
+    example: 'sk-or-v1-...',
+    description: 'OpenRouter keys start with "sk-or-v1-"',
   },
 };
 

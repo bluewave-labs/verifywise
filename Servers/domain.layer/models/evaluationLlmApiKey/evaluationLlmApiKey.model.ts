@@ -16,6 +16,7 @@
  * - xai: xAI Grok models
  * - mistral: Mistral AI models
  * - huggingface: Hugging Face models
+ * - openrouter: OpenRouter (multi-provider gateway)
  *
  * @module domain.layer/models/evaluationLlmApiKey
  */
@@ -25,7 +26,7 @@ import { OrganizationModel } from '../organization/organization.model';
 import { encrypt, decrypt, maskApiKey } from '../../../utils/encryption.utils';
 import { ValidationException } from '../../exceptions/custom.exception';
 
-export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'xai' | 'mistral' | 'huggingface';
+export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'xai' | 'mistral' | 'huggingface' | 'openrouter';
 
 export const VALID_PROVIDERS: LLMProvider[] = [
   'openai',
@@ -34,6 +35,7 @@ export const VALID_PROVIDERS: LLMProvider[] = [
   'xai',
   'mistral',
   'huggingface',
+  'openrouter',
 ];
 
 /**
@@ -70,6 +72,11 @@ export const API_KEY_PATTERNS: Record<LLMProvider, { pattern: RegExp; example: s
     pattern: /^hf_[a-zA-Z0-9]{20,}$/,
     example: 'hf_...',
     description: 'Hugging Face keys start with "hf_"',
+  },
+  openrouter: {
+    pattern: /^sk-or-v1-[a-zA-Z0-9]{40,}$/,
+    example: 'sk-or-v1-...',
+    description: 'OpenRouter keys start with "sk-or-v1-"',
   },
 };
 

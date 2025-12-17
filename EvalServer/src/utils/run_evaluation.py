@@ -95,16 +95,18 @@ async def run_evaluation(
         # These keys are used by CUSTOM SCORERS - each scorer uses its own configured provider
         # G_EVAL_PROVIDER is set later based on the Judge LLM config (user's explicit selection)
         scorer_api_keys = config.get("scorerApiKeys")
+        print(f"🔑 Scorer API keys available: {list(scorer_api_keys.keys()) if scorer_api_keys else 'None'}")
+        print(f"🔑 Model config has apiKey: {bool(model_config.get('apiKey') and model_config.get('apiKey') != '***')}")
         if scorer_api_keys and isinstance(scorer_api_keys, dict):
             # Map provider names to environment variable names
             provider_env_map = {
                 "openai": "OPENAI_API_KEY",
                 "anthropic": "ANTHROPIC_API_KEY",
-                "google": "GEMINI_API_KEY",
-                "gemini": "GEMINI_API_KEY",
+                "google": "GOOGLE_API_KEY",
                 "xai": "XAI_API_KEY",
                 "mistral": "MISTRAL_API_KEY",
                 "huggingface": "HF_API_KEY",
+                "openrouter": "OPENROUTER_API_KEY",
             }
             
             configured_count = 0
@@ -120,7 +122,7 @@ async def run_evaluation(
         if legacy_key and not scorer_api_keys:
             os.environ["OPENAI_API_KEY"] = legacy_key
             os.environ["ANTHROPIC_API_KEY"] = legacy_key
-            os.environ["GEMINI_API_KEY"] = legacy_key
+            os.environ["GOOGLE_API_KEY"] = legacy_key
             os.environ["XAI_API_KEY"] = legacy_key
             os.environ["MISTRAL_API_KEY"] = legacy_key
         
@@ -134,12 +136,14 @@ async def run_evaluation(
                 print(f"✅ OPENAI_API_KEY set")
             elif provider == "anthropic":
                 os.environ["ANTHROPIC_API_KEY"] = judge_config["apiKey"]
-            elif provider == "gemini":
-                os.environ["GEMINI_API_KEY"] = judge_config["apiKey"]
+            elif provider in ("google", "gemini"):
+                os.environ["GOOGLE_API_KEY"] = judge_config["apiKey"]
             elif provider == "xai":
                 os.environ["XAI_API_KEY"] = judge_config["apiKey"]
             elif provider == "mistral":
                 os.environ["MISTRAL_API_KEY"] = judge_config["apiKey"]
+            elif provider == "openrouter":
+                os.environ["OPENROUTER_API_KEY"] = judge_config["apiKey"]
             # Expose judge provider/model for evaluator (provider-agnostic G‑Eval)
             if provider:
                 os.environ["G_EVAL_PROVIDER"] = provider
@@ -157,12 +161,14 @@ async def run_evaluation(
                 os.environ["OPENAI_API_KEY"] = model_config["apiKey"]
             elif provider == "anthropic":
                 os.environ["ANTHROPIC_API_KEY"] = model_config["apiKey"]
-            elif provider in ("gemini", "google"):
-                os.environ["GEMINI_API_KEY"] = model_config["apiKey"]
+            elif provider in ("google"):
+                os.environ["GOOGLE_API_KEY"] = model_config["apiKey"]
             elif provider == "xai":
                 os.environ["XAI_API_KEY"] = model_config["apiKey"]
             elif provider == "mistral":
                 os.environ["MISTRAL_API_KEY"] = model_config["apiKey"]
+            elif provider == "openrouter":
+                os.environ["OPENROUTER_API_KEY"] = model_config["apiKey"]
             elif provider == "custom_api":
                 # For custom API, we'll set as OPENAI_API_KEY since we use OpenAI client
                 os.environ["OPENAI_API_KEY"] = model_config["apiKey"]
@@ -182,13 +188,13 @@ async def run_evaluation(
             "local": "huggingface",    # Local files treated as HuggingFace models
             "custom_api": "openai",    # Custom API uses OpenAI client with custom base_url
             "openai": "openai",        # OpenAI API
-            "anthropic": "anthropic",  # Anthropic API (now supported!)
-            "gemini": "gemini",        # Gemini API (now supported!)
-            "google": "gemini",        # Google = Gemini
-            "xai": "xai",              # xAI API (now supported!)
-            "mistral": "mistral",      # Mistral API (now supported!)
+            "anthropic": "anthropic",  # Anthropic API
+            "google": "google",        # Google API (for Gemini models)
+            "xai": "xai",              # xAI API
+            "mistral": "mistral",      # Mistral API
             "huggingface": "huggingface",  # HuggingFace models
             "ollama": "ollama",        # Ollama local server
+            "openrouter": "openrouter",  # OpenRouter (multi-provider gateway)
         }
         
         runner_provider = provider_mapping.get(model_provider, "ollama")

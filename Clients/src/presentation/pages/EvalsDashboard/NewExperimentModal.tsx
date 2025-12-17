@@ -27,6 +27,7 @@ import { ReactComponent as OllamaLogo } from "../../assets/icons/ollama_logo.svg
 import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg";
 import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
 import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
+import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
@@ -547,7 +548,7 @@ export default function NewExperimentModal({
     });
   };
 
-  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api";
+  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api" | "openrouter";
 
   // Check if a provider has a configured API key
   const hasApiKey = (providerId: string): boolean => {
@@ -556,6 +557,7 @@ export default function NewExperimentModal({
 
   // All cloud providers that need API keys (using the saved models)
   const cloudProviders = [
+    { id: "openrouter" as ProviderType, name: "OpenRouter", Logo: OpenRouterLogo, needsApiKey: true },
     { id: "openai" as ProviderType, name: "OpenAI", Logo: OpenAILogo, needsApiKey: true },
     { id: "anthropic" as ProviderType, name: "Anthropic", Logo: AnthropicLogo, needsApiKey: true },
     { id: "google" as ProviderType, name: "Gemini", Logo: GeminiLogo, needsApiKey: true },

@@ -626,7 +626,7 @@ export default function NewExperimentModal({
           <Stack spacing={4}>
             <Box>
               <Typography variant="body2" color="text.secondary">
-                Configure the model that will be evaluated by the Judge LLM.
+                Select the model you want to evaluate.
               </Typography>
             </Box>
 
@@ -1627,7 +1627,8 @@ export default function NewExperimentModal({
                   No metrics available
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
-                  Standard metrics require a Judge LLM to evaluate model outputs. Since you selected "Custom Scorer Only", your experiment will use only your custom scorer ({selectedScorer?.name || "selected scorer"}) for evaluation.
+                  Standard metrics require a Judge LLM. 
+                  <br /> Your custom scorer will be used instead.
                 </Typography>
               </Box>
             </Stack>

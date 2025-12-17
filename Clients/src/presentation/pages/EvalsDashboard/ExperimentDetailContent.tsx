@@ -557,42 +557,45 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           }
         });
 
-        // Determine enabled metrics from experiment config and map to display names
-        const enabled: Record<string, unknown> =
-          (experiment as unknown as { config?: { metrics?: Record<string, unknown> } })?.config?.metrics || {};
+        // Detect if this is a multi-turn experiment by checking logs metadata
+        const isMultiTurnExperiment = logs.some(log => 
+          log.metadata?.is_conversational === true || 
+          log.metadata?.turns !== undefined
+        );
 
         // Metric definitions with categories - expanded to include all possible metrics
-        const metricDefinitions: Record<string, { label: string; category: "quality" | "safety" | "conversational" }> = {
-          // Standard DeepEval metrics (single-turn)
-          answerRelevancy: { label: "Answer Relevancy", category: "quality" },
-          faithfulness: { label: "Faithfulness", category: "quality" },
-          contextualRelevancy: { label: "Contextual Relevancy", category: "quality" },
-          contextualRecall: { label: "Contextual Recall", category: "quality" },
-          contextualPrecision: { label: "Contextual Precision", category: "quality" },
+        const metricDefinitions: Record<string, { label: string; category: "quality" | "safety" | "conversational"; multiTurnOnly?: boolean; singleTurnOnly?: boolean }> = {
+          // Standard DeepEval metrics (single-turn ONLY)
+          answerRelevancy: { label: "Answer Relevancy", category: "quality", singleTurnOnly: true },
+          faithfulness: { label: "Faithfulness", category: "quality", singleTurnOnly: true },
+          contextualRelevancy: { label: "Contextual Relevancy", category: "quality", singleTurnOnly: true },
+          contextualRecall: { label: "Contextual Recall", category: "quality", singleTurnOnly: true },
+          contextualPrecision: { label: "Contextual Precision", category: "quality", singleTurnOnly: true },
+          hallucination: { label: "Hallucination", category: "safety", singleTurnOnly: true },
+          // Agent metrics (single-turn)
+          toolCorrectness: { label: "Tool Correctness", category: "quality", singleTurnOnly: true },
+          // G-Eval single-turn metrics
+          answerCorrectness: { label: "Answer Correctness", category: "quality", singleTurnOnly: true },
+          coherence: { label: "Coherence", category: "quality", singleTurnOnly: true },
+          tonality: { label: "Tonality", category: "quality", singleTurnOnly: true },
+          safety: { label: "Safety", category: "safety", singleTurnOnly: true },
+          
+          // Safety metrics (work for both single-turn and multi-turn)
           bias: { label: "Bias", category: "safety" },
           toxicity: { label: "Toxicity", category: "safety" },
-          hallucination: { label: "Hallucination", category: "safety" },
-          // Agent metrics
-          toolCorrectness: { label: "Tool Correctness", category: "quality" },
-          // G-Eval single-turn metrics
-          answerCorrectness: { label: "Answer Correctness", category: "quality" },
-          coherence: { label: "Coherence", category: "quality" },
-          tonality: { label: "Tonality", category: "quality" },
-          safety: { label: "Safety", category: "safety" },
           
-          // === CONVERSATIONAL METRICS (multi-turn) ===
-          // These are the proper metrics for multi-turn conversations
-          turnRelevancy: { label: "Turn Relevancy", category: "conversational" },
-          knowledgeRetention: { label: "Knowledge Retention", category: "conversational" },
-          conversationCoherence: { label: "Conversation Coherence", category: "conversational" },
-          conversationHelpfulness: { label: "Conversation Helpfulness", category: "conversational" },
-          taskCompletion: { label: "Task Completion", category: "conversational" },
-          conversationSafety: { label: "Conversation Safety", category: "conversational" },
+          // === CONVERSATIONAL METRICS (multi-turn ONLY) ===
+          turnRelevancy: { label: "Turn Relevancy", category: "conversational", multiTurnOnly: true },
+          knowledgeRetention: { label: "Knowledge Retention", category: "conversational", multiTurnOnly: true },
+          conversationCoherence: { label: "Conversation Coherence", category: "conversational", multiTurnOnly: true },
+          conversationHelpfulness: { label: "Conversation Helpfulness", category: "conversational", multiTurnOnly: true },
+          taskCompletion: { label: "Task Completion", category: "conversational", multiTurnOnly: true },
+          conversationSafety: { label: "Conversation Safety", category: "conversational", multiTurnOnly: true },
           // Legacy conversational names (for backwards compatibility)
-          conversationCompleteness: { label: "Conversation Completeness", category: "conversational" },
-          conversationRelevancy: { label: "Conversation Relevancy", category: "conversational" },
-          roleAdherence: { label: "Role Adherence", category: "conversational" },
-          conversationQuality: { label: "Conversation Quality", category: "conversational" },
+          conversationCompleteness: { label: "Conversation Completeness", category: "conversational", multiTurnOnly: true },
+          conversationRelevancy: { label: "Conversation Relevancy", category: "conversational", multiTurnOnly: true },
+          roleAdherence: { label: "Role Adherence", category: "conversational", multiTurnOnly: true },
+          conversationQuality: { label: "Conversation Quality", category: "conversational", multiTurnOnly: true },
         };
 
         // Get score color based on value thresholds
@@ -645,9 +648,19 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           );
         };
 
-        // Show metrics that are either enabled in config OR have actual data
+        // Show metrics that:
+        // 1. Have actual data (score was calculated)
+        // 2. Are appropriate for the experiment type (multi-turn vs single-turn)
         const orderedMetrics = Object.keys(metricDefinitions)
-          .filter((k) => !!enabled?.[k] || !!metricsSum[k])
+          .filter((k) => {
+            const def = metricDefinitions[k];
+            // Only show metrics that have actual data
+            if (!metricsSum[k]) return false;
+            // Filter by experiment type
+            if (isMultiTurnExperiment && def.singleTurnOnly) return false;
+            if (!isMultiTurnExperiment && def.multiTurnOnly) return false;
+            return true;
+          })
           .map((k) => ({ key: k, ...metricDefinitions[k] }));
 
         // Find custom scorer metrics (those not in metricDefinitions but have data)

@@ -766,6 +766,7 @@ async def run_evaluation(
             results = evaluator.run_evaluation(
                 test_cases_data=test_cases_data,
                 metrics_config=deepeval_metrics_config,
+                use_case=task_type or "chatbot",
             )
         else:
             print(f"\n⏭️ Skipping DeepEval metrics (mode: {evaluation_mode})")

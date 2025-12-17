@@ -461,6 +461,39 @@ async def run_evaluation(
                         "turn_count": len(turn_objects),
                     }
                 })
+                
+                # Create a log entry for this conversation
+                # Combine user turns as input and assistant turns as output
+                user_turns = [t.get("content", "") for t in raw_turns if t.get("role", "").lower() == "user"]
+                assistant_turns = [t.get("content", "") for t in raw_turns if t.get("role", "").lower() == "assistant"]
+                combined_input = "\n".join([f"User: {msg}" for msg in user_turns])
+                combined_output = "\n".join([f"Assistant: {msg}" for msg in assistant_turns])
+                
+                # Estimate token count (roughly 4 chars per token)
+                all_text = combined_input + combined_output
+                estimated_tokens = len(all_text) // 4
+                
+                created_log = await crud.create_log(
+                    db=db,
+                    project_id=config.get("project_id"),
+                    tenant=tenant,
+                    experiment_id=experiment_id,
+                    input_text=combined_input or scenario,
+                    output_text=combined_output,
+                    model_name=model_name,  # Track the model
+                    token_count=estimated_tokens,  # Estimated token count
+                    metadata={
+                        "is_conversational": True,
+                        "scenario": scenario,
+                        "expected_outcome": expected_outcome,
+                        "turn_count": len(turn_objects),
+                        "turns": raw_turns,  # Store full conversation
+                    },
+                )
+                
+                # Store log_id in test case metadata for later metric_scores update
+                if created_log:
+                    test_cases_data[-1]["metadata"]["log_id"] = created_log.get("id")
             
             print(f"✓ Built {len(test_cases_data)} ConversationalTestCases from {len(conversations)} scenarios.")
         else:
@@ -887,6 +920,12 @@ async def run_evaluation(
             "Tool Correctness": "toolCorrectness",
             "Summarization": "summarization",
             "RAGAS": "ragas",
+            # Conversational metrics
+            "Turn Relevancy": "turnRelevancy",
+            "Conversation Coherence": "conversationCoherence",
+            "Conversation Helpfulness": "conversationHelpfulness",
+            "Conversation Safety": "conversationSafety",
+            "Conversation Quality": "conversationQuality",
             # G-Eval variants
             "g_eval_correctness": "answerCorrectness",
             "g_eval_coherence": "coherence",
@@ -895,8 +934,9 @@ async def run_evaluation(
         }
         
         try:
+            print(f"📝 Updating {len(results)} logs with metric scores...")
             for idx, result in enumerate(results):
-                log_id = test_cases_data[idx]["metadata"].get("log_id")
+                log_id = test_cases_data[idx]["metadata"].get("log_id") if idx < len(test_cases_data) else None
                 if log_id:
                     # Normalize metric keys to camelCase
                     raw_scores = result.get("metric_scores", {})
@@ -911,8 +951,13 @@ async def run_evaluation(
                         tenant=tenant,
                         metadata={"metric_scores": normalized_scores},
                     )
+                    print(f"   ✅ Updated log {log_id[:8]}... with {len(normalized_scores)} metrics")
+                else:
+                    print(f"   ⚠️ No log_id found for result {idx}")
         except Exception as e:
             print(f"⚠️ Failed to update log metadata with metric scores: {e}")
+            import traceback
+            traceback.print_exc()
         
         # 5. Store Results
         print(f"\n💾 Storing results...")
@@ -922,8 +967,9 @@ async def run_evaluation(
         avg_scores = {}
         
         # Map snake_case config keys to display names AND camelCase frontend keys
+        # Note: For conversational datasets, different metric names are used
         metric_config_map = {
-            # Universal Core
+            # Universal Core (single-turn)
             "answer_relevancy": {"display": "Relevance", "camel": "answerRelevancy"},
             "correctness": {"display": "Correctness", "camel": "correctness"},
             "completeness": {"display": "Completeness", "camel": "completeness"},
@@ -942,32 +988,84 @@ async def run_evaluation(
             "action_relevance": {"display": "Action Relevance", "camel": "actionRelevance"},
             "planning_quality": {"display": "Planning Quality", "camel": "planningQuality"},
         }
+        
+        # Conversational metric names (for multi-turn datasets)
+        # These map to the same config keys but have different display names
+        conversational_metric_map = {
+            "answer_relevancy": {"display": "Turn Relevancy", "camel": "turnRelevancy"},
+            "correctness": {"display": "Conversation Coherence", "camel": "conversationCoherence"},
+            "instruction_following": {"display": "Conversation Helpfulness", "camel": "conversationHelpfulness"},
+            "toxicity": {"display": "Conversation Safety", "camel": "conversationSafety"},
+            "bias": {"display": "Conversation Safety", "camel": "conversationSafety"},  # Combined into safety
+        }
+        
+        # Check if this is a conversational evaluation by looking at the results
+        is_conversational = any(r.get("is_conversational", False) for r in results)
 
-        for metric_key, enabled in deepeval_metrics_config.items():
-            if enabled:
-                mapping = metric_config_map.get(metric_key, {"display": metric_key, "camel": metric_key})
-                display_name = mapping["display"]
-                camel_key = mapping["camel"]
+        # For conversational datasets, also collect scores from conversational metric names
+        if is_conversational:
+            # Collect all unique metric names from results
+            all_metric_names = set()
+            for r in results:
+                all_metric_names.update(r.get("metric_scores", {}).keys())
+            
+            print(f"📊 Found conversational metrics: {all_metric_names}")
+            
+            # Process each metric found in results
+            for metric_name in all_metric_names:
                 scores: list[float] = []
                 for r in results:
-                    score_obj = r.get("metric_scores", {}).get(display_name)
+                    score_obj = r.get("metric_scores", {}).get(metric_name)
                     if isinstance(score_obj, dict):
                         score_val = score_obj.get("score")
                         if isinstance(score_val, (int, float)):
                             scores.append(float(score_val))
+                
                 if scores:
                     avg_score = sum(scores) / len(scores)
-                    # Store with camelCase key for frontend compatibility
+                    # Convert metric name to camelCase for frontend
+                    camel_key = "".join(
+                        word.capitalize() if i > 0 else word.lower()
+                        for i, word in enumerate(metric_name.split())
+                    )
                     avg_scores[camel_key] = avg_score
                     await crud.create_metric(
                         db=db,
                         project_id=config.get("project_id"),
-                        metric_name=camel_key,  # Use camelCase for DB too
+                        metric_name=camel_key,
                         metric_type="quality",
                         value=avg_score,
                         tenant=tenant,
                         experiment_id=experiment_id,
                     )
+                    print(f"   ✅ Saved {metric_name}: {avg_score:.3f}")
+        else:
+            # Single-turn: use standard metric mapping
+            for metric_key, enabled in deepeval_metrics_config.items():
+                if enabled:
+                    mapping = metric_config_map.get(metric_key, {"display": metric_key, "camel": metric_key})
+                    display_name = mapping["display"]
+                    camel_key = mapping["camel"]
+                    scores: list[float] = []
+                    for r in results:
+                        score_obj = r.get("metric_scores", {}).get(display_name)
+                        if isinstance(score_obj, dict):
+                            score_val = score_obj.get("score")
+                            if isinstance(score_val, (int, float)):
+                                scores.append(float(score_val))
+                    if scores:
+                        avg_score = sum(scores) / len(scores)
+                        # Store with camelCase key for frontend compatibility
+                        avg_scores[camel_key] = avg_score
+                        await crud.create_metric(
+                            db=db,
+                            project_id=config.get("project_id"),
+                            metric_name=camel_key,  # Use camelCase for DB too
+                            metric_type="quality",
+                            value=avg_score,
+                            tenant=tenant,
+                            experiment_id=experiment_id,
+                        )
         
         # 5.1 Store Custom Scorer Results (same format as DeepEval metrics)
         if custom_scorer_results:

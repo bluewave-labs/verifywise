@@ -338,15 +338,29 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
               variant="contained"
               onClick={handleRerunExperiment}
               disabled={rerunLoading || experiment.status === "running"}
-              startIcon={<RotateCcw size={16} />}
+              startIcon={<RotateCcw size={14} />}
               sx={{
                 textTransform: "none",
                 backgroundColor: "#13715B",
-                "&:hover": { backgroundColor: "#0F5A47" },
-                fontSize: "14px",
+                color: "white",
+                "&:hover": { 
+                  backgroundColor: "#0F5A47",
+                },
+                "&:disabled": {
+                  backgroundColor: "#D1D5DB",
+                  color: "#9CA3AF",
+                },
+                fontSize: "13px",
                 fontWeight: 500,
-                height: 40,
-                px: 3,
+                minWidth: "100px",
+                height: 38,
+                pl: 2,
+                pr: 2.5,
+                borderRadius: "8px",
+                "& .MuiButton-startIcon": {
+                  marginLeft: 0,
+                  marginRight: "8px",
+                },
               }}
             >
               {rerunLoading ? "Starting…" : "Rerun"}
@@ -360,6 +374,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                   backgroundColor: "#D1FAE5",
                   color: "#065F46",
                   fontSize: "12px",
+                  borderRadius: "6px",
                   "& .MuiChip-deleteIcon": {
                     color: "#065F46",
                     "&:hover": { color: "#047857" },
@@ -1027,82 +1042,165 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
                 <Divider sx={{ my: 3 }} />
 
-                {/* Input */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1.5 }}>
-                    Input
-                  </Typography>
-                  <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
-                    <Box
-                      sx={{ fontSize: "12px" }}
-                      dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedLog.input_text || "No input") }}
-                    />
-                  </Paper>
-                </Box>
-
-                {/* Output */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1.5 }}>
-                    Output
-                  </Typography>
-                  <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
-                    <Box
-                      sx={{ fontSize: "12px" }}
-                      dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedLog.output_text || "No output") }}
-                    />
-                  </Paper>
-                </Box>
-
-                {/* Additional Metadata */}
-                {(selectedLog.latency_ms || selectedLog.token_count) && (
-                  <Box sx={{ mb: 2 }}>
+                {/* Conversational Display (for multi-turn) */}
+                {selectedLog.metadata?.is_conversational && selectedLog.metadata?.turns ? (
+                  <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1.5 }}>
-                      Metadata
+                      Conversation ({selectedLog.metadata.turn_count || selectedLog.metadata.turns.length} turns)
                     </Typography>
-                    <Stack spacing={1}>
-                      {selectedLog.latency_ms && (
-                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                            Latency
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
-                            {selectedLog.latency_ms}ms
-                          </Typography>
-                        </Box>
-                      )}
-                      {selectedLog.token_count && (
-                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                            Token count
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
-                            {selectedLog.token_count}
-                          </Typography>
-                        </Box>
-                      )}
-                      {selectedLog.model_name && (
-                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                            Model
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
-                            {selectedLog.model_name}
-                          </Typography>
-                        </Box>
-                      )}
-                      {selectedLog.timestamp && (
-                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                            Timestamp
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
-                            {new Date(selectedLog.timestamp).toLocaleString()}
-                          </Typography>
-                        </Box>
-                      )}
-                    </Stack>
+                    {selectedLog.metadata.scenario && (
+                      <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mb: 2 }}>
+                        Scenario: {selectedLog.metadata.scenario}
+                      </Typography>
+                    )}
+                    <Box sx={{ 
+                      backgroundColor: "#FAF5FF", 
+                      border: "1px solid #DDD6FE", 
+                      borderRadius: "12px", 
+                      p: 2,
+                    }}>
+                      <Stack spacing={2}>
+                        {(selectedLog.metadata.turns as Array<{role: string; content: string}>).map((turn, idx) => {
+                          const isUser = turn.role?.toLowerCase() === "user";
+                          return (
+                            <Box
+                              key={idx}
+                              sx={{
+                                display: "flex",
+                                justifyContent: isUser ? "flex-end" : "flex-start",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  maxWidth: "85%",
+                                  p: 1.5,
+                                  borderRadius: "12px",
+                                  backgroundColor: isUser ? "#ECFDF5" : "#EBF5FF",
+                                  border: isUser ? "1px solid #A7F3D0" : "1px solid #BFDBFE",
+                                }}
+                              >
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontWeight: 600,
+                                    color: isUser ? "#059669" : "#1E40AF",
+                                    display: "block",
+                                    mb: 0.5,
+                                    fontSize: "10px",
+                                    textTransform: "uppercase",
+                                  }}
+                                >
+                                  {isUser ? "User" : "Assistant"}
+                                </Typography>
+                                <Box
+                                  sx={{ fontSize: "12px", color: "#374151" }}
+                                  dangerouslySetInnerHTML={{ __html: markdownToHtml(turn.content || "") }}
+                                />
+                              </Box>
+                            </Box>
+                          );
+                        })}
+                      </Stack>
+                    </Box>
+                    {selectedLog.metadata.expected_outcome && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: "#6B7280" }}>
+                          Expected Outcome:
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontSize: "12px", color: "#374151", mt: 0.5 }}>
+                          {selectedLog.metadata.expected_outcome}
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
+                ) : (
+                  <>
+                    {/* Input (single-turn) */}
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1.5 }}>
+                        Input
+                      </Typography>
+                      <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
+                        <Box
+                          sx={{ fontSize: "12px" }}
+                          dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedLog.input_text || "No input") }}
+                        />
+                      </Paper>
+                    </Box>
+
+                    {/* Output (single-turn) */}
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1.5 }}>
+                        Output
+                      </Typography>
+                      <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
+                        <Box
+                          sx={{ fontSize: "12px" }}
+                          dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedLog.output_text || "No output") }}
+                        />
+                      </Paper>
+                    </Box>
+                  </>
                 )}
+
+                {/* Metadata - Always show */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1.5 }}>
+                    Metadata
+                  </Typography>
+                  <Stack spacing={1}>
+                    {selectedLog.latency_ms && (
+                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
+                          Latency
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
+                          {selectedLog.latency_ms}ms
+                        </Typography>
+                      </Box>
+                    )}
+                    {selectedLog.token_count && (
+                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
+                          Token count
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
+                          {selectedLog.token_count}
+                        </Typography>
+                      </Box>
+                    )}
+                    {selectedLog.model_name && (
+                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
+                          Model
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
+                          {selectedLog.model_name}
+                        </Typography>
+                      </Box>
+                    )}
+                    {selectedLog.metadata?.turn_count && (
+                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
+                          Turns
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
+                          {selectedLog.metadata.turn_count}
+                        </Typography>
+                      </Box>
+                    )}
+                    {selectedLog.timestamp && (
+                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
+                          Timestamp
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
+                          {new Date(selectedLog.timestamp).toLocaleString()}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                </Box>
 
                 {/* Error message if failed */}
                 {selectedLog.error_message && (

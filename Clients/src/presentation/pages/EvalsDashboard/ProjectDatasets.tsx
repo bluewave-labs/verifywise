@@ -49,6 +49,7 @@ type BuiltInDataset = ListedDataset & {
   isUserDataset?: boolean;
   createdAt?: string;
   datasetType?: DatasetType;
+  turnType?: "single-turn" | "multi-turn";
   // Additional metadata for templates
   test_count?: number;
   categories?: string[];
@@ -79,11 +80,10 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const [loadingPrompts, setLoadingPrompts] = useState(false);
 
   // Template datasets state
-  const [templateGroups, setTemplateGroups] = useState<Record<"chatbot" | "rag" | "agent" | "safety", BuiltInDataset[]>>({
+  const [templateGroups, setTemplateGroups] = useState<Record<"chatbot" | "rag" | "agent", BuiltInDataset[]>>({
     chatbot: [],
     rag: [],
     agent: [],
-    safety: [],
   });
   const [selectedTemplate, setSelectedTemplate] = useState<BuiltInDataset | null>(null);
   const [templatePrompts, setTemplatePrompts] = useState<DatasetPromptRecord[]>([]);
@@ -138,7 +138,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   // Calculate average difficulty from prompts
   const calculateAvgDifficulty = (prompts: DatasetPromptRecord[]): string => {
     const difficulties = prompts.filter(p => p.difficulty).map(p => p.difficulty!.toLowerCase());
-    if (difficulties.length === 0) return "-";
+    if (difficulties.length === 0) return "Medium"; // Default to Medium if no difficulty data
     
     const counts = { easy: 0, medium: 0, hard: 0 };
     difficulties.forEach(d => {
@@ -163,7 +163,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     
     setDatasetMetadata(prev => ({
       ...prev,
-      [dataset.path]: { promptCount: 0, avgDifficulty: "-", loading: true }
+      [dataset.path]: { promptCount: 0, avgDifficulty: "Medium", loading: true }
     }));
     
     try {
@@ -180,7 +180,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     } catch {
       setDatasetMetadata(prev => ({
         ...prev,
-        [dataset.path]: { promptCount: 0, avgDifficulty: "-", loading: false }
+        [dataset.path]: { promptCount: 0, avgDifficulty: "Medium", loading: false }
       }));
     }
   }, [datasetMetadata]);
@@ -195,8 +195,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
         key: `user_${ud.id}`,
         name: ud.name,
         path: ud.path,
-        use_case: (ud.datasetType || "chatbot") as "chatbot" | "rag" | "agent" | "safety",
+        use_case: (ud.datasetType || "chatbot") as "chatbot" | "rag" | "agent",
         datasetType: ud.datasetType || "chatbot",
+        turnType: ud.turnType,
         isUserDataset: true,
         createdAt: ud.createdAt,
       }));
@@ -219,10 +220,10 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     try {
       setLoading(true);
       const res = await deepEvalDatasetsService.list();
-      setTemplateGroups(res as Record<"chatbot" | "rag" | "agent" | "safety", BuiltInDataset[]>);
+      setTemplateGroups(res as Record<"chatbot" | "rag" | "agent", BuiltInDataset[]>);
     } catch (err) {
       console.error("Failed to load template datasets", err);
-      setTemplateGroups({ chatbot: [], rag: [], agent: [], safety: [] });
+      setTemplateGroups({ chatbot: [], rag: [], agent: [] });
       setAlert({
         variant: "error",
         body: "Failed to load template datasets",
@@ -234,9 +235,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   }, []);
 
   // Flatten templates from all categories into a single array with category field
-  type TemplateWithCategory = BuiltInDataset & { category: "chatbot" | "rag" | "agent" | "safety" };
+  type TemplateWithCategory = BuiltInDataset & { category: "chatbot" | "rag" | "agent" };
   const flattenedTemplates: TemplateWithCategory[] = useMemo(() => {
-    return (["chatbot", "rag", "agent", "safety"] as const).flatMap((category) =>
+    return (["chatbot", "rag", "agent"] as const).flatMap((category) =>
       (templateGroups[category] || []).map((ds) => ({ ...ds, category }))
     );
   }, [templateGroups]);
@@ -252,7 +253,6 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
         { value: "chatbot", label: "Chatbot" },
         { value: "rag", label: "RAG" },
         { value: "agent", label: "Agent" },
-        { value: "safety", label: "Safety" },
       ],
     },
   ], []);
@@ -305,12 +305,16 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             aVal = a.test_count ?? 0;
             bVal = b.test_count ?? 0;
             break;
+          case "type":
+            aVal = a.type || "";
+            bVal = b.type || "";
+            break;
           case "difficulty": {
             // Calculate predominant difficulty from the object
             const getPredominantDifficulty = (diff?: { easy: number; medium: number; hard: number }) => {
-              if (!diff) return 0;
+              if (!diff) return 2; // Default to Medium (2) if no difficulty data
               const total = diff.easy + diff.medium + diff.hard;
-              if (total === 0) return 0;
+              if (total === 0) return 2; // Default to Medium if no prompts have difficulty
               // Weight: easy=1, medium=2, hard=3, then average
               return (diff.easy * 1 + diff.medium * 2 + diff.hard * 3) / total;
             };
@@ -646,9 +650,11 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
   // Example dataset type for download
   const [exampleDatasetType, setExampleDatasetType] = useState<"chatbot" | "rag" | "agent">("chatbot");
+  const [datasetTurnType, setDatasetTurnType] = useState<"single-turn" | "multi-turn">("single-turn");
 
   const handleDownloadExample = (type: "chatbot" | "rag" | "agent" = exampleDatasetType) => {
-    const exampleDatasets = {
+    // Single-turn examples
+    const singleTurnDatasets = {
       chatbot: [
         {
           id: "chatbot_001",
@@ -672,26 +678,12 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
           id: "rag_001",
           category: "document_qa",
           prompt: "What are the key benefits of renewable energy?",
-          expected_output: "The key benefits of renewable energy include reduced carbon emissions, energy independence, and long-term cost savings.",
-          expected_keywords: ["carbon emissions", "energy independence", "cost savings"],
+          expected_output: "The key benefits include reduced carbon emissions and energy independence.",
+          expected_keywords: ["carbon emissions", "energy independence"],
           difficulty: "medium",
           retrieval_context: [
-            "Renewable energy sources such as solar, wind, and hydropower offer significant environmental benefits by reducing greenhouse gas emissions.",
-            "Countries that invest in renewable energy often achieve greater energy independence and security.",
-            "While initial costs may be higher, renewable energy systems typically provide long-term cost savings through reduced fuel and maintenance costs."
-          ]
-        },
-        {
-          id: "rag_002",
-          category: "technical_docs",
-          prompt: "How does the authentication system handle expired tokens?",
-          expected_output: "When a token expires, the system returns a 401 status code and the client must refresh the token using the refresh endpoint.",
-          expected_keywords: ["401", "refresh", "token"],
-          difficulty: "hard",
-          retrieval_context: [
-            "The authentication middleware validates JWT tokens on each request. If the token has expired, it returns HTTP 401 Unauthorized.",
-            "Clients should implement automatic token refresh by calling POST /auth/refresh with a valid refresh token.",
-            "Refresh tokens have a longer expiry (7 days) compared to access tokens (15 minutes)."
+            "Renewable energy sources offer significant environmental benefits by reducing greenhouse gas emissions.",
+            "Countries that invest in renewable energy achieve greater energy independence."
           ]
         }
       ],
@@ -700,27 +692,72 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
           id: "agent_001",
           category: "task_execution",
           prompt: "Search for the weather in New York and summarize it.",
-          expected_output: "I searched for the current weather in New York. The temperature is 72°F with partly cloudy skies.",
+          expected_output: "I searched for the current weather in New York. The temperature is 72°F.",
           expected_keywords: ["weather", "New York", "temperature"],
           difficulty: "medium",
           tools_available: ["web_search", "calculator", "calendar"],
           expected_tools: ["web_search"]
-        },
-        {
-          id: "agent_002",
-          category: "multi_step",
-          prompt: "Calculate the total cost of 3 items at $25.99 each plus 8% tax.",
-          expected_output: "The subtotal is $77.97 and with 8% tax ($6.24), the total is $84.21.",
-          expected_keywords: ["77.97", "6.24", "84.21"],
-          difficulty: "easy",
-          tools_available: ["calculator", "web_search"],
-          expected_tools: ["calculator"]
         }
       ]
     };
 
-    const exampleData = exampleDatasets[type];
-    const filename = `example_${type}_dataset.json`;
+    // Multi-turn examples
+    const multiTurnDatasets = {
+      chatbot: [
+        {
+          scenario: "Customer asking about product features",
+          expected_outcome: "Successfully explain product features and answer follow-up questions",
+          turns: [
+            { role: "user", content: "Hi, I'm interested in your premium plan. What features does it include?" },
+            { role: "assistant", content: "Hello! Our premium plan includes unlimited storage, priority support, and advanced analytics. Would you like details on any specific feature?" },
+            { role: "user", content: "Yes, tell me more about the advanced analytics." },
+            { role: "assistant", content: "Our advanced analytics provides real-time dashboards, custom reports, and predictive insights powered by AI." }
+          ]
+        },
+        {
+          scenario: "Technical troubleshooting conversation",
+          expected_outcome: "Guide user through troubleshooting steps",
+          turns: [
+            { role: "user", content: "My app keeps crashing when I try to upload files." },
+            { role: "assistant", content: "I'm sorry to hear that. Let me help you troubleshoot. What type of files are you trying to upload, and what's their size?" },
+            { role: "user", content: "PDFs, around 50MB each." },
+            { role: "assistant", content: "That file size should work fine. Can you try clearing your browser cache and attempting the upload again?" }
+          ]
+        }
+      ],
+      rag: [
+        {
+          scenario: "Document-based Q&A about company policies",
+          expected_outcome: "Accurately answer questions using retrieved context",
+          context: [
+            "Employees are entitled to 20 days of paid time off per year.",
+            "Remote work is permitted up to 3 days per week with manager approval."
+          ],
+          turns: [
+            { role: "user", content: "How many vacation days do I get per year?" },
+            { role: "assistant", content: "According to the company policy, employees are entitled to 20 days of paid time off per year." },
+            { role: "user", content: "Can I work from home?" },
+            { role: "assistant", content: "Yes, remote work is permitted up to 3 days per week, but you'll need your manager's approval." }
+          ]
+        }
+      ],
+      agent: [
+        {
+          scenario: "Planning a trip with multiple tools",
+          expected_outcome: "Successfully use tools to help plan a trip",
+          tools_available: ["web_search", "calendar", "weather_api"],
+          turns: [
+            { role: "user", content: "Help me plan a trip to Paris next month." },
+            { role: "assistant", content: "I'd be happy to help! Let me check the weather forecast for Paris next month. [uses weather_api]" },
+            { role: "user", content: "What are the must-see attractions?" },
+            { role: "assistant", content: "Let me search for top Paris attractions. [uses web_search] The top attractions include the Eiffel Tower, Louvre Museum, and Notre-Dame Cathedral." }
+          ]
+        }
+      ]
+    };
+
+    const exampleData = datasetTurnType === "single-turn" ? singleTurnDatasets[type] : multiTurnDatasets[type];
+    const filename = `example_${datasetTurnType}_${type}_dataset.json`;
 
     const blob = new Blob([JSON.stringify(exampleData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -740,7 +777,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     try {
       setUploading(true);
       setUploadModalOpen(false);
-      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType);
+      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType, datasetTurnType);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
       void loadMyDatasets();
@@ -1253,6 +1290,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 name: dataset.name,
                 path: dataset.path,
                 useCase: dataset.use_case || dataset.datasetType,
+                type: dataset.turnType || dataset.type,
                 createdAt: dataset.createdAt,
                 metadata: datasetMetadata[dataset.path],
               }))}
@@ -1321,9 +1359,23 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         </Box>
                       </Box>
                     </TableCell>
-                    {/* Sortable Category column - 20% */}
+                    {/* TYPE column - 15% */}
                     <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
+                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
+                      onClick={() => handleTemplateSort("type")}
+                    >
+                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>TYPE</Typography>
+                        <Box sx={{ color: templateSortConfig.key === "type" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
+                          {templateSortConfig.key === "type" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
+                          {templateSortConfig.key === "type" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
+                          {templateSortConfig.key !== "type" && <ChevronsUpDown size={16} />}
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    {/* Sortable Category column - 15% */}
+                    <TableCell
+                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
                       onClick={() => handleTemplateSort("category")}
                     >
                       <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
@@ -1335,9 +1387,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         </Box>
                       </Box>
                     </TableCell>
-                    {/* Sortable # Prompts column - 20% */}
+                    {/* Sortable # Prompts column - 15% */}
                     <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
+                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
                       onClick={() => handleTemplateSort("tests")}
                     >
                       <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
@@ -1349,9 +1401,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         </Box>
                       </Box>
                     </TableCell>
-                    {/* Sortable Difficulty column - 20% */}
+                    {/* Sortable Difficulty column - 15% */}
                     <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
+                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
                       onClick={() => handleTemplateSort("difficulty")}
                     >
                       <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
@@ -1363,8 +1415,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         </Box>
                       </Box>
                     </TableCell>
-                    {/* ACTION column - 20% */}
-                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", textAlign: "center" }}>
+                    {/* ACTION column - 15% */}
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", textAlign: "center" }}>
                       <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>ACTION</Typography>
                     </TableCell>
                   </TableRow>
@@ -1372,13 +1424,13 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={5} sx={{ textAlign: "center", py: 4 }}>
+                      <TableCell colSpan={6} sx={{ textAlign: "center", py: 4 }}>
                         <CircularProgress size={24} sx={{ color: "#13715B" }} />
                       </TableCell>
                     </TableRow>
                   ) : paginatedTemplates.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} sx={{ textAlign: "center", py: 4 }}>
+                      <TableCell colSpan={6} sx={{ textAlign: "center", py: 4 }}>
                         <Typography variant="body2" color="text.secondary">
                           {flattenedTemplates.length === 0 ? "No template datasets available" : "No templates match your search"}
                         </Typography>
@@ -1388,9 +1440,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     paginatedTemplates.map((ds) => {
                       // Calculate predominant difficulty label from the object
                       const getPredominantDifficultyLabel = (diff?: { easy: number; medium: number; hard: number }): string => {
-                        if (!diff) return "-";
+                        if (!diff) return "Medium"; // Default to Medium if no difficulty data
                         const total = diff.easy + diff.medium + diff.hard;
-                        if (total === 0) return "-";
+                        if (total === 0) return "Medium"; // Default to Medium if no prompts have difficulty
                         // Find which has the highest count
                         if (diff.hard >= diff.medium && diff.hard >= diff.easy) return "Hard";
                         if (diff.medium >= diff.easy) return "Medium";
@@ -1423,21 +1475,39 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                             <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>{ds.name}</Typography>
                           </TableCell>
                           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                            {ds.type ? (
+                              <Chip
+                                label={ds.type === "single-turn" ? "Single-Turn" : "Multi-Turn"}
+                                size="small"
+                                sx={{
+                                  height: "22px",
+                                  fontSize: "11px",
+                                  fontWeight: 500,
+                                  borderRadius: "4px",
+                                  backgroundColor: ds.type === "single-turn" ? "#FEF3C7" : "#E3F2FD",
+                                  color: ds.type === "single-turn" ? "#92400E" : "#1565C0",
+                                }}
+                              />
+                            ) : (
+                              <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
+                            )}
+                          </TableCell>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
                             <Chip
-                              label={ds.category === "rag" ? "RAG" : ds.category === "chatbot" ? "Chatbot" : ds.category === "agent" ? "Agent" : ds.category === "safety" ? "Safety" : ds.category}
+                              label={ds.category === "rag" ? "RAG" : ds.category === "chatbot" ? "Chatbot" : ds.category === "agent" ? "Agent" : ds.category}
                               size="small"
                               sx={{
                                 height: 22,
                                 fontSize: "11px",
                                 backgroundColor:
-                                  ds.category === "chatbot" ? "#DBEAFE" :
+                                  ds.category === "chatbot" ? "#CCFBF1" :
                                   ds.category === "rag" ? "#E0E7FF" :
-                                  ds.category === "agent" ? "#FEF3C7" :
+                                  ds.category === "agent" ? "#FEE2E2" :
                                   "#FEE2E2",
                                 color:
-                                  ds.category === "chatbot" ? "#1E40AF" :
+                                  ds.category === "chatbot" ? "#0D9488" :
                                   ds.category === "rag" ? "#3730A3" :
-                                  ds.category === "agent" ? "#92400E" :
+                                  ds.category === "agent" ? "#DC2626" :
                                   "#991B1B",
                                 borderRadius: "4px",
                               }}
@@ -1619,15 +1689,86 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
         onClose={() => setUploadModalOpen(false)}
         title="Upload dataset"
         description="Upload a custom dataset in JSON format for your evaluations"
-        onSubmit={handleFileSelect}
-        submitButtonText="Choose file"
-        isSubmitting={false}
+        customFooter={
+          <Stack direction="row" spacing={2} justifyContent="flex-end" width="100%">
+            <CustomizableButton
+              variant="outlined"
+              text="Cancel"
+              onClick={() => setUploadModalOpen(false)}
+              sx={{
+                minWidth: "80px",
+                height: "34px",
+                border: "1px solid #D0D5DD",
+                color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
+              }}
+            />
+            <CustomizableButton
+              variant="contained"
+              text="Upload file"
+              onClick={handleFileSelect}
+              startIcon={<Upload size={16} />}
+              sx={{
+                minWidth: "120px",
+                height: "34px",
+                backgroundColor: "#13715B",
+                "&:hover": {
+                  backgroundColor: "#0F5C4A",
+                },
+              }}
+            />
+          </Stack>
+        }
       >
-        <Stack spacing={3}>
+        <Stack spacing={3} sx={{ p: 2 }}>
+          {/* Turn type selector - NEW */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1.5 }}>
+              Conversation type
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              {(["single-turn", "multi-turn"] as const).map((turnType) => (
+                <Chip
+                  key={turnType}
+                  label={turnType === "single-turn" ? "Single-Turn" : "Multi-Turn"}
+                  onClick={() => setDatasetTurnType(turnType)}
+                  sx={{
+                    cursor: "pointer",
+                    height: 28,
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    backgroundColor: datasetTurnType === turnType
+                      ? turnType === "single-turn" ? "#FEF3C7" : "#E3F2FD"
+                      : "#F3F4F6",
+                    color: datasetTurnType === turnType
+                      ? turnType === "single-turn" ? "#92400E" : "#1565C0"
+                      : "#6B7280",
+                    border: datasetTurnType === turnType ? "1px solid" : "1px solid transparent",
+                    borderColor: datasetTurnType === turnType
+                      ? turnType === "single-turn" ? "#F59E0B" : "#2196F3"
+                      : "transparent",
+                    "&:hover": {
+                      backgroundColor: turnType === "single-turn" ? "#FEF3C7" : "#E3F2FD",
+                    },
+                  }}
+                />
+              ))}
+            </Stack>
+            <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1 }}>
+              {datasetTurnType === "single-turn" 
+                ? "Simple prompt → response pairs. Best for RAG and basic Q&A evaluation."
+                : "Multi-turn conversations with scenario and turns. Best for chatbot and agent evaluation."
+              }
+            </Typography>
+          </Box>
+
           {/* Dataset type selector */}
           <Box>
             <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1.5 }}>
-              Dataset type
+              Use case
             </Typography>
             <Stack direction="row" spacing={1}>
               {(["chatbot", "rag", "agent"] as const).map((type) => (
@@ -1641,23 +1782,23 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     fontSize: "12px",
                     fontWeight: 500,
                     backgroundColor: exampleDatasetType === type
-                      ? type === "chatbot" ? "#DBEAFE"
+                      ? type === "chatbot" ? "#CCFBF1"
                         : type === "rag" ? "#E0E7FF"
                         : "#FEF3C7"
                       : "#F3F4F6",
                     color: exampleDatasetType === type
-                      ? type === "chatbot" ? "#1E40AF"
+                      ? type === "chatbot" ? "#0D9488"
                         : type === "rag" ? "#3730A3"
                         : "#92400E"
                       : "#6B7280",
                     border: exampleDatasetType === type ? "1px solid" : "1px solid transparent",
                     borderColor: exampleDatasetType === type
-                      ? type === "chatbot" ? "#3B82F6"
+                      ? type === "chatbot" ? "#14B8A6"
                         : type === "rag" ? "#6366F1"
                         : "#F59E0B"
                       : "transparent",
                     "&:hover": {
-                      backgroundColor: type === "chatbot" ? "#DBEAFE"
+                      backgroundColor: type === "chatbot" ? "#CCFBF1"
                         : type === "rag" ? "#E0E7FF"
                         : "#FEF3C7",
                     },
@@ -1665,18 +1806,13 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 />
               ))}
             </Stack>
-            <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1 }}>
-              {exampleDatasetType === "chatbot" && "Standard Q&A datasets for evaluating chatbot responses."}
-              {exampleDatasetType === "rag" && "Datasets with retrieval_context for RAG faithfulness & relevancy metrics."}
-              {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent task completion."}
-            </Typography>
           </Box>
 
-          {/* JSON structure based on type */}
+          {/* JSON structure based on turn type */}
           <Box>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px" }}>
-                JSON structure for {exampleDatasetType === "rag" ? "RAG" : exampleDatasetType.charAt(0).toUpperCase() + exampleDatasetType.slice(1)}
+                {datasetTurnType === "single-turn" ? "Single-Turn" : "Multi-Turn"} JSON format
               </Typography>
               <Button
                 size="small"
@@ -1703,104 +1839,102 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 fontFamily: "monospace",
                 fontSize: "11px",
                 overflow: "auto",
-                maxHeight: "200px",
+                maxHeight: "220px",
               }}
             >
               <pre style={{ margin: 0 }}>
-{exampleDatasetType === "chatbot" ? `[
+{datasetTurnType === "single-turn" ? `[
   {
-    "id": "chatbot_001",
-    "category": "general_knowledge",
+    "id": "prompt_001",
+    "category": "general",
     "prompt": "What is machine learning?",
     "expected_output": "Machine learning is...",
     "expected_keywords": ["algorithm", "data"],
-    "difficulty": "easy"
-  }
-]` : exampleDatasetType === "rag" ? `[
-  {
-    "id": "rag_001",
-    "category": "document_qa",
-    "prompt": "What are the key benefits?",
-    "expected_output": "The key benefits are...",
-    "expected_keywords": ["benefit", "advantage"],
-    "difficulty": "medium",
+    "difficulty": "easy"${exampleDatasetType === "rag" ? `,
     "retrieval_context": [
       "Context document 1...",
       "Context document 2..."
-    ]
+    ]` : exampleDatasetType === "agent" ? `,
+    "tools_available": ["web_search"],
+    "expected_tools": ["web_search"]` : ""}
   }
 ]` : `[
   {
-    "id": "agent_001",
-    "category": "task_execution",
-    "prompt": "Search for weather in NYC",
-    "expected_output": "The weather in NYC is...",
-    "expected_keywords": ["weather", "NYC"],
-    "difficulty": "medium",
-    "tools_available": ["web_search", "calculator"],
-    "expected_tools": ["web_search"]
+    "scenario": "Customer asking for help",
+    "expected_outcome": "Successfully assist customer",${exampleDatasetType === "rag" ? `
+    "context": ["Relevant document..."],` : ""}${exampleDatasetType === "agent" ? `
+    "tools_available": ["search", "calendar"],` : ""}
+    "turns": [
+      { "role": "user", "content": "Hi, I need help" },
+      { "role": "assistant", "content": "Hello! How can I assist you today?" },
+      { "role": "user", "content": "I have a question about..." },
+      { "role": "assistant", "content": "I'd be happy to help with that." }
+    ]
   }
 ]`}
               </pre>
             </Box>
           </Box>
 
-          {/* Field descriptions based on type */}
+          {/* Field descriptions based on turn type */}
           <Box>
             <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1 }}>
-              Field descriptions
+              {datasetTurnType === "single-turn" ? "Single-Turn" : "Multi-Turn"} fields
             </Typography>
             <Stack spacing={0.75}>
-              <Box>
-                <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
-                  id
-                </Typography>
-                <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
-                  (required) Unique identifier
-                </Typography>
-              </Box>
-              <Box>
-                <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
-                  prompt
-                </Typography>
-                <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
-                  (required) The input question or task
-                </Typography>
-              </Box>
-              <Box>
-                <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
-                  expected_output
-                </Typography>
-                <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
-                  (required) Expected model response
-                </Typography>
-              </Box>
-              {exampleDatasetType === "rag" && (
-                <Box sx={{ backgroundColor: "#EEF2FF", p: 1, borderRadius: 1, mt: 0.5 }}>
-                  <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", color: "#4338CA" }}>
-                    retrieval_context
-                  </Typography>
-                  <Typography component="span" sx={{ fontSize: "12px", color: "#4338CA", ml: 1 }}>
-                    (required for RAG) Array of retrieved context documents
-                  </Typography>
-                </Box>
-              )}
-              {exampleDatasetType === "agent" && (
+              {datasetTurnType === "single-turn" ? (
                 <>
-                  <Box sx={{ backgroundColor: "#FEF3C7", p: 1, borderRadius: 1, mt: 0.5 }}>
-                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", color: "#92400E" }}>
-                      tools_available
+                  <Box>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
+                      prompt
                     </Typography>
-                    <Typography component="span" sx={{ fontSize: "12px", color: "#92400E", ml: 1 }}>
-                      (recommended) List of tools the agent can use
+                    <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
+                      (required) The input question or task
                     </Typography>
                   </Box>
-                  <Box sx={{ backgroundColor: "#FEF3C7", p: 1, borderRadius: 1 }}>
-                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", color: "#92400E" }}>
-                      expected_tools
+                  <Box>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
+                      expected_output
                     </Typography>
-                    <Typography component="span" sx={{ fontSize: "12px", color: "#92400E", ml: 1 }}>
-                      (recommended) Expected tools to be called
+                    <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
+                      (required) Expected model response
+                    </Typography>
+                  </Box>
+                  {exampleDatasetType === "rag" && (
+                    <Box sx={{ backgroundColor: "#EEF2FF", p: 1, borderRadius: 1, mt: 0.5 }}>
+                      <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", color: "#4338CA" }}>
+                        retrieval_context
+                      </Typography>
+                      <Typography component="span" sx={{ fontSize: "12px", color: "#4338CA", ml: 1 }}>
+                        (required for RAG) Array of context documents
+                      </Typography>
+                    </Box>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Box>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
+                      scenario
+                    </Typography>
+                    <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
+                      (required) Description of the conversation scenario
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
+                      turns
+                    </Typography>
+                    <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
+                      (required) Array of {"{ role, content }"} messages
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
+                      expected_outcome
+                    </Typography>
+                    <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
+                      (optional) Expected result of the conversation
                     </Typography>
                   </Box>
                 </>
@@ -2026,116 +2160,237 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             </Box>
           )}
 
-          {/* Prompts Table */}
-          {!loadingTemplatePrompts && templatePrompts.length > 0 && (
-            <TableContainer sx={{ maxWidth: "100%", overflowX: "hidden" }}>
-              <Table sx={{ ...singleTheme.tableStyles.primary.frame, tableLayout: "fixed", width: "100%" }}>
-                <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
-                  <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "8%" }}>#</TableCell>
-                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "22%" }}>Category</TableCell>
-                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "48%" }}>Prompt</TableCell>
-                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "22%" }}>Difficulty</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {templatePrompts.map((prompt, index) => {
-                    const promptKey = prompt.id || `prompt-${index}`;
-                    const isExpanded = expandedPromptIds.has(promptKey);
-                    const isLongPrompt = prompt.prompt.length > 40;
+          {/* Prompts/Conversations Table */}
+          {!loadingTemplatePrompts && templatePrompts.length > 0 && (() => {
+            // Check if this is a multi-turn dataset by looking at the first item
+            const isMultiTurn = templatePrompts[0] && ('scenario' in templatePrompts[0] || 'turns' in templatePrompts[0]);
+            
+            if (isMultiTurn) {
+              // Multi-turn dataset display - cast to any for flexible access
+              const conversations = templatePrompts as unknown as Array<{
+                scenario?: string;
+                expected_outcome?: string;
+                turns?: Array<{ role: string; content: string }>;
+              }>;
+              
+              return (
+                <Stack spacing={3}>
+                  {conversations.map((conversation, index) => {
+                    const convKey = `conv-${index}`;
+                    const isExpanded = expandedPromptIds.has(convKey);
+                    const turns = conversation.turns || [];
                     
                     return (
-                      <TableRow 
-                        key={promptKey} 
-                        onClick={() => {
-                          if (isLongPrompt) {
+                      <Box
+                        key={convKey}
+                        sx={{
+                          border: "1px solid #E5E7EB",
+                          borderRadius: "8px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {/* Conversation header */}
+                        <Box
+                          onClick={() => {
                             setExpandedPromptIds(prev => {
                               const newSet = new Set(prev);
-                              if (newSet.has(promptKey)) {
-                                newSet.delete(promptKey);
+                              if (newSet.has(convKey)) {
+                                newSet.delete(convKey);
                               } else {
-                                newSet.add(promptKey);
+                                newSet.add(convKey);
                               }
                               return newSet;
                             });
-                          }
-                        }}
-                        sx={{ 
-                          ...singleTheme.tableStyles.primary.body.row, 
-                          cursor: isLongPrompt ? "pointer" : "default",
-                          "&:hover": isLongPrompt ? { backgroundColor: "#F9FAFB" } : {},
-                          verticalAlign: "top",
-                        }}
-                      >
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%", verticalAlign: "top", pt: 1.5 }}>
-                          <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
-                        </TableCell>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
-                          <Chip
-                            label={prompt.category?.length > 8 ? `${prompt.category.substring(0, 8)}...` : prompt.category}
-                            title={prompt.category}
-                            size="small"
-                            sx={{
-                              height: 22,
-                              fontSize: "10px",
-                              backgroundColor: "#E5E7EB",
-                              color: "#374151",
-                              borderRadius: "4px",
-                              maxWidth: "100%",
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "48%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
-                          <Typography
-                            sx={{
-                              fontSize: "13px",
-                              color: theme.palette.text.primary,
-                              overflow: isExpanded ? "visible" : "hidden",
-                              textOverflow: isExpanded ? "clip" : "ellipsis",
-                              whiteSpace: isExpanded ? "pre-wrap" : "nowrap",
-                              maxWidth: "100%",
-                              wordBreak: isExpanded ? "break-word" : "normal",
-                              lineHeight: 1.5,
-                            }}
-                            title={isExpanded ? undefined : prompt.prompt}
-                          >
-                            {isExpanded ? prompt.prompt : (isLongPrompt ? `${prompt.prompt.substring(0, 40)}...` : prompt.prompt)}
-                          </Typography>
-                          {isLongPrompt && (
-                            <Typography sx={{ fontSize: "11px", color: "#9CA3AF", mt: 0.5 }}>
-                              {isExpanded ? "Collapse" : "Expand"}
-                            </Typography>
-                          )}
-                        </TableCell>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", verticalAlign: "top", pt: 1.5 }}>
-                          {prompt.difficulty && (
+                          }}
+                          sx={{
+                            p: 2,
+                            backgroundColor: "#F9FAFB",
+                            cursor: "pointer",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            "&:hover": { backgroundColor: "#F3F4F6" },
+                          }}
+                        >
+                          <Stack direction="row" alignItems="center" spacing={2}>
                             <Chip
-                              label={prompt.difficulty}
+                              label={`#${index + 1}`}
                               size="small"
-                              sx={{
-                                height: 20,
-                                fontSize: "10px",
-                                fontWeight: 500,
-                                backgroundColor:
-                                  prompt.difficulty === "easy" ? "#D1FAE5" :
-                                  prompt.difficulty === "medium" ? "#FEF3C7" :
-                                  prompt.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
-                                color:
-                                  prompt.difficulty === "easy" ? "#065F46" :
-                                  prompt.difficulty === "medium" ? "#92400E" :
-                                  prompt.difficulty === "hard" ? "#991B1B" : "#374151",
-                                borderRadius: "4px",
-                              }}
+                              sx={{ height: 22, fontSize: "11px", backgroundColor: "#E5E7EB", color: "#374151" }}
                             />
-                          )}
-                        </TableCell>
-                      </TableRow>
+                            <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
+                              {conversation.scenario || `Conversation ${index + 1}`}
+                            </Typography>
+                            <Chip
+                              label={`${turns.length} turns`}
+                              size="small"
+                              sx={{ height: 20, fontSize: "10px", backgroundColor: "#DBEAFE", color: "#1E40AF" }}
+                            />
+                          </Stack>
+                          {isExpanded ? <ChevronUp size={16} color="#6B7280" /> : <ChevronDown size={16} color="#6B7280" />}
+                        </Box>
+                        
+                        {/* Expanded conversation turns */}
+                        {isExpanded && (
+                          <Box sx={{ p: 2, backgroundColor: "#fff" }}>
+                            {conversation.expected_outcome && (
+                              <Box sx={{ mb: 2, p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "6px" }}>
+                                <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#166534", mb: 0.5 }}>
+                                  Expected Outcome
+                                </Typography>
+                                <Typography sx={{ fontSize: "12px", color: "#166534" }}>
+                                  {conversation.expected_outcome}
+                                </Typography>
+                              </Box>
+                            )}
+                            <Stack spacing={1.5}>
+                              {turns.map((turn, turnIdx) => (
+                                <Box
+                                  key={turnIdx}
+                                  sx={{
+                                    display: "flex",
+                                    flexDirection: turn.role === "user" ? "row" : "row-reverse",
+                                  }}
+                                >
+                                  <Box
+                                    sx={{
+                                      maxWidth: "85%",
+                                      p: 1.5,
+                                      borderRadius: "8px",
+                                      backgroundColor: turn.role === "user" ? "#F3F4F6" : "#EBF5FF",
+                                    }}
+                                  >
+                                    <Typography sx={{ fontSize: "10px", fontWeight: 600, color: turn.role === "user" ? "#6B7280" : "#1E40AF", mb: 0.5 }}>
+                                      {turn.role === "user" ? "User" : "Assistant"}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: "12px", color: "#374151", whiteSpace: "pre-wrap" }}>
+                                      {turn.content}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              ))}
+                            </Stack>
+                          </Box>
+                        )}
+                      </Box>
                     );
                   })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+                </Stack>
+              );
+            }
+            
+            // Single-turn dataset display (original table)
+            return (
+              <TableContainer sx={{ maxWidth: "100%", overflowX: "hidden" }}>
+                <Table sx={{ ...singleTheme.tableStyles.primary.frame, tableLayout: "fixed", width: "100%" }}>
+                  <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
+                    <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                      <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "8%" }}>#</TableCell>
+                      <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "22%" }}>Category</TableCell>
+                      <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "48%" }}>Prompt</TableCell>
+                      <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "22%" }}>Difficulty</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {templatePrompts.map((prompt, index) => {
+                      const promptKey = prompt.id || `prompt-${index}`;
+                      const isExpanded = expandedPromptIds.has(promptKey);
+                      const promptText = prompt.prompt || "";
+                      const isLongPrompt = promptText.length > 40;
+                      
+                      return (
+                        <TableRow 
+                          key={promptKey} 
+                          onClick={() => {
+                            if (isLongPrompt) {
+                              setExpandedPromptIds(prev => {
+                                const newSet = new Set(prev);
+                                if (newSet.has(promptKey)) {
+                                  newSet.delete(promptKey);
+                                } else {
+                                  newSet.add(promptKey);
+                                }
+                                return newSet;
+                              });
+                            }
+                          }}
+                          sx={{ 
+                            ...singleTheme.tableStyles.primary.body.row, 
+                            cursor: isLongPrompt ? "pointer" : "default",
+                            "&:hover": isLongPrompt ? { backgroundColor: "#F9FAFB" } : {},
+                            verticalAlign: "top",
+                          }}
+                        >
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%", verticalAlign: "top", pt: 1.5 }}>
+                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
+                          </TableCell>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
+                            <Chip
+                              label={(prompt.category?.length || 0) > 8 ? `${(prompt.category || "").substring(0, 8)}...` : (prompt.category || "-")}
+                              title={prompt.category || ""}
+                              size="small"
+                              sx={{
+                                height: 22,
+                                fontSize: "10px",
+                                backgroundColor: "#E5E7EB",
+                                color: "#374151",
+                                borderRadius: "4px",
+                                maxWidth: "100%",
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "48%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
+                            <Typography
+                              sx={{
+                                fontSize: "13px",
+                                color: theme.palette.text.primary,
+                                overflow: isExpanded ? "visible" : "hidden",
+                                textOverflow: isExpanded ? "clip" : "ellipsis",
+                                whiteSpace: isExpanded ? "pre-wrap" : "nowrap",
+                                maxWidth: "100%",
+                                wordBreak: isExpanded ? "break-word" : "normal",
+                                lineHeight: 1.5,
+                              }}
+                              title={isExpanded ? undefined : promptText}
+                            >
+                              {isExpanded ? promptText : (isLongPrompt ? `${promptText.substring(0, 40)}...` : promptText)}
+                            </Typography>
+                            {isLongPrompt && (
+                              <Typography sx={{ fontSize: "11px", color: "#9CA3AF", mt: 0.5 }}>
+                                {isExpanded ? "Collapse" : "Expand"}
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", verticalAlign: "top", pt: 1.5 }}>
+                            {prompt.difficulty && (
+                              <Chip
+                                label={prompt.difficulty}
+                                size="small"
+                                sx={{
+                                  height: 20,
+                                  fontSize: "10px",
+                                  fontWeight: 500,
+                                  backgroundColor:
+                                    prompt.difficulty === "easy" ? "#D1FAE5" :
+                                    prompt.difficulty === "medium" ? "#FEF3C7" :
+                                    prompt.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
+                                  color:
+                                    prompt.difficulty === "easy" ? "#065F46" :
+                                    prompt.difficulty === "medium" ? "#92400E" :
+                                    prompt.difficulty === "hard" ? "#991B1B" : "#374151",
+                                  borderRadius: "4px",
+                                }}
+                              />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            );
+          })()}
 
           {/* Copy Button */}
           {!loadingTemplatePrompts && templatePrompts.length > 0 && selectedTemplate && (
@@ -2211,8 +2466,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             </Box>
 
             {/* Options */}
-            <Box sx={{ p: 3 }}>
-              <Stack spacing={2}>
+            <Box sx={{ p: 6 }}>
+              <Stack spacing={2.5}>
                 {/* Create from scratch option */}
                 <Box
                   onClick={() => {

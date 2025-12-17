@@ -7,13 +7,17 @@ export interface UploadDatasetResponse {
   size: number;
   tenant: string;
   datasetType?: "chatbot" | "rag" | "agent";
+  turnType?: "single-turn" | "multi-turn";
 }
+
+export type TurnType = "single-turn" | "multi-turn";
 
 export interface ListedDataset {
   key: string;
   name: string;
   path: string;
-  use_case: "chatbot" | "rag" | "agent" | "safety";
+  use_case: "chatbot" | "rag" | "agent";
+  type?: "single-turn" | "multi-turn";
 }
 
 export type DatasetType = "chatbot" | "rag" | "agent";
@@ -29,19 +33,20 @@ export interface DatasetPromptRecord {
 }
 
 class DeepEvalDatasetsService {
-  async uploadDataset(file: File, datasetType: DatasetType = "chatbot"): Promise<UploadDatasetResponse> {
+  async uploadDataset(file: File, datasetType: DatasetType = "chatbot", turnType: TurnType = "single-turn"): Promise<UploadDatasetResponse> {
     const form = new FormData();
     form.append("dataset", file);
     form.append("dataset_type", datasetType);
+    form.append("turn_type", turnType);
     const res = await CustomAxios.post("/deepeval/datasets/upload", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return res.data as UploadDatasetResponse;
   }
 
-  async list(): Promise<Record<"chatbot" | "rag" | "agent" | "safety", ListedDataset[]>> {
+  async list(): Promise<Record<"chatbot" | "rag" | "agent", ListedDataset[]>> {
     const res = await CustomAxios.get("/deepeval/datasets/list");
-    return res.data.datasets as Record<"chatbot" | "rag" | "agent" | "safety", ListedDataset[]>;
+    return res.data.datasets as Record<"chatbot" | "rag" | "agent", ListedDataset[]>;
   }
 
   async read(path: string): Promise<{ path: string; prompts: DatasetPromptRecord[] }> {
@@ -54,9 +59,9 @@ class DeepEvalDatasetsService {
     return res.data as { uploads: { name: string; path: string; size: number; modifiedAt: number }[] };
   }
 
-  async listMy(): Promise<{ datasets: { id: number; name: string; path: string; size: number; createdAt: string; datasetType?: DatasetType }[] }> {
+  async listMy(): Promise<{ datasets: { id: number; name: string; path: string; size: number; createdAt: string; datasetType?: DatasetType; turnType?: TurnType }[] }> {
     const res = await CustomAxios.get("/deepeval/datasets/user");
-    return res.data as { datasets: { id: number; name: string; path: string; size: number; createdAt: string; datasetType?: DatasetType }[] };
+    return res.data as { datasets: { id: number; name: string; path: string; size: number; createdAt: string; datasetType?: DatasetType; turnType?: TurnType }[] };
   }
 
   async deleteDatasets(paths: string[]): Promise<{ message: string; deleted: number }> {

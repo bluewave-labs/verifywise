@@ -387,13 +387,13 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
       </Box>
 
       {/* Chart */}
-      <Box sx={{
-        width: "100%",
-        minHeight: 220,
-        height: dynamicHeight,
-        "& *": { outline: "none !important" },
-        "& *:focus": { outline: "none !important" },
-      }}>
+    <Box sx={{
+      width: "100%",
+      minHeight: 220,
+      height: dynamicHeight,
+      "& *": { outline: "none !important" },
+      "& *:focus": { outline: "none !important" },
+    }}>
         <ResponsiveContainer key={`rc-${projectId}-${data.length}-${activeMetrics.join(",")}-${timeRange}`} width="100%" height="100%">
         <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />

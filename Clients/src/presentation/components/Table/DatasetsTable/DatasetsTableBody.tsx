@@ -114,7 +114,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                 </Typography>
               </TableCell>
 
-              {/* # PROMPTS - center aligned */}
+              {/* TYPE - center aligned */}
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
@@ -122,12 +122,21 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                   textTransform: "none",
                 }}
               >
-                {metadata?.loading ? (
-                  <CircularProgress size={14} sx={{ color: "#9CA3AF" }} />
+                {dataset.type ? (
+                  <Chip
+                    label={dataset.type === "single-turn" ? "Single-Turn" : "Multi-Turn"}
+                    size="small"
+                    sx={{
+                      height: "22px",
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      borderRadius: "4px",
+                      backgroundColor: dataset.type === "single-turn" ? "#FEF3C7" : "#E3F2FD",
+                      color: dataset.type === "single-turn" ? "#92400E" : "#1565C0",
+                    }}
+                  />
                 ) : (
-                  <Typography sx={{ fontSize: "13px", color: "#374151" }}>
-                    {metadata?.promptCount ?? "-"}
-                  </Typography>
+                  <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
                 )}
               </TableCell>
 
@@ -149,19 +158,36 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                       fontWeight: 500,
                       borderRadius: "4px",
                       backgroundColor: 
-                        dataset.useCase === "chatbot" ? "#e3f2fd" :
+                        dataset.useCase === "chatbot" ? "#CCFBF1" :
                         dataset.useCase === "rag" ? "#f3e5f5" :
-                        dataset.useCase === "agent" ? "#fff3e0" :
+                        dataset.useCase === "agent" ? "#FEE2E2" :
                         "#e0e0e0",
                       color:
-                        dataset.useCase === "chatbot" ? "#1565c0" :
+                        dataset.useCase === "chatbot" ? "#0D9488" :
                         dataset.useCase === "rag" ? "#7b1fa2" :
-                        dataset.useCase === "agent" ? "#ef6c00" :
+                        dataset.useCase === "agent" ? "#DC2626" :
                         "#616161",
                     }}
                   />
                 ) : (
                   <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
+                )}
+              </TableCell>
+
+              {/* # PROMPTS - center aligned */}
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  textAlign: "center",
+                  textTransform: "none",
+                }}
+              >
+                {metadata?.loading ? (
+                  <CircularProgress size={14} sx={{ color: "#9CA3AF" }} />
+                ) : (
+                  <Typography sx={{ fontSize: "13px", color: "#374151" }}>
+                    {metadata?.promptCount ?? "-"}
+                  </Typography>
                 )}
               </TableCell>
 
@@ -177,7 +203,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                   <CircularProgress size={14} sx={{ color: "#9CA3AF" }} />
                 ) : (
                   <Chip
-                    label={metadata?.avgDifficulty ?? "-"}
+                    label={metadata?.avgDifficulty ?? "Medium"}
                     size="small"
                     sx={{
                       height: "22px",

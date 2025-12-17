@@ -39,6 +39,7 @@ export interface DatasetRow {
   name: string;
   path: string;
   useCase?: string;
+  type?: "single-turn" | "multi-turn";
   createdAt?: string | null;
   updatedAt?: string | null;
   metadata?: {
@@ -60,8 +61,9 @@ export interface DatasetsTableProps {
 
 const columns = [
   { id: "name", label: "NAME", sortable: true },
-  { id: "promptCount", label: "# PROMPTS", sortable: true },
+  { id: "type", label: "TYPE", sortable: true },
   { id: "useCase", label: "USE CASE", sortable: true },
+  { id: "promptCount", label: "# PROMPTS", sortable: true },
   { id: "difficulty", label: "DIFFICULTY", sortable: true },
   { id: "createdAt", label: "DATE", sortable: true },
   { id: "actions", label: "ACTION", sortable: false },
@@ -140,6 +142,11 @@ const DatasetsTable: React.FC<DatasetsTableProps> = ({
         case "useCase":
           aValue = (a.useCase || "").toLowerCase();
           bValue = (b.useCase || "").toLowerCase();
+          break;
+
+        case "type":
+          aValue = (a.type || "").toLowerCase();
+          bValue = (b.type || "").toLowerCase();
           break;
 
         case "difficulty": {

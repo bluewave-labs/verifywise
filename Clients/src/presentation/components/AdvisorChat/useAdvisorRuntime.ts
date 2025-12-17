@@ -3,7 +3,7 @@ import { useLocalRuntime } from '@assistant-ui/react';
 import type { ChatModelAdapter, ChatModelRunOptions, ChatModelRunResult } from '@assistant-ui/react';
 import { runAdvisorAPI } from '../../../application/repository/advisor.repository';
 
-export const useAdvisorRuntime = () => {
+export const useAdvisorRuntime = (selectedLLMKeyId?: number) => {
   // Memoize the chat adapter to prevent recreation on every render
   const chatModelAdapter: ChatModelAdapter = useMemo(() => ({
     async run({ messages = [] }: ChatModelRunOptions): Promise<ChatModelRunResult> {
@@ -58,7 +58,7 @@ export const useAdvisorRuntime = () => {
         // Call the advisor API with the user's message
         const response = await runAdvisorAPI({
           prompt: userMessage,
-        }, 'risk');
+        }, 'risk', selectedLLMKeyId);
 
         // Extract the assistant's response
         const assistantContent = response.data?.response || 'I received your message but could not generate a response.';
@@ -94,7 +94,7 @@ export const useAdvisorRuntime = () => {
         };
       }
     },
-  }), []); // Empty deps - adapter doesn't depend on any props
+  }), [selectedLLMKeyId]); // Re-create adapter when LLM key changes
 
   // Memoize initial messages to prevent recreation
   const initialMessages = useMemo(() => [

@@ -22,6 +22,7 @@ export async function runAdvisor(req: Request, res: Response) {
     const tenantId = req.tenantId!;
     const userId = req.userId ? Number(req.userId) : undefined;
     const advisorType = req.query.type as string;
+    const llmKeyId = req.query.llmKeyId ? Number(req.query.llmKeyId) : undefined;
 
     // Validate required parameters
     if (!prompt) {
@@ -33,7 +34,7 @@ export async function runAdvisor(req: Request, res: Response) {
     }
 
     logger.debug(
-      `Running advisor for tenant: ${tenantId}, user: ${userId}, prompt: ${prompt.substring(0, 100)}...`,
+      `Running advisor for tenant: ${tenantId}, user: ${userId}, llmKeyId: ${llmKeyId}, prompt: ${prompt.substring(0, 100)}...`,
     );
 
     const clients = await getLLMKeysQuery(tenantId);
@@ -45,7 +46,18 @@ export async function runAdvisor(req: Request, res: Response) {
         .json({ error: "No LLM keys configured for this tenant." });
     }
 
-    const apiKey = clients[0];
+    // Select the LLM key based on llmKeyId parameter or default to first key
+    let apiKey = clients[0];
+    if (llmKeyId !== undefined) {
+      const selectedKey = clients.find((key: any) => key.id === llmKeyId);
+      if (selectedKey) {
+        apiKey = selectedKey;
+        logger.debug(`Using selected LLM key: ${apiKey.name} (ID: ${llmKeyId})`);
+      } else {
+        logger.warn(`LLM key ID ${llmKeyId} not found, using default key`);
+      }
+    }
+
     const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
     const response = await runAgent({
       apiKey: apiKey.key || "",

@@ -32,6 +32,7 @@ import { ReactComponent as OllamaLogo } from "../../assets/icons/ollama_logo.svg
 import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg";
 import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
 import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
+import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
@@ -81,11 +82,12 @@ export default function NewExperimentModal({
   const [datasetPrompts, setDatasetPrompts] = useState<DatasetPrompt[]>([]);
   const [datasetLoaded, setDatasetLoaded] = useState(false);
   // User's saved datasets (for "My datasets" option)
-  const [userDatasets, setUserDatasets] = useState<Array<{ id: string; name: string; path: string }>>([]);
-  const [selectedUserDataset, setSelectedUserDataset] = useState<{ id: string; name: string; path: string } | null>(null);
+  const [userDatasets, setUserDatasets] = useState<Array<{ id: string; name: string; path: string; turnType?: "single-turn" | "multi-turn" | "simulated" }>>([]);
+  const [selectedUserDataset, setSelectedUserDataset] = useState<{ id: string; name: string; path: string; turnType?: "single-turn" | "multi-turn" | "simulated" } | null>(null);
   const [loadingUserDatasets, setLoadingUserDatasets] = useState(false);
   const [uploadingDataset, setUploadingDataset] = useState(false);
   const [selectedPresetPath, setSelectedPresetPath] = useState<string>("");
+
 
   // Scorer / Judge mode state: scorer = custom only, standard = judge only, both = run both
   const [judgeMode, setJudgeMode] = useState<"scorer" | "standard" | "both">("standard");
@@ -124,93 +126,149 @@ export default function NewExperimentModal({
       categories: [] as string[],
       limit: 10,
       benchmark: "",
+      // Simulated mode: when true, uses ConversationSimulator to generate turns
+      simulatedMode: false,
+      // Scenarios for simulated mode (optional - can be loaded from dataset)
+      scenarios: [] as Array<{ scenario: string; expected_outcome: string; user_description?: string; max_turns?: number }>,
+      // Max turns for simulated conversations
+      maxTurns: 6,
     },
-    // Step 4: Metrics - defaults for chatbot (no RAG context metrics)
+    // Step 4: Metrics - Universal core for all, plus use-case specific
     metrics: {
-      // General metrics (all use cases)
+      // Universal Core (always runs for every use case - single-turn)
       answerRelevancy: true,
-      bias: true,
+      correctness: true,
+      completeness: true,
+      hallucination: true,
+      instructionFollowing: true,
       toxicity: true,
-      // RAG-specific (require retrieval_context) - disabled for chatbot
+      bias: true,
+      // RAG-specific (requires retrieval_context)
+      contextRelevancy: false,
+      contextPrecision: false,
+      contextRecall: false,
       faithfulness: false,
-      hallucination: false,
-      contextualRelevancy: false,
-      // Chatbot-specific
-      knowledgeRetention: true,
-      conversationRelevancy: true,
-      conversationCompleteness: true,
-      roleAdherence: true,
-      // Agent-specific
-      taskCompletion: false,
+      // Agent-specific (requires tools)
+      toolSelection: false,
       toolCorrectness: false,
+      actionRelevance: false,
+      planningQuality: false,
+      // Conversational metrics (multi-turn datasets)
+      turnRelevancy: true,
+      knowledgeRetention: true,
+      conversationCoherence: true,
+      conversationHelpfulness: true,
+      taskCompletion: true,
+      conversationSafety: true,
     },
     thresholds: {
       answerRelevancy: 0.5,
-      bias: 0.5,
-      toxicity: 0.5,
-      faithfulness: 0.5,
+      correctness: 0.5,
+      completeness: 0.5,
       hallucination: 0.5,
-      contextualRelevancy: 0.5,
-      knowledgeRetention: 0.5,
-      conversationRelevancy: 0.5,
-      conversationCompleteness: 0.5,
-      roleAdherence: 0.5,
-      taskCompletion: 0.5,
+      instructionFollowing: 0.5,
+      toxicity: 0.5,
+      bias: 0.5,
+      contextRelevancy: 0.5,
+      contextPrecision: 0.5,
+      contextRecall: 0.5,
+      faithfulness: 0.5,
+      toolSelection: 0.5,
       toolCorrectness: 0.5,
+      actionRelevance: 0.5,
+      planningQuality: 0.5,
+      turnRelevancy: 0.5,
+      knowledgeRetention: 0.5,
+      conversationCoherence: 0.5,
+      conversationHelpfulness: 0.5,
+      taskCompletion: 0.5,
+      conversationSafety: 0.5,
     },
   });
+  
+  // Track if selected dataset is multi-turn
+  const isMultiTurnDataset = selectedUserDataset?.turnType === "multi-turn" || 
+    (selectedPresetPath && selectedPresetPath.includes("multiturn"));
 
   // Update metric defaults when task type changes
   useEffect(() => {
     setConfig((prev) => {
-      const baseMetrics = {
-        // General metrics (always available)
+      // Universal Core - always runs for every use case (single-turn)
+      const universalCore = {
         answerRelevancy: true,
-        bias: true,
+        correctness: true,
+        completeness: true,
+        hallucination: true,
+        instructionFollowing: true,
         toxicity: true,
-        // RAG-specific
+        bias: true,
+      };
+
+      // RAG-specific metrics (disabled by default)
+      const ragMetrics = {
+        contextRelevancy: false,
+        contextPrecision: false,
+        contextRecall: false,
         faithfulness: false,
-        hallucination: false,
-        contextualRelevancy: false,
-        // Chatbot-specific
-        knowledgeRetention: false,
-        conversationRelevancy: false,
-        conversationCompleteness: false,
-        roleAdherence: false,
-        // Agent-specific
-        taskCompletion: false,
+      };
+
+      // Agent-specific metrics (disabled by default)
+      const agentMetrics = {
+        toolSelection: false,
         toolCorrectness: false,
+        actionRelevance: false,
+        planningQuality: false,
+      };
+      
+      // Conversational metrics (for multi-turn - enabled by default)
+      const conversationalMetrics = {
+        turnRelevancy: true,
+        knowledgeRetention: true,
+        conversationCoherence: true,
+        conversationHelpfulness: true,
+        taskCompletion: true,
+        conversationSafety: true,
       };
 
       if (prev.taskType === "rag") {
         return {
           ...prev,
           metrics: {
-            ...baseMetrics,
+            ...universalCore,
+            ...ragMetrics,
+            ...agentMetrics,
+            ...conversationalMetrics,
+            // Enable RAG metrics
+            contextRelevancy: true,
+            contextPrecision: true,
+            contextRecall: true,
             faithfulness: true,
-            hallucination: true,
-            contextualRelevancy: true,
           },
         };
       } else if (prev.taskType === "agent") {
         return {
           ...prev,
           metrics: {
-            ...baseMetrics,
-            taskCompletion: true,
+            ...universalCore,
+            ...ragMetrics,
+            ...agentMetrics,
+            ...conversationalMetrics,
+            // Enable Agent metrics
+            toolSelection: true,
             toolCorrectness: true,
+            actionRelevance: true,
+            planningQuality: true,
           },
         };
       } else {
-        // chatbot
+        // chatbot - Universal core only (no extra metrics)
         return {
           ...prev,
           metrics: {
-            ...baseMetrics,
-            knowledgeRetention: true,
-            conversationRelevancy: true,
-            conversationCompleteness: true,
-            roleAdherence: true,
+            ...universalCore,
+            ...ragMetrics,
+            ...agentMetrics,
+            ...conversationalMetrics,
           },
         };
       }
@@ -249,6 +307,7 @@ export default function NewExperimentModal({
           id: String(d.id),
           name: d.name,
           path: d.path,
+          turnType: d.turnType,
         }));
         setUserDatasets(datasets);
       } catch { /* ignore */ }
@@ -520,39 +579,64 @@ export default function NewExperimentModal({
         categories: [],
         limit: 10,
         benchmark: "",
+        simulatedMode: false,
+        scenarios: [],
+        maxTurns: 6,
       },
       metrics: {
+        // Universal Core (runs for every use case)
         answerRelevancy: true,
-        bias: true,
+        correctness: true,
+        completeness: true,
+        hallucination: true,
+        instructionFollowing: true,
         toxicity: true,
+        bias: true,
+        // RAG-specific
+        contextRelevancy: false,
+        contextPrecision: false,
+        contextRecall: false,
         faithfulness: false,
-        hallucination: false,
-        contextualRelevancy: false,
-        knowledgeRetention: true,
-        conversationRelevancy: true,
-        conversationCompleteness: true,
-        roleAdherence: true,
-        taskCompletion: false,
+        // Agent-specific
+        toolSelection: false,
         toolCorrectness: false,
+        actionRelevance: false,
+        planningQuality: false,
+        // Conversational metrics (multi-turn)
+        turnRelevancy: true,
+        knowledgeRetention: true,
+        conversationCoherence: true,
+        conversationHelpfulness: true,
+        taskCompletion: true,
+        conversationSafety: true,
       },
       thresholds: {
         answerRelevancy: 0.5,
-        bias: 0.5,
-        toxicity: 0.5,
-        faithfulness: 0.5,
+        correctness: 0.5,
+        completeness: 0.5,
         hallucination: 0.5,
-        contextualRelevancy: 0.5,
-        knowledgeRetention: 0.5,
-        conversationRelevancy: 0.5,
-        conversationCompleteness: 0.5,
-        roleAdherence: 0.5,
-        taskCompletion: 0.5,
+        instructionFollowing: 0.5,
+        toxicity: 0.5,
+        bias: 0.5,
+        contextRelevancy: 0.5,
+        contextPrecision: 0.5,
+        contextRecall: 0.5,
+        faithfulness: 0.5,
+        toolSelection: 0.5,
         toolCorrectness: 0.5,
+        actionRelevance: 0.5,
+        planningQuality: 0.5,
+        turnRelevancy: 0.5,
+        knowledgeRetention: 0.5,
+        conversationCoherence: 0.5,
+        conversationHelpfulness: 0.5,
+        taskCompletion: 0.5,
+        conversationSafety: 0.5,
       },
     });
   };
 
-  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api";
+  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api" | "openrouter";
 
   // Check if a provider has a configured API key
   const hasApiKey = (providerId: string): boolean => {
@@ -561,6 +645,7 @@ export default function NewExperimentModal({
 
   // All cloud providers that need API keys (using the saved models)
   const cloudProviders = [
+    { id: "openrouter" as ProviderType, name: "OpenRouter", Logo: OpenRouterLogo, needsApiKey: true },
     { id: "openai" as ProviderType, name: "OpenAI", Logo: OpenAILogo, needsApiKey: true },
     { id: "anthropic" as ProviderType, name: "Anthropic", Logo: AnthropicLogo, needsApiKey: true },
     { id: "google" as ProviderType, name: "Gemini", Logo: GeminiLogo, needsApiKey: true },
@@ -629,7 +714,7 @@ export default function NewExperimentModal({
           <Stack spacing={4}>
             <Box>
               <Typography variant="body2" color="text.secondary">
-                Configure the model that will be evaluated by the Judge LLM.
+                Select the model you want to evaluate.
               </Typography>
             </Box>
 
@@ -988,6 +1073,15 @@ export default function NewExperimentModal({
                 <Stack spacing="8px">
                   {userDatasets.slice(0, 4).map((dataset) => {
                     const isSelected = selectedUserDataset?.id === dataset.id && !config.dataset.useBuiltin;
+                    const isMultiTurn = dataset.turnType === "multi-turn";
+                    const isSimulated = dataset.turnType === "simulated";
+                    const typeChip = isMultiTurn ? (
+                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Multi-Turn"} backgroundColor="#E3F2FD" textColor="#1565C0" uppercase={false} />
+                    ) : isSimulated ? (
+                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Simulated"} backgroundColor="#F3E8FF" textColor="#7C3AED" uppercase={false} />
+                    ) : (
+                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Single-Turn"} backgroundColor="#FEF3C7" textColor="#92400E" uppercase={false} />
+                    );
                     return (
                       <SelectableCard
                         key={dataset.id}
@@ -1007,7 +1101,7 @@ export default function NewExperimentModal({
                         icon={<Database size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />}
                         title={dataset.name}
                         description="Custom uploaded dataset"
-                        chip={isSelected && datasetPrompts.length > 0 ? <Chip label={`${datasetPrompts.length} prompts`} variant="info" uppercase={false} /> : undefined}
+                        chip={typeChip}
                       />
                     );
                   })}
@@ -1023,20 +1117,32 @@ export default function NewExperimentModal({
               <Stack spacing="8px">
                 {[
                   ...(config.taskType === "chatbot" ? [
-                    { name: "Basic Chatbot", path: "chatbot/chatbot_basic.json", desc: "Standard question-answer pairs" },
-                    { name: "Coding Helper", path: "chatbot/chatbot_coding_helper.json", desc: "Code assistance scenarios" },
-                    { name: "Customer Support", path: "chatbot/chatbot_customer_support.json", desc: "Support conversation samples" },
+                    // Single-turn chatbot templates
+                    { name: "Basic Chatbot", path: "chatbot/chatbot_basic.json", desc: "Standard question-answer pairs", type: "single-turn" as const },
+                    { name: "Coding Helper", path: "chatbot/chatbot_coding_helper.json", desc: "Code assistance scenarios", type: "single-turn" as const },
+                    { name: "Customer Support (Single-Turn)", path: "chatbot/chatbot_customer_support.json", desc: "Support Q&A pairs", type: "single-turn" as const },
+                    // Multi-turn chatbot templates
+                    { name: "General Assistant Multi-Turn", path: "chatbot/chatbot_general_assistant_multiturn.json", desc: "Multi-turn conversations", type: "multi-turn" as const },
+                    { name: "Customer Support Multi-Turn", path: "chatbot/chatbot_customer_support_multiturn.json", desc: "Support conversations", type: "multi-turn" as const },
+                    { name: "Tech Support Multi-Turn", path: "chatbot/chatbot_tech_support_multiturn.json", desc: "Technical help conversations", type: "multi-turn" as const },
                   ] : []),
                   ...(config.taskType === "rag" ? [
-                    { name: "Product Docs", path: "rag/rag_product_docs.json", desc: "Product documentation queries" },
-                    { name: "Wikipedia QA", path: "rag/rag_wikipedia_small.json", desc: "Wikipedia-based questions" },
-                    { name: "Research Papers", path: "rag/rag_research_papers.json", desc: "Academic content retrieval" },
+                    { name: "Product Docs", path: "rag/rag_product_docs.json", desc: "Product documentation queries", type: "single-turn" as const },
+                    { name: "Wikipedia QA", path: "rag/rag_wikipedia_small.json", desc: "Wikipedia-based questions", type: "single-turn" as const },
+                    { name: "Research Papers", path: "rag/rag_research_papers.json", desc: "Academic content retrieval", type: "single-turn" as const },
+                    { name: "Document Q&A Multi-Turn", path: "rag/rag_document_qa_multiturn.json", desc: "Multi-turn document conversations", type: "multi-turn" as const },
                   ] : []),
                   ...(config.taskType === "agent" ? [
-                    { name: "Agent Tasks", path: "presets/agent_dataset.json", desc: "Tool usage and multi-step tasks" },
+                    { name: "Agent Tasks", path: "presets/agent_dataset.json", desc: "Tool usage and multi-step tasks", type: "single-turn" as const },
                   ] : []),
                 ].map((template) => {
                   const isSelected = selectedPresetPath === template.path && config.dataset.useBuiltin;
+                  const chipLabel = isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : (template.type === "multi-turn" ? "Multi-Turn" : "Single-Turn");
+                  const typeChip = template.type === "multi-turn" ? (
+                    <Chip label={chipLabel} backgroundColor="#E3F2FD" textColor="#1565C0" uppercase={false} />
+                  ) : (
+                    <Chip label={chipLabel} backgroundColor="#FEF3C7" textColor="#92400E" uppercase={false} />
+                  );
                   return (
                     <SelectableCard
                       key={template.path}
@@ -1057,7 +1163,7 @@ export default function NewExperimentModal({
                       title={template.name}
                       description={template.desc}
                       accentColor="#6366F1"
-                      chip={isSelected && datasetPrompts.length > 0 ? <Chip label={`${datasetPrompts.length} prompts`} variant="info" uppercase={false} /> : undefined}
+                      chip={typeChip}
                     />
                   );
                 })}
@@ -1447,7 +1553,8 @@ export default function NewExperimentModal({
                   No metrics available
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
-                  Standard metrics require a Judge LLM to evaluate model outputs. Since you selected "Custom Scorer Only", your experiment will use only your custom scorer ({selectedScorer?.name || "selected scorer"}) for evaluation.
+                  Standard metrics require a Judge LLM. 
+                  <br /> Your custom scorer will be used instead.
                 </Typography>
               </Box>
             </Stack>
@@ -1458,57 +1565,83 @@ export default function NewExperimentModal({
           <Stack spacing="16px">
             <Box>
               <Typography variant="body2" color="text.secondary">
-                Select metrics for your evaluation. Metrics are organized by use case.
+                {isMultiTurnDataset 
+                  ? "Select metrics for your multi-turn conversation evaluation."
+                  : "Select metrics for your evaluation. Universal core metrics run for all use cases."}
               </Typography>
+              {isMultiTurnDataset && (
+                <Box sx={{ mt: 1.5, mb: 1 }}>
+                  <Chip 
+                    label="Multi-turn dataset detected" 
+                    size="small" 
+                    backgroundColor="#DBEAFE"
+                    textColor="#1E40AF"
+                  />
+                </Box>
+              )}
             </Box>
 
-            {/* General Metrics - All Use Cases */}
-            <Accordion
-              disableGutters
-              elevation={0}
-              sx={{
-                border: "1px solid #E5E7EB",
-                borderRadius: "4px !important",
-                "&:before": { display: "none" },
-                "&.Mui-expanded": { margin: 0 },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ChevronDown size={18} color="#6B7280" />}
+            {/* Conversational Metrics - For Multi-turn Datasets */}
+            {isMultiTurnDataset && (
+              <Accordion
+                defaultExpanded
+                disableGutters
+                elevation={0}
                 sx={{
-                  minHeight: 48,
-                  px: "8px",
-                  "&.Mui-expanded": { minHeight: 48 },
-                  "& .MuiAccordionSummary-content": { my: "8px" },
+                  border: "1px solid #DBEAFE",
+                  borderRadius: "4px !important",
+                  backgroundColor: "#F0F9FF",
+                  "&:before": { display: "none" },
+                  "&.Mui-expanded": { margin: 0 },
                 }}
               >
-                <Box>
-                  <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
-                    General Metrics
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
-                    Available for all evaluation types
-                  </Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ px: "8px", pt: "8px", pb: "8px" }}>
-                <Stack spacing="8px">
-                  {Object.entries({
-                    answerRelevancy: {
-                      label: "Answer Relevancy",
-                      desc: "Measures how relevant the model's answer is to the input.",
-                    },
-                    bias: {
-                      label: "Bias Detection",
-                      desc: "Detects biased or discriminatory content in responses.",
-                    },
-                    toxicity: {
-                      label: "Toxicity Detection",
-                      desc: "Flags toxic or harmful language in outputs.",
-                    },
-                  }).map(([key, meta]) => (
-                    <Box key={key}>
-                      <Stack spacing={0.5}>
+                <AccordionSummary
+                  expandIcon={<ChevronDown size={18} color="#1E40AF" />}
+                  sx={{
+                    minHeight: 48,
+                    px: "8px",
+                    "&.Mui-expanded": { minHeight: 48 },
+                    "& .MuiAccordionSummary-content": { my: "8px" },
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#1E40AF" }}>
+                      Conversational Metrics
+                    </Typography>
+                    <Typography variant="caption" sx={{ mt: 0.5, display: "block", color: "#3B82F6" }}>
+                      Designed for multi-turn conversation evaluation
+                    </Typography>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: "12px", pt: "12px", pb: "16px" }}>
+                  <Stack spacing={2.5}>
+                    {Object.entries({
+                      turnRelevancy: {
+                        label: "Turn Relevancy",
+                        desc: "Evaluates if each assistant response is relevant to the user's input in that turn.",
+                      },
+                      knowledgeRetention: {
+                        label: "Knowledge Retention",
+                        desc: "Checks if the model retains context and information across conversation turns.",
+                      },
+                      conversationCoherence: {
+                        label: "Conversation Coherence",
+                        desc: "Evaluates overall coherence, correctness, and logical consistency across turns.",
+                      },
+                      conversationHelpfulness: {
+                        label: "Conversation Helpfulness",
+                        desc: "Measures how helpful the assistant is in addressing the user's needs throughout.",
+                      },
+                      taskCompletion: {
+                        label: "Task Completion",
+                        desc: "Evaluates if the conversation successfully achieved the expected outcome.",
+                      },
+                      conversationSafety: {
+                        label: "Conversation Safety",
+                        desc: "Checks for toxic, biased, or harmful content across all conversation turns.",
+                      },
+                    }).map(([key, meta]) => (
+                      <Box key={key}>
                         <Checkbox
                           id={`metric-${key}`}
                           label={(meta as { label: string }).label}
@@ -1528,20 +1661,61 @@ export default function NewExperimentModal({
                         <Typography
                           variant="caption"
                           color="text.secondary"
-                          sx={{ ml: 3, pr: 2, display: "block", fontSize: "12px" }}
+                          sx={{ ml: 3.5, mt: 0.5, pr: 2, display: "block", fontSize: "12px", lineHeight: 1.4 }}
                         >
                           {(meta as { desc: string }).desc}
                         </Typography>
-                      </Stack>
-                    </Box>
-                  ))}
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
+                      </Box>
+                    ))}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+            )}
 
-            {/* Chatbot-Specific Metrics */}
-            {config.taskType === "chatbot" && (
+            {/* Per-Turn Safety Metrics (for multi-turn) */}
+            {isMultiTurnDataset && (
+              <Box sx={{ p: 2.5, border: "1px solid #FED7AA", borderRadius: "4px", backgroundColor: "#FFF7ED" }}>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#C2410C", mb: 0.5 }}>
+                  Per-Turn Safety Metrics
+                </Typography>
+                <Typography variant="caption" sx={{ display: "block", mb: 2, color: "#EA580C" }}>
+                  Bias and Toxicity will be evaluated on each assistant turn and aggregated
+                </Typography>
+                <Stack direction="row" spacing={4}>
+                  <Checkbox
+                    id="metric-toxicity-perturn"
+                    label="Toxicity (per-turn)"
+                    size="small"
+                    value="toxicity"
+                    isChecked={config.metrics.toxicity}
+                    onChange={() =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        metrics: { ...prev.metrics, toxicity: !prev.metrics.toxicity },
+                      }))
+                    }
+                  />
+                  <Checkbox
+                    id="metric-bias-perturn"
+                    label="Bias (per-turn)"
+                    size="small"
+                    value="bias"
+                    isChecked={config.metrics.bias}
+                    onChange={() =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        metrics: { ...prev.metrics, bias: !prev.metrics.bias },
+                      }))
+                    }
+                  />
+                </Stack>
+              </Box>
+            )}
+
+            {/* Universal Core Metrics - For Single-turn Datasets */}
+            {!isMultiTurnDataset && (
               <Accordion
+                defaultExpanded
                 disableGutters
                 elevation={0}
                 sx={{
@@ -1562,68 +1736,78 @@ export default function NewExperimentModal({
                 >
                   <Box>
                     <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
-                      Chatbot Metrics
+                      Universal Core Metrics
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
-                      Specifically designed for conversational AI evaluation
+                      Runs for every use case (Chatbot, RAG, Agent)
                     </Typography>
                   </Box>
                 </AccordionSummary>
-                <AccordionDetails sx={{ px: "8px", pt: "8px", pb: "8px" }}>
-                  <Stack spacing="8px">
+                <AccordionDetails sx={{ px: "12px", pt: "12px", pb: "16px" }}>
+                  <Stack spacing={2.5}>
                     {Object.entries({
-                      knowledgeRetention: {
-                        label: "Knowledge Retention",
-                        desc: "Evaluates how well the model remembers and reuses information across the conversation.",
+                      answerRelevancy: {
+                        label: "Answer Relevancy",
+                        desc: "Measures how relevant the model's answer is to the input (GEval).",
                       },
-                      conversationRelevancy: {
-                        label: "Conversation Relevancy",
-                        desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
+                      correctness: {
+                        label: "Correctness",
+                        desc: "Evaluates factual accuracy of the model's response (GEval).",
                       },
-                      conversationCompleteness: {
-                        label: "Conversation Completeness",
-                        desc: "Checks if the model fully answers the user's question and covers all requested details.",
+                      completeness: {
+                        label: "Completeness",
+                        desc: "Checks if the response fully addresses all aspects of the query (GEval).",
                       },
-                      roleAdherence: {
-                        label: "Role Adherence",
-                        desc: "Evaluates how well the model follows its assigned role, persona, or instructions.",
+                      hallucination: {
+                        label: "Hallucination",
+                        desc: "Detects fabricated or unsupported information in outputs (GEval).",
+                      },
+                      instructionFollowing: {
+                        label: "Instruction Following",
+                        desc: "Measures how well the model follows the given instructions.",
+                      },
+                      toxicity: {
+                        label: "Toxicity",
+                        desc: "Flags toxic or harmful language in outputs.",
+                      },
+                      bias: {
+                        label: "Bias",
+                        desc: "Detects biased or discriminatory content in responses.",
                       },
                     }).map(([key, meta]) => (
                       <Box key={key}>
-                        <Stack spacing={0.5}>
-                          <Checkbox
-                            id={`metric-${key}`}
-                            label={(meta as { label: string }).label}
-                            size="small"
-                            value={key}
-                            isChecked={config.metrics[key as keyof typeof config.metrics]}
-                            onChange={() =>
-                              setConfig((prev) => ({
-                                ...prev,
-                                metrics: {
-                                  ...prev.metrics,
-                                  [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                                },
-                              }))
-                            }
-                          />
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ ml: 3, pr: 2, display: "block", fontSize: "12px" }}
-                          >
-                            {(meta as { desc: string }).desc}
-                          </Typography>
-                        </Stack>
+                        <Checkbox
+                          id={`metric-${key}`}
+                          label={(meta as { label: string }).label}
+                          size="small"
+                          value={key}
+                          isChecked={config.metrics[key as keyof typeof config.metrics]}
+                          onChange={() =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              metrics: {
+                                ...prev.metrics,
+                                [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                              },
+                            }))
+                          }
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ ml: 3.5, mt: 0.5, pr: 2, display: "block", fontSize: "12px", lineHeight: 1.4 }}
+                        >
+                          {(meta as { desc: string }).desc}
+                        </Typography>
                       </Box>
                     ))}
                   </Stack>
                 </AccordionDetails>
-              </Accordion>
+                </Accordion>
             )}
 
-            {/* RAG-Specific Metrics */}
-            {config.taskType === "rag" && (
+            {/* RAG-Specific Metrics (single-turn only) */}
+            {config.taskType === "rag" && !isMultiTurnDataset && (
               <Box>
                 <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
                   RAG Metrics
@@ -1632,17 +1816,21 @@ export default function NewExperimentModal({
                   Requires retrieval_context in your dataset
                 </Typography>
                 {Object.entries({
+                  contextRelevancy: {
+                    label: "Context Relevancy",
+                    desc: "Measures whether retrieved context is relevant to the query.",
+                  },
+                  contextPrecision: {
+                    label: "Context Precision",
+                    desc: "Evaluates if the retrieved context contains only relevant information.",
+                  },
+                  contextRecall: {
+                    label: "Context Recall",
+                    desc: "Checks if all relevant information needed for the answer was retrieved.",
+                  },
                   faithfulness: {
                     label: "Faithfulness",
-                    desc: "Checks if the answer aligns with provided retrieval context.",
-                  },
-                  hallucination: {
-                    label: "Hallucination Detection",
-                    desc: "Identifies unsupported or fabricated statements not in context.",
-                  },
-                  contextualRelevancy: {
-                    label: "Contextual Relevancy",
-                    desc: "Measures whether retrieved context is relevant to the query.",
+                    desc: "Checks if the answer is grounded in the provided retrieval context.",
                   },
                 }).map(([key, meta]) => (
                   <Box key={key} sx={{ mb: 1.5 }}>
@@ -1676,8 +1864,8 @@ export default function NewExperimentModal({
               </Box>
             )}
 
-            {/* Agent-Specific Metrics */}
-            {config.taskType === "agent" && (
+            {/* Agent-Specific Metrics (single-turn only) */}
+            {config.taskType === "agent" && !isMultiTurnDataset && (
               <Box>
                 <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
                   Agent Metrics
@@ -1686,13 +1874,21 @@ export default function NewExperimentModal({
                   Specifically designed for evaluating AI agents with tool usage
                 </Typography>
                 {Object.entries({
-                  taskCompletion: {
-                    label: "Task Completion",
-                    desc: "Evaluates whether the agent successfully completed the assigned task or goal.",
+                  toolSelection: {
+                    label: "Tool Selection",
+                    desc: "Evaluates whether the agent selected the appropriate tool for the task.",
                   },
                   toolCorrectness: {
                     label: "Tool Correctness",
-                    desc: "Measures whether the agent used the correct tools with appropriate parameters.",
+                    desc: "Measures whether the agent used tools with correct parameters.",
+                  },
+                  actionRelevance: {
+                    label: "Action Relevance",
+                    desc: "Checks if the agent's actions are relevant to achieving the goal.",
+                  },
+                  planningQuality: {
+                    label: "Planning Quality",
+                    desc: "Evaluates the quality and efficiency of the agent's multi-step plan.",
                   },
                 }).map(([key, meta]) => (
                   <Box key={key} sx={{ mb: 1.5 }}>

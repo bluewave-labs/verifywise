@@ -95,14 +95,15 @@ def evaluate_gate(
             continue
 
         if metric_name not in metric_summaries:
-            fail_reasons.append(f"{metric_name}.average_score: missing from summary")
-            checked_metrics += 1
+            # Skip metrics that weren't run - don't fail, just skip
+            # This allows the same suite to be used for single-turn, multi-turn, and RAG evals
             details[metric_name] = {
                 "comparison": comparison,
                 "checks": [
-                    {"stat": "average_score", "status": "missing", "threshold": avg_threshold}
+                    {"stat": "average_score", "status": "skipped", "threshold": avg_threshold}
                 ],
-                "passed": False,
+                "passed": True,  # Skipped = not a failure
+                "skipped": True,
             }
             continue
 

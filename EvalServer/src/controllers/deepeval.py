@@ -570,6 +570,7 @@ async def upload_deepeval_dataset_controller(
     dataset: UploadFile,
     tenant: str,
     dataset_type: str = "chatbot",
+    turn_type: str = "single-turn",
 ) -> JSONResponse:
     """
     Upload a custom dataset JSON file for DeepEval and return a server-relative path
@@ -583,6 +584,11 @@ async def upload_deepeval_dataset_controller(
         valid_types = ["chatbot", "rag", "agent"]
         if dataset_type not in valid_types:
             dataset_type = "chatbot"
+        
+        # Validate turn_type
+        valid_turn_types = ["single-turn", "multi-turn"]
+        if turn_type not in valid_turn_types:
+            turn_type = "single-turn"
 
         # Basic content-type check (best-effort)
         content_type = (dataset.content_type or "").lower()
@@ -646,7 +652,8 @@ async def upload_deepeval_dataset_controller(
                     path=relative_path, 
                     size=len(content_bytes),
                     prompt_count=prompt_count,
-                    dataset_type=dataset_type
+                    dataset_type=dataset_type,
+                    turn_type=turn_type
                 )
                 await db.commit()
         except Exception:
@@ -661,6 +668,7 @@ async def upload_deepeval_dataset_controller(
                 "size": len(content_bytes),
                 "tenant": tenant,
                 "datasetType": dataset_type,
+                "turnType": turn_type,
             },
         )
     except HTTPException:
@@ -812,22 +820,29 @@ async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
     - Relative to datasets folder (e.g., "chatbot/chatbot_basic.json")
     """
     try:
+        # Security: Early rejection of suspicious path patterns
+        if ".." in path or path.startswith("/") or path.startswith("\\"):
+            raise HTTPException(status_code=400, detail="Invalid dataset path: path traversal not allowed")
+
         root_path = Path(__file__).parent.parent.parent.parent
         evaluation_module_path = root_path / "EvaluationModule"
-        
+        data_dir = (evaluation_module_path / "data").resolve()
+
         # Try as full path first (for uploads: data/uploads/...)
         target = (evaluation_module_path / path).resolve()
-        
+
         # If not found, try in datasets folder (for built-ins: chatbot/...)
         if not target.is_file():
             datasets_base = _safe_evalmodule_data_root()
             target = (datasets_base / path).resolve()
-        
-        # Security check: ensure target is inside EvaluationModule/data
-        data_dir = (evaluation_module_path / "data").resolve()
-        if data_dir not in target.parents:
-            raise HTTPException(status_code=400, detail="Invalid dataset path")
-        
+
+        # Security check: ensure resolved target is inside EvaluationModule/data
+        # Use try/except for Python 3.8 compatibility (is_relative_to is 3.9+)
+        try:
+            target.relative_to(data_dir)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid dataset path: access denied")
+
         if not target.is_file():
             raise HTTPException(status_code=404, detail="Dataset file not found")
         

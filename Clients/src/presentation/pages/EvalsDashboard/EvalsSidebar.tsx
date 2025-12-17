@@ -1,5 +1,5 @@
-import { Box, List, ListItemButton, ListItemIcon, ListItemText, Chip, useTheme, Typography } from "@mui/material";
-import { LayoutDashboard, FlaskConical, Database, Award, Settings } from "lucide-react";
+import { Box, List, ListItemButton, ListItemIcon, ListItemText, Chip, Divider, useTheme, Typography } from "@mui/material";
+import { LayoutDashboard, FlaskConical, Database, Award, Settings, KeyRound } from "lucide-react";
 
 interface RecentExperiment {
   id: string;
@@ -48,12 +48,18 @@ export default function EvalsSidebar({
 }: EvalsSidebarProps) {
   const theme = useTheme();
 
-  const sidebarItems: SidebarItem[] = [
+  // Project-specific items (disabled when no project selected)
+  const projectItems: SidebarItem[] = [
     { label: "Overview", value: "overview", icon: <LayoutDashboard size={16} strokeWidth={1.5} />, disabledWhenNoProject: true },
     { label: "Experiments", value: "experiments", icon: <FlaskConical size={16} strokeWidth={1.5} />, count: experimentsCount, disabledWhenNoProject: true },
     { label: "Datasets", value: "datasets", icon: <Database size={16} strokeWidth={1.5} />, count: datasetsCount, disabledWhenNoProject: true },
     { label: "Scorers", value: "scorers", icon: <Award size={16} strokeWidth={1.5} />, count: scorersCount, disabledWhenNoProject: true },
     { label: "Configuration", value: "configuration", icon: <Settings size={16} strokeWidth={1.5} />, disabledWhenNoProject: true },
+  ];
+
+  // Organization-wide settings (always enabled)
+  const settingsItems: SidebarItem[] = [
+    { label: "Settings", value: "settings", icon: <KeyRound size={16} strokeWidth={1.5} />, disabledWhenNoProject: false },
   ];
 
   return (
@@ -70,8 +76,9 @@ export default function EvalsSidebar({
       }}
     >
 
+      {/* Project-specific navigation */}
       <List component="nav" disablePadding sx={{ px: 1 }}>
-        {sidebarItems.map((item) => {
+        {projectItems.map((item) => {
           const isActive = activeTab === item.value;
           const isItemDisabled = disabled && item.disabledWhenNoProject;
 
@@ -189,6 +196,91 @@ export default function EvalsSidebar({
                   }}
                 />
               )}
+            </ListItemButton>
+          );
+        })}
+      </List>
+
+      {/* Divider between project and settings sections */}
+      <Divider sx={{ mx: 2, my: 1.5 }} />
+
+      {/* Organization-wide settings (always enabled) */}
+      <List component="nav" disablePadding sx={{ px: 1 }}>
+        {settingsItems.map((item) => {
+          const isActive = activeTab === item.value;
+
+          return (
+            <ListItemButton
+              key={item.value}
+              onClick={() => onTabChange(item.value)}
+              disableRipple
+              sx={{
+                height: "34px",
+                gap: theme.spacing(3),
+                borderRadius: "4px",
+                px: theme.spacing(3),
+                mb: 0.5,
+                background: isActive
+                  ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+                  : "transparent",
+                border: isActive
+                  ? "1px solid #D8D8D8"
+                  : "1px solid transparent",
+                "&:hover": {
+                  background: isActive
+                    ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+                    : "#F9F9F9",
+                  border: isActive
+                    ? "1px solid #D8D8D8"
+                    : "1px solid transparent",
+                },
+                "&:hover svg": {
+                  color: "#13715B !important",
+                  stroke: "#13715B !important",
+                },
+                "&:hover svg path": {
+                  stroke: "#13715B !important",
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  width: "16px",
+                  mr: 0,
+                  "& svg": {
+                    color: isActive
+                      ? "#13715B !important"
+                      : `${theme.palette.text.tertiary} !important`,
+                    stroke: isActive
+                      ? "#13715B !important"
+                      : `${theme.palette.text.tertiary} !important`,
+                    transition: "color 0.2s ease, stroke 0.2s ease",
+                  },
+                  "& svg path": {
+                    stroke: isActive
+                      ? "#13715B !important"
+                      : `${theme.palette.text.tertiary} !important`,
+                  },
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText
+                sx={{
+                  "& .MuiListItemText-primary": {
+                    fontSize: "13px",
+                    color: isActive
+                      ? theme.palette.text.primary
+                      : theme.palette.text.secondary,
+                  },
+                }}
+              >
+                {item.label}
+              </ListItemText>
             </ListItemButton>
           );
         })}

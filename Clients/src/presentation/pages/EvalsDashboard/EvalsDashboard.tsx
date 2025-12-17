@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Select as MuiSelect, MenuItem, Divider, Popover, Button, List, ListItemButton, ListItemText, useTheme, Card, CardContent, Grid } from "@mui/material";
 import { ChevronDown, ChevronRight, Plus, Check } from "lucide-react";
 import { getSelectStyles } from "../../utils/inputStyles";
-import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow } from "lucide-react";
+import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import EvalsSidebar from "./EvalsSidebar";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -48,6 +48,61 @@ const LLM_PROVIDERS = [
   { _id: "mistral", name: "Mistral", Logo: MistralLogo },
   { _id: "huggingface", name: "Hugging Face", Logo: HuggingFaceLogo },
 ];
+
+/**
+ * API key format patterns for validation
+ */
+const API_KEY_PATTERNS: Record<string, { pattern: RegExp; example: string; description: string }> = {
+  openai: {
+    pattern: /^sk-(proj-)?[a-zA-Z0-9_-]{20,}$/,
+    example: 'sk-... or sk-proj-...',
+    description: 'OpenAI keys start with "sk-" or "sk-proj-"',
+  },
+  anthropic: {
+    pattern: /^sk-ant-(api\d+-)?[a-zA-Z0-9_-]{20,}$/,
+    example: 'sk-ant-api03-...',
+    description: 'Anthropic keys start with "sk-ant-" (typically "sk-ant-api03-")',
+  },
+  google: {
+    pattern: /^AIza[a-zA-Z0-9_-]{35,}$/,
+    example: 'AIza...',
+    description: 'Google API keys start with "AIza"',
+  },
+  xai: {
+    pattern: /^xai-[a-zA-Z0-9_-]{20,}$/,
+    example: 'xai-...',
+    description: 'xAI keys start with "xai-"',
+  },
+  mistral: {
+    pattern: /^[a-zA-Z0-9]{32,}$/,
+    example: '32+ character alphanumeric string',
+    description: 'Mistral keys are alphanumeric strings (32+ characters)',
+  },
+  huggingface: {
+    pattern: /^hf_[a-zA-Z0-9]{20,}$/,
+    example: 'hf_...',
+    description: 'Hugging Face keys start with "hf_"',
+  },
+};
+
+/**
+ * Validate API key format for a specific provider
+ * @returns null if valid, or error message if invalid
+ */
+function validateApiKeyFormat(provider: string, apiKey: string): string | null {
+  const config = API_KEY_PATTERNS[provider];
+  if (!config) {
+    return null; // Unknown provider, skip format validation
+  }
+
+  const trimmedKey = apiKey.trim();
+  
+  if (!config.pattern.test(trimmedKey)) {
+    return `Invalid format. ${config.description}`;
+  }
+
+  return null; // Valid
+}
 
 const LAST_PROJECT_KEY = "evals_last_project_id";
 const RECENT_EXPERIMENTS_KEY = "evals_recent_experiments";
@@ -126,6 +181,7 @@ export default function EvalsDashboard() {
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [newApiKey, setNewApiKey] = useState("");
+  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   const [apiKeySaving, setApiKeySaving] = useState(false);
   const [apiKeyAlert, setApiKeyAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
 
@@ -143,6 +199,11 @@ export default function EvalsDashboard() {
   const [onboardingProjectUseCase, setOnboardingProjectUseCase] = useState<"chatbot" | "rag" | "agent">("chatbot");
   const [serverConnectionError, setServerConnectionError] = useState(false);
   const [onboardingSubmitting, setOnboardingSubmitting] = useState(false);
+
+  // Configuration state (for tracking changes)
+  const [originalUseCase, setOriginalUseCase] = useState<"rag" | "chatbot" | "agent" | null>(null);
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [configAlert, setConfigAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
 
   // Project actions state (rename, delete)
   const [renameModalOpen, setRenameModalOpen] = useState(false);
@@ -264,7 +325,7 @@ export default function EvalsDashboard() {
   };
 
   useEffect(() => {
-    if (tab === "configuration") {
+    if (tab === "settings") {
       fetchLlmApiKeys();
     }
   }, [tab]);
@@ -403,6 +464,7 @@ export default function EvalsDashboard() {
           const project = data.projects.find((p) => p.id === projectId);
           if (project) {
             setCurrentProject(project);
+            setOriginalUseCase(project.useCase || "chatbot");
           }
         }
       } catch (err) {
@@ -413,6 +475,39 @@ export default function EvalsDashboard() {
       loadProjects();
     }
   }, [projectId]);
+
+  // Handle saving configuration changes
+  const handleSaveConfiguration = async () => {
+    if (!projectId || !currentProject) return;
+    
+    setSavingConfig(true);
+    try {
+      await deepEvalProjectsService.updateProject(projectId, {
+        useCase: currentProject.useCase,
+      });
+      
+      // Update the original use case to match the saved value
+      setOriginalUseCase(currentProject.useCase || "chatbot");
+      
+      setConfigAlert({
+        variant: "success",
+        body: "Configuration saved successfully",
+      });
+      setTimeout(() => setConfigAlert(null), 3000);
+    } catch (err) {
+      console.error("Failed to save configuration:", err);
+      setConfigAlert({
+        variant: "error",
+        body: err instanceof Error ? err.message : "Failed to save configuration",
+      });
+      setTimeout(() => setConfigAlert(null), 5000);
+    } finally {
+      setSavingConfig(false);
+    }
+  };
+
+  // Check if use case has changed
+  const hasUseCaseChanged = currentProject?.useCase !== originalUseCase && originalUseCase !== null;
 
   // Load experiments and datasets counts for the current project
   useEffect(() => {
@@ -426,12 +521,9 @@ export default function EvalsDashboard() {
         });
         setExperimentsCount(experimentsData.experiments?.length || 0);
 
-        // Load datasets count - count built-in datasets (same as what's shown in the Datasets tab)
-        const datasetsData = await deepEvalDatasetsService.list();
-        const totalCount = Object.values(datasetsData).reduce((sum, datasets) => {
-          return sum + (Array.isArray(datasets) ? datasets.length : 0);
-        }, 0);
-        setDatasetsCount(totalCount);
+        // Load datasets count - count user's custom datasets ("My datasets")
+        const userDatasetsData = await deepEvalDatasetsService.listMy();
+        setDatasetsCount(userDatasetsData.datasets?.length || 0);
 
         // Load scorers count
         const scorersData = await deepEvalScorersService.list({ project_id: projectId });
@@ -673,8 +765,39 @@ export default function EvalsDashboard() {
       datasets: { label: "Datasets", icon: <Database size={14} strokeWidth={1.5} /> },
       scorers: { label: "Scorers", icon: <Award size={14} strokeWidth={1.5} /> },
       configuration: { label: "Configuration", icon: <Settings size={14} strokeWidth={1.5} /> },
+      settings: { label: "Settings", icon: <KeyRound size={14} strokeWidth={1.5} /> },
     };
     return tabMap[tabValue] || { label: tabValue, icon: <Workflow size={14} strokeWidth={1.5} /> };
+  };
+
+  // Handle API key input change with validation
+  const handleApiKeyInputChange = (value: string) => {
+    setNewApiKey(value);
+    
+    // Clear error if field is empty
+    if (!value.trim()) {
+      setApiKeyError(null);
+      return;
+    }
+    
+    // Validate if provider is selected
+    if (selectedProvider) {
+      const error = validateApiKeyFormat(selectedProvider, value);
+      setApiKeyError(error);
+    }
+  };
+
+  // Handle provider selection with re-validation
+  const handleProviderSelect = (providerId: string) => {
+    setSelectedProvider(providerId);
+    
+    // Re-validate existing API key with new provider
+    if (newApiKey.trim() && providerId) {
+      const error = validateApiKeyFormat(providerId, newApiKey);
+      setApiKeyError(error);
+    } else {
+      setApiKeyError(null);
+    }
   };
 
   // Handle API key modal submission
@@ -683,6 +806,18 @@ export default function EvalsDashboard() {
       setApiKeyAlert({
         variant: "error",
         body: "Please select a provider and enter an API key",
+      });
+      setTimeout(() => setApiKeyAlert(null), 5000);
+      return;
+    }
+
+    // Validate API key format before submission
+    const formatError = validateApiKeyFormat(selectedProvider, newApiKey);
+    if (formatError) {
+      setApiKeyError(formatError);
+      setApiKeyAlert({
+        variant: "error",
+        body: formatError,
       });
       setTimeout(() => setApiKeyAlert(null), 5000);
       return;
@@ -710,6 +845,7 @@ export default function EvalsDashboard() {
         setApiKeyModalOpen(false);
         setSelectedProvider("");
         setNewApiKey("");
+        setApiKeyError(null);
       }, 1500);
     } catch (err) {
       setApiKeyAlert({
@@ -1091,7 +1227,255 @@ export default function EvalsDashboard() {
         <Box sx={{ flex: 1, margin: 0, padding: 0 }}>
           {/* Show nothing while initially loading to prevent flash */}
           {initialLoading && !projectId ? null : (
-          !projectId ? (
+          /* Settings tab - always available regardless of project selection */
+          tab === "settings" ? (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
+              {/* Header + description */}
+              <Stack spacing={1} mb={2}>
+                <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+                  Settings
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+                  Manage your organization's LLM provider API keys. These keys are shared across all projects.
+                </Typography>
+              </Stack>
+
+              {/* LLM API Keys Card */}
+              <Box
+                sx={{
+                  background: "#fff",
+                  border: "1px solid #d0d5dd",
+                  borderRadius: "4px",
+                  p: "20px 24px",
+                  boxShadow: "none",
+                }}
+              >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
+                      Provider API keys
+                    </Typography>
+                    <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
+                      Encrypted keys for running evaluations across all projects
+                    </Typography>
+                  </Box>
+                  {llmApiKeys.length > 0 && (
+                    <CustomizableButton
+                      variant="contained"
+                      text="Add API key"
+                      icon={<PlusIcon size={16} />}
+                      onClick={() => setApiKeyModalOpen(true)}
+                      sx={{
+                        backgroundColor: "#13715B",
+                        color: "#fff",
+                        "&:hover": { backgroundColor: "#0e5c47" },
+                      }}
+                    />
+                  )}
+                </Box>
+
+                {llmApiKeysLoading && llmApiKeys.length === 0 ? (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : llmApiKeys.length === 0 ? (
+                  <Box
+                    sx={{
+                      border: "2px dashed #e5e7eb",
+                      borderRadius: "12px",
+                      p: 6,
+                      textAlign: "center",
+                      backgroundColor: "#fafbfc",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: "50%",
+                        backgroundColor: "#f0fdf4",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        margin: "0 auto",
+                        mb: 2,
+                      }}
+                    >
+                      <PlusIcon size={24} color="#13715B" />
+                    </Box>
+                    <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#000000", mb: 1 }}>
+                      No API keys yet
+                    </Typography>
+                    <Typography sx={{ fontSize: 13, color: "#666666", mb: 3 }}>
+                      Add your first API key to enable LLM evaluations
+                    </Typography>
+                    <CustomizableButton
+                      variant="contained"
+                      text="Add API key"
+                      icon={<PlusIcon size={16} />}
+                      onClick={() => setApiKeyModalOpen(true)}
+                      sx={{
+                        backgroundColor: "#13715B",
+                        color: "#fff",
+                        "&:hover": { backgroundColor: "#0e5c47" },
+                      }}
+                    />
+                  </Box>
+                ) : (
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    {llmApiKeys.map((key) => {
+                      const providerConfig = LLM_PROVIDERS.find(p => p._id === key.provider);
+                      const ProviderLogo = providerConfig?.Logo;
+                      return (
+                      <Collapse
+                        key={key.provider}
+                        in={deletingKeyProvider !== key.provider}
+                        timeout={300}
+                      >
+                        <Box
+                          sx={{
+                            border: "1.5px solid #eaecf0",
+                            borderRadius: "10px",
+                            p: 2,
+                            pl: 2.5,
+                            backgroundColor: "#ffffff",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            cursor: "default",
+                            opacity: deletingKeyProvider === key.provider ? 0 : 1,
+                            transform: deletingKeyProvider === key.provider ? "translateY(-20px)" : "translateY(0)",
+                            transition: "opacity 0.3s ease, transform 0.3s ease",
+                          }}
+                        >
+                          <Stack direction="row" alignItems="center" spacing={2.5} sx={{ flex: 1 }}>
+                            {/* Provider Logo */}
+                            <Box
+                              sx={{
+                                width: 56,
+                                height: 56,
+                                minWidth: 56,
+                                minHeight: 56,
+                                borderRadius: "12px",
+                                backgroundColor: "#FAFAFA",
+                                border: "1px solid #E5E7EB",
+                                flexShrink: 0,
+                                overflow: "hidden",
+                                position: "relative",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  position: "absolute",
+                                  top: "50%",
+                                  left: "50%",
+                                  transform: "translate(-50%, -50%)",
+                                  width: 32,
+                                  height: 32,
+                                  "& svg": {
+                                    width: "32px !important",
+                                    height: "32px !important",
+                                    maxWidth: "32px !important",
+                                    maxHeight: "32px !important",
+                                    display: "block !important",
+                                  },
+                                }}
+                              >
+                                {ProviderLogo && <ProviderLogo />}
+                              </Box>
+                            </Box>
+                            
+                            {/* Provider Info - Better formatted */}
+                            <Box sx={{ flex: 1 }}>
+                              <Stack direction="row" alignItems="center" sx={{ mb: 1.5, gap: "10px" }}>
+                                <Typography sx={{
+                                  fontSize: 15,
+                                  fontWeight: 600,
+                                  color: "#111827",
+                                }}>
+                                  {getProviderDisplayName(key.provider)}
+                                </Typography>
+                                <Chip
+                                  label="ACTIVE"
+                                  sx={{
+                                    backgroundColor: "#dcfce7",
+                                    color: "#166534",
+                                    fontWeight: 600,
+                                    fontSize: "9px",
+                                    height: "18px",
+                                    borderRadius: "4px",
+                                    "& .MuiChip-label": {
+                                      padding: "0 6px",
+                                      textTransform: "uppercase",
+                                      letterSpacing: "0.5px",
+                                    },
+                                  }}
+                                />
+                              </Stack>
+                              <Stack direction="row" alignItems="center" sx={{ gap: "48px" }}>
+                                <Box>
+                                  <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>API Key</Typography>
+                                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", fontFamily: "monospace" }}>
+                                    {key.maskedKey}
+                                  </Typography>
+                                </Box>
+                                <Box>
+                                  <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>Added</Typography>
+                                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+                                    {formatKeyDate(key.createdAt)}
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                            </Box>
+                          </Stack>
+                          
+                          {/* Action buttons */}
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <IconButton
+                              onClick={() => {
+                                setSelectedProvider(key.provider);
+                                setNewApiKey("");
+                                setApiKeyModalOpen(true);
+                              }}
+                              sx={{
+                                color: "#6B7280",
+                                padding: "8px",
+                                "&:hover": {
+                                  backgroundColor: "#F3F4F6",
+                                  color: "#374151",
+                                },
+                              }}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                            </IconButton>
+                            <IconButton
+                              onClick={() => {
+                                setKeyToDelete(key);
+                                setDeleteKeyModalOpen(true);
+                              }}
+                              sx={{
+                                color: "#DC2626",
+                                padding: "8px",
+                                "&:hover": {
+                                  backgroundColor: "#FEF2F2",
+                                  color: "#B91C1C",
+                                },
+                              }}
+                            >
+                              <DeleteIcon size={18} />
+                            </IconButton>
+                          </Stack>
+                        </Box>
+                      </Collapse>
+                    );})}
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          ) : !projectId ? (
             /* No project selected - show projects list */
             <ProjectsList />
           ) : (
@@ -1141,7 +1525,7 @@ export default function EvalsDashboard() {
                       Configuration
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-                      Configure your project's LLM use case and manage API keys for running evaluations.
+                      Configure your project's LLM use case for running evaluations.
                     </Typography>
                   </Stack>
 
@@ -1228,240 +1612,10 @@ export default function EvalsDashboard() {
                     </Box>
                   </Box>
 
-                  {/* LLM API Keys Card */}
-                  <Box
-                    sx={{
-                      background: "#fff",
-                      border: "1px solid #d0d5dd",
-                      borderRadius: "4px",
-                      p: "20px 24px",
-                      boxShadow: "none",
-                    }}
-                  >
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                      <Box>
-                        <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
-                          Provider API keys
-                        </Typography>
-                        <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
-                          Encrypted keys for running evaluations
-                        </Typography>
-                      </Box>
-                      {llmApiKeys.length > 0 && (
-                        <CustomizableButton
-                          variant="contained"
-                          text="Add API key"
-                          icon={<PlusIcon size={16} />}
-                          onClick={() => setApiKeyModalOpen(true)}
-                          sx={{
-                            backgroundColor: "#13715B",
-                            color: "#fff",
-                            "&:hover": { backgroundColor: "#0e5c47" },
-                          }}
-                        />
-                      )}
-                    </Box>
-
-                    {llmApiKeysLoading && llmApiKeys.length === 0 ? (
-                      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                        <CircularProgress size={24} />
-                      </Box>
-                    ) : llmApiKeys.length === 0 ? (
-                      <Box
-                        sx={{
-                          border: "2px dashed #e5e7eb",
-                          borderRadius: "12px",
-                          p: 6,
-                          textAlign: "center",
-                          backgroundColor: "#fafbfc",
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: 56,
-                            height: 56,
-                            borderRadius: "50%",
-                            backgroundColor: "#f0fdf4",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            margin: "0 auto",
-                            mb: 2,
-                          }}
-                        >
-                          <PlusIcon size={24} color="#13715B" />
-                        </Box>
-                        <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#000000", mb: 1 }}>
-                          No API keys yet
-                        </Typography>
-                        <Typography sx={{ fontSize: 13, color: "#666666", mb: 3 }}>
-                          Add your first API key to enable LLM evaluations
-                        </Typography>
-                        <CustomizableButton
-                          variant="contained"
-                          text="Add API key"
-                          icon={<PlusIcon size={16} />}
-                          onClick={() => setApiKeyModalOpen(true)}
-                          sx={{
-                            backgroundColor: "#13715B",
-                            color: "#fff",
-                            "&:hover": { backgroundColor: "#0e5c47" },
-                          }}
-                        />
-                      </Box>
-                    ) : (
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        {llmApiKeys.map((key) => {
-                          const providerConfig = LLM_PROVIDERS.find(p => p._id === key.provider);
-                          const ProviderLogo = providerConfig?.Logo;
-                          return (
-                          <Collapse
-                            key={key.provider}
-                            in={deletingKeyProvider !== key.provider}
-                            timeout={300}
-                          >
-                            <Box
-                              sx={{
-                                border: "1.5px solid #eaecf0",
-                                borderRadius: "10px",
-                                p: 2,
-                                pl: 2.5,
-                                backgroundColor: "#ffffff",
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                cursor: "default",
-                                opacity: deletingKeyProvider === key.provider ? 0 : 1,
-                                transform: deletingKeyProvider === key.provider ? "translateY(-20px)" : "translateY(0)",
-                                transition: "opacity 0.3s ease, transform 0.3s ease",
-                              }}
-                            >
-                              <Stack direction="row" alignItems="center" spacing={2.5} sx={{ flex: 1 }}>
-                                {/* Provider Logo */}
-                                <Box
-                                  sx={{
-                                    width: 56,
-                                    height: 56,
-                                    minWidth: 56,
-                                    minHeight: 56,
-                                    borderRadius: "12px",
-                                    backgroundColor: "#FAFAFA",
-                                    border: "1px solid #E5E7EB",
-                                    flexShrink: 0,
-                                    overflow: "hidden",
-                                    position: "relative",
-                                  }}
-                                >
-                                  <Box
-                                    sx={{
-                                      position: "absolute",
-                                      top: "50%",
-                                      left: "50%",
-                                      transform: "translate(-50%, -50%)",
-                                      width: 32,
-                                      height: 32,
-                                      "& svg": {
-                                        width: "32px !important",
-                                        height: "32px !important",
-                                        maxWidth: "32px !important",
-                                        maxHeight: "32px !important",
-                                        display: "block !important",
-                                      },
-                                    }}
-                                  >
-                                    {ProviderLogo && <ProviderLogo />}
-                                  </Box>
-                                </Box>
-                                
-                                {/* Provider Info - Better formatted */}
-                                <Box sx={{ flex: 1 }}>
-                                  <Stack direction="row" alignItems="center" sx={{ mb: 1.5, gap: "10px" }}>
-                                    <Typography sx={{
-                                      fontSize: 15,
-                                      fontWeight: 600,
-                                      color: "#111827",
-                                    }}>
-                                      {getProviderDisplayName(key.provider)}
-                                    </Typography>
-                                    <Chip
-                                      label="ACTIVE"
-                                      sx={{
-                                        backgroundColor: "#dcfce7",
-                                        color: "#166534",
-                                        fontWeight: 600,
-                                        fontSize: "9px",
-                                        height: "18px",
-                                        borderRadius: "4px",
-                                        "& .MuiChip-label": {
-                                          padding: "0 6px",
-                                          textTransform: "uppercase",
-                                          letterSpacing: "0.5px",
-                                        },
-                                      }}
-                                    />
-                                  </Stack>
-                                  <Stack direction="row" alignItems="center" sx={{ gap: "48px" }}>
-                                    <Box>
-                                      <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>API Key</Typography>
-                                      <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", fontFamily: "monospace" }}>
-                                        {key.maskedKey}
-                                      </Typography>
-                                    </Box>
-                                    <Box>
-                                      <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>Added</Typography>
-                                      <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
-                                        {formatKeyDate(key.createdAt)}
-                                      </Typography>
-                                    </Box>
-                                  </Stack>
-                                </Box>
-                              </Stack>
-                              
-                              {/* Action buttons */}
-                              <Stack direction="row" spacing={1} alignItems="center">
-                                <IconButton
-                                  onClick={() => {
-                                    setSelectedProvider(key.provider);
-                                    setNewApiKey("");
-                                    setApiKeyModalOpen(true);
-                                  }}
-                                  sx={{
-                                    color: "#6B7280",
-                                    padding: "8px",
-                                    "&:hover": {
-                                      backgroundColor: "#F3F4F6",
-                                      color: "#374151",
-                                    },
-                                  }}
-                                >
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                  </svg>
-                                </IconButton>
-                                <IconButton
-                                  onClick={() => {
-                                    setKeyToDelete(key);
-                                    setDeleteKeyModalOpen(true);
-                                  }}
-                                  sx={{
-                                    color: "#DC2626",
-                                    padding: "8px",
-                                    "&:hover": {
-                                      backgroundColor: "#FEF2F2",
-                                      color: "#B91C1C",
-                                    },
-                                  }}
-                                >
-                                  <DeleteIcon size={18} />
-                                </IconButton>
-                              </Stack>
-                            </Box>
-                          </Collapse>
-                        );})}
-                      </Box>
-                    )}
-                  </Box>
+                  {/* Config Alert */}
+                  {configAlert && (
+                    <Alert variant={configAlert.variant} body={configAlert.body} />
+                  )}
 
                   {/* Save Button */}
                   <Stack>
@@ -1470,18 +1624,21 @@ export default function EvalsDashboard() {
                         alignSelf: "flex-end",
                         width: "fit-content",
                         gap: 2,
-                        backgroundColor: "#ccc",
-                        border: "1px solid #ccc",
+                        backgroundColor: hasUseCaseChanged ? "#13715B" : "#ccc",
+                        border: hasUseCaseChanged ? "1px solid #13715B" : "1px solid #ccc",
+                        "&:hover": hasUseCaseChanged ? { backgroundColor: "#0e5c47" } : {},
                       }}
                       icon={<Save size={16} />}
                       variant="contained"
-                      onClick={() => {}}
-                      isDisabled={true}
-                      text="Save changes"
+                      onClick={handleSaveConfiguration}
+                      isDisabled={!hasUseCaseChanged || savingConfig}
+                      loading={savingConfig}
+                      text={savingConfig ? "Saving..." : "Save changes"}
                     />
                   </Stack>
                 </Box>
               )}
+
             </>
           ))}
         </Box>
@@ -1673,13 +1830,14 @@ export default function EvalsDashboard() {
           setApiKeyModalOpen(false);
           setSelectedProvider("");
           setNewApiKey("");
+          setApiKeyError(null);
           setApiKeyAlert(null);
         }}
         title="Add API key"
         description="Configure API keys for LLM providers to run evaluations. Your keys are encrypted and stored securely."
         onSubmit={handleAddApiKey}
         submitButtonText={apiKeySaving ? "Adding..." : "Add API key"}
-        isSubmitting={apiKeySaving || !selectedProvider || !newApiKey.trim()}
+        isSubmitting={apiKeySaving || !selectedProvider || !newApiKey.trim() || !!apiKeyError}
       >
         <Stack spacing={3}>
           {/* Provider Selection Grid - show ALL providers */}
@@ -1696,7 +1854,7 @@ export default function EvalsDashboard() {
                 return (
                   <Grid item xs={4} sm={4} key={provider._id}>
                     <Card
-                      onClick={() => setSelectedProvider(provider._id)}
+                      onClick={() => handleProviderSelect(provider._id)}
                       sx={{
                         cursor: "pointer",
                         border: "1px solid",
@@ -1819,11 +1977,36 @@ export default function EvalsDashboard() {
               <Field
                 label=""
                 value={newApiKey}
-                onChange={(e) => setNewApiKey(e.target.value)}
-                placeholder="Enter your API key..."
+                onChange={(e) => handleApiKeyInputChange(e.target.value)}
+                placeholder={`Enter your ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || ''} API key...`}
                 type="password"
                 autoComplete="one-time-code"
+                error={apiKeyError || ""}
               />
+              {selectedProvider && !apiKeyError && newApiKey.trim() && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#059669",
+                    mt: 0.5,
+                    ml: 0.5,
+                  }}
+                >
+                  ✓ Key format looks valid
+                </Typography>
+              )}
+              {selectedProvider && !newApiKey.trim() && API_KEY_PATTERNS[selectedProvider] && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#6B7280",
+                    mt: 0.5,
+                    ml: 0.5,
+                  }}
+                >
+                  Expected format: {API_KEY_PATTERNS[selectedProvider]?.example}
+                </Typography>
+              )}
             </Box>
           )}
 

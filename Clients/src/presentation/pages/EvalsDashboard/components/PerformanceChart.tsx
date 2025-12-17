@@ -221,6 +221,15 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
     ? activeMetrics 
     : Object.keys(metricDefinitions);
 
+  // Calculate dynamic height based on number of legend items
+  // Estimate ~10 items per line, each line ~20px
+  const itemsPerLine = 10;
+  const legendLineHeight = 20;
+  const legendLines = Math.ceil(metricsToDisplay.length / itemsPerLine);
+  const baseChartHeight = 200; // Base height for chart area
+  const legendHeight = legendLines * legendLineHeight + 12; // +12 for padding
+  const dynamicHeight = baseChartHeight + legendHeight;
+
   // Create a color map for metrics (used by custom tooltip)
   const metricColorMap: Record<string, string> = {};
   metricsToDisplay.forEach((metricKey, index) => {
@@ -319,31 +328,33 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
   return (
     <Box sx={{
       width: "100%",
-      minHeight: 320,
-      height: 360,
+      minHeight: 220,
+      height: dynamicHeight,
       "& *": { outline: "none !important" },
       "& *:focus": { outline: "none !important" },
     }}>
       <ResponsiveContainer key={`rc-${projectId}-${data.length}-${activeMetrics.join(",")}`} width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
           <XAxis 
             dataKey="uniqueId" 
-            tick={{ fontSize: 11, fill: "#6B7280" }}
+            tick={{ fontSize: 10, fill: "#6B7280" }}
             axisLine={{ stroke: "#E5E7EB" }}
             interval={0}
             angle={-20}
             textAnchor="end"
-            height={50}
+            height={40}
           />
           <YAxis 
             domain={[0, 1]} 
-            tick={{ fontSize: 12, fill: "#6B7280" }}
+            tick={{ fontSize: 10, fill: "#6B7280" }}
             axisLine={{ stroke: "#E5E7EB" }}
             tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
+            width={40}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
+            wrapperStyle={{ paddingTop: 12, fontSize: 11 }}
             formatter={(value: string) => {
               const metricDef = metricDefinitions[value as keyof typeof metricDefinitions];
               return metricDef?.label || formatMetricLabel(value);
@@ -357,10 +368,10 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
                 type="monotone"
                 dataKey={metricKey}
                 stroke={color}
-                strokeWidth={2}
+                strokeWidth={1.5}
                 name={metricKey}
-                dot={{ r: 4, fill: color }}
-                activeDot={{ r: 6 }}
+                dot={{ r: 3, fill: color }}
+                activeDot={{ r: 5 }}
                 isAnimationActive={false}
                 connectNulls={false}
                 legendType="plainline"

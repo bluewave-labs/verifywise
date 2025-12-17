@@ -29,6 +29,18 @@ interface AlertState {
   body: string;
 }
 
+/**
+ * Shortens model names by removing date suffixes for cleaner display
+ * e.g., "claude-sonnet-4-20250514" → "claude-sonnet-4"
+ *       "claude-3-5-haiku-20241022" → "claude-3-5-haiku"
+ *       "gpt-4o-2024-05-13" → "gpt-4o"
+ */
+function shortenModelName(modelName: string): string {
+  if (!modelName) return modelName;
+  // Remove date patterns like -20250514 or -2024-05-13 from the end
+  return modelName.replace(/-\d{8}$/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '');
+}
+
 export default function ProjectExperiments({ projectId, onViewExperiment }: ProjectExperimentsProps) {
   const navigate = useNavigate();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
@@ -369,7 +381,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
   }, [experiments, filterData, searchTerm]);
 
   // Transform to table format
-  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
+  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
 
   const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => {
     // Get dataset name from config - try multiple sources
@@ -409,7 +421,8 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
 
     // Determine judge display based on evaluation mode
     const evaluationMode = exp.config?.evaluationMode || "standard";
-    const judgeModel = exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "";
+    const judgeModelRaw = exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "";
+    const judgeModel = shortenModelName(judgeModelRaw);
     const scorerName = exp.config?.scorerName || "";
     
     let judgeDisplay = "-";
@@ -446,7 +459,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       {/* Header + description */}
-      <Stack spacing={1} mb={4}>
+      <Stack spacing={1} mb={2}>
         <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
           Experiments
         </Typography>
@@ -457,11 +470,11 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
 
       {/* Performance Chart */}
       <Card sx={{ marginBottom: "16px", border: "1px solid #d0d5dd", borderRadius: "4px", boxShadow: "none" }}>
-        <CardContent>
-          <Box mb={2}>
-            <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600 }}>Performance tracking</Typography>
+        <CardContent sx={{ py: 2 }}>
+          <Box mb={1}>
+            <Typography variant="h6" sx={{ fontSize: "14px", fontWeight: 600 }}>Performance tracking</Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "13px" }}>
             Track metric scores across eval runs
           </Typography>
 

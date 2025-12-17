@@ -314,6 +314,8 @@ export default function ProjectOverview({
             borderRadius: "4px",
             overflow: "hidden",
             backgroundColor: "#FFFFFF",
+            // Match height of two stat cards (90px each) + gap between them when empty
+            ...(!hasExperiments && { minHeight: "214px", justifyContent: "center" }),
           }}>
             {!hasExperiments ? (
               /* Empty state inside the consistent layout */

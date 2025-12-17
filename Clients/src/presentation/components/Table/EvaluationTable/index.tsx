@@ -42,6 +42,7 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
   setCurrentPagingation,
   onShowDetails,
   onRerun,
+  hidePagination = false,
 }) => {
   const [rowsPerPage, setRowsPerPage] = useState(() =>
     getPaginationRowCount("evaluation", 10)
@@ -194,66 +195,68 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
                   onRemoveModel={removeModel}
                   onShowDetails={onShowDetails}
                   onRerun={onRerun}
-                  page={page}
-                  rowsPerPage={rowsPerPage}
+                  page={hidePagination ? 0 : page}
+                  rowsPerPage={hidePagination ? sortedRows.length : rowsPerPage}
                 />
-                <TableFooter>
-                  <TableRow
-                    sx={{
-                      "& .MuiTableCell-root.MuiTableCell-footer": {
-                        paddingX: theme.spacing(8),
-                        paddingY: theme.spacing(4),
-                      },
-                    }}
-                  >
-                    <TableCell sx={paginationStatus(theme)}>
-                      Showing {getRange} of {sortedRows?.length} evaluation
-                      {sortedRows?.length !== 1 ? "s" : ""}
-                    </TableCell>
-                    <TablePagination
-                      count={sortedRows.length}
-                      page={page}
-                      onPageChange={handleChangePage}
-                      rowsPerPage={rowsPerPage}
-                      rowsPerPageOptions={[5, 10, 15, 20, 25]}
-                      onRowsPerPageChange={handleChangeRowsPerPage}
-                      ActionsComponent={(props) => (
-                        <TablePaginationActions {...props} />
-                      )}
-                      labelRowsPerPage="Evaluations per page"
-                      labelDisplayedRows={({ page, count }) =>
-                        `Page ${page + 1} of ${Math.max(
-                          0,
-                          Math.ceil(count / rowsPerPage)
-                        )}`
-                      }
-                      sx={paginationStyle(theme)}
-                      slotProps={{
-                        select: {
-                          MenuProps: {
-                            keepMounted: true,
-                            PaperProps: {
-                              className: "pagination-dropdown",
-                              sx: paginationDropdown(theme),
-                            },
-                            transformOrigin: {
-                              vertical: "bottom",
-                              horizontal: "left",
-                            },
-                            anchorOrigin: {
-                              vertical: "top",
-                              horizontal: "left",
-                            },
-                            sx: { mt: theme.spacing(-2) },
-                          },
-                          inputProps: { id: "pagination-dropdown" },
-                          IconComponent: SelectorVertical,
-                          sx: paginationSelect(theme),
+                {!hidePagination && (
+                  <TableFooter>
+                    <TableRow
+                      sx={{
+                        "& .MuiTableCell-root.MuiTableCell-footer": {
+                          paddingX: theme.spacing(8),
+                          paddingY: theme.spacing(4),
                         },
                       }}
-                    />
-                  </TableRow>
-                </TableFooter>
+                    >
+                      <TableCell sx={paginationStatus(theme)}>
+                        Showing {getRange} of {sortedRows?.length} evaluation
+                        {sortedRows?.length !== 1 ? "s" : ""}
+                      </TableCell>
+                      <TablePagination
+                        count={sortedRows.length}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        rowsPerPage={rowsPerPage}
+                        rowsPerPageOptions={[5, 10, 15, 20, 25]}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        ActionsComponent={(props) => (
+                          <TablePaginationActions {...props} />
+                        )}
+                        labelRowsPerPage="Evaluations per page"
+                        labelDisplayedRows={({ page, count }) =>
+                          `Page ${page + 1} of ${Math.max(
+                            0,
+                            Math.ceil(count / rowsPerPage)
+                          )}`
+                        }
+                        sx={paginationStyle(theme)}
+                        slotProps={{
+                          select: {
+                            MenuProps: {
+                              keepMounted: true,
+                              PaperProps: {
+                                className: "pagination-dropdown",
+                                sx: paginationDropdown(theme),
+                              },
+                              transformOrigin: {
+                                vertical: "bottom",
+                                horizontal: "left",
+                              },
+                              anchorOrigin: {
+                                vertical: "top",
+                                horizontal: "left",
+                              },
+                              sx: { mt: theme.spacing(-2) },
+                            },
+                            inputProps: { id: "pagination-dropdown" },
+                            IconComponent: SelectorVertical,
+                            sx: paginationSelect(theme),
+                          },
+                        }}
+                      />
+                    </TableRow>
+                  </TableFooter>
+                )}
               </>
             ) : (
               <TableBody>

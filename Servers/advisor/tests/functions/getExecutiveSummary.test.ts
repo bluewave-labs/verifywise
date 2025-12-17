@@ -234,7 +234,6 @@ describe("Advisor Functions: getExecutiveSummary", () => {
 
   describe("Urgent Risks Sorted by Deadline", () => {
     it("should return top 5 urgent risks with Major/Catastrophic severity", async () => {
-      const now = new Date();
       const testRisks = [
         createMockRisk({ severity: "Major", mitigation_status: "In Progress" }),
         createMockRisk({ severity: "Catastrophic", mitigation_status: "Not Started" }),

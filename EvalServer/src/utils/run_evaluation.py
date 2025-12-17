@@ -107,16 +107,13 @@ async def run_evaluation(
                 "huggingface": "HF_API_KEY",
             }
             
-            configured_providers = []
-            for provider in scorer_api_keys:
+            configured_count = 0
+            for provider in list(scorer_api_keys.keys()):
                 env_var = provider_env_map.get(provider.lower())
                 key_value = scorer_api_keys.get(provider)
                 if env_var and key_value:
                     os.environ[env_var] = key_value
-                    configured_providers.append(provider)
-            
-            if configured_providers:
-                print(f"🔑 API keys configured for providers: {configured_providers}")
+                    configured_count += 1
         
         # Legacy: single scorer API key (backward compatibility)
         legacy_key = config.get("scorerApiKey")
@@ -126,7 +123,6 @@ async def run_evaluation(
             os.environ["GEMINI_API_KEY"] = legacy_key
             os.environ["XAI_API_KEY"] = legacy_key
             os.environ["MISTRAL_API_KEY"] = legacy_key
-            print("🔑 Legacy API key configured for all providers")
         
         # Judge LLM API keys (for DeepEval metrics - Standard Judge mode)
         print(f"📝 Judge LLM config: provider={judge_config.get('provider')}, has_apiKey={bool(judge_config.get('apiKey'))}")

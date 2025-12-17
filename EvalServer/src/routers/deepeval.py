@@ -39,7 +39,7 @@ async def create_deepeval_evaluation(
 ):
     """
     Create and run a DeepEval evaluation.
-    
+
     Request body:
     {
         "model": {
@@ -68,7 +68,8 @@ async def create_deepeval_evaluation(
             "answer_relevancy": 0.5,
             "bias": 0.5,
             "toxicity": 0.5
-        }
+        },
+        "selectedScorers": ["scorer_id_1", "scorer_id_2"]  // optional - if not specified, all enabled scorers will run
     }
     """
     return await create_deepeval_evaluation_controller(

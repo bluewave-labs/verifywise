@@ -818,8 +818,32 @@ async def run_evaluation(
                 # Load enabled custom scorers for this project
                 all_scorers = await list_scorers(tenant=tenant, db=db, project_id=project_id)
                 enabled_scorers = [s for s in all_scorers if s.get("enabled") and s.get("type") == "llm"]
-                
-                print(f"📋 Found {len(all_scorers)} total scorers, {len(enabled_scorers)} enabled LLM scorers")
+
+                # Filter by selected scorers if specified in experiment config
+                selected_scorer_ids = config.get("selectedScorers")
+                if selected_scorer_ids and isinstance(selected_scorer_ids, list):
+                    # Store original count before filtering
+                    original_enabled_count = len(enabled_scorers)
+                    # Only run scorers that are both enabled AND selected
+                    enabled_scorers = [s for s in enabled_scorers if s.get("id") in selected_scorer_ids]
+                    filtered_count = original_enabled_count - len(enabled_scorers)
+
+                    print(f"📋 Found {len(all_scorers)} total scorers")
+                    print(f"   Selected scorers: {len(enabled_scorers)} (from {len(selected_scorer_ids)} requested)")
+                    print(f"   Selected scorer IDs: {selected_scorer_ids}")
+                    if filtered_count > 0:
+                        print(f"   ⚠️  {filtered_count} enabled scorer(s) not in selection - will be skipped")
+
+                    # Warn if selected scorer IDs don't exist or are disabled
+                    selected_set = set(selected_scorer_ids)
+                    found_set = set(s.get("id") for s in enabled_scorers)
+                    missing = selected_set - found_set
+                    if missing:
+                        print(f"   ⚠️  Warning: {len(missing)} requested scorer(s) not found or disabled: {list(missing)}")
+                else:
+                    # No selection specified, run all enabled scorers (backward compatibility)
+                    print(f"📋 Found {len(all_scorers)} total scorers, {len(enabled_scorers)} enabled LLM scorers")
+                    print(f"   No scorer selection specified - running all enabled scorers")
                 
                 if enabled_scorers:
                     for scorer in enabled_scorers:

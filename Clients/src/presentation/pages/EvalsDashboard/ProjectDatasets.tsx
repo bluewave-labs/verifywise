@@ -1174,8 +1174,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                                     }}
                                     sx={{ 
                                       p: 0.5,
-                                      color: "#9CA3AF", 
-                                      "&:hover": { color: "#EF4444", backgroundColor: "transparent" } 
+                                      color: "#EF4444", 
+                                      "&:hover": { backgroundColor: "#FEE2E2" } 
                                     }}
                                   >
                                     <Trash2 size={12} />

@@ -53,14 +53,16 @@ class ModelRunner:
             self._setup_openai()
         elif self.provider == "anthropic":
             self._setup_anthropic()
-        elif self.provider == "gemini":
-            self._setup_gemini()
+        elif self.provider == "google":
+            self._setup_google()
         elif self.provider == "xai":
             self._setup_xai()
         elif self.provider == "mistral":
             self._setup_mistral()
         elif self.provider == "ollama":
             self._setup_ollama()
+        elif self.provider == "openrouter":
+            self._setup_openrouter()
         else:
             raise ValueError(f"Unsupported provider: {provider}")
         
@@ -108,17 +110,17 @@ class ModelRunner:
         except ImportError:
             raise ImportError("anthropic package not installed. Install with: pip install anthropic")
     
-    def _setup_gemini(self):
-        """Setup Google Gemini API."""
-        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+    def _setup_google(self):
+        """Setup Google API (for Gemini models)."""
+        api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
-            raise ValueError("GOOGLE_API_KEY or GEMINI_API_KEY environment variable not set")
+            raise ValueError("GOOGLE_API_KEY environment variable not set")
         
         try:
             import google.generativeai as genai
             genai.configure(api_key=api_key)
-            self.gemini_client = genai.GenerativeModel(self.model_name)
-            print(f"✓ Gemini API configured")
+            self.google_client = genai.GenerativeModel(self.model_name)
+            print(f"✓ Google API configured")
         except ImportError:
             raise ImportError("google-generativeai package not installed. Install with: pip install google-generativeai")
     
@@ -157,6 +159,21 @@ class ModelRunner:
         except ImportError:
             raise ImportError("ollama package not installed. Install with: pip install ollama")
     
+    def _setup_openrouter(self):
+        """Setup OpenRouter API (OpenAI-compatible)."""
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            raise ValueError("OPENROUTER_API_KEY environment variable not set")
+        try:
+            from openai import OpenAI
+            self.openrouter_client = OpenAI(
+                api_key=api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+            print(f"✓ OpenRouter API configured")
+        except ImportError:
+            raise ImportError("openai package not installed. Install with: pip install openai")
+    
     def generate(
         self,
         prompt: str,
@@ -182,14 +199,16 @@ class ModelRunner:
             return self._generate_openai(prompt, max_tokens, temperature, top_p)
         elif self.provider == "anthropic":
             return self._generate_anthropic(prompt, max_tokens, temperature, top_p)
-        elif self.provider == "gemini":
-            return self._generate_gemini(prompt, max_tokens, temperature, top_p)
+        elif self.provider == "google":
+            return self._generate_google(prompt, max_tokens, temperature, top_p)
         elif self.provider == "xai":
             return self._generate_xai(prompt, max_tokens, temperature, top_p)
         elif self.provider == "mistral":
             return self._generate_mistral(prompt, max_tokens, temperature, top_p)
         elif self.provider == "ollama":
             return self._generate_ollama(prompt, max_tokens, temperature, top_p)
+        elif self.provider == "openrouter":
+            return self._generate_openrouter(prompt, max_tokens, temperature, top_p)
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
     
@@ -267,21 +286,21 @@ class ModelRunner:
         message = self.anthropic_client.messages.create(**kwargs)
         return message.content[0].text.strip()
     
-    def _generate_gemini(
+    def _generate_google(
         self,
         prompt: str,
         max_tokens: int,
         temperature: float,
         top_p: Optional[float],
     ) -> str:
-        """Generate using Google Gemini API."""
+        """Generate using Google API (Gemini models)."""
         generation_config = {
             "max_output_tokens": max_tokens,
             "temperature": temperature,
         }
         if top_p is not None:
             generation_config["top_p"] = top_p
-        response = self.gemini_client.generate_content(
+        response = self.google_client.generate_content(
             prompt,
             generation_config=generation_config
         )
@@ -341,6 +360,25 @@ class ModelRunner:
         response = self.ollama_client.generate(model=self.model_name, prompt=prompt, options=options)
         
         return response['response'].strip()
+    
+    def _generate_openrouter(
+        self,
+        prompt: str,
+        max_tokens: int,
+        temperature: float,
+        top_p: Optional[float],
+    ) -> str:
+        """Generate using OpenRouter (OpenAI-compatible API)."""
+        params: Dict[str, Any] = {
+            "model": self.model_name,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+        if top_p is not None:
+            params["top_p"] = top_p
+        response = self.openrouter_client.chat.completions.create(**params)
+        return response.choices[0].message.content.strip()
     
     def generate_batch(
         self,

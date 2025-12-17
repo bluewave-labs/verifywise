@@ -3,6 +3,7 @@ import anthropicModels from "./anthropic/models.json";
 import googleModels from "./google/models.json";
 import mistralModels from "./mistral/models.json";
 import xaiModels from "./xai/models.json";
+import openrouterModels from "./openrouter/models.json";
 
 export interface ModelInfo {
   id: string;
@@ -27,6 +28,7 @@ const PROVIDER_META: Record<string, { displayName: string; iconColor: string; lo
   google: { displayName: "Google", iconColor: "#4285F4", logo: "/src/presentation/assets/icons/gemini_logo.svg" },
   mistral: { displayName: "Mistral", iconColor: "#FF7000", logo: "/src/presentation/assets/icons/mistral_logo.svg" },
   xai: { displayName: "xAI", iconColor: "#000000", logo: "/src/presentation/assets/icons/xai_logo.svg" },
+  openrouter: { displayName: "OpenRouter", iconColor: "#6366F1", logo: "/src/presentation/assets/icons/openrouter_logo.svg" },
 };
 
 export const PROVIDERS: Record<string, ProviderConfig> = {
@@ -49,6 +51,10 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
   xai: { 
     ...(xaiModels as { provider: string; displayName: string; models: ModelInfo[] }), 
     ...PROVIDER_META.xai 
+  },
+  openrouter: { 
+    ...(openrouterModels as { provider: string; displayName: string; models: ModelInfo[] }), 
+    ...PROVIDER_META.openrouter 
   },
 };
 

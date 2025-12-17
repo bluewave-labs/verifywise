@@ -219,6 +219,7 @@ async def upload_dataset(
     request: Request, 
     dataset: UploadFile = File(...),
     dataset_type: str = Form("chatbot"),
+    turn_type: str = Form("single-turn"),
 ):
     """
     Upload a custom JSON dataset to be used in evaluations.
@@ -230,13 +231,15 @@ async def upload_dataset(
         "filename": "{filename}.json",
         "size": 12345,
         "tenant": "default",
-        "datasetType": "chatbot"
+        "datasetType": "chatbot",
+        "turnType": "single-turn"
     }
     """
     return await upload_deepeval_dataset_controller(
         dataset=dataset,
         tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")),
         dataset_type=dataset_type,
+        turn_type=turn_type,
     )
 
 @router.get("/datasets/list")

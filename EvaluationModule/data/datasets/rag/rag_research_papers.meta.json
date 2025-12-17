@@ -1,4 +1,8 @@
 {
+  "name": "Research Papers RAG",
   "description": "Tests RAG systems on academic research papers, evaluating citation accuracy, context understanding, and technical information retrieval.",
-  "tags": ["RAG", "academic", "research", "technical"]
+  "type": "single-turn",
+  "use_case": "rag",
+  "tags": ["RAG", "academic", "research", "technical"],
+  "prompt_count": 4
 }

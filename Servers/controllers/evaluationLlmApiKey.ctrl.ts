@@ -118,6 +118,56 @@ export const addKey = async (req: Request, res: Response) => {
 };
 
 /**
+ * Get all decrypted LLM API keys for evaluations (internal endpoint)
+ * 
+ * This endpoint returns the actual decrypted API keys for use by the evaluation server.
+ * Should only be accessible from internal services (localhost).
+ * 
+ * Query params:
+ * - organizationId: number (required)
+ */
+export const getDecryptedKeys = async (req: Request, res: Response) => {
+  try {
+    const organizationId = parseInt(req.query.organizationId as string);
+
+    if (!organizationId || isNaN(organizationId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID is required',
+      });
+    }
+
+    // Get all keys for the organization
+    const keys = await EvaluationLlmApiKeyModel.findAll({
+      where: { organization_id: organizationId },
+    });
+
+    // Build map of provider -> decrypted key
+    const decryptedKeys: Record<string, string> = {};
+    for (const key of keys) {
+      try {
+        decryptedKeys[key.provider] = key.getApiKey();
+      } catch (err) {
+        console.warn(`Failed to decrypt key for provider ${key.provider}:`, err);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: decryptedKeys,
+    });
+  } catch (error: any) {
+    console.error('Error fetching decrypted LLM API keys:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch API keys',
+      error: error.message,
+    });
+  }
+};
+
+/**
  * Delete an LLM API key
  *
  * URL params:

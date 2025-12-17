@@ -37,6 +37,7 @@ export interface SidebarMenuItem {
   disabled?: boolean;
   highlightPaths?: string[];
   onClick?: () => void;
+  dividerAfter?: boolean;
 }
 
 export interface SidebarMenuGroup {
@@ -600,7 +601,14 @@ const SidebarShell: FC<SidebarShellProps> = ({
         {topItems.map((item) => renderMenuItem(item))}
 
         {/* Flat Items (no groups) */}
-        {flatItems.map((item) => renderMenuItem(item))}
+        {flatItems.map((item) => (
+          <Box key={item.id}>
+            {renderMenuItem(item)}
+            {item.dividerAfter && (
+              <Box sx={{ my: 1.5, mx: theme.spacing(4), borderTop: "1px solid #E5E7EB" }} />
+            )}
+          </Box>
+        ))}
 
         {/* Grouped Items */}
         {menuGroups.map((group) => (

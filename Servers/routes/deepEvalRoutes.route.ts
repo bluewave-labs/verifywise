@@ -77,8 +77,58 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
         }
       }
     }
+
+    // 3. Inject API key for the model being tested (if it's a cloud provider)
+    if (body?.config?.model) {
+      // accessMethod tells us the provider (openai, anthropic, google, etc.)
+      const modelProvider = (body.config.model.provider || body.config.model.accessMethod || "").toLowerCase();
+      const hasModelApiKey = body.config.model.apiKey && body.config.model.apiKey !== "***" && body.config.model.apiKey !== "";
+      
+      if (modelProvider && !hasModelApiKey && VALID_PROVIDERS.includes(modelProvider as LLMProvider)) {
+        const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
+          organizationId,
+          modelProvider as LLMProvider
+        );
+        
+        if (apiKey) {
+          req.body.config.model.apiKey = apiKey;
+          // Also set provider explicitly if only accessMethod was set
+          if (!body.config.model.provider) {
+            req.body.config.model.provider = modelProvider;
+          }
+        }
+      }
+    }
+
+    // 4. Inject judge provider's key into scorerApiKeys for DeepEval metrics (G-Eval, etc.)
+    // Only inject the specific key needed - the judge LLM provider
+    if ((evaluationMode === "standard" || evaluationMode === "both") && body?.config?.judgeLlm?.provider) {
+      const judgeProvider = body.config.judgeLlm.provider.toLowerCase();
+      
+      if (VALID_PROVIDERS.includes(judgeProvider as LLMProvider)) {
+        // Initialize scorerApiKeys if not already set
+        if (!req.body.config.scorerApiKeys) {
+          req.body.config.scorerApiKeys = {};
+        }
+        
+        // Only fetch if we don't already have this provider's key
+        if (!req.body.config.scorerApiKeys[judgeProvider]) {
+          try {
+            const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
+              organizationId,
+              judgeProvider as LLMProvider
+            );
+            if (apiKey) {
+              req.body.config.scorerApiKeys[judgeProvider] = apiKey;
+            }
+          } catch {
+            // Skip if key not found
+          }
+        }
+      }
+    }
   } catch (error) {
-    console.error("[DeepEval Proxy] Error in API key injection");
+    console.error("[DeepEval Proxy] Error in API key injection:", error);
   }
   
   next();

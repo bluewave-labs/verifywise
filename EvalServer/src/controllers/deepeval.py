@@ -570,6 +570,7 @@ async def upload_deepeval_dataset_controller(
     dataset: UploadFile,
     tenant: str,
     dataset_type: str = "chatbot",
+    turn_type: str = "single-turn",
 ) -> JSONResponse:
     """
     Upload a custom dataset JSON file for DeepEval and return a server-relative path
@@ -583,6 +584,11 @@ async def upload_deepeval_dataset_controller(
         valid_types = ["chatbot", "rag", "agent"]
         if dataset_type not in valid_types:
             dataset_type = "chatbot"
+        
+        # Validate turn_type
+        valid_turn_types = ["single-turn", "multi-turn"]
+        if turn_type not in valid_turn_types:
+            turn_type = "single-turn"
 
         # Basic content-type check (best-effort)
         content_type = (dataset.content_type or "").lower()
@@ -646,7 +652,8 @@ async def upload_deepeval_dataset_controller(
                     path=relative_path, 
                     size=len(content_bytes),
                     prompt_count=prompt_count,
-                    dataset_type=dataset_type
+                    dataset_type=dataset_type,
+                    turn_type=turn_type
                 )
                 await db.commit()
         except Exception:
@@ -661,6 +668,7 @@ async def upload_deepeval_dataset_controller(
                 "size": len(content_bytes),
                 "tenant": tenant,
                 "datasetType": dataset_type,
+                "turnType": turn_type,
             },
         )
     except HTTPException:

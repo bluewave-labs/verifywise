@@ -14,7 +14,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { deepEvalDatasetsService, DatasetPromptRecord } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalDatasetsService, DatasetPromptRecord, SingleTurnPrompt, isSingleTurnPrompt } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
 import { ArrowLeft, ChevronDown, Save as SaveIcon, Plus, Trash2 } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -51,7 +51,7 @@ export default function DatasetEditorPage() {
   }, [path]);
 
   const isValidToSave = useMemo(() => {
-    return prompts && prompts.length > 0 && prompts.some((p) => p.prompt.trim());
+    return prompts && prompts.length > 0 && prompts.some((p) => isSingleTurnPrompt(p) && p.prompt.trim());
   }, [prompts]);
 
   const handleSave = async () => {
@@ -87,7 +87,7 @@ export default function DatasetEditorPage() {
   };
 
   const handleAddPrompt = () => {
-    const newPrompt: DatasetPromptRecord = {
+    const newPrompt: SingleTurnPrompt = {
       id: `prompt_${Date.now()}`,
       category: "General",
       prompt: "",
@@ -190,13 +190,16 @@ export default function DatasetEditorPage() {
             </Button>
           </Paper>
         ) : (
-          prompts.map((p, idx) => (
-            <Accordion key={p.id || idx} disableGutters defaultExpanded={!p.prompt}>
+          prompts.map((p, idx) => {
+            // This editor only handles single-turn prompts
+            const stp = p as SingleTurnPrompt;
+            return (
+            <Accordion key={stp.id || idx} disableGutters defaultExpanded={!stp.prompt}>
               <AccordionSummary expandIcon={<ChevronDown size={16} />}>
                 <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, mr: 1 }}>
                   <Typography sx={{ fontWeight: 700, fontSize: "13px" }}>{`Prompt ${idx + 1}`}</Typography>
-                  <Chip size="small" label={p.category || "uncategorized"} sx={{ height: 18, fontSize: "10px" }} />
-                  {p.prompt && (
+                  <Chip size="small" label={stp.category || "uncategorized"} sx={{ height: 18, fontSize: "10px" }} />
+                  {stp.prompt && (
                     <Typography 
                       sx={{ 
                         fontSize: "12px", 
@@ -208,7 +211,7 @@ export default function DatasetEditorPage() {
                         maxWidth: "300px",
                       }}
                     >
-                      {p.prompt.substring(0, 50)}{p.prompt.length > 50 ? "..." : ""}
+                      {stp.prompt.substring(0, 50)}{stp.prompt.length > 50 ? "..." : ""}
                     </Typography>
                   )}
                 </Stack>
@@ -234,7 +237,7 @@ export default function DatasetEditorPage() {
                       <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Category</Typography>
                       <TextField
                         size="small"
-                        value={p.category || ""}
+                        value={stp.category || ""}
                         onChange={(e) => {
                           const next = [...prompts];
                           next[idx] = { ...next[idx], category: e.target.value };
@@ -250,7 +253,7 @@ export default function DatasetEditorPage() {
                       <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Prompt *</Typography>
                       <TextField
                         size="small"
-                        value={p.prompt}
+                        value={stp.prompt}
                         onChange={(e) => {
                           const next = [...prompts];
                           next[idx] = { ...next[idx], prompt: e.target.value };
@@ -268,7 +271,7 @@ export default function DatasetEditorPage() {
                       <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Expected output</Typography>
                       <TextField
                         size="small"
-                        value={p.expected_output || ""}
+                        value={stp.expected_output || ""}
                         onChange={(e) => {
                           const next = [...prompts];
                           next[idx] = { ...next[idx], expected_output: e.target.value };
@@ -286,7 +289,7 @@ export default function DatasetEditorPage() {
                       <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Keywords</Typography>
                       <TextField
                         size="small"
-                        value={(p.expected_keywords || []).join(", ")}
+                        value={(stp.expected_keywords || []).join(", ")}
                         onChange={(e) => {
                           const value = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
                           const next = [...prompts];
@@ -303,7 +306,7 @@ export default function DatasetEditorPage() {
                       <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Retrieval context</Typography>
                       <TextField
                         size="small"
-                        value={(p.retrieval_context || []).join("\n")}
+                        value={(stp.retrieval_context || []).join("\n")}
                         onChange={(e) => {
                           const lines = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
                           const next = [...prompts];
@@ -320,7 +323,8 @@ export default function DatasetEditorPage() {
                 </Paper>
               </AccordionDetails>
             </Accordion>
-          ))
+            );
+          })
         )}
 
         {/* Add prompt button */}

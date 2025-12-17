@@ -10,8 +10,8 @@
 
 import { useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
-import { UseGeneratedReportsParams } from "../../domain/interfaces/iReports";
-import { GeneratedReports } from "../../domain/interfaces/iReports";
+import { UseGeneratedReportsParams } from "../../domain/interfaces/i.reports";
+import { GeneratedReports } from "../../domain/interfaces/i.reports";
 
 const useGeneratedReports = ({
   projectId, 

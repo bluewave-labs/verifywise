@@ -9,20 +9,44 @@ async function copySQLFile() {
   console.log("SQL_Commands.sql copied successfully!");
 }
 
+/**
+ * Recursively copy a directory
+ */
+async function copyDir(src, dest) {
+  await fs.mkdir(dest, { recursive: true });
+  const entries = await fs.readdir(src, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+
+    if (entry.isDirectory()) {
+      await copyDir(srcPath, destPath);
+    } else {
+      await fs.copyFile(srcPath, destPath);
+    }
+  }
+}
+
 async function copyTemplates() {
   const sourceDir = path.join(__dirname, "..", "templates");
   const destDir = path.join(__dirname, "..", "dist", "templates");
 
   await fs.mkdir(destDir, { recursive: true });
 
-  const files = await fs.readdir(sourceDir);
+  const entries = await fs.readdir(sourceDir, { withFileTypes: true });
 
-  for (const file of files) {
-    const sourceFile = path.join(sourceDir, file);
-    const destFile = path.join(destDir, file);
+  for (const entry of entries) {
+    const sourceFile = path.join(sourceDir, entry.name);
+    const destFile = path.join(destDir, entry.name);
 
-    await fs.copyFile(sourceFile, destFile);
-    console.log(`${file} copied successfully!`);
+    if (entry.isDirectory()) {
+      await copyDir(sourceFile, destFile);
+      console.log(`${entry.name}/ directory copied successfully!`);
+    } else {
+      await fs.copyFile(sourceFile, destFile);
+      console.log(`${entry.name} copied successfully!`);
+    }
   }
 }
 

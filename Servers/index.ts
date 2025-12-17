@@ -21,7 +21,6 @@ import frameworks from "./routes/frameworks.route";
 import organizationRoutes from "./routes/organization.route";
 import isoRoutes from "./routes/iso42001.route";
 import trainingRoutes from "./routes/trainingRegistar.route";
-import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
 import aiTrustCentreRoutes from "./routes/aiTrustCentre.route";
 import policyRoutes from "./routes/policy.route";
 import loggerRoutes from "./routes/logger.route";
@@ -54,6 +53,7 @@ import searchRoutes from "./routes/search.route";
 import deepEvalRoutes from "./routes/deepEvalRoutes.route";
 import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
 import notesRoutes from "./routes/notes.route";
+import deadlineAnalyticsRoutes from "./routes/deadline-analytics.route";
 import vendorRiskChangeHistoryRoutes from "./routes/vendorRiskChangeHistory.route";
 import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
 import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
@@ -114,11 +114,13 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (
-      req.url.includes("/api/bias_and_fairness/") ||
-      req.url.includes("/api/deepeval/")
-    ) {
-      // Let the proxy handle the raw body
+    if (req.url.includes("/api/bias_and_fairness/")) {
+      // Let the proxy handle the raw body for bias/fairness
+      return next();
+    }
+    // For deepeval experiment creation, we need to parse body to inject API keys
+    // For other deepeval routes, let proxy handle raw body
+    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments")) {
       return next();
     }
     express.json()(req, res, next);
@@ -151,7 +153,6 @@ try {
   app.use("/api/iso-42001", isoRoutes); // **
   app.use("/api/iso-27001", iso27001Routes); // **
   app.use("/api/training", trainingRoutes);
-  app.use("/api/bias_and_fairness", biasAndFairnessRoutes());
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
@@ -194,8 +195,8 @@ try {
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
   app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
   app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
-
-  app.listen(port, () => {
+  app.use("/api/deadline-analytics", deadlineAnalyticsRoutes)
+    app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);
   });
 } catch (error) {

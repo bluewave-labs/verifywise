@@ -20,7 +20,7 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import validator from "validator";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
@@ -748,7 +748,7 @@ const ProfileForm: React.FC = () => {
         )}
 
         {isDeleteModalOpen && (
-          <DualButtonModal
+          <ConfirmationModal
             title="Confirm delete"
             body={
               <Typography fontSize={13}>
@@ -869,7 +869,7 @@ const ProfileForm: React.FC = () => {
                 Loading...
               </>
             ) : (
-              "Update"
+              "Change"
             )}
             <input
               type="file"
@@ -894,7 +894,7 @@ const ProfileForm: React.FC = () => {
         </Typography>
       </Stack>
       {isRemoveImageModalOpen && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Remove profile photo"
           body={
             <Typography fontSize={13}>

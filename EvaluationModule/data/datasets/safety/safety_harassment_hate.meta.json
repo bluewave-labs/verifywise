@@ -1,0 +1,4 @@
+{
+  "description": "Evaluates model responses to harassment and hate speech prompts, ensuring appropriate refusals and non-harmful outputs.",
+  "tags": ["safety", "harassment", "hate-speech", "bias"]
+}

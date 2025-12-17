@@ -5,7 +5,7 @@ import {
   Select as MuiSelect,
   MenuItem,
 } from "@mui/material";
-import { SelectProps } from "../../../../domain/interfaces/iWidget";
+import { SelectProps } from "../../../../domain/interfaces/i.widget";
 
 const Select: React.FC<SelectProps> = ({
   id,

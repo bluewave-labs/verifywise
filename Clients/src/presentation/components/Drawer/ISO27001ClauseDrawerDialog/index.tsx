@@ -35,7 +35,7 @@ import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
 import Alert from "../../Alert";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import {
   updateEntityById,
   getEntityById,

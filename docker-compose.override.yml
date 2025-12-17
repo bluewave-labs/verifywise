@@ -27,9 +27,16 @@ services:
     environment:
       - VITE_APP_PORT=$FRONTEND_PORT
 
-  bias_and_fairness_backend:
+  # bias_and_fairness_backend:
+  #   build:
+  #     context: ./BiasAndFairnessServers
+  #     dockerfile: Dockerfile.dev
+  #   volumes:
+  #     - ./BiasAndFairnessServers/src:/app
+
+  eval_server:
     build:
-      context: ./BiasAndFairnessServers
+      context: ./EvalServer
       dockerfile: Dockerfile.dev
     volumes:
-      - ./BiasAndFairnessServers/src:/app
+      - ./EvalServer/src:/app

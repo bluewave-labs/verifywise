@@ -28,7 +28,9 @@ from crud.deepeval_scorers import (
     create_scorer,
     update_scorer,
     delete_scorer,
+    get_scorer_by_id,
 )
+from utils.run_custom_scorer import run_custom_scorer
 
 
 # In-memory storage for evaluation results (can be replaced with database)
@@ -567,6 +569,7 @@ async def get_evaluation_dataset_info_controller() -> JSONResponse:
 async def upload_deepeval_dataset_controller(
     dataset: UploadFile,
     tenant: str,
+    dataset_type: str = "chatbot",
 ) -> JSONResponse:
     """
     Upload a custom dataset JSON file for DeepEval and return a server-relative path
@@ -575,6 +578,11 @@ async def upload_deepeval_dataset_controller(
     try:
         if not dataset:
             raise HTTPException(status_code=400, detail="No dataset file provided")
+
+        # Validate dataset_type
+        valid_types = ["chatbot", "rag", "agent"]
+        if dataset_type not in valid_types:
+            dataset_type = "chatbot"
 
         # Basic content-type check (best-effort)
         content_type = (dataset.content_type or "").lower()
@@ -598,22 +606,29 @@ async def upload_deepeval_dataset_controller(
         uploads_dir = evaluation_module_path / "data" / "uploads" / tenant
         uploads_dir.mkdir(parents=True, exist_ok=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        # Remove .json extension from original filename to avoid double extension
+        # Use only the original filename, no timestamp prefix
         original_name = dataset.filename.replace("/", "_").replace("\\", "_")
         if original_name.lower().endswith(".json"):
             original_name = original_name[:-5]
         
-        # Extract dataset name from filename (clean it up)
-        dataset_name = original_name.replace("_", " ").replace("-", " ").strip().title()
+        # Extract dataset name from filename (clean it up) - just the file name
+        dataset_name = original_name.replace("_", " ").replace("-", " ").strip()
         if not dataset_name:
             dataset_name = "Untitled Dataset"
         
         # Count prompts
         prompt_count = len(data) if isinstance(data, list) else 0
         
-        filename = f"{timestamp}_{original_name}.json"
+        # Use original filename without timestamp prefix
+        filename = f"{original_name}.json"
         full_path = uploads_dir / filename
+        
+        # If file exists, add a suffix
+        counter = 1
+        while full_path.exists():
+            filename = f"{original_name}_{counter}.json"
+            full_path = uploads_dir / filename
+            counter += 1
 
         # Save pretty JSON back to disk to ensure UTF-8 and normalized formatting
         with open(full_path, "w", encoding="utf-8") as f:
@@ -630,7 +645,8 @@ async def upload_deepeval_dataset_controller(
                     name=dataset_name, 
                     path=relative_path, 
                     size=len(content_bytes),
-                    prompt_count=prompt_count
+                    prompt_count=prompt_count,
+                    dataset_type=dataset_type
                 )
                 await db.commit()
         except Exception:
@@ -644,6 +660,7 @@ async def upload_deepeval_dataset_controller(
                 "filename": filename,
                 "size": len(content_bytes),
                 "tenant": tenant,
+                "datasetType": dataset_type,
             },
         )
     except HTTPException:
@@ -1023,4 +1040,75 @@ async def delete_deepeval_scorer_controller(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete scorer: {e}")
+
+
+async def test_deepeval_scorer_controller(
+    scorer_id: str,
+    *,
+    tenant: str,
+    payload: Dict[str, Any],
+) -> JSONResponse:
+    """
+    Test a scorer with sample input/output data.
+    
+    Expected payload:
+    {
+      "input": "The source text to evaluate...",
+      "output": "The model's output to judge...",
+      "expected": "Optional expected/reference output..."
+    }
+    """
+    try:
+        # Get scorer config from database
+        async with get_db() as db:
+            scorer = await get_scorer_by_id(scorer_id=scorer_id, tenant=tenant, db=db)
+        
+        if not scorer:
+            raise HTTPException(status_code=404, detail="Scorer not found")
+        
+        if scorer.get("type") != "llm":
+            raise HTTPException(
+                status_code=400, 
+                detail="Only LLM judge scorers can be tested via this endpoint"
+            )
+        
+        # Extract test data from payload
+        input_text = payload.get("input", "")
+        output_text = payload.get("output", "")
+        expected_text = payload.get("expected", "")
+        
+        if not input_text or not output_text:
+            raise HTTPException(
+                status_code=400,
+                detail="Both 'input' and 'output' are required for testing"
+            )
+        
+        # Run the scorer
+        result = await run_custom_scorer(
+            scorer_config=scorer,
+            input_text=input_text,
+            output_text=output_text,
+            expected_text=expected_text,
+        )
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "scorerId": result.scorer_id,
+                "scorerName": result.scorer_name,
+                "label": result.label,
+                "score": result.score,
+                "passed": result.passed,
+                "rawResponse": result.raw_response,
+                "tokenUsage": {
+                    "promptTokens": result.prompt_tokens,
+                    "completionTokens": result.completion_tokens,
+                    "totalTokens": result.total_tokens,
+                } if result.total_tokens else None,
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to test scorer: {e}")
 

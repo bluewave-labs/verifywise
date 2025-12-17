@@ -425,29 +425,105 @@ async def run_evaluation(
             
         elif conversations:
             # 3A. Conversational (multi-turn) evaluation using DeepEval's ConversationalTestCase
+            # IMPORTANT: We run the MODEL to generate assistant responses, not use pre-written ones!
             print(f"\n🗣️ Detected conversational dataset with {len(conversations)} scenarios.")
-            print(f"   Using DeepEval's ConversationalTestCase for proper multi-turn evaluation...\n")
+            print(f"   🔄 MODEL WILL GENERATE RESPONSES for each conversation turn...\n")
             
             for s_idx, convo in enumerate(conversations, 1):
                 scenario = convo.get("scenario") or f"scenario_{s_idx}"
                 expected_outcome = convo.get("expected_outcome", "")
                 raw_turns = convo.get("turns") or []
                 
-                # Build Turn objects for ConversationalTestCase
-                turn_objects = []
+                print(f"  [{s_idx}/{len(conversations)}] Scenario: {scenario[:50]}...")
+                
+                # Extract user turns from the dataset
+                user_turns_content = []
+                expected_assistant_turns = []  # Keep expected responses for reference
                 for t in raw_turns:
                     role = (t.get("role") or "").lower()
                     content = t.get("content") or ""
-                    if content and role in ("user", "assistant"):
-                        turn_objects.append(Turn(role=role, content=content))
+                    if role == "user":
+                        user_turns_content.append(content)
+                    elif role == "assistant":
+                        expected_assistant_turns.append(content)
+                
+                if not user_turns_content:
+                    print(f"    ⚠️ No user turns found, skipping...")
+                    continue
+                
+                # Build Turn objects by GENERATING assistant responses
+                turn_objects = []
+                generated_assistant_turns = []
+                conversation_history = []  # Track conversation for context
+                
+                start_time = datetime.now()
+                total_tokens = 0
+                
+                for turn_idx, user_msg in enumerate(user_turns_content):
+                    # Add user turn
+                    turn_objects.append(Turn(role="user", content=user_msg))
+                    conversation_history.append({"role": "user", "content": user_msg})
+                    
+                    # Build prompt with conversation context
+                    if len(conversation_history) == 1:
+                        # First turn - just the user message
+                        prompt = f"You are a helpful assistant. Respond to the user.\n\nUser: {user_msg}\n\nAssistant:"
+                    else:
+                        # Build multi-turn prompt with history
+                        history_str = ""
+                        for h in conversation_history[:-1]:  # Exclude current turn
+                            role_label = "User" if h["role"] == "user" else "Assistant"
+                            history_str += f"{role_label}: {h['content']}\n"
+                        prompt = f"You are a helpful assistant. Continue this conversation.\n\n{history_str}User: {user_msg}\n\nAssistant:"
+                    
+                    # GENERATE assistant response using the model
+                    try:
+                        assistant_response = model_runner.generate(
+                            prompt=prompt,
+                            max_tokens=1024,
+                            temperature=0.7,
+                        )
+                        
+                        # Clean up response if needed
+                        if assistant_response:
+                            assistant_response = assistant_response.strip()
+                            # Remove common prefixes if model echoes them
+                            if assistant_response.lower().startswith("assistant:"):
+                                assistant_response = assistant_response[10:].strip()
+                        
+                        if not assistant_response:
+                            assistant_response = "[Model returned empty response]"
+                            
+                    except Exception as gen_err:
+                        print(f"    ⚠️ Generation error on turn {turn_idx + 1}: {gen_err}")
+                        assistant_response = f"[Generation error: {str(gen_err)[:100]}]"
+                    
+                    # Add generated assistant turn
+                    turn_objects.append(Turn(role="assistant", content=assistant_response))
+                    conversation_history.append({"role": "assistant", "content": assistant_response})
+                    generated_assistant_turns.append(assistant_response)
+                    
+                    # Estimate tokens for this turn
+                    total_tokens += len(user_msg.split()) + len(assistant_response.split())
+                
+                latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+                
+                print(f"    ✓ Generated {len(generated_assistant_turns)} responses ({latency_ms}ms)")
                 
                 if not turn_objects:
                     continue
                 
-                # Create ConversationalTestCase (DeepEval's native multi-turn format)
+                # Create ConversationalTestCase with MODEL-GENERATED responses
                 conv_test_case = ConversationalTestCase(
                     turns=turn_objects,
                 )
+                
+                # Build raw_turns for storage (with generated responses)
+                generated_raw_turns = []
+                for i, user_msg in enumerate(user_turns_content):
+                    generated_raw_turns.append({"role": "user", "content": user_msg})
+                    if i < len(generated_assistant_turns):
+                        generated_raw_turns.append({"role": "assistant", "content": generated_assistant_turns[i]})
                 
                 # Store as conversational test case
                 test_cases_data.append({
@@ -463,15 +539,8 @@ async def run_evaluation(
                 })
                 
                 # Create a log entry for this conversation
-                # Combine user turns as input and assistant turns as output
-                user_turns = [t.get("content", "") for t in raw_turns if t.get("role", "").lower() == "user"]
-                assistant_turns = [t.get("content", "") for t in raw_turns if t.get("role", "").lower() == "assistant"]
-                combined_input = "\n".join([f"User: {msg}" for msg in user_turns])
-                combined_output = "\n".join([f"Assistant: {msg}" for msg in assistant_turns])
-                
-                # Estimate token count (roughly 4 chars per token)
-                all_text = combined_input + combined_output
-                estimated_tokens = len(all_text) // 4
+                combined_input = "\n".join([f"User: {msg}" for msg in user_turns_content])
+                combined_output = "\n".join([f"Assistant: {msg}" for msg in generated_assistant_turns])
                 
                 created_log = await crud.create_log(
                     db=db,
@@ -480,14 +549,16 @@ async def run_evaluation(
                     experiment_id=experiment_id,
                     input_text=combined_input or scenario,
                     output_text=combined_output,
-                    model_name=model_name,  # Track the model
-                    token_count=estimated_tokens,  # Estimated token count
+                    model_name=model_name,
+                    latency_ms=latency_ms,
+                    token_count=total_tokens,
                     metadata={
                         "is_conversational": True,
                         "scenario": scenario,
                         "expected_outcome": expected_outcome,
                         "turn_count": len(turn_objects),
-                        "turns": raw_turns,  # Store full conversation
+                        "turns": generated_raw_turns,  # Store conversation with GENERATED responses
+                        "expected_assistant_turns": expected_assistant_turns,  # Keep expected for reference
                     },
                 )
                 
@@ -495,7 +566,7 @@ async def run_evaluation(
                 if created_log:
                     test_cases_data[-1]["metadata"]["log_id"] = created_log.get("id")
             
-            print(f"✓ Built {len(test_cases_data)} ConversationalTestCases from {len(conversations)} scenarios.")
+            print(f"\n✓ Built {len(test_cases_data)} ConversationalTestCases with MODEL-GENERATED responses.")
         else:
             # 3B. Single-turn path (existing)
             print(f"\n🤖 Generating {len(prompts)} responses...\n")

@@ -512,6 +512,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
       {logs.length > 0 && (() => {
         // Map display names to camelCase keys for backwards compatibility
         const displayNameToKey: Record<string, string> = {
+          // Single-turn metrics
           "Answer Relevancy": "answerRelevancy",
           "Faithfulness": "faithfulness",
           "Contextual Relevancy": "contextualRelevancy",
@@ -520,16 +521,22 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           "Bias": "bias",
           "Toxicity": "toxicity",
           "Hallucination": "hallucination",
-          "Knowledge Retention": "knowledgeRetention",
-          "Conversation Completeness": "conversationCompleteness",
-          "Conversation Relevancy": "conversationRelevancy",
-          "Role Adherence": "roleAdherence",
-          "Task Completion": "taskCompletion",
           "Tool Correctness": "toolCorrectness",
           "Answer Correctness": "answerCorrectness",
           "Coherence": "coherence",
           "Tonality": "tonality",
           "Safety": "safety",
+          // Conversational metrics (multi-turn)
+          "Turn Relevancy": "turnRelevancy",
+          "Knowledge Retention": "knowledgeRetention",
+          "Conversation Coherence": "conversationCoherence",
+          "Conversation Helpfulness": "conversationHelpfulness",
+          "Task Completion": "taskCompletion",
+          "Conversation Safety": "conversationSafety",
+          "Conversation Completeness": "conversationCompleteness",
+          "Conversation Relevancy": "conversationRelevancy",
+          "Role Adherence": "roleAdherence",
+          "Conversation Quality": "conversationQuality",
         };
 
         // Calculate overall averages and per-sample scores for sparklines
@@ -555,8 +562,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           (experiment as unknown as { config?: { metrics?: Record<string, unknown> } })?.config?.metrics || {};
 
         // Metric definitions with categories - expanded to include all possible metrics
-        const metricDefinitions: Record<string, { label: string; category: "quality" | "safety" }> = {
-          // Standard DeepEval metrics
+        const metricDefinitions: Record<string, { label: string; category: "quality" | "safety" | "conversational" }> = {
+          // Standard DeepEval metrics (single-turn)
           answerRelevancy: { label: "Answer Relevancy", category: "quality" },
           faithfulness: { label: "Faithfulness", category: "quality" },
           contextualRelevancy: { label: "Contextual Relevancy", category: "quality" },
@@ -565,19 +572,27 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           bias: { label: "Bias", category: "safety" },
           toxicity: { label: "Toxicity", category: "safety" },
           hallucination: { label: "Hallucination", category: "safety" },
-          // Chatbot-specific metrics
-          knowledgeRetention: { label: "Knowledge Retention", category: "quality" },
-          conversationCompleteness: { label: "Conversation Completeness", category: "quality" },
-          conversationRelevancy: { label: "Conversation Relevancy", category: "quality" },
-          roleAdherence: { label: "Role Adherence", category: "quality" },
           // Agent metrics
-          taskCompletion: { label: "Task Completion", category: "quality" },
           toolCorrectness: { label: "Tool Correctness", category: "quality" },
-          // G-Eval metrics
+          // G-Eval single-turn metrics
           answerCorrectness: { label: "Answer Correctness", category: "quality" },
           coherence: { label: "Coherence", category: "quality" },
           tonality: { label: "Tonality", category: "quality" },
           safety: { label: "Safety", category: "safety" },
+          
+          // === CONVERSATIONAL METRICS (multi-turn) ===
+          // These are the proper metrics for multi-turn conversations
+          turnRelevancy: { label: "Turn Relevancy", category: "conversational" },
+          knowledgeRetention: { label: "Knowledge Retention", category: "conversational" },
+          conversationCoherence: { label: "Conversation Coherence", category: "conversational" },
+          conversationHelpfulness: { label: "Conversation Helpfulness", category: "conversational" },
+          taskCompletion: { label: "Task Completion", category: "conversational" },
+          conversationSafety: { label: "Conversation Safety", category: "conversational" },
+          // Legacy conversational names (for backwards compatibility)
+          conversationCompleteness: { label: "Conversation Completeness", category: "conversational" },
+          conversationRelevancy: { label: "Conversation Relevancy", category: "conversational" },
+          roleAdherence: { label: "Role Adherence", category: "conversational" },
+          conversationQuality: { label: "Conversation Quality", category: "conversational" },
         };
 
         // Get score color based on value thresholds
@@ -649,11 +664,12 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         // Group metrics by category
         const qualityMetrics = orderedMetrics.filter((m) => m.category === "quality");
         const safetyMetrics = orderedMetrics.filter((m) => m.category === "safety");
+        const conversationalMetrics = orderedMetrics.filter((m) => m.category === "conversational");
 
         // Get icon for metric type (for background watermark)
         const getMetricIcon = (metricKey: string) => {
           switch (metricKey) {
-            // Quality metrics
+            // Quality metrics (single-turn)
             case "answerRelevancy": return Sparkles;
             case "faithfulness": return Check;
             case "contextualRelevancy": return Sparkles;
@@ -662,17 +678,23 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
             case "answerCorrectness": return Sparkles;
             case "coherence": return Sparkles;
             case "tonality": return Sparkles;
-            case "knowledgeRetention": return Sparkles;
-            case "conversationCompleteness": return Sparkles;
-            case "conversationRelevancy": return Sparkles;
-            case "roleAdherence": return Sparkles;
-            case "taskCompletion": return Check;
             case "toolCorrectness": return Check;
             // Safety metrics
             case "bias": return Shield;
             case "toxicity": return Shield;
             case "safety": return Shield;
             case "hallucination": return Shield;
+            // Conversational metrics (multi-turn)
+            case "turnRelevancy": return Sparkles;
+            case "knowledgeRetention": return Sparkles;
+            case "conversationCoherence": return Sparkles;
+            case "conversationHelpfulness": return Sparkles;
+            case "taskCompletion": return Check;
+            case "conversationSafety": return Shield;
+            case "conversationCompleteness": return Sparkles;
+            case "conversationRelevancy": return Sparkles;
+            case "roleAdherence": return Sparkles;
+            case "conversationQuality": return Sparkles;
             // Custom scorers use Sparkles as default
             default: return Sparkles;
           }
@@ -799,6 +821,21 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
               </Box>
             )}
 
+            {/* Conversational Metrics Section (Multi-turn) */}
+            {conversationalMetrics.length > 0 && (
+              <Box sx={{ mb: "16px" }}>
+                <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
+                  Conversational metrics
+                  <Typography component="span" sx={{ fontSize: "12px", fontWeight: 400, color: "#6B7280", ml: 1 }}>
+                    (multi-turn)
+                  </Typography>
+                </Typography>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                  {conversationalMetrics.map(renderMetricCard)}
+                </Box>
+              </Box>
+            )}
+
             {/* Safety Metrics Section */}
             {safetyMetrics.length > 0 && (
               <Box sx={{ mb: "16px" }}>
@@ -811,7 +848,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
               </Box>
             )}
 
-            {/* Custom Scorers Section */}
+            {/* Custom Scorers Section - only show truly custom ones not matching known metrics */}
             {customScorerMetrics.length > 0 && (
               <Box sx={{ mb: "16px" }}>
                 <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>

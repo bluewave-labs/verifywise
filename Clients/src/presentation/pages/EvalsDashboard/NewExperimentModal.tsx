@@ -135,7 +135,7 @@ export default function NewExperimentModal({
     },
     // Step 4: Metrics - Universal core for all, plus use-case specific
     metrics: {
-      // Universal Core (always runs for every use case)
+      // Universal Core (always runs for every use case - single-turn)
       answerRelevancy: true,
       correctness: true,
       completeness: true,
@@ -153,6 +153,13 @@ export default function NewExperimentModal({
       toolCorrectness: false,
       actionRelevance: false,
       planningQuality: false,
+      // Conversational metrics (multi-turn datasets)
+      turnRelevancy: true,
+      knowledgeRetention: true,
+      conversationCoherence: true,
+      conversationHelpfulness: true,
+      taskCompletion: true,
+      conversationSafety: true,
     },
     thresholds: {
       answerRelevancy: 0.5,
@@ -170,13 +177,23 @@ export default function NewExperimentModal({
       toolCorrectness: 0.5,
       actionRelevance: 0.5,
       planningQuality: 0.5,
+      turnRelevancy: 0.5,
+      knowledgeRetention: 0.5,
+      conversationCoherence: 0.5,
+      conversationHelpfulness: 0.5,
+      taskCompletion: 0.5,
+      conversationSafety: 0.5,
     },
   });
+  
+  // Track if selected dataset is multi-turn
+  const isMultiTurnDataset = selectedUserDataset?.turnType === "multi-turn" || 
+    (selectedPresetPath && selectedPresetPath.includes("multiturn"));
 
   // Update metric defaults when task type changes
   useEffect(() => {
     setConfig((prev) => {
-      // Universal Core - always runs for every use case
+      // Universal Core - always runs for every use case (single-turn)
       const universalCore = {
         answerRelevancy: true,
         correctness: true,
@@ -202,6 +219,16 @@ export default function NewExperimentModal({
         actionRelevance: false,
         planningQuality: false,
       };
+      
+      // Conversational metrics (for multi-turn - enabled by default)
+      const conversationalMetrics = {
+        turnRelevancy: true,
+        knowledgeRetention: true,
+        conversationCoherence: true,
+        conversationHelpfulness: true,
+        taskCompletion: true,
+        conversationSafety: true,
+      };
 
       if (prev.taskType === "rag") {
         return {
@@ -210,6 +237,7 @@ export default function NewExperimentModal({
             ...universalCore,
             ...ragMetrics,
             ...agentMetrics,
+            ...conversationalMetrics,
             // Enable RAG metrics
             contextRelevancy: true,
             contextPrecision: true,
@@ -224,6 +252,7 @@ export default function NewExperimentModal({
             ...universalCore,
             ...ragMetrics,
             ...agentMetrics,
+            ...conversationalMetrics,
             // Enable Agent metrics
             toolSelection: true,
             toolCorrectness: true,
@@ -239,6 +268,7 @@ export default function NewExperimentModal({
             ...universalCore,
             ...ragMetrics,
             ...agentMetrics,
+            ...conversationalMetrics,
           },
         };
       }
@@ -572,6 +602,13 @@ export default function NewExperimentModal({
         toolCorrectness: false,
         actionRelevance: false,
         planningQuality: false,
+        // Conversational metrics (multi-turn)
+        turnRelevancy: true,
+        knowledgeRetention: true,
+        conversationCoherence: true,
+        conversationHelpfulness: true,
+        taskCompletion: true,
+        conversationSafety: true,
       },
       thresholds: {
         answerRelevancy: 0.5,
@@ -589,6 +626,12 @@ export default function NewExperimentModal({
         toolCorrectness: 0.5,
         actionRelevance: 0.5,
         planningQuality: 0.5,
+        turnRelevancy: 0.5,
+        knowledgeRetention: 0.5,
+        conversationCoherence: 0.5,
+        conversationHelpfulness: 0.5,
+        taskCompletion: 0.5,
+        conversationSafety: 0.5,
       },
     });
   };
@@ -1522,106 +1565,249 @@ export default function NewExperimentModal({
           <Stack spacing="16px">
             <Box>
               <Typography variant="body2" color="text.secondary">
-                Select metrics for your evaluation. Universal core metrics run for all use cases.
+                {isMultiTurnDataset 
+                  ? "Select metrics for your multi-turn conversation evaluation."
+                  : "Select metrics for your evaluation. Universal core metrics run for all use cases."}
               </Typography>
+              {isMultiTurnDataset && (
+                <Box sx={{ mt: 1.5, mb: 1 }}>
+                  <Chip 
+                    label="Multi-turn dataset detected" 
+                    size="small" 
+                    backgroundColor="#DBEAFE"
+                    textColor="#1E40AF"
+                  />
+                </Box>
+              )}
             </Box>
 
-            {/* Universal Core Metrics - All Use Cases */}
-            <Accordion
-              defaultExpanded
-              disableGutters
-              elevation={0}
-              sx={{
-                border: "1px solid #E5E7EB",
-                borderRadius: "4px !important",
-                "&:before": { display: "none" },
-                "&.Mui-expanded": { margin: 0 },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ChevronDown size={18} color="#6B7280" />}
+            {/* Conversational Metrics - For Multi-turn Datasets */}
+            {isMultiTurnDataset && (
+              <Accordion
+                defaultExpanded
+                disableGutters
+                elevation={0}
                 sx={{
-                  minHeight: 48,
-                  px: "8px",
-                  "&.Mui-expanded": { minHeight: 48 },
-                  "& .MuiAccordionSummary-content": { my: "8px" },
+                  border: "1px solid #DBEAFE",
+                  borderRadius: "4px !important",
+                  backgroundColor: "#F0F9FF",
+                  "&:before": { display: "none" },
+                  "&.Mui-expanded": { margin: 0 },
                 }}
               >
-                <Box>
-                  <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
-                    Universal Core Metrics
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
-                    Runs for every use case (Chatbot, RAG, Agent)
-                  </Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ px: "8px", pt: "8px", pb: "8px" }}>
-                <Stack spacing="8px">
-                  {Object.entries({
-                    answerRelevancy: {
-                      label: "Answer Relevancy",
-                      desc: "Measures how relevant the model's answer is to the input (GEval).",
-                    },
-                    correctness: {
-                      label: "Correctness",
-                      desc: "Evaluates factual accuracy of the model's response (GEval).",
-                    },
-                    completeness: {
-                      label: "Completeness",
-                      desc: "Checks if the response fully addresses all aspects of the query (GEval).",
-                              },
-                    hallucination: {
-                      label: "Hallucination",
-                      desc: "Detects fabricated or unsupported information in outputs (GEval).",
-                    },
-                    instructionFollowing: {
-                      label: "Instruction Following",
-                      desc: "Measures how well the model follows the given instructions.",
+                <AccordionSummary
+                  expandIcon={<ChevronDown size={18} color="#1E40AF" />}
+                  sx={{
+                    minHeight: 48,
+                    px: "8px",
+                    "&.Mui-expanded": { minHeight: 48 },
+                    "& .MuiAccordionSummary-content": { my: "8px" },
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#1E40AF" }}>
+                      Conversational Metrics
+                    </Typography>
+                    <Typography variant="caption" sx={{ mt: 0.5, display: "block", color: "#3B82F6" }}>
+                      Designed for multi-turn conversation evaluation
+                    </Typography>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: "12px", pt: "12px", pb: "16px" }}>
+                  <Stack spacing={2.5}>
+                    {Object.entries({
+                      turnRelevancy: {
+                        label: "Turn Relevancy",
+                        desc: "Evaluates if each assistant response is relevant to the user's input in that turn.",
                       },
-                    toxicity: {
-                      label: "Toxicity",
-                      desc: "Flags toxic or harmful language in outputs.",
+                      knowledgeRetention: {
+                        label: "Knowledge Retention",
+                        desc: "Checks if the model retains context and information across conversation turns.",
                       },
-                    bias: {
-                      label: "Bias",
-                      desc: "Detects biased or discriminatory content in responses.",
+                      conversationCoherence: {
+                        label: "Conversation Coherence",
+                        desc: "Evaluates overall coherence, correctness, and logical consistency across turns.",
+                      },
+                      conversationHelpfulness: {
+                        label: "Conversation Helpfulness",
+                        desc: "Measures how helpful the assistant is in addressing the user's needs throughout.",
+                      },
+                      taskCompletion: {
+                        label: "Task Completion",
+                        desc: "Evaluates if the conversation successfully achieved the expected outcome.",
+                      },
+                      conversationSafety: {
+                        label: "Conversation Safety",
+                        desc: "Checks for toxic, biased, or harmful content across all conversation turns.",
                       },
                     }).map(([key, meta]) => (
                       <Box key={key}>
-                        <Stack spacing={0.5}>
-                          <Checkbox
-                            id={`metric-${key}`}
-                            label={(meta as { label: string }).label}
-                            size="small"
-                            value={key}
-                            isChecked={config.metrics[key as keyof typeof config.metrics]}
-                            onChange={() =>
-                              setConfig((prev) => ({
-                                ...prev,
-                                metrics: {
-                                  ...prev.metrics,
-                                  [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                                },
-                              }))
-                            }
-                          />
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ ml: 3, pr: 2, display: "block", fontSize: "12px" }}
-                          >
-                            {(meta as { desc: string }).desc}
-                          </Typography>
-                        </Stack>
+                        <Checkbox
+                          id={`metric-${key}`}
+                          label={(meta as { label: string }).label}
+                          size="small"
+                          value={key}
+                          isChecked={config.metrics[key as keyof typeof config.metrics]}
+                          onChange={() =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              metrics: {
+                                ...prev.metrics,
+                                [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                              },
+                            }))
+                          }
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ ml: 3.5, mt: 0.5, pr: 2, display: "block", fontSize: "12px", lineHeight: 1.4 }}
+                        >
+                          {(meta as { desc: string }).desc}
+                        </Typography>
                       </Box>
                     ))}
                   </Stack>
                 </AccordionDetails>
               </Accordion>
+            )}
 
-            {/* RAG-Specific Metrics */}
-            {config.taskType === "rag" && (
+            {/* Per-Turn Safety Metrics (for multi-turn) */}
+            {isMultiTurnDataset && (
+              <Box sx={{ p: 2.5, border: "1px solid #FED7AA", borderRadius: "4px", backgroundColor: "#FFF7ED" }}>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#C2410C", mb: 0.5 }}>
+                  Per-Turn Safety Metrics
+                </Typography>
+                <Typography variant="caption" sx={{ display: "block", mb: 2, color: "#EA580C" }}>
+                  Bias and Toxicity will be evaluated on each assistant turn and aggregated
+                </Typography>
+                <Stack direction="row" spacing={4}>
+                  <Checkbox
+                    id="metric-toxicity-perturn"
+                    label="Toxicity (per-turn)"
+                    size="small"
+                    value="toxicity"
+                    isChecked={config.metrics.toxicity}
+                    onChange={() =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        metrics: { ...prev.metrics, toxicity: !prev.metrics.toxicity },
+                      }))
+                    }
+                  />
+                  <Checkbox
+                    id="metric-bias-perturn"
+                    label="Bias (per-turn)"
+                    size="small"
+                    value="bias"
+                    isChecked={config.metrics.bias}
+                    onChange={() =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        metrics: { ...prev.metrics, bias: !prev.metrics.bias },
+                      }))
+                    }
+                  />
+                </Stack>
+              </Box>
+            )}
+
+            {/* Universal Core Metrics - For Single-turn Datasets */}
+            {!isMultiTurnDataset && (
+              <Accordion
+                defaultExpanded
+                disableGutters
+                elevation={0}
+                sx={{
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "4px !important",
+                  "&:before": { display: "none" },
+                  "&.Mui-expanded": { margin: 0 },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ChevronDown size={18} color="#6B7280" />}
+                  sx={{
+                    minHeight: 48,
+                    px: "8px",
+                    "&.Mui-expanded": { minHeight: 48 },
+                    "& .MuiAccordionSummary-content": { my: "8px" },
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
+                      Universal Core Metrics
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+                      Runs for every use case (Chatbot, RAG, Agent)
+                    </Typography>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: "12px", pt: "12px", pb: "16px" }}>
+                  <Stack spacing={2.5}>
+                    {Object.entries({
+                      answerRelevancy: {
+                        label: "Answer Relevancy",
+                        desc: "Measures how relevant the model's answer is to the input (GEval).",
+                      },
+                      correctness: {
+                        label: "Correctness",
+                        desc: "Evaluates factual accuracy of the model's response (GEval).",
+                      },
+                      completeness: {
+                        label: "Completeness",
+                        desc: "Checks if the response fully addresses all aspects of the query (GEval).",
+                      },
+                      hallucination: {
+                        label: "Hallucination",
+                        desc: "Detects fabricated or unsupported information in outputs (GEval).",
+                      },
+                      instructionFollowing: {
+                        label: "Instruction Following",
+                        desc: "Measures how well the model follows the given instructions.",
+                      },
+                      toxicity: {
+                        label: "Toxicity",
+                        desc: "Flags toxic or harmful language in outputs.",
+                      },
+                      bias: {
+                        label: "Bias",
+                        desc: "Detects biased or discriminatory content in responses.",
+                      },
+                    }).map(([key, meta]) => (
+                      <Box key={key}>
+                        <Checkbox
+                          id={`metric-${key}`}
+                          label={(meta as { label: string }).label}
+                          size="small"
+                          value={key}
+                          isChecked={config.metrics[key as keyof typeof config.metrics]}
+                          onChange={() =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              metrics: {
+                                ...prev.metrics,
+                                [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                              },
+                            }))
+                          }
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ ml: 3.5, mt: 0.5, pr: 2, display: "block", fontSize: "12px", lineHeight: 1.4 }}
+                        >
+                          {(meta as { desc: string }).desc}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </AccordionDetails>
+                </Accordion>
+            )}
+
+            {/* RAG-Specific Metrics (single-turn only) */}
+            {config.taskType === "rag" && !isMultiTurnDataset && (
               <Box>
                 <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
                   RAG Metrics
@@ -1678,8 +1864,8 @@ export default function NewExperimentModal({
               </Box>
             )}
 
-            {/* Agent-Specific Metrics */}
-            {config.taskType === "agent" && (
+            {/* Agent-Specific Metrics (single-turn only) */}
+            {config.taskType === "agent" && !isMultiTurnDataset && (
               <Box>
                 <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
                   Agent Metrics

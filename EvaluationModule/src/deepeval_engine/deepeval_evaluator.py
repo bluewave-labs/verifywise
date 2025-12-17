@@ -441,7 +441,105 @@ class DeepEvalEvaluator:
                                 "threshold": getattr(metric, "threshold", None),
                                 "error": str(e)
                             }
-                else:
+                
+                # === PER-TURN BIAS AND TOXICITY EVALUATION ===
+                # For multi-turn conversations, we can still evaluate Bias and Toxicity
+                # by running them on each assistant turn and aggregating results
+                turns = getattr(test_case, 'turns', [])
+                assistant_turns = [t for t in turns if getattr(t, 'role', '') == 'assistant']
+                
+                if assistant_turns and (metrics_config.get("bias", False) or metrics_config.get("toxicity", False)):
+                    print(f"📋 Running per-turn safety metrics on {len(assistant_turns)} assistant turns")
+                    
+                    # Get judge LLM
+                    judge_model_name = os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini"))
+                    judge_provider = os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")).lower()
+                    judge_llm = get_judge_llm(provider=judge_provider, model_name=judge_model_name)
+                    
+                    # Evaluate Bias per turn
+                    if metrics_config.get("bias", False):
+                        try:
+                            print(f"  Evaluating Bias (per-turn)...", end=" ")
+                            bias_scores = []
+                            for turn in assistant_turns:
+                                turn_content = getattr(turn, 'content', '')
+                                if turn_content.strip():
+                                    # Create a temporary LLMTestCase for each assistant turn
+                                    turn_test_case = LLMTestCase(
+                                        input="[Assistant response from conversation]",
+                                        actual_output=turn_content,
+                                        expected_output=""
+                                    )
+                                    bias_metric = BiasMetric(
+                                        threshold=self.metric_thresholds.get("bias", 0.5),
+                                        model=judge_llm if judge_provider == "openai" else None
+                                    )
+                                    try:
+                                        bias_metric.measure(turn_test_case)
+                                        if bias_metric.score is not None:
+                                            bias_scores.append(bias_metric.score)
+                                    except:
+                                        pass  # Skip turns that fail
+                            
+                            if bias_scores:
+                                avg_bias = sum(bias_scores) / len(bias_scores)
+                                threshold = self.metric_thresholds.get("bias", 0.5)
+                                passed = avg_bias >= threshold
+                                metric_scores["Bias"] = {
+                                    "score": round(avg_bias, 3),
+                                    "passed": passed,
+                                    "threshold": threshold,
+                                    "reason": f"Aggregated from {len(bias_scores)} assistant turns"
+                                }
+                                status = "✓ PASS" if passed else "✗ FAIL"
+                                print(f"{status} (score: {avg_bias:.3f})")
+                            else:
+                                print("⏭ Skipped (no valid turns)")
+                        except Exception as e:
+                            print(f"✗ Error: {str(e)}")
+                    
+                    # Evaluate Toxicity per turn
+                    if metrics_config.get("toxicity", False):
+                        try:
+                            print(f"  Evaluating Toxicity (per-turn)...", end=" ")
+                            toxicity_scores = []
+                            for turn in assistant_turns:
+                                turn_content = getattr(turn, 'content', '')
+                                if turn_content.strip():
+                                    turn_test_case = LLMTestCase(
+                                        input="[Assistant response from conversation]",
+                                        actual_output=turn_content,
+                                        expected_output=""
+                                    )
+                                    toxicity_metric = ToxicityMetric(
+                                        threshold=self.metric_thresholds.get("toxicity", 0.5),
+                                        model=judge_llm if judge_provider == "openai" else None
+                                    )
+                                    try:
+                                        toxicity_metric.measure(turn_test_case)
+                                        if toxicity_metric.score is not None:
+                                            toxicity_scores.append(toxicity_metric.score)
+                                    except:
+                                        pass
+                            
+                            if toxicity_scores:
+                                avg_toxicity = sum(toxicity_scores) / len(toxicity_scores)
+                                threshold = self.metric_thresholds.get("toxicity", 0.5)
+                                passed = avg_toxicity >= threshold
+                                metric_scores["Toxicity"] = {
+                                    "score": round(avg_toxicity, 3),
+                                    "passed": passed,
+                                    "threshold": threshold,
+                                    "reason": f"Aggregated from {len(toxicity_scores)} assistant turns"
+                                }
+                                status = "✓ PASS" if passed else "✗ FAIL"
+                                print(f"{status} (score: {avg_toxicity:.3f})")
+                            else:
+                                print("⏭ Skipped (no valid turns)")
+                        except Exception as e:
+                            print(f"✗ Error: {str(e)}")
+                
+                if not conversational_metrics:
                     print("⚠️ No multi-turn metrics available, skipping conversational evaluation")
                     metric_scores["Conversational"] = {
                         "score": None,

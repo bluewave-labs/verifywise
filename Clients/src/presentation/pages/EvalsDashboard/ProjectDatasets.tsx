@@ -865,20 +865,20 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
         {/* Prompts/Conversations table */}
         <TableContainer>
-          <Table sx={singleTheme.tableStyles.primary.frame}>
+          <Table sx={{ ...singleTheme.tableStyles.primary.frame, tableLayout: "fixed" }}>
             <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
               <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "80px" }}>ID</TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.header.cell}>
-                  {editablePrompts.length > 0 && isMultiTurnConversation(editablePrompts[0]) ? "Scenario / Turns" : "Prompt"}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70px", textAlign: "center", fontWeight: 600 }}>ID</TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "35%", textAlign: "center", fontWeight: 600 }}>
+                  {editablePrompts.length > 0 && isMultiTurnConversation(editablePrompts[0]) ? "SCENARIO / TURNS" : "PROMPT"}
                 </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "90px" }}>
-                  {editablePrompts.length > 0 && isMultiTurnConversation(editablePrompts[0]) ? "Turns" : "Difficulty"}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "12%", textAlign: "center", fontWeight: 600 }}>
+                  {editablePrompts.length > 0 && isMultiTurnConversation(editablePrompts[0]) ? "TURNS" : "DIFFICULTY"}
                 </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "120px" }}>
-                  {editablePrompts.length > 0 && isMultiTurnConversation(editablePrompts[0]) ? "Outcome" : "Category"}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "33%", textAlign: "center", fontWeight: 600 }}>
+                  {editablePrompts.length > 0 && isMultiTurnConversation(editablePrompts[0]) ? "OUTCOME" : "CATEGORY"}
                 </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "60px" }}></TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "50px", textAlign: "center" }}></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -925,12 +925,12 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                       "&:hover": { backgroundColor: "#f5f5f5" },
                     }}
                   >
-                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "70px", textAlign: "center" }}>
                       <Typography sx={{ fontSize: "12px", fontFamily: "monospace", color: "#6B7280" }}>
                           {p.id || (isMultiTurn ? `conv_${idx + 1}` : `prompt_${idx + 1}`)}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "35%", textAlign: "center" }}>
                       <Typography
                         sx={{
                           fontSize: "13px",
@@ -946,7 +946,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           {displayText}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "12%", textAlign: "center" }}>
                         {isMultiTurn ? (
                         <Chip
                             label={`${(p as MultiTurnConversation).turns?.length || 0} turns`}
@@ -965,7 +965,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         />
                         ) : null}
                     </TableCell>
-                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "33%", textAlign: "center" }}>
                         {isMultiTurn ? (
                           <Typography
                             sx={{
@@ -974,7 +974,6 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
-                              maxWidth: "100px",
                             }}
                           >
                             {(p as MultiTurnConversation).expected_outcome || "-"}
@@ -987,7 +986,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                       />
                         )}
                     </TableCell>
-                    <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "50px", textAlign: "center" }}>
                       <IconButton
                         size="small"
                         onClick={(e) => {
@@ -995,8 +994,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           handleDeletePrompt(idx);
                         }}
                         sx={{
-                          color: "#9CA3AF",
-                          "&:hover": { color: "#EF4444", backgroundColor: "#FEE2E2" },
+                          color: "#EF4444",
+                          "&:hover": { backgroundColor: "#FEE2E2" },
                         }}
                       >
                         <Trash2 size={14} />
@@ -1074,29 +1073,37 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 {/* Multi-turn conversation editor */}
                 {isMultiTurnConversation(editablePrompts[selectedPromptIndex]) ? (
                   <>
-                    <Field
-                      label="Scenario"
-                      value={(editablePrompts[selectedPromptIndex] as MultiTurnConversation).scenario || ""}
-                      onChange={(e) => {
-                        const next = [...editablePrompts];
-                        next[selectedPromptIndex] = { ...next[selectedPromptIndex], scenario: e.target.value };
-                        setEditablePrompts(next);
-                      }}
-                      placeholder="Describe the conversation scenario"
-                      type="description"
-                    />
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1 }}>
+                        Scenario
+                      </Typography>
+                      <Field
+                        value={(editablePrompts[selectedPromptIndex] as MultiTurnConversation).scenario || ""}
+                        onChange={(e) => {
+                          const next = [...editablePrompts];
+                          next[selectedPromptIndex] = { ...next[selectedPromptIndex], scenario: e.target.value };
+                          setEditablePrompts(next);
+                        }}
+                        placeholder="Describe the conversation scenario"
+                        type="description"
+                      />
+                    </Box>
 
-                    <Field
-                      label="Expected outcome"
-                      value={(editablePrompts[selectedPromptIndex] as MultiTurnConversation).expected_outcome || ""}
-                      onChange={(e) => {
-                        const next = [...editablePrompts];
-                        next[selectedPromptIndex] = { ...next[selectedPromptIndex], expected_outcome: e.target.value };
-                        setEditablePrompts(next);
-                      }}
-                      placeholder="What should the conversation achieve?"
-                      type="description"
-                    />
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1 }}>
+                        Expected Outcome
+                      </Typography>
+                      <Field
+                        value={(editablePrompts[selectedPromptIndex] as MultiTurnConversation).expected_outcome || ""}
+                        onChange={(e) => {
+                          const next = [...editablePrompts];
+                          next[selectedPromptIndex] = { ...next[selectedPromptIndex], expected_outcome: e.target.value };
+                          setEditablePrompts(next);
+                        }}
+                        placeholder="What should the conversation achieve?"
+                        type="description"
+                      />
+                    </Box>
 
                     <Box>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 2 }}>
@@ -1219,11 +1226,12 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         }}
                         sx={{ 
                           mt: 3,
+                          mb: 2,
                           textTransform: "none", 
                           color: "#13715B",
                           borderColor: "#E5E7EB",
                           borderStyle: "dashed",
-                          py: 1.5,
+                          py: 2,
                           "&:hover": { 
                             borderColor: "#13715B", 
                             backgroundColor: "#F0FDF4",

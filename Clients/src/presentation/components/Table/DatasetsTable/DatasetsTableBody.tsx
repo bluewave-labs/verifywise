@@ -124,15 +124,25 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
               >
                 {dataset.type ? (
                   <Chip
-                    label={dataset.type === "single-turn" ? "Single-Turn" : "Multi-Turn"}
+                    label={
+                      dataset.type === "single-turn" ? "Single-Turn" : 
+                      dataset.type === "multi-turn" ? "Multi-Turn" : 
+                      "🎭 Simulated"
+                    }
                     size="small"
                     sx={{
                       height: "22px",
                       fontSize: "11px",
                       fontWeight: 500,
                       borderRadius: "4px",
-                      backgroundColor: dataset.type === "single-turn" ? "#FEF3C7" : "#E3F2FD",
-                      color: dataset.type === "single-turn" ? "#92400E" : "#1565C0",
+                      backgroundColor: 
+                        dataset.type === "single-turn" ? "#FEF3C7" : 
+                        dataset.type === "multi-turn" ? "#E3F2FD" :
+                        "#F3E8FF",
+                      color: 
+                        dataset.type === "single-turn" ? "#92400E" : 
+                        dataset.type === "multi-turn" ? "#1565C0" :
+                        "#7C3AED",
                     }}
                   />
                 ) : (

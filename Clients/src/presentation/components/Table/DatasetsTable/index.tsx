@@ -39,7 +39,7 @@ export interface DatasetRow {
   name: string;
   path: string;
   useCase?: string;
-  type?: "single-turn" | "multi-turn";
+  type?: "single-turn" | "multi-turn" | "simulated";
   createdAt?: string | null;
   updatedAt?: string | null;
   metadata?: {

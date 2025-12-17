@@ -76,8 +76,39 @@ async def run_evaluation(
         print("✅ deepeval_engine imported")
         
         print("Importing deepeval.test_case...")
-        from deepeval.test_case import LLMTestCase
+        from deepeval.test_case import LLMTestCase, ConversationalTestCase
         print("✅ deepeval imported")
+        
+        # Import Turn class for multi-turn conversations
+        try:
+            from deepeval.test_case import Turn
+            print("✅ Turn class imported for multi-turn evaluation")
+        except ImportError:
+            # Fallback: define a simple Turn class if not available
+            class Turn:
+                def __init__(self, role: str, content: str):
+                    self.role = role
+                    self.content = content
+            print("⚠️ Using fallback Turn class")
+        
+        # Import native multi-turn metrics if available
+        try:
+            from deepeval.metrics import ConversationRelevancyMetric
+            HAS_NATIVE_CONV_METRICS = True
+            print("✅ Native ConversationRelevancyMetric available")
+        except ImportError:
+            HAS_NATIVE_CONV_METRICS = False
+            print("⚠️ Native multi-turn metrics not available, using G-Eval fallback")
+        
+        # Import ConversationSimulator for simulated turns
+        try:
+            from deepeval.conversation_simulator import ConversationSimulator
+            from deepeval.dataset import ConversationalGolden
+            HAS_CONVERSATION_SIMULATOR = True
+            print("✅ ConversationSimulator available for simulated turns")
+        except ImportError:
+            HAS_CONVERSATION_SIMULATOR = False
+            print("⚠️ ConversationSimulator not available")
         
         # Extract configuration
         model_config = config.get("model", {})
@@ -326,49 +357,102 @@ async def run_evaluation(
         
         test_cases_data = []
 
-        if conversations:
-            # 3A. Conversational (multi-turn) evaluation: judge existing assistant replies per turn
-            print(f"\n🗣️ Detected conversational dataset with {len(conversations)} scenarios. Building per-turn test cases...\n")
-            sample_counter = 0
+        # Check if this is a simulated conversation mode
+        simulated_mode = dataset_config.get("simulatedMode", False)
+        simulated_scenarios = dataset_config.get("scenarios", [])
+        
+        if simulated_mode and simulated_scenarios and HAS_CONVERSATION_SIMULATOR:
+            # 3A-SIM. Simulated conversation mode: use ConversationSimulator
+            print(f"\n🎭 SIMULATED MODE: Generating conversations for {len(simulated_scenarios)} scenarios...")
+            
+            # Create model callback for the simulator
+            async def model_callback(input_text: str, turns_history: list, thread_id: str = "") -> Turn:
+                """Generate next assistant response given conversation history."""
+                # Build context from history
+                context_parts = []
+                for t in turns_history[-6:]:  # Keep last 6 turns for context
+                    context_parts.append(f"{t.role.capitalize()}: {t.content}")
+                context = "\n".join(context_parts)
+                
+                prompt = f"{context}\n\nUser: {input_text}\n\nAssistant:" if context else f"User: {input_text}\n\nAssistant:"
+                
+                response = model_runner.generate(
+                    prompt=prompt,
+                    max_tokens=1024,
+                    temperature=0.7,
+                )
+                return Turn(role="assistant", content=response or "")
+            
+            # Create ConversationalGoldens from scenarios
+            goldens = []
+            for scenario_data in simulated_scenarios:
+                golden = ConversationalGolden(
+                    scenario=scenario_data.get("scenario", "General conversation"),
+                    expected_outcome=scenario_data.get("expected_outcome", "Helpful response"),
+                    user_description=scenario_data.get("user_description", "A typical user"),
+                )
+                goldens.append(golden)
+            
+            # Run simulation
+            max_turns = dataset_config.get("maxTurns", 6)
+            simulator = ConversationSimulator(model_callback=model_callback)
+            
+            print(f"🔄 Simulating conversations with max {max_turns} turns each...")
+            simulated_test_cases = simulator.simulate(goldens=goldens, max_turns=max_turns)
+            
+            # Convert simulated test cases to our format
+            for idx, conv_tc in enumerate(simulated_test_cases, 1):
+                test_cases_data.append({
+                    "test_case": conv_tc,
+                    "is_conversational": True,
+                    "metadata": {
+                        "sample_id": f"simulated_scenario_{idx}",
+                        "protected_attributes": {"category": conv_tc.scenario or f"scenario_{idx}", "difficulty": "simulated"},
+                    }
+                })
+            
+            print(f"✓ Generated {len(test_cases_data)} simulated conversations")
+            
+        elif conversations:
+            # 3A. Conversational (multi-turn) evaluation using DeepEval's ConversationalTestCase
+            print(f"\n🗣️ Detected conversational dataset with {len(conversations)} scenarios.")
+            print(f"   Using DeepEval's ConversationalTestCase for proper multi-turn evaluation...\n")
+            
             for s_idx, convo in enumerate(conversations, 1):
                 scenario = convo.get("scenario") or f"scenario_{s_idx}"
-                turns = convo.get("turns") or []
-                # Evaluate assistant turns; build history up to each assistant reply
-                history: list[dict] = []
-                for t_idx, t in enumerate(turns, 1):
+                expected_outcome = convo.get("expected_outcome", "")
+                raw_turns = convo.get("turns") or []
+                
+                # Build Turn objects for ConversationalTestCase
+                turn_objects = []
+                for t in raw_turns:
                     role = (t.get("role") or "").lower()
                     content = t.get("content") or ""
-                    if not content:
-                        continue
-                    # When we hit an assistant turn, create a test case using prior history
-                    if role == "assistant":
-                        # The last user message (if any) is the immediate input; include compact history for judge context
-                        # Build a compact, readable transcript
-                        history_text = []
-                        for h in history[-6:]:  # keep the last few turns for brevity
-                            history_text.append(f"{h['role'].capitalize()}: {h['content']}")
-                        input_block = "\n".join(history_text) if history_text else ""
-                        last_user = ""
-                        if history and history[-1]["role"] == "user":
-                            last_user = history[-1]["content"]
-                        judge_input = f"{input_block}\n\nUser: {last_user}".strip() if last_user else input_block
-
-                        test_case = LLMTestCase(
-                            input=judge_input,
-                            actual_output=content,
-                            expected_output="",  # optional; can be set if gold assistant is provided separately
-                        )
-                        sample_counter += 1
-                        test_cases_data.append({
-                            "test_case": test_case,
-                            "metadata": {
-                                "sample_id": f"{scenario}#turn_{t_idx}",
-                                "protected_attributes": {"category": scenario, "difficulty": "conversation"},
-                            }
-                        })
-                    # Always extend history
-                    history.append({"role": role, "content": content})
-            print(f"✓ Built {len(test_cases_data)} assistant-turn test cases from conversations.")
+                    if content and role in ("user", "assistant"):
+                        turn_objects.append(Turn(role=role, content=content))
+                
+                if not turn_objects:
+                    continue
+                
+                # Create ConversationalTestCase (DeepEval's native multi-turn format)
+                conv_test_case = ConversationalTestCase(
+                    turns=turn_objects,
+                )
+                
+                # Store as conversational test case
+                test_cases_data.append({
+                    "test_case": conv_test_case,
+                    "is_conversational": True,
+                    "scenario": scenario,
+                    "expected_outcome": expected_outcome,
+                    "metadata": {
+                        "sample_id": f"{scenario}",
+                        "protected_attributes": {"category": scenario, "difficulty": "conversation"},
+                        "turn_count": len(turn_objects),
+                    }
+                })
+            
+            print(f"✓ Built {len(test_cases_data)} ConversationalTestCases from {len(conversations)} scenarios.")
         else:
             # 3B. Single-turn path (existing)
             print(f"\n🤖 Generating {len(prompts)} responses...\n")
@@ -513,33 +597,51 @@ async def run_evaluation(
         bundles = config.get("bundles") or {}
         
         # Map frontend metric names (camelCase) to backend metric names (snake_case)
+        # New metric structure:
+        # - Universal Core (all use cases): relevance, correctness, completeness, hallucination, instruction_following, toxicity, bias
+        # - RAG: context_relevancy, context_precision, context_recall, faithfulness
+        # - Agent: tool_selection, tool_correctness, action_relevance, planning_quality
         metric_name_map = {
+            # Universal Core
             "answerRelevancy": "answer_relevancy",
-            "bias": "bias",
-            "toxicity": "toxicity",
-            "faithfulness": "faithfulness",
+            "correctness": "correctness",
+            "completeness": "completeness",
             "hallucination": "hallucination",
-            "contextualRelevancy": "contextual_relevancy",
-            "knowledgeRetention": "knowledge_retention",
-            "conversationRelevancy": "conversation_relevancy",
-            "conversationCompleteness": "conversation_completeness",
-            "roleAdherence": "role_adherence",
+            "instructionFollowing": "instruction_following",
+            "toxicity": "toxicity",
+            "bias": "bias",
+            # RAG-specific
+            "contextRelevancy": "context_relevancy",
+            "contextPrecision": "context_precision",
+            "contextRecall": "context_recall",
+            "faithfulness": "faithfulness",
+            # Agent-specific
+            "toolSelection": "tool_selection",
+            "toolCorrectness": "tool_correctness",
+            "actionRelevance": "action_relevance",
+            "planningQuality": "planning_quality",
         }
 
         # Start with all metrics disabled
         deepeval_metrics_config = {
-            # Standard G-Eval metrics (always available)
+            # Universal Core (run for every use case)
             "answer_relevancy": False,
-            "bias": False,
-            "toxicity": False,
-            "faithfulness": False,
+            "correctness": False,
+            "completeness": False,
             "hallucination": False,
-            "contextual_relevancy": False,
-            # Chatbot-specific metrics
-            "knowledge_retention": False,
-            "conversation_relevancy": False,
-            "conversation_completeness": False,
-            "role_adherence": False,
+            "instruction_following": False,
+            "toxicity": False,
+            "bias": False,
+            # RAG-specific (require retrieval_context)
+            "context_relevancy": False,
+            "context_precision": False,
+            "context_recall": False,
+            "faithfulness": False,
+            # Agent-specific (tools, multi-step)
+            "tool_selection": False,
+            "tool_correctness": False,
+            "action_relevance": False,
+            "planning_quality": False,
         }
         
         # Enable metrics based on UI selection
@@ -549,31 +651,32 @@ async def run_evaluation(
         
         # If no UI metrics provided (legacy/rerun), use defaults based on task type
         if not ui_metrics:
-            # Default: enable general metrics for all
+            # Default: enable Universal Core for all
             deepeval_metrics_config["answer_relevancy"] = True
-            deepeval_metrics_config["bias"] = True
+            deepeval_metrics_config["correctness"] = True
+            deepeval_metrics_config["completeness"] = True
+            deepeval_metrics_config["hallucination"] = True
+            deepeval_metrics_config["instruction_following"] = True
             deepeval_metrics_config["toxicity"] = True
+            deepeval_metrics_config["bias"] = True
             
             if task_type == "rag":
-                # RAG: enable context-dependent metrics
+                # RAG: Universal Core + RAG-specific metrics
                 deepeval_metrics_config.update({
+                    "context_relevancy": True,
+                    "context_precision": True,
+                    "context_recall": True,
                     "faithfulness": True,
-                    "contextual_relevancy": True,
-                    "hallucination": True,
                 })
             elif task_type in ("agent", "agents"):
+                # Agent: Universal Core + Agent-specific metrics
                 deepeval_metrics_config.update({
-                    "task_completion": True,
+                    "tool_selection": True,
                     "tool_correctness": True,
+                    "action_relevance": True,
+                    "planning_quality": True,
                 })
-            elif task_type in ("chatbot", ""):
-                # Chatbot: enable chatbot-specific metrics (NOT RAG metrics!)
-                deepeval_metrics_config.update({
-                    "knowledge_retention": True,
-                    "conversation_completeness": True,
-                    "conversation_relevancy": True,
-                    "role_adherence": True,
-                })
+            # Chatbot: Universal Core only (no extra metrics)
         
         # Log which metrics are enabled
         enabled_metrics = [k for k, v in deepeval_metrics_config.items() if v]
@@ -810,27 +913,24 @@ async def run_evaluation(
         
         # Map snake_case config keys to display names AND camelCase frontend keys
         metric_config_map = {
-            "answer_relevancy": {"display": "Answer Relevancy", "camel": "answerRelevancy"},
-            "faithfulness": {"display": "Faithfulness", "camel": "faithfulness"},
-            "contextual_relevancy": {"display": "Contextual Relevancy", "camel": "contextualRelevancy"},
-            "contextual_recall": {"display": "Contextual Recall", "camel": "contextualRecall"},
-            "contextual_precision": {"display": "Contextual Precision", "camel": "contextualPrecision"},
+            # Universal Core
+            "answer_relevancy": {"display": "Relevance", "camel": "answerRelevancy"},
+            "correctness": {"display": "Correctness", "camel": "correctness"},
+            "completeness": {"display": "Completeness", "camel": "completeness"},
             "hallucination": {"display": "Hallucination", "camel": "hallucination"},
-            "bias": {"display": "Bias", "camel": "bias"},
+            "instruction_following": {"display": "Instruction Following", "camel": "instructionFollowing"},
             "toxicity": {"display": "Toxicity", "camel": "toxicity"},
-            "knowledge_retention": {"display": "Knowledge Retention", "camel": "knowledgeRetention"},
-            "conversation_completeness": {"display": "Conversation Completeness", "camel": "conversationCompleteness"},
-            "conversation_relevancy": {"display": "Conversation Relevancy", "camel": "conversationRelevancy"},
-            "role_adherence": {"display": "Role Adherence", "camel": "roleAdherence"},
-            "task_completion": {"display": "Task Completion", "camel": "taskCompletion"},
+            "bias": {"display": "Bias", "camel": "bias"},
+            # RAG-specific
+            "context_relevancy": {"display": "Context Relevancy", "camel": "contextRelevancy"},
+            "context_precision": {"display": "Context Precision", "camel": "contextPrecision"},
+            "context_recall": {"display": "Context Recall", "camel": "contextRecall"},
+            "faithfulness": {"display": "Faithfulness", "camel": "faithfulness"},
+            # Agent-specific
+            "tool_selection": {"display": "Tool Selection", "camel": "toolSelection"},
             "tool_correctness": {"display": "Tool Correctness", "camel": "toolCorrectness"},
-            "summarization": {"display": "Summarization", "camel": "summarization"},
-            "ragas": {"display": "RAGAS", "camel": "ragas"},
-            # G-Eval variants
-            "g_eval_correctness": {"display": "Answer Correctness", "camel": "answerCorrectness"},
-            "g_eval_coherence": {"display": "Coherence", "camel": "coherence"},
-            "g_eval_tonality": {"display": "Tonality", "camel": "tonality"},
-            "g_eval_safety": {"display": "Safety", "camel": "safety"},
+            "action_relevance": {"display": "Action Relevance", "camel": "actionRelevance"},
+            "planning_quality": {"display": "Planning Quality", "camel": "planningQuality"},
         }
 
         for metric_key, enabled in deepeval_metrics_config.items():

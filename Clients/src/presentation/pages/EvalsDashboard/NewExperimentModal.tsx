@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -18,6 +18,7 @@ import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
 import Checkbox from "../../components/Inputs/Checkbox";
 import Alert from "../../components/Alert";
+import { TemplatesList, type TemplateRow } from "../../components/Table/TemplatesTable";
 
 // Import provider logos
 import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
@@ -83,6 +84,14 @@ export default function NewExperimentModal({
   const [uploadingDataset, setUploadingDataset] = useState(false);
   const [selectedPresetPath, setSelectedPresetPath] = useState<string>("");
 
+  // Template datasets state
+  const [templateDatasets, setTemplateDatasets] = useState<Record<"chatbot" | "rag" | "agent", TemplateRow[]>>({
+    chatbot: [],
+    rag: [],
+    agent: [],
+  });
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+
   // Scorer / Judge mode state: scorer = custom only, standard = judge only, both = run both
   const [judgeMode, setJudgeMode] = useState<"scorer" | "standard" | "both">("standard");
   const [userScorers, setUserScorers] = useState<DeepEvalScorer[]>([]);
@@ -120,93 +129,119 @@ export default function NewExperimentModal({
       categories: [] as string[],
       limit: 10,
       benchmark: "",
+      // Simulated mode: when true, uses ConversationSimulator to generate turns
+      simulatedMode: false,
+      // Scenarios for simulated mode (optional - can be loaded from dataset)
+      scenarios: [] as Array<{ scenario: string; expected_outcome: string; user_description?: string; max_turns?: number }>,
+      // Max turns for simulated conversations
+      maxTurns: 6,
     },
-    // Step 4: Metrics - defaults for chatbot (no RAG context metrics)
+    // Step 4: Metrics - Universal core for all, plus use-case specific
     metrics: {
-      // General metrics (all use cases)
+      // Universal Core (always enabled for all use cases)
       answerRelevancy: true,
-      bias: true,
+      correctness: true,
+      completeness: true,
+      hallucination: true,
+      instructionFollowing: true,
       toxicity: true,
-      // RAG-specific (require retrieval_context) - disabled for chatbot
+      bias: true,
+      // RAG-specific (require retrieval_context)
+      contextRelevancy: false,
+      contextPrecision: false,
+      contextRecall: false,
       faithfulness: false,
-      hallucination: false,
-      contextualRelevancy: false,
-      // Chatbot-specific
-      knowledgeRetention: true,
-      conversationRelevancy: true,
-      conversationCompleteness: true,
-      roleAdherence: true,
       // Agent-specific
-      taskCompletion: false,
+      toolSelection: false,
       toolCorrectness: false,
+      actionRelevance: false,
+      planningQuality: false,
     },
     thresholds: {
       answerRelevancy: 0.5,
-      bias: 0.5,
-      toxicity: 0.5,
-      faithfulness: 0.5,
+      correctness: 0.5,
+      completeness: 0.5,
       hallucination: 0.5,
-      contextualRelevancy: 0.5,
-      knowledgeRetention: 0.5,
-      conversationRelevancy: 0.5,
-      conversationCompleteness: 0.5,
-      roleAdherence: 0.5,
-      taskCompletion: 0.5,
+      instructionFollowing: 0.5,
+      toxicity: 0.5,
+      bias: 0.5,
+      contextRelevancy: 0.5,
+      contextPrecision: 0.5,
+      contextRecall: 0.5,
+      faithfulness: 0.5,
+      toolSelection: 0.5,
       toolCorrectness: 0.5,
+      actionRelevance: 0.5,
+      planningQuality: 0.5,
     },
   });
 
   // Update metric defaults when task type changes
   useEffect(() => {
     setConfig((prev) => {
-      const baseMetrics = {
-        // General metrics (always available)
+      // Universal Core - always enabled for all use cases
+      const universalCore = {
         answerRelevancy: true,
-        bias: true,
+        correctness: true,
+        completeness: true,
+        hallucination: true,
+        instructionFollowing: true,
         toxicity: true,
-        // RAG-specific
+        bias: true,
+      };
+
+      // RAG-specific metrics (disabled by default)
+      const ragMetrics = {
+        contextRelevancy: false,
+        contextPrecision: false,
+        contextRecall: false,
         faithfulness: false,
-        hallucination: false,
-        contextualRelevancy: false,
-        // Chatbot-specific
-        knowledgeRetention: false,
-        conversationRelevancy: false,
-        conversationCompleteness: false,
-        roleAdherence: false,
-        // Agent-specific
-        taskCompletion: false,
+      };
+
+      // Agent-specific metrics (disabled by default)
+      const agentMetrics = {
+        toolSelection: false,
         toolCorrectness: false,
+        actionRelevance: false,
+        planningQuality: false,
       };
 
       if (prev.taskType === "rag") {
         return {
           ...prev,
           metrics: {
-            ...baseMetrics,
+            ...universalCore,
+            ...ragMetrics,
+            ...agentMetrics,
+            // Enable RAG metrics
+            contextRelevancy: true,
+            contextPrecision: true,
+            contextRecall: true,
             faithfulness: true,
-            hallucination: true,
-            contextualRelevancy: true,
           },
         };
       } else if (prev.taskType === "agent") {
         return {
           ...prev,
           metrics: {
-            ...baseMetrics,
-            taskCompletion: true,
+            ...universalCore,
+            ...ragMetrics,
+            ...agentMetrics,
+            // Enable Agent metrics
+            toolSelection: true,
             toolCorrectness: true,
+            actionRelevance: true,
+            planningQuality: true,
           },
         };
       } else {
-        // chatbot
+        // chatbot - Universal core only
         return {
           ...prev,
           metrics: {
-            ...baseMetrics,
-            knowledgeRetention: true,
-            conversationRelevancy: true,
-            conversationCompleteness: true,
-            roleAdherence: true,
+            ...universalCore,
+            ...ragMetrics,
+            ...agentMetrics,
           },
         };
       }
@@ -253,6 +288,48 @@ export default function NewExperimentModal({
       }
     })();
   }, [activeStep]);
+
+  // Load template datasets when entering the dataset step
+  useEffect(() => {
+    if (activeStep !== 1) return;
+    // Only load once
+    if (templateDatasets.chatbot.length > 0 || templateDatasets.rag.length > 0 || templateDatasets.agent.length > 0) return;
+    
+    (async () => {
+      try {
+        setLoadingTemplates(true);
+        const res = await deepEvalDatasetsService.list();
+        
+        // Map API response to TemplateRow format
+        const mapToTemplateRow = (ds: { key: string; name: string; path: string; test_count?: number; difficulty?: { easy: number; medium: number; hard: number }; description?: string; type?: string }, category: "chatbot" | "rag" | "agent"): TemplateRow => ({
+          key: ds.key,
+          name: ds.name,
+          path: ds.path,
+          category,
+          test_count: ds.test_count,
+          difficulty: ds.difficulty,
+          description: ds.description,
+          type: ds.type as "single-turn" | "multi-turn" | "simulated" | undefined,
+        });
+
+        setTemplateDatasets({
+          chatbot: (res.chatbot || []).map((ds) => mapToTemplateRow(ds, "chatbot")),
+          rag: (res.rag || []).map((ds) => mapToTemplateRow(ds, "rag")),
+          agent: (res.agent || []).map((ds) => mapToTemplateRow(ds, "agent")),
+        });
+      } catch {
+        /* ignore */
+      } finally {
+        setLoadingTemplates(false);
+      }
+    })();
+  }, [activeStep, templateDatasets.chatbot.length, templateDatasets.rag.length, templateDatasets.agent.length]);
+
+  // Filter templates based on current task type
+  const filteredTemplates = useMemo(() => {
+    const taskType = config.taskType as "chatbot" | "rag" | "agent";
+    return templateDatasets[taskType] || [];
+  }, [templateDatasets, config.taskType]);
 
   // Load user scorers when entering the scorer/judge step
   useEffect(() => {
@@ -516,34 +593,46 @@ export default function NewExperimentModal({
         categories: [],
         limit: 10,
         benchmark: "",
+        simulatedMode: false,
+        scenarios: [],
+        maxTurns: 6,
       },
       metrics: {
+        // Universal Core
         answerRelevancy: true,
-        bias: true,
+        correctness: true,
+        completeness: true,
+        hallucination: true,
+        instructionFollowing: true,
         toxicity: true,
+        bias: true,
+        // RAG-specific
+        contextRelevancy: false,
+        contextPrecision: false,
+        contextRecall: false,
         faithfulness: false,
-        hallucination: false,
-        contextualRelevancy: false,
-        knowledgeRetention: true,
-        conversationRelevancy: true,
-        conversationCompleteness: true,
-        roleAdherence: true,
-        taskCompletion: false,
+        // Agent-specific
+        toolSelection: false,
         toolCorrectness: false,
+        actionRelevance: false,
+        planningQuality: false,
       },
       thresholds: {
         answerRelevancy: 0.5,
-        bias: 0.5,
-        toxicity: 0.5,
-        faithfulness: 0.5,
+        correctness: 0.5,
+        completeness: 0.5,
         hallucination: 0.5,
-        contextualRelevancy: 0.5,
-        knowledgeRetention: 0.5,
-        conversationRelevancy: 0.5,
-        conversationCompleteness: 0.5,
-        roleAdherence: 0.5,
-        taskCompletion: 0.5,
+        instructionFollowing: 0.5,
+        toxicity: 0.5,
+        bias: 0.5,
+        contextRelevancy: 0.5,
+        contextPrecision: 0.5,
+        contextRecall: 0.5,
+        faithfulness: 0.5,
+        toolSelection: 0.5,
         toolCorrectness: 0.5,
+        actionRelevance: 0.5,
+        planningQuality: 0.5,
       },
     });
   };
@@ -1022,63 +1111,27 @@ export default function NewExperimentModal({
             <Box>
               <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
                 {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} Templates
-                  </Typography>
-              <Stack spacing={0.5}>
-                {[
-                  ...(config.taskType === "chatbot" ? [
-                    { name: "Basic Chatbot", path: "chatbot/chatbot_basic.json", desc: "Standard question-answer pairs" },
-                    { name: "Coding Helper", path: "chatbot/chatbot_coding_helper.json", desc: "Code assistance scenarios" },
-                    { name: "Customer Support", path: "chatbot/chatbot_customer_support.json", desc: "Support conversation samples" },
-                  ] : []),
-                  ...(config.taskType === "rag" ? [
-                    { name: "Product Docs", path: "rag/rag_product_docs.json", desc: "Product documentation queries" },
-                    { name: "Wikipedia QA", path: "rag/rag_wikipedia_small.json", desc: "Wikipedia-based questions" },
-                    { name: "Research Papers", path: "rag/rag_research_papers.json", desc: "Academic content retrieval" },
-                  ] : []),
-                  ...(config.taskType === "agent" ? [
-                    { name: "Agent Tasks", path: "presets/agent_dataset.json", desc: "Tool usage and multi-step tasks" },
-                  ] : []),
-                ].map((template) => {
-                  const isSelected = selectedPresetPath === template.path && config.dataset.useBuiltin;
-                  return (
-                    <Box
-                      key={template.path}
-                      onClick={async () => {
-                        setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: true } }));
-                        setSelectedUserDataset(null);
-                        setSelectedPresetPath(template.path);
-                        try {
-                          const { prompts } = await deepEvalDatasetsService.read(template.path);
-                          setDatasetPrompts((prompts || []) as DatasetPrompt[]);
-                          setDatasetLoaded(true);
-                        } catch {
-                          setDatasetPrompts([]);
-                        }
-                              }}
-                              sx={{
-                        p: 1,
-                        border: "1px solid",
-                        borderColor: isSelected ? "#6366F1" : "#E5E7EB",
-                        borderRadius: "6px",
-                                cursor: "pointer",
-                        backgroundColor: isSelected ? "#EEF2FF" : "#FFFFFF",
-                                display: "flex",
-                                alignItems: "center",
-                        gap: 1,
-                        transition: "all 0.15s ease",
-                        "&:hover": { borderColor: "#6366F1", backgroundColor: isSelected ? "#EEF2FF" : "#F9FAFB" },
-                      }}
-                    >
-                      <Database size={14} color={isSelected ? "#6366F1" : "#9CA3AF"} />
-                      <Box sx={{ flex: 1 }}>
-                        <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>{template.name}</Typography>
-                        <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>{template.desc}</Typography>
-                            </Box>
-                      {isSelected && <Check size={14} color="#6366F1" />}
-                        </Box>
-                  );
-                })}
-                          </Stack>
+              </Typography>
+              <TemplatesList
+                templates={filteredTemplates}
+                selectedPath={config.dataset.useBuiltin ? selectedPresetPath : undefined}
+                onSelect={async (template) => {
+                  setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: true } }));
+                  setSelectedUserDataset(null);
+                  setSelectedPresetPath(template.path);
+                  try {
+                    const { prompts } = await deepEvalDatasetsService.read(template.path);
+                    setDatasetPrompts((prompts || []) as DatasetPrompt[]);
+                    setDatasetLoaded(true);
+                  } catch {
+                    setDatasetPrompts([]);
+                  }
+                }}
+                loading={loadingTemplates}
+                groupByTurnType={true}
+                maxHeight="250px"
+                compact={true}
+              />
             </Box>
 
             {/* Selected dataset confirmation */}
@@ -1107,7 +1160,7 @@ export default function NewExperimentModal({
               border: "1px solid #E5E7EB",
             }}>
               <Typography sx={{ fontSize: "13px", color: "#374151", lineHeight: 1.6 }}>
-                <strong>Standard Judge:</strong> Uses built-in metrics (Relevancy, Bias, Toxicity) with fixed evaluation criteria.
+                <strong>Standard Judge:</strong> Uses universal core metrics (Relevance, Correctness, Completeness, Hallucination, etc.) with fixed evaluation criteria.
                 <br />
                 <strong>Custom Scorer:</strong> Uses your own prompts for domain-specific evaluation (e.g., "Is this code correct?").
               </Typography>
@@ -1194,7 +1247,7 @@ export default function NewExperimentModal({
                       Standard Judge Only
                     </Typography>
                     <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                      Run built-in metrics (Relevancy, Bias, Toxicity, etc.)
+                      Run universal core metrics (Relevance, Correctness, Completeness, etc.)
                     </Typography>
                   </Box>
                   {judgeMode === "standard" && <Check size={18} color="#13715B" />}
@@ -1639,30 +1692,46 @@ export default function NewExperimentModal({
           <Stack spacing={3}>
             <Box>
               <Typography variant="body2" color="text.secondary">
-                Select metrics for your evaluation. Metrics are organized by use case.
+                Select metrics for your evaluation. Universal core metrics run for all use cases.
               </Typography>
             </Box>
 
-            {/* General Metrics - All Use Cases */}
+            {/* Universal Core Metrics - All Use Cases */}
             <Box>
               <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
-                General Metrics
+                Universal Core Metrics
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                Available for all evaluation types
+                Run for every use case (Chatbot, RAG, Agent)
               </Typography>
               {Object.entries({
                 answerRelevancy: {
-                  label: "Answer Relevancy",
-                  desc: "Measures how relevant the model's answer is to the input.",
+                  label: "Relevance",
+                  desc: "Measures how relevant the model's answer is to the input query.",
                 },
-                bias: {
-                  label: "Bias Detection",
-                  desc: "Detects biased or discriminatory content in responses.",
+                correctness: {
+                  label: "Correctness",
+                  desc: "Evaluates whether the answer is factually correct and accurate.",
+                },
+                completeness: {
+                  label: "Completeness",
+                  desc: "Checks if the response fully addresses all aspects of the query.",
+                },
+                hallucination: {
+                  label: "Hallucination",
+                  desc: "Detects fabricated or unsupported statements in the response.",
+                },
+                instructionFollowing: {
+                  label: "Instruction Following",
+                  desc: "Measures how well the model follows the given instructions or constraints.",
                 },
                 toxicity: {
-                  label: "Toxicity Detection",
+                  label: "Toxicity",
                   desc: "Flags toxic or harmful language in outputs.",
+                },
+                bias: {
+                  label: "Bias",
+                  desc: "Detects biased or discriminatory content in responses.",
                 },
               }).map(([key, meta]) => (
                 <Box key={key} sx={{ mb: 1.5 }}>
@@ -1695,64 +1764,6 @@ export default function NewExperimentModal({
               ))}
             </Box>
 
-            {/* Chatbot-Specific Metrics */}
-            {config.taskType === "chatbot" && (
-              <Box>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
-                  Chatbot Metrics
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                  Specifically designed for conversational AI evaluation
-                </Typography>
-                {Object.entries({
-                  knowledgeRetention: {
-                    label: "Knowledge Retention",
-                    desc: "Evaluates how well the model remembers and reuses information across the conversation.",
-                  },
-                  conversationRelevancy: {
-                    label: "Conversation Relevancy",
-                    desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
-                  },
-                  conversationCompleteness: {
-                    label: "Conversation Completeness",
-                    desc: "Checks if the model fully answers the user's question and covers all requested details.",
-                  },
-                  roleAdherence: {
-                    label: "Role Adherence",
-                    desc: "Evaluates how well the model follows its assigned role, persona, or instructions.",
-                  },
-                }).map(([key, meta]) => (
-                  <Box key={key} sx={{ mb: 1.5 }}>
-                    <Stack spacing={0.5}>
-                      <Checkbox
-                        id={`metric-${key}`}
-                        label={(meta as { label: string }).label}
-                        size="small"
-                        value={key}
-                        isChecked={config.metrics[key as keyof typeof config.metrics]}
-                        onChange={() =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            metrics: {
-                              ...prev.metrics,
-                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                            },
-                          }))
-                        }
-                      />
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
-                      >
-                        {(meta as { desc: string }).desc}
-                      </Typography>
-                    </Stack>
-                  </Box>
-                ))}
-              </Box>
-            )}
-
             {/* RAG-Specific Metrics */}
             {config.taskType === "rag" && (
               <Box>
@@ -1763,17 +1774,21 @@ export default function NewExperimentModal({
                   Requires retrieval_context in your dataset
                 </Typography>
                 {Object.entries({
+                  contextRelevancy: {
+                    label: "Context Relevancy",
+                    desc: "Measures whether retrieved context is relevant to the query.",
+                  },
+                  contextPrecision: {
+                    label: "Context Precision",
+                    desc: "Evaluates if the retrieved context contains only relevant information.",
+                  },
+                  contextRecall: {
+                    label: "Context Recall",
+                    desc: "Checks if all relevant information needed for the answer was retrieved.",
+                  },
                   faithfulness: {
                     label: "Faithfulness",
-                    desc: "Checks if the answer aligns with provided retrieval context.",
-                  },
-                  hallucination: {
-                    label: "Hallucination Detection",
-                    desc: "Identifies unsupported or fabricated statements not in context.",
-                  },
-                  contextualRelevancy: {
-                    label: "Contextual Relevancy",
-                    desc: "Measures whether retrieved context is relevant to the query.",
+                    desc: "Checks if the answer is grounded in the provided retrieval context.",
                   },
                 }).map(([key, meta]) => (
                   <Box key={key} sx={{ mb: 1.5 }}>
@@ -1817,13 +1832,21 @@ export default function NewExperimentModal({
                   Specifically designed for evaluating AI agents with tool usage
                 </Typography>
                 {Object.entries({
-                  taskCompletion: {
-                    label: "Task Completion",
-                    desc: "Evaluates whether the agent successfully completed the assigned task or goal.",
+                  toolSelection: {
+                    label: "Tool Selection",
+                    desc: "Evaluates whether the agent selected the appropriate tool for the task.",
                   },
                   toolCorrectness: {
                     label: "Tool Correctness",
-                    desc: "Measures whether the agent used the correct tools with appropriate parameters.",
+                    desc: "Measures whether the agent used tools with correct parameters.",
+                  },
+                  actionRelevance: {
+                    label: "Action Relevance",
+                    desc: "Checks if the agent's actions are relevant to achieving the goal.",
+                  },
+                  planningQuality: {
+                    label: "Planning Quality",
+                    desc: "Evaluates the quality and efficiency of the agent's multi-step plan.",
                   },
                 }).map(([key, meta]) => (
                   <Box key={key} sx={{ mb: 1.5 }}>

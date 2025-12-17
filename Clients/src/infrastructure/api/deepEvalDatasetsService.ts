@@ -7,17 +7,17 @@ export interface UploadDatasetResponse {
   size: number;
   tenant: string;
   datasetType?: "chatbot" | "rag" | "agent";
-  turnType?: "single-turn" | "multi-turn";
+  turnType?: "single-turn" | "multi-turn" | "simulated";
 }
 
-export type TurnType = "single-turn" | "multi-turn";
+export type TurnType = "single-turn" | "multi-turn" | "simulated";
 
 export interface ListedDataset {
   key: string;
   name: string;
   path: string;
   use_case: "chatbot" | "rag" | "agent";
-  type?: "single-turn" | "multi-turn";
+  type?: "single-turn" | "multi-turn" | "simulated";
 }
 
 export type DatasetType = "chatbot" | "rag" | "agent";

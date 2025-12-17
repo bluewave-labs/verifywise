@@ -13,8 +13,6 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  TableFooter,
-  TablePagination,
   Button,
   useTheme,
   IconButton,
@@ -24,7 +22,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, ChevronUp, ChevronDown, ChevronsUpDown, Plus } from "lucide-react";
+import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
 import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset, type DatasetType } from "../../../infrastructure/api/deepEvalDatasetsService";
@@ -37,9 +35,8 @@ import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import singleTheme from "../../themes/v1SingleTheme";
-import TablePaginationActions from "../../components/TablePagination";
-import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
 import DatasetsTable, { type DatasetRow } from "../../components/Table/DatasetsTable";
+import TemplatesTable from "../../components/Table/TemplatesTable";
 import HelperIcon from "../../components/HelperIcon";
 
 type ProjectDatasetsProps = { projectId: string };
@@ -49,7 +46,7 @@ type BuiltInDataset = ListedDataset & {
   isUserDataset?: boolean;
   createdAt?: string;
   datasetType?: DatasetType;
-  turnType?: "single-turn" | "multi-turn";
+  turnType?: "single-turn" | "multi-turn" | "simulated";
   // Additional metadata for templates
   test_count?: number;
   categories?: string[];
@@ -90,14 +87,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const [loadingTemplatePrompts, setLoadingTemplatePrompts] = useState(false);
   const [copyingTemplate, setCopyingTemplate] = useState(false);
 
-  // Template table state (pagination, search, sorting)
-  const [templatePage, setTemplatePage] = useState(0);
-  const [templateRowsPerPage, setTemplateRowsPerPage] = useState(() => getPaginationRowCount("templates", 10));
+  // Template table state (search) - sorting and pagination handled by TemplatesTable component
   const [templateSearchTerm, setTemplateSearchTerm] = useState("");
-  const [templateSortConfig, setTemplateSortConfig] = useState<{ key: string; direction: "asc" | "desc" | null }>({
-    key: "",
-    direction: null,
-  });
 
   // Copy template confirmation modal state
   const [copyModalOpen, setCopyModalOpen] = useState(false);
@@ -275,7 +266,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   // useFilterBy hook for templates
   const { filterData: filterTemplateData, handleFilterChange: handleTemplateFilterChange } = useFilterBy<TemplateWithCategory>(getTemplateFieldValue);
 
-  // Filtered and sorted templates
+  // Filtered templates (sorting and pagination handled by TemplatesTable component)
   const filteredAndSortedTemplates = useMemo(() => {
     // Apply filter
     let result = filterTemplateData(flattenedTemplates);
@@ -286,87 +277,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       result = result.filter((t) => t.name.toLowerCase().includes(q) || t.category.toLowerCase().includes(q));
     }
 
-    // Apply sorting
-    if (templateSortConfig.key && templateSortConfig.direction) {
-      result = [...result].sort((a, b) => {
-        let aVal: string | number = "";
-        let bVal: string | number = "";
-
-        switch (templateSortConfig.key) {
-          case "name":
-            aVal = a.name.toLowerCase();
-            bVal = b.name.toLowerCase();
-            break;
-          case "category":
-            aVal = a.category;
-            bVal = b.category;
-            break;
-          case "tests":
-            aVal = a.test_count ?? 0;
-            bVal = b.test_count ?? 0;
-            break;
-          case "type":
-            aVal = a.type || "";
-            bVal = b.type || "";
-            break;
-          case "difficulty": {
-            // Calculate predominant difficulty from the object
-            const getPredominantDifficulty = (diff?: { easy: number; medium: number; hard: number }) => {
-              if (!diff) return 2; // Default to Medium (2) if no difficulty data
-              const total = diff.easy + diff.medium + diff.hard;
-              if (total === 0) return 2; // Default to Medium if no prompts have difficulty
-              // Weight: easy=1, medium=2, hard=3, then average
-              return (diff.easy * 1 + diff.medium * 2 + diff.hard * 3) / total;
-            };
-            aVal = getPredominantDifficulty(a.difficulty);
-            bVal = getPredominantDifficulty(b.difficulty);
-            break;
-          }
-          default:
-            return 0;
-        }
-
-        if (typeof aVal === "string" && typeof bVal === "string") {
-          const cmp = aVal.localeCompare(bVal);
-          return templateSortConfig.direction === "asc" ? cmp : -cmp;
-        }
-        if (aVal < bVal) return templateSortConfig.direction === "asc" ? -1 : 1;
-        if (aVal > bVal) return templateSortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
     return result;
-  }, [flattenedTemplates, filterTemplateData, templateSearchTerm, templateSortConfig]);
-
-  // Paginated templates
-  const paginatedTemplates = useMemo(() => {
-    const start = templatePage * templateRowsPerPage;
-    return filteredAndSortedTemplates.slice(start, start + templateRowsPerPage);
-  }, [filteredAndSortedTemplates, templatePage, templateRowsPerPage]);
-
-  // Template sorting handler
-  const handleTemplateSort = useCallback((columnId: string) => {
-    setTemplateSortConfig((prev) => {
-      if (prev.key === columnId) {
-        if (prev.direction === "asc") return { key: columnId, direction: "desc" };
-        if (prev.direction === "desc") return { key: "", direction: null };
-      }
-      return { key: columnId, direction: "asc" };
-    });
-  }, []);
-
-  // Template pagination handlers
-  const handleTemplatePageChange = (_: unknown, newPage: number) => {
-    setTemplatePage(newPage);
-  };
-
-  const handleTemplateRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newRowsPerPage = parseInt(event.target.value, 10);
-    setTemplateRowsPerPage(newRowsPerPage);
-    setPaginationRowCount("templates", newRowsPerPage);
-    setTemplatePage(0);
-  };
+  }, [flattenedTemplates, filterTemplateData, templateSearchTerm]);
 
   // Open copy confirmation modal
   const handleOpenCopyModal = (template: BuiltInDataset) => {
@@ -650,7 +562,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
   // Example dataset type for download
   const [exampleDatasetType, setExampleDatasetType] = useState<"chatbot" | "rag" | "agent">("chatbot");
-  const [datasetTurnType, setDatasetTurnType] = useState<"single-turn" | "multi-turn">("single-turn");
+  const [datasetTurnType, setDatasetTurnType] = useState<"single-turn" | "multi-turn" | "simulated">("single-turn");
 
   const handleDownloadExample = (type: "chatbot" | "rag" | "agent" = exampleDatasetType) => {
     // Single-turn examples
@@ -756,7 +668,60 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       ]
     };
 
-    const exampleData = datasetTurnType === "single-turn" ? singleTurnDatasets[type] : multiTurnDatasets[type];
+    // Simulated examples (scenario-only, no turns - AI generates the conversation)
+    const simulatedDatasets = {
+      chatbot: [
+        {
+          scenario: "User wants to book a flight to Paris",
+          expected_outcome: "Successfully complete flight booking with date, class, and seat preference confirmed",
+          user_description: "Frequent business traveler, prefers aisle seats, flexible on dates",
+          max_turns: 8
+        },
+        {
+          scenario: "Customer complaining about a defective product",
+          expected_outcome: "Resolve complaint with appropriate compensation (refund or replacement)",
+          user_description: "Frustrated customer who bought the item last week, wants quick resolution",
+          max_turns: 6
+        },
+        {
+          scenario: "New user asking for help getting started with the platform",
+          expected_outcome: "User understands core features and can navigate the dashboard",
+          user_description: "First-time user, not very tech-savvy, prefers step-by-step guidance"
+        }
+      ],
+      rag: [
+        {
+          scenario: "Employee asking HR questions about benefits and policies",
+          expected_outcome: "Provide accurate information from company documents",
+          user_description: "New employee unfamiliar with company policies",
+          max_turns: 8
+        },
+        {
+          scenario: "User researching a technical topic using documentation",
+          expected_outcome: "Synthesize information from multiple documents accurately",
+          user_description: "Developer looking for API integration guidance"
+        }
+      ],
+      agent: [
+        {
+          scenario: "User planning a multi-city vacation with budget constraints",
+          expected_outcome: "Create complete itinerary using search, calendar, and weather tools",
+          user_description: "Budget-conscious traveler, flexible dates, prefers cultural experiences",
+          max_turns: 10
+        },
+        {
+          scenario: "Manager scheduling a team meeting across time zones",
+          expected_outcome: "Find optimal meeting time using calendar integration",
+          user_description: "Busy manager with team members in 3 different time zones"
+        }
+      ]
+    };
+
+    const exampleData = datasetTurnType === "single-turn" 
+      ? singleTurnDatasets[type] 
+      : datasetTurnType === "multi-turn"
+      ? multiTurnDatasets[type]
+      : simulatedDatasets[type];
     const filename = `example_${datasetTurnType}_${type}_dataset.json`;
 
     const blob = new Blob([JSON.stringify(exampleData, null, 2)], { type: "application/json" });
@@ -1341,250 +1306,23 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               />
             </Stack>
 
-            <TableContainer>
-              <Table sx={singleTheme.tableStyles.primary.frame}>
-                <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
-                  <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                    {/* Sortable Dataset column - 20% */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none" }}
-                      onClick={() => handleTemplateSort("name")}
-                    >
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>DATASET</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "name" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
-                          {templateSortConfig.key === "name" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "name" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "name" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* TYPE column - 15% */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
-                      onClick={() => handleTemplateSort("type")}
-                    >
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>TYPE</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "type" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
-                          {templateSortConfig.key === "type" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "type" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "type" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* Sortable Category column - 15% */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
-                      onClick={() => handleTemplateSort("category")}
-                    >
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>CATEGORY</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "category" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
-                          {templateSortConfig.key === "category" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "category" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "category" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* Sortable # Prompts column - 15% */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
-                      onClick={() => handleTemplateSort("tests")}
-                    >
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}># PROMPTS</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "tests" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
-                          {templateSortConfig.key === "tests" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "tests" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "tests" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* Sortable Difficulty column - 15% */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
-                      onClick={() => handleTemplateSort("difficulty")}
-                    >
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>DIFFICULTY</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "difficulty" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
-                          {templateSortConfig.key === "difficulty" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "difficulty" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "difficulty" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* ACTION column - 15% */}
-                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", textAlign: "center" }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>ACTION</Typography>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} sx={{ textAlign: "center", py: 4 }}>
-                        <CircularProgress size={24} sx={{ color: "#13715B" }} />
-                      </TableCell>
-                    </TableRow>
-                  ) : paginatedTemplates.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} sx={{ textAlign: "center", py: 4 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          {flattenedTemplates.length === 0 ? "No template datasets available" : "No templates match your search"}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedTemplates.map((ds) => {
-                      // Calculate predominant difficulty label from the object
-                      const getPredominantDifficultyLabel = (diff?: { easy: number; medium: number; hard: number }): string => {
-                        if (!diff) return "Medium"; // Default to Medium if no difficulty data
-                        const total = diff.easy + diff.medium + diff.hard;
-                        if (total === 0) return "Medium"; // Default to Medium if no prompts have difficulty
-                        // Find which has the highest count
-                        if (diff.hard >= diff.medium && diff.hard >= diff.easy) return "Hard";
-                        if (diff.medium >= diff.easy) return "Medium";
-                        return "Easy";
-                      };
-                      const getDifficultyStyles = (difficulty: string | undefined) => {
-                        switch (difficulty) {
-                          case "Easy":
-                            return { backgroundColor: "#c8e6c9", color: "#388e3c" };
-                          case "Medium":
-                            return { backgroundColor: "#fff3e0", color: "#ef6c00" };
-                          case "Hard":
-                            return { backgroundColor: "#ffebee", color: "#c62828" };
-                          default:
-                            return { backgroundColor: "#e0e0e0", color: "#616161" };
-                        }
-                      };
-                      const difficultyLabel = getPredominantDifficultyLabel(ds.difficulty);
-                      return (
-                        <TableRow
-                          key={ds.key}
-                          onClick={() => handleViewTemplate(ds)}
-                          sx={{
-                            ...singleTheme.tableStyles.primary.body.row,
-                            cursor: "pointer",
-                            "&:hover": { backgroundColor: "#f5f5f5" },
-                          }}
-                        >
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                            <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>{ds.name}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
-                            {ds.type ? (
-                              <Chip
-                                label={ds.type === "single-turn" ? "Single-Turn" : "Multi-Turn"}
-                                size="small"
-                                sx={{
-                                  height: "22px",
-                                  fontSize: "11px",
-                                  fontWeight: 500,
-                                  borderRadius: "4px",
-                                  backgroundColor: ds.type === "single-turn" ? "#FEF3C7" : "#E3F2FD",
-                                  color: ds.type === "single-turn" ? "#92400E" : "#1565C0",
-                                }}
-                              />
-                            ) : (
-                              <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
-                            )}
-                          </TableCell>
-                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
-                            <Chip
-                              label={ds.category === "rag" ? "RAG" : ds.category === "chatbot" ? "Chatbot" : ds.category === "agent" ? "Agent" : ds.category}
-                              size="small"
-                              sx={{
-                                height: 22,
-                                fontSize: "11px",
-                                backgroundColor:
-                                  ds.category === "chatbot" ? "#CCFBF1" :
-                                  ds.category === "rag" ? "#E0E7FF" :
-                                  ds.category === "agent" ? "#FEE2E2" :
-                                  "#FEE2E2",
-                                color:
-                                  ds.category === "chatbot" ? "#0D9488" :
-                                  ds.category === "rag" ? "#3730A3" :
-                                  ds.category === "agent" ? "#DC2626" :
-                                  "#991B1B",
-                                borderRadius: "4px",
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
-                            <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
-                              {ds.test_count ?? "-"}
-                            </Typography>
-                          </TableCell>
-                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
-                            <Chip
-                              label={difficultyLabel}
-                              size="small"
-                              sx={{
-                                ...getDifficultyStyles(difficultyLabel),
-                                height: "22px",
-                                fontSize: "11px",
-                                fontWeight: 500,
-                                borderRadius: "4px",
-                                "& .MuiChip-label": { px: 1 },
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell
-                            sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              startIcon={<Copy size={14} />}
-                              onClick={() => handleOpenCopyModal(ds)}
-                              disabled={copyingTemplate}
-                              sx={{
-                                textTransform: "none",
-                                fontSize: "12px",
-                                height: "28px",
-                                borderColor: "#d0d5dd",
-                                color: "#344054",
-                                "&:hover": {
-                                  borderColor: "#13715B",
-                                  color: "#13715B",
-                                },
-                              }}
-                            >
-                              Use
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-                {filteredAndSortedTemplates.length > 0 && (
-                  <TableFooter>
-                    <TableRow>
-                      <TablePagination
-                        rowsPerPageOptions={[5, 10, 25, 50]}
-                        count={filteredAndSortedTemplates.length}
-                        rowsPerPage={templateRowsPerPage}
-                        page={templatePage}
-                        onPageChange={handleTemplatePageChange}
-                        onRowsPerPageChange={handleTemplateRowsPerPageChange}
-                        ActionsComponent={TablePaginationActions}
-                        sx={{
-                          borderBottom: "none",
-                          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
-                            fontSize: "12px",
-                          },
-                        }}
-                      />
-                    </TableRow>
-                  </TableFooter>
-                )}
-              </Table>
-            </TableContainer>
+            <TemplatesTable
+              rows={filteredAndSortedTemplates.map((ds) => ({
+                key: ds.key,
+                name: ds.name,
+                path: ds.path,
+                type: ds.type as "single-turn" | "multi-turn" | "simulated" | undefined,
+                category: ds.category,
+                test_count: ds.test_count,
+                difficulty: ds.difficulty,
+                description: ds.description,
+              }))}
+              loading={loading}
+              onRowClick={(template) => handleViewTemplate(templateGroups[template.category]?.find(t => t.key === template.key) || template as unknown as BuiltInDataset)}
+              onUse={(template) => handleOpenCopyModal(templateGroups[template.category]?.find(t => t.key === template.key) || template as unknown as BuiltInDataset)}
+              copyingTemplate={copyingTemplate}
+              emptyMessage={flattenedTemplates.length === 0 ? "No template datasets available" : "No templates match your search"}
+            />
         </Box>
       )}
 
@@ -1729,11 +1467,15 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1.5 }}>
               Conversation type
             </Typography>
-            <Stack direction="row" spacing={1}>
-              {(["single-turn", "multi-turn"] as const).map((turnType) => (
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
+              {(["single-turn", "multi-turn", "simulated"] as const).map((turnType) => (
                 <Chip
                   key={turnType}
-                  label={turnType === "single-turn" ? "Single-Turn" : "Multi-Turn"}
+                  label={
+                    turnType === "single-turn" ? "Single-Turn" : 
+                    turnType === "multi-turn" ? "Multi-Turn" : 
+                    "🎭 Simulated"
+                  }
                   onClick={() => setDatasetTurnType(turnType)}
                   sx={{
                     cursor: "pointer",
@@ -1741,17 +1483,25 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     fontSize: "12px",
                     fontWeight: 500,
                     backgroundColor: datasetTurnType === turnType
-                      ? turnType === "single-turn" ? "#FEF3C7" : "#E3F2FD"
+                      ? turnType === "single-turn" ? "#FEF3C7" 
+                        : turnType === "multi-turn" ? "#E3F2FD"
+                        : "#F3E8FF"
                       : "#F3F4F6",
                     color: datasetTurnType === turnType
-                      ? turnType === "single-turn" ? "#92400E" : "#1565C0"
+                      ? turnType === "single-turn" ? "#92400E" 
+                        : turnType === "multi-turn" ? "#1565C0"
+                        : "#7C3AED"
                       : "#6B7280",
                     border: datasetTurnType === turnType ? "1px solid" : "1px solid transparent",
                     borderColor: datasetTurnType === turnType
-                      ? turnType === "single-turn" ? "#F59E0B" : "#2196F3"
+                      ? turnType === "single-turn" ? "#F59E0B" 
+                        : turnType === "multi-turn" ? "#2196F3"
+                        : "#A78BFA"
                       : "transparent",
                     "&:hover": {
-                      backgroundColor: turnType === "single-turn" ? "#FEF3C7" : "#E3F2FD",
+                      backgroundColor: turnType === "single-turn" ? "#FEF3C7" 
+                        : turnType === "multi-turn" ? "#E3F2FD"
+                        : "#F3E8FF",
                     },
                   }}
                 />
@@ -1760,7 +1510,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1 }}>
               {datasetTurnType === "single-turn" 
                 ? "Simple prompt → response pairs. Best for RAG and basic Q&A evaluation."
-                : "Multi-turn conversations with scenario and turns. Best for chatbot and agent evaluation."
+                : datasetTurnType === "multi-turn"
+                ? "Multi-turn conversations with scenario and turns. Best for chatbot and agent evaluation."
+                : "Define scenarios only — the AI will simulate full conversations dynamically during evaluation."
               }
             </Typography>
           </Box>
@@ -1812,7 +1564,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
           <Box>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px" }}>
-                {datasetTurnType === "single-turn" ? "Single-Turn" : "Multi-Turn"} JSON format
+                {datasetTurnType === "single-turn" ? "Single-Turn" : datasetTurnType === "multi-turn" ? "Multi-Turn" : "🎭 Simulated"} JSON format
               </Typography>
               <Button
                 size="small"
@@ -1858,7 +1610,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     "tools_available": ["web_search"],
     "expected_tools": ["web_search"]` : ""}
   }
-]` : `[
+]` : datasetTurnType === "multi-turn" ? `[
   {
     "scenario": "Customer asking for help",
     "expected_outcome": "Successfully assist customer",${exampleDatasetType === "rag" ? `
@@ -1871,15 +1623,40 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       { "role": "assistant", "content": "I'd be happy to help with that." }
     ]
   }
+]` : `[
+  {
+    "scenario": "User wants to book a flight to Paris",
+    "expected_outcome": "Successfully complete flight booking",
+    "user_description": "Frequent traveler, prefers window seats",
+    "max_turns": 8
+  },
+  {
+    "scenario": "Customer complaining about a defective product",
+    "expected_outcome": "Resolve complaint with refund or replacement",
+    "user_description": "Frustrated customer, bought item last week"
+  }
 ]`}
               </pre>
             </Box>
+            {datasetTurnType === "simulated" && (
+              <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: "#F3E8FF", borderRadius: "6px", border: "1px solid #A78BFA" }}>
+                <Typography sx={{ fontSize: "12px", color: "#7C3AED", fontWeight: 500 }}>
+                  💡 How Simulated Mode Works
+                </Typography>
+                <Typography sx={{ fontSize: "11px", color: "#6B21A8", mt: 0.5 }}>
+                  You provide scenarios only — no need to write conversations. During evaluation, the AI will:
+                  <br />• Simulate a user based on your description
+                  <br />• Generate realistic multi-turn conversations
+                  <br />• Evaluate the assistant's responses automatically
+                </Typography>
+              </Box>
+            )}
           </Box>
 
           {/* Field descriptions based on turn type */}
           <Box>
             <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1 }}>
-              {datasetTurnType === "single-turn" ? "Single-Turn" : "Multi-Turn"} fields
+              {datasetTurnType === "single-turn" ? "Single-Turn" : datasetTurnType === "multi-turn" ? "Multi-Turn" : "Simulated"} fields
             </Typography>
             <Stack spacing={0.75}>
               {datasetTurnType === "single-turn" ? (
@@ -1911,7 +1688,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     </Box>
                   )}
                 </>
-              ) : (
+              ) : datasetTurnType === "multi-turn" ? (
                 <>
                   <Box>
                     <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
@@ -1935,6 +1712,41 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     </Typography>
                     <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
                       (optional) Expected result of the conversation
+                    </Typography>
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Box>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
+                      scenario
+                    </Typography>
+                    <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
+                      (required) Description of what the user wants to accomplish
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
+                      expected_outcome
+                    </Typography>
+                    <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
+                      (required) What counts as a successful conversation
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
+                      user_description
+                    </Typography>
+                    <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
+                      (optional) Persona for the simulated user
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
+                      max_turns
+                    </Typography>
+                    <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
+                      (optional) Maximum turns to simulate (default: 6)
                     </Typography>
                   </Box>
                 </>

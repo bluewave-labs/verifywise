@@ -39,6 +39,7 @@ import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
+import HelperIcon from "../../components/HelperIcon";
 
 type ProjectDatasetsProps = { projectId: string };
 
@@ -1102,9 +1103,12 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
       {/* Header + description */}
       <Stack spacing={1} mb={4}>
-        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-          Datasets
-        </Typography>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Datasets
+          </Typography>
+          <HelperIcon articlePath="llm-evals/managing-datasets" />
+        </Box>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Datasets contain the prompts or conversations used to evaluate your models. Create custom datasets or use templates to get started quickly.
         </Typography>

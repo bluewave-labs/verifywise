@@ -1,13 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Select as MuiSelect, MenuItem, Divider, Popover, Button, List, ListItemButton, ListItemText, useTheme, Card, CardContent, Grid } from "@mui/material";
-import { ChevronDown, ChevronRight, Plus, Check } from "lucide-react";
-import { getSelectStyles } from "../../utils/inputStyles";
+import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid } from "@mui/material";
+import { Check } from "lucide-react";
 import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import EvalsSidebar from "./EvalsSidebar";
-import PageHeader from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import { useEvalsSidebarContext } from "../../../application/contexts/EvalsSidebar.context";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
@@ -68,7 +65,6 @@ export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
 
   // Determine tab from URL hash or default
   const [tab, setTab] = useState(() => {
@@ -154,10 +150,8 @@ export default function EvalsDashboard() {
   const [deleting, setDeleting] = useState(false);
   const [projectActionAlert, setProjectActionAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
 
-  // Project selector state (for dropdown above sidebar)
-  const [selectOpen, setSelectOpen] = useState(false);
-  const [actionsAnchor, setActionsAnchor] = useState<HTMLElement | null>(null);
-  const preventCloseRef = useRef(false);
+  // Get sidebar context for sharing state with ContextSidebar
+  const sidebarContext = useEvalsSidebarContext();
 
   // Helper function to add a recent experiment
   const addRecentExperiment = useCallback((experiment: RecentExperiment) => {
@@ -391,6 +385,7 @@ export default function EvalsDashboard() {
   }, [projectId, navigate]);
 
   // Load all projects for the dropdown and current project
+  // Also clean up recent projects/experiments that no longer exist
   useEffect(() => {
     const loadProjects = async () => {
       try {
@@ -405,13 +400,31 @@ export default function EvalsDashboard() {
             setCurrentProject(project);
           }
         }
+
+        // Clean up recent projects - remove any that no longer exist
+        const existingProjectIds = new Set(data.projects.map((p) => p.id));
+        setRecentProjects((prev) => {
+          const filtered = prev.filter((p) => existingProjectIds.has(p.id));
+          if (filtered.length !== prev.length) {
+            localStorage.setItem(RECENT_PROJECTS_KEY, JSON.stringify(filtered));
+          }
+          return filtered;
+        });
+
+        // Clean up recent experiments - remove any whose projects no longer exist
+        setRecentExperiments((prev) => {
+          const filtered = prev.filter((e) => existingProjectIds.has(e.projectId));
+          if (filtered.length !== prev.length) {
+            localStorage.setItem(RECENT_EXPERIMENTS_KEY, JSON.stringify(filtered));
+          }
+          return filtered;
+        });
       } catch (err) {
         console.error("Failed to load projects:", err);
       }
     };
-    if (projectId) {
-      loadProjects();
-    }
+    // Always load projects to clean up stale recent items
+    loadProjects();
   }, [projectId]);
 
   // Load experiments and datasets counts for the current project
@@ -446,42 +459,43 @@ export default function EvalsDashboard() {
     loadCounts();
   }, [projectId, currentProject]);
 
-  const handleTabChange = (newValue: string) => {
-    setTab(newValue);
-    // Clear selected experiment when switching tabs
-    setSelectedExperimentId(null);
-    // Update URL hash
-    navigate(`${location.pathname}#${newValue}`, { replace: true });
-  };
+  // Sync sidebar counts and callbacks with context (not activeTab - that's handled via URL)
+  useEffect(() => {
+    sidebarContext.setExperimentsCount(experimentsCount);
+    sidebarContext.setDatasetsCount(datasetsCount);
+    sidebarContext.setScorersCount(scorersCount);
+    sidebarContext.setDisabled(!projectId);
+    sidebarContext.setRecentExperiments(recentExperiments);
+    sidebarContext.setRecentProjects(recentProjects);
+    sidebarContext.setCurrentProject(currentProject);
+    sidebarContext.setAllProjects(allProjects);
+    sidebarContext.setOnExperimentClick(() => (experimentId: string, expProjectId: string) => {
+      if (expProjectId !== projectId) {
+        navigate(`/evals/${expProjectId}#experiments`);
+        setTimeout(() => {
+          setSelectedExperimentId(experimentId);
+          setTab("experiments");
+        }, 100);
+      } else {
+        setSelectedExperimentId(experimentId);
+        setTab("experiments");
+        navigate(`${location.pathname}#experiments`, { replace: true });
+      }
+    });
+    sidebarContext.setOnProjectClick(() => (clickedProjectId: string) => {
+      navigate(`/evals/${clickedProjectId}#overview`);
+    });
+    sidebarContext.setOnProjectChange(() => (newProjectId: string) => {
+      if (newProjectId === "create_new") {
+        setCreateProjectModalOpen(true);
+      } else {
+        navigate(`/evals/${newProjectId}#${tab}`);
+      }
+    });
+  }, [experimentsCount, datasetsCount, scorersCount, projectId, recentExperiments, recentProjects, currentProject, allProjects, tab, navigate, location.pathname, sidebarContext]);
 
-  const handleProjectChange = (newProjectId: string) => {
-    if (newProjectId === "create_new") {
-      setCreateProjectModalOpen(true);
-    } else {
-      navigate(`/evals/${newProjectId}#${tab}`);
-    }
-  };
-
-  // Project action handlers
-  const handleRenameProject = (projectIdToRename: string) => {
-    const proj = allProjects.find((p) => p.id === projectIdToRename);
-    if (proj) {
-      setRenameProjectId(projectIdToRename);
-      setRenameProjectName(proj.name);
-      setRenameModalOpen(true);
-    }
-  };
-
-  const handleCopyProjectId = (projectIdToCopy: string) => {
-    navigator.clipboard.writeText(projectIdToCopy);
-    setProjectActionAlert({ variant: "success", body: "Project ID copied to clipboard" });
-    setTimeout(() => setProjectActionAlert(null), 3000);
-  };
-
-  const handleDeleteProject = (projectIdToDelete: string) => {
-    setDeleteProjectId(projectIdToDelete);
-    setDeleteModalOpen(true);
-  };
+  // Note: Tab change is now handled via URL hash in ContextSidebar
+  // Note: Project change is now handled via context in sidebar project selector
 
   const handleConfirmRename = async () => {
     if (!renameProjectId || !renameProjectName.trim()) return;
@@ -820,275 +834,8 @@ export default function EvalsDashboard() {
         </Box>
       )}
 
-      <PageHeader
-        title="LLM evals"
-        description="Evaluate and benchmark your LLM applications for quality, safety, and performance using customizable scorers and datasets."
-        rightContent={<HelperIcon articlePath="llm-evals/llm-evals-overview" />}
-      />
-
-      <Box sx={{ display: "flex", gap: "16px" }}>
-        {/* Left column: Project selector + Sidebar */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px", width: "200px", minWidth: "200px" }}>
-          {/* Project selector above sidebar */}
-          {allProjects.length > 0 && (
-            <Box>
-              <MuiSelect
-                value={projectId || ""}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val && val !== "create_new") {
-                    handleProjectChange(val);
-                  }
-                }}
-                displayEmpty
-                open={selectOpen}
-                onOpen={() => setSelectOpen(true)}
-                onClose={() => {
-                  if (!actionsAnchor && !preventCloseRef.current) {
-                    setSelectOpen(false);
-                  }
-                  preventCloseRef.current = false;
-                }}
-                renderValue={(value) => {
-                  const project = allProjects.find((p) => p.id === value);
-                  return project?.name || "Select project";
-                }}
-                IconComponent={() => (
-                  <ChevronDown
-                    size={16}
-                    style={{
-                      position: "absolute",
-                      right: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      pointerEvents: "none",
-                      color: theme.palette.text.tertiary,
-                    }}
-                  />
-                )}
-                MenuProps={{
-                  disableScrollLock: true,
-                  PaperProps: {
-                    sx: {
-                      borderRadius: "4px",
-                      boxShadow: theme.shadows[3],
-                      mt: 1,
-                      "& .MuiMenuItem-root": {
-                        fontSize: 13,
-                        color: theme.palette.text.primary,
-                        "&:hover": {
-                          backgroundColor: theme.palette.background.accent,
-                        },
-                        "&.Mui-selected": {
-                          backgroundColor: theme.palette.background.accent,
-                          "&:hover": {
-                            backgroundColor: theme.palette.background.accent,
-                          },
-                        },
-                        "& .MuiTouchRipple-root": {
-                          display: "none",
-                        },
-                      },
-                    },
-                  },
-                }}
-                sx={{
-                  fontSize: 13,
-                  width: "100%",
-                  height: "34px",
-                  backgroundColor: theme.palette.background.main,
-                  position: "relative",
-                  cursor: "pointer",
-                  "& .MuiOutlinedInput-root": {
-                    height: "34px",
-                  },
-                  "& .MuiSelect-select": {
-                    padding: "0 32px 0 10px !important",
-                    height: "34px !important",
-                    minHeight: "34px !important",
-                    display: "flex",
-                    alignItems: "center",
-                    lineHeight: 1,
-                    boxSizing: "border-box",
-                  },
-                  ...getSelectStyles(theme),
-                }}
-              >
-                {allProjects.map((proj) => {
-                  const isSelected = proj.id === projectId;
-                  const hasActions = true; // We have rename, copy, delete actions
-                  return (
-                    <MenuItem
-                      key={proj.id}
-                      value={proj.id}
-                      onClick={(e) => {
-                        if (isSelected && hasActions) {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          preventCloseRef.current = true;
-                          setActionsAnchor(e.currentTarget as HTMLElement);
-                        }
-                      }}
-                      sx={{
-                        fontSize: 13,
-                        color: theme.palette.text.tertiary,
-                        borderRadius: "4px",
-                        margin: theme.spacing(2),
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
-                        {proj.name}
-                      </span>
-                      {isSelected && hasActions && (
-                        <ChevronRight
-                          size={14}
-                          style={{ marginLeft: 8, flexShrink: 0, color: theme.palette.text.tertiary }}
-                        />
-                      )}
-                    </MenuItem>
-                  );
-                })}
-                <Divider sx={{ my: 0.5 }} />
-                <MenuItem
-                  value="create_new"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setSelectOpen(false);
-                    setCreateProjectModalOpen(true);
-                  }}
-                  sx={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: "#13715B",
-                    borderRadius: "4px",
-                    margin: theme.spacing(2),
-                  }}
-                >
-                  <Plus size={14} style={{ marginRight: 8 }} />
-                  Create project
-                </MenuItem>
-              </MuiSelect>
-
-              {/* Project actions popover */}
-              <Popover
-                open={Boolean(actionsAnchor)}
-                anchorEl={actionsAnchor}
-                onClose={() => {
-                  setActionsAnchor(null);
-                  setSelectOpen(false);
-                }}
-                anchorOrigin={{
-                  vertical: "center",
-                  horizontal: "right",
-                }}
-                transformOrigin={{
-                  vertical: "center",
-                  horizontal: "left",
-                }}
-                slotProps={{
-                  paper: {
-                    sx: {
-                      borderRadius: "4px",
-                      boxShadow: theme.shadows[3],
-                      ml: 0.5,
-                      minWidth: 140,
-                    },
-                  },
-                }}
-              >
-                <List disablePadding sx={{ py: 0.5 }}>
-                  <ListItemButton
-                    onClick={() => {
-                      if (projectId) handleRenameProject(projectId);
-                      setActionsAnchor(null);
-                      setSelectOpen(false);
-                    }}
-                    sx={{
-                      height: 32,
-                      px: 1.5,
-                      "&:hover": { backgroundColor: theme.palette.background.accent },
-                    }}
-                  >
-                    <ListItemText
-                      primary="Rename project"
-                      primaryTypographyProps={{ fontSize: 13, color: theme.palette.text.primary }}
-                    />
-                  </ListItemButton>
-                  <ListItemButton
-                    onClick={() => {
-                      if (projectId) handleCopyProjectId(projectId);
-                      setActionsAnchor(null);
-                      setSelectOpen(false);
-                    }}
-                    sx={{
-                      height: 32,
-                      px: 1.5,
-                      "&:hover": { backgroundColor: theme.palette.background.accent },
-                    }}
-                  >
-                    <ListItemText
-                      primary="Copy project ID"
-                      primaryTypographyProps={{ fontSize: 13, color: theme.palette.text.primary }}
-                    />
-                  </ListItemButton>
-                  <ListItemButton
-                    onClick={() => {
-                      if (projectId) handleDeleteProject(projectId);
-                      setActionsAnchor(null);
-                      setSelectOpen(false);
-                    }}
-                    sx={{
-                      height: 32,
-                      px: 1.5,
-                      "&:hover": { backgroundColor: theme.palette.background.accent },
-                    }}
-                  >
-                    <ListItemText
-                      primary="Delete project"
-                      primaryTypographyProps={{ fontSize: 13, color: "#DC2626" }}
-                    />
-                  </ListItemButton>
-                </List>
-              </Popover>
-
-            </Box>
-          )}
-
-          {/* Sidebar */}
-          <EvalsSidebar
-            activeTab={tab}
-            onTabChange={handleTabChange}
-            experimentsCount={experimentsCount}
-            datasetsCount={datasetsCount}
-            scorersCount={scorersCount}
-            disabled={!projectId}
-            recentExperiments={recentExperiments}
-            recentProjects={recentProjects}
-            onExperimentClick={(experimentId, expProjectId) => {
-              if (expProjectId !== projectId) {
-                navigate(`/evals/${expProjectId}#experiments`);
-                setTimeout(() => {
-                  setSelectedExperimentId(experimentId);
-                  setTab("experiments");
-                }, 100);
-              } else {
-                setSelectedExperimentId(experimentId);
-                setTab("experiments");
-                navigate(`${location.pathname}#experiments`, { replace: true });
-              }
-            }}
-            onProjectClick={(clickedProjectId) => {
-              navigate(`/evals/${clickedProjectId}#overview`);
-            }}
-          />
-        </Box>
-
-        {/* Main content */}
-        <Box sx={{ flex: 1, margin: 0, padding: 0 }}>
+      {/* Main content */}
+      <Box sx={{ flex: 1, margin: 0, padding: 0 }}>
           {/* Show nothing while initially loading to prevent flash */}
           {initialLoading && !projectId ? null : (
           !projectId ? (
@@ -1484,7 +1231,6 @@ export default function EvalsDashboard() {
               )}
             </>
           ))}
-        </Box>
       </Box>
 
       {/* Create Project Modal */}

@@ -18,6 +18,7 @@ import { experimentsService, monitoringService, type Experiment, type MonitorDas
 import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
+import HelperIcon from "../../components/HelperIcon";
 
 interface ProjectOverviewProps {
   projectId: string;
@@ -233,9 +234,12 @@ export default function ProjectOverview({
     <Box>
       {/* Header + description */}
       <Stack spacing={1} mb={4}>
-        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-          Overview
-        </Typography>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Overview
+          </Typography>
+          <HelperIcon articlePath="llm-evals/llm-evals-overview" />
+        </Box>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance.
         </Typography>

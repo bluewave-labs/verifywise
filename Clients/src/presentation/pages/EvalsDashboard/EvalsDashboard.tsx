@@ -492,7 +492,8 @@ export default function EvalsDashboard() {
         navigate(`/evals/${newProjectId}#${tab}`);
       }
     });
-  }, [experimentsCount, datasetsCount, scorersCount, projectId, recentExperiments, recentProjects, currentProject, allProjects, tab, navigate, location.pathname, sidebarContext]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [experimentsCount, datasetsCount, scorersCount, projectId, recentExperiments, recentProjects, currentProject, allProjects, tab, navigate, location.pathname]);
 
   // Note: Tab change is now handled via URL hash in ContextSidebar
   // Note: Project change is now handled via context in sidebar project selector

@@ -5,7 +5,6 @@ import {
   Stack,
   Drawer,
   Divider,
-  Chip,
   CircularProgress,
   TableContainer,
   Table,
@@ -29,6 +28,7 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
 import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset, type DatasetType } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
+import Chip from "../../components/Chip";
 import ModalStandard from "../../components/Modals/StandardModal";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import Field from "../../components/Inputs/Field";
@@ -881,35 +881,20 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                       {p.difficulty && (
                         <Chip
                           label={p.difficulty}
-                          size="small"
-                          sx={{
-                            height: 20,
-                            fontSize: "10px",
-                            fontWeight: 500,
-                            backgroundColor:
-                              p.difficulty === "easy" ? "#D1FAE5" :
-                              p.difficulty === "medium" ? "#FEF3C7" :
-                              p.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
-                            color:
-                              p.difficulty === "easy" ? "#065F46" :
-                              p.difficulty === "medium" ? "#92400E" :
-                              p.difficulty === "hard" ? "#991B1B" : "#374151",
-                            borderRadius: "4px",
-                          }}
+                          variant={
+                            p.difficulty === "easy" ? "success" :
+                            p.difficulty === "medium" ? "medium" :
+                            p.difficulty === "hard" ? "error" : "default"
+                          }
+                          uppercase={false}
                         />
                       )}
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Chip
                         label={p.category || "uncategorized"}
-                        size="small"
-                        sx={{
-                          height: 22,
-                          fontSize: "11px",
-                          backgroundColor: "#E5E7EB",
-                          color: "#374151",
-                          borderRadius: "4px",
-                        }}
+                        variant="default"
+                        uppercase={false}
                       />
                     </TableCell>
                     <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
@@ -1025,44 +1010,32 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     Difficulty
                   </Typography>
                   <Stack direction="row" spacing={1}>
-                    {(["easy", "medium", "hard"] as const).map((diff) => (
-                      <Chip
-                        key={diff}
-                        label={diff.charAt(0).toUpperCase() + diff.slice(1)}
-                        onClick={() => {
-                          const next = [...editablePrompts];
-                          next[selectedPromptIndex] = { ...next[selectedPromptIndex], difficulty: diff };
-                          setEditablePrompts(next);
-                        }}
-                        sx={{
-                          cursor: "pointer",
-                          height: 28,
-                          fontSize: "12px",
-                          fontWeight: 500,
-                          backgroundColor: editablePrompts[selectedPromptIndex].difficulty === diff
-                            ? diff === "easy" ? "#D1FAE5"
-                              : diff === "medium" ? "#FEF3C7"
-                              : "#FEE2E2"
-                            : "#F3F4F6",
-                          color: editablePrompts[selectedPromptIndex].difficulty === diff
-                            ? diff === "easy" ? "#065F46"
-                              : diff === "medium" ? "#92400E"
-                              : "#991B1B"
-                            : "#6B7280",
-                          border: editablePrompts[selectedPromptIndex].difficulty === diff ? "1px solid" : "1px solid transparent",
-                          borderColor: editablePrompts[selectedPromptIndex].difficulty === diff
-                            ? diff === "easy" ? "#10B981"
-                              : diff === "medium" ? "#F59E0B"
-                              : "#EF4444"
-                            : "transparent",
-                          "&:hover": {
-                            backgroundColor: diff === "easy" ? "#D1FAE5"
-                              : diff === "medium" ? "#FEF3C7"
-                              : "#FEE2E2",
-                          },
-                        }}
-                      />
-                    ))}
+                    {(["easy", "medium", "hard"] as const).map((diff) => {
+                      const isSelected = editablePrompts[selectedPromptIndex].difficulty === diff;
+                      return (
+                        <Box
+                          key={diff}
+                          onClick={() => {
+                            const next = [...editablePrompts];
+                            next[selectedPromptIndex] = { ...next[selectedPromptIndex], difficulty: diff };
+                            setEditablePrompts(next);
+                          }}
+                          sx={{ cursor: "pointer" }}
+                        >
+                          <Chip
+                            label={diff.charAt(0).toUpperCase() + diff.slice(1)}
+                            variant={
+                              isSelected
+                                ? diff === "easy" ? "success"
+                                  : diff === "medium" ? "medium"
+                                  : "error"
+                                : "default"
+                            }
+                            uppercase={false}
+                          />
+                        </Box>
+                      );
+                    })}
                   </Stack>
                 </Box>
 
@@ -1425,22 +1398,19 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
                             <Chip
                               label={ds.category === "rag" ? "RAG" : ds.category === "chatbot" ? "Chatbot" : ds.category === "agent" ? "Agent" : ds.category === "safety" ? "Safety" : ds.category}
-                              size="small"
-                              sx={{
-                                height: 22,
-                                fontSize: "11px",
-                                backgroundColor:
-                                  ds.category === "chatbot" ? "#DBEAFE" :
-                                  ds.category === "rag" ? "#E0E7FF" :
-                                  ds.category === "agent" ? "#FEF3C7" :
-                                  "#FEE2E2",
-                                color:
-                                  ds.category === "chatbot" ? "#1E40AF" :
-                                  ds.category === "rag" ? "#3730A3" :
-                                  ds.category === "agent" ? "#92400E" :
-                                  "#991B1B",
-                                borderRadius: "4px",
-                              }}
+                              uppercase={false}
+                              backgroundColor={
+                                ds.category === "chatbot" ? "#DBEAFE" :
+                                ds.category === "rag" ? "#E0E7FF" :
+                                ds.category === "agent" ? "#FEF3C7" :
+                                "#FEE2E2"
+                              }
+                              textColor={
+                                ds.category === "chatbot" ? "#1E40AF" :
+                                ds.category === "rag" ? "#3730A3" :
+                                ds.category === "agent" ? "#92400E" :
+                                "#991B1B"
+                              }
                             />
                           </TableCell>
                           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
@@ -1451,15 +1421,12 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
                             <Chip
                               label={difficultyLabel}
-                              size="small"
-                              sx={{
-                                ...getDifficultyStyles(difficultyLabel),
-                                height: "22px",
-                                fontSize: "11px",
-                                fontWeight: 500,
-                                borderRadius: "4px",
-                                "& .MuiChip-label": { px: 1 },
-                              }}
+                              variant={
+                                difficultyLabel === "Easy" ? "success" :
+                                difficultyLabel === "Medium" ? "medium" :
+                                difficultyLabel === "Hard" ? "error" : "default"
+                              }
+                              uppercase={false}
                             />
                           </TableCell>
                           <TableCell
@@ -1630,45 +1597,38 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               Dataset type
             </Typography>
             <Stack direction="row" spacing={1}>
-              {(["chatbot", "rag", "agent"] as const).map((type) => (
-                <Chip
-                  key={type}
-                  label={type === "rag" ? "RAG" : type.charAt(0).toUpperCase() + type.slice(1)}
-                  onClick={() => setExampleDatasetType(type)}
-                  sx={{
-                    cursor: "pointer",
-                    height: 28,
-                    fontSize: "12px",
-                    fontWeight: 500,
-                    backgroundColor: exampleDatasetType === type
-                      ? type === "chatbot" ? "#DBEAFE"
-                        : type === "rag" ? "#E0E7FF"
-                        : "#FEF3C7"
-                      : "#F3F4F6",
-                    color: exampleDatasetType === type
-                      ? type === "chatbot" ? "#1E40AF"
-                        : type === "rag" ? "#3730A3"
-                        : "#92400E"
-                      : "#6B7280",
-                    border: exampleDatasetType === type ? "1px solid" : "1px solid transparent",
-                    borderColor: exampleDatasetType === type
-                      ? type === "chatbot" ? "#3B82F6"
-                        : type === "rag" ? "#6366F1"
-                        : "#F59E0B"
-                      : "transparent",
-                    "&:hover": {
-                      backgroundColor: type === "chatbot" ? "#DBEAFE"
-                        : type === "rag" ? "#E0E7FF"
-                        : "#FEF3C7",
-                    },
-                  }}
-                />
-              ))}
+              {/* "agent" commented out - not supported yet */}
+              {(["chatbot", "rag" /*, "agent" */] as const).map((type) => {
+                const isSelected = exampleDatasetType === type;
+                return (
+                  <Box
+                    key={type}
+                    onClick={() => setExampleDatasetType(type)}
+                    sx={{ cursor: "pointer" }}
+                  >
+                    <Chip
+                      label={type === "rag" ? "RAG" : type.charAt(0).toUpperCase() + type.slice(1)}
+                      uppercase={false}
+                      backgroundColor={
+                        isSelected
+                          ? type === "chatbot" ? "#DBEAFE" : "#E0E7FF"
+                          : "#F3F4F6"
+                      }
+                      textColor={
+                        isSelected
+                          ? type === "chatbot" ? "#1E40AF" : "#3730A3"
+                          : "#6B7280"
+                      }
+                    />
+                  </Box>
+                );
+              })}
             </Stack>
             <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1 }}>
               {exampleDatasetType === "chatbot" && "Standard Q&A datasets for evaluating chatbot responses."}
               {exampleDatasetType === "rag" && "Datasets with retrieval_context for RAG faithfulness & relevancy metrics."}
-              {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent task completion."}
+              {/* Agent not supported yet */}
+              {/* {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent task completion."} */}
             </Typography>
           </Box>
 
@@ -1785,7 +1745,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   </Typography>
                 </Box>
               )}
-              {exampleDatasetType === "agent" && (
+              {/* Agent not supported yet */}
+              {/* {exampleDatasetType === "agent" && (
                 <>
                   <Box sx={{ backgroundColor: "#FEF3C7", p: 1, borderRadius: 1, mt: 0.5 }}>
                     <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", color: "#92400E" }}>
@@ -1804,7 +1765,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     </Typography>
                   </Box>
                 </>
-              )}
+              )} */}
             </Stack>
           </Box>
         </Stack>
@@ -1831,14 +1792,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               {datasetPrompts.length > 0 && (
                 <Chip
                   label={`${datasetPrompts.length} prompts`}
-                  size="small"
-                  sx={{
-                    height: 20,
-                    fontSize: "11px",
-                    backgroundColor: "#E5E7EB",
-                    color: "#374151",
-                    borderRadius: "4px",
-                  }}
+                  variant="default"
+                  uppercase={false}
                 />
               )}
             </Stack>
@@ -1902,14 +1857,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Chip
                           label={prompt.category}
-                          size="small"
-                          sx={{
-                            height: 22,
-                            fontSize: "11px",
-                            backgroundColor: "#E5E7EB",
-                            color: "#374151",
-                            borderRadius: "4px",
-                          }}
+                          variant="default"
+                          uppercase={false}
                         />
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
@@ -1931,21 +1880,12 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         {prompt.difficulty && (
                           <Chip
                             label={prompt.difficulty}
-                            size="small"
-                            sx={{
-                              height: 20,
-                              fontSize: "10px",
-                              fontWeight: 500,
-                              backgroundColor:
-                                prompt.difficulty === "easy" ? "#D1FAE5" :
-                                prompt.difficulty === "medium" ? "#FEF3C7" :
-                                prompt.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
-                              color:
-                                prompt.difficulty === "easy" ? "#065F46" :
-                                prompt.difficulty === "medium" ? "#92400E" :
-                                prompt.difficulty === "hard" ? "#991B1B" : "#374151",
-                              borderRadius: "4px",
-                            }}
+                            variant={
+                              prompt.difficulty === "easy" ? "success" :
+                              prompt.difficulty === "medium" ? "medium" :
+                              prompt.difficulty === "hard" ? "error" : "default"
+                            }
+                            uppercase={false}
                           />
                         )}
                       </TableCell>
@@ -1979,14 +1919,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               {templatePrompts.length > 0 && (
                 <Chip
                   label={`${templatePrompts.length} prompts`}
-                  size="small"
-                  sx={{
-                    height: 20,
-                    fontSize: "11px",
-                    backgroundColor: "#E5E7EB",
-                    color: "#374151",
-                    borderRadius: "4px",
-                  }}
+                  variant="default"
+                  uppercase={false}
                 />
               )}
             </Stack>
@@ -2071,19 +2005,13 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
                         </TableCell>
                         <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
-                          <Chip
-                            label={prompt.category?.length > 8 ? `${prompt.category.substring(0, 8)}...` : prompt.category}
-                            title={prompt.category}
-                            size="small"
-                            sx={{
-                              height: 22,
-                              fontSize: "10px",
-                              backgroundColor: "#E5E7EB",
-                              color: "#374151",
-                              borderRadius: "4px",
-                              maxWidth: "100%",
-                            }}
-                          />
+                          <Box title={prompt.category}>
+                            <Chip
+                              label={prompt.category?.length > 8 ? `${prompt.category.substring(0, 8)}...` : prompt.category}
+                              variant="default"
+                              uppercase={false}
+                            />
+                          </Box>
                         </TableCell>
                         <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "48%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
                           <Typography
@@ -2111,21 +2039,12 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           {prompt.difficulty && (
                             <Chip
                               label={prompt.difficulty}
-                              size="small"
-                              sx={{
-                                height: 20,
-                                fontSize: "10px",
-                                fontWeight: 500,
-                                backgroundColor:
-                                  prompt.difficulty === "easy" ? "#D1FAE5" :
-                                  prompt.difficulty === "medium" ? "#FEF3C7" :
-                                  prompt.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
-                                color:
-                                  prompt.difficulty === "easy" ? "#065F46" :
-                                  prompt.difficulty === "medium" ? "#92400E" :
-                                  prompt.difficulty === "hard" ? "#991B1B" : "#374151",
-                                borderRadius: "4px",
-                              }}
+                              variant={
+                                prompt.difficulty === "easy" ? "success" :
+                                prompt.difficulty === "medium" ? "medium" :
+                                prompt.difficulty === "hard" ? "error" : "default"
+                              }
+                              uppercase={false}
                             />
                           )}
                         </TableCell>

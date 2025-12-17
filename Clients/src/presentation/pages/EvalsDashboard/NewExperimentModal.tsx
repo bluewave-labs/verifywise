@@ -12,8 +12,11 @@ import {
   MenuItem,
   FormControl,
   CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
-import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers } from "lucide-react";
+import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
 import Checkbox from "../../components/Inputs/Checkbox";
@@ -638,7 +641,7 @@ export default function NewExperimentModal({
             ) : (
               <Box>
                 <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                  Model Provider
+                  Model provider
                 </Typography>
                 <Grid container spacing={1.5}>
                   {/* Show all providers */}
@@ -875,11 +878,16 @@ export default function NewExperimentModal({
       case 1:
         // Step 2: Dataset
         return (
-          <Stack spacing={2}>
+          <Stack spacing="16px">
             {/* Description */}
             <Typography sx={{ fontSize: "13px", color: "#6B7280", lineHeight: 1.5 }}>
               Choose a dataset containing prompts and expected outputs. Upload your own JSON file, select from saved datasets, or use a template.
               </Typography>
+
+            {/* Option 1: Custom dataset */}
+            <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+              Option 1: Use custom dataset
+            </Typography>
 
             {/* Upload Section - Compact drop zone */}
             <Box
@@ -887,11 +895,11 @@ export default function NewExperimentModal({
                   sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1.5,
-                    p: 1.5,
+                gap: "8px",
+                    p: "8px",
                 border: "1px dashed",
                 borderColor: uploadingDataset ? "#13715B" : "#D1D5DB",
-                borderRadius: "8px",
+                borderRadius: "4px",
                 backgroundColor: "#FAFAFA",
                 cursor: uploadingDataset ? "wait" : "pointer",
                 transition: "all 0.15s ease",
@@ -962,7 +970,7 @@ export default function NewExperimentModal({
                 <Box>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                   <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                    Your Datasets
+                    Option 2: Your datasets
                   </Typography>
                   <Button
                   size="small"
@@ -974,7 +982,7 @@ export default function NewExperimentModal({
                     Manage
                   </Button>
                 </Stack>
-                <Stack spacing={0.5}>
+                <Stack spacing="8px">
                   {userDatasets.slice(0, 4).map((dataset) => {
                     const isSelected = selectedUserDataset?.id === dataset.id && !config.dataset.useBuiltin;
                     return (
@@ -993,21 +1001,24 @@ export default function NewExperimentModal({
                           }
                         }}
                         sx={{
-                          p: 1,
+                          p: "8px",
                           border: "1px solid",
                           borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                          borderRadius: "6px",
+                          borderRadius: "4px",
                           cursor: "pointer",
                           backgroundColor: isSelected ? "#F0FDF4" : "#FFFFFF",
                           display: "flex",
                           alignItems: "center",
-                          gap: 1,
+                          gap: "8px",
                           transition: "all 0.15s ease",
                           "&:hover": { borderColor: "#13715B", backgroundColor: isSelected ? "#F0FDF4" : "#F9FAFB" },
                         }}
                       >
                         <Database size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />
-                        <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", flex: 1 }}>{dataset.name}</Typography>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>{dataset.name}</Typography>
+                          <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>Custom uploaded dataset</Typography>
+                        </Box>
                         {isSelected && <Check size={14} color="#13715B" />}
                       </Box>
                     );
@@ -1019,9 +1030,9 @@ export default function NewExperimentModal({
             {/* Template Datasets Section */}
             <Box>
               <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
-                {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} Templates
+                Option 3: {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} templates
                   </Typography>
-              <Stack spacing={0.5}>
+              <Stack spacing="8px">
                 {[
                   ...(config.taskType === "chatbot" ? [
                     { name: "Basic Chatbot", path: "chatbot/chatbot_basic.json", desc: "Standard question-answer pairs" },
@@ -1054,15 +1065,15 @@ export default function NewExperimentModal({
                         }
                               }}
                               sx={{
-                        p: 1,
+                        p: "8px",
                         border: "1px solid",
                         borderColor: isSelected ? "#6366F1" : "#E5E7EB",
-                        borderRadius: "6px",
+                        borderRadius: "4px",
                                 cursor: "pointer",
                         backgroundColor: isSelected ? "#EEF2FF" : "#FFFFFF",
                                 display: "flex",
                                 alignItems: "center",
-                        gap: 1,
+                        gap: "8px",
                         transition: "all 0.15s ease",
                         "&:hover": { borderColor: "#6366F1", backgroundColor: isSelected ? "#EEF2FF" : "#F9FAFB" },
                       }}
@@ -1096,23 +1107,9 @@ export default function NewExperimentModal({
       case 2:
         // Step 3: Scorer / Judge - Choose evaluation method
         return (
-          <Stack spacing={3}>
-            {/* Explanation */}
-            <Box sx={{ 
-              p: 2, 
-              backgroundColor: "#F9FAFB", 
-              borderRadius: "8px", 
-              border: "1px solid #E5E7EB",
-            }}>
-              <Typography sx={{ fontSize: "13px", color: "#374151", lineHeight: 1.6 }}>
-                <strong>Standard Judge:</strong> Uses built-in metrics (Relevancy, Bias, Toxicity) with fixed evaluation criteria.
-                <br />
-                <strong>Custom Scorer:</strong> Uses your own prompts for domain-specific evaluation (e.g., "Is this code correct?").
-              </Typography>
-            </Box>
-
+          <Stack spacing="16px">
             {/* Mode Toggle - 3 Options */}
-            <Stack spacing={1.5}>
+            <Stack spacing="8px">
               {/* Option 1: Custom Scorer Only */}
               <Box
                 onClick={() => {
@@ -1120,17 +1117,17 @@ export default function NewExperimentModal({
                   setConfig((prev) => ({ ...prev, judgeLlm: { ...prev.judgeLlm, provider: "" } }));
                 }}
                 sx={{
-                  p: 2,
+                  p: "8px",
                   border: "1px solid",
                   borderColor: judgeMode === "scorer" ? "#13715B" : "#E5E7EB",
-                  borderRadius: "8px",
+                  borderRadius: "4px",
                   cursor: "pointer",
                   backgroundColor: judgeMode === "scorer" ? "#F0FDF4" : "#FFFFFF",
                   transition: "all 0.15s ease",
                   "&:hover": { borderColor: "#13715B", backgroundColor: judgeMode === "scorer" ? "#F0FDF4" : "#F9FAFB" },
                 }}
               >
-                <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Stack direction="row" alignItems="center" spacing="8px">
                   <Box
                     sx={{
                       width: 36,
@@ -1146,10 +1143,10 @@ export default function NewExperimentModal({
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#374151" }}>
-                      Custom Scorer Only
+                      Custom scorer only
                     </Typography>
                     <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                      Run only your custom evaluation prompts
+                      Use your own prompts for domain-specific evaluation
                     </Typography>
                   </Box>
                   {judgeMode === "scorer" && <Check size={18} color="#13715B" />}
@@ -1163,17 +1160,17 @@ export default function NewExperimentModal({
                   setSelectedScorer(null);
                 }}
                 sx={{
-                  p: 2,
+                  p: "8px",
                   border: "1px solid",
                   borderColor: judgeMode === "standard" ? "#13715B" : "#E5E7EB",
-                  borderRadius: "8px",
+                  borderRadius: "4px",
                   cursor: "pointer",
                   backgroundColor: judgeMode === "standard" ? "#F0FDF4" : "#FFFFFF",
                   transition: "all 0.15s ease",
                   "&:hover": { borderColor: "#13715B", backgroundColor: judgeMode === "standard" ? "#F0FDF4" : "#F9FAFB" },
                 }}
               >
-                <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Stack direction="row" alignItems="center" spacing="8px">
                   <Box
                     sx={{
                       width: 36,
@@ -1189,10 +1186,10 @@ export default function NewExperimentModal({
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#374151" }}>
-                      Standard Judge Only
+                      Standard judge only
                     </Typography>
                     <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                      Run built-in metrics (Relevancy, Bias, Toxicity, etc.)
+                      Use built-in metrics with fixed evaluation criteria
                     </Typography>
                   </Box>
                   {judgeMode === "standard" && <Check size={18} color="#13715B" />}
@@ -1205,17 +1202,17 @@ export default function NewExperimentModal({
                   setJudgeMode("both");
                 }}
                 sx={{
-                  p: 2,
+                  p: "8px",
                   border: "1px solid",
                   borderColor: judgeMode === "both" ? "#13715B" : "#E5E7EB",
-                  borderRadius: "8px",
+                  borderRadius: "4px",
                   cursor: "pointer",
                   backgroundColor: judgeMode === "both" ? "#F0FDF4" : "#FFFFFF",
                   transition: "all 0.15s ease",
                   "&:hover": { borderColor: "#13715B", backgroundColor: judgeMode === "both" ? "#F0FDF4" : "#F9FAFB" },
                 }}
               >
-                <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Stack direction="row" alignItems="center" spacing="8px">
                   <Box
                     sx={{
                       width: 36,
@@ -1231,10 +1228,10 @@ export default function NewExperimentModal({
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#374151" }}>
-                      Judge + Scorer
+                      Judge + scorer
                     </Typography>
                     <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                      Run both built-in metrics AND your custom scorers
+                      Use both built-in metrics and your custom scorers
                     </Typography>
                   </Box>
                   {judgeMode === "both" && <Check size={18} color="#13715B" />}
@@ -1265,7 +1262,7 @@ export default function NewExperimentModal({
                         Manage
                       </Button>
                     </Stack>
-                    <Stack spacing={1}>
+                    <Stack spacing="8px">
                       {userScorers.map((scorer) => {
                         const isSelected = selectedScorer?.id === scorer.id;
                         const modelName = typeof scorer.config?.judgeModel === 'string' 
@@ -1276,10 +1273,10 @@ export default function NewExperimentModal({
                             key={scorer.id}
                             onClick={() => setSelectedScorer(scorer)}
                             sx={{
-                              p: 1.5,
+                              p: "8px",
                               border: "1px solid",
                               borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                              borderRadius: "8px",
+                              borderRadius: "4px",
                               cursor: "pointer",
                               backgroundColor: isSelected ? "#F0FDF4" : "#FFFFFF",
                               transition: "all 0.15s ease",
@@ -1287,7 +1284,7 @@ export default function NewExperimentModal({
                             }}
                           >
                             <Stack direction="row" alignItems="center" justifyContent="space-between">
-                              <Stack direction="row" alignItems="center" spacing={1.5}>
+                              <Stack direction="row" alignItems="center" spacing="8px">
                                 <Box
                                   sx={{
                                     width: 32,
@@ -1365,11 +1362,7 @@ export default function NewExperimentModal({
                   </Typography>
                 )}
                 <Box>
-                  <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                    Providers and frameworks
-                  </Typography>
-                  
-                  <Grid container spacing={1.5}>
+                  <Grid container spacing="8px">
                     {availableJudgeProviders.map((provider) => {
                       const { Logo } = provider;
                       const isSelected = config.judgeLlm.provider === provider.id;
@@ -1633,7 +1626,7 @@ export default function NewExperimentModal({
         }
 
         return (
-          <Stack spacing={3}>
+          <Stack spacing="16px">
             <Box>
               <Typography variant="body2" color="text.secondary">
                 Select metrics for your evaluation. Metrics are organized by use case.
@@ -1641,113 +1634,163 @@ export default function NewExperimentModal({
             </Box>
 
             {/* General Metrics - All Use Cases */}
-            <Box>
-              <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
-                General Metrics
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                Available for all evaluation types
-              </Typography>
-              {Object.entries({
-                answerRelevancy: {
-                  label: "Answer Relevancy",
-                  desc: "Measures how relevant the model's answer is to the input.",
-                },
-                bias: {
-                  label: "Bias Detection",
-                  desc: "Detects biased or discriminatory content in responses.",
-                },
-                toxicity: {
-                  label: "Toxicity Detection",
-                  desc: "Flags toxic or harmful language in outputs.",
-                },
-              }).map(([key, meta]) => (
-                <Box key={key} sx={{ mb: 1.5 }}>
-                  <Stack spacing={0.5}>
-                    <Checkbox
-                      id={`metric-${key}`}
-                      label={(meta as { label: string }).label}
-                      size="small"
-                      value={key}
-                      isChecked={config.metrics[key as keyof typeof config.metrics]}
-                      onChange={() =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          metrics: {
-                            ...prev.metrics,
-                            [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                          },
-                        }))
-                      }
-                    />
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
-                    >
-                      {(meta as { desc: string }).desc}
-                    </Typography>
-                  </Stack>
+            <Accordion
+              disableGutters
+              elevation={0}
+              sx={{
+                border: "1px solid #E5E7EB",
+                borderRadius: "4px !important",
+                "&:before": { display: "none" },
+                "&.Mui-expanded": { margin: 0 },
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ChevronDown size={18} color="#6B7280" />}
+                sx={{
+                  minHeight: 48,
+                  px: "8px",
+                  "&.Mui-expanded": { minHeight: 48 },
+                  "& .MuiAccordionSummary-content": { my: "8px" },
+                }}
+              >
+                <Box>
+                  <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
+                    General Metrics
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+                    Available for all evaluation types
+                  </Typography>
                 </Box>
-              ))}
-            </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: "8px", pt: "8px", pb: "8px" }}>
+                <Stack spacing="8px">
+                  {Object.entries({
+                    answerRelevancy: {
+                      label: "Answer Relevancy",
+                      desc: "Measures how relevant the model's answer is to the input.",
+                    },
+                    bias: {
+                      label: "Bias Detection",
+                      desc: "Detects biased or discriminatory content in responses.",
+                    },
+                    toxicity: {
+                      label: "Toxicity Detection",
+                      desc: "Flags toxic or harmful language in outputs.",
+                    },
+                  }).map(([key, meta]) => (
+                    <Box key={key}>
+                      <Stack spacing={0.5}>
+                        <Checkbox
+                          id={`metric-${key}`}
+                          label={(meta as { label: string }).label}
+                          size="small"
+                          value={key}
+                          isChecked={config.metrics[key as keyof typeof config.metrics]}
+                          onChange={() =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              metrics: {
+                                ...prev.metrics,
+                                [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                              },
+                            }))
+                          }
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ ml: 3, pr: 2, display: "block", fontSize: "12px" }}
+                        >
+                          {(meta as { desc: string }).desc}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
 
             {/* Chatbot-Specific Metrics */}
             {config.taskType === "chatbot" && (
-              <Box>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
-                  Chatbot Metrics
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                  Specifically designed for conversational AI evaluation
-                </Typography>
-                {Object.entries({
-                  knowledgeRetention: {
-                    label: "Knowledge Retention",
-                    desc: "Evaluates how well the model remembers and reuses information across the conversation.",
-                  },
-                  conversationRelevancy: {
-                    label: "Conversation Relevancy",
-                    desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
-                  },
-                  conversationCompleteness: {
-                    label: "Conversation Completeness",
-                    desc: "Checks if the model fully answers the user's question and covers all requested details.",
-                  },
-                  roleAdherence: {
-                    label: "Role Adherence",
-                    desc: "Evaluates how well the model follows its assigned role, persona, or instructions.",
-                  },
-                }).map(([key, meta]) => (
-                  <Box key={key} sx={{ mb: 1.5 }}>
-                    <Stack spacing={0.5}>
-                      <Checkbox
-                        id={`metric-${key}`}
-                        label={(meta as { label: string }).label}
-                        size="small"
-                        value={key}
-                        isChecked={config.metrics[key as keyof typeof config.metrics]}
-                        onChange={() =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            metrics: {
-                              ...prev.metrics,
-                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                            },
-                          }))
-                        }
-                      />
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
-                      >
-                        {(meta as { desc: string }).desc}
-                      </Typography>
-                    </Stack>
+              <Accordion
+                disableGutters
+                elevation={0}
+                sx={{
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "4px !important",
+                  "&:before": { display: "none" },
+                  "&.Mui-expanded": { margin: 0 },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ChevronDown size={18} color="#6B7280" />}
+                  sx={{
+                    minHeight: 48,
+                    px: "8px",
+                    "&.Mui-expanded": { minHeight: 48 },
+                    "& .MuiAccordionSummary-content": { my: "8px" },
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
+                      Chatbot Metrics
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+                      Specifically designed for conversational AI evaluation
+                    </Typography>
                   </Box>
-                ))}
-              </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: "8px", pt: "8px", pb: "8px" }}>
+                  <Stack spacing="8px">
+                    {Object.entries({
+                      knowledgeRetention: {
+                        label: "Knowledge Retention",
+                        desc: "Evaluates how well the model remembers and reuses information across the conversation.",
+                      },
+                      conversationRelevancy: {
+                        label: "Conversation Relevancy",
+                        desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
+                      },
+                      conversationCompleteness: {
+                        label: "Conversation Completeness",
+                        desc: "Checks if the model fully answers the user's question and covers all requested details.",
+                      },
+                      roleAdherence: {
+                        label: "Role Adherence",
+                        desc: "Evaluates how well the model follows its assigned role, persona, or instructions.",
+                      },
+                    }).map(([key, meta]) => (
+                      <Box key={key}>
+                        <Stack spacing={0.5}>
+                          <Checkbox
+                            id={`metric-${key}`}
+                            label={(meta as { label: string }).label}
+                            size="small"
+                            value={key}
+                            isChecked={config.metrics[key as keyof typeof config.metrics]}
+                            onChange={() =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                metrics: {
+                                  ...prev.metrics,
+                                  [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                                },
+                              }))
+                            }
+                          />
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ ml: 3, pr: 2, display: "block", fontSize: "12px" }}
+                          >
+                            {(meta as { desc: string }).desc}
+                          </Typography>
+                        </Stack>
+                      </Box>
+                    ))}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
             )}
 
             {/* RAG-Specific Metrics */}

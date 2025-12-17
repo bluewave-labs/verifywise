@@ -83,10 +83,6 @@ async def run_evaluation(
         from deepeval.test_case import Turn
         print("✅ Turn class imported for multi-turn evaluation")
         
-        # Import native multi-turn metrics (required for multi-turn evaluation)
-        from deepeval.metrics import ConversationRelevancyMetric
-        print("✅ Native ConversationRelevancyMetric available")
-        
         # Extract configuration
         model_config = config.get("model", {})
         judge_config = config.get("judgeLlm", {})
@@ -994,7 +990,6 @@ async def run_evaluation(
                     print(f"   ⚠️ No log_id found for result {idx}")
         except Exception as e:
             print(f"⚠️ Failed to update log metadata with metric scores: {e}")
-            import traceback
             traceback.print_exc()
         
         # 5. Store Results

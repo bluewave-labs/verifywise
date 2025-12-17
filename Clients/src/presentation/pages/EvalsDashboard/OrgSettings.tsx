@@ -4,6 +4,7 @@ import { Box, Stack, Typography, IconButton, useTheme, Dialog, DialogTitle, Dial
 import { Home, FlaskConical, Settings, Trash2, Plus } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -281,6 +282,7 @@ export default function OrgSettings() {
         <PageHeader
           title="Organization settings"
           description="Configure LLM provider API keys for running evaluations across your organization"
+          rightContent={<HelperIcon articlePath="llm-evals/configuration" />}
         />
       </Box>
 

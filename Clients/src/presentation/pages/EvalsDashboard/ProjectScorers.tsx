@@ -18,6 +18,7 @@ import Alert from "../../components/Alert";
 import StandardModal from "../../components/Modals/StandardModal";
 import CreateScorerModal, { type ScorerConfig } from "./CreateScorerModal";
 import ScorersTable, { type ScorerRow } from "../../components/Table/ScorersTable";
+import HelperIcon from "../../components/HelperIcon";
 
 export interface ProjectScorersProps {
   projectId: string;
@@ -316,11 +317,14 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
 
       {/* Header + description */}
       <Stack spacing={1} mb={4}>
-        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-          Scorers
-        </Typography>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Scorers
+          </Typography>
+          <HelperIcon articlePath="llm-evals/configuring-scorers" />
+        </Box>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Scorers are custom LLM judges that evaluate model outputs using your own criteria. Unlike built-in metrics (Relevancy, Bias, Toxicity), scorers let you define domain-specific evaluation prompts like "Is this response compliant with our guidelines?" or "Does the code follow best practices?". Each scorer calls an LLM (e.g., GPT-4) to judge the model's responses based on your prompt.
+          Define custom LLM judges to evaluate model outputs using your own domain-specific criteria and prompts.
         </Typography>
       </Stack>
 

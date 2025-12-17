@@ -13,6 +13,7 @@ import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import HelperIcon from "../../components/HelperIcon";
 
 interface ProjectExperimentsProps {
   projectId: string;
@@ -459,10 +460,13 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       {/* Header + description */}
-      <Stack spacing={1} mb={2}>
-        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-          Experiments
-        </Typography>
+      <Stack spacing={1} mb={4}>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Experiments
+          </Typography>
+          <HelperIcon articlePath="llm-evals/running-experiments" />
+        </Box>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Experiments run evaluations on your models using datasets and scorers. Track performance metrics over time and compare different model configurations.
         </Typography>

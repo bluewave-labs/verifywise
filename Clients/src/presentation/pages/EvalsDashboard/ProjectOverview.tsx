@@ -310,13 +310,13 @@ export default function ProjectOverview({
           <Box sx={{
             display: "flex",
             flexDirection: "column",
+            justifyContent: hasExperiments ? "flex-start" : "center",
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
             overflow: "hidden",
             backgroundColor: "#FFFFFF",
             // Fixed height to match two stat cards (90px each) + gap between them
             minHeight: "214px",
-            ...(!hasExperiments && { justifyContent: "center" }),
           }}>
             {!hasExperiments ? (
               /* Empty state inside the consistent layout */

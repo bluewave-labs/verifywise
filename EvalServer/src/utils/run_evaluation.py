@@ -152,12 +152,12 @@ async def run_evaluation(
         
         # Model API keys (for the model being tested)
         if model_config.get("apiKey") and model_config["apiKey"] != "***":
-            provider = model_config.get("accessMethod", "").lower()
+            provider = (model_config.get("provider") or model_config.get("accessMethod") or "").lower()
             if provider == "openai":
                 os.environ["OPENAI_API_KEY"] = model_config["apiKey"]
             elif provider == "anthropic":
                 os.environ["ANTHROPIC_API_KEY"] = model_config["apiKey"]
-            elif provider == "gemini":
+            elif provider in ("gemini", "google"):
                 os.environ["GEMINI_API_KEY"] = model_config["apiKey"]
             elif provider == "xai":
                 os.environ["XAI_API_KEY"] = model_config["apiKey"]
@@ -172,8 +172,10 @@ async def run_evaluation(
         # 1. Initialize Model Runner
         print(f"📦 Initializing model: {model_config.get('name', 'unknown')}")
         
-        model_provider = model_config.get("accessMethod", "ollama").lower()
+        # Check both 'provider' and 'accessMethod' fields (frontend may send either)
+        model_provider = (model_config.get("provider") or model_config.get("accessMethod") or "ollama").lower()
         model_name = model_config.get("name")
+        print(f"📦 Model provider: {model_provider}")
         
         # Map frontend provider names to ModelRunner names
         provider_mapping = {
@@ -182,6 +184,7 @@ async def run_evaluation(
             "openai": "openai",        # OpenAI API
             "anthropic": "anthropic",  # Anthropic API (now supported!)
             "gemini": "gemini",        # Gemini API (now supported!)
+            "google": "gemini",        # Google = Gemini
             "xai": "xai",              # xAI API (now supported!)
             "mistral": "mistral",      # Mistral API (now supported!)
             "huggingface": "huggingface",  # HuggingFace models

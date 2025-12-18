@@ -23,9 +23,9 @@ import {
   Menu,
   MenuItem,
   useTheme,
-  Avatar,
   Divider,
 } from "@mui/material";
+import VWAvatar from "../Avatar/VWAvatar";
 import {
   MoreVertical as MenuIcon,
   Pencil as EditIcon,
@@ -96,14 +96,13 @@ const NoteItem: React.FC<NoteItemProps> = ({
     ? `${note.author.name} ${note.author.surname}`.trim()
     : "Unknown Author";
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n.charAt(0))
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
+  // Map note.author to VWAvatar user format
+  const avatarUser = note.author
+    ? {
+        firstname: note.author.name,
+        lastname: note.author.surname,
+      }
+    : undefined;
 
   const createdTime = dayjs(note.created_at).fromNow();
   const updatedTime = note.is_edited ? dayjs(note.updated_at).fromNow() : null;
@@ -145,18 +144,11 @@ const NoteItem: React.FC<NoteItemProps> = ({
               alignItems="center"
               sx={{ flex: 1, gap: 2 }}
             >
-              <Avatar
-                sx={{
-                  width: 32,
-                  height: 32,
-                  backgroundColor: theme.palette.primary.main,
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                  flexShrink: 0,
-                }}
-              >
-                {getInitials(authorName)}
-              </Avatar>
+              <VWAvatar
+                user={avatarUser}
+                size="small"
+                showBorder={false}
+              />
 
               <Stack spacing={0} sx={{ flex: 1 }}>
                 <Typography

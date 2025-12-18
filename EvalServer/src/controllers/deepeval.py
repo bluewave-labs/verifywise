@@ -9,6 +9,7 @@ import sys
 import os
 import json
 import asyncio
+import traceback
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional

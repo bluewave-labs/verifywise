@@ -15,6 +15,34 @@ import {
 } from "../config/changeHistory.config";
 
 /**
+ * Check if a change history table exists for a given tenant
+ */
+const checkTableExists = async (
+  tenant: string,
+  tableName: string,
+  transaction?: Transaction
+): Promise<boolean> => {
+  try {
+    const result: any[] = await sequelize.query(
+      `SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = :tenant
+        AND table_name = :tableName
+      );`,
+      {
+        replacements: { tenant, tableName },
+        type: QueryTypes.SELECT,
+        transaction,
+      }
+    );
+    return result[0]?.exists === true;
+  } catch (error) {
+    console.warn(`Error checking table existence for ${tenant}.${tableName}:`, error);
+    return false;
+  }
+};
+
+/**
  * Record a single change for any entity type
  */
 export const recordEntityChange = async (
@@ -30,6 +58,16 @@ export const recordEntityChange = async (
 ): Promise<void> => {
   try {
     const config = getEntityConfig(entityType);
+
+    // Check if the change history table exists before inserting
+    const tableExists = await checkTableExists(tenant, config.tableName, transaction);
+    if (!tableExists) {
+      console.warn(
+        `Change history table "${tenant}".${config.tableName} does not exist. ` +
+        `Skipping change history recording. Run migrations to enable change history tracking.`
+      );
+      return;
+    }
 
     await sequelize.query(
       `INSERT INTO "${tenant}".${config.tableName}
@@ -91,6 +129,16 @@ export const getEntityChangeHistory = async (
 ): Promise<{ data: any[]; hasMore: boolean; total: number }> => {
   try {
     const config = getEntityConfig(entityType);
+
+    // Check if the change history table exists
+    const tableExists = await checkTableExists(tenant, config.tableName);
+    if (!tableExists) {
+      console.warn(
+        `Change history table "${tenant}".${config.tableName} does not exist. ` +
+        `Returning empty history. Run migrations to enable change history tracking.`
+      );
+      return { data: [], hasMore: false, total: 0 };
+    }
 
     // Get total count
     const countResult: any[] = await sequelize.query(

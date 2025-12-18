@@ -30,14 +30,22 @@ const useAssessmentData = ({
 
       setLoading(true);
       try {
-       const response = await getAssessmentById({ id: selectedProjectId, signal });
+        const response = await getAssessmentById({ id: selectedProjectId, signal });
         if (!response.ok) {
+          // Ignore canceled requests (caused by React StrictMode or component unmount)
+          if (response.message?.includes("canceled")) {
+            return;
+          }
           console.error(`Failed to fetch progress data: ${response.message}`);
         }
         if (response?.data) {
           setAssessmentData(response.data[0]);
         }
-      } catch (error) {
+      } catch (error: any) {
+        // Ignore abort errors (caused by React StrictMode or component unmount)
+        if (error?.message === "canceled" || error?.name === "AbortError" || error?.message?.includes("canceled")) {
+          return;
+        }
         console.error("Failed to fetch assessment data:", error);
       } finally {
         setLoading(false);

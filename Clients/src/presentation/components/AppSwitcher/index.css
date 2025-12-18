@@ -4,8 +4,8 @@
   max-width: 40px;
   flex-shrink: 0;
   height: 100vh;
-  background-color: #1a1a2e;
-  border-right: 1px solid #2d2d44;
+  background: linear-gradient(180deg, #232340 0%, #1e1e36 100%);
+  border-right: 1px solid #33334d;
   display: flex;
   flex-direction: column;
   align-items: center;

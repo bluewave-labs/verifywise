@@ -348,7 +348,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
         border: "none",
         borderRight: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
         borderRadius: 0,
-        backgroundColor: theme.palette.background.main,
+        backgroundColor: "#FAFBFC",
         transition: "width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), min-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), max-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77)",
       }}
     >

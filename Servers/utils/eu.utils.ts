@@ -117,12 +117,19 @@ export const getTopicByIdForProjectQuery = async (
   projectFrameworkId: number,
   tenant: string
 ): Promise<TopicStructEUModel | null> => {
-  const assessmentId = (await sequelize.query(
+  const assessmentResult = (await sequelize.query(
     `SELECT id FROM "${tenant}".assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
   )) as [{ id: number }[], number];
+
+  // Check if assessment exists for this project framework
+  if (!assessmentResult[0] || !assessmentResult[0][0]) {
+    return null;
+  }
+  const assessmentId = assessmentResult[0][0].id;
+
   const topics = await sequelize.query(
     `SELECT * FROM public.topics_struct_eu WHERE id = :topic_id;`,
     {
@@ -131,13 +138,19 @@ export const getTopicByIdForProjectQuery = async (
       model: TopicStructEUModel,
     }
   );
+
+  // Check if topic exists
   const topic = topics[0];
+  if (!topic) {
+    return null;
+  }
+
   const subtopicStruct = await getAllSubTopicsQuery(topic.id!, tenant);
   (topic.dataValues as any).subTopics = subtopicStruct;
   for (let subtopic of subtopicStruct) {
     const questionAnswers = await getAllQuestionsQuery(
       subtopic.id!,
-      assessmentId[0][0].id,
+      assessmentId,
       tenant
     );
     (subtopic.dataValues as any).questions = [];

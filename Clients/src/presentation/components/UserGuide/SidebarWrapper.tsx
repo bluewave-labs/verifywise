@@ -278,12 +278,18 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
     );
   };
 
-  // Handle tab click - open sidebar if closed, or just switch tab
+  // Handle tab click - open sidebar if closed, close if clicking active tab, or switch tab
   const handleTabClick = (tab: Tab) => {
     if (!isOpen) {
       onOpen();
+      setActiveTab(tab);
+    } else if (activeTab === tab) {
+      // Clicking the already-active tab closes the sidebar
+      onClose();
+    } else {
+      // Clicking a different tab switches to it
+      setActiveTab(tab);
     }
-    setActiveTab(tab);
   };
 
   // Resize handlers

@@ -33,6 +33,13 @@ const RichTextEditor: React.FC<IRichTextEditorProps> = ({
     },
   });
 
+  // Update editable state when isEditable prop changes
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(isEditable);
+    }
+  }, [editor, isEditable]);
+
   useEffect(() => {
     return () => {
       editor?.destroy();

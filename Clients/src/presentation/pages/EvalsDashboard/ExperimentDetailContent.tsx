@@ -17,8 +17,8 @@ import {
   Divider,
   IconButton,
   TextField,
-  Button,
 } from "@mui/material";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw } from "lucide-react";
 import DOMPurify from "dompurify";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
@@ -337,37 +337,22 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
           {/* Rerun button */}
           <Stack direction="row" spacing={2} alignItems="center">
-            <Button
+            <CustomizableButton
               variant="contained"
               onClick={handleRerunExperiment}
-              disabled={rerunLoading || experiment.status === "running"}
+              isDisabled={rerunLoading || experiment.status === "running"}
               startIcon={<RotateCcw size={14} />}
               sx={{
-                textTransform: "none",
                 backgroundColor: "#13715B",
-                color: "white",
-                "&:hover": { 
+                border: "1px solid #13715B",
+                "&:hover": {
                   backgroundColor: "#0F5A47",
-                },
-                "&:disabled": {
-                  backgroundColor: "#D1D5DB",
-                  color: "#9CA3AF",
-                },
-                fontSize: "13px",
-                fontWeight: 500,
-                minWidth: "100px",
-                height: 38,
-                pl: 2,
-                pr: 2.5,
-                borderRadius: "8px",
-                "& .MuiButton-startIcon": {
-                  marginLeft: 0,
-                  marginRight: "8px",
+                  border: "1px solid #0F5A47",
                 },
               }}
             >
               {rerunLoading ? "Starting…" : "Rerun"}
-            </Button>
+            </CustomizableButton>
             {rerunSuccess && (
               <Chip
                 label={rerunSuccess}

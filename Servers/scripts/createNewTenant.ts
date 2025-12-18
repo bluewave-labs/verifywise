@@ -1810,6 +1810,66 @@ export const createNewTenant = async (
     ]);
 
     console.log(`✅ EvalServer tables created successfully for tenant: ${tenantHash}`);
+
+    // Create change history table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".project_risk_change_history (
+        id SERIAL PRIMARY KEY,
+        project_risk_id INTEGER NOT NULL REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `
+        CREATE INDEX IF NOT EXISTS idx_project_risk_change_history_risk_id
+        ON "${tenantHash}".project_risk_change_history(project_risk_id);
+      `,
+      `
+        CREATE INDEX IF NOT EXISTS idx_project_risk_change_history_changed_at
+        ON "${tenantHash}".project_risk_change_history(changed_at DESC);
+        `,
+      `
+        CREATE INDEX IF NOT EXISTS idx_project_risk_change_history_risk_changed
+        ON "${tenantHash}".project_risk_change_history(project_risk_id, changed_at DESC);
+        `
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // Create change history table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".vendor_risk_change_history (
+        id SERIAL PRIMARY KEY,
+        vendor_risk_id INTEGER NOT NULL REFERENCES "${tenantHash}".vendorrisks(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `
+        CREATE INDEX IF NOT EXISTS idx_vendor_risk_change_history_vendor_risk_id
+        ON "${tenantHash}".vendor_risk_change_history(vendor_risk_id);
+      `,
+      `
+        CREATE INDEX IF NOT EXISTS idx_vendor_risk_change_history_changed_at
+        ON "${tenantHash}".vendor_risk_change_history(changed_at DESC);
+        `,
+      `
+        CREATE INDEX IF NOT EXISTS idx_vendor_risk_change_history_risk_changed
+        ON "${tenantHash}".vendor_risk_change_history(vendor_risk_id, changed_at DESC);
+      `
+    ].map((query) => sequelize.query(query, { transaction })));
   } catch (error) {
     throw error;
   }

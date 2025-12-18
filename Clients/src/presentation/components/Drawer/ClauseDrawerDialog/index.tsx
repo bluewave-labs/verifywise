@@ -172,11 +172,11 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
       value: "cross-mappings",
       icon: "Link" as const,
     },
-    // {
-    //   label: "Notes",
-    //   value: "notes",
-    //   icon: "MessageSquare" as const,
-    // },
+    {
+      label: "Notes",
+      value: "notes",
+      icon: "MessageSquare" as const,
+    },
   ];
 
   // ========================================================================

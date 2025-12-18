@@ -132,7 +132,7 @@ const VWISO42001AnnexDrawerDialog = ({
     { label: "Details", value: "details", icon: "FileText" as const },
     { label: "Evidence", value: "evidence", icon: "FolderOpen" as const },
     { label: "Cross mappings", value: "cross-mappings", icon: "Link" as const },
-    // { label: "Notes", value: "notes", icon: "MessageSquare" as const },
+    { label: "Notes", value: "notes", icon: "MessageSquare" as const },
   ];
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {

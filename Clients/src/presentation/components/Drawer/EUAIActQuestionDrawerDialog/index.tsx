@@ -193,11 +193,11 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
       value: "cross-mappings",
       icon: "Link" as const,
     },
-    // {
-    //   label: "Notes",
-    //   value: "notes",
-    //   icon: "MessageSquare" as const,
-    // },
+    {
+      label: "Notes",
+      value: "notes",
+      icon: "MessageSquare" as const,
+    },
   ];
 
   // ========================================================================

@@ -127,16 +127,17 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
           }}
         />
 
-        {/* Character Count */}
-        <Box
+        {/* Action Buttons and Character Count */}
+        <Stack
+          direction="row"
+          spacing={theme.spacing(1.5)}
           sx={{
-            display: "flex",
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
             alignItems: "center",
-            minHeight: 20,
-            mt: theme.spacing(1),
+            mt: theme.spacing(2),
           }}
         >
+          {/* Character Count */}
           <Typography
             sx={{
               fontSize: 11,
@@ -151,18 +152,13 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
               ? `⚠️ Exceeded by ${content.length - MAX_LENGTH} characters`
               : `${remainingChars} characters remaining`}
           </Typography>
-        </Box>
 
-        {/* Action Buttons */}
-        <Stack
-          direction="row"
-          spacing={theme.spacing(1.5)}
-          sx={{
-            justifyContent: "flex-end",
-            alignItems: "center",
-            mt: theme.spacing(2),
-          }}
-        >
+          {/* Action Buttons */}
+          <Stack
+            direction="row"
+            spacing={theme.spacing(1.5)}
+            sx={{ alignItems: "center" }}
+          >
           {isEditing && onCancel && (
             <Button
               variant="outlined"
@@ -226,6 +222,7 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
               }}
             />
           )}
+          </Stack>
         </Stack>
       </Stack>
     </Box>

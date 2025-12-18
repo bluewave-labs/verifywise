@@ -701,9 +701,29 @@ async def upload_deepeval_dataset_controller(
 
 
 def _safe_evalmodule_data_root() -> Path:
+    """
+    Returns the path to built-in datasets.
+    In Docker: /app/datasets
+    In development: EvaluationModule/data/datasets (relative to repo root)
+    """
+    # Check for Docker environment first (datasets copied to /app/datasets)
+    docker_datasets = Path("/app/datasets")
+    if docker_datasets.exists():
+        return docker_datasets
+
+    # Fallback for local development
     root_path = Path(__file__).parent.parent.parent.parent
     evaluation_module_path = root_path / "EvaluationModule"
     return evaluation_module_path / "data" / "datasets"
+
+
+def _get_evaluation_module_path() -> Path:
+    """
+    Returns the path to EvaluationModule/data directory.
+    Used for user uploads and other data files.
+    """
+    root_path = Path(__file__).parent.parent.parent.parent
+    return root_path / "EvaluationModule" / "data"
 
 
 def _extract_dataset_stats(file_path: Path) -> dict:
@@ -802,42 +822,43 @@ async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
     """
     Return the JSON contents of a dataset at a relative path.
     Path can be:
-    - Relative to EvaluationModule (e.g., "data/uploads/tenant/file.json")
     - Relative to datasets folder (e.g., "chatbot/chatbot_basic.json")
+    - For uploads: "data/uploads/tenant/file.json"
     """
     try:
         # Security: Early rejection of suspicious path patterns
         if ".." in path or path.startswith("/") or path.startswith("\\"):
             raise HTTPException(status_code=400, detail="Invalid dataset path: path traversal not allowed")
 
-        root_path = Path(__file__).parent.parent.parent.parent
-        evaluation_module_path = root_path / "EvaluationModule"
-        data_dir = (evaluation_module_path / "data").resolve()
+        target = None
+        allowed_base = None
 
-        # Try as full path first (for uploads: data/uploads/...)
-        target = (evaluation_module_path / path).resolve()
-
-        # If not found, try in datasets folder (for built-ins: chatbot/...)
-        if not target.is_file():
+        # Check if it's a user upload path (starts with "data/uploads/")
+        if path.startswith("data/uploads/"):
+            eval_data_path = _get_evaluation_module_path()
+            target = (eval_data_path.parent / path).resolve()
+            allowed_base = eval_data_path.resolve()
+        else:
+            # Built-in dataset path (e.g., "chatbot/chatbot_basic.json")
             datasets_base = _safe_evalmodule_data_root()
             target = (datasets_base / path).resolve()
+            allowed_base = datasets_base.resolve()
 
-        # Security check: ensure resolved target is inside EvaluationModule/data
-        # Use try/except for Python 3.8 compatibility (is_relative_to is 3.9+)
+        # Security check: ensure resolved target is inside allowed directory
         try:
-            target.relative_to(data_dir)
+            target.relative_to(allowed_base)
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid dataset path: access denied")
 
         if not target.is_file():
             raise HTTPException(status_code=404, detail="Dataset file not found")
-        
+
         with open(target, "r", encoding="utf-8") as f:
             data = json.load(f)
-        
+
         if not isinstance(data, list):
             raise HTTPException(status_code=400, detail="Dataset file is not a list of prompts")
-        
+
         return JSONResponse(status_code=200, content={"path": path, "prompts": data})
     except HTTPException:
         raise

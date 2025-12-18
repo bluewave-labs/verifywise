@@ -4,10 +4,13 @@ FROM python:3.10
 WORKDIR /app
 
 # Copy requirements first for better caching
-COPY ./src/requirements.txt requirements.txt
+COPY ./EvalServer/src/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application
-COPY ./src .
+# Copy the application source
+COPY ./EvalServer/src .
+
+# Copy the datasets from EvaluationModule
+COPY ./EvaluationModule/data/datasets /app/datasets
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

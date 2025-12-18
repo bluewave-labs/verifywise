@@ -9,6 +9,7 @@ import sys
 import os
 import json
 import asyncio
+import traceback
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -618,21 +619,40 @@ async def upload_deepeval_dataset_controller(
             original_name = original_name[:-5]
         
         # Extract dataset name from filename (clean it up) - just the file name
-        dataset_name = original_name.replace("_", " ").replace("-", " ").strip()
+        # Apply title case so each word is capitalized
+        dataset_name = original_name.replace("_", " ").replace("-", " ").strip().title()
         if not dataset_name:
             dataset_name = "Untitled Dataset"
         
-        # Count prompts
-        prompt_count = len(data) if isinstance(data, list) else 0
+        # Count prompts - only count items with actual content
+        prompt_count = 0
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    # Single-turn: check if prompt field has content
+                    if item.get("prompt") and str(item.get("prompt", "")).strip():
+                        prompt_count += 1
+                    # Multi-turn: check if turns array has at least one turn with content
+                    elif item.get("turns") and isinstance(item.get("turns"), list) and len(item.get("turns", [])) > 0:
+                        # Verify at least one turn has content
+                        has_content = any(
+                            turn.get("content") and str(turn.get("content", "")).strip()
+                            for turn in item.get("turns", [])
+                            if isinstance(turn, dict)
+                        )
+                        if has_content:
+                            prompt_count += 1
         
         # Use original filename without timestamp prefix
         filename = f"{original_name}.json"
         full_path = uploads_dir / filename
-        
-        # If file exists, add a suffix
+
+        # If file exists, add a suffix to both filename and display name
         counter = 1
+        final_dataset_name = dataset_name
         while full_path.exists():
             filename = f"{original_name}_{counter}.json"
+            final_dataset_name = f"{dataset_name} ({counter + 1})"
             full_path = uploads_dir / filename
             counter += 1
 
@@ -646,10 +666,10 @@ async def upload_deepeval_dataset_controller(
         try:
             async with get_db() as db:
                 await create_user_dataset(
-                    tenant=tenant, 
-                    db=db, 
-                    name=dataset_name, 
-                    path=relative_path, 
+                    tenant=tenant,
+                    db=db,
+                    name=final_dataset_name,
+                    path=relative_path,
                     size=len(content_bytes),
                     prompt_count=prompt_count,
                     dataset_type=dataset_type,
@@ -683,12 +703,7 @@ async def upload_deepeval_dataset_controller(
 def _safe_evalmodule_data_root() -> Path:
     root_path = Path(__file__).parent.parent.parent.parent
     evaluation_module_path = root_path / "EvaluationModule"
-    # Prefer new datasets folder; fall back to presets
-    data_root = evaluation_module_path / "data"
-    datasets_dir = data_root / "datasets"
-    if datasets_dir.exists():
-        return datasets_dir
-    return data_root / "presets"
+    return evaluation_module_path / "data" / "datasets"
 
 
 def _extract_dataset_stats(file_path: Path) -> dict:
@@ -744,7 +759,7 @@ def _load_dataset_metadata(file_path: Path) -> dict:
 async def list_deepeval_datasets_controller() -> JSONResponse:
     """
     List available built-in datasets grouped by use case.
-    Looks under EvaluationModule/data/datasets (preferred) or data/presets.
+    Looks under EvaluationModule/data/datasets.
     Includes statistics (test count, categories, difficulty) and metadata.
     """
     base = _safe_evalmodule_data_root()
@@ -755,57 +770,28 @@ async def list_deepeval_datasets_controller() -> JSONResponse:
         "safety": [],
     }
     try:
-        if (base / "chatbot").exists():
-            subdirs = ["chatbot", "rag", "agent", "safety"]
-            for sub in subdirs:
-                sd = base / sub
-                if not sd.exists():
-                    continue
-                for f in sd.glob("*.json"):
-                    # Skip metadata files
-                    if f.stem.endswith(".meta"):
-                        continue
-
-                    stats = _extract_dataset_stats(f)
-                    metadata = _load_dataset_metadata(f)
-
-                    dataset_info = {
-                        "key": f"{sub}/{f.name}",
-                        "name": f.stem.replace("_", " ").title(),
-                        "path": str(f.relative_to(base)),
-                        "use_case": sub,
-                        **stats,
-                        **metadata,
-                    }
-                    result[sub].append(dataset_info)
-        else:
-            # Flat presets folder fallback
-            for f in base.glob("*.json"):
+        subdirs = ["chatbot", "rag", "agent", "safety"]
+        for sub in subdirs:
+            sd = base / sub
+            if not sd.exists():
+                continue
+            for f in sd.glob("*.json"):
+                # Skip metadata files
                 if f.stem.endswith(".meta"):
                     continue
-
-                name = f.stem
-                use_case = "chatbot"
-                lowered = name.lower()
-                if "rag" in lowered:
-                    use_case = "rag"
-                elif "agent" in lowered:
-                    use_case = "agent"
-                elif "safety" in lowered:
-                    use_case = "safety"
 
                 stats = _extract_dataset_stats(f)
                 metadata = _load_dataset_metadata(f)
 
                 dataset_info = {
-                    "key": f.name,
-                    "name": name.replace("_", " ").title(),
+                    "key": f"{sub}/{f.name}",
+                    "name": f.stem.replace("_", " ").title(),
                     "path": str(f.relative_to(base)),
-                    "use_case": use_case,
+                    "use_case": sub,
                     **stats,
                     **metadata,
                 }
-                result[use_case].append(dataset_info)
+                result[sub].append(dataset_info)
 
         return JSONResponse(status_code=200, content={"datasets": result})
     except Exception as e:

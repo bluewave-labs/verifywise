@@ -1,0 +1,9 @@
+{
+  "name": "Document Q&A Multi-Turn",
+  "description": "Multi-turn conversations for document analysis including contracts, reports, and business documents.",
+  "type": "multi-turn",
+  "use_case": "rag",
+  "tags": ["RAG", "document-qa", "multi-turn", "analysis"],
+  "prompt_count": 2
+}
+

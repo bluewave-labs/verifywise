@@ -1,0 +1,25 @@
+[
+  {
+    "scenario": "User analyzing a legal contract",
+    "expected_outcome": "Extract and explain relevant contract terms",
+    "context": ["Contract Term: 24 months starting Jan 1, 2024. Auto-renewal for 12-month periods unless 90-day notice given. Early termination fee: 50% of remaining contract value.", "Payment Terms: Net 30 days. Late payment penalty: 1.5% monthly. Annual price increase capped at 5%."],
+    "turns": [
+      { "role": "user", "content": "When does this contract end?" },
+      { "role": "assistant", "content": "The contract has a 24-month term starting January 1, 2024, so it ends on December 31, 2025. However, note that it auto-renews for additional 12-month periods unless you provide 90-day notice. Would you like to know about the cancellation terms?" },
+      { "role": "user", "content": "What happens if we want to cancel early?" },
+      { "role": "assistant", "content": "For early termination, there's a fee of 50% of the remaining contract value. For example, if you have 12 months left on a $10,000/year contract, the early termination fee would be $5,000. To avoid auto-renewal, you'd need to give notice by early October 2025 (90 days before Dec 31)." }
+    ]
+  },
+  {
+    "scenario": "User reviewing financial report",
+    "expected_outcome": "Accurately interpret and explain financial data",
+    "context": ["Q3 2024 Revenue: $4.2M (up 15% YoY). Gross margin: 68%. Operating expenses: $2.1M. Net income: $720K.", "Customer metrics: 1,250 active customers (+8% QoQ). Churn rate: 2.1%. Average revenue per user: $3,360."],
+    "turns": [
+      { "role": "user", "content": "What was the revenue growth in Q3?" },
+      { "role": "assistant", "content": "Q3 2024 revenue was $4.2 million, representing a 15% year-over-year increase. The company maintained a healthy gross margin of 68%. Would you like details on profitability or customer metrics?" },
+      { "role": "user", "content": "How's the customer growth looking?" },
+      { "role": "assistant", "content": "Customer metrics are positive: 1,250 active customers, which is up 8% quarter-over-quarter. The churn rate is low at 2.1%, indicating good retention. Average revenue per user (ARPU) is $3,360. With revenue growth outpacing customer growth (15% vs 8%), it suggests existing customers are expanding their spending as well." }
+    ]
+  }
+]
+

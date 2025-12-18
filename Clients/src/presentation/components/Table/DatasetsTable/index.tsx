@@ -55,6 +55,7 @@ export interface DatasetsTableProps {
   onView?: (dataset: DatasetRow) => void;
   onEdit?: (dataset: DatasetRow) => void;
   onDelete?: (dataset: DatasetRow) => void;
+  onDownload?: (dataset: DatasetRow) => void;
   loading?: boolean;
   emptyMessage?: string;
   hidePagination?: boolean;
@@ -76,6 +77,7 @@ const DatasetsTable: React.FC<DatasetsTableProps> = ({
   onView,
   onEdit,
   onDelete,
+  onDownload,
   loading = false,
   emptyMessage = "No datasets found. Upload a dataset or copy from templates.",
   hidePagination = false,
@@ -245,6 +247,7 @@ const DatasetsTable: React.FC<DatasetsTableProps> = ({
             onView={onView}
             onEdit={onEdit}
             onDelete={onDelete}
+            onDownload={onDownload}
           />
         ) : (
           <TableBody>

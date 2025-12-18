@@ -7,10 +7,6 @@
 
 venv/
 
-# EvaluationModule runtime data
-EvaluationModule/data/
-EvaluationModule/artifacts/
-
 .vscode/settings.json
 
 .DS_Store
@@ -19,6 +15,7 @@ fastapi.log
 react.log
 .idea/
 .claude
+CLAUDE.md
 .github
 .kombai
 .vscode

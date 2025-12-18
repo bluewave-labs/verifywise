@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -21,7 +21,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, ChevronUp, ChevronDown, User, Bot } from "lucide-react";
+import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
 import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset, type DatasetType, type SingleTurnPrompt, type MultiTurnConversation, isSingleTurnPrompt, isMultiTurnConversation } from "../../../infrastructure/api/deepEvalDatasetsService";
@@ -126,6 +126,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const [editDatasetName, setEditDatasetName] = useState("");
   const [savingDataset, setSavingDataset] = useState(false);
   const [loadingEditor, setLoadingEditor] = useState(false);
+  const [copiedJson, setCopiedJson] = useState(false);
 
   // Prompt edit drawer state (for inline editor)
   const [promptDrawerOpen, setPromptDrawerOpen] = useState(false);
@@ -173,10 +174,19 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     try {
       const res = await deepEvalDatasetsService.read(dataset.path);
       const prompts = res.prompts || [];
+      // Count only prompts with actual content
+      const validPromptCount = prompts.filter((p) => {
+        if (isSingleTurnPrompt(p)) {
+          return p.prompt && p.prompt.trim().length > 0;
+        } else if (isMultiTurnConversation(p)) {
+          return p.turns && p.turns.length > 0 && p.turns.some(t => t.content && t.content.trim().length > 0);
+        }
+        return false;
+      }).length;
       setDatasetMetadata(prev => ({
         ...prev,
         [dataset.path]: {
-          promptCount: prompts.length,
+          promptCount: validPromptCount,
           avgDifficulty: calculateAvgDifficulty(prompts),
           loading: false
         }
@@ -593,6 +603,28 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     await handleOpenInEditor(dataset);
   };
 
+  const handleDownloadDataset = async (dataset: BuiltInDataset) => {
+    handleActionMenuClose();
+    try {
+      const res = await deepEvalDatasetsService.read(dataset.path);
+      const json = JSON.stringify(res.prompts || [], null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const slug = dataset.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "dataset";
+      a.download = `${slug}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download dataset", err);
+      setAlert({ variant: "error", body: "Failed to download dataset" });
+      setTimeout(() => setAlert(null), 5000);
+    }
+  };
+
 
   // Load metadata for datasets in "My datasets" tab
   useEffect(() => {
@@ -845,15 +877,65 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               Edit dataset
             </Typography>
           </Stack>
-          <Button
-            variant="contained"
-            disabled={!isValidToSave || savingDataset}
-            sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" }, height: "34px" }}
-            startIcon={<SaveIcon size={16} />}
-            onClick={handleSaveDataset}
-          >
-            {savingDataset ? "Saving..." : "Save copy"}
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              onClick={async () => {
+                try {
+                  const json = JSON.stringify(editablePrompts, null, 2);
+                  await navigator.clipboard.writeText(json);
+                  setCopiedJson(true);
+                  setTimeout(() => setCopiedJson(false), 2000);
+                } catch {
+                  setAlert({ variant: "error", body: "Failed to copy to clipboard" });
+                  setTimeout(() => setAlert(null), 3000);
+                }
+              }}
+              startIcon={copiedJson ? <Check size={16} /> : <Copy size={16} />}
+              sx={{
+                height: "34px",
+                color: copiedJson ? "#059669" : "#374151",
+                borderColor: copiedJson ? "#059669" : "#E5E7EB",
+                "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+              }}
+            >
+              {copiedJson ? "Copied!" : "Copy JSON"}
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                const json = JSON.stringify(editablePrompts, null, 2);
+                const blob = new Blob([json], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                const slug = editDatasetName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "dataset";
+                a.download = `${slug}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }}
+              startIcon={<Download size={16} />}
+              sx={{
+                height: "34px",
+                color: "#374151",
+                borderColor: "#E5E7EB",
+                "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+              }}
+            >
+              Download
+            </Button>
+            <Button
+              variant="contained"
+              disabled={!isValidToSave || savingDataset}
+              sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" }, height: "34px" }}
+              startIcon={<SaveIcon size={16} />}
+              onClick={handleSaveDataset}
+            >
+              {savingDataset ? "Saving..." : "Save copy"}
+            </Button>
+          </Stack>
         </Stack>
 
         {/* Dataset name input */}
@@ -1531,6 +1613,10 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                       setDeleteModalOpen(true);
                     }
                   } : undefined}
+                  onDownload={(row: DatasetRow) => {
+                    const dataset = data.find((d) => d.path === row.path);
+                    if (dataset) handleDownloadDataset(dataset);
+                  }}
                   loading={loading}
                   hidePagination={options?.hidePagination}
                 />
@@ -1622,6 +1708,18 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             </ListItemIcon>
             <ListItemText
               primary="Open in editor"
+              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
+            />
+          </ListItemButton>
+          <ListItemButton
+            onClick={() => actionDataset && handleDownloadDataset(actionDataset)}
+            sx={{ py: 1, px: 2 }}
+          >
+            <ListItemIcon sx={{ minWidth: 28 }}>
+              <Download size={16} color="#374151" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Download JSON"
               primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
             />
           </ListItemButton>
@@ -2239,114 +2337,156 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               // Multi-turn dataset display - cast to any for flexible access
               const conversations = templatePrompts as unknown as Array<{
                 scenario?: string;
+                category?: string;
                 expected_outcome?: string;
                 turns?: Array<{ role: string; content: string }>;
               }>;
-              
+
               return (
-                <Stack spacing={3}>
-                  {conversations.map((conversation, index) => {
-                    const convKey = `conv-${index}`;
-                    const isExpanded = expandedPromptIds.has(convKey);
-                    const turns = conversation.turns || [];
-                    
-                    return (
-                      <Box
-                        key={convKey}
-                        sx={{
-                          border: "1px solid #E5E7EB",
-                          borderRadius: "8px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {/* Conversation header */}
-                        <Box
-                          onClick={() => {
-                            setExpandedPromptIds(prev => {
-                              const newSet = new Set(prev);
-                              if (newSet.has(convKey)) {
-                                newSet.delete(convKey);
-                              } else {
-                                newSet.add(convKey);
-                              }
-                              return newSet;
-                            });
-                          }}
-                          sx={{
-                            p: 2,
-                            backgroundColor: "#F9FAFB",
-                            cursor: "pointer",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            "&:hover": { backgroundColor: "#F3F4F6" },
-                          }}
-                        >
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Chip
-                              label={`#${index + 1}`}
-                              backgroundColor="#E5E7EB"
-                              textColor="#374151"
-                            />
-                            <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
-                              {conversation.scenario || `Conversation ${index + 1}`}
-                            </Typography>
-                            <Chip
-                              label={`${turns.length} turns`}
-                              size="small"
-                              backgroundColor="#DBEAFE"
-                              textColor="#1E40AF"
-                            />
-                          </Stack>
-                          {isExpanded ? <ChevronUp size={16} color="#6B7280" /> : <ChevronDown size={16} color="#6B7280" />}
-                        </Box>
-                        
-                        {/* Expanded conversation turns */}
-                        {isExpanded && (
-                          <Box sx={{ p: 2, backgroundColor: "#fff" }}>
-                            {conversation.expected_outcome && (
-                              <Box sx={{ mb: 2, p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "6px" }}>
-                                <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#166534", mb: 0.5 }}>
-                                  Expected Outcome
-                                </Typography>
-                                <Typography sx={{ fontSize: "12px", color: "#166534" }}>
-                                  {conversation.expected_outcome}
-                                </Typography>
-                              </Box>
-                            )}
-                            <Stack spacing={1.5}>
-                              {turns.map((turn, turnIdx) => (
-                                <Box
-                                  key={turnIdx}
-                                  sx={{
-                                    display: "flex",
-                                    flexDirection: turn.role === "user" ? "row" : "row-reverse",
-                                  }}
-                                >
-                                  <Box
-                                    sx={{
-                                      maxWidth: "85%",
-                                      p: 1.5,
-                                      borderRadius: "8px",
-                                      backgroundColor: turn.role === "user" ? "#F3F4F6" : "#EBF5FF",
-                                    }}
-                                  >
-                                    <Typography sx={{ fontSize: "10px", fontWeight: 600, color: turn.role === "user" ? "#6B7280" : "#1E40AF", mb: 0.5 }}>
-                                      {turn.role === "user" ? "User" : "Assistant"}
-                                    </Typography>
-                                    <Typography sx={{ fontSize: "12px", color: "#374151", whiteSpace: "pre-wrap" }}>
-                                      {turn.content}
-                                    </Typography>
-                                  </Box>
+                <TableContainer sx={{ maxWidth: "100%", overflowX: "hidden" }}>
+                  <Table sx={{ ...singleTheme.tableStyles.primary.frame, tableLayout: "fixed", width: "100%" }}>
+                    <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
+                      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "8%" }}>#</TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "18%" }}>Category</TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "54%" }}>Scenario</TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%" }}>Turns</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {conversations.map((conversation, index) => {
+                        const convKey = `conv-${index}`;
+                        const isExpanded = expandedPromptIds.has(convKey);
+                        const turns = conversation.turns || [];
+                        const scenarioText = conversation.scenario || `Conversation ${index + 1}`;
+                        const isLongScenario = scenarioText.length > 50;
+                        // Try to infer category from scenario or use a default
+                        const category = conversation.category || (
+                          scenarioText.toLowerCase().includes("troubleshoot") ? "SUPPORT" :
+                          scenarioText.toLowerCase().includes("install") ? "SETUP" :
+                          scenarioText.toLowerCase().includes("api") ? "TECHNICAL" :
+                          scenarioText.toLowerCase().includes("crash") ? "DEBUG" :
+                          "GENERAL"
+                        );
+
+                        return (
+                          <Fragment key={convKey}>
+                            <TableRow
+                              onClick={() => {
+                                setExpandedPromptIds(prev => {
+                                  const newSet = new Set(prev);
+                                  if (newSet.has(convKey)) {
+                                    newSet.delete(convKey);
+                                  } else {
+                                    newSet.add(convKey);
+                                  }
+                                  return newSet;
+                                });
+                              }}
+                              sx={{
+                                ...singleTheme.tableStyles.primary.body.row,
+                                cursor: "pointer",
+                                "&:hover": { backgroundColor: "#F9FAFB" },
+                                verticalAlign: "top",
+                              }}
+                            >
+                              <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%", verticalAlign: "top", pt: 1.5 }}>
+                                <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
+                              </TableCell>
+                              <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "18%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
+                                <Box title={category}>
+                                  <Chip
+                                    label={category.length > 10 ? `${category.substring(0, 10)}...` : category}
+                                    size="small"
+                                    backgroundColor="#E5E7EB"
+                                    textColor="#374151"
+                                  />
                                 </Box>
-                              ))}
-                            </Stack>
-                          </Box>
-                        )}
-                      </Box>
-                    );
-                  })}
-                </Stack>
+                              </TableCell>
+                              <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "54%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
+                                <Typography
+                                  sx={{
+                                    fontSize: "13px",
+                                    color: theme.palette.text.primary,
+                                    overflow: isExpanded ? "visible" : "hidden",
+                                    textOverflow: isExpanded ? "clip" : "ellipsis",
+                                    whiteSpace: isExpanded ? "pre-wrap" : "nowrap",
+                                    maxWidth: "100%",
+                                    wordBreak: isExpanded ? "break-word" : "normal",
+                                    lineHeight: 1.5,
+                                  }}
+                                  title={isExpanded ? undefined : scenarioText}
+                                >
+                                  {isExpanded ? scenarioText : (isLongScenario ? `${scenarioText.substring(0, 50)}...` : scenarioText)}
+                                </Typography>
+                                {(isLongScenario || turns.length > 0) && (
+                                  <Typography sx={{ fontSize: "11px", color: "#9CA3AF", mt: 0.5 }}>
+                                    {isExpanded ? "Collapse" : "Expand"}
+                                  </Typography>
+                                )}
+                              </TableCell>
+                              <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "20%", verticalAlign: "top", pt: 1.5 }}>
+                                <Chip
+                                  label={`${turns.length} TURNS`}
+                                  size="small"
+                                  backgroundColor="#DBEAFE"
+                                  textColor="#1E40AF"
+                                />
+                              </TableCell>
+                            </TableRow>
+
+                            {/* Expanded conversation turns */}
+                            {isExpanded && (
+                              <TableRow>
+                                <TableCell colSpan={4} sx={{ p: 0, border: "none" }}>
+                                  <Box sx={{ p: 2, backgroundColor: "#FAFAFA", borderBottom: "1px solid #E5E7EB" }}>
+                                    {conversation.expected_outcome && (
+                                      <Box sx={{ mb: 2, p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "6px" }}>
+                                        <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#166534", mb: 0.5 }}>
+                                          Expected Outcome
+                                        </Typography>
+                                        <Typography sx={{ fontSize: "12px", color: "#166534" }}>
+                                          {conversation.expected_outcome}
+                                        </Typography>
+                                      </Box>
+                                    )}
+                                    <Stack spacing={1.5}>
+                                      {turns.map((turn, turnIdx) => (
+                                        <Box
+                                          key={turnIdx}
+                                          sx={{
+                                            display: "flex",
+                                            flexDirection: turn.role === "user" ? "row" : "row-reverse",
+                                          }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              maxWidth: "85%",
+                                              p: 1.5,
+                                              borderRadius: "8px",
+                                              backgroundColor: turn.role === "user" ? "#F3F4F6" : "#EBF5FF",
+                                            }}
+                                          >
+                                            <Typography sx={{ fontSize: "10px", fontWeight: 600, color: turn.role === "user" ? "#6B7280" : "#1E40AF", mb: 0.5 }}>
+                                              {turn.role === "user" ? "User" : "Assistant"}
+                                            </Typography>
+                                            <Typography sx={{ fontSize: "12px", color: "#374151", whiteSpace: "pre-wrap" }}>
+                                              {turn.content}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      ))}
+                                    </Stack>
+                                  </Box>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </Fragment>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               );
             }
             

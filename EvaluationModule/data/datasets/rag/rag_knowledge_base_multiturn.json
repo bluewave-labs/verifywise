@@ -1,0 +1,25 @@
+[
+  {
+    "scenario": "User querying employee handbook",
+    "expected_outcome": "Accurately retrieve and explain company policies",
+    "context": ["PTO Policy: Employees accrue 15 days annually. Unused days roll over up to 5 days max. PTO requests require 2 weeks notice for 3+ days.", "Remote Work: Hybrid policy allows 2 remote days/week. Full remote requires manager approval. Equipment stipend: $500/year."],
+    "turns": [
+      { "role": "user", "content": "How many PTO days do I get per year?" },
+      { "role": "assistant", "content": "According to the employee handbook, you accrue 15 PTO days annually. Would you like to know about the rollover policy as well?" },
+      { "role": "user", "content": "Yes, and what's the notice requirement for taking time off?" },
+      { "role": "assistant", "content": "For the rollover policy: unused PTO days can roll over to the next year, but there's a maximum cap of 5 days. For notice requirements: if you're taking 3 or more consecutive days off, you need to submit your request at least 2 weeks in advance. Shorter requests may have more flexibility. Anything else about time off policies?" }
+    ]
+  },
+  {
+    "scenario": "User asking about technical documentation",
+    "expected_outcome": "Retrieve and explain technical concepts accurately",
+    "context": ["Database indexes improve query performance by creating sorted data structures. B-tree indexes are default in PostgreSQL. Create index: CREATE INDEX idx_name ON table(column). Indexes slow down writes.", "Query optimization: Use EXPLAIN ANALYZE to see query plans. Avoid SELECT *. Index columns used in WHERE clauses."],
+    "turns": [
+      { "role": "user", "content": "How do database indexes work?" },
+      { "role": "assistant", "content": "Database indexes improve query performance by creating sorted data structures that allow faster lookups. In PostgreSQL, B-tree indexes are the default type. They work like a book's index - instead of scanning every row, the database can quickly locate the relevant data. Would you like to know how to create one?" },
+      { "role": "user", "content": "Yes, and are there any downsides to indexes?" },
+      { "role": "assistant", "content": "To create an index, use: `CREATE INDEX idx_name ON table(column)`\n\nThe main downside is that indexes slow down write operations (INSERT, UPDATE, DELETE) because the index must be updated along with the data. They also consume additional storage space. The best practice is to index columns frequently used in WHERE clauses, but avoid over-indexing tables with heavy write loads." }
+    ]
+  }
+]
+

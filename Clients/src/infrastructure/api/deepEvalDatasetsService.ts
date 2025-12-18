@@ -85,9 +85,9 @@ class DeepEvalDatasetsService {
     return res.data as { uploads: { name: string; path: string; size: number; modifiedAt: number }[] };
   }
 
-  async listMy(): Promise<{ datasets: { id: number; name: string; path: string; size: number; createdAt: string; datasetType?: DatasetType; turnType?: TurnType }[] }> {
+  async listMy(): Promise<{ datasets: { id: number; name: string; path: string; size: number; promptCount: number; createdAt: string; datasetType?: DatasetType; turnType?: TurnType }[] }> {
     const res = await CustomAxios.get("/deepeval/datasets/user");
-    return res.data as { datasets: { id: number; name: string; path: string; size: number; createdAt: string; datasetType?: DatasetType; turnType?: TurnType }[] };
+    return res.data as { datasets: { id: number; name: string; path: string; size: number; promptCount: number; createdAt: string; datasetType?: DatasetType; turnType?: TurnType }[] };
   }
 
   async deleteDatasets(paths: string[]): Promise<{ message: string; deleted: number }> {

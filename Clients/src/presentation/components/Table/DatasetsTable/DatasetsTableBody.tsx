@@ -12,7 +12,7 @@ import {
   ListItemText,
   CircularProgress,
 } from "@mui/material";
-import { Trash2, MoreVertical, Eye, Edit3 } from "lucide-react";
+import { Trash2, MoreVertical, Eye, Edit3, Download } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { DatasetRow } from "./index";
 
@@ -24,6 +24,7 @@ interface DatasetsTableBodyProps {
   onView?: (dataset: DatasetRow) => void;
   onEdit?: (dataset: DatasetRow) => void;
   onDelete?: (dataset: DatasetRow) => void;
+  onDownload?: (dataset: DatasetRow) => void;
 }
 
 const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
@@ -34,6 +35,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
   onView,
   onEdit,
   onDelete,
+  onDownload,
 }) => {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [menuRow, setMenuRow] = useState<DatasetRow | null>(null);
@@ -66,6 +68,13 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
   const handleDeleteClick = () => {
     if (menuRow && onDelete) {
       onDelete(menuRow);
+    }
+    handleMenuClose();
+  };
+
+  const handleDownloadClick = () => {
+    if (menuRow && onDownload) {
+      onDownload(menuRow);
     }
     handleMenuClose();
   };
@@ -194,6 +203,19 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
               >
                 {metadata?.loading ? (
                   <CircularProgress size={14} sx={{ color: "#9CA3AF" }} />
+                ) : metadata?.promptCount === 0 ? (
+                  <Chip
+                    label="Empty"
+                    size="small"
+                    sx={{
+                      height: "22px",
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      borderRadius: "4px",
+                      backgroundColor: "#FEE2E2",
+                      color: "#DC2626",
+                    }}
+                  />
                 ) : (
                   <Typography sx={{ fontSize: "13px", color: "#374151" }}>
                     {metadata?.promptCount ?? "-"}
@@ -322,6 +344,17 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
             </ListItemIcon>
             <ListItemText
               primary="Open in editor"
+              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
+            />
+          </MenuItem>
+        )}
+        {onDownload && (
+          <MenuItem onClick={handleDownloadClick}>
+            <ListItemIcon sx={{ minWidth: "32px !important" }}>
+              <Download size={16} color="#374151" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Download JSON"
               primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
             />
           </MenuItem>

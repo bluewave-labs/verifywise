@@ -618,21 +618,40 @@ async def upload_deepeval_dataset_controller(
             original_name = original_name[:-5]
         
         # Extract dataset name from filename (clean it up) - just the file name
-        dataset_name = original_name.replace("_", " ").replace("-", " ").strip()
+        # Apply title case so each word is capitalized
+        dataset_name = original_name.replace("_", " ").replace("-", " ").strip().title()
         if not dataset_name:
             dataset_name = "Untitled Dataset"
         
-        # Count prompts
-        prompt_count = len(data) if isinstance(data, list) else 0
+        # Count prompts - only count items with actual content
+        prompt_count = 0
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    # Single-turn: check if prompt field has content
+                    if item.get("prompt") and str(item.get("prompt", "")).strip():
+                        prompt_count += 1
+                    # Multi-turn: check if turns array has at least one turn with content
+                    elif item.get("turns") and isinstance(item.get("turns"), list) and len(item.get("turns", [])) > 0:
+                        # Verify at least one turn has content
+                        has_content = any(
+                            turn.get("content") and str(turn.get("content", "")).strip()
+                            for turn in item.get("turns", [])
+                            if isinstance(turn, dict)
+                        )
+                        if has_content:
+                            prompt_count += 1
         
         # Use original filename without timestamp prefix
         filename = f"{original_name}.json"
         full_path = uploads_dir / filename
-        
-        # If file exists, add a suffix
+
+        # If file exists, add a suffix to both filename and display name
         counter = 1
+        final_dataset_name = dataset_name
         while full_path.exists():
             filename = f"{original_name}_{counter}.json"
+            final_dataset_name = f"{dataset_name} ({counter + 1})"
             full_path = uploads_dir / filename
             counter += 1
 
@@ -646,10 +665,10 @@ async def upload_deepeval_dataset_controller(
         try:
             async with get_db() as db:
                 await create_user_dataset(
-                    tenant=tenant, 
-                    db=db, 
-                    name=dataset_name, 
-                    path=relative_path, 
+                    tenant=tenant,
+                    db=db,
+                    name=final_dataset_name,
+                    path=relative_path,
                     size=len(content_bytes),
                     prompt_count=prompt_count,
                     dataset_type=dataset_type,

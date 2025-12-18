@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid } from "@mui/material";
 import { Check } from "lucide-react";
-import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound } from "lucide-react";
+import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useEvalsSidebarContext } from "../../../application/contexts/EvalsSidebar.context";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -20,6 +20,7 @@ import { evaluationLlmApiKeysService, type LLMApiKey } from "../../../infrastruc
 import { Plus as PlusIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { Chip, Collapse, IconButton, CircularProgress } from "@mui/material";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
+import SelectableCard from "../../components/SelectableCard";
 
 // Import provider logos
 import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
@@ -413,6 +414,13 @@ export default function EvalsDashboard() {
           setOrgId(orgs[0].id);
         }
 
+        // If user explicitly navigated to #projects, skip auto-redirect and show projects list
+        if (location.hash === "#projects") {
+          setOnboardingStep(null);
+          setInitialLoading(false);
+          return;
+        }
+
         // Check for last project - try to redirect regardless of org association
         const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
         if (lastProjectId) {
@@ -456,7 +464,7 @@ export default function EvalsDashboard() {
     } else {
       setInitialLoading(false);
     }
-  }, [projectId, navigate]);
+  }, [projectId, navigate, location.hash]);
 
   // Load all projects for the dropdown and current project
   // Also clean up recent projects/experiments that no longer exist
@@ -593,6 +601,11 @@ export default function EvalsDashboard() {
     sidebarContext.setOnProjectChange(() => (newProjectId: string) => {
       if (newProjectId === "create_new") {
         setCreateProjectModalOpen(true);
+      } else if (newProjectId === "all_projects") {
+        // Clear last project from localStorage and navigate to projects list
+        // Use #projects hash to bypass auto-redirect logic
+        localStorage.removeItem(LAST_PROJECT_KEY);
+        navigate("/evals#projects");
       } else {
         navigate(`/evals/${newProjectId}#${tab}`);
       }
@@ -887,13 +900,13 @@ export default function EvalsDashboard() {
   };
 
   // Build breadcrumbs based on current view
+  // Note: /evals breadcrumbs start with "LLM Evals" (not Dashboard) to keep users in the Evals context
   const tabInfo = getTabInfo(tab);
   const breadcrumbItems =
     !orgId
       ? [
-          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
           {
-            label: "LLM evals",
+            label: "LLM Evals",
             path: "/evals",
             icon: <FlaskConical size={14} strokeWidth={1.5} />,
             onClick: async () => {
@@ -917,13 +930,11 @@ export default function EvalsDashboard() {
         ]
       : projectId && currentProject
       ? [
-          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
           { label: tabInfo.label, icon: tabInfo.icon },
         ]
       : [
-          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
           { label: tabInfo.label, icon: tabInfo.icon },
         ];
 
@@ -1441,66 +1452,22 @@ export default function EvalsDashboard() {
             <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
               LLM use case
             </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-              <Box
+            <Stack spacing="8px">
+              <SelectableCard
+                isSelected={newProject.useCase === "rag"}
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
-                sx={{
-                  border: "1px solid",
-                  borderColor: newProject.useCase === "rag" ? "#13715B" : "#E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: newProject.useCase === "rag" ? "#F7F9F8" : "#FFFFFF",
-                  boxShadow: newProject.useCase === "rag" ? "0 0 0 1px #13715B" : "none",
-                  transition: "background-color 0.2s ease, border-color 0.2s ease",
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    backgroundColor: "#F7F9F8",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <FileSearch size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
+                icon={<FileSearch size={14} color={newProject.useCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                title="RAG"
+                description="Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness"
+              />
+              <SelectableCard
+                isSelected={newProject.useCase === "chatbot"}
                 onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
-                sx={{
-                  border: "1px solid",
-                  borderColor: newProject.useCase === "chatbot" ? "#13715B" : "#E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: newProject.useCase === "chatbot" ? "#F7F9F8" : "#FFFFFF",
-                  boxShadow: newProject.useCase === "chatbot" ? "0 0 0 1px #13715B" : "none",
-                  transition: "background-color 0.2s ease, border-color 0.2s ease",
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    backgroundColor: "#F7F9F8",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Bot size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbot</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate conversational experiences for coherence, correctness and safety.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
+                icon={<Bot size={14} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                title="Chatbot"
+                description="Evaluate conversational experiences for coherence, correctness and safety"
+              />
+            </Stack>
           </Box>
         </Stack>
       </ModalStandard>
@@ -1515,7 +1482,7 @@ export default function EvalsDashboard() {
         submitButtonText="Create project"
         isSubmitting={onboardingSubmitting || !onboardingProjectName.trim()}
       >
-        <Stack spacing={3}>
+        <Stack spacing="8px">
           <Field
             label="Project name"
             value={onboardingProjectName}
@@ -1526,69 +1493,25 @@ export default function EvalsDashboard() {
 
           {/* LLM Use Case - card selection */}
           <Box>
-            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
+            <Box sx={{ fontSize: "12px", color: "#374151", mb: "8px", fontWeight: 600 }}>
               LLM use case
             </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-              <Box
+            <Stack spacing="8px">
+              <SelectableCard
+                isSelected={onboardingProjectUseCase === "rag"}
                 onClick={() => setOnboardingProjectUseCase("rag")}
-                sx={{
-                  border: "1px solid",
-                  borderColor: onboardingProjectUseCase === "rag" ? "#13715B" : "#E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: onboardingProjectUseCase === "rag" ? "#F7F9F8" : "#FFFFFF",
-                  boxShadow: onboardingProjectUseCase === "rag" ? "0 0 0 1px #13715B" : "none",
-                  transition: "background-color 0.2s ease, border-color 0.2s ease",
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    backgroundColor: "#F7F9F8",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <FileSearch size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate retrieval-augmented generation
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
+                icon={<FileSearch size={16} color={onboardingProjectUseCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                title="RAG"
+                description="Evaluate retrieval-augmented generation"
+              />
+              <SelectableCard
+                isSelected={onboardingProjectUseCase === "chatbot"}
                 onClick={() => setOnboardingProjectUseCase("chatbot")}
-                sx={{
-                  border: "1px solid",
-                  borderColor: onboardingProjectUseCase === "chatbot" ? "#13715B" : "#E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: onboardingProjectUseCase === "chatbot" ? "#F7F9F8" : "#FFFFFF",
-                  boxShadow: onboardingProjectUseCase === "chatbot" ? "0 0 0 1px #13715B" : "none",
-                  transition: "background-color 0.2s ease, border-color 0.2s ease",
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    backgroundColor: "#F7F9F8",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Bot size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbot</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate conversational experiences
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
+                icon={<Bot size={16} color={onboardingProjectUseCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                title="Chatbot"
+                description="Evaluate conversational experiences"
+              />
+            </Stack>
           </Box>
         </Stack>
       </ModalStandard>

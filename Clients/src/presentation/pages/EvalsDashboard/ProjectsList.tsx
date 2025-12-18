@@ -9,7 +9,8 @@ import {
   Stack,
   useTheme,
 } from "@mui/material";
-import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil, Trash2, FileSearch, Bot } from "lucide-react";
+import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil, Trash2, FileSearch, Bot, MessageSquare } from "lucide-react";
+import SelectableCard from "../../components/SelectableCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
@@ -17,7 +18,6 @@ import Alert from "../../components/Alert";
 import EmptyState from "../../components/EmptyState";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import type { DeepEvalProject } from "./types";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -82,23 +82,11 @@ export default function ProjectsList() {
     return iconColors[index];
   };
 
-  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null);
-
   const loadProjects = useCallback(async () => {
     try {
       const data = await deepEvalProjectsService.getAllProjects();
-      let list = data.projects || [];
-      // If an organization is selected, filter projects strictly to that org
-      if (currentOrgId) {
-        try {
-          const ids = await deepEvalOrgsService.getProjectsForOrg(currentOrgId);
-          const byId = new Set(ids);
-          list = list.filter((p) => byId.has(p.id));
-        } catch {
-          // On any error fetching org->projects mapping, show none rather than leaking other orgs
-          list = [];
-        }
-      }
+      const list = data.projects || [];
+      // Show all projects - no org filtering needed for "All projects" view
       setProjects(list);
 
       // Fetch run counts for each project in parallel (using experiments API)
@@ -129,17 +117,10 @@ export default function ProjectsList() {
       setProjects([]);
       setRunsByProject({});
     }
-  }, [currentOrgId]);
+  }, []);
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const { org } = await deepEvalOrgsService.getCurrentOrg();
-        setCurrentOrgId(org?.id || null);
-      } catch { /* ignore */ }
-      await loadProjects();
-    };
-    void init();
+    loadProjects();
   }, [loadProjects]);
 
   const handleCreateProject = async () => {
@@ -151,7 +132,6 @@ export default function ProjectsList() {
         description: newProject.description,
         useCase: newProject.useCase,
         defaultDataset: newProject.useCase,
-        orgId: currentOrgId || undefined,
       };
 
       await deepEvalProjectsService.createProject(projectConfig);
@@ -248,14 +228,10 @@ export default function ProjectsList() {
     <>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Header with Description */}
+      {/* Header */}
       <Box sx={{ mb: 4, px: 0 }}>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px", mb: 2 }}>
-          Comprehensive LLM evaluation platform powered by LLM-as-a-Judge methodology. Create projects to organize your evaluations, configure models and judge LLMs, select datasets, and run experiments with multiple fairness and performance metrics. Each project can contain multiple evaluation runs with different configurations to help you systematically assess model behavior, detect bias, and ensure quality outputs.
-        </Typography>
-
         {/* Projects Title */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ pt: 2, pb: 2 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ pb: 2 }}>
           <Box display="flex" alignItems="center" gap={1}>
             <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
               Projects
@@ -550,7 +526,7 @@ export default function ProjectsList() {
         submitButtonText="Create project"
         isSubmitting={loading || !newProject.name}
       >
-        <Stack spacing={3}>
+        <Stack spacing="8px">
           <Field
             label="Project name"
             value={newProject.name}
@@ -561,59 +537,25 @@ export default function ProjectsList() {
 
           {/* LLM Use Case - card selection */}
           <Box>
-            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
-              LLM Use Case
+            <Box sx={{ fontSize: "12px", color: "#374151", mb: "8px", fontWeight: 600 }}>
+              LLM use case
             </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-              <Box
+            <Stack spacing="8px">
+              <SelectableCard
+                isSelected={newProject.useCase === "rag"}
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
-                sx={{
-                  border: newProject.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: "#FFFFFF",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <FileSearch size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
+                icon={<FileSearch size={16} color={newProject.useCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                title="RAG"
+                description="Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness."
+              />
+              <SelectableCard
+                isSelected={newProject.useCase === "chatbot"}
                 onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
-                sx={{
-                  border: newProject.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: "#FFFFFF",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Bot size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate conversational experiences for coherence, correctness and safety.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
+                icon={<MessageSquare size={16} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                title="Chatbots"
+                description="Evaluate conversational experiences for coherence, correctness and safety."
+              />
+            </Stack>
           </Box>
         </Stack>
       </StandardModal>

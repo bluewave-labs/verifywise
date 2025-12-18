@@ -80,14 +80,17 @@ const EUAIActStatusDropdown = ({
           cursor: disabled ? "default" : "pointer",
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
           gap: "4px",
           minWidth: "100px",
           transition: "opacity 200ms ease",
           opacity: disabled ? 0.6 : 1,
         }}
       >
-        {isUpdating && <CircularProgress size={10} sx={{ color: "#fff" }} />}
-        <span>{currentStatus || "Not started"}</span>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          {isUpdating && <CircularProgress size={10} sx={{ color: "#fff" }} />}
+          <span>{currentStatus || "Not started"}</span>
+        </Box>
         {!isUpdating && <ChevronDown size={14} />}
       </Box>
       <Popover

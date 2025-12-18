@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { TableBody, TableRow, TableCell, Chip, IconButton, Typography, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import { TableBody, TableRow, TableCell, Chip, IconButton, Typography, Popover, Stack } from "@mui/material";
 import { Trash2 as TrashIcon, RotateCcw, MoreVertical } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
+import CustomizableButton from "../../../Button/CustomizableButton";
 import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../../domain/interfaces/i.table";
 
 const StatusChip: React.FC<{
@@ -264,53 +265,78 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
         })}
       
       {/* Action Menu */}
-      <Menu
-        anchorEl={menuAnchorEl}
+      <Popover
         open={Boolean(menuAnchorEl)}
+        anchorEl={menuAnchorEl}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        PaperProps={{
-          elevation: 2,
-          sx: {
-            minWidth: 160,
-            borderRadius: "8px",
-            border: "1px solid #E5E7EB",
-            "& .MuiMenuItem-root": {
-              fontSize: "13px",
-              py: 1,
-              px: 2,
-            },
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        sx={{
+          "& .MuiPopover-paper": {
+            minWidth: 120,
+            borderRadius: "4px",
+            border: "1px solid #d0d5dd",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            overflow: "hidden",
+            mt: 0.5,
+            p: 1,
           },
         }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        {onRerun && (
-          <MenuItem
-            onClick={handleRerunClick}
-            disabled={menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"}
-          >
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <RotateCcw size={16} color="#13715B" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Rerun"
-              primaryTypographyProps={{ fontSize: "13px" }}
-            />
-          </MenuItem>
-        )}
-        {onRemoveModel && (
-          <MenuItem onClick={handleDeleteClick}>
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <TrashIcon size={16} color="#DC2626" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Delete"
-              primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }}
-            />
-          </MenuItem>
-        )}
-      </Menu>
+        <Stack spacing={1}>
+          {onRerun && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleRerunClick}
+              isDisabled={menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"}
+              startIcon={<RotateCcw size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+                "&.Mui-disabled": {
+                  color: "#9CA3AF",
+                  borderColor: "#E5E7EB",
+                },
+              }}
+            >
+              Rerun
+            </CustomizableButton>
+          )}
+          {onRemoveModel && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleDeleteClick}
+              startIcon={<TrashIcon size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#DC2626",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#FEF2F2",
+                  borderColor: "#DC2626",
+                },
+              }}
+            >
+              Delete
+            </CustomizableButton>
+          )}
+        </Stack>
+      </Popover>
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && rowToDelete && (

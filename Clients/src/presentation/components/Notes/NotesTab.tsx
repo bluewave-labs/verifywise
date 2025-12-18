@@ -283,7 +283,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
       </Stack>
 
       {/* Notes List - Display All Notes */}
-      <Stack spacing={0} sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <Stack spacing={0} sx={{ flex: 1, minHeight: 0, overflow: "visible" }}>
         <NotesList
           notes={notes}
           onEdit={handleEditNote}

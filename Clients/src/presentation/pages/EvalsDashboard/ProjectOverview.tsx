@@ -400,11 +400,10 @@ export default function ProjectOverview({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        py: 2,
                         px: 2,
                         cursor: "pointer",
                         borderBottom: index < arr.length - 1 ? "1px solid #d0d5dd" : "none",
-                        flex: "0 0 auto",
+                        flex: 1,
                         "&:hover": {
                           backgroundColor: "#F9FAFB",
                         },

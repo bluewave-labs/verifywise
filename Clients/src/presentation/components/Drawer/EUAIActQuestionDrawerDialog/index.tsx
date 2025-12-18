@@ -940,8 +940,8 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                   </Stack>
                 )}
 
-                {/* Hint Panel - Commented out */}
-                {/* {displayQuestion?.hint && (
+                {/* Hint Panel */}
+                {displayQuestion?.hint && (
                   <Stack
                     sx={{
                       border: "1px solid #d5e8d5",
@@ -960,7 +960,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                       {displayQuestion.hint}
                     </Typography>
                   </Stack>
-                )} */}
+                )}
 
                 {/* Priority & Required Badges */}
                 <Stack direction="row" gap={1} alignItems="center">

@@ -19,14 +19,12 @@ import {
   Box,
   Stack,
   TextField,
-  Button,
   Typography,
   useTheme,
 } from "@mui/material";
 import {
   Send as SendIcon,
   Save as SaveIcon,
-  X as CloseIcon,
 } from "lucide-react";
 import CustomizableButton from "../Button/CustomizableButton";
 
@@ -156,37 +154,26 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
           {/* Action Buttons */}
           <Stack
             direction="row"
-            spacing={theme.spacing(1.5)}
+            spacing={2}
             sx={{ alignItems: "center" }}
           >
           {isEditing && onCancel && (
-            <Button
+            <CustomizableButton
               variant="outlined"
-              size="small"
+              text="Cancel"
               onClick={handleCancel}
-              disabled={isLoading}
-              startIcon={<CloseIcon size={16} />}
+              isDisabled={isLoading}
               sx={{
-                textTransform: "none",
-                fontSize: 13,
-                fontWeight: 500,
-                borderColor: theme.palette.border.light,
-                color: theme.palette.text.primary,
-                padding: theme.spacing(1, 1.5),
-                transition: `all 0.2s ease-in-out`,
-                "&:hover:not(:disabled)": {
-                  borderColor: theme.palette.primary.main,
-                  backgroundColor: theme.palette.primary.main,
-                  color: theme.palette.primary.contrastText,
-                },
-                "&:disabled": {
-                  borderColor: theme.palette.border.light,
-                  color: theme.palette.text.secondary,
+                minWidth: "80px",
+                height: "34px",
+                border: "1px solid #D0D5DD",
+                color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
                 },
               }}
-            >
-              Cancel
-            </Button>
+            />
           )}
 
           {isEditing ? (
@@ -202,7 +189,7 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
                 border: "1px solid #13715B",
                 gap: 2,
                 width: "fit-content",
-                height: "36px",
+                height: "34px",
               }}
             />
           ) : (
@@ -218,7 +205,7 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
                 border: "1px solid #13715B",
                 gap: 2,
                 width: "fit-content",
-                height: "36px",
+                height: "34px",
               }}
             />
           )}

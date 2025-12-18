@@ -1,0 +1,9 @@
+{
+  "name": "Customer Support Multi-Turn",
+  "description": "Multi-turn customer support conversations covering refunds, upgrades, troubleshooting, shipping, and cancellations.",
+  "type": "multi-turn",
+  "use_case": "chatbot",
+  "tags": ["customer-support", "multi-turn", "service"],
+  "prompt_count": 5
+}
+

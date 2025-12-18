@@ -261,11 +261,11 @@ async def run_evaluation(
         builtin_value = dataset_config.get("useBuiltin")
         if not prompts and isinstance(builtin_value, str):
             name = builtin_value.strip().lower()
+            datasets_dir = evaluation_module_path / "data" / "datasets"
             preset_map = {
-                "chatbot": evaluation_module_path / "data" / "presets" / "chatbot_dataset.json",
-                "rag": evaluation_module_path / "data" / "presets" / "rag_dataset.json",
-                "agent": evaluation_module_path / "data" / "presets" / "agent_dataset.json",
-                "safety": evaluation_module_path / "data" / "presets" / "safety_dataset.json",
+                "chatbot": datasets_dir / "chatbot" / "chatbot_basic.json",
+                "rag": datasets_dir / "rag" / "rag_product_docs.json",
+                "agent": datasets_dir / "agent" / "agent_task_execution_multiturn.json",
             }
             preset_path = preset_map.get(name)
             if preset_path and preset_path.is_file():

@@ -82,8 +82,8 @@ export default function NewExperimentModal({
   const [datasetPrompts, setDatasetPrompts] = useState<DatasetPrompt[]>([]);
   const [datasetLoaded, setDatasetLoaded] = useState(false);
   // User's saved datasets (for "My datasets" option)
-  const [userDatasets, setUserDatasets] = useState<Array<{ id: string; name: string; path: string; turnType?: "single-turn" | "multi-turn" | "simulated" }>>([]);
-  const [selectedUserDataset, setSelectedUserDataset] = useState<{ id: string; name: string; path: string; turnType?: "single-turn" | "multi-turn" | "simulated" } | null>(null);
+  const [userDatasets, setUserDatasets] = useState<Array<{ id: string; name: string; path: string; promptCount: number; turnType?: "single-turn" | "multi-turn" | "simulated" }>>([]);
+  const [selectedUserDataset, setSelectedUserDataset] = useState<{ id: string; name: string; path: string; promptCount: number; turnType?: "single-turn" | "multi-turn" | "simulated" } | null>(null);
   const [loadingUserDatasets, setLoadingUserDatasets] = useState(false);
   const [uploadingDataset, setUploadingDataset] = useState(false);
   const [selectedPresetPath, setSelectedPresetPath] = useState<string>("");
@@ -307,6 +307,7 @@ export default function NewExperimentModal({
           id: String(d.id),
           name: d.name,
           path: d.path,
+          promptCount: d.promptCount ?? 0,
           turnType: d.turnType,
         }));
         setUserDatasets(datasets);
@@ -1025,8 +1026,41 @@ export default function NewExperimentModal({
                   if (!file) return;
                         try {
                           setUploadingDataset(true);
+                          // Validate file content before uploading
+                          const fileContent = await file.text();
+                          let parsedData: unknown[];
+                          try {
+                            parsedData = JSON.parse(fileContent);
+                          } catch {
+                            setAlert({ show: true, variant: "error", title: "Invalid JSON", body: "The file does not contain valid JSON" });
+                            return;
+                          }
+                          if (!Array.isArray(parsedData) || parsedData.length === 0) {
+                            setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with at least one prompt." });
+                            return;
+                          }
+                          // Count only prompts with actual content
+                          const validPromptCount = parsedData.filter((item) => {
+                            if (typeof item !== "object" || item === null) return false;
+                            const obj = item as Record<string, unknown>;
+                            // Single-turn: check if prompt field has content
+                            if (obj.prompt && typeof obj.prompt === "string" && obj.prompt.trim()) return true;
+                            // Multi-turn: check if turns array has at least one turn with content
+                            if (Array.isArray(obj.turns) && obj.turns.length > 0) {
+                              return obj.turns.some((turn) => {
+                                if (typeof turn !== "object" || turn === null) return false;
+                                const t = turn as Record<string, unknown>;
+                                return t.content && typeof t.content === "string" && t.content.trim();
+                              });
+                            }
+                            return false;
+                          }).length;
+                          if (validPromptCount === 0) {
+                            setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with prompts that have actual content." });
+                            return;
+                          }
                           const resp = await deepEvalDatasetsService.uploadDataset(file);
-                    const newDataset = { id: resp.path, name: file.name.replace(/\.json$/i, ""), path: resp.path };
+                    const newDataset = { id: resp.path, name: file.name.replace(/\.json$/i, ""), path: resp.path, promptCount: validPromptCount };
                     setUserDatasets((prev) => [newDataset, ...prev]);
                     setSelectedUserDataset(newDataset);
                     setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
@@ -1075,7 +1109,10 @@ export default function NewExperimentModal({
                     const isSelected = selectedUserDataset?.id === dataset.id && !config.dataset.useBuiltin;
                     const isMultiTurn = dataset.turnType === "multi-turn";
                     const isSimulated = dataset.turnType === "simulated";
-                    const typeChip = isMultiTurn ? (
+                    const isEmpty = dataset.promptCount === 0;
+                    const typeChip = isEmpty ? (
+                      <Chip label="Empty" backgroundColor="#FEE2E2" textColor="#DC2626" uppercase={false} />
+                    ) : isMultiTurn ? (
                       <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Multi-Turn"} backgroundColor="#E3F2FD" textColor="#1565C0" uppercase={false} />
                     ) : isSimulated ? (
                       <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Simulated"} backgroundColor="#F3E8FF" textColor="#7C3AED" uppercase={false} />
@@ -1086,7 +1123,9 @@ export default function NewExperimentModal({
                       <SelectableCard
                         key={dataset.id}
                         isSelected={isSelected}
+                        disabled={isEmpty}
                         onClick={async () => {
+                          if (isEmpty) return;
                           setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
                           setSelectedUserDataset(dataset);
                           setSelectedPresetPath("");
@@ -1098,9 +1137,9 @@ export default function NewExperimentModal({
                             setDatasetPrompts([]);
                           }
                         }}
-                        icon={<Database size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />}
+                        icon={<Database size={14} color={isEmpty ? "#DC2626" : isSelected ? "#13715B" : "#9CA3AF"} />}
                         title={dataset.name}
-                        description="Custom uploaded dataset"
+                        description={isEmpty ? "Cannot use empty dataset" : "Custom uploaded dataset"}
                         chip={typeChip}
                       />
                     );
@@ -1133,7 +1172,9 @@ export default function NewExperimentModal({
                     { name: "Document Q&A Multi-Turn", path: "rag/rag_document_qa_multiturn.json", desc: "Multi-turn document conversations", type: "multi-turn" as const },
                   ] : []),
                   ...(config.taskType === "agent" ? [
-                    { name: "Agent Tasks", path: "presets/agent_dataset.json", desc: "Tool usage and multi-step tasks", type: "single-turn" as const },
+                    { name: "Agent Planning", path: "agent/agent_planning_multiturn.json", desc: "Multi-step planning scenarios", type: "multi-turn" as const },
+                    { name: "Agent Task Execution", path: "agent/agent_task_execution_multiturn.json", desc: "Tool usage and task completion", type: "multi-turn" as const },
+                    { name: "Agent Workflow Automation", path: "agent/agent_workflow_automation_multiturn.json", desc: "Automated workflow tasks", type: "multi-turn" as const },
                   ] : []),
                 ].map((template) => {
                   const isSelected = selectedPresetPath === template.path && config.dataset.useBuiltin;

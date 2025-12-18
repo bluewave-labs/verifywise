@@ -17,6 +17,8 @@ export interface SelectableCardProps {
   chip?: React.ReactNode;
   /** Accent color for selection state (default: "#13715B") */
   accentColor?: string;
+  /** Whether the card is disabled */
+  disabled?: boolean;
 }
 
 /**
@@ -40,21 +42,23 @@ const SelectableCard = ({
   description,
   chip,
   accentColor = "#13715B",
+  disabled = false,
 }: SelectableCardProps) => (
   <Box
-    onClick={onClick}
+    onClick={disabled ? undefined : onClick}
     sx={{
       p: "8px",
       border: "1px solid",
-      borderColor: isSelected ? accentColor : "#E5E7EB",
+      borderColor: disabled ? "#E5E7EB" : isSelected ? accentColor : "#E5E7EB",
       borderRadius: "4px",
-      cursor: "pointer",
-      backgroundColor: isSelected ? (accentColor === "#6366F1" ? "#EEF2FF" : "#F0FDF4") : "#FFFFFF",
+      cursor: disabled ? "not-allowed" : "pointer",
+      backgroundColor: disabled ? "#F9FAFB" : isSelected ? (accentColor === "#6366F1" ? "#EEF2FF" : "#F0FDF4") : "#FFFFFF",
+      opacity: disabled ? 0.6 : 1,
       display: "flex",
       alignItems: "center",
       gap: "8px",
       transition: "all 0.15s ease",
-      "&:hover": {
+      "&:hover": disabled ? {} : {
         borderColor: accentColor,
         backgroundColor: isSelected ? (accentColor === "#6366F1" ? "#EEF2FF" : "#F0FDF4") : "#F9FAFB",
       },
@@ -62,11 +66,11 @@ const SelectableCard = ({
   >
     {icon}
     <Box sx={{ flex: 1 }}>
-      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>{title}</Typography>
-      <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>{description}</Typography>
+      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: disabled ? "#9CA3AF" : "#374151" }}>{title}</Typography>
+      <Typography sx={{ fontSize: "11px", color: disabled ? "#D1D5DB" : "#9CA3AF" }}>{description}</Typography>
     </Box>
     {chip}
-    {isSelected && <Check size={14} color={accentColor} />}
+    {isSelected && !disabled && <Check size={14} color={accentColor} />}
   </Box>
 );
 

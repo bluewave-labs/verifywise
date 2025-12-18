@@ -16,7 +16,7 @@ import {
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { deepEvalDatasetsService, DatasetPromptRecord, SingleTurnPrompt, isSingleTurnPrompt } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
-import { ArrowLeft, ChevronDown, Save as SaveIcon, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, Save as SaveIcon, Plus, Trash2, Download, Copy, Check } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 
 export default function DatasetEditorPage() {
@@ -28,6 +28,7 @@ export default function DatasetEditorPage() {
   const [prompts, setPrompts] = useState<DatasetPromptRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
 
   useEffect(() => {
@@ -86,6 +87,32 @@ export default function DatasetEditorPage() {
     navigate(`/evals/${projectId}#datasets`);
   };
 
+  const handleDownload = () => {
+    const json = JSON.stringify(prompts, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const slug = datasetName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "dataset";
+    a.download = `${slug}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyJson = async () => {
+    try {
+      const json = JSON.stringify(prompts, null, 2);
+      await navigator.clipboard.writeText(json);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setAlert({ variant: "error", body: "Failed to copy to clipboard" });
+      setTimeout(() => setAlert(null), 3000);
+    }
+  };
+
   const handleAddPrompt = () => {
     const newPrompt: SingleTurnPrompt = {
       id: `prompt_${Date.now()}`,
@@ -134,15 +161,41 @@ export default function DatasetEditorPage() {
             Edit dataset
           </Typography>
         </Stack>
-        <Button
-          variant="contained"
-          disabled={!isValidToSave || saving || !datasetName.trim()}
-          sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
-          startIcon={<SaveIcon size={16} />}
-          onClick={handleSave}
-        >
-          {saving ? "Saving..." : "Save copy"}
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="outlined"
+            onClick={handleCopyJson}
+            startIcon={copied ? <Check size={16} /> : <Copy size={16} />}
+            sx={{
+              color: copied ? "#059669" : "#374151",
+              borderColor: copied ? "#059669" : "#E5E7EB",
+              "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+            }}
+          >
+            {copied ? "Copied!" : "Copy JSON"}
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={handleDownload}
+            startIcon={<Download size={16} />}
+            sx={{
+              color: "#374151",
+              borderColor: "#E5E7EB",
+              "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+            }}
+          >
+            Download
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!isValidToSave || saving || !datasetName.trim()}
+            sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
+            startIcon={<SaveIcon size={16} />}
+            onClick={handleSave}
+          >
+            {saving ? "Saving..." : "Save copy"}
+          </Button>
+        </Stack>
       </Stack>
 
       {/* Dataset name input */}

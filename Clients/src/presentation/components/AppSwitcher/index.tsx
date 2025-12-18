@@ -65,10 +65,10 @@ const AppSwitcher: FC<AppSwitcherProps> = ({ activeModule, onModuleChange }) => 
             slotProps={{
               tooltip: {
                 sx: {
-                  backgroundColor: "#1a1a2e",
+                  backgroundColor: "#232340",
                   maxWidth: 220,
                   "& .MuiTooltip-arrow": {
-                    color: "#1a1a2e",
+                    color: "#232340",
                   },
                 },
               },

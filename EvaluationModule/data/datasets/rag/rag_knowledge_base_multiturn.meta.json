@@ -1,0 +1,9 @@
+{
+  "name": "Knowledge Base Multi-Turn",
+  "description": "Multi-turn conversations querying internal knowledge bases like employee handbooks and technical documentation.",
+  "type": "multi-turn",
+  "use_case": "rag",
+  "tags": ["RAG", "knowledge-base", "multi-turn", "enterprise"],
+  "prompt_count": 2
+}
+

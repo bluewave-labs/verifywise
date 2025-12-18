@@ -683,12 +683,7 @@ async def upload_deepeval_dataset_controller(
 def _safe_evalmodule_data_root() -> Path:
     root_path = Path(__file__).parent.parent.parent.parent
     evaluation_module_path = root_path / "EvaluationModule"
-    # Prefer new datasets folder; fall back to presets
-    data_root = evaluation_module_path / "data"
-    datasets_dir = data_root / "datasets"
-    if datasets_dir.exists():
-        return datasets_dir
-    return data_root / "presets"
+    return evaluation_module_path / "data" / "datasets"
 
 
 def _extract_dataset_stats(file_path: Path) -> dict:
@@ -744,7 +739,7 @@ def _load_dataset_metadata(file_path: Path) -> dict:
 async def list_deepeval_datasets_controller() -> JSONResponse:
     """
     List available built-in datasets grouped by use case.
-    Looks under EvaluationModule/data/datasets (preferred) or data/presets.
+    Looks under EvaluationModule/data/datasets.
     Includes statistics (test count, categories, difficulty) and metadata.
     """
     base = _safe_evalmodule_data_root()
@@ -755,57 +750,28 @@ async def list_deepeval_datasets_controller() -> JSONResponse:
         "safety": [],
     }
     try:
-        if (base / "chatbot").exists():
-            subdirs = ["chatbot", "rag", "agent", "safety"]
-            for sub in subdirs:
-                sd = base / sub
-                if not sd.exists():
-                    continue
-                for f in sd.glob("*.json"):
-                    # Skip metadata files
-                    if f.stem.endswith(".meta"):
-                        continue
-
-                    stats = _extract_dataset_stats(f)
-                    metadata = _load_dataset_metadata(f)
-
-                    dataset_info = {
-                        "key": f"{sub}/{f.name}",
-                        "name": f.stem.replace("_", " ").title(),
-                        "path": str(f.relative_to(base)),
-                        "use_case": sub,
-                        **stats,
-                        **metadata,
-                    }
-                    result[sub].append(dataset_info)
-        else:
-            # Flat presets folder fallback
-            for f in base.glob("*.json"):
+        subdirs = ["chatbot", "rag", "agent", "safety"]
+        for sub in subdirs:
+            sd = base / sub
+            if not sd.exists():
+                continue
+            for f in sd.glob("*.json"):
+                # Skip metadata files
                 if f.stem.endswith(".meta"):
                     continue
-
-                name = f.stem
-                use_case = "chatbot"
-                lowered = name.lower()
-                if "rag" in lowered:
-                    use_case = "rag"
-                elif "agent" in lowered:
-                    use_case = "agent"
-                elif "safety" in lowered:
-                    use_case = "safety"
 
                 stats = _extract_dataset_stats(f)
                 metadata = _load_dataset_metadata(f)
 
                 dataset_info = {
-                    "key": f.name,
-                    "name": name.replace("_", " ").title(),
+                    "key": f"{sub}/{f.name}",
+                    "name": f.stem.replace("_", " ").title(),
                     "path": str(f.relative_to(base)),
-                    "use_case": use_case,
+                    "use_case": sub,
                     **stats,
                     **metadata,
                 }
-                result[use_case].append(dataset_info)
+                result[sub].append(dataset_info)
 
         return JSONResponse(status_code=200, content={"datasets": result})
     except Exception as e:

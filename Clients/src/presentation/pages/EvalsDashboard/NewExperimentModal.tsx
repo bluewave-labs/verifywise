@@ -1133,7 +1133,9 @@ export default function NewExperimentModal({
                     { name: "Document Q&A Multi-Turn", path: "rag/rag_document_qa_multiturn.json", desc: "Multi-turn document conversations", type: "multi-turn" as const },
                   ] : []),
                   ...(config.taskType === "agent" ? [
-                    { name: "Agent Tasks", path: "presets/agent_dataset.json", desc: "Tool usage and multi-step tasks", type: "single-turn" as const },
+                    { name: "Agent Planning", path: "agent/agent_planning_multiturn.json", desc: "Multi-step planning scenarios", type: "multi-turn" as const },
+                    { name: "Agent Task Execution", path: "agent/agent_task_execution_multiturn.json", desc: "Tool usage and task completion", type: "multi-turn" as const },
+                    { name: "Agent Workflow Automation", path: "agent/agent_workflow_automation_multiturn.json", desc: "Automated workflow tasks", type: "multi-turn" as const },
                   ] : []),
                 ].map((template) => {
                   const isSelected = selectedPresetPath === template.path && config.dataset.useBuiltin;

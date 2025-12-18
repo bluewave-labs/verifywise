@@ -129,12 +129,11 @@ def build_runtime_config(
     builtin_value = dataset_cfg.get("use_builtin", True)
     builtin_name: str | None = None
     builtin_path: str | None = None
-    # Map built-in dataset names to preset files
+    # Map built-in dataset names to dataset files
     preset_map = {
-        "chatbot": "data/presets/chatbot_dataset.json",
-        "rag": "data/presets/rag_dataset.json",
-        "agent": "data/presets/agent_dataset.json",
-        "safety": "data/presets/safety_dataset.json",
+        "chatbot": "data/datasets/chatbot/chatbot_basic.json",
+        "rag": "data/datasets/rag/rag_product_docs.json",
+        "agent": "data/datasets/agent/agent_task_execution_multiturn.json",
     }
     if isinstance(builtin_value, str):
         builtin_name = builtin_value.strip().lower()

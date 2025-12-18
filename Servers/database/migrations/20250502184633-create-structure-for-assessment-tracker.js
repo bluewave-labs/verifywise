@@ -106,7 +106,8 @@ module.exports = {
       const { topics, subTopics, questions } = getAssessmentTrackerStruct();
       const topicsStructInsert = topics
         .map((topic) => {
-          return `('${topic.title}', ${topic.order_no}, ${1})`;
+          const escapedTitle = topic.title.replace(/'/g, "''");
+          return `('${escapedTitle}', ${topic.order_no}, ${1})`;
         })
         .join(", ");
       const topicsStruct = await queryInterface.sequelize.query(
@@ -115,7 +116,8 @@ module.exports = {
       );
 
       let subTopicsStructInsert = subTopics.map((subTopic) => {
-        return `('${subTopic.title}', ${subTopic.order_no}`;
+        const escapedTitle = subTopic.title.replace(/'/g, "''");
+        return `('${escapedTitle}', ${subTopic.order_no}`;
       });
       let tCtr = 0;
       let stCtr1 = 0;
@@ -136,7 +138,9 @@ module.exports = {
       );
 
       let questionsStructInsert = questions.map((question) => {
-        return `('${question.question}', '${question.hint}', '${question.priority_level}', '${question.answer_type}', '${question.input_type}', ${question.evidence_required}, ${question.is_required}`;
+        const escapedQuestion = question.question.replace(/'/g, "''");
+        const escapedHint = question.hint.replace(/'/g, "''");
+        return `('${escapedQuestion}', '${escapedHint}', '${question.priority_level}', '${question.answer_type}', '${question.input_type}', ${question.evidence_required}, ${question.is_required}`;
       });
       let stCtr2 = 0;
       let qCtr = 0;

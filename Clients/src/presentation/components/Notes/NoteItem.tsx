@@ -14,7 +14,7 @@
  * @module components/Notes
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Stack,
@@ -34,6 +34,7 @@ import {
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import ConfirmationModal from "../Dialogs/ConfirmationModal";
+import { useProfilePhotoFetch } from "../../../application/hooks/useProfilePhotoFetch";
 
 dayjs.extend(relativeTime);
 
@@ -68,6 +69,34 @@ const NoteItem: React.FC<NoteItemProps> = ({
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
+  const { fetchProfilePhotoAsBlobUrl } = useProfilePhotoFetch();
+
+  // Fetch author's profile photo
+  useEffect(() => {
+    let cancel = false;
+    let previousUrl: string | null = null;
+
+    (async () => {
+      if (!note.author_id) return;
+
+      const url = await fetchProfilePhotoAsBlobUrl(note.author_id);
+      if (cancel) {
+        if (url) URL.revokeObjectURL(url);
+        return;
+      }
+      if (previousUrl && previousUrl !== url) {
+        URL.revokeObjectURL(previousUrl);
+      }
+      previousUrl = url ?? null;
+      setAvatarUrl(url ?? "");
+    })();
+
+    return () => {
+      cancel = true;
+      if (previousUrl) URL.revokeObjectURL(previousUrl);
+    };
+  }, [note.author_id, fetchProfilePhotoAsBlobUrl]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -101,6 +130,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
     ? {
         firstname: note.author.name,
         lastname: note.author.surname,
+        pathToImage: avatarUrl || undefined,
       }
     : undefined;
 

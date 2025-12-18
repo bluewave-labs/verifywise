@@ -19,6 +19,7 @@ import {
   TextField,
 } from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
+import Alert from "../../components/Alert";
 import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw } from "lucide-react";
 import DOMPurify from "dompurify";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
@@ -150,7 +151,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     setEditedDescription("");
   };
 
-  const [rerunSuccess, setRerunSuccess] = useState<string | null>(null);
+  const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
 
   const handleRerunExperiment = async () => {
     if (!experiment || !projectId) return;
@@ -158,7 +159,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
     try {
       setRerunLoading(true);
-      setRerunSuccess(null);
+      setAlert(null);
       const baseConfig = (experiment as unknown as { config?: Record<string, Record<string, unknown>> }).config || {};
       const nextName = `${experiment.name || "Eval"} (rerun ${new Date().toLocaleDateString()})`;
 
@@ -175,14 +176,13 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
       const response = await experimentsService.createExperiment(payload);
 
       if (response?.experiment?.id) {
-        // Don't navigate immediately - show success message and let user go back
-        setRerunSuccess(`Rerun started: "${nextName}". View it in the experiments list.`);
-        // Auto-clear after 5 seconds
-        setTimeout(() => setRerunSuccess(null), 5000);
+        setAlert({ variant: "success", body: `Rerun started: "${nextName}"` });
+        setTimeout(() => setAlert(null), 5000);
       }
     } catch (err) {
       console.error("Failed to rerun experiment:", err);
-      setRerunSuccess(null);
+      setAlert({ variant: "error", body: "Failed to start rerun" });
+      setTimeout(() => setAlert(null), 5000);
     } finally {
       setRerunLoading(false);
     }
@@ -237,6 +237,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
   return (
     <Box>
+      {alert && <Alert variant={alert.variant} body={alert.body} isToast onClick={() => setAlert(null)} />}
+
       {/* Back button */}
       <Box sx={{ mb: 2 }}>
         <Typography
@@ -353,23 +355,6 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
             >
               {rerunLoading ? "Starting…" : "Rerun"}
             </CustomizableButton>
-            {rerunSuccess && (
-              <Chip
-                label={rerunSuccess}
-                size="small"
-                onDelete={() => setRerunSuccess(null)}
-                sx={{
-                  backgroundColor: "#D1FAE5",
-                  color: "#065F46",
-                  fontSize: "12px",
-                  borderRadius: "6px",
-                  "& .MuiChip-deleteIcon": {
-                    color: "#065F46",
-                    "&:hover": { color: "#047857" },
-                  },
-                }}
-              />
-            )}
           </Stack>
         </Box>
 

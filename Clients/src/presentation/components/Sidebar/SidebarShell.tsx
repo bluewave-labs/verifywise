@@ -226,21 +226,21 @@ const SidebarShell: FC<SidebarShellProps> = ({
               display: collapsed ? "none" : "block",
             },
             background: isActive && !isDisabled
-              ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+              ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
               : "transparent",
             border: isActive && !isDisabled
-              ? "1px solid #D8D8D8"
+              ? "1px solid #E8E8E8"
               : "1px solid transparent",
             "&:hover": {
               background: isDisabled
                 ? "transparent"
                 : isActive
-                ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
-                : "#F9F9F9",
+                ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
+                : "#FAFAFA",
               border: isDisabled
                 ? "1px solid transparent"
                 : isActive
-                ? "1px solid #D8D8D8"
+                ? "1px solid #E8E8E8"
                 : "1px solid transparent",
             },
             "&:hover svg": isDisabled ? {} : {
@@ -348,7 +348,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
         border: "none",
         borderRight: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
         borderRadius: 0,
-        backgroundColor: "#FAFBFC",
+        backgroundColor: theme.palette.background.main,
         transition: "width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), min-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), max-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77)",
       }}
     >

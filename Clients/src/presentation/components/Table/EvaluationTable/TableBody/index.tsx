@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TableBody, TableRow, TableCell, Chip, IconButton, Typography, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import { TableBody, TableRow, TableCell, Chip, IconButton, Typography, Popover, Box } from "@mui/material";
 import { Trash2 as TrashIcon, RotateCcw, MoreVertical } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
@@ -264,53 +264,89 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
         })}
       
       {/* Action Menu */}
-      <Menu
-        anchorEl={menuAnchorEl}
+      <Popover
         open={Boolean(menuAnchorEl)}
+        anchorEl={menuAnchorEl}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        PaperProps={{
-          elevation: 2,
-          sx: {
-            minWidth: 160,
-            borderRadius: "8px",
-            border: "1px solid #E5E7EB",
-            "& .MuiMenuItem-root": {
-              fontSize: "13px",
-              py: 1,
-              px: 2,
-            },
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        sx={{
+          "& .MuiPopover-paper": {
+            minWidth: 140,
+            borderRadius: "4px",
+            border: "1px solid #d0d5dd",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            overflow: "hidden",
+            mt: 0.5,
           },
         }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        {onRerun && (
-          <MenuItem
-            onClick={handleRerunClick}
-            disabled={menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"}
-          >
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <RotateCcw size={16} color="#13715B" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Rerun"
-              primaryTypographyProps={{ fontSize: "13px" }}
-            />
-          </MenuItem>
-        )}
-        {onRemoveModel && (
-          <MenuItem onClick={handleDeleteClick}>
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <TrashIcon size={16} color="#DC2626" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Delete"
-              primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }}
-            />
-          </MenuItem>
-        )}
-      </Menu>
+        <Box sx={{ py: 0.5 }}>
+          {onRerun && (
+            <Box
+              onClick={handleRerunClick}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                px: 2,
+                py: 1,
+                mx: 0.5,
+                my: 0.25,
+                borderRadius: "4px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"
+                  ? "#9CA3AF"
+                  : "#374151",
+                cursor: menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"
+                  ? "not-allowed"
+                  : "pointer",
+                opacity: menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"
+                  ? 0.6
+                  : 1,
+                transition: "background-color 0.15s ease, color 0.15s ease",
+                "&:hover": menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"
+                  ? {}
+                  : {
+                      backgroundColor: "#F0FDF4",
+                      color: "#13715B",
+                    },
+              }}
+            >
+              <RotateCcw size={14} />
+              Rerun
+            </Box>
+          )}
+          {onRemoveModel && (
+            <Box
+              onClick={handleDeleteClick}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                px: 2,
+                py: 1,
+                mx: 0.5,
+                my: 0.25,
+                borderRadius: "4px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#DC2626",
+                cursor: "pointer",
+                transition: "background-color 0.15s ease",
+                "&:hover": {
+                  backgroundColor: "#FEF2F2",
+                },
+              }}
+            >
+              <TrashIcon size={14} />
+              Delete
+            </Box>
+          )}
+        </Box>
+      </Popover>
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && rowToDelete && (

@@ -29,6 +29,7 @@ services:
       - DO_SPACES_SECRET=$DO_SPACES_SECRET
       - LOG_DO_PREFIX=$LOG_DO_PREFIX
       - LOG_COMPRESSION_ENABLED=$LOG_COMPRESSION_ENABLED
+      - ENCRYPTION_KEY=$ENCRYPTION_KEY
     restart: unless-stopped
     networks:
       - verifywise_network
@@ -56,6 +57,7 @@ services:
       - DB_NAME=$DB_NAME
       - JWT_SECRET=$JWT_SECRET
       - REDIS_URL=redis://redis:6379/0
+      - ENCRYPTION_KEY=$ENCRYPTION_KEY
     restart: unless-stopped
     networks:
       - verifywise_network

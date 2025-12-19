@@ -95,7 +95,8 @@ jobs:
       - name: Build and push EvalServer image
         uses: docker/build-push-action@v4
         with:
-          context: ./EvalServer
+          context: .
+          file: ./EvalServer/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |

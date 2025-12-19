@@ -1,0 +1,44 @@
+# Virtual environments (these caused the 1.3GB bloat)
+**/venv/
+**/.venv/
+**/ENV/
+**/env/
+
+# Python cache
+**/__pycache__/
+**/*.py[cod]
+**/*.pyo
+**/*.pyd
+**/.Python
+**/*.so
+**/*.egg-info/
+**/*.egg
+**/.eggs/
+
+# Node
+**/node_modules/
+**/.next/
+
+# Git
+.git/
+
+# IDE
+.idea/
+.vscode/
+**/*.swp
+**/*.swo
+
+# Logs and test artifacts
+**/*.log
+**/logs/
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+**/.tox/
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+
+# Local environment files
+**/.env.local

@@ -44,7 +44,7 @@ export const useUserFilesMetaData = () => {
           return;
         }
         setError(
-          error instanceof Error ? error : new Error("Unknown error occurred"),
+          error instanceof Error ? error : new Error("Unknown error occurred")
         );
         setFilesData([]);
       } finally {

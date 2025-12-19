@@ -131,7 +131,7 @@ export const countSubcategoryAssignmentsNISTByProjectId = async (
  * Get all functions with their categories
  */
 export const getAllFunctionsWithCategoriesQuery = async (
-  projectFrameworkId: number,
+  _projectFrameworkId: number,
   tenant: string,
   transaction: Transaction | null = null
 ) => {
@@ -265,8 +265,8 @@ export const createNISTAI_RMFFrameworkQuery = async (
  */
 export const createNewSubcategoriesQuery = async (
   projectFrameworkId: number,
-  enable_ai_data_insertion: boolean,
-  demoSubcategories: Array<{
+  _enable_ai_data_insertion: boolean,
+  _demoSubcategories: Array<{
     description: string;
   }>,
   tenant: string,
@@ -283,7 +283,12 @@ export const createNewSubcategoriesQuery = async (
       type: QueryTypes.SELECT,
       transaction,
     }
-  )) as Array<{ id: number; title: string; index: number; function_id: number }>;
+  )) as Array<{
+    id: number;
+    title: string;
+    index: number;
+    function_id: number;
+  }>;
 
   let categoryIndex = 0;
 
@@ -304,7 +309,9 @@ export const createNewSubcategoriesQuery = async (
               subcategory_meta_id: subcategoryMetaId,
               projects_frameworks_id: projectFrameworkId,
               index: subcategory.index,
-              title: subcategory.title || `${func.type}.${category.index}.${subcategory.index}`,
+              title:
+                subcategory.title ||
+                `${func.type}.${category.index}.${subcategory.index}`,
               description: subcategory.description, // Use description from structure
               category_id: currentCategory.id,
               status: is_mock_data
@@ -467,7 +474,7 @@ export const deleteProjectFrameworkNISTQuery = async (
 
   // Check if the project has a NIST AI RMF framework before trying to delete subcategories
   if (projectFrameworkId && projectFrameworkId.length > 0) {
-    const subcategoriesDeleted = await deleteSubcategoriesNISTByProjectIdQuery(
+    await deleteSubcategoriesNISTByProjectIdQuery(
       projectFrameworkId[0].id,
       tenant,
       transaction

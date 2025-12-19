@@ -25,7 +25,7 @@ import {
 } from "@mui/material";
 import "./index.css";
 import { ChevronDown } from "lucide-react";
-import { SelectProps } from "../../../../domain/interfaces/iWidget";
+import { SelectProps } from "../../../../domain/interfaces/i.widget";
 import { getSelectStyles } from "../../../utils/inputStyles";
 
 const Select: React.FC<SelectProps> = ({
@@ -48,7 +48,7 @@ const Select: React.FC<SelectProps> = ({
     fontSize: "var(--env-var-font-size-medium)",
     color: theme.palette.text.tertiary,
     borderRadius: theme.shape.borderRadius,
-    margin: theme.spacing(2),
+    margin: "4px 8px",
   };
 
   // Extract width, flexGrow, minWidth, maxWidth from sx prop to apply to wrapper Stack

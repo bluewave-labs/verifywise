@@ -1,0 +1,27 @@
+/* CollectionPage styles - hover states */
+
+/* Back link hover */
+.back-link {
+  transition: color 150ms ease;
+}
+
+.back-link:hover {
+  color: #13715B;
+}
+
+/* Article row hover */
+.article-row {
+  transition: all 150ms ease;
+}
+
+.article-row:hover {
+  background-color: #f9fafb;
+}
+
+.article-row .arrow-icon {
+  transition: all 150ms ease;
+}
+
+.article-row:hover .arrow-icon {
+  color: #13715B;
+}

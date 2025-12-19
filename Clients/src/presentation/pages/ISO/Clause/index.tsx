@@ -16,7 +16,7 @@ import { ClauseStructISO } from "../../../../domain/types/ClauseStructISO";
 import { SubClauseISO } from "../../../../domain/types/SubClauseISO";
 import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO";
 import Alert from "../../../components/Alert";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";
@@ -24,7 +24,7 @@ import StatsCard from "../../../components/Cards/StatsCard";
 import { useSearchParams } from "react-router-dom";
 
 const ISO42001Clauses = ({
-  project,
+  project: _project,
   projectFrameworkId,
   statusFilter,
 }: {
@@ -47,7 +47,7 @@ const ISO42001Clauses = ({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [_selectedIndex, setSelectedIndex] = useState<number>(0);
   const [clauseProgress, setClauseProgress] = useState<{
     totalSubclauses: number;
     doneSubclauses: number;
@@ -271,7 +271,11 @@ const ISO42001Clauses = ({
               <AccordionSummary sx={styles.accordionSummary}>
                 <ChevronRight
                   size={16}
-                  style={styles.expandIcon(expanded === clause.id) as React.CSSProperties}
+                  style={
+                    styles.expandIcon(
+                      expanded === clause.id
+                    ) as React.CSSProperties
+                  }
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.title}
@@ -290,14 +294,12 @@ const ISO42001Clauses = ({
             }
             handleDrawerClose();
           }}
-          subClause={selectedSubClause}
+          subclause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={projectFrameworkId}
-          project_id={project.id}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedSubClause?.id)
           }
-          index={selectedIndex}
         />
       )}
     </Stack>

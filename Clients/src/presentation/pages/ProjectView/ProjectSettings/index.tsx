@@ -24,7 +24,7 @@ import Select from "../../../components/Inputs/Select";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import {
   assignFrameworkToProject,
   deleteEntityById,
@@ -974,7 +974,7 @@ const ProjectSettings = React.memo(
                     isRequired
                   />
                   {isChangeOwnerModalOpen && (
-                    <DualButtonModal
+                    <ConfirmationModal
                       title="Confirm owner change"
                       body={
                         <Typography fontSize={13}>
@@ -1513,7 +1513,7 @@ const ProjectSettings = React.memo(
         )}
 
         {isDeleteModalOpen && (
-          <DualButtonModal
+          <ConfirmationModal
             title="Confirm delete"
             body={
               <Typography fontSize={13}>
@@ -1531,7 +1531,7 @@ const ProjectSettings = React.memo(
         )}
 
         {isFrameworkRemoveModalOpen && (
-          <DualButtonModal
+          <ConfirmationModal
             title="Confirm framework removal"
             body={
               <Typography fontSize={13}>

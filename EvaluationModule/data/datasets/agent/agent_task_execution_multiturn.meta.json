@@ -1,0 +1,9 @@
+{
+  "name": "Task Execution Multi-Turn",
+  "description": "Multi-turn agent conversations involving complex task execution with multiple tool usage.",
+  "type": "multi-turn",
+  "use_case": "agent",
+  "tags": ["agent", "multi-turn", "tool-use", "task-execution"],
+  "prompt_count": 3
+}
+

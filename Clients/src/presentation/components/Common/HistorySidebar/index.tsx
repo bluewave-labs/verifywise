@@ -30,6 +30,7 @@ interface HistorySidebarProps {
   isOpen: boolean;
   entityType: EntityType;
   entityId?: number;
+  height?: string | number;
 }
 
 /**
@@ -80,6 +81,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   isOpen,
   entityType,
   entityId,
+  height = "auto",
 }) => {
   const theme = useTheme();
   const { userId: currentUserId } = useAuth();
@@ -455,29 +457,31 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       orientation="horizontal"
       timeout={300}
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignSelf: "flex-start",
+        position: "fixed",
+        right: 16,
+        top: 180,
+        zIndex: 1000,
       }}
     >
       <Box
         sx={{
           width: "320px",
-          marginLeft: "16px", // 16px padding from main content
+          height: height,
           display: "flex",
           flexDirection: "column",
-          alignSelf: "flex-start",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
         }}
       >
         <Box
           sx={{
-            height: "560px",
-            border: `1px solid #E0E4E9`,
-            borderRadius: "8px",
+            flex: 1,
+            border: `1px solid #d0d5dd`,
+            borderRadius: "4px",
             display: "flex",
             flexDirection: "column",
             background: "linear-gradient(180deg, #FAFBFC 0%, #F8FAFB 100%)",
             overflow: "hidden",
+            maxHeight: "450px",
           }}
         >
           {/* Header */}

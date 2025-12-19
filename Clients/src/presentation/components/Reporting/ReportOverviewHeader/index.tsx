@@ -1,15 +1,18 @@
 import React from "react";
 import HelperIcon from "../../HelperIcon";
 import PageHeader from "../../Layout/PageHeader";
-import { IHeaderProps } from "../../../../domain/interfaces/iWidget";
 
-const ReportingHeader: React.FC<IHeaderProps> = ({ onHelperClick }) => {
+interface ReportingHeaderProps {
+  articlePath?: string;
+}
+
+const ReportingHeader: React.FC<ReportingHeaderProps> = ({ articlePath }) => {
   return (
     <PageHeader
       title="Reporting"
       description="Want a report? We'll create one using the info from your Compliance, Assessment, and Vendor/Risk sections."
       rightContent={
-        onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />
+        articlePath && <HelperIcon articlePath={articlePath} size="small" />
       }
     />
   );

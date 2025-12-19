@@ -19,9 +19,11 @@ import { getAssessmentTopicById } from "../repository/assesment.repository";
 const useAssessmentSubtopics = ({
   activeAssessmentTopicId,
   projectFrameworkId,
+  refreshKey,
 }: {
   activeAssessmentTopicId: number | undefined;
   projectFrameworkId?: number;
+  refreshKey?: boolean;
 }) => {
   const [assessmentSubtopics, setAssessmentSubtopics] = useState<Subtopic[]>(
     []
@@ -35,7 +37,7 @@ const useAssessmentSubtopics = ({
 
       setLoading(true);
       try {
-       const response = await getAssessmentTopicById({
+        const response = await getAssessmentTopicById({
           topicId: activeAssessmentTopicId,
           projectFrameworkId,
           signal,
@@ -49,14 +51,18 @@ const useAssessmentSubtopics = ({
         } else {
           setAssessmentSubtopics([]);
         }
-      } catch (error) {
+      } catch (error: any) {
+        // Ignore abort errors (caused by React StrictMode or component unmount)
+        if (error?.message === "canceled" || error?.name === "AbortError") {
+          return;
+        }
         console.error("Failed to fetch subtopics data:", error);
         setAssessmentSubtopics([]);
       } finally {
         setLoading(false);
       }
     },
-    [activeAssessmentTopicId]
+    [activeAssessmentTopicId, projectFrameworkId, refreshKey]
   );
   useEffect(() => {
     const controller = new AbortController();

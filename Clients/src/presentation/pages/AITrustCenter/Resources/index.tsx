@@ -34,7 +34,7 @@ import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverview";
 import { useTheme } from "@mui/material/styles";
 import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
-import { Resource } from "../../../../domain/interfaces/iAITrustCenter";
+import { Resource } from "../../../../domain/interfaces/i.aiTrustCenter";
 import { GroupBy } from "../../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../../components/Table/GroupedTableView";

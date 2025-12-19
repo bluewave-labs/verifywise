@@ -3,7 +3,7 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { APIError } from "../tools/error";
 import { PolicyManagerModel } from "../../domain/models/Common/policy/policyManager.model";
-import { PolicyInput } from "../../domain/interfaces/IPolicy";
+import { PolicyInput } from "../../domain/interfaces/i.policy";
 
 function extractData<T>(response: { data: { data: T } }): T {
   return response.data.data;

@@ -4,7 +4,7 @@ import { TableRow, TableCell } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import useUsers from "../../../application/hooks/useUsers";
-import { PolicyTableProps } from "../../../domain/interfaces/IPolicy";
+import { PolicyTableProps } from "../../../domain/interfaces/i.policy";
 import Chip from "../Chip";
 
 const tableHeaders = [
@@ -23,6 +23,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
   data,
   onOpen,
   onDelete,
+  onLinkedObjects,
   isLoading,
   error,
   onRefresh,
@@ -175,10 +176,13 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
                   onEdit={() => {
                     onOpen(policy.id);
                   }}
+                  onLinkedObjects={() => {
+                    onLinkedObjects(policy.id);
+                  }}
                   onMouseEvent={() => {}}
                   warningTitle="Delete this policy?"
                   warningMessage="When you delete this policy, all data related to it will be removed. This action is non-recoverable."
-                  type=""
+                  type="Policy"
                 />
               </div>
             </TableCell>

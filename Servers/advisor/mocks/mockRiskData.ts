@@ -1,5 +1,5 @@
 import { IRisk } from "../../domain.layer/interfaces/I.risk";
-import { TimeseriesDataPoint } from "../functions";
+import { TimeseriesDataPoint } from "../functions/riskFunctions";
 
 /**
  * Comprehensive mock risk data for testing

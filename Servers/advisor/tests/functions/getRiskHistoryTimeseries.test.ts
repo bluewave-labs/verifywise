@@ -7,12 +7,17 @@ import {
   jest
 } from '@jest/globals';
 import * as riskHistoryUtils from "../../../utils/history/riskHistory.utils";
-import { availableTools } from "../../functions";
+import { availableRiskTools } from "../../functions/riskFunctions";
+import { availableModelInventoryTools } from "../../functions/modelInventoryFunctions";
 import {
   mockTimeseriesData,
 } from "../../mocks/mockRiskData";
 import { createMockTenant } from '../../mocks/mockTenant';
 
+const availableTools = {
+  ...availableRiskTools,
+  ...availableModelInventoryTools,
+};
 
 // Mock the utility modules
 jest.mock("../../../utils/history/riskHistory.utils");

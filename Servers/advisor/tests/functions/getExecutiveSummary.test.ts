@@ -6,7 +6,8 @@ import {
   it, 
   jest} from '@jest/globals';
 import * as riskUtils from "../../../utils/risk.utils";
-import { availableTools } from "../../functions";
+import { availableRiskTools } from "../../functions/riskFunctions";
+import { availableModelInventoryTools } from "../../functions/modelInventoryFunctions";
 import {
   mockRisks,
   mockEmptyRisks,
@@ -14,6 +15,10 @@ import {
 } from "../../mocks/mockRiskData";
 import { createMockTenant } from '../../mocks/mockTenant';
 
+const availableTools = {
+  ...availableRiskTools,
+  ...availableModelInventoryTools,
+};
 
 // Mock the utility modules
 jest.mock("../../../utils/risk.utils");

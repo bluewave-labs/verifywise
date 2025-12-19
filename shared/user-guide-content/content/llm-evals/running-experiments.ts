@@ -71,7 +71,7 @@ export const runningExperimentsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The dataset determines what prompts your model will receive. This is where you define the test cases that will reveal how well your model handles different scenarios.',
+      text: 'The dataset determines what prompts your model will receive. This is where you define the test cases that will reveal how well your model handles different scenarios. For more on creating and customizing datasets, see [[Managing datasets]](llm-evals/managing-datasets).',
     },
     {
       type: 'paragraph',
@@ -176,7 +176,31 @@ export const runningExperimentsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Finally, choose which aspects of the responses to evaluate. All metrics are enabled by default—uncheck any that don\'t apply to your use case.',
+      text: 'The metrics available depend on your use case and dataset type. The wizard automatically shows relevant metrics based on your selections, so you\'re not overwhelmed with options that don\'t apply.',
+    },
+    {
+      type: 'heading',
+      id: 'use-case-metrics',
+      level: 3,
+      text: 'Metrics by use case',
+    },
+    {
+      type: 'paragraph',
+      text: 'Different use cases benefit from different evaluation approaches:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Chatbot', text: 'For conversational AI. Single-turn datasets show core metrics (relevancy, bias, toxicity). Multi-turn datasets unlock conversational metrics like turn relevancy, knowledge retention, coherence, helpfulness, task completion, and conversation safety.' },
+        { bold: 'RAG', text: 'For retrieval-augmented generation. Core metrics plus faithfulness (does it stick to the context?), hallucination detection, and contextual relevancy (was the right context retrieved?).' },
+        { bold: 'Agent', text: 'For AI assistants that take actions. Core metrics plus agent-specific evaluations for tool use, multi-step reasoning, and task execution.' },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'core-metrics',
+      level: 3,
+      text: 'Core metrics (all use cases)',
     },
     {
       type: 'bullet-list',
@@ -184,15 +208,47 @@ export const runningExperimentsContent: ArticleContent = {
         { bold: 'Answer relevancy', text: 'Does the response actually address the question? A model that gives accurate but off-topic answers scores low here.' },
         { bold: 'Bias detection', text: 'Flags responses containing gender, racial, political, or other forms of bias. Essential for user-facing applications.' },
         { bold: 'Toxicity detection', text: 'Catches harmful, offensive, or inappropriate language. Turn this on for any model that interacts with users.' },
-        { bold: 'Faithfulness', text: 'When given context (like in RAG), does the model stick to that context or make things up? Critical for knowledge-based applications.' },
-        { bold: 'Hallucination detection', text: 'Identifies fabricated facts or unsupported claims. Even without explicit context, this catches models that confidently state false information.' },
-        { bold: 'Contextual relevancy', text: 'For RAG systems: is the retrieved context actually relevant to the question? Poor retrieval means poor answers.' },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'conversational-metrics',
+      level: 3,
+      text: 'Conversational metrics (multi-turn chatbots)',
+    },
+    {
+      type: 'paragraph',
+      text: 'When you select a multi-turn dataset for chatbot evaluation, you\'ll see an expandable "Conversational metrics" accordion with these additional options:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Turn relevancy', text: 'Does each response address the user\'s current message in context?' },
+        { bold: 'Knowledge retention', text: 'Does the model remember information from earlier in the conversation?' },
+        { bold: 'Conversation coherence', text: 'Does the conversation flow logically without contradictions?' },
+        { bold: 'Conversation helpfulness', text: 'Are responses actually useful for the user\'s goals?' },
+        { bold: 'Task completion', text: 'Does the conversation successfully complete the user\'s intended task?' },
+        { bold: 'Conversation safety', text: 'Is the conversation safe across all turns, even under manipulation?' },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'rag-metrics',
+      level: 3,
+      text: 'RAG-specific metrics',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Faithfulness', text: 'When given context, does the model stick to that context or make things up?' },
+        { bold: 'Hallucination detection', text: 'Identifies fabricated facts or unsupported claims.' },
+        { bold: 'Contextual relevancy', text: 'Is the retrieved context actually relevant to the question?' },
       ],
     },
     {
       type: 'callout',
-      variant: 'tip',
-      text: 'Running a simple Q&A bot? You might only need answer relevancy and toxicity. Building a research assistant? Add faithfulness and hallucination detection. Match metrics to what matters for your specific application.',
+      variant: 'info',
+      text: 'A "Multi-turn dataset detected" indicator appears when you select a conversational dataset, letting you know that additional metrics are available.',
     },
     {
       type: 'heading',
@@ -229,6 +285,20 @@ export const runningExperimentsContent: ArticleContent = {
     },
     {
       type: 'heading',
+      id: 'multi-turn-results',
+      level: 3,
+      text: 'Viewing multi-turn results',
+    },
+    {
+      type: 'paragraph',
+      text: 'Multi-turn experiments display results in a chat-style interface that mirrors actual conversation flow. Each turn shows the user message followed by the model\'s generated response, with color-coded indicators for different speakers.',
+    },
+    {
+      type: 'paragraph',
+      text: 'This format makes it easy to trace how a conversation evolved and identify exactly where the model\'s performance changed. You can see per-turn bias and toxicity scores alongside each response, highlighting problematic outputs as they occur in context.',
+    },
+    {
+      type: 'heading',
       id: 'tracking-progress',
       level: 2,
       text: 'Tracking progress over time',
@@ -240,6 +310,14 @@ export const runningExperimentsContent: ArticleContent = {
     {
       type: 'paragraph',
       text: 'Name your experiments descriptively (include the date, model version, or what you changed) so the chart tells a clear story.',
+    },
+    {
+      type: 'article-links',
+      title: 'Related articles',
+      items: [
+        { collectionId: 'llm-evals', articleId: 'managing-datasets', title: 'Managing datasets', description: 'Learn how to create and customize evaluation datasets' },
+        { collectionId: 'llm-evals', articleId: 'configuring-scorers', title: 'Configuring scorers', description: 'Set up metrics and conversational evaluation' },
+      ],
     },
   ],
 };

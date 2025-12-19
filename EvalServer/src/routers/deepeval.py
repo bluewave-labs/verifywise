@@ -39,7 +39,7 @@ async def create_deepeval_evaluation(
 ):
     """
     Create and run a DeepEval evaluation.
-    
+
     Request body:
     {
         "model": {
@@ -68,7 +68,8 @@ async def create_deepeval_evaluation(
             "answer_relevancy": 0.5,
             "bias": 0.5,
             "toxicity": 0.5
-        }
+        },
+        "selectedScorers": ["scorer_id_1", "scorer_id_2"]  // optional - if not specified, all enabled scorers will run
     }
     """
     return await create_deepeval_evaluation_controller(
@@ -219,6 +220,7 @@ async def upload_dataset(
     request: Request, 
     dataset: UploadFile = File(...),
     dataset_type: str = Form("chatbot"),
+    turn_type: str = Form("single-turn"),
 ):
     """
     Upload a custom JSON dataset to be used in evaluations.
@@ -230,13 +232,15 @@ async def upload_dataset(
         "filename": "{filename}.json",
         "size": 12345,
         "tenant": "default",
-        "datasetType": "chatbot"
+        "datasetType": "chatbot",
+        "turnType": "single-turn"
     }
     """
     return await upload_deepeval_dataset_controller(
         dataset=dataset,
         tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")),
         dataset_type=dataset_type,
+        turn_type=turn_type,
     )
 
 @router.get("/datasets/list")

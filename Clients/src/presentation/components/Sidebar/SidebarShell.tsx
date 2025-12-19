@@ -10,14 +10,13 @@ import {
   Tooltip,
   Typography,
   Chip,
-  Menu,
-  MenuItem,
+  Popover,
 } from "@mui/material";
 import { useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
 import { Link as MuiLink } from "@mui/material";
-import { PanelLeftClose, PanelLeftOpen, Heart, ChevronDown, FolderKanban, Plus } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, Heart, ChevronDown, FolderKanban, Plus, LayoutGrid } from "lucide-react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import Logo from "../../assets/imgs/logo.png";
@@ -37,6 +36,7 @@ export interface SidebarMenuItem {
   disabled?: boolean;
   highlightPaths?: string[];
   onClick?: () => void;
+  dividerAfter?: boolean;
 }
 
 export interface SidebarMenuGroup {
@@ -226,21 +226,21 @@ const SidebarShell: FC<SidebarShellProps> = ({
               display: collapsed ? "none" : "block",
             },
             background: isActive && !isDisabled
-              ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+              ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
               : "transparent",
             border: isActive && !isDisabled
-              ? "1px solid #D8D8D8"
+              ? "1px solid #E8E8E8"
               : "1px solid transparent",
             "&:hover": {
               background: isDisabled
                 ? "transparent"
                 : isActive
-                ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
-                : "#F9F9F9",
+                ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
+                : "#FAFAFA",
               border: isDisabled
                 ? "1px solid transparent"
                 : isActive
-                ? "1px solid #D8D8D8"
+                ? "1px solid #E8E8E8"
                 : "1px solid transparent",
             },
             "&:hover svg": isDisabled ? {} : {
@@ -495,27 +495,25 @@ const SidebarShell: FC<SidebarShellProps> = ({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1.5,
-                px: theme.spacing(4),
-                py: theme.spacing(3),
-                borderRadius: "4px",
+                gap: 1,
+                px: "12px",
+                height: "34px",
+                borderRadius: theme.shape.borderRadius,
                 cursor: "pointer",
-                backgroundColor: "#F9FAFB",
-                border: "1px solid #E5E7EB",
-                transition: "all 0.15s ease",
+                backgroundColor: theme.palette.background.main,
+                border: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
+                transition: "all 0.2s ease",
                 "&:hover": {
-                  backgroundColor: "#F3F4F6",
-                  borderColor: "#D1D5DB",
+                  borderColor: "#13715B",
                 },
               }}
             >
-              <FolderKanban size={16} color="#6B7280" strokeWidth={1.5} />
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography
                   sx={{
-                    fontSize: "12px",
-                    fontWeight: 500,
-                    color: "#374151",
+                    fontSize: "13px",
+                    fontWeight: 400,
+                    color: theme.palette.text.secondary,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -524,75 +522,120 @@ const SidebarShell: FC<SidebarShellProps> = ({
                   {projectSelector.currentProject?.name || "Select project"}
                 </Typography>
               </Box>
-              <ChevronDown size={14} color="#9CA3AF" />
+              <ChevronDown size={16} color={theme.palette.text.tertiary} />
             </Box>
-            <Menu
-              anchorEl={projectMenuAnchor}
+            <Popover
               open={projectMenuOpen}
+              anchorEl={projectMenuAnchor}
               onClose={() => setProjectMenuAnchor(null)}
               anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
               transformOrigin={{ vertical: "top", horizontal: "left" }}
-              slotProps={{
-                paper: {
-                  sx: {
-                    mt: 0.5,
-                    minWidth: 200,
-                    maxHeight: 300,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "6px",
-                  },
+              sx={{
+                "& .MuiPopover-paper": {
+                  minWidth: 200,
+                  maxHeight: 300,
+                  boxShadow: theme.boxShadow,
+                  borderRadius: theme.shape.borderRadius,
+                  mt: 1,
+                  overflow: "hidden",
                 },
               }}
             >
-              {projectSelector.allProjects.map((project) => (
-                <MenuItem
-                  key={project.id}
-                  selected={project.id === projectSelector.currentProject?.id}
+              <Box>
+                {/* All projects option */}
+                <Box
                   onClick={() => {
-                    projectSelector.onProjectChange(project.id);
+                    projectSelector.onProjectChange("all_projects");
                     setProjectMenuAnchor(null);
                   }}
                   sx={{
+                    display: "flex",
+                    alignItems: "center",
                     fontSize: "13px",
                     py: 1,
                     px: 2,
-                    "&.Mui-selected": {
-                      backgroundColor: "#F0FDF4",
+                    mx: 1,
+                    my: 0.5,
+                    borderRadius: theme.shape.borderRadius,
+                    color: theme.palette.text.tertiary,
+                    cursor: "pointer",
+                    transition: "color 0.2s ease, background-color 0.2s ease",
+                    "&:hover": {
+                      backgroundColor: theme.palette.background.accent,
                       color: "#13715B",
-                      fontWeight: 500,
-                    },
-                    "&.Mui-selected:hover": {
-                      backgroundColor: "#DCFCE7",
                     },
                   }}
                 >
-                  {project.name}
-                </MenuItem>
-              ))}
-              {projectSelector.allProjects.length > 0 && (
-                <Box sx={{ borderTop: "1px solid #E5E7EB", mt: 0.5, pt: 0.5 }}>
-                  <MenuItem
-                    onClick={() => {
-                      projectSelector.onProjectChange("create_new");
-                      setProjectMenuAnchor(null);
-                    }}
-                    sx={{
-                      fontSize: "13px",
-                      py: 1,
-                      px: 2,
-                      color: "#13715B",
-                      "&:hover": {
-                        backgroundColor: "#F0FDF4",
-                      },
-                    }}
-                  >
-                    <Plus size={14} style={{ marginRight: 8 }} />
-                    New project
-                  </MenuItem>
+                  <LayoutGrid size={14} style={{ marginRight: 8 }} />
+                  All projects
                 </Box>
-              )}
-            </Menu>
+                {projectSelector.allProjects.length > 0 && (
+                  <Box sx={{ borderTop: `1px solid ${theme.palette.border?.light || "#e0e0e0"}`, my: 0.5 }} />
+                )}
+                {projectSelector.allProjects.map((project) => {
+                  const isSelected = project.id === projectSelector.currentProject?.id;
+                  return (
+                    <Box
+                      key={project.id}
+                      onClick={() => {
+                        projectSelector.onProjectChange(project.id);
+                        setProjectMenuAnchor(null);
+                      }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        fontSize: "13px",
+                        py: 1,
+                        px: 2,
+                        mx: 1,
+                        my: 0.5,
+                        borderRadius: theme.shape.borderRadius,
+                        cursor: "pointer",
+                        backgroundColor: isSelected ? theme.palette.background.accent : "transparent",
+                        color: isSelected ? "#13715B" : theme.palette.text.primary,
+                        transition: "color 0.2s ease, background-color 0.2s ease",
+                        "&:hover": {
+                          backgroundColor: theme.palette.background.accent,
+                          color: "#13715B",
+                        },
+                      }}
+                    >
+                      <FolderKanban size={14} style={{ marginRight: 8 }} />
+                      {project.name}
+                    </Box>
+                  );
+                })}
+                {projectSelector.allProjects.length > 0 && (
+                  <Box sx={{ borderTop: `1px solid ${theme.palette.border?.light || "#e0e0e0"}`, my: 0.5 }}>
+                    <Box
+                      onClick={() => {
+                        projectSelector.onProjectChange("create_new");
+                        setProjectMenuAnchor(null);
+                      }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        fontSize: "13px",
+                        py: 1,
+                        px: 2,
+                        mx: 1,
+                        my: 0.5,
+                        borderRadius: theme.shape.borderRadius,
+                        color: "#13715B",
+                        cursor: "pointer",
+                        transition: "background-color 0.2s ease",
+                        "&:hover": {
+                          backgroundColor: theme.palette.background.accent,
+                        },
+                      }}
+                    >
+                      <Plus size={14} style={{ marginRight: 8 }} />
+                      New project
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+            </Popover>
           </Box>
         )}
 
@@ -600,7 +643,14 @@ const SidebarShell: FC<SidebarShellProps> = ({
         {topItems.map((item) => renderMenuItem(item))}
 
         {/* Flat Items (no groups) */}
-        {flatItems.map((item) => renderMenuItem(item))}
+        {flatItems.map((item) => (
+          <Box key={item.id}>
+            {renderMenuItem(item)}
+            {item.dividerAfter && (
+              <Box sx={{ my: 1.5, mx: theme.spacing(4), borderTop: "1px solid #E5E7EB" }} />
+            )}
+          </Box>
+        ))}
 
         {/* Grouped Items */}
         {menuGroups.map((group) => (

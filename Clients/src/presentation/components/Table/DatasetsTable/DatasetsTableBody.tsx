@@ -3,6 +3,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  Chip,
   IconButton,
   Typography,
   Menu,
@@ -11,10 +12,9 @@ import {
   ListItemText,
   CircularProgress,
 } from "@mui/material";
-import { Trash2, MoreVertical, Eye, Edit3 } from "lucide-react";
+import { Trash2, MoreVertical, Eye, Edit3, Download } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { DatasetRow } from "./index";
-import Chip from "../../Chip";
 
 interface DatasetsTableBodyProps {
   rows: DatasetRow[];
@@ -24,6 +24,7 @@ interface DatasetsTableBodyProps {
   onView?: (dataset: DatasetRow) => void;
   onEdit?: (dataset: DatasetRow) => void;
   onDelete?: (dataset: DatasetRow) => void;
+  onDownload?: (dataset: DatasetRow) => void;
 }
 
 const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
@@ -34,6 +35,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
   onView,
   onEdit,
   onDelete,
+  onDownload,
 }) => {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [menuRow, setMenuRow] = useState<DatasetRow | null>(null);
@@ -66,6 +68,13 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
   const handleDeleteClick = () => {
     if (menuRow && onDelete) {
       onDelete(menuRow);
+    }
+    handleMenuClose();
+  };
+
+  const handleDownloadClick = () => {
+    if (menuRow && onDownload) {
+      onDownload(menuRow);
     }
     handleMenuClose();
   };
@@ -114,7 +123,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                 </Typography>
               </TableCell>
 
-              {/* # PROMPTS - center aligned */}
+              {/* TYPE - center aligned */}
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
@@ -122,12 +131,31 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                   textTransform: "none",
                 }}
               >
-                {metadata?.loading ? (
-                  <CircularProgress size={14} sx={{ color: "#9CA3AF" }} />
+                {dataset.type ? (
+                  <Chip
+                    label={
+                      dataset.type === "single-turn" ? "Single-Turn" : 
+                      dataset.type === "multi-turn" ? "Multi-Turn" : 
+                      "🎭 Simulated"
+                    }
+                    size="small"
+                    sx={{
+                      height: "22px",
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      borderRadius: "4px",
+                      backgroundColor: 
+                        dataset.type === "single-turn" ? "#FEF3C7" : 
+                        dataset.type === "multi-turn" ? "#E3F2FD" :
+                        "#F3E8FF",
+                      color: 
+                        dataset.type === "single-turn" ? "#92400E" : 
+                        dataset.type === "multi-turn" ? "#1565C0" :
+                        "#7C3AED",
+                    }}
+                  />
                 ) : (
-                  <Typography sx={{ fontSize: "13px", color: "#374151" }}>
-                    {metadata?.promptCount ?? "-"}
-                  </Typography>
+                  <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
                 )}
               </TableCell>
 
@@ -142,22 +170,56 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                 {dataset.useCase ? (
                   <Chip
                     label={dataset.useCase === "rag" ? "RAG" : dataset.useCase.charAt(0).toUpperCase() + dataset.useCase.slice(1)}
-                    uppercase={false}
-                    backgroundColor={
-                      dataset.useCase === "chatbot" ? "#E3F2FD" :
-                      dataset.useCase === "rag" ? "#F3E5F5" :
-                      dataset.useCase === "agent" ? "#FFF3E0" :
-                      "#F3F4F6"
-                    }
-                    textColor={
-                      dataset.useCase === "chatbot" ? "#1565C0" :
-                      dataset.useCase === "rag" ? "#7B1FA2" :
-                      dataset.useCase === "agent" ? "#EF6C00" :
-                      "#6B7280"
-                    }
+                    size="small"
+                    sx={{
+                      height: "22px",
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      borderRadius: "4px",
+                      backgroundColor: 
+                        dataset.useCase === "chatbot" ? "#CCFBF1" :
+                        dataset.useCase === "rag" ? "#f3e5f5" :
+                        dataset.useCase === "agent" ? "#FEE2E2" :
+                        "#e0e0e0",
+                      color:
+                        dataset.useCase === "chatbot" ? "#0D9488" :
+                        dataset.useCase === "rag" ? "#7b1fa2" :
+                        dataset.useCase === "agent" ? "#DC2626" :
+                        "#616161",
+                    }}
                   />
                 ) : (
                   <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
+                )}
+              </TableCell>
+
+              {/* # PROMPTS - center aligned */}
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  textAlign: "center",
+                  textTransform: "none",
+                }}
+              >
+                {metadata?.loading ? (
+                  <CircularProgress size={14} sx={{ color: "#9CA3AF" }} />
+                ) : metadata?.promptCount === 0 ? (
+                  <Chip
+                    label="Empty"
+                    size="small"
+                    sx={{
+                      height: "22px",
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      borderRadius: "4px",
+                      backgroundColor: "#FEE2E2",
+                      color: "#DC2626",
+                    }}
+                  />
+                ) : (
+                  <Typography sx={{ fontSize: "13px", color: "#374151" }}>
+                    {metadata?.promptCount ?? "-"}
+                  </Typography>
                 )}
               </TableCell>
 
@@ -171,19 +233,33 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
               >
                 {metadata?.loading ? (
                   <CircularProgress size={14} sx={{ color: "#9CA3AF" }} />
-                ) : metadata?.avgDifficulty ? (
-                  <Chip
-                    label={metadata.avgDifficulty}
-                    uppercase={false}
-                    variant={
-                      metadata.avgDifficulty === "Easy" ? "success" :
-                      metadata.avgDifficulty === "Medium" ? "warning" :
-                      metadata.avgDifficulty === "Hard" ? "error" :
-                      "default"
-                    }
-                  />
                 ) : (
-                  <Chip label="-" uppercase={false} variant="default" />
+                  <Chip
+                    label={metadata?.avgDifficulty ?? "Medium"}
+                    size="small"
+                    sx={{
+                      height: "22px",
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      borderRadius: "4px",
+                      backgroundColor:
+                        metadata?.avgDifficulty === "Easy"
+                          ? "#c8e6c9"
+                          : metadata?.avgDifficulty === "Medium"
+                          ? "#fff3e0"
+                          : metadata?.avgDifficulty === "Hard"
+                          ? "#ffebee"
+                          : "#e0e0e0",
+                      color:
+                        metadata?.avgDifficulty === "Easy"
+                          ? "#388e3c"
+                          : metadata?.avgDifficulty === "Medium"
+                          ? "#ef6c00"
+                          : metadata?.avgDifficulty === "Hard"
+                          ? "#c62828"
+                          : "#616161",
+                    }}
+                  />
                 )}
               </TableCell>
 
@@ -272,6 +348,17 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
             />
           </MenuItem>
         )}
+        {onDownload && (
+          <MenuItem onClick={handleDownloadClick}>
+            <ListItemIcon sx={{ minWidth: "32px !important" }}>
+              <Download size={16} color="#374151" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Download JSON"
+              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
+            />
+          </MenuItem>
+        )}
         {onDelete && (
           <MenuItem onClick={handleDeleteClick}>
             <ListItemIcon sx={{ minWidth: "32px !important" }}>
@@ -289,4 +376,3 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
 };
 
 export default DatasetsTableBody;
-

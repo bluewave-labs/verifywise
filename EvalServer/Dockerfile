@@ -1,13 +1,19 @@
-FROM python:3.10
+FROM python:3.12-slim
 
 # Set the working directory inside the container
 WORKDIR /app
 
 # Copy requirements first for better caching
-COPY ./src/requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY ./EvalServer/src/requirements.txt requirements.txt
 
-# Copy the rest of the application
-COPY ./src .
+# Install CPU-only PyTorch first (much smaller, no triton/CUDA), then other deps
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy the application source
+COPY ./EvalServer/src .
+
+# Copy the datasets from EvaluationModule
+COPY ./EvaluationModule/data/datasets /app/datasets
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

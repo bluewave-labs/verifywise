@@ -99,6 +99,7 @@ export default function EvalsSidebar({
       value: "configuration",
       icon: <Settings size={16} strokeWidth={1.5} />,
       disabled: disabled,
+      dividerAfter: true,
     },
     {
       id: "settings",

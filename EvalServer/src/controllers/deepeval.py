@@ -9,6 +9,7 @@ import sys
 import os
 import json
 import asyncio
+import traceback
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -570,6 +571,7 @@ async def upload_deepeval_dataset_controller(
     dataset: UploadFile,
     tenant: str,
     dataset_type: str = "chatbot",
+    turn_type: str = "single-turn",
 ) -> JSONResponse:
     """
     Upload a custom dataset JSON file for DeepEval and return a server-relative path
@@ -583,6 +585,11 @@ async def upload_deepeval_dataset_controller(
         valid_types = ["chatbot", "rag", "agent"]
         if dataset_type not in valid_types:
             dataset_type = "chatbot"
+        
+        # Validate turn_type
+        valid_turn_types = ["single-turn", "multi-turn"]
+        if turn_type not in valid_turn_types:
+            turn_type = "single-turn"
 
         # Basic content-type check (best-effort)
         content_type = (dataset.content_type or "").lower()
@@ -612,21 +619,40 @@ async def upload_deepeval_dataset_controller(
             original_name = original_name[:-5]
         
         # Extract dataset name from filename (clean it up) - just the file name
-        dataset_name = original_name.replace("_", " ").replace("-", " ").strip()
+        # Apply title case so each word is capitalized
+        dataset_name = original_name.replace("_", " ").replace("-", " ").strip().title()
         if not dataset_name:
             dataset_name = "Untitled Dataset"
         
-        # Count prompts
-        prompt_count = len(data) if isinstance(data, list) else 0
+        # Count prompts - only count items with actual content
+        prompt_count = 0
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    # Single-turn: check if prompt field has content
+                    if item.get("prompt") and str(item.get("prompt", "")).strip():
+                        prompt_count += 1
+                    # Multi-turn: check if turns array has at least one turn with content
+                    elif item.get("turns") and isinstance(item.get("turns"), list) and len(item.get("turns", [])) > 0:
+                        # Verify at least one turn has content
+                        has_content = any(
+                            turn.get("content") and str(turn.get("content", "")).strip()
+                            for turn in item.get("turns", [])
+                            if isinstance(turn, dict)
+                        )
+                        if has_content:
+                            prompt_count += 1
         
         # Use original filename without timestamp prefix
         filename = f"{original_name}.json"
         full_path = uploads_dir / filename
-        
-        # If file exists, add a suffix
+
+        # If file exists, add a suffix to both filename and display name
         counter = 1
+        final_dataset_name = dataset_name
         while full_path.exists():
             filename = f"{original_name}_{counter}.json"
+            final_dataset_name = f"{dataset_name} ({counter + 1})"
             full_path = uploads_dir / filename
             counter += 1
 
@@ -640,13 +666,14 @@ async def upload_deepeval_dataset_controller(
         try:
             async with get_db() as db:
                 await create_user_dataset(
-                    tenant=tenant, 
-                    db=db, 
-                    name=dataset_name, 
-                    path=relative_path, 
+                    tenant=tenant,
+                    db=db,
+                    name=final_dataset_name,
+                    path=relative_path,
                     size=len(content_bytes),
                     prompt_count=prompt_count,
-                    dataset_type=dataset_type
+                    dataset_type=dataset_type,
+                    turn_type=turn_type
                 )
                 await db.commit()
         except Exception:
@@ -661,6 +688,7 @@ async def upload_deepeval_dataset_controller(
                 "size": len(content_bytes),
                 "tenant": tenant,
                 "datasetType": dataset_type,
+                "turnType": turn_type,
             },
         )
     except HTTPException:
@@ -673,14 +701,29 @@ async def upload_deepeval_dataset_controller(
 
 
 def _safe_evalmodule_data_root() -> Path:
+    """
+    Returns the path to built-in datasets.
+    In Docker: /app/datasets
+    In development: EvaluationModule/data/datasets (relative to repo root)
+    """
+    # Check for Docker environment first (datasets copied to /app/datasets)
+    docker_datasets = Path("/app/datasets")
+    if docker_datasets.exists():
+        return docker_datasets
+
+    # Fallback for local development
     root_path = Path(__file__).parent.parent.parent.parent
     evaluation_module_path = root_path / "EvaluationModule"
-    # Prefer new datasets folder; fall back to presets
-    data_root = evaluation_module_path / "data"
-    datasets_dir = data_root / "datasets"
-    if datasets_dir.exists():
-        return datasets_dir
-    return data_root / "presets"
+    return evaluation_module_path / "data" / "datasets"
+
+
+def _get_evaluation_module_path() -> Path:
+    """
+    Returns the path to EvaluationModule/data directory.
+    Used for user uploads and other data files.
+    """
+    root_path = Path(__file__).parent.parent.parent.parent
+    return root_path / "EvaluationModule" / "data"
 
 
 def _extract_dataset_stats(file_path: Path) -> dict:
@@ -736,7 +779,7 @@ def _load_dataset_metadata(file_path: Path) -> dict:
 async def list_deepeval_datasets_controller() -> JSONResponse:
     """
     List available built-in datasets grouped by use case.
-    Looks under EvaluationModule/data/datasets (preferred) or data/presets.
+    Looks under EvaluationModule/data/datasets.
     Includes statistics (test count, categories, difficulty) and metadata.
     """
     base = _safe_evalmodule_data_root()
@@ -747,57 +790,28 @@ async def list_deepeval_datasets_controller() -> JSONResponse:
         "safety": [],
     }
     try:
-        if (base / "chatbot").exists():
-            subdirs = ["chatbot", "rag", "agent", "safety"]
-            for sub in subdirs:
-                sd = base / sub
-                if not sd.exists():
-                    continue
-                for f in sd.glob("*.json"):
-                    # Skip metadata files
-                    if f.stem.endswith(".meta"):
-                        continue
-
-                    stats = _extract_dataset_stats(f)
-                    metadata = _load_dataset_metadata(f)
-
-                    dataset_info = {
-                        "key": f"{sub}/{f.name}",
-                        "name": f.stem.replace("_", " ").title(),
-                        "path": str(f.relative_to(base)),
-                        "use_case": sub,
-                        **stats,
-                        **metadata,
-                    }
-                    result[sub].append(dataset_info)
-        else:
-            # Flat presets folder fallback
-            for f in base.glob("*.json"):
+        subdirs = ["chatbot", "rag", "agent", "safety"]
+        for sub in subdirs:
+            sd = base / sub
+            if not sd.exists():
+                continue
+            for f in sd.glob("*.json"):
+                # Skip metadata files
                 if f.stem.endswith(".meta"):
                     continue
-
-                name = f.stem
-                use_case = "chatbot"
-                lowered = name.lower()
-                if "rag" in lowered:
-                    use_case = "rag"
-                elif "agent" in lowered:
-                    use_case = "agent"
-                elif "safety" in lowered:
-                    use_case = "safety"
 
                 stats = _extract_dataset_stats(f)
                 metadata = _load_dataset_metadata(f)
 
                 dataset_info = {
-                    "key": f.name,
-                    "name": name.replace("_", " ").title(),
+                    "key": f"{sub}/{f.name}",
+                    "name": f.stem.replace("_", " ").title(),
                     "path": str(f.relative_to(base)),
-                    "use_case": use_case,
+                    "use_case": sub,
                     **stats,
                     **metadata,
                 }
-                result[use_case].append(dataset_info)
+                result[sub].append(dataset_info)
 
         return JSONResponse(status_code=200, content={"datasets": result})
     except Exception as e:
@@ -808,35 +822,43 @@ async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
     """
     Return the JSON contents of a dataset at a relative path.
     Path can be:
-    - Relative to EvaluationModule (e.g., "data/uploads/tenant/file.json")
     - Relative to datasets folder (e.g., "chatbot/chatbot_basic.json")
+    - For uploads: "data/uploads/tenant/file.json"
     """
     try:
-        root_path = Path(__file__).parent.parent.parent.parent
-        evaluation_module_path = root_path / "EvaluationModule"
-        
-        # Try as full path first (for uploads: data/uploads/...)
-        target = (evaluation_module_path / path).resolve()
-        
-        # If not found, try in datasets folder (for built-ins: chatbot/...)
-        if not target.is_file():
+        # Security: Early rejection of suspicious path patterns
+        if ".." in path or path.startswith("/") or path.startswith("\\"):
+            raise HTTPException(status_code=400, detail="Invalid dataset path: path traversal not allowed")
+
+        target = None
+        allowed_base = None
+
+        # Check if it's a user upload path (starts with "data/uploads/")
+        if path.startswith("data/uploads/"):
+            eval_data_path = _get_evaluation_module_path()
+            target = (eval_data_path.parent / path).resolve()
+            allowed_base = eval_data_path.resolve()
+        else:
+            # Built-in dataset path (e.g., "chatbot/chatbot_basic.json")
             datasets_base = _safe_evalmodule_data_root()
             target = (datasets_base / path).resolve()
-        
-        # Security check: ensure target is inside EvaluationModule/data
-        data_dir = (evaluation_module_path / "data").resolve()
-        if data_dir not in target.parents:
-            raise HTTPException(status_code=400, detail="Invalid dataset path")
-        
+            allowed_base = datasets_base.resolve()
+
+        # Security check: ensure resolved target is inside allowed directory
+        try:
+            target.relative_to(allowed_base)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid dataset path: access denied")
+
         if not target.is_file():
             raise HTTPException(status_code=404, detail="Dataset file not found")
-        
+
         with open(target, "r", encoding="utf-8") as f:
             data = json.load(f)
-        
+
         if not isinstance(data, list):
             raise HTTPException(status_code=400, detail="Dataset file is not a list of prompts")
-        
+
         return JSONResponse(status_code=200, content={"path": path, "prompts": data})
     except HTTPException:
         raise

@@ -1,0 +1,29 @@
+[
+  {
+    "scenario": "User wants to automate daily standup reports",
+    "expected_outcome": "Successfully configure automated workflow",
+    "tools_available": ["calendar", "email", "slack", "jira"],
+    "turns": [
+      { "role": "user", "content": "Can you help me automate our daily standup reports? We use Jira and Slack." },
+      { "role": "assistant", "content": "I'd be happy to help automate your standup process. Let me understand your workflow better. What time do you hold standups, and what information should be included in the report?", "tools_used": [] },
+      { "role": "user", "content": "Standups are at 9:30 AM. We need: tickets in progress, blockers, and completed items from yesterday." },
+      { "role": "assistant", "content": "I'll set up an automation that runs at 9:00 AM to gather this data. [Using jira tool to configure query]\n\nI've created the following Jira queries:\n- In Progress: status = 'In Progress' AND assignee in team\n- Blockers: 'Blocked' label\n- Completed: status changed to 'Done' after -1d\n\nShould I post this summary to Slack, or would you prefer email?", "tools_used": ["jira"] },
+      { "role": "user", "content": "Post to our #engineering-standup Slack channel." },
+      { "role": "assistant", "content": "I've configured the automation. [Using slack tool]\n\nThe workflow will:\n1. Run daily at 9:00 AM (30 min before standup)\n2. Query Jira for the three categories\n3. Format a summary with member names and ticket links\n4. Post to #engineering-standup\n\nI've also added you as the owner so you can modify it later. Want me to run a test now?", "tools_used": ["slack", "calendar"] }
+    ]
+  },
+  {
+    "scenario": "User needs help with data pipeline monitoring",
+    "expected_outcome": "Set up monitoring and alerting workflow",
+    "tools_available": ["monitoring", "slack", "email", "database"],
+    "turns": [
+      { "role": "user", "content": "Our data pipeline keeps failing silently. Can you set up monitoring?" },
+      { "role": "assistant", "content": "Absolutely. Silent failures are the worst! Let me check your current pipeline. [Using database tool to inspect]\n\nI see you have 3 main ETL jobs: customer_sync, order_processing, and analytics_rollup. Which ones are causing issues, or should I monitor all of them?", "tools_used": ["database"] },
+      { "role": "user", "content": "All of them, but especially order_processing - it's business critical." },
+      { "role": "assistant", "content": "Setting up tiered monitoring. [Using monitoring tool]\n\nConfiguration:\n- **order_processing (Critical)**: Alert immediately on failure, Slack + email + PagerDuty\n- **customer_sync (High)**: Alert within 5 min, Slack + email\n- **analytics_rollup (Medium)**: Alert within 15 min, Slack only\n\nI'm also adding a daily health check at 6 AM to catch overnight issues. Where should alerts go?", "tools_used": ["monitoring"] },
+      { "role": "user", "content": "Slack to #data-alerts, and email to oncall@company.com" },
+      { "role": "assistant", "content": "All configured! [Using slack and email tools]\n\nSummary:\n- Created #data-alerts channel notifications\n- Added oncall@company.com for critical/high alerts\n- Daily digest at 6 AM showing pipeline health\n- I've also created a runbook document with troubleshooting steps\n\nYou'll receive a test alert in #data-alerts in about 2 minutes to verify everything works.", "tools_used": ["slack", "email", "monitoring"] }
+    ]
+  }
+]
+

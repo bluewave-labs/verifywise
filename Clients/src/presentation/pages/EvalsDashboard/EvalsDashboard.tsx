@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid } from "@mui/material";
 import { Check } from "lucide-react";
-import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound } from "lucide-react";
+import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useEvalsSidebarContext } from "../../../application/contexts/EvalsSidebar.context";
+import { useAuth } from "../../../application/hooks/useAuth";
+import allowedRoles from "../../../application/constants/permissions";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
@@ -18,6 +20,7 @@ import { evaluationLlmApiKeysService, type LLMApiKey } from "../../../infrastruc
 import { Plus as PlusIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { Chip, Collapse, IconButton, CircularProgress } from "@mui/material";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
+import SelectableCard from "../../components/SelectableCard";
 
 // Import provider logos
 import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
@@ -26,6 +29,10 @@ import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg
 import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
 import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
 import { ReactComponent as HuggingFaceLogo } from "../../assets/icons/huggingface_logo.svg";
+import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
+import { ReactComponent as OllamaLogo } from "../../assets/icons/ollama_logo.svg";
+import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
+import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 
 // Tab components
 import ProjectsList from "./ProjectsList";
@@ -38,12 +45,14 @@ import type { DeepEvalProject } from "./types";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 
 const LLM_PROVIDERS = [
+  { _id: "openrouter", name: "OpenRouter", Logo: OpenRouterLogo },
   { _id: "openai", name: "OpenAI", Logo: OpenAILogo },
   { _id: "anthropic", name: "Anthropic", Logo: AnthropicLogo },
   { _id: "google", name: "Google (Gemini)", Logo: GeminiLogo },
   { _id: "xai", name: "xAI", Logo: XAILogo },
   { _id: "mistral", name: "Mistral", Logo: MistralLogo },
   { _id: "huggingface", name: "Hugging Face", Logo: HuggingFaceLogo },
+  { _id: "custom", name: "Custom", Logo: BuildIcon },
 ];
 
 /**
@@ -80,6 +89,16 @@ const API_KEY_PATTERNS: Record<string, { pattern: RegExp; example: string; descr
     example: 'hf_...',
     description: 'Hugging Face keys start with "hf_"',
   },
+  openrouter: {
+    pattern: /^sk-or-v1-[a-zA-Z0-9]{40,}$/,
+    example: 'sk-or-v1-...',
+    description: 'OpenRouter keys start with "sk-or-v1-"',
+  },
+  custom: {
+    pattern: /^.{10,}$/,
+    example: 'Any key (10+ characters)',
+    description: 'Custom API keys should be at least 10 characters',
+  },
 };
 
 /**
@@ -104,6 +123,7 @@ function validateApiKeyFormat(provider: string, apiKey: string): string | null {
 const LAST_PROJECT_KEY = "evals_last_project_id";
 const RECENT_EXPERIMENTS_KEY = "evals_recent_experiments";
 const RECENT_PROJECTS_KEY = "evals_recent_projects";
+const LOCAL_PROVIDERS_KEY = "evals_local_providers";
 
 interface RecentExperiment {
   id: string;
@@ -116,10 +136,22 @@ interface RecentProject {
   name: string;
 }
 
+interface LocalProvider {
+  id: string;
+  type: "ollama" | "local";
+  name: string;
+  url: string;
+  addedAt: string;
+}
+
 export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { userRoleName } = useAuth();
+
+  // Helper to check if user can perform write operations
+  const canManageApiKeys = allowedRoles.evals.manageApiKeys.includes(userRoleName);
 
   // Determine tab from URL hash or default
   const [tab, setTab] = useState(() => {
@@ -185,6 +217,22 @@ export default function EvalsDashboard() {
   const [llmApiKeys, setLlmApiKeys] = useState<LLMApiKey[]>([]);
   const [llmApiKeysLoading, setLlmApiKeysLoading] = useState(false);
   const [deletingKeyProvider, setDeletingKeyProvider] = useState<string | null>(null);
+
+  // Local providers state
+  const [localProviders, setLocalProviders] = useState<LocalProvider[]>(() => {
+    try {
+      const stored = localStorage.getItem(LOCAL_PROVIDERS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [localProviderModalOpen, setLocalProviderModalOpen] = useState(false);
+  const [selectedLocalProviderType, setSelectedLocalProviderType] = useState<"ollama" | "local" | "">("");
+  const [localProviderName, setLocalProviderName] = useState("");
+  const [localProviderUrl, setLocalProviderUrl] = useState("");
+  const [localProviderSaving, setLocalProviderSaving] = useState(false);
+  const [deletingLocalProviderId, setDeletingLocalProviderId] = useState<string | null>(null);
   const [deleteKeyModalOpen, setDeleteKeyModalOpen] = useState(false);
   const [keyToDelete, setKeyToDelete] = useState<LLMApiKey | null>(null);
 
@@ -355,6 +403,52 @@ export default function EvalsDashboard() {
     return providerObj?.name || provider.charAt(0).toUpperCase() + provider.slice(1);
   };
 
+  // Local provider handlers
+  const handleAddLocalProvider = () => {
+    if (!selectedLocalProviderType || !localProviderUrl.trim()) return;
+
+    setLocalProviderSaving(true);
+    try {
+      const newProvider: LocalProvider = {
+        id: `local_${Date.now()}`,
+        type: selectedLocalProviderType,
+        name: localProviderName.trim() || (selectedLocalProviderType === "ollama" ? "Ollama" : "Local Endpoint"),
+        url: localProviderUrl.trim(),
+        addedAt: new Date().toISOString(),
+      };
+
+      const updatedProviders = [...localProviders, newProvider];
+      setLocalProviders(updatedProviders);
+      localStorage.setItem(LOCAL_PROVIDERS_KEY, JSON.stringify(updatedProviders));
+
+      setApiKeyAlert({ variant: "success", body: `${newProvider.name} added successfully` });
+      setTimeout(() => setApiKeyAlert(null), 3000);
+
+      // Reset modal state
+      setLocalProviderModalOpen(false);
+      setSelectedLocalProviderType("");
+      setLocalProviderName("");
+      setLocalProviderUrl("");
+    } catch {
+      setApiKeyAlert({ variant: "error", body: "Failed to add local provider" });
+      setTimeout(() => setApiKeyAlert(null), 5000);
+    } finally {
+      setLocalProviderSaving(false);
+    }
+  };
+
+  const handleDeleteLocalProvider = (providerId: string) => {
+    setDeletingLocalProviderId(providerId);
+    setTimeout(() => {
+      const updatedProviders = localProviders.filter(p => p.id !== providerId);
+      setLocalProviders(updatedProviders);
+      localStorage.setItem(LOCAL_PROVIDERS_KEY, JSON.stringify(updatedProviders));
+      setDeletingLocalProviderId(null);
+      setApiKeyAlert({ variant: "success", body: "Local provider removed" });
+      setTimeout(() => setApiKeyAlert(null), 3000);
+    }, 300);
+  };
+
   // Format date for display
   const formatKeyDate = (dateStr: string): string => {
     try {
@@ -400,6 +494,13 @@ export default function EvalsDashboard() {
           setOrgId(orgs[0].id);
         }
 
+        // If user explicitly navigated to #projects, skip auto-redirect and show projects list
+        if (location.hash === "#projects") {
+          setOnboardingStep(null);
+          setInitialLoading(false);
+          return;
+        }
+
         // Check for last project - try to redirect regardless of org association
         const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
         if (lastProjectId) {
@@ -443,7 +544,7 @@ export default function EvalsDashboard() {
     } else {
       setInitialLoading(false);
     }
-  }, [projectId, navigate]);
+  }, [projectId, navigate, location.hash]);
 
   // Load all projects for the dropdown and current project
   // Also clean up recent projects/experiments that no longer exist
@@ -580,6 +681,11 @@ export default function EvalsDashboard() {
     sidebarContext.setOnProjectChange(() => (newProjectId: string) => {
       if (newProjectId === "create_new") {
         setCreateProjectModalOpen(true);
+      } else if (newProjectId === "all_projects") {
+        // Clear last project from localStorage and navigate to projects list
+        // Use #projects hash to bypass auto-redirect logic
+        localStorage.removeItem(LAST_PROJECT_KEY);
+        navigate("/evals#projects");
       } else {
         navigate(`/evals/${newProjectId}#${tab}`);
       }
@@ -874,13 +980,13 @@ export default function EvalsDashboard() {
   };
 
   // Build breadcrumbs based on current view
+  // Note: /evals breadcrumbs start with "LLM Evals" (not Dashboard) to keep users in the Evals context
   const tabInfo = getTabInfo(tab);
   const breadcrumbItems =
     !orgId
       ? [
-          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
           {
-            label: "LLM evals",
+            label: "LLM Evals",
             path: "/evals",
             icon: <FlaskConical size={14} strokeWidth={1.5} />,
             onClick: async () => {
@@ -904,13 +1010,11 @@ export default function EvalsDashboard() {
         ]
       : projectId && currentProject
       ? [
-          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
           { label: tabInfo.label, icon: tabInfo.icon },
         ]
       : [
-          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
           { label: tabInfo.label, icon: tabInfo.icon },
         ];
 
@@ -1013,6 +1117,7 @@ export default function EvalsDashboard() {
                       text="Add API key"
                       icon={<PlusIcon size={16} />}
                       onClick={() => setApiKeyModalOpen(true)}
+                      isDisabled={!canManageApiKeys}
                       sx={{
                         backgroundColor: "#13715B",
                         color: "#fff",
@@ -1055,13 +1160,14 @@ export default function EvalsDashboard() {
                       No API keys yet
                     </Typography>
                     <Typography sx={{ fontSize: 13, color: "#666666", mb: 3 }}>
-                      Add your first API key to enable LLM evaluations
+                      {canManageApiKeys ? "Add your first API key to enable LLM evaluations" : "Contact an admin to add API keys"}
                     </Typography>
                     <CustomizableButton
                       variant="contained"
                       text="Add API key"
                       icon={<PlusIcon size={16} />}
                       onClick={() => setApiKeyModalOpen(true)}
+                      isDisabled={!canManageApiKeys}
                       sx={{
                         backgroundColor: "#13715B",
                         color: "#fff",
@@ -1185,12 +1291,16 @@ export default function EvalsDashboard() {
                                 setNewApiKey("");
                                 setApiKeyModalOpen(true);
                               }}
+                              disabled={!canManageApiKeys}
                               sx={{
                                 color: "#6B7280",
                                 padding: "8px",
                                 "&:hover": {
                                   backgroundColor: "#F3F4F6",
                                   color: "#374151",
+                                },
+                                "&.Mui-disabled": {
+                                  color: "#D1D5DB",
                                 },
                               }}
                             >
@@ -1204,12 +1314,16 @@ export default function EvalsDashboard() {
                                 setKeyToDelete(key);
                                 setDeleteKeyModalOpen(true);
                               }}
+                              disabled={!canManageApiKeys}
                               sx={{
                                 color: "#DC2626",
                                 padding: "8px",
                                 "&:hover": {
                                   backgroundColor: "#FEF2F2",
                                   color: "#B91C1C",
+                                },
+                                "&.Mui-disabled": {
+                                  color: "#D1D5DB",
                                 },
                               }}
                             >
@@ -1221,6 +1335,140 @@ export default function EvalsDashboard() {
                     );})}
                   </Box>
                 )}
+              </Box>
+
+              {/* Local Providers Section */}
+              <Box
+                sx={{
+                  background: "#fff",
+                  border: "1px solid #d0d5dd",
+                  borderRadius: "4px",
+                  p: "20px 24px",
+                  boxShadow: "none",
+                  mt: 3,
+                }}
+              >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
+                      Local providers
+                    </Typography>
+                    <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
+                      Run models locally without API keys
+                    </Typography>
+                  </Box>
+                  <CustomizableButton
+                    variant="contained"
+                    text="Add local provider"
+                    icon={<PlusIcon size={16} />}
+                    onClick={() => setLocalProviderModalOpen(true)}
+                    sx={{
+                      backgroundColor: "#13715B",
+                      color: "#fff",
+                      "&:hover": { backgroundColor: "#0e5c47" },
+                    }}
+                  />
+                </Box>
+
+                {localProviders.length === 0 ? (
+                  <Box
+                    sx={{
+                      border: "2px dashed #E5E7EB",
+                      borderRadius: "12px",
+                      p: 5,
+                      textAlign: "center",
+                      backgroundColor: "#fafbfc",
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: "#6B7280" }}>
+                      No local providers configured yet
+                    </Typography>
+                    <Typography sx={{ fontSize: 13, color: "#9CA3AF", mt: 0.5 }}>
+                      Click "Add local provider" to get started
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    {localProviders.map((provider) => (
+                      <Collapse
+                        key={provider.id}
+                        in={deletingLocalProviderId !== provider.id}
+                        timeout={300}
+                      >
+                        <Box
+                          sx={{
+                            border: "1.5px solid #eaecf0",
+                            borderRadius: "10px",
+                            p: 2,
+                            pl: 2.5,
+                            backgroundColor: "#ffffff",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Stack direction="row" alignItems="center" spacing={2.5} sx={{ flex: 1 }}>
+                            <Box
+                              sx={{
+                                width: 56,
+                                height: 56,
+                                minWidth: 56,
+                                borderRadius: "12px",
+                                backgroundColor: "#FAFAFA",
+                                border: "1px solid #E5E7EB",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Box sx={{ width: 32, height: 32, "& svg": { width: "32px !important", height: "32px !important" } }}>
+                              {provider.type === "ollama" ? <OllamaLogo /> : <FolderFilledIcon />}
+                            </Box>
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                              <Stack direction="row" alignItems="center" sx={{ mb: 0.5, gap: "10px" }}>
+                                <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>
+                                  {provider.name}
+                                </Typography>
+                                <Chip
+                                  label={provider.type === "ollama" ? "OLLAMA" : "LOCAL"}
+                                  sx={{
+                                    backgroundColor: provider.type === "ollama" ? "#e0f2fe" : "#f3e8ff",
+                                    color: provider.type === "ollama" ? "#0369a1" : "#7c3aed",
+                                    fontWeight: 600,
+                                    fontSize: "9px",
+                                    height: "20px",
+                                    textTransform: "uppercase",
+                                  }}
+                                />
+                              </Stack>
+                              <Typography sx={{ fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>
+                                {provider.url}
+                              </Typography>
+                            </Box>
+                          </Stack>
+                          <IconButton
+                            onClick={() => handleDeleteLocalProvider(provider.id)}
+                            sx={{
+                              color: "#DC2626",
+                              padding: "8px",
+                              "&:hover": {
+                                backgroundColor: "#FEF2F2",
+                                color: "#B91C1C",
+                              },
+                            }}
+                          >
+                            <DeleteIcon size={18} />
+                          </IconButton>
+                        </Box>
+                      </Collapse>
+                    ))}
+                  </Box>
+                )}
+
+                <Typography sx={{ fontSize: 12, color: "#9CA3AF", mt: 2.5, fontStyle: "italic" }}>
+                  These will appear as options when creating a new experiment. No API key required.
+                </Typography>
               </Box>
             </Box>
           ) : !projectId ? (
@@ -1418,66 +1666,22 @@ export default function EvalsDashboard() {
             <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
               LLM use case
             </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-              <Box
+            <Stack spacing="8px">
+              <SelectableCard
+                isSelected={newProject.useCase === "rag"}
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
-                sx={{
-                  border: "1px solid",
-                  borderColor: newProject.useCase === "rag" ? "#13715B" : "#E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: newProject.useCase === "rag" ? "#F7F9F8" : "#FFFFFF",
-                  boxShadow: newProject.useCase === "rag" ? "0 0 0 1px #13715B" : "none",
-                  transition: "background-color 0.2s ease, border-color 0.2s ease",
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    backgroundColor: "#F7F9F8",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <FileSearch size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
+                icon={<FileSearch size={14} color={newProject.useCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                title="RAG"
+                description="Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness"
+              />
+              <SelectableCard
+                isSelected={newProject.useCase === "chatbot"}
                 onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
-                sx={{
-                  border: "1px solid",
-                  borderColor: newProject.useCase === "chatbot" ? "#13715B" : "#E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: newProject.useCase === "chatbot" ? "#F7F9F8" : "#FFFFFF",
-                  boxShadow: newProject.useCase === "chatbot" ? "0 0 0 1px #13715B" : "none",
-                  transition: "background-color 0.2s ease, border-color 0.2s ease",
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    backgroundColor: "#F7F9F8",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Bot size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbot</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate conversational experiences for coherence, correctness and safety.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
+                icon={<Bot size={14} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                title="Chatbot"
+                description="Evaluate conversational experiences for coherence, correctness and safety"
+              />
+            </Stack>
           </Box>
         </Stack>
       </ModalStandard>
@@ -1492,7 +1696,7 @@ export default function EvalsDashboard() {
         submitButtonText="Create project"
         isSubmitting={onboardingSubmitting || !onboardingProjectName.trim()}
       >
-        <Stack spacing={3}>
+        <Stack spacing="8px">
           <Field
             label="Project name"
             value={onboardingProjectName}
@@ -1503,69 +1707,25 @@ export default function EvalsDashboard() {
 
           {/* LLM Use Case - card selection */}
           <Box>
-            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
+            <Box sx={{ fontSize: "12px", color: "#374151", mb: "8px", fontWeight: 600 }}>
               LLM use case
             </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-              <Box
+            <Stack spacing="8px">
+              <SelectableCard
+                isSelected={onboardingProjectUseCase === "rag"}
                 onClick={() => setOnboardingProjectUseCase("rag")}
-                sx={{
-                  border: "1px solid",
-                  borderColor: onboardingProjectUseCase === "rag" ? "#13715B" : "#E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: onboardingProjectUseCase === "rag" ? "#F7F9F8" : "#FFFFFF",
-                  boxShadow: onboardingProjectUseCase === "rag" ? "0 0 0 1px #13715B" : "none",
-                  transition: "background-color 0.2s ease, border-color 0.2s ease",
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    backgroundColor: "#F7F9F8",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <FileSearch size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate retrieval-augmented generation
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
+                icon={<FileSearch size={16} color={onboardingProjectUseCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                title="RAG"
+                description="Evaluate retrieval-augmented generation"
+              />
+              <SelectableCard
+                isSelected={onboardingProjectUseCase === "chatbot"}
                 onClick={() => setOnboardingProjectUseCase("chatbot")}
-                sx={{
-                  border: "1px solid",
-                  borderColor: onboardingProjectUseCase === "chatbot" ? "#13715B" : "#E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: onboardingProjectUseCase === "chatbot" ? "#F7F9F8" : "#FFFFFF",
-                  boxShadow: onboardingProjectUseCase === "chatbot" ? "0 0 0 1px #13715B" : "none",
-                  transition: "background-color 0.2s ease, border-color 0.2s ease",
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    backgroundColor: "#F7F9F8",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Bot size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbot</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate conversational experiences
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
+                icon={<Bot size={16} color={onboardingProjectUseCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                title="Chatbot"
+                description="Evaluate conversational experiences"
+              />
+            </Stack>
           </Box>
         </Stack>
       </ModalStandard>
@@ -1784,6 +1944,160 @@ export default function EvalsDashboard() {
           TitleFontSize={0}
         />
       )}
+
+      {/* Add Local Provider Modal */}
+      <ModalStandard
+        isOpen={localProviderModalOpen}
+        onClose={() => {
+          setLocalProviderModalOpen(false);
+          setSelectedLocalProviderType("");
+          setLocalProviderName("");
+          setLocalProviderUrl("");
+        }}
+        title="Add local provider"
+        description="Configure a local model provider. No API key required."
+        onSubmit={handleAddLocalProvider}
+        submitButtonText={localProviderSaving ? "Adding..." : "Add provider"}
+        isSubmitting={localProviderSaving || !selectedLocalProviderType || !localProviderUrl.trim()}
+      >
+        <Stack spacing={3}>
+          {/* Provider Type Selection */}
+          <Box>
+            <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+              Select provider type
+            </Typography>
+            <Grid container spacing={1.5}>
+              {/* Ollama */}
+              <Grid item xs={6}>
+                <Card
+                  onClick={() => {
+                    setSelectedLocalProviderType("ollama");
+                    setLocalProviderName("llama3.2");
+                    setLocalProviderUrl("http://localhost:11434");
+                  }}
+                  sx={{
+                    cursor: "pointer",
+                    border: "1px solid",
+                    borderColor: selectedLocalProviderType === "ollama" ? "#13715B" : "#E5E7EB",
+                    backgroundColor: "#FFFFFF",
+                    boxShadow: "none",
+                    transition: "all 0.2s ease",
+                    position: "relative",
+                    "&:hover": {
+                      borderColor: "#13715B",
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                    },
+                  }}
+                >
+                  <CardContent sx={{ textAlign: "center", py: 3, px: 2 }}>
+                    {selectedLocalProviderType === "ollama" && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          backgroundColor: "#13715B",
+                          borderRadius: "50%",
+                          width: 20,
+                          height: 20,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                      </Box>
+                    )}
+                    <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
+                      <OllamaLogo />
+                    </Box>
+                    <Typography sx={{ fontSize: "12px", fontWeight: selectedLocalProviderType === "ollama" ? 600 : 500, color: selectedLocalProviderType === "ollama" ? "#13715B" : "#374151" }}>
+                      Ollama
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Local Endpoint */}
+              <Grid item xs={6}>
+                <Card
+                  onClick={() => {
+                    setSelectedLocalProviderType("local");
+                    setLocalProviderName("Local Endpoint");
+                    setLocalProviderUrl("http://localhost:8000/api/generate");
+                  }}
+                  sx={{
+                    cursor: "pointer",
+                    border: "1px solid",
+                    borderColor: selectedLocalProviderType === "local" ? "#13715B" : "#E5E7EB",
+                    backgroundColor: "#FFFFFF",
+                    boxShadow: "none",
+                    transition: "all 0.2s ease",
+                    position: "relative",
+                    "&:hover": {
+                      borderColor: "#13715B",
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                    },
+                  }}
+                >
+                  <CardContent sx={{ textAlign: "center", py: 3, px: 2 }}>
+                    {selectedLocalProviderType === "local" && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          backgroundColor: "#13715B",
+                          borderRadius: "50%",
+                          width: 20,
+                          height: 20,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                      </Box>
+                    )}
+                    <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5, "& svg": { width: 32, height: 32 } }}>
+                      <FolderFilledIcon />
+                    </Box>
+                    <Typography sx={{ fontSize: "12px", fontWeight: selectedLocalProviderType === "local" ? 600 : 500, color: selectedLocalProviderType === "local" ? "#13715B" : "#374151" }}>
+                      Local Endpoint
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+
+          {/* Configuration Fields */}
+          {selectedLocalProviderType && (
+            <>
+              <Field
+                label="Display name"
+                value={localProviderName}
+                onChange={(e) => setLocalProviderName(e.target.value)}
+                placeholder={selectedLocalProviderType === "ollama" ? "llama3.2" : "My Local Server"}
+              />
+              <Box>
+                <Field
+                  label="Endpoint URL"
+                  value={localProviderUrl}
+                  onChange={(e) => setLocalProviderUrl(e.target.value)}
+                  placeholder={selectedLocalProviderType === "ollama" ? "http://localhost:11434" : "http://localhost:8000/api/generate"}
+                  isRequired
+                />
+                <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 0.5, ml: 0.5 }}>
+                  {selectedLocalProviderType === "ollama" 
+                    ? "Default Ollama endpoint is http://localhost:11434"
+                    : "Enter the full URL for your local API endpoint"}
+                </Typography>
+              </Box>
+            </>
+          )}
+        </Stack>
+      </ModalStandard>
 
       {/* Project action alert */}
       {projectActionAlert && (

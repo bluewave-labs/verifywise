@@ -7,7 +7,7 @@
 
 import CustomAxios from "./customAxios";
 
-export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'xai' | 'mistral' | 'huggingface';
+export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'xai' | 'mistral' | 'huggingface' | 'openrouter';
 
 export interface LLMApiKey {
   provider: LLMProvider;

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Box, Stack, Typography, Chip, Paper, Divider, Button, CircularProgress, IconButton, Select, MenuItem, useTheme } from "@mui/material";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { deepEvalDatasetsService, DatasetPromptRecord } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalDatasetsService, DatasetPromptRecord, isSingleTurnPrompt, SingleTurnPrompt } from "../../../infrastructure/api/deepEvalDatasetsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import Alert from "../../components/Alert";
 import { ArrowLeft, X, Settings, ChevronDown, Upload } from "lucide-react";
@@ -15,7 +15,7 @@ type ListedDataset = {
   key: string;
   name: string;
   path: string;
-  use_case: "chatbot" | "rag" | "agent" | "safety";
+  use_case: "chatbot" | "rag" | "agent";
   // Optional metadata for richer cards (if provided by backend)
   test_count?: number;
   categories?: string[];
@@ -135,11 +135,10 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
   };
   const viewerTopRef = useRef<HTMLDivElement | null>(null);
   void _props;
-  const [groups, setGroups] = useState<Record<"chatbot" | "rag" | "agent" | "safety", ListedDataset[]>>({
+  const [groups, setGroups] = useState<Record<"chatbot" | "rag" | "agent", ListedDataset[]>>({
     chatbot: [],
     rag: [],
     agent: [],
-    safety: [],
   });
   const [selected, setSelected] = useState<ListedDataset | null>(null);
   // keep local parsed prompts only; raw JSON preview not needed in this UI
@@ -222,7 +221,6 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
     chatbot: "Chatbot prompts for single‑turn or conversational evaluation of assistant replies.",
     rag: "RAG tasks with retrieval_context, suitable for faithfulness/contextual metrics.",
     agent: "Agentic tasks that involve tools and multi‑step plans.",
-    safety: "Safety prompts for toxicity/harassment/PII leakage and related checks.",
   }), []);
 
   const handleUploadClick = () => {
@@ -458,7 +456,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
               </Button>
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
-              Use pre-built datasets for chatbot, RAG, and safety evaluations, or upload your own custom datasets in JSON format.
+              Use pre-built datasets for chatbot, RAG, and agent evaluations, or upload your own custom datasets in JSON format.
             </Typography>
           </Box>
         </>
@@ -621,7 +619,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
         <Stack direction="row" spacing={2}>
           {selected && (
           <Box sx={{ width: 360 }}>
-            {(["chatbot", "rag", "agent", "safety"] as const).map((uc) => (
+            {(["chatbot", "rag", "agent"] as const).map((uc) => (
               <Box key={uc} sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: "capitalize", fontSize: "13px", mb: 0.5 }}>
                   {uc} <Chip size="small" label={(groups[uc] || []).length} sx={{ height: 18, fontSize: "10px", ml: 0.5 }} />
@@ -677,46 +675,76 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                     </Stack>
                   </Stack>
                   <Stack spacing={1.25}>
-                    {previewPrompts.map((p, idx) => (
-                      <Paper key={p.id} variant="outlined" sx={{ p: 1.25 }}>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: "12px" }}>{`Prompt ${idx + 1}`}</Typography>
-                          <Chip
-                            label={p.category}
-                            size="small"
-                            sx={{
-                              height: 18,
-                              fontSize: "10px",
-                              bgcolor: p.category?.toLowerCase().includes("coding")
-                                ? "#E6F4EF"
-                                : p.category?.toLowerCase().includes("math")
-                                ? "#E6F1FF"
-                                : p.category?.toLowerCase().includes("reason")
-                                ? "#FFF4E6"
-                                : "#F3F4F6",
-                            }}
-                          />
-                        </Stack>
-                        <Typography sx={{ fontSize: "12px", color: "#111827", whiteSpace: "pre-wrap" }}>
-                          {p.prompt}
-                        </Typography>
-                        {p.expected_output && (
-                          <Typography sx={{ mt: 0.75, fontSize: "12px", color: "#4B5563" }}>
-                            <b>Expected:</b> {p.expected_output}
-                          </Typography>
-                        )}
-                        {Array.isArray(p.expected_keywords) && p.expected_keywords.length > 0 && (
-                          <Typography sx={{ mt: 0.5, fontSize: "12px", color: "#4B5563" }}>
-                            <b>Keywords:</b> {p.expected_keywords.join(", ")}
-                          </Typography>
-                        )}
-                        {Array.isArray(p.retrieval_context) && p.retrieval_context.length > 0 && (
-                          <Typography sx={{ mt: 0.5, fontSize: "12px", color: "#4B5563", whiteSpace: "pre-wrap" }}>
-                            <b>Context:</b> {p.retrieval_context.join("\n")}
-                          </Typography>
-                        )}
-                      </Paper>
-                    ))}
+                    {previewPrompts.map((p, idx) => {
+                      if (isSingleTurnPrompt(p)) {
+                        const stp = p as SingleTurnPrompt;
+                        return (
+                          <Paper key={stp.id} variant="outlined" sx={{ p: 1.25 }}>
+                            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                              <Typography sx={{ fontWeight: 700, fontSize: "12px" }}>{`Prompt ${idx + 1}`}</Typography>
+                              <Chip
+                                label={stp.category}
+                                size="small"
+                                sx={{
+                                  height: 18,
+                                  fontSize: "10px",
+                                  bgcolor: stp.category?.toLowerCase().includes("coding")
+                                    ? "#E6F4EF"
+                                    : stp.category?.toLowerCase().includes("math")
+                                    ? "#E6F1FF"
+                                    : stp.category?.toLowerCase().includes("reason")
+                                    ? "#FFF4E6"
+                                    : "#F3F4F6",
+                                }}
+                              />
+                            </Stack>
+                            <Typography sx={{ fontSize: "12px", color: "#111827", whiteSpace: "pre-wrap" }}>
+                              {stp.prompt}
+                            </Typography>
+                            {stp.expected_output && (
+                              <Typography sx={{ mt: 0.75, fontSize: "12px", color: "#4B5563" }}>
+                                <b>Expected:</b> {stp.expected_output}
+                              </Typography>
+                            )}
+                            {Array.isArray(stp.expected_keywords) && stp.expected_keywords.length > 0 && (
+                              <Typography sx={{ mt: 0.5, fontSize: "12px", color: "#4B5563" }}>
+                                <b>Keywords:</b> {stp.expected_keywords.join(", ")}
+                              </Typography>
+                            )}
+                            {Array.isArray(stp.retrieval_context) && stp.retrieval_context.length > 0 && (
+                              <Typography sx={{ mt: 0.5, fontSize: "12px", color: "#4B5563", whiteSpace: "pre-wrap" }}>
+                                <b>Context:</b> {stp.retrieval_context.join("\n")}
+                              </Typography>
+                            )}
+                          </Paper>
+                        );
+                      } else {
+                        // Multi-turn conversation
+                        const conv = p;
+                        return (
+                          <Paper key={conv.id || idx} variant="outlined" sx={{ p: 1.25 }}>
+                            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                              <Typography sx={{ fontWeight: 700, fontSize: "12px" }}>{`Conversation ${idx + 1}`}</Typography>
+                              <Chip
+                                label={`${conv.turns?.length || 0} turns`}
+                                size="small"
+                                sx={{ height: 18, fontSize: "10px", bgcolor: "#E3F2FD" }}
+                              />
+                            </Stack>
+                            {conv.scenario && (
+                              <Typography sx={{ fontSize: "12px", color: "#111827", whiteSpace: "pre-wrap", mb: 0.5 }}>
+                                <b>Scenario:</b> {conv.scenario}
+                              </Typography>
+                            )}
+                            {conv.expected_outcome && (
+                              <Typography sx={{ fontSize: "12px", color: "#4B5563" }}>
+                                <b>Expected outcome:</b> {conv.expected_outcome}
+                              </Typography>
+                            )}
+                          </Paper>
+                        );
+                      }
+                    })}
                   </Stack>
                 </Paper>
               ) : (
@@ -730,7 +758,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
           ) : (
             <Box sx={{ flex: 1 }}>
               <Box>
-                {(["chatbot", "rag", "agent", "safety"] as const).map((uc) => (
+                {(["chatbot", "rag", "agent"] as const).map((uc) => (
                   <Box key={uc} sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: "13px", textTransform: "capitalize", mb: 1 }}>
                       {uc}

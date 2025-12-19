@@ -6,9 +6,11 @@ WORKDIR /app
 # Copy requirements first for better caching
 COPY ./EvalServer/src/requirements.txt requirements.txt
 
-# Install CPU-only PyTorch first (much smaller, no triton/CUDA), then other deps
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir -r requirements.txt
+# Install CPU-only PyTorch (much smaller, no triton/CUDA ~2GB savings)
+# Using --extra-index-url ensures CPU wheels are preferred for torch and related packages
+RUN pip install --no-cache-dir \
+    --extra-index-url https://download.pytorch.org/whl/cpu \
+    -r requirements.txt
 
 # Copy the application source
 COPY ./EvalServer/src .

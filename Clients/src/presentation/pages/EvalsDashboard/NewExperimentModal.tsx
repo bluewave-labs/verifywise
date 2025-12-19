@@ -1981,8 +1981,17 @@ export default function NewExperimentModal({
       // Check conditional fields based on access method
       if (selectedModelProvider && 'needsUrl' in selectedModelProvider && selectedModelProvider.needsUrl && !config.model.endpointUrl) return false;
       
-      // Only require API key for custom_api (cloud providers use saved keys)
-      if (config.model.accessMethod === "custom_api" && !config.model.apiKey) return false;
+      // Providers that don't need API keys
+      const noApiKeyNeeded = ["ollama", "local"];
+      
+      // For all cloud providers (including custom_api), require either a saved API key OR an entered API key
+      if (!noApiKeyNeeded.includes(config.model.accessMethod)) {
+        // Map custom_api to "custom" for checking saved keys
+        const providerForKeyCheck = config.model.accessMethod === "custom_api" ? "custom" : config.model.accessMethod;
+        const hasSavedKey = hasApiKey(providerForKeyCheck);
+        const hasEnteredKey = !!config.model.apiKey;
+        if (!hasSavedKey && !hasEnteredKey) return false;
+      }
       
       return true;
     }

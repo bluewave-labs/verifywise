@@ -69,7 +69,7 @@ export const useAdvisorRuntime = (selectedLLMKeyId?: number) => {
         // Call the advisor API with the user's message
         const response = await runAdvisorAPI({
           prompt: userMessage,
-        }, getAdvisorType(location.pathname), selectedLLMKeyId);
+        }, selectedLLMKeyId);
 
         // Extract the assistant's response
         const assistantContent = response.data?.response || 'I received your message but could not generate a response.';
@@ -116,7 +116,7 @@ export const useAdvisorRuntime = (selectedLLMKeyId?: number) => {
       content: [
         {
           type: 'text' as const,
-          text: 'Hello! I\'m your Verifywise AI Advisor. I can help you analyze and manage your AI governance needs. What would you like to know?',
+          text: 'Hello! I\'m your Verifywise AI Advisor. I can help you with both AI Risk Management and Model Inventory. What would you like to know?',
         },
       ],
     },

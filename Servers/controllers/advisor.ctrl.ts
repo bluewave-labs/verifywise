@@ -11,27 +11,15 @@ import { toolsDefinition as modelInventoryToolsDefinition } from "../advisor/too
 
 const fileName = "advisor.ctrl.ts";
 
-const getAvailableTools = (type: string): any => {
-  switch (type) {
-    case "risk":
-      return availableRiskTools;
-    case "model":
-      return availableModelInventoryTools;
-    default:
-      return {};
-  }
-}
+const availableTools = {
+  ...availableRiskTools,
+  ...availableModelInventoryTools,
+};
 
-const getToolsDefinition = (type: string): any[] => {
-  switch (type) {
-    case "risk":
-      return riskToolsDefinition;
-    case "model":
-      return modelInventoryToolsDefinition;
-    default:
-      return [];
-  }
-}
+const toolsDefinition = [
+  ...riskToolsDefinition,
+  ...modelInventoryToolsDefinition,
+];
 
 export async function runAdvisor(req: Request, res: Response) {
   const functionName = "runAdvisor";
@@ -47,7 +35,6 @@ export async function runAdvisor(req: Request, res: Response) {
     const prompt = req.body.prompt;
     const tenantId = req.tenantId!;
     const userId = req.userId ? Number(req.userId) : undefined;
-    const advisorType = req.query.type as string;
     const llmKeyId = req.query.llmKeyId ? Number(req.query.llmKeyId) : undefined;
 
     // Validate required parameters
@@ -85,14 +72,11 @@ export async function runAdvisor(req: Request, res: Response) {
     }
 
     const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
-    const availableTools = getAvailableTools(advisorType);
-    const toolsDefinition = getToolsDefinition(advisorType);
 
     const response = await runAgent({
       apiKey: apiKey.key || "",
       baseURL: url,
       model: apiKey.model,
-      advisorType,
       userPrompt: prompt,
       tenant: tenantId,
       availableTools,

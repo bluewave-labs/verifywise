@@ -2,7 +2,6 @@ import { FC, forwardRef } from 'react';
 import { Stack, IconButton, useTheme } from '@mui/material';
 import { ComposerPrimitive } from '@assistant-ui/react';
 import { Send } from 'lucide-react';
-import { getAdvisorType } from './useAdvisorRuntime';
 
 const CustomTextField = forwardRef<
   HTMLTextAreaElement,
@@ -10,7 +9,7 @@ const CustomTextField = forwardRef<
 >((props, ref) => {
   const theme = useTheme();
 
-  // Using basic textarea instead of MUI TextField for better integration with ComposerPrimitive 
+  // Using basic textarea instead of MUI TextField for better integration with ComposerPrimitive
   // (ComposerPrimitive.Input expects a HTMLTextAreaElement which MUI TextField does not directly provide)
   return (
     <textarea
@@ -38,7 +37,6 @@ const CustomTextField = forwardRef<
 
 export const CustomComposer: FC = () => {
   const theme = useTheme();
-  const advisorType = getAdvisorType(location.pathname);
 
   return (
     <ComposerPrimitive.Root
@@ -52,7 +50,7 @@ export const CustomComposer: FC = () => {
         <ComposerPrimitive.Input
           asChild
           autoFocus
-          placeholder={`Ask me about Verifywise ${advisorType}...`}
+          placeholder="Ask me about AI risks, and models..."
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();

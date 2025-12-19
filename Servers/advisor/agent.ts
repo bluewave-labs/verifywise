@@ -6,7 +6,6 @@ interface AdvisorParams {
   apiKey: string;
   baseURL: string;
   model: string;
-  advisorType: string;
   userPrompt: string;
   tenant: string;
   availableTools: any;
@@ -17,7 +16,6 @@ export const runAgent = async ({
   apiKey,
   baseURL,
   model,
-  advisorType,
   userPrompt,
   tenant,
   availableTools,
@@ -25,7 +23,7 @@ export const runAgent = async ({
 }: AdvisorParams) => {
   const agentStartTime = Date.now();
   logger.info(
-    `[TIMER] runAgent internal started for advisorType: ${advisorType} and model ${model}`,
+    `[TIMER] runAgent internal started for advisor with model ${model}`,
   );
 
   // 1. SETUP: Configure client
@@ -37,7 +35,7 @@ export const runAgent = async ({
   // Initialize conversation history with system context
   const systemMessage = {
     role: "system",
-    content: getAdvisorPrompt(advisorType),
+    content: getAdvisorPrompt(),
   };
 
   const messages: any[] = [

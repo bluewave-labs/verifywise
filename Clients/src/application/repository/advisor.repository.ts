@@ -3,13 +3,12 @@ import { ApiResponse } from "../../domain/types/User";
 
 export const runAdvisorAPI = async (
   data: any,
-  type: string,
   llmKeyId?: number
 ): Promise<ApiResponse<any>> => {
   try {
-    let url = `/advisor?type=${type}`;
+    let url = `/advisor`;
     if (llmKeyId !== undefined) {
-      url += `&llmKeyId=${llmKeyId}`;
+      url += `?llmKeyId=${llmKeyId}`;
     }
     const response = await apiServices.post(url, data);
     return response;

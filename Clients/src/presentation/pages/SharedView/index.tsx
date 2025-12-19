@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Alert,
   Paper,
   Table,
   TableBody,
@@ -16,7 +15,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { Download } from "lucide-react";
+import { Download, ShieldX } from "lucide-react";
 import { ENV_VARs } from "../../../../env.vars";
 
 /**
@@ -136,13 +135,46 @@ const SharedView: React.FC = () => {
           p: 3,
         }}
       >
-        <Paper sx={{ p: 4, maxWidth: 600 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-          <Typography variant="body2" color="textSecondary">
-            This link may have expired or been revoked. Please contact the person who shared this link with you.
-          </Typography>
+        <Paper sx={{ p: 4, maxWidth: 600, textAlign: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              mb: 3,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                backgroundColor: "#FFEBEE",
+                mb: 2,
+              }}
+            >
+              <ShieldX size={32} color="#C62828" />
+            </Box>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 600, 
+                color: "#C62828", 
+                mb: 1 
+              }}
+            >
+              Access Forbidden
+            </Typography>
+            <Typography variant="body1" color="textSecondary" sx={{ mb: 2 }}>
+              {error}
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              This link may have expired or been revoked. Please contact the person who shared this link with you.
+            </Typography>
+          </Box>
         </Paper>
       </Box>
     );
@@ -254,7 +286,7 @@ const SharedView: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5", py: 4 }}>
-      <Box sx={{ maxWidth: 1200, mx: "auto", px: 3 }}>
+      <Box sx={{ mx: "auto", px: 3 }}>
         {/* Header */}
         <Paper sx={{ p: 3, mb: 3 }}>
           <Box

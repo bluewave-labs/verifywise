@@ -6,16 +6,16 @@ import {
   getFileMetadataByProjectId,
   uploadFile,
 } from "../utils/fileUpload.utils";
-import {
-  addFileToQuestion,
-  RequestWithFile,
-  UploadedFile,
-} from "../utils/question.utils";
-import { FileModel, FileType } from "../domain.layer/models/file/file.model";
+import { RequestWithFile, UploadedFile } from "../utils/question.utils";
+import { FileType } from "../domain.layer/models/file/file.model";
 import { addFileToAnswerEU } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import getUserFilesMetaDataQuery from "../utils/files/getUserFilesMetaData.utils";
-import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
 
 export async function getFileContentById(
   req: Request,
@@ -44,7 +44,10 @@ export async function getFileContentById(
       });
 
       res.setHeader("Content-Type", file.type);
-      res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${file.filename}"`
+      );
       return res.status(200).end(file.content);
     }
 
@@ -140,10 +143,15 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
         ? (validPage - 1) * validPageSize
         : undefined;
 
-    const files = await getUserFilesMetaDataQuery(req.role || "", userId, req.tenantId!, {
-      limit: validPageSize,
-      offset,
-    });
+    const files = await getUserFilesMetaDataQuery(
+      req.role || "",
+      userId,
+      req.tenantId!,
+      {
+        limit: validPageSize,
+        offset,
+      }
+    );
 
     await logSuccess({
       eventType: "Read",

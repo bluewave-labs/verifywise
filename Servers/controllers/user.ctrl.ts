@@ -50,11 +50,7 @@ import { sendMemberRoleChangedEditorToAdminNotification } from "../services/user
 import { logFailure } from "../utils/logger/logHelper";
 import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import {
-  generateRefreshToken,
-  generateToken,
-  getRefreshTokenPayload,
-} from "../utils/jwt.utils";
+import { generateToken, getRefreshTokenPayload } from "../utils/jwt.utils";
 import { UserModel } from "../domain.layer/models/user/user.model";
 import { sequelize } from "../database/db";
 import {
@@ -62,7 +58,6 @@ import {
   BusinessLogicException,
   ConflictException,
 } from "../domain.layer/exceptions/custom.exception";
-import { getTenantHash } from "../tools/getTenantHash";
 import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
@@ -102,33 +97,56 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
  * }
  */
 async function getAllUsers(req: Request, res: Response): Promise<any> {
-  logStructured('processing', 'starting getAllUsers', 'getAllUsers', 'user.ctrl.ts');
-  logger.debug('🔍 Fetching all users');
+  logStructured(
+    "processing",
+    "starting getAllUsers",
+    "getAllUsers",
+    "user.ctrl.ts"
+  );
+  logger.debug("🔍 Fetching all users");
 
   try {
-    const users = (await getAllUsersQuery(
-      req.organizationId!
-    )) as UserModel[];
+    const users = (await getAllUsersQuery(req.organizationId!)) as UserModel[];
 
     if (users && users.length > 0) {
-      logStructured('successful', `found ${users.length} users`, 'getAllUsers', 'user.ctrl.ts');
+      logStructured(
+        "successful",
+        `found ${users.length} users`,
+        "getAllUsers",
+        "user.ctrl.ts"
+      );
       return res
         .status(200)
         .json(STATUS_CODE[200](users.map((user) => user.toSafeJSON())));
     }
 
-    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts');
+    logStructured(
+      "successful",
+      "no users found",
+      "getAllUsers",
+      "user.ctrl.ts"
+    );
     return res.status(204).json(STATUS_CODE[204](users));
   } catch (error) {
-    logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');
-    logger.error('❌ Error in getAllUsers:', error);
+    logStructured(
+      "error",
+      "failed to retrieve users",
+      "getAllUsers",
+      "user.ctrl.ts"
+    );
+    logger.error("❌ Error in getAllUsers:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function getUserByEmail(req: Request, res: Response) {
   const email = req.params.email;
-  logStructured('processing', `fetching user by email: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
+  logStructured(
+    "processing",
+    `fetching user by email: ${email}`,
+    "getUserByEmail",
+    "user.ctrl.ts"
+  );
   logger.debug(`🔍 Looking up user with email: ${email}`);
 
   try {
@@ -137,41 +155,83 @@ async function getUserByEmail(req: Request, res: Response) {
     };
 
     if (user) {
-      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
+      logStructured(
+        "successful",
+        `user found: ${email}`,
+        "getUserByEmail",
+        "user.ctrl.ts"
+      );
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
+    logStructured(
+      "successful",
+      `no user found: ${email}`,
+      "getUserByEmail",
+      "user.ctrl.ts"
+    );
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
-    logger.error('❌ Error in getUserByEmail:', error);
+    logStructured(
+      "error",
+      `failed to fetch user: ${email}`,
+      "getUserByEmail",
+      "user.ctrl.ts"
+    );
+    logger.error("❌ Error in getUserByEmail:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function getUserById(req: Request, res: Response) {
   const id = parseInt(req.params.id);
-  logStructured('processing', `fetching user by ID: ${id}`, 'getUserById', 'user.ctrl.ts');
+  logStructured(
+    "processing",
+    `fetching user by ID: ${id}`,
+    "getUserById",
+    "user.ctrl.ts"
+  );
   logger.debug(`🔍 Looking up user with ID: ${id}`);
 
   try {
     const user = (await getUserByIdQuery(id)) as UserModel;
     if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${id}`, 'getUserById', 'user.ctrl.ts');
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+      logStructured(
+        "error",
+        `access denied to user ID ${id}`,
+        "getUserById",
+        "user.ctrl.ts"
+      );
+      return res
+        .status(403)
+        .json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
     }
 
     if (user) {
-      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
+      logStructured(
+        "successful",
+        `user found: ID ${id}`,
+        "getUserById",
+        "user.ctrl.ts"
+      );
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
+    logStructured(
+      "successful",
+      `no user found: ID ${id}`,
+      "getUserById",
+      "user.ctrl.ts"
+    );
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');
-    logger.error('❌ Error in getUserById:', error);
+    logStructured(
+      "error",
+      `failed to fetch user: ID ${id}`,
+      "getUserById",
+      "user.ctrl.ts"
+    );
+    logger.error("❌ Error in getUserById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -192,7 +252,7 @@ async function createNewUserWrapper(
   // Check if user already exists
   const existingUser = await getUserByEmailQuery(email);
   if (existingUser) {
-    throw new ConflictException("User with this email already exists",)
+    throw new ConflictException("User with this email already exists");
   }
 
   // Create user using the enhanced UserModel method
@@ -214,10 +274,7 @@ async function createNewUserWrapper(
     throw new ConflictException("Email already exists");
   }
 
-  const user = (await createNewUserQuery(
-    userModel,
-    transaction
-  )) as UserModel;
+  const user = (await createNewUserQuery(userModel, transaction)) as UserModel;
   return user;
 }
 
@@ -271,7 +328,12 @@ async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const { name, surname, email, password, roleId, organizationId } = req.body;
 
-  logStructured('processing', `starting user creation for ${email}`, 'createNewUser', 'user.ctrl.ts');
+  logStructured(
+    "processing",
+    `starting user creation for ${email}`,
+    "createNewUser",
+    "user.ctrl.ts"
+  );
   logger.debug(`🛠️ Creating user: ${email}`);
 
   try {
@@ -283,11 +345,18 @@ async function createNewUser(req: Request, res: Response) {
       await transaction.rollback();
       return res
         .status(409)
-        .json(STATUS_CODE[409]('User with this email already exists'));
+        .json(STATUS_CODE[409]("User with this email already exists"));
     }
 
     // Create user model with automatic password hashing
-    const userModel = await UserModel.createNewUser(name, surname, email, password, roleId, organizationId);
+    const userModel = await UserModel.createNewUser(
+      name,
+      surname,
+      email,
+      password,
+      roleId,
+      organizationId
+    );
     await userModel.validateUserData();
 
     // Double-check email uniqueness
@@ -296,10 +365,13 @@ async function createNewUser(req: Request, res: Response) {
       logStructured('error', `email not unique: ${email}`, 'createNewUser', 'user.ctrl.ts');
       await logEvent('Error', `Email not unique during creation: ${email}`, req.userId!, req.tenantId!);
       await transaction.rollback();
-      return res.status(409).json(STATUS_CODE[409]('Email already exists'));
+      return res.status(409).json(STATUS_CODE[409]("Email already exists"));
     }
 
-    const user = (await createNewUserQuery(userModel, transaction)) as UserModel;
+    const user = (await createNewUserQuery(
+      userModel,
+      transaction
+    )) as UserModel;
 
     if (user) {
       await transaction.commit();
@@ -311,7 +383,7 @@ async function createNewUser(req: Request, res: Response) {
     logStructured('error', `failed to create user: ${email}`, 'createNewUser', 'user.ctrl.ts');
     await logEvent('Error', `User creation failed: ${email}`, req.userId!, req.tenantId!);
     await transaction.rollback();
-    return res.status(400).json(STATUS_CODE[400]('Failed to create user'));
+    return res.status(400).json(STATUS_CODE[400]("Failed to create user"));
   } catch (error) {
     await transaction.rollback();
 
@@ -460,7 +532,12 @@ async function createNewUserWithGoogle(req: Request, res: Response) {
 async function loginUser(req: Request, res: Response): Promise<any> {
   const { email, password } = req.body;
 
-  logStructured('processing', `attempting login for ${email}`, 'loginUser', 'user.ctrl.ts');
+  logStructured(
+    "processing",
+    `attempting login for ${email}`,
+    "loginUser",
+    "user.ctrl.ts"
+  );
   logger.debug(`🔐 Login attempt for ${email}`);
 
   try {
@@ -487,14 +564,15 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         user.updateLastLogin();
 
         // Generate JWT tokens (access + refresh)
-        const { accessToken } = generateUserTokens({
-          id: user.id!,
-          email: email,
-          roleName: (userData as any).role_name,
-          organizationId: (userData as any).organization_id,
-        }, res);
-
-        logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
+        const { accessToken } = generateUserTokens(
+          {
+            id: user.id!,
+            email: email,
+            roleName: (userData as any).role_name,
+            organizationId: (userData as any).organization_id,
+          },
+          res
+        );
 
         return res.status(202).json(
           STATUS_CODE[202]({
@@ -502,16 +580,33 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           })
         );
       } else {
-        logStructured('error', `invalid credentials for ${email}`, 'loginUser', 'user.ctrl.ts');
-        return res.status(401).json(STATUS_CODE[401]('Invalid email or password'));
+        logStructured(
+          "error",
+          `invalid credentials for ${email}`,
+          "loginUser",
+          "user.ctrl.ts"
+        );
+        return res
+          .status(401)
+          .json(STATUS_CODE[401]("Invalid email or password"));
       }
     }
 
-    logStructured('error', `invalid credentials for ${email}`, 'loginUser', 'user.ctrl.ts');
-    return res.status(401).json(STATUS_CODE[401]('Invalid email or password'));
+    logStructured(
+      "error",
+      `invalid credentials for ${email}`,
+      "loginUser",
+      "user.ctrl.ts"
+    );
+    return res.status(401).json(STATUS_CODE[401]("Invalid email or password"));
   } catch (error) {
-    logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');
-    logger.error('❌ Error in loginUser:', error);
+    logStructured(
+      "error",
+      `unexpected error during login: ${email}`,
+      "loginUser",
+      "user.ctrl.ts"
+    );
+    logger.error("❌ Error in loginUser:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -611,27 +706,51 @@ async function loginUserWithGoogle(req: Request, res: Response): Promise<any> {
  * }
  */
 async function refreshAccessToken(req: Request, res: Response): Promise<any> {
-  logStructured('processing', 'attempting token refresh', 'refreshAccessToken', 'user.ctrl.ts');
-  logger.debug('🔁 Refresh token requested');
+  logStructured(
+    "processing",
+    "attempting token refresh",
+    "refreshAccessToken",
+    "user.ctrl.ts"
+  );
+  logger.debug("🔁 Refresh token requested");
 
   try {
     const refreshToken = req.cookies.refresh_token;
 
     if (!refreshToken) {
-      logStructured('error', 'missing refresh token', 'refreshAccessToken', 'user.ctrl.ts');
-      return res.status(400).json(STATUS_CODE[400]('Refresh token is required'));
+      logStructured(
+        "error",
+        "missing refresh token",
+        "refreshAccessToken",
+        "user.ctrl.ts"
+      );
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("Refresh token is required"));
     }
 
     const decoded = getRefreshTokenPayload(refreshToken);
 
     if (!decoded) {
-      logStructured('error', 'invalid refresh token', 'refreshAccessToken', 'user.ctrl.ts');
-      return res.status(401).json(STATUS_CODE[401]('Invalid refresh token'));
+      logStructured(
+        "error",
+        "invalid refresh token",
+        "refreshAccessToken",
+        "user.ctrl.ts"
+      );
+      return res.status(401).json(STATUS_CODE[401]("Invalid refresh token"));
     }
 
     if (decoded.expire < Date.now()) {
-      logStructured('error', 'refresh token expired', 'refreshAccessToken', 'user.ctrl.ts');
-      return res.status(406).json(STATUS_CODE[406]({ message: 'Token expired' }));
+      logStructured(
+        "error",
+        "refresh token expired",
+        "refreshAccessToken",
+        "user.ctrl.ts"
+      );
+      return res
+        .status(406)
+        .json(STATUS_CODE[406]({ message: "Token expired" }));
     }
 
     const newAccessToken = generateToken({
@@ -642,7 +761,12 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       organizationId: decoded.organizationId,
     });
 
-    logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');
+    logStructured(
+      "successful",
+      `token refreshed for ${decoded.email}`,
+      "refreshAccessToken",
+      "user.ctrl.ts"
+    );
 
     return res.status(200).json(
       STATUS_CODE[200]({
@@ -650,8 +774,13 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       })
     );
   } catch (error) {
-    logStructured('error', 'unexpected error during token refresh', 'refreshAccessToken', 'user.ctrl.ts');
-    logger.error('❌ Error in refreshAccessToken:', error);
+    logStructured(
+      "error",
+      "unexpected error during token refresh",
+      "refreshAccessToken",
+      "user.ctrl.ts"
+    );
+    logger.error("❌ Error in refreshAccessToken:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -660,7 +789,12 @@ async function resetPassword(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const { email, newPassword } = req.body;
 
-  logStructured('processing', `resetting password for ${email}`, 'resetPassword', 'user.ctrl.ts');
+  logStructured(
+    "processing",
+    `resetting password for ${email}`,
+    "resetPassword",
+    "user.ctrl.ts"
+  );
   logger.debug(`🔁 Password reset requested for ${email}`);
 
   try {
@@ -688,7 +822,7 @@ async function resetPassword(req: Request, res: Response) {
     logStructured('error', `user not found: ${email}`, 'resetPassword', 'user.ctrl.ts');
     await logEvent('Error', `Password reset failed — user not found: ${email}`, req.userId!, req.tenantId!);
     await transaction.rollback();
-    return res.status(404).json(STATUS_CODE[404]('User not found'));
+    return res.status(404).json(STATUS_CODE[404]("User not found"));
   } catch (error) {
     await transaction.rollback();
 
@@ -719,7 +853,12 @@ async function updateUserById(req: Request, res: Response) {
   // Convert roleId to number if it exists (frontend may send as string)
   const roleId = roleIdRaw ? parseInt(roleIdRaw) : undefined;
 
-  logStructured('processing', `updating user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
+  logStructured(
+    "processing",
+    `updating user ID ${id}`,
+    "updateUserById",
+    "user.ctrl.ts"
+  );
 
   try {
     // Check permissions (if user context is available)
@@ -727,9 +866,16 @@ async function updateUserById(req: Request, res: Response) {
     const user = await getUserByIdQuery(id);
 
     if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
+      logStructured(
+        "error",
+        `access denied to user ID ${id}`,
+        "updateUserById",
+        "user.ctrl.ts"
+      );
       await transaction.rollback();
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+      return res
+        .status(403)
+        .json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
     }
 
     if (user) {
@@ -763,7 +909,7 @@ async function updateUserById(req: Request, res: Response) {
         {
           title: `Membership update`,
           message: `${updatedUser.name} ${updatedUser.surname} is now *Project ${role?.name}* (added by ${actor.name} ${actor.surname}).`,
-        },
+        }
       );
 
       logStructured('successful', `user updated: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
@@ -774,7 +920,6 @@ async function updateUserById(req: Request, res: Response) {
       const newRoleIdNum = Number(roleId);
 
       if (newRoleIdNum === 1 && oldRoleIdNum === 3) {
-
         // Get all projects where the user is a member
         try {
           const userProjects = await getUserProjects(id, req.tenantId!);
@@ -818,7 +963,7 @@ async function updateUserById(req: Request, res: Response) {
     logStructured('error', `user not found: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
     await logEvent('Error', `Update failed — user not found: ID ${id}`, req.userId!, req.tenantId!);
     await transaction.rollback();
-    return res.status(404).json(STATUS_CODE[404]('User not found'));
+    return res.status(404).json(STATUS_CODE[404]("User not found"));
   } catch (error) {
     await transaction.rollback();
 
@@ -845,16 +990,28 @@ async function deleteUserById(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const id = parseInt(req.params.id);
 
-  logStructured('processing', `attempting to delete user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
+  logStructured(
+    "processing",
+    `attempting to delete user ID ${id}`,
+    "deleteUserById",
+    "user.ctrl.ts"
+  );
   logger.debug(`🗑️ Delete request for user ID ${id}`);
 
   try {
     const user = await getUserByIdQuery(id);
 
     if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
+      logStructured(
+        "error",
+        `access denied to user ID ${id}`,
+        "deleteUserById",
+        "user.ctrl.ts"
+      );
       await transaction.rollback();
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+      return res
+        .status(403)
+        .json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
     }
 
     if (user) {
@@ -862,10 +1019,16 @@ async function deleteUserById(req: Request, res: Response) {
         logStructured('error', `attempted to delete demo user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
         await logEvent('Error', `Blocked deletion of demo user ID ${id}`, req.userId!, req.tenantId!);
         await transaction.rollback();
-        return res.status(403).json(STATUS_CODE[403]('Demo users cannot be deleted'));
+        return res
+          .status(403)
+          .json(STATUS_CODE[403]("Demo users cannot be deleted. Remove demo data from Management > Delete demo data"));
       }
 
-      const deletedUser = await deleteUserByIdQuery(id, req.tenantId!, transaction);
+      const deletedUser = await deleteUserByIdQuery(
+        id,
+        req.tenantId!,
+        transaction
+      );
       await transaction.commit();
 
       logStructured('successful', `user deleted: ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
@@ -877,7 +1040,7 @@ async function deleteUserById(req: Request, res: Response) {
     logStructured('error', `user not found: ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
     await logEvent('Error', `Delete failed — user not found: ID ${id}`, req.userId!, req.tenantId!);
     await transaction.rollback();
-    return res.status(404).json(STATUS_CODE[404]('User not found'));
+    return res.status(404).json(STATUS_CODE[404]("User not found"));
   } catch (error) {
     await transaction.rollback();
     logStructured('error', `unexpected error deleting user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
@@ -898,19 +1061,34 @@ async function checkUserExists(
   _req: Request,
   res: Response
 ): Promise<Response> {
-  logStructured('processing', 'checking if any user exists', 'checkUserExists', 'user.ctrl.ts');
-  logger.debug('🔍 Checking for existing users');
+  logStructured(
+    "processing",
+    "checking if any user exists",
+    "checkUserExists",
+    "user.ctrl.ts"
+  );
+  logger.debug("🔍 Checking for existing users");
 
   try {
     const userExists = await checkUserExistsQuery();
 
-    logStructured('successful', `user existence check: ${userExists}`, 'checkUserExists', 'user.ctrl.ts');
+    logStructured(
+      "successful",
+      `user existence check: ${userExists}`,
+      "checkUserExists",
+      "user.ctrl.ts"
+    );
 
     return res.status(200).json(userExists);
   } catch (error) {
-    logStructured('error', 'failed to check user existence', 'checkUserExists', 'user.ctrl.ts');
-    logger.error('❌ Error in checkUserExists:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    logStructured(
+      "error",
+      "failed to check user existence",
+      "checkUserExists",
+      "user.ctrl.ts"
+    );
+    logger.error("❌ Error in checkUserExists:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -919,7 +1097,12 @@ async function calculateProgress(
   res: Response
 ): Promise<Response> {
   const id = parseInt(req.params.id);
-  logStructured('processing', `calculating progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
+  logStructured(
+    "processing",
+    `calculating progress for user ID ${id}`,
+    "calculateProgress",
+    "user.ctrl.ts"
+  );
   logger.debug(`📊 Starting progress calculation for user ID ${id}`);
 
   try {
@@ -936,14 +1119,18 @@ async function calculateProgress(
     for (const userProject of userProjects) {
       let totalSubControls = 0;
       let doneSubControls = 0;
-      const controlcategories = await getControlCategoriesForProject(userProject.id!);
+      const controlcategories = await getControlCategoriesForProject(
+        userProject.id!
+      );
       for (const controlcategory of controlcategories) {
-        const controls = await getControlForControlCategory(controlcategory.id!);
+        const controls = await getControlForControlCategory(
+          controlcategory.id!
+        );
         for (const control of controls) {
           const subControls = await getSubControlForControl(control.id!);
           for (const subControl of subControls) {
             totalSubControls++;
-            if (subControl.status === 'Done') {
+            if (subControl.status === "Done") {
               doneSubControls++;
             }
           }
@@ -984,7 +1171,12 @@ async function calculateProgress(
       });
     }
 
-    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
+    logStructured(
+      "successful",
+      `progress calculated for user ID ${id}`,
+      "calculateProgress",
+      "user.ctrl.ts"
+    );
 
     return res.status(200).json({
       assessmentsMetadata,
@@ -995,9 +1187,14 @@ async function calculateProgress(
       allDoneSubControls,
     });
   } catch (error) {
-    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
-    logger.error('❌ Error in calculateProgress:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    logStructured(
+      "error",
+      `failed to calculate progress for user ID ${id}`,
+      "calculateProgress",
+      "user.ctrl.ts"
+    );
+    logger.error("❌ Error in calculateProgress:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -1005,7 +1202,12 @@ async function ChangePassword(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const { id, currentPassword, newPassword } = req.body;
 
-  logStructured('processing', `attempting password change for user ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
+  logStructured(
+    "processing",
+    `attempting password change for user ID ${id}`,
+    "ChangePassword",
+    "user.ctrl.ts"
+  );
   logger.debug(`🔐 Password change requested for user ID ${id}`);
 
   try {
@@ -1015,7 +1217,7 @@ async function ChangePassword(req: Request, res: Response) {
       logStructured('error', `user not found: ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
       await logEvent('Error', `Password change failed — user not found: ID ${id}`, req.userId!, req.tenantId!);
       await transaction.rollback();
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     await user.updatePassword(
@@ -1034,7 +1236,7 @@ async function ChangePassword(req: Request, res: Response) {
     await logEvent('Update', `Password changed for user ID ${id}`, req.userId!, req.tenantId!);
 
     return res.status(202).json({
-      message: 'Password updated successfully',
+      message: "Password updated successfully",
       data: updatedUser.toSafeJSON(),
     });
   } catch (error) {
@@ -1066,12 +1268,22 @@ async function updateUserRole(req: Request, res: Response) {
   const { newRoleId: newRoleIdRaw } = req.body;
 
   // Normalize newRoleId from the request payload (frontend may send as string)
-  const newRoleId = typeof newRoleIdRaw === "string" ? parseInt(newRoleIdRaw, 10) : newRoleIdRaw;
+  const newRoleId =
+    typeof newRoleIdRaw === "string"
+      ? parseInt(newRoleIdRaw, 10)
+      : newRoleIdRaw;
 
   const currentUserId = (req as any).user?.id;
 
-  logStructured('processing', `updating role for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
-  logger.debug(`🔧 Role update requested for user ID ${id} by admin ID ${currentUserId}`);
+  logStructured(
+    "processing",
+    `updating role for user ID ${id}`,
+    "updateUserRole",
+    "user.ctrl.ts"
+  );
+  logger.debug(
+    `🔧 Role update requested for user ID ${id} by admin ID ${currentUserId}`
+  );
 
   try {
     const targetUser = await getUserByIdQuery(parseInt(id));
@@ -1079,16 +1291,15 @@ async function updateUserRole(req: Request, res: Response) {
       logStructured('error', `target user not found: ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
       await logEvent('Error', `Role update failed — target user not found: ID ${id}`, req.userId!, req.tenantId!);
       await transaction.rollback();
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
-
 
     const currentUser = await getUserByIdQuery(currentUserId);
     if (!currentUser) {
       logStructured('error', `admin user not found: ID ${currentUserId}`, 'updateUserRole', 'user.ctrl.ts');
       await logEvent('Error', `Role update failed — admin user not found: ID ${currentUserId}`, req.userId!, req.tenantId!);
       await transaction.rollback();
-      return res.status(404).json({ message: 'Current user not found' });
+      return res.status(404).json({ message: "Current user not found" });
     }
 
     // Capture the old role before updating
@@ -1146,7 +1357,7 @@ async function updateUserRole(req: Request, res: Response) {
     }
 
     return res.status(202).json({
-      message: 'User role updated successfully',
+      message: "User role updated successfully",
       data: updatedUser.toSafeJSON(),
     });
   } catch (error) {
@@ -1180,16 +1391,23 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
     "processing",
     `uploading profile photo for user ID ${userId}`,
     "uploadUserProfilePhoto",
-    "user.ctrl.ts",
+    "user.ctrl.ts"
   );
   logger.debug(`📸 Uploading profile photo for user ID ${userId}`);
 
   try {
     const user = await getUserByIdQuery(userId);
     if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${userId}`, 'uploadUserProfilePhoto', 'user.ctrl.ts');
+      logStructured(
+        "error",
+        `access denied to user ID ${userId}`,
+        "uploadUserProfilePhoto",
+        "user.ctrl.ts"
+      );
       await transaction.rollback();
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+      return res
+        .status(403)
+        .json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
     }
 
     if (!attachment) {
@@ -1198,12 +1416,12 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
         "error",
         `no file provided for user ID ${userId}`,
         "uploadUserProfilePhoto",
-        "user.ctrl.ts",
+        "user.ctrl.ts"
       );
       return res.status(400).json(
         STATUS_CODE[400]({
           message: "No file provided",
-        }),
+        })
       );
     }
 
@@ -1214,7 +1432,7 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
       null,
       "AI trust center group",
       req.tenantId!,
-      transaction,
+      transaction
     );
     const fileId = file?.id || undefined;
 
@@ -1224,12 +1442,12 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
         "error",
         `file upload failed for user ID ${userId}`,
         "uploadUserProfilePhoto",
-        "user.ctrl.ts",
+        "user.ctrl.ts"
       );
       return res.status(400).json(
         STATUS_CODE[400]({
           message: "File upload failed",
-        }),
+        })
       );
     }
 
@@ -1238,7 +1456,7 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
       userId,
       fileId,
       req.tenantId!,
-      transaction,
+      transaction
     );
 
     if (upload) {
@@ -1247,14 +1465,14 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
         "successful",
         `Profile photo uploaded for user ID ${userId}`,
         "uploadUserProfilePhoto",
-        "user.ctrl.ts",
+        "user.ctrl.ts"
       );
       await logEvent("Create", `Profile photo uploaded for user ID ${userId}`, req.userId!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           message: "Profile photo uploaded successfully",
           ...upload,
-        }),
+        })
       );
     } else {
       await transaction.rollback();
@@ -1262,7 +1480,7 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
         "error",
         `failed to upload profile photo for user ID ${userId}`,
         "uploadUserProfilePhoto",
-        "user.ctrl.ts",
+        "user.ctrl.ts"
       );
       await logEvent(
         "Error",
@@ -1273,7 +1491,7 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
       return res.status(500).json(
         STATUS_CODE[500]({
           message: "Failed to upload profile photo",
-        }),
+        })
       );
     }
   } catch (error) {
@@ -1282,7 +1500,7 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
       "error",
       `unexpected error uploading profile photo for user ID ${userId}`,
       "uploadUserProfilePhoto",
-      "user.ctrl.ts",
+      "user.ctrl.ts"
     );
     await logEvent(
       "Error",
@@ -1301,15 +1519,22 @@ async function getUserProfilePhoto(req: Request, res: Response) {
     "processing",
     `fetching profile photo for user ID ${userId}`,
     "getUserProfilePhoto",
-    "user.ctrl.ts",
+    "user.ctrl.ts"
   );
   logger.debug(`📸 Fetching profile photo for user ID ${userId}`);
 
   try {
     const user = await getUserByIdQuery(userId);
     if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${userId}`, 'getUserProfilePhoto', 'user.ctrl.ts');
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+      logStructured(
+        "error",
+        `access denied to user ID ${userId}`,
+        "getUserProfilePhoto",
+        "user.ctrl.ts"
+      );
+      return res
+        .status(403)
+        .json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
     }
 
     const photo = await getUserProfilePhotoQuery(userId, req.tenantId!);
@@ -1317,14 +1542,15 @@ async function getUserProfilePhoto(req: Request, res: Response) {
     if (!photo) {
       logStructured(
         "successful",
-        `profile photo not found for user ID ${userId}`,
+        `no profile photo for user ID ${userId}`,
         "getUserProfilePhoto",
-        "user.ctrl.ts",
+        "user.ctrl.ts"
       );
-      return res.status(404).json(
-        STATUS_CODE[404]({
-          message: "Profile photo not found",
-        }),
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          message: "No profile photo",
+          photo: null,
+        })
       );
     }
 
@@ -1332,20 +1558,20 @@ async function getUserProfilePhoto(req: Request, res: Response) {
       "successful",
       `profile photo retrieved for user ID ${userId}`,
       "getUserProfilePhoto",
-      "user.ctrl.ts",
+      "user.ctrl.ts"
     );
     return res.status(200).json(
       STATUS_CODE[200]({
         message: "Profile photo retrieved successfully",
         photo,
-      }),
+      })
     );
   } catch (error) {
     logStructured(
       "error",
       `failed to retrieve profile photo for user ID ${userId}`,
       "getUserProfilePhoto",
-      "user.ctrl.ts",
+      "user.ctrl.ts"
     );
     logger.error("❌ Error in getUserProfilePhoto:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -1360,22 +1586,29 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
     "processing",
     `deleting profile photo for user ID ${userId}`,
     "deleteUserProfilePhoto",
-    "user.ctrl.ts",
+    "user.ctrl.ts"
   );
   logger.debug(`🗑️ Deleting profile photo for user ID ${userId}`);
 
   try {
     const user = await getUserByIdQuery(userId);
     if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${userId}`, 'deleteUserProfilePhoto', 'user.ctrl.ts');
+      logStructured(
+        "error",
+        `access denied to user ID ${userId}`,
+        "deleteUserProfilePhoto",
+        "user.ctrl.ts"
+      );
       await transaction.rollback();
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+      return res
+        .status(403)
+        .json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
     }
 
     const isDeleted = await deleteUserProfilePhotoQuery(
       userId,
       req.tenantId!,
-      transaction,
+      transaction
     );
 
     if (isDeleted) {
@@ -1384,13 +1617,13 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
         "successful",
         `profile photo deleted for user ID ${userId}`,
         "deleteUserProfilePhoto",
-        "user.ctrl.ts",
+        "user.ctrl.ts"
       );
       await logEvent("Delete", `Profile photo deleted for user ID ${userId}`, req.userId!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           message: "Profile photo deleted successfully",
-        }),
+        })
       );
     } else {
       await transaction.rollback();
@@ -1398,7 +1631,7 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
         "error",
         `failed to delete profile photo for user ID ${userId}`,
         "deleteUserProfilePhoto",
-        "user.ctrl.ts",
+        "user.ctrl.ts"
       );
       await logEvent(
         "Error",
@@ -1409,7 +1642,7 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
       return res.status(500).json(
         STATUS_CODE[500]({
           message: "Failed to delete profile photo",
-        }),
+        })
       );
     }
   } catch (error) {
@@ -1418,7 +1651,7 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
       "error",
       `unexpected error deleting profile photo for user ID ${userId}`,
       "deleteUserProfilePhoto",
-      "user.ctrl.ts",
+      "user.ctrl.ts"
     );
     await logEvent(
       "Error",

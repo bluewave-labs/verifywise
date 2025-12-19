@@ -15,7 +15,7 @@ import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
 import { DashboardState, UIValues, AuthValues, InputValues } from "./application/interfaces/appStates";
 import { ComponentVisible } from "./application/interfaces/ComponentVisible";
-import { AlertProps } from "./domain/interfaces/iAlert";
+import { AlertProps } from "./domain/interfaces/i.alert";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
@@ -27,6 +27,40 @@ import CommandPaletteErrorBoundary from "./presentation/components/CommandPalett
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
+import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
+
+// Auth routes where the helper sidebar should not be shown
+const AUTH_ROUTES = [
+  '/login',
+  '/admin-reg',
+  '/user-reg',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/set-new-password',
+  '/reset-password-continue',
+];
+
+// Component for User Guide Sidebar that uses the context
+const UserGuideSidebarContainer = () => {
+  const location = useLocation();
+  const userGuideSidebar = useUserGuideSidebarContext();
+
+  // Don't show the helper sidebar on auth pages
+  const isAuthPage = AUTH_ROUTES.some(route => location.pathname === route);
+  if (isAuthPage) {
+    return null;
+  }
+
+  return (
+    <SidebarWrapper
+      isOpen={userGuideSidebar.isOpen}
+      onClose={userGuideSidebar.close}
+      onOpen={userGuideSidebar.open}
+      initialPath={userGuideSidebar.currentPath}
+    />
+  );
+};
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -145,6 +179,8 @@ function App() {
     []
   );
 
+  const [photoRefreshFlag, setPhotoRefreshFlag] = useState(false);
+
   const contextValues = useMemo(
     () => ({
       uiValues,
@@ -169,7 +205,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     }),
     [
       uiValues,
@@ -194,7 +232,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     ]
   );
 
@@ -207,32 +247,37 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
-            <ConditionalThemeWrapper>
-              {alert && (
-                <Alert
-                  variant={alert.variant}
-                  title={alert.title}
-                  body={alert.body}
-                  isToast={true}
-                  onClick={() => setAlert(null)}
-                />
-              )}
-              <CommandPaletteErrorBoundary>
-                <CommandPalette
-                  open={commandPalette.isOpen}
-                  onOpenChange={commandPalette.close}
-                />
-              </CommandPaletteErrorBoundary>
-              {showModal && (
-                <OnboardingModal
-                  onComplete={handleOnboardingComplete}
-                  onSkip={handleOnboardingSkip}
-                />
-              )}
-              <Routes>
-                {createRoutes(triggerSidebar, triggerSidebarReload)}
-              </Routes>
-            </ConditionalThemeWrapper>
+            <UserGuideSidebarProvider>
+              <ConditionalThemeWrapper>
+                {alert && (
+                  <Alert
+                    variant={alert.variant}
+                    title={alert.title}
+                    body={alert.body}
+                    isToast={true}
+                    onClick={() => setAlert(null)}
+                  />
+                )}
+                <CommandPaletteErrorBoundary>
+                  <CommandPalette
+                    open={commandPalette.isOpen}
+                    onOpenChange={commandPalette.close}
+                  />
+                </CommandPaletteErrorBoundary>
+                {showModal && (
+                  <OnboardingModal
+                    onComplete={handleOnboardingComplete}
+                    onSkip={handleOnboardingSkip}
+                  />
+                )}
+                <Routes>
+                  {createRoutes(triggerSidebar, triggerSidebarReload)}
+                </Routes>
+
+                {/* User Guide Sidebar */}
+                <UserGuideSidebarContainer />
+              </ConditionalThemeWrapper>
+            </UserGuideSidebarProvider>
           </VerifyWiseContext.Provider>
         </PersistGate>
       </Provider>

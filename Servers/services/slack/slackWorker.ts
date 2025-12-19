@@ -1,8 +1,8 @@
 import { Worker, Job } from "bullmq";
-import redisClient from "../../database/redis"
+import redisClient from "../../database/redis";
 
 import { sendPolicyDueSoonNotification } from "./policyDueSoonNotification";
-import { logSuccess, logFailure } from "../../utils/logger/logHelper";
+// import { logSuccess, logFailure } from "../../utils/logger/logHelper";
 
 export const createNotificationWorker = () => {
   const worker = new Worker(
@@ -15,11 +15,11 @@ export const createNotificationWorker = () => {
         throw new Error(`Unknown job type: ${job.data.type}`);
       }
     },
-    { connection: redisClient },
+    { connection: redisClient }
   );
 
-  worker.on("completed", (job) => {
-    const userId = job.returnvalue?.userId;
+  worker.on("completed", (_job) => {
+    // const userId = job.returnvalue?.userId;
     // logSuccess({
     //   eventType: "Update",
     //   description: "Completed Job Processing",
@@ -29,7 +29,7 @@ export const createNotificationWorker = () => {
     // });
   });
 
-  worker.on("failed", (job, err) => {
+  worker.on("failed", (_job, _err) => {
     // logFailure({
     //   eventType: "Update",
     //   description: "Processed Jobs",

@@ -15,12 +15,13 @@ import {
 } from "@mui/material";
 import { Settings } from "lucide-react";
 import { useState } from "react";
-import BasicModal from "../Modals/Basic";
+import ConfirmationModal from "../Dialogs/ConfirmationModal";
+import { Typography } from "@mui/material";
 import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
-import { IconButtonProps } from "../../../domain/interfaces/iWidget";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { IconButtonProps } from "../../../domain/interfaces/i.widget";
+import { AlertProps } from "../../../domain/interfaces/i.alert";
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,
@@ -43,11 +44,13 @@ const IconButton: React.FC<IconButtonProps> = ({
   isArchived,
   onRestore,
   onHardDelete,
+  onLinkedObjects,
   hardDeleteWarningTitle,
   hardDeleteWarningMessage,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setActions] = useState({});
   const [isOpenRemoveModal, setIsOpenRemoveModal] = useState(false);
   const [isOpenHardDeleteModal, setIsOpenHardDeleteModal] = useState(false);
@@ -188,6 +191,15 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
+  const handleLinkedObjects = (e?: React.SyntheticEvent) => {
+    if (onLinkedObjects) {
+      onLinkedObjects();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
   const handleHardDelete = (e?: React.SyntheticEvent) => {
     if (onHardDelete) {
       onHardDelete();
@@ -236,6 +248,10 @@ const IconButton: React.FC<IconButtonProps> = ({
         return ["restore", "delete"];
       }
       return ["edit", "archive", "delete"];
+    } else if (type === "Policy") {
+      return ["edit", "link_objects" , "remove"];
+    } else if (type === "LinkedObjectsType") {
+      return ["remove",];
     } else {
       return ["edit", "remove"];
     }
@@ -262,6 +278,9 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
     if ((type === "Task" || type === "task") && item === "restore") {
       return "Restore task";
+    }
+    if ((type === "Policy" || type === "policy") && item === "link_objects") {
+      return "Linked objects";
     }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
@@ -324,6 +343,8 @@ const IconButton: React.FC<IconButtonProps> = ({
               } else if (item === "restore") {
                 // Task restore action
                 handleRestore(e);
+              } else if (item === "link_objects") {
+                handleLinkedObjects(e);
               } else if (item === "delete" && (type === "Task" || type === "task")) {
                 // Task hard delete action
                 if (hardDeleteWarningTitle && hardDeleteWarningMessage) {
@@ -374,6 +395,9 @@ const IconButton: React.FC<IconButtonProps> = ({
                 if (item === "restore") {
                   return { color: "#13715B" }; // primary color
                 }
+                if (item === "link_objects") {
+                  return { color: "#13715B" }; // primary color
+                }
                 return {};
               })(),
             }}
@@ -420,30 +444,58 @@ const IconButton: React.FC<IconButtonProps> = ({
     <>
       {customIconButtonAsSettings}
       {dropDownListOfOptions}
-      {warningTitle && warningMessage && (
-        <BasicModal
+      {warningTitle && warningMessage && isOpenRemoveModal && (
+        <ConfirmationModal
           isOpen={isOpenRemoveModal}
-          setIsOpen={() => setIsOpenRemoveModal(false)}
-          onDelete={(e) =>
-            checkForRisks && onDeleteWithRisks
-              ? handleDeleteWithRiskCheck(e)
-              : handleDelete(e)
+          title={warningTitle}
+          body={
+            typeof warningMessage === "string" ? (
+              <Typography fontSize={13} color="#344054">
+                {warningMessage}
+              </Typography>
+            ) : (
+              warningMessage
+            )
           }
-          warningTitle={warningTitle}
-          warningMessage={warningMessage}
-          onCancel={(e) => handleCancle(e)}
-          type={type}
+          cancelText="Cancel"
+          proceedText={
+            type === "Incident" || type === "Task"
+              ? `Archive ${type.toLowerCase()}`
+              : `Delete ${type}`
+          }
+          onCancel={() => handleCancle()}
+          onProceed={() =>
+            checkForRisks && onDeleteWithRisks
+              ? handleDeleteWithRiskCheck()
+              : handleDelete()
+          }
+          proceedButtonColor={
+            type === "Incident" || type === "Task" ? "warning" : "error"
+          }
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
         />
       )}
-      {hardDeleteWarningTitle && hardDeleteWarningMessage && (
-        <BasicModal
+      {hardDeleteWarningTitle && hardDeleteWarningMessage && isOpenHardDeleteModal && (
+        <ConfirmationModal
           isOpen={isOpenHardDeleteModal}
-          setIsOpen={() => setIsOpenHardDeleteModal(false)}
-          onDelete={handleHardDelete}
-          warningTitle={hardDeleteWarningTitle}
-          warningMessage={hardDeleteWarningMessage}
+          title={hardDeleteWarningTitle}
+          body={
+            typeof hardDeleteWarningMessage === "string" ? (
+              <Typography fontSize={13} color="#344054">
+                {hardDeleteWarningMessage}
+              </Typography>
+            ) : (
+              hardDeleteWarningMessage
+            )
+          }
+          cancelText="Cancel"
+          proceedText="Delete permanently"
           onCancel={() => setIsOpenHardDeleteModal(false)}
-          type={type}
+          onProceed={() => handleHardDelete()}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
         />
       )}
       <ModelRiskConfirmation

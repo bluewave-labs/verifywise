@@ -7,36 +7,51 @@ import {
   CircularProgress,
   Dialog,
   useTheme,
+  Box,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
+import { TabContext, TabPanel } from "@mui/lab";
 import { FileData } from "../../../../domain/types/File";
-import { X as CloseIcon } from "lucide-react";
+import {
+  X as CloseIcon,
+  Save as SaveIcon,
+  Download as DownloadIcon,
+  Trash2 as DeleteIcon,
+  Eye as ViewIcon,
+  FileText as FileIcon,
+} from "lucide-react";
 import Checkbox from "../../Inputs/Checkbox";
 import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
 import DatePicker from "../../Inputs/Datepicker";
 import Select from "../../Inputs/Select";
-import { useState, useEffect, lazy, Suspense } from "react";
+import TabBar from "../../TabBar";
+import StandardModal from "../../Modals/StandardModal";
+import { useState, useEffect, lazy, Suspense, useRef } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { Save as SaveIcon } from "lucide-react";
 import { User } from "../../../../domain/types/User";
 import {
   GetAnnexCategoriesById,
   UpdateAnnexCategoryById,
 } from "../../../../application/repository/annexCategory_iso.repository";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
-import UppyUploadFile from "../../Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";
 import Alert from "../../Alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
-import Uppy from "@uppy/core";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import allowedRoles from "../../../../application/constants/permissions";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { getFileById } from "../../../../application/repository/file.repository";
+import { getEntityById } from "../../../../application/repository/entity.repository";
+
 const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
+const NotesTab = lazy(() => import("../../Notes/NotesTab"));
+const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
 
 interface Control {
   id: number;
@@ -46,6 +61,14 @@ interface Control {
   shortDescription: string;
   guidance: string;
   status: string;
+}
+
+interface LinkedRisk {
+  id: number;
+  risk_name: string;
+  risk_level: string;
+  description?: string;
+  [key: string]: any;
 }
 
 interface VWISO42001ClauseDrawerDialogProps {
@@ -77,9 +100,7 @@ const VWISO42001AnnexDrawerDialog = ({
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
     useState<boolean>(false);
-  const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
-  const [evidenceFilesDeleteCount, setEvidenceFilesDeleteCount] = useState(0);
   const theme = useTheme();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
@@ -89,6 +110,15 @@ const VWISO42001AnnexDrawerDialog = ({
   const [auditedStatusModalOpen, setAuditedStatusModalOpen] =
     useState<boolean>(false);
 
+  // Tab management state
+  const [activeTab, setActiveTab] = useState("details");
+  const [currentRisks, setCurrentRisks] = useState<number[]>([]);
+  const [linkedRiskObjects, setLinkedRiskObjects] = useState<LinkedRisk[]>([]);
+  const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
+  const [selectedRiskForView, setSelectedRiskForView] = useState<LinkedRisk | null>(null);
+  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const onRiskSubmitRef = useRef<(() => void) | null>(null);
+
   const { userId, userRoleName } = useAuth();
   const { users } = useUsers();
 
@@ -96,6 +126,18 @@ const VWISO42001AnnexDrawerDialog = ({
     !allowedRoles.frameworks.edit.includes(userRoleName);
   const isAuditingDisabled =
     !allowedRoles.frameworks.audit.includes(userRoleName);
+
+  // Tab configuration
+  const tabs = [
+    { label: "Details", value: "details", icon: "FileText" as const },
+    { label: "Evidence", value: "evidence", icon: "FolderOpen" as const },
+    { label: "Cross mappings", value: "cross-mappings", icon: "Link" as const },
+    { label: "Notes", value: "notes", icon: "MessageSquare" as const },
+  ];
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+    setActiveTab(newValue);
+  };
 
   // Add state for all form fields
   const [formData, setFormData] = useState({
@@ -119,62 +161,142 @@ const VWISO42001AnnexDrawerDialog = ({
     }
   }, [users]);
 
-  const setUploadFilesAnnexCategories = (files: FileData[]) => {
-    setUploadFiles(files);
-    if (deletedFilesIds.length > 0 || files.length > 0) {
+  // File management functions
+  const handleAddFiles = (files: File[]) => {
+    const newFiles: FileData[] = files.map((file, index) => ({
+      id: `upload-${Date.now()}-${index}`,
+      fileName: file.name,
+      size: file.size,
+      type: file.type,
+      data: file,
+      uploadDate: new Date().toISOString(),
+      uploader: userId?.toString() || "1",
+    }));
+
+    setUploadFiles([...uploadFiles, ...newFiles]);
+    handleAlert({
+      variant: "info",
+      body: "Please save the changes to upload the files.",
+      setAlert,
+    });
+  };
+
+  const handleDeleteFile = (fileId: number | string) => {
+    const fileIdNumber = typeof fileId === "number" ? fileId : parseInt(fileId);
+
+    if (evidenceFiles.some((file) => file.id === fileId)) {
+      setEvidenceFiles(evidenceFiles.filter((file) => file.id !== fileId));
+      setDeletedFilesIds([...deletedFilesIds, fileIdNumber]);
+    } else {
+      setUploadFiles(uploadFiles.filter((file) => file.id !== fileId));
+    }
+  };
+
+  const handleDownloadFile = async (fileId: number, fileName: string) => {
+    try {
+      const response = await getFileById({
+        id: fileId.toString(),
+        responseType: "arraybuffer",
+      });
+
+      const blob = new Blob([response], { type: "application/octet-stream" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading file:", error);
       handleAlert({
-        variant: "info",
-        body: "Please save the changes to save the file changes.",
+        variant: "error",
+        body: "Failed to download file",
         setAlert,
       });
     }
   };
 
-  function closeFileUploadModal(): void {
-    const uppyFiles = uppy.getFiles();
-    const newUploadFiles = uppyFiles
-      .map((file) => {
-        if (!(file.data instanceof Blob)) {
-          return null;
-        }
-        return {
-          data: file.data, // Keep the actual file for upload
-          id: file.id,
-          fileName: file.name || "unnamed",
-          size: file.size || 0,
-          type: file.type || "application/octet-stream",
-        } as FileData;
-      })
-      .filter((file): file is FileData => file !== null);
-
-    // Only update uploadFiles state, don't combine with evidenceFiles yet
-    setUploadFilesAnnexCategories(newUploadFiles);
-    setIsFileUploadOpen(false);
-  }
-
-  const handleRemoveFile = async (fileId: string) => {
-    const fileIdNumber = parseInt(fileId);
-    if (isNaN(fileIdNumber)) {
+  // Risk management functions
+  const handleViewRiskDetails = async (risk: LinkedRisk) => {
+    setSelectedRiskForView(risk);
+    try {
+      const response = await getEntityById({
+        routeUrl: `/projectRisks/${risk.id}`,
+      });
+      if (response.data) {
+        const riskData = response.data;
+        setRiskFormData({
+          riskName: riskData.risk_name || "",
+          actionOwner: riskData.risk_owner || 0,
+          aiLifecyclePhase: riskData.ai_lifecycle_phase || 0,
+          riskDescription: riskData.risk_description || "",
+          riskCategory: riskData.risk_category || [1],
+          potentialImpact: riskData.impact || "",
+          assessmentMapping: riskData.assessment_mapping || 0,
+          controlsMapping: riskData.controls_mapping || 0,
+          likelihood: riskData.likelihood_score || 1,
+          riskSeverity: riskData.severity_score || 1,
+          riskLevel: riskData.risk_level || 0,
+          reviewNotes: riskData.review_notes || "",
+          applicableProjects: riskData.applicable_projects || [],
+          applicableFrameworks: riskData.applicable_frameworks || [],
+        });
+        setIsRiskDetailModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching risk details:", error);
       handleAlert({
         variant: "error",
-        body: "Invalid file ID",
+        body: "Failed to load risk details",
         setAlert,
       });
-      return;
     }
+  };
 
-    // Check if file is in evidenceFiles or uploadFiles
-    const isEvidenceFile = evidenceFiles.some((file) => file.id === fileId);
+  const handleRiskDetailModalClose = () => {
+    setIsRiskDetailModalOpen(false);
+    setSelectedRiskForView(null);
+    setRiskFormData(null);
+  };
 
-    if (isEvidenceFile) {
-      const newEvidenceFiles = evidenceFiles.filter(
-        (file) => file.id !== fileId
-      );
-      setEvidenceFiles(newEvidenceFiles);
-      setEvidenceFilesDeleteCount((prev) => prev + 1);
-      setDeletedFilesIds([...deletedFilesIds, fileIdNumber]);
-    } else {
-      setUploadFiles((prev) => prev.filter((f) => f.id !== fileId));
+  const handleRiskUpdateSuccess = () => {
+    handleRiskDetailModalClose();
+    // Refresh linked risks
+    if (fetchedAnnex?.id) {
+      fetchLinkedRisks();
+    }
+    handleAlert({
+      variant: "success",
+      body: "Risk updated successfully",
+      setAlert,
+    });
+  };
+
+  const fetchLinkedRisks = async () => {
+    if (!fetchedAnnex?.id) return;
+
+    try {
+      const response = await getEntityById({
+        routeUrl: `/iso-42001/annexCategories/${fetchedAnnex.id}/risks`,
+      });
+
+      if (response.data) {
+        const riskIds = response.data.map((risk: any) => risk.id);
+        setCurrentRisks(riskIds);
+        setLinkedRiskObjects(response.data as LinkedRisk[]);
+      }
+    } catch (error) {
+      console.error("Error fetching linked risks:", error);
+      setCurrentRisks([]);
+      setLinkedRiskObjects([]);
+    }
+  };
+
+  const handleUnlinkRisk = (riskId: number) => {
+    if (!deletedRisks.includes(riskId)) {
+      setDeletedRisks([...deletedRisks, riskId]);
     }
   };
 
@@ -224,6 +346,13 @@ const VWISO42001AnnexDrawerDialog = ({
     fetchAnnexCategory();
   }, [open, annex?.id, projectFrameworkId]);
 
+  // Fetch linked risks when drawer opens and annex is loaded
+  useEffect(() => {
+    if (open && fetchedAnnex?.id) {
+      fetchLinkedRisks();
+    }
+  }, [open, fetchedAnnex?.id]);
+
   // Handle form field changes
   const handleFieldChange = (field: string, value: any) => {
     setFormData((prev) => ({
@@ -246,9 +375,6 @@ const VWISO42001AnnexDrawerDialog = ({
     }
     handleFieldChange(field, value);
   };
-
-  // Setup Uppy instance
-  const [uppy] = useState(() => new Uppy());
 
   // Add handleSave function before the return statement
   const handleSave = async () => {
@@ -311,6 +437,12 @@ const VWISO42001AnnexDrawerDialog = ({
           setAlert,
         });
         onSaveSuccess?.(true, "Annex category saved successfully");
+        
+        // Refresh linked risks after saving
+        if (fetchedAnnex?.id) {
+          await fetchLinkedRisks();
+        }
+        
         onClose();
       } else {
         throw new Error("Failed to save annex category");
@@ -401,426 +533,626 @@ const VWISO42001AnnexDrawerDialog = ({
           <CloseIcon size={20} onClick={onClose} style={{ cursor: "pointer" }} />
         </Stack>
         <Divider />
-        <Stack
-          sx={{
-            padding: "15px 20px",
-            gap: "15px",
-          }}
-        >
-          <Stack
-            className="vw-iso-42001-annex-drawer-dialog-content-annex-guidance"
-            sx={{
-              border: `1px solid #eee`,
-              padding: "10px",
-              backgroundColor: "#f8f9fa",
-              borderRadius: "4px",
-            }}
-          >
-            <Typography fontSize={13}>
-              <strong>Guidance:</strong> {formData.guidance}
-            </Typography>
-          </Stack>
-          <Stack
-            className="vw-iso-42001-annex-drawer-dialog-applicability"
-            sx={{
-              gap: "15px",
-            }}
-          >
-            <Typography fontSize={13}>Applicability:</Typography>
-            <Stack sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
-              <Checkbox
-                id={`${control?.id}-iso-42001-applicable`}
-                label="Applicable"
-                isChecked={formData.is_applicable}
-                value={"Applicable"}
-                onChange={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    is_applicable: true,
-                    justification_for_exclusion: "",
-                  }))
-                }
-                size="small"
-                isDisabled={isEditingDisabled}
-              />
-              <Checkbox
-                id={`${control?.id}-iso-42001-not-applicable`}
-                label="Not applicable"
-                isChecked={!formData.is_applicable}
-                value={"Not Applicable"}
-                onChange={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    is_applicable: false,
-                  }))
-                }
-                size="small"
-                isDisabled={isEditingDisabled}
-              />
-            </Stack>
-          </Stack>
-          <Stack
-            sx={{
-              opacity: formData.is_applicable ? 0.5 : 1,
-              pointerEvents: formData.is_applicable ? "none" : "auto",
-            }}
-          >
-            <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
-              {"Justification for Exclusion (if Not Applicable)"}:
-            </Typography>
-            <Field
-              type="description"
-              value={formData.justification_for_exclusion}
-              onChange={(e) =>
-                handleFieldChange("justification_for_exclusion", e.target.value)
-              }
-              disabled={formData.is_applicable || isEditingDisabled}
-              sx={{
-                cursor: formData.is_applicable ? "not-allowed" : "text",
-                "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
-                  {
-                    height: "73px",
-                  },
-              }}
-              placeholder="Required if control is not applicable..."
+        <TabContext value={activeTab}>
+          <Box sx={{ padding: "0 20px" }}>
+            <TabBar
+              tabs={tabs}
+              activeTab={activeTab}
+              onChange={handleTabChange}
             />
-          </Stack>
-        </Stack>
-        <Divider />
-        <Stack
-          sx={{
-            padding: "15px 20px",
-            gap: "15px",
-            opacity: formData.is_applicable ? 1 : 0.5,
-            pointerEvents: formData.is_applicable ? "auto" : "none",
-          }}
-        >
-          <Stack>
-            <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
-              Implementation Description:
-            </Typography>
-            <Field
-              type="description"
-              value={formData.implementation_description}
-              onChange={(e) =>
-                handleFieldChange("implementation_description", e.target.value)
-              }
-              disabled={!formData.is_applicable || isEditingDisabled}
-              sx={{
-                cursor: !formData.is_applicable ? "not-allowed" : "text",
-                "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
-                  {
-                    height: "73px",
-                  },
-              }}
-              placeholder="Describe how this requirement is implemented"
-            />
-          </Stack>
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              sx={{
-                mt: 2,
-                borderRadius: 2,
-                minWidth: 155, // minimum width
-                height: 25,
-                fontSize: 11,
-                border: "1px solid #D0D5DD",
-                backgroundColor: "white",
-                color: "#344054",
-                "&:hover": {
-                  backgroundColor: "#F9FAFB",
-                  border: "1px solid #D0D5DD",
-                },
-              }}
-              disableRipple={
-                theme.components?.MuiButton?.defaultProps?.disableRipple
-              }
-              onClick={() => setIsFileUploadOpen(true)}
-              disabled={isEditingDisabled}
-            >
-              Add, remove or download evidence
-            </Button>
-            <Stack direction="row" spacing={10}>
-              <Typography
+          </Box>
+
+          {/* Tab 1: Details */}
+          <TabPanel value="details" sx={{ padding: "15px 20px" }}>
+            <Stack gap="15px">
+              {/* Guidance Panel */}
+              <Stack
+                className="vw-iso-42001-annex-drawer-dialog-content-annex-guidance"
                 sx={{
-                  fontSize: 11,
-                  color: "#344054",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                  margin: "auto",
-                  textWrap: "wrap",
+                  border: `1px solid #eee`,
+                  padding: "10px",
+                  backgroundColor: "#f8f9fa",
+                  borderRadius: "4px",
                 }}
               >
-                {`${evidenceFiles.length || 0} evidence files attached`}
+                <Typography fontSize={13}>
+                  <strong>Guidance:</strong> {formData.guidance}
+                </Typography>
+              </Stack>
+
+              {/* Applicability Section */}
+              <Stack
+                className="vw-iso-42001-annex-drawer-dialog-applicability"
+                sx={{
+                  gap: "15px",
+                }}
+              >
+                <Typography fontSize={13}>Applicability:</Typography>
+                <Stack sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
+                  <Checkbox
+                    id={`${control?.id}-iso-42001-applicable`}
+                    label="Applicable"
+                    isChecked={formData.is_applicable}
+                    value={"Applicable"}
+                    onChange={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        is_applicable: true,
+                        justification_for_exclusion: "",
+                      }))
+                    }
+                    size="small"
+                    isDisabled={isEditingDisabled}
+                  />
+                  <Checkbox
+                    id={`${control?.id}-iso-42001-not-applicable`}
+                    label="Not applicable"
+                    isChecked={!formData.is_applicable}
+                    value={"Not Applicable"}
+                    onChange={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        is_applicable: false,
+                      }))
+                    }
+                    size="small"
+                    isDisabled={isEditingDisabled}
+                  />
+                </Stack>
+              </Stack>
+
+              {/* Justification Field */}
+              <Stack
+                sx={{
+                  opacity: formData.is_applicable ? 0.5 : 1,
+                  pointerEvents: formData.is_applicable ? "none" : "auto",
+                }}
+              >
+                <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
+                  {"Justification for Exclusion (if Not Applicable)"}:
+                </Typography>
+                <Field
+                  type="description"
+                  value={formData.justification_for_exclusion}
+                  onChange={(e) =>
+                    handleFieldChange("justification_for_exclusion", e.target.value)
+                  }
+                  disabled={formData.is_applicable || isEditingDisabled}
+                  sx={{
+                    cursor: formData.is_applicable ? "not-allowed" : "text",
+                    "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
+                      {
+                        height: "73px",
+                      },
+                  }}
+                  placeholder="Required if control is not applicable..."
+                />
+              </Stack>
+
+              {/* Implementation Description */}
+              <Stack
+                sx={{
+                  opacity: formData.is_applicable ? 1 : 0.5,
+                  pointerEvents: formData.is_applicable ? "auto" : "none",
+                }}
+              >
+                <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
+                  Implementation Description:
+                </Typography>
+                <Field
+                  type="description"
+                  value={formData.implementation_description}
+                  onChange={(e) =>
+                    handleFieldChange("implementation_description", e.target.value)
+                  }
+                  disabled={!formData.is_applicable || isEditingDisabled}
+                  sx={{
+                    cursor: !formData.is_applicable ? "not-allowed" : "text",
+                    "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
+                      {
+                        height: "73px",
+                      },
+                  }}
+                  placeholder="Describe how this requirement is implemented"
+                />
+              </Stack>
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* Status & Assignments Section */}
+              <Stack
+                sx={{
+                  opacity: formData.is_applicable ? 1 : 0.5,
+                  pointerEvents: formData.is_applicable ? "auto" : "none",
+                }}
+                gap={"24px"}
+              >
+                <Select
+                  id="status"
+                  label="Status:"
+                  value={formData.status}
+                  onChange={handleSelectChange("status")}
+                  items={STATUSES.map((status) => ({
+                    _id: status,
+                    name: status.charAt(0).toUpperCase() + status.slice(1),
+                  }))}
+                  disabled={!formData.is_applicable || isEditingDisabled}
+                  sx={inputStyles}
+                  placeholder={"Select status"}
+                />
+
+                <Select
+                  id="Owner"
+                  label="Owner:"
+                  value={formData.owner ? parseInt(formData.owner) : ""}
+                  onChange={handleSelectChange("owner")}
+                  items={projectMembers.map((user) => ({
+                    _id: user.id,
+                    name: `${user.name}`,
+                    email: user.email,
+                    surname: user.surname,
+                  }))}
+                  disabled={!formData.is_applicable || isEditingDisabled}
+                  sx={inputStyles}
+                  placeholder={"Select owner"}
+                />
+
+                <Select
+                  id="Reviewer"
+                  label="Reviewer:"
+                  value={formData.reviewer ? parseInt(formData.reviewer) : ""}
+                  onChange={handleSelectChange("reviewer")}
+                  items={projectMembers.map((user) => ({
+                    _id: user.id,
+                    name: `${user.name}`,
+                    email: user.email,
+                    surname: user.surname,
+                  }))}
+                  disabled={!formData.is_applicable || isEditingDisabled}
+                  sx={inputStyles}
+                  placeholder={"Select reviewer"}
+                />
+
+                <Select
+                  id="Approver"
+                  label="Approver:"
+                  value={formData.approver ? parseInt(formData.approver) : ""}
+                  onChange={handleSelectChange("approver")}
+                  items={projectMembers.map((user) => ({
+                    _id: user.id,
+                    name: `${user.name}`,
+                    email: user.email,
+                    surname: user.surname,
+                  }))}
+                  disabled={!formData.is_applicable || isEditingDisabled}
+                  sx={inputStyles}
+                  placeholder={"Select approver"}
+                />
+
+                <DatePicker
+                  label="Due date:"
+                  sx={inputStyles}
+                  date={date}
+                  disabled={!formData.is_applicable || isEditingDisabled}
+                  handleDateChange={(newDate) => {
+                    setDate(newDate);
+                  }}
+                />
+
+                <Stack>
+                  <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
+                    Auditor Feedback:
+                  </Typography>
+                  <Field
+                    type="description"
+                    value={formData.auditor_feedback}
+                    onChange={(e) =>
+                      handleFieldChange("auditor_feedback", e.target.value)
+                    }
+                    disabled={!formData.is_applicable || isAuditingDisabled}
+                    sx={{
+                      cursor: !formData.is_applicable ? "not-allowed" : "text",
+                      "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
+                        {
+                          height: "73px",
+                        },
+                    }}
+                    placeholder="Enter any feedback from the internal or external audits..."
+                  />
+                </Stack>
+              </Stack>
+            </Stack>
+          </TabPanel>
+
+          {/* Tab 2: Evidence */}
+          <TabPanel value="evidence" sx={{ padding: "15px 20px" }}>
+            <Stack spacing={3}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                Evidence files
               </Typography>
+              <Typography variant="body2" color="#6B7280">
+                Upload evidence files to document how this requirement is implemented.
+              </Typography>
+
+              {/* File Input */}
+              <Box>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                  style={{ display: "none" }}
+                  id="evidence-file-input"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length > 0) {
+                      handleAddFiles(files);
+                    }
+                    e.target.value = "";
+                  }}
+                />
+
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Button
+                    variant="contained"
+                    component="label"
+                    htmlFor="evidence-file-input"
+                    disabled={isEditingDisabled}
+                    sx={{
+                      borderRadius: 2,
+                      minWidth: 155,
+                      height: 25,
+                      fontSize: 11,
+                      border: "1px solid #D0D5DD",
+                      backgroundColor: "white",
+                      color: "#344054",
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                        border: "1px solid #D0D5DD",
+                      },
+                    }}
+                    disableRipple={
+                      theme.components?.MuiButton?.defaultProps?.disableRipple
+                    }
+                  >
+                    Add evidence files
+                  </Button>
+
+                  <Stack direction="row" spacing={2}>
+                    <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                      {`${evidenceFiles.length || 0} files attached`}
+                    </Typography>
+                    {uploadFiles.length > 0 && (
+                      <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                        {`+${uploadFiles.length} pending upload`}
+                      </Typography>
+                    )}
+                    {deletedFilesIds.length > 0 && (
+                      <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                        {`-${deletedFilesIds.length} pending delete`}
+                      </Typography>
+                    )}
+                  </Stack>
+                </Stack>
+              </Box>
+
+              {/* Existing Files List */}
+              {evidenceFiles.length > 0 && (
+                <Stack spacing={1}>
+                  {evidenceFiles.map((file) => (
+                    <Box
+                      key={file.id}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        border: "1px solid #D0D5DD",
+                        borderRadius: "4px",
+                        padding: "8px 12px",
+                        backgroundColor: "#FAFBFC",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                        <FileIcon size={18} color="#475467" />
+                        <Box>
+                          <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
+                            {file.fileName}
+                          </Typography>
+                          <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                            {((file.size || 0) / 1024).toFixed(1)} KB
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Box sx={{ display: "flex", gap: 0.5 }}>
+                        <Tooltip title="Download file">
+                          <IconButton
+                            size="small"
+                            onClick={() =>
+                              handleDownloadFile(
+                                typeof file.id === "number" ? file.id : parseInt(file.id.toString()),
+                                file.fileName
+                              )
+                            }
+                          >
+                            <DownloadIcon size={16} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete file">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteFile(file.id)}
+                          >
+                            <DeleteIcon size={16} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Box>
+                  ))}
+                </Stack>
+              )}
+
+              {/* Pending Upload Files */}
               {uploadFiles.length > 0 && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#344054",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textAlign: "center",
-                    margin: "auto",
-                    textWrap: "wrap",
-                  }}
-                >
-                  {`${uploadFiles.length} ${
-                    uploadFiles.length === 1 ? "file" : "files"
-                  } pending upload`}
-                </Typography>
+                <Stack spacing={1}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#92400E" }}>
+                    Pending upload
+                  </Typography>
+                  {uploadFiles.map((file) => (
+                    <Box
+                      key={file.id}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        border: "1px solid #FCD34D",
+                        borderRadius: "4px",
+                        padding: "8px 12px",
+                        backgroundColor: "#FFFBEB",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                        <FileIcon size={18} color="#92400E" />
+                        <Box>
+                          <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
+                            {file.fileName}
+                          </Typography>
+                          <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                            {((file.size || 0) / 1024).toFixed(1)} KB
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Tooltip title="Remove">
+                        <IconButton size="small" onClick={() => handleDeleteFile(file.id)}>
+                          <DeleteIcon size={16} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  ))}
+                </Stack>
               )}
-              {evidenceFilesDeleteCount > 0 && (
-                <Typography
+
+              {/* Empty State */}
+              {evidenceFiles.length === 0 && uploadFiles.length === 0 && (
+                <Box
                   sx={{
-                    fontSize: 11,
-                    color: "#344054",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
+                    border: "2px dashed #D0D5DD",
+                    borderRadius: "4px",
+                    padding: "20px",
                     textAlign: "center",
-                    margin: "auto",
-                    textWrap: "wrap",
+                    backgroundColor: "#FAFBFC",
                   }}
                 >
-                  {`${evidenceFilesDeleteCount} ${
-                    evidenceFilesDeleteCount === 1 ? "file" : "files"
-                  } pending delete`}
-                </Typography>
+                  <Typography sx={{ color: "#6B7280" }}>
+                    No evidence files uploaded yet
+                  </Typography>
+                </Box>
               )}
             </Stack>
-          </Stack>
-          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
-            <UppyUploadFile
-              uppy={uppy}
-              files={[...evidenceFiles, ...uploadFiles]}
-              onClose={closeFileUploadModal}
-              onRemoveFile={handleRemoveFile}
-              hideProgressIndicators={true}
-            />
-          </Dialog>
-          {alert && (
-            <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
-          )}
+          </TabPanel>
 
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              sx={{
-                mt: 2,
-                borderRadius: 2,
-                width: 155,
-                height: 25,
-                fontSize: 11,
-                border: "1px solid #D0D5DD",
-                backgroundColor: "white",
-                color: "#344054",
-              }}
-              disableRipple={
-                theme.components?.MuiButton?.defaultProps?.disableRipple
-              }
-              onClick={() => setIsLinkedRisksModalOpen(true)}
-              disabled={isEditingDisabled}
-            >
-              Add/remove risks
-            </Button>
-            <Stack direction="row" spacing={10}>
-              <Typography
-                sx={{
-                  fontSize: 11,
-                  color: "#344054",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                  margin: "auto",
-                  textWrap: "wrap",
+          {/* Tab 3: Cross Mappings */}
+          <TabPanel value="cross-mappings" sx={{ padding: "15px 20px" }}>
+            <Stack spacing={3}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                Linked risks
+              </Typography>
+              <Typography variant="body2" color="#6B7280">
+                Link risks from your risk database to track which risks are addressed by this annex category.
+              </Typography>
+
+              {/* Add/Remove Button */}
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Button
+                  variant="contained"
+                  onClick={() => setIsLinkedRisksModalOpen(true)}
+                  disabled={isEditingDisabled}
+                  sx={{
+                    borderRadius: 2,
+                    minWidth: 155,
+                    height: 25,
+                    fontSize: 11,
+                    border: "1px solid #D0D5DD",
+                    backgroundColor: "white",
+                    color: "#344054",
+                    "&:hover": {
+                      backgroundColor: "#F9FAFB",
+                      border: "1px solid #D0D5DD",
+                    },
+                  }}
+                  disableRipple={
+                    theme.components?.MuiButton?.defaultProps?.disableRipple
+                  }
+                >
+                  Add/remove risks
+                </Button>
+
+                <Stack direction="row" spacing={2}>
+                  <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                    {`${currentRisks.length || 0} risks linked`}
+                  </Typography>
+                  {selectedRisks.length > 0 && (
+                    <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                      {`+${selectedRisks.length} pending save`}
+                    </Typography>
+                  )}
+                  {deletedRisks.length > 0 && (
+                    <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                      {`-${deletedRisks.length} pending delete`}
+                    </Typography>
+                  )}
+                </Stack>
+              </Stack>
+
+              {/* Linked Risks List */}
+              {linkedRiskObjects.length > 0 && (
+                <Stack spacing={1}>
+                  {linkedRiskObjects
+                    .filter((risk) => !deletedRisks.includes(risk.id))
+                    .map((risk) => (
+                      <Box
+                        key={risk.id}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          border: "1px solid #D0D5DD",
+                          borderRadius: "4px",
+                          padding: "12px",
+                          backgroundColor: "#FAFBFC",
+                        }}
+                      >
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
+                            {risk.risk_name}
+                          </Typography>
+                          <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                            Risk level: {risk.risk_level}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", gap: 0.5 }}>
+                          <Tooltip title="View details">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleViewRiskDetails(risk)}
+                            >
+                              <ViewIcon size={16} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Unlink risk">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleUnlinkRisk(risk.id)}
+                            >
+                              <DeleteIcon size={16} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Box>
+                    ))}
+                </Stack>
+              )}
+
+              {/* Empty State */}
+              {currentRisks.length === 0 && selectedRisks.length === 0 && (
+                <Box
+                  sx={{
+                    border: "2px dashed #D0D5DD",
+                    borderRadius: "4px",
+                    padding: "20px",
+                    textAlign: "center",
+                    backgroundColor: "#FAFBFC",
+                  }}
+                >
+                  <Typography sx={{ color: "#6B7280" }}>
+                    No risks linked yet
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Audit Modal */}
+              <Dialog
+                open={auditedStatusModalOpen}
+                onClose={() => setAuditedStatusModalOpen(false)}
+                PaperProps={{
+                  sx: {
+                    width: "800px",
+                    maxWidth: "800px",
+                  },
                 }}
               >
-                {`${formData.risks.length || 0} risks linked`}
-              </Typography>
-              {selectedRisks.length > 0 && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#344054",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textAlign: "center",
-                    margin: "auto",
-                    textWrap: "wrap",
-                  }}
-                >
-                  {`${selectedRisks.length} ${
-                    selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending save`}
-                </Typography>
+                <Suspense fallback={"loading..."}>
+                  <AuditRiskPopup
+                    onClose={() => setAuditedStatusModalOpen(false)}
+                    risks={formData.risks.concat(selectedRisks)}
+                    _deletedRisks={deletedRisks}
+                    _setDeletedRisks={setDeletedRisks}
+                    _selectedRisks={selectedRisks}
+                    _setSelectedRisks={setSelectedRisks}
+                  />
+                </Suspense>
+              </Dialog>
+
+              {/* LinkedRisks Modal */}
+              {isLinkedRisksModalOpen && (
+                <Suspense fallback={"loading..."}>
+                  <LinkedRisksPopup
+                    onClose={() => setIsLinkedRisksModalOpen(false)}
+                    currentRisks={currentRisks
+                      .concat(selectedRisks)
+                      .filter((risk) => !deletedRisks.includes(risk))}
+                    setSelectecRisks={setSelectedRisks}
+                    _setDeletedRisks={setDeletedRisks}
+                    frameworkId={2}
+                    isOrganizational={true}
+                  />
+                </Suspense>
               )}
-              {deletedRisks.length > 0 && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#344054",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textAlign: "center",
-                    margin: "auto",
-                    textWrap: "wrap",
-                  }}
-                >
-                  {`${deletedRisks.length} ${
-                    deletedRisks.length === 1 ? "risk" : "risks"
-                  } pending delete`}
-                </Typography>
-              )}
+
+              {/* Risk Detail Modal */}
+              <StandardModal
+                isOpen={isRiskDetailModalOpen && !!riskFormData}
+                onClose={handleRiskDetailModalClose}
+                title={`Risk: ${selectedRiskForView?.risk_name || "Risk Details"}`}
+                description="View and edit risk details"
+                onSubmit={() => onRiskSubmitRef.current?.()}
+                submitButtonText="Update"
+                maxWidth="1039px"
+              >
+                <Suspense fallback={<CircularProgress />}>
+                  <AddNewRiskForm
+                    closePopup={handleRiskDetailModalClose}
+                    popupStatus="edit"
+                    initialRiskValues={riskFormData}
+                    onSuccess={handleRiskUpdateSuccess}
+                    onError={(error) => {
+                      handleAlert({
+                        variant: "error",
+                        body: error?.message || "Failed to update risk",
+                        setAlert,
+                      });
+                    }}
+                    users={users}
+                    onSubmitRef={onRiskSubmitRef}
+                  />
+                </Suspense>
+              </StandardModal>
             </Stack>
-          </Stack>
+          </TabPanel>
 
-          <Dialog
-            open={auditedStatusModalOpen}
-            onClose={() => setAuditedStatusModalOpen(false)}
-            PaperProps={{
-              sx: {
-                width: "800px",
-                maxWidth: "800px",
-              },
-            }}
-          >
-            <Suspense fallback={"loading..."}>
-              <AuditRiskPopup
-                onClose={() => setAuditedStatusModalOpen(false)}
-                risks={formData.risks.concat(selectedRisks)}
-                _deletedRisks={deletedRisks}
-                _setDeletedRisks={setDeletedRisks}
-                _selectedRisks={selectedRisks}
-                _setSelectedRisks={setSelectedRisks}
+          {/* Tab 4: Notes */}
+          <TabPanel value="notes" sx={{ padding: "15px 20px" }}>
+            <Suspense fallback={<CircularProgress />}>
+              <NotesTab
+                attachedTo="ISO_42001_ANNEX"
+                attachedToId={fetchedAnnex?.id?.toString() || ""}
               />
             </Suspense>
-          </Dialog>
+          </TabPanel>
+        </TabContext>
 
-          {isLinkedRisksModalOpen && (
-            <Suspense fallback={"loading..."}>
-              <LinkedRisksPopup
-                onClose={() => setIsLinkedRisksModalOpen(false)}
-                currentRisks={formData.risks
-                  .concat(selectedRisks)
-                  .filter((risk) => !deletedRisks.includes(risk))}
-                setSelectecRisks={setSelectedRisks}
-                _setDeletedRisks={setDeletedRisks}
-                frameworkId={2}
-                isOrganizational={true}
-              />
-            </Suspense>
-          )}
-        </Stack>
-        <Divider />
-        <Stack
-          sx={{
-            padding: "15px 20px",
-            opacity: formData.is_applicable ? 1 : 0.5,
-            pointerEvents: formData.is_applicable ? "auto" : "none",
-          }}
-          gap={"24px"}
-        >
-          <Select
-            id="status"
-            label="Status:"
-            value={formData.status}
-            onChange={handleSelectChange("status")}
-            items={STATUSES.map((status) => ({
-              _id: status,
-              name: status.charAt(0).toUpperCase() + status.slice(1),
-            }))}
-            disabled={!formData.is_applicable || isEditingDisabled}
-            sx={inputStyles}
-            placeholder={"Select status"}
-          />
-
-          <Select
-            id="Owner"
-            label="Owner:"
-            value={formData.owner ? parseInt(formData.owner) : ""}
-            onChange={handleSelectChange("owner")}
-            items={projectMembers.map((user) => ({
-              _id: user.id,
-              name: `${user.name}`,
-              email: user.email,
-              surname: user.surname,
-            }))}
-            disabled={!formData.is_applicable || isEditingDisabled}
-            sx={inputStyles}
-            placeholder={"Select owner"}
-          />
-
-          <Select
-            id="Reviewer"
-            label="Reviewer:"
-            value={formData.reviewer ? parseInt(formData.reviewer) : ""}
-            onChange={handleSelectChange("reviewer")}
-            items={projectMembers.map((user) => ({
-              _id: user.id,
-              name: `${user.name}`,
-              email: user.email,
-              surname: user.surname,
-            }))}
-            disabled={!formData.is_applicable || isEditingDisabled}
-            sx={inputStyles}
-            placeholder={"Select reviewer"}
-          />
-
-          <Select
-            id="Approver"
-            label="Approver:"
-            value={formData.approver ? parseInt(formData.approver) : ""}
-            onChange={handleSelectChange("approver")}
-            items={projectMembers.map((user) => ({
-              _id: user.id,
-              name: `${user.name}`,
-              email: user.email,
-              surname: user.surname,
-            }))}
-            disabled={!formData.is_applicable || isEditingDisabled}
-            sx={inputStyles}
-            placeholder={"Select approver"}
-          />
-
-          <DatePicker
-            label="Due date:"
-            sx={inputStyles}
-            date={date}
-            disabled={!formData.is_applicable || isEditingDisabled}
-            handleDateChange={(newDate) => {
-              setDate(newDate);
-            }}
-          />
-          <Stack>
-            <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
-              Auditor Feedback:
-            </Typography>
-            <Field
-              type="description"
-              value={formData.auditor_feedback}
-              onChange={(e) =>
-                handleFieldChange("auditor_feedback", e.target.value)
-              }
-              disabled={!formData.is_applicable || isAuditingDisabled}
-              sx={{
-                cursor: !formData.is_applicable ? "not-allowed" : "text",
-                "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
-                  {
-                    height: "73px",
-                  },
-              }}
-              placeholder="Enter any feedback from the internal or external audits..."
-            />
-          </Stack>
-        </Stack>
+        {/* Alert */}
+        {alert && (
+          <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
+        )}
 
         <Divider />
         <Stack

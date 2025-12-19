@@ -53,7 +53,8 @@ jobs:
       - name: Build and push Clients image
         uses: docker/build-push-action@v4
         with:
-          context: ./Clients
+          context: .
+          file: ./Clients/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
@@ -73,14 +74,27 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/verifywise-backend-saas:test
 
-      - name: Build and push BiasAndFairnessServers image
+      - name: Clean up after Servers build
+        run: |
+          docker system prune -f
+          docker builder prune -f
+
+      - name: Check disk space
+        run: df . -h
+
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Build and push EvalServer image
         uses: docker/build-push-action@v4
         with:
-          context: ./BiasAndFairnessServers
+          context: ./EvalServer
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend-saas:test
+            ghcr.io/${{ github.repository_owner }}/verifywise-eval-server-saas:test
 
       - name: Deploy to Testing
         uses: appleboy/ssh-action@v0.1.5
@@ -89,7 +103,7 @@ jobs:
           username: ${{ secrets.TEST_USER }}
           key: ${{ secrets.TEST_SSH_KEY }}
           script: |
-            cd /root/verifywise
+            cd /root/verifywise/_saas_deployment
             docker-compose --env-file .env.prod down
-            docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}" | grep -v -E "(redis|postgres)" | awk 'NR>1 {print $2}' | xargs -r docker rmi -f || true
+            docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}" | grep -v -E "(redis|postgres|admin)" | awk 'NR>1 {print $2}' | xargs -r docker rmi -f || true
             ./install.sh

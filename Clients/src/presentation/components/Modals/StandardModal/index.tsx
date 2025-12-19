@@ -81,8 +81,8 @@ interface StandardModalProps {
   /** Descriptive text displayed below the title (12px, gray) */
   description: string;
 
-  /** Form content to be rendered inside the modal. Wrap in <Stack spacing={6}> for consistent spacing */
-  children: React.ReactNode;
+  /** Form content to be rendered inside the modal. Wrap in <Stack spacing={6}> for consistent spacing. Optional for confirmation dialogs. */
+  children?: React.ReactNode;
 
   /** Optional callback called when Save/Submit button is clicked. If not provided, no submit button is shown */
   onSubmit?: () => void;
@@ -110,6 +110,12 @@ interface StandardModalProps {
 
   /** When true, expands the modal height for additional content. Default height is 630px, expanded uses min(740px, 90vh - 180px) */
   expandedHeight?: boolean;
+
+  /** Custom color for the submit button (default: "#13715B"). Use "#c62828" for destructive actions like delete */
+  submitButtonColor?: string;
+
+  /** When true, remove the cancel button from footer */
+  showCancelButton?: boolean;
 }
 
 const StandardModal: React.FC<StandardModalProps> = ({
@@ -127,6 +133,8 @@ const StandardModal: React.FC<StandardModalProps> = ({
   hideFooter = false,
   headerActions,
   expandedHeight = false,
+  submitButtonColor = "#13715B",
+  showCancelButton = true,
 }) => {
   return (
     <Modal
@@ -228,35 +236,37 @@ const StandardModal: React.FC<StandardModalProps> = ({
           </Stack>
         </Stack>
 
-        {/* Content Section */}
-        <Box
-          sx={{
-            padding: "20px",
-            flex: "0 1 auto",
-            overflow: "auto",
-            maxHeight: expandedHeight ? "min(740px, calc(90vh - 180px))" : "660px",
-            border: "1px solid #E0E4E9",
-            borderRadius: "16px",
-            backgroundColor: "#FFFFFF",
-            zIndex: 1,
-            position: "relative",
-          }}
-          onWheelCapture={(e) => {
-            const target = e.currentTarget;
-            const atTop = target.scrollTop === 0;
-            const atBottom = target.scrollHeight - target.scrollTop === target.clientHeight;
+        {/* Content Section - only render if children exist */}
+        {children && (
+          <Box
+            sx={{
+              padding: "20px",
+              flex: "0 1 auto",
+              overflow: "auto",
+              maxHeight: expandedHeight ? "min(740px, calc(90vh - 180px))" : "660px",
+              border: "1px solid #E0E4E9",
+              borderRadius: "16px",
+              backgroundColor: "#FFFFFF",
+              zIndex: 1,
+              position: "relative",
+            }}
+            onWheelCapture={(e) => {
+              const target = e.currentTarget;
+              const atTop = target.scrollTop === 0;
+              const atBottom = target.scrollHeight - target.scrollTop === target.clientHeight;
 
-            // Only prevent propagation if we can actually scroll
-            if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) {
-              e.stopPropagation();
-            } else if (!atTop && !atBottom) {
-              // If we're in the middle, always stop propagation
-              e.stopPropagation();
-            }
-          }}
-        >
-          {children}
-        </Box>
+              // Only prevent propagation if we can actually scroll
+              if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) {
+                e.stopPropagation();
+              } else if (!atTop && !atBottom) {
+                // If we're in the middle, always stop propagation
+                e.stopPropagation();
+              }
+            }}
+          >
+            {children}
+          </Box>
+        )}
 
         {/* Footer Section with Background */}
         {!hideFooter && (
@@ -277,21 +287,24 @@ const StandardModal: React.FC<StandardModalProps> = ({
               customFooter
             ) : (
               <>
-                <CustomizableButton
-                  variant="outlined"
-                  text={cancelButtonText}
-                  onClick={onClose}
-                  sx={{
-                    minWidth: "80px",
-                    height: "34px",
-                    border: "1px solid #D0D5DD",
-                    color: "#344054",
-                    "&:hover": {
-                      backgroundColor: "#F9FAFB",
-                      border: "1px solid #D0D5DD",
-                    },
-                  }}
-                />
+               {showCancelButton && (
+                    <CustomizableButton
+                      variant="outlined"
+                      text={cancelButtonText}
+                      onClick={onClose}
+                      sx={{
+                        minWidth: "80px",
+                        height: "34px",
+                        border: "1px solid #D0D5DD",
+                        color: "#344054",
+                        "&:hover": {
+                          backgroundColor: "#F9FAFB",
+                          border: "1px solid #D0D5DD",
+                        },
+                      }}
+                    />
+                )}
+
                 {onSubmit && (
                   <CustomizableButton
                     variant="contained"
@@ -301,9 +314,10 @@ const StandardModal: React.FC<StandardModalProps> = ({
                     sx={{
                       minWidth: "80px",
                       height: "34px",
-                      backgroundColor: "#13715B",
+                      backgroundColor: submitButtonColor,
                       "&:hover:not(.Mui-disabled)": {
-                        backgroundColor: "#0F5A47",
+                        backgroundColor: submitButtonColor === "#13715B" ? "#0F5A47" : submitButtonColor,
+                        filter: submitButtonColor !== "#13715B" ? "brightness(0.9)" : undefined,
                       },
                       "&.Mui-disabled": {
                         backgroundColor: "#E5E7EB",

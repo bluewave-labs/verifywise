@@ -1,0 +1,8 @@
+{
+  "name": "Coding Helper",
+  "description": "Evaluates chatbot performance on coding-related queries, including code explanation, debugging, and programming concepts.",
+  "type": "single-turn",
+  "use_case": "chatbot",
+  "tags": ["coding", "programming", "technical"],
+  "prompt_count": 10
+}

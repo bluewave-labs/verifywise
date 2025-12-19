@@ -422,10 +422,7 @@ const RegisterMultiTenant: React.FC = () => {
         
                     // Send the Google token to your backend for verification and login
                     const loginResponse = await createNewOrganizationWithGoogle({
-                      googleToken: response.credential,
-                      body: {
-                        name: organizationValues.organizationName
-                      }
+                      googleToken: response.credential
                     });
 
                     if (loginResponse.status === 201) {
@@ -436,6 +433,12 @@ const RegisterMultiTenant: React.FC = () => {
                       dispatch(setAuthToken(token));
                       dispatch(setExpiration(expirationDate));
                       localStorage.setItem('root_version', __APP_VERSION__);
+
+                      const organizationName = loginResponse.data.data.organization?.name || `${values.name}'s Organization`;
+                      // Store organization name and clear the flag so the modal shows on first login
+                      localStorage.setItem("initial_org_name", organizationName);
+                      localStorage.setItem("initial_org_id", loginResponse.data.data.organization?.id || -1);
+                      localStorage.removeItem("has_seen_org_name_modal");
 
                       logEngine({
                         type: "info",

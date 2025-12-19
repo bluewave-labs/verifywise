@@ -1,18 +1,6 @@
 version: "3.9"
 
 services:
-  postgresdb:
-    expose:
-      - "$DB_PORT"
-    volumes:
-      - db-prod:/var/lib/postgresql/data # Separate volume for prod database
-    labels:
-      - keep=true
-
-  redis:
-    labels:
-      - keep=true
-
   backend:
     env_file:
       - ./.env.prod
@@ -27,9 +15,10 @@ services:
     env_file:
       - ./.env.prod
 
-  bias_and_fairness_backend:
+  # bias_and_fairness_backend:
+  #   env_file:
+  #     - ./.env.prod
+  
+  eval_server:
     env_file:
       - ./.env.prod
-
-volumes:
-  db-prod:

@@ -2,7 +2,7 @@ import { Stack, Typography } from "@mui/material";
 import { StatsCardFrame, StatsCardRate } from "./style";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import { useMemo } from "react";
-import { StatsCardProps } from "../../../../domain/interfaces/iStatsCard";
+import { StatsCardProps } from "../../../../domain/interfaces/i.statsCard";
 
 const StatsCard = ({ title, completed, total }: StatsCardProps) => {
   // Convert to numbers and ensure they are non-negative

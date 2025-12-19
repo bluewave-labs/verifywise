@@ -36,7 +36,7 @@ import "./index.css";
 import { forwardRef, useState, useCallback } from "react";
 import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react";
 import { ForwardedRef } from "react";
-import { FieldProps as OriginalFieldProps } from "../../../../domain/interfaces/iWidget";
+import { FieldProps as OriginalFieldProps } from "../../../../domain/interfaces/i.widget";
 import { usePostHog } from "../../../../application/hooks/usePostHog";
 import { getInputStyles } from "../../../utils/inputStyles";
 
@@ -65,6 +65,7 @@ const Field = forwardRef(
       onInput,
       onFocus,
       onBlur,
+      onKeyDown,
       error,
       disabled,
       width,
@@ -177,6 +178,7 @@ const Field = forwardRef(
           onChange={handleChange}
           onFocus={handleFocus}
           onBlur={onBlur}
+          onKeyDown={onKeyDown}
           disabled={disabled}
           inputRef={ref}
           inputProps={{

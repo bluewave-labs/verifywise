@@ -99,57 +99,60 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
   }
 
   return (
-    <Stack>
-      {isLoading && (
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 12 }}>
-          Project are loading...
-        </Typography>
-      )}
-      {error && (
-        <Typography variant="body1" color="error" sx={{ mb: 12 }}>
-          {error}
-        </Typography>
-      )}
-      <Stack direction="row" spacing={18} sx={{ pb: "31px" }}>
-        <Stack sx={styles.block}>
-          <Typography sx={styles.title}>Owner</Typography>
-          <Typography sx={styles.value}>{projectOwner}</Typography>
-        </Stack>
-        <Stack sx={styles.block}>
-          <Typography sx={styles.title}>Last updated</Typography>
-          <Typography sx={styles.value}>
-            {displayFormattedDate(project.last_updated.toISOString())}
+    <Stack sx={{ width: "100%" }}>
+      {/* Main Content */}
+      <Stack sx={{ width: "100%" }}>
+        {isLoading && (
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 12 }}>
+            Project are loading...
           </Typography>
+        )}
+        {error && (
+          <Typography variant="body1" color="error" sx={{ mb: 12 }}>
+            {error}
+          </Typography>
+        )}
+        <Stack direction="row" spacing={18} sx={{ pb: "31px" }}>
+          <Stack sx={styles.block}>
+            <Typography sx={styles.title}>Owner</Typography>
+            <Typography sx={styles.value}>{projectOwner}</Typography>
+          </Stack>
+          <Stack sx={styles.block}>
+            <Typography sx={styles.title}>Last updated</Typography>
+            <Typography sx={styles.value}>
+              {displayFormattedDate(project.last_updated.toISOString())}
+            </Typography>
+          </Stack>
+          <Stack sx={styles.block}>
+            <Typography sx={styles.title}>Last updated by</Typography>
+            <Typography sx={styles.value}>{project.last_updated_by}</Typography>
+          </Stack>
         </Stack>
-        <Stack sx={styles.block}>
-          <Typography sx={styles.title}>Last updated by</Typography>
-          <Typography sx={styles.value}>{project.last_updated_by}</Typography>
-        </Stack>
-      </Stack>
-      <Stack direction="row" spacing={18} sx={{ pb: "56px" }} data-joyride-id="framework-progress">
-        {progressBarCardRender({
-          progress: controlsProgress,
-          label: "control",
-          completed: controlsCompleted,
-        })}
-        <Stack data-joyride-id="project-assessments">
+        <Stack direction="row" spacing={18} sx={{ pb: "56px" }} data-joyride-id="framework-progress">
           {progressBarCardRender({
-            progress: assessmentsProgress,
-            label: "assessment",
-            completed: requirementsCompleted,
+            progress: controlsProgress,
+            label: "control",
+            completed: controlsCompleted,
           })}
+          <Stack data-joyride-id="project-assessments">
+            {progressBarCardRender({
+              progress: assessmentsProgress,
+              label: "assessment",
+              completed: requirementsCompleted,
+            })}
+          </Stack>
+          <Stack
+            sx={{ minWidth: 228, width: "100%", p: "8px 36px 14px 14px" }}
+          ></Stack>
         </Stack>
-        <Stack
-          sx={{ minWidth: 228, width: "100%", p: "8px 36px 14px 14px" }}
-        ></Stack>
-      </Stack>
-      <Stack sx={{ mb: "37px" }} data-joyride-id="risk-summary">
-        <Typography
-          sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}
-        >
-          Use case risks
-        </Typography>
-        <Risks {...projectRisksSummary} />
+        <Stack sx={{ mb: 0 }} data-joyride-id="risk-summary">
+          <Typography
+            sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}
+          >
+            Use case risks
+          </Typography>
+          <Risks {...projectRisksSummary} />
+        </Stack>
       </Stack>
     </Stack>
   );

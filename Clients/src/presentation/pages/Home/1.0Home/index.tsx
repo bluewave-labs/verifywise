@@ -8,7 +8,6 @@ import ProjectForm from "../../../components/Forms/ProjectForm";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
-import HelperDrawer from "../../../components/HelperDrawer";
 import HelperIcon from "../../../components/HelperIcon";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
@@ -44,8 +43,6 @@ const Home = () => {
       setProjects(dashboard.projects_list.filter((p) => !p.is_organizational));
     }
   }, [dashboard]);
-
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const [runHomeTour, setRunHomeTour] = useState(false);
   const newProjectButtonRef = useRef<HTMLDivElement>(null);
@@ -161,47 +158,13 @@ const Home = () => {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Dashboard overview"
-        description="Your central hub for AI governance management and compliance tracking"
-        whatItDoes="Provides a *comprehensive overview* of your *AI governance program*. View *project status*, *compliance metrics*, *pending tasks*, and *recent activities* all in one **centralized dashboard**."
-        whyItMatters="A **unified dashboard** ensures you never miss *critical compliance deadlines* or *governance issues*. It provides *executive visibility* into *AI program health* and helps prioritize resources where they're needed most."
-        quickActions={[
-          {
-            label: "Create New Project",
-            description:
-              "Start a new AI governance project or compliance initiative",
-            primary: true,
-          },
-          {
-            label: "View Metrics",
-            description: "Check your compliance status and governance metrics",
-          },
-        ]}
-        useCases={[
-          "*Daily monitoring* of *governance activities* and *compliance status*",
-          "*Executive reporting* with *real-time metrics* and *progress tracking*",
-        ]}
-        keyFeatures={[
-          "**Real-time project status tracking** with *progress indicators*",
-          "*Aggregated compliance metrics* across all *governance areas*",
-          "*Quick access* to *pending tasks* and *upcoming deadlines*",
-        ]}
-        tips={[
-          "*Check the dashboard daily* to stay on top of *governance activities*",
-          "Use *project filters* to focus on *specific initiatives* or teams",
-          "Set up *dashboard alerts* for *critical compliance thresholds*",
-        ]}
-      />
       {/* Use Cases Header */}
       <Stack spacing={2}>
         <Stack sx={vwhomeBody}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography sx={vwhomeHeading}>Use cases</Typography>
             <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              articlePath="reporting/dashboard-analytics"
               size="small"
             />
           </Stack>

@@ -113,6 +113,7 @@ function modelToTableName(modelName) {
     'UserPreferencesModel': 'user_preferences',
     'VendorsProjectsModel': 'vendors_projects',
     'EvidenceHubModel': 'evidence_hub',
+    'PolicyLinkedObjectsModel': 'policy_linked_objects',
     // AI Trust Center models
     'AITrustCenterInfoModel': 'ai_trust_center_info',
     'AITrustCenterIntroModel': 'ai_trust_center_intro',

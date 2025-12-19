@@ -10,6 +10,7 @@ interface GenerateReportProps {
   reportName: string;
   frameworkId: number;
   projectFrameworkId: number;
+  format: "pdf" | "docx";
 }
 
 /**

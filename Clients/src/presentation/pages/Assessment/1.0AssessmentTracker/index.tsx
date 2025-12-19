@@ -18,7 +18,8 @@ import {
 } from "./index.style";
 import StatsCard from "../../../components/Cards/StatsCard";
 import CustomizableSkeleton from "../../../components/Skeletons";
-import Questions from "./questions";
+import AccordionView from "./AccordionView";
+import EUAIActQuestionDrawerDialog from "../../../components/Drawer/EUAIActQuestionDrawerDialog";
 import useAssessmentProgress from "../../../../application/hooks/useAssessmentProgress";
 import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
 import useAssessmentSubtopics from "../../../../application/hooks/useAssessmentSubtopics";
@@ -27,6 +28,7 @@ import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScre
 import AssessmentSteps from "./AssessmentSteps";
 import { Project } from "../../../../domain/types/Project";
 import { Question } from "../../../../domain/types/Question";
+import { Subtopic } from "../../../../domain/types/Subtopic";
 import { useSearchParams } from "react-router-dom";
 import { usePostHog } from "../../../../application/hooks/usePostHog";
 
@@ -48,6 +50,19 @@ const AssessmentTracker = ({
   const topicId = searchParams.get("topicId");
   const [activeTab, setActiveTab] = useState<number>(Number(topicId) || 0);
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(
+    null
+  );
+  const [selectedSubtopic, setSelectedSubtopic] = useState<Subtopic | null>(
+    null
+  );
+  const [flashingQuestionId, setFlashingQuestionId] = useState<number | null>(
+    null
+  );
+  const [expandedAccordion, setExpandedAccordion] = useState<number | false>(
+    false
+  );
 
   const { assessmentProgress, loading: loadingAssessmentProgress } =
     useAssessmentProgress({
@@ -61,6 +76,7 @@ const AssessmentTracker = ({
     useAssessmentSubtopics({
       activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
       projectFrameworkId: currentProjectFramework,
+      refreshKey,
     });
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
@@ -139,6 +155,35 @@ const AssessmentTracker = ({
     [topicId, searchParams, setSearchParams, assessmentTopics, activeTab, currentProjectId, trackAssessment]
   );
 
+  const handleQuestionClick = (question: Question, subtopic: Subtopic) => {
+    setSelectedQuestion(question);
+    setSelectedSubtopic(subtopic);
+    setDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+    setSelectedQuestion(null);
+    setSelectedSubtopic(null);
+  };
+
+  const handleSaveSuccess = (
+    success: boolean,
+    _message?: string,
+    questionId?: number
+  ) => {
+    if (success && questionId) {
+      // Trigger green flash animation
+      setFlashingQuestionId(questionId);
+      // Clear flash after 2 seconds
+      setTimeout(() => {
+        setFlashingQuestionId(null);
+      }, 2000);
+      // Refresh data
+      setRefreshKey((prev) => !prev);
+    }
+  };
+
   // Filter subtopics based on the statusFilter, if provided
   const filteredSubtopics = assessmentSubtopics
     ? assessmentSubtopics.map((subtopic: any) => ({
@@ -214,7 +259,7 @@ const AssessmentTracker = ({
         }}
       >
         <Stack
-          sx={{ maxWidth: 1400, marginTop: "10px", gap: theme.spacing(10) }}
+          sx={{ marginTop: "10px", gap: theme.spacing(10) }}
           data-joyride-id="assessment-progress-bar"
           ref={refs[0]}
         >
@@ -244,7 +289,7 @@ const AssessmentTracker = ({
           Assessments status overview
         </Typography>
         <Divider sx={{ marginY: 2 }} />
-        <Box sx={{ display: "flex", height: "100vh", paddingX: "8px" }}>
+        <Box sx={{ display: "flex", width: "100%", height: "100vh", paddingLeft: "8px", paddingRight: 0 }}>
           <Stack sx={topicsListStyle}>
             <Typography
               sx={subHeadingStyle}
@@ -274,11 +319,11 @@ const AssessmentTracker = ({
           </Stack>
           <Divider orientation="vertical" flexItem />
           <Stack
-            minWidth={"60%"}
-            width={"100%"}
-            maxWidth={1400}
+            flex={1}
+            minWidth={0}
             paddingY={2}
-            paddingX={8}
+            paddingLeft={8}
+            paddingRight={0}
             sx={{ overflowY: "auto" }}
           >
             {loadingAssessmentSubtopic ? (
@@ -290,22 +335,35 @@ const AssessmentTracker = ({
                 maxWidth={300}
                 variant="rectangular"
               />
-            ) : filteredSubtopics ? (
-              filteredSubtopics.map((subtopic: any, index: number) => (
-                <div key={`subtopic-${subtopic.id || index}`}>
-                  <Questions
-                    currentProjectId={currentProjectId}
-                    subtopic={subtopic}
-                    setRefreshKey={() => setRefreshKey((prev) => !prev)}
-                    questionsData={subtopic.questions}
-                  />
-                </div>
-              ))
+            ) : filteredSubtopics && filteredSubtopics.length > 0 ? (
+              <AccordionView
+                subtopics={filteredSubtopics}
+                statusFilter={statusFilter}
+                onQuestionClick={handleQuestionClick}
+                flashingQuestionId={flashingQuestionId}
+                onStatusUpdate={() => setRefreshKey((prev) => !prev)}
+                expanded={expandedAccordion}
+                onExpandedChange={setExpandedAccordion}
+                onFlashingChange={setFlashingQuestionId}
+              />
             ) : (
               <Typography>Unable to get subtopics</Typography>
             )}
           </Stack>
         </Box>
+
+        {/* Drawer */}
+        {selectedQuestion && selectedSubtopic && (
+          <EUAIActQuestionDrawerDialog
+            open={drawerOpen}
+            onClose={handleDrawerClose}
+            question={selectedQuestion}
+            subtopic={selectedSubtopic}
+            currentProjectId={currentProjectId}
+            projectFrameworkId={currentProjectFramework}
+            onSaveSuccess={handleSaveSuccess}
+          />
+        )}
       </Stack>
     </Stack>
   );

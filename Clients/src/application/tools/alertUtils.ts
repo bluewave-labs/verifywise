@@ -9,7 +9,7 @@
  * @param {React.Dispatch<React.SetStateAction<AlertProps | null>>} props.setAlert - The function to set the alert state.
  * @returns {() => void} A function to clear the timeout for the alert.
  */
-import { AlertProps } from "../../domain/interfaces/iAlert";
+import { AlertProps } from "../../domain/interfaces/i.alert";
 
 interface HandleAlertProps extends AlertProps {
   setAlert: React.Dispatch<React.SetStateAction<AlertProps | null>>;

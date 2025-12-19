@@ -13,7 +13,7 @@
  *   npx ts-node upload-logs-to-do.ts --tenant abc123    # Upload logs for specific tenant only
  */
 
-import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getLogBaseDirectory, getCurrentDateStringUTC } from '../tenant/tenantContext';
@@ -83,20 +83,20 @@ function getAllTenants(): string[] {
 /**
  * Check if a file already exists in Digital Ocean Spaces
  */
-async function fileExistsInDO(doKey: string): Promise<boolean> {
-  try {
-    await doClient.send(new HeadObjectCommand({
-      Bucket: config.bucketName,
-      Key: doKey,
-    }));
-    return true;
-  } catch (error: any) {
-    if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
-      return false;
-    }
-    throw error;
-  }
-}
+// async function fileExistsInDO(doKey: string): Promise<boolean> {
+//   try {
+//     await doClient.send(new HeadObjectCommand({
+//       Bucket: config.bucketName,
+//       Key: doKey,
+//     }));
+//     return true;
+//   } catch (error: any) {
+//     if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+//       return false;
+//     }
+//     throw error;
+//   }
+// }
 
 /**
  * Upload a single log file to Digital Ocean Spaces

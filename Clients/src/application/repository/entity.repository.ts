@@ -2,7 +2,7 @@
 import {
   GetRequestParams,
   RequestParams,
-} from "../../domain/interfaces/iRequestParams";
+} from "../../domain/interfaces/i.requestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 /**

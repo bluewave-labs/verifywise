@@ -18,6 +18,12 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import {
+  recordProjectRiskCreation,
+  recordMultipleFieldChanges,
+  trackProjectRiskChanges,
+  recordProjectRiskDeletion,
+} from "../utils/projectRiskChangeHistory.utils";
 
 export async function getAllRisks(
   req: Request,
@@ -260,6 +266,17 @@ export async function createRisk(
     );
 
     if (newProjectRisk) {
+      // Record creation in change history
+      if (req.userId) {
+        await recordProjectRiskCreation(
+          newProjectRisk.id!,
+          req.userId,
+          req.tenantId!,
+          projectRiskData,
+          transaction
+        );
+      }
+
       await transaction.commit();
       logStructured(
         "successful",
@@ -358,27 +375,28 @@ export async function updateRiskById(
   try {
     const updateDataTyped = updateData as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
 
-    // if (!existingProjectRisk) {
-    //   logStructured(
-    //     "error",
-    //     `project risk not found: ID ${projectRiskId}`,
-    //     "updateProjectRiskById",
-    //     "projectRisks.ctrl.ts"
-    //   );
-    //   await logEvent(
-    //     "Error",
-    //     `Project risk not found for update: ID ${projectRiskId}`
-    //   );
-    //   await transaction.rollback();
-    //   return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
-    // }
+    // Find existing risk to track changes
+    const existingProjectRisk = await getRiskByIdQuery(projectRiskId, req.tenantId!);
 
-    // // Create a RiskModel instance with the existing data and update it
-    // const riskModel = new RiskModel(existingProjectRisk);
-    // await riskModel.updateProjectRisk(updateData);
+    if (!existingProjectRisk) {
+      logStructured(
+        "error",
+        `project risk not found: ID ${projectRiskId}`,
+        "updateProjectRiskById",
+        "projectRisks.ctrl.ts"
+      );
+      await logEvent(
+        "Error",
+        `Project risk not found for update: ID ${projectRiskId}`,
+        req.userId!,
+        req.tenantId!
+      );
+      await transaction.rollback();
+      return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
+    }
 
-    // // Validate the updated project risk data
-    // await riskModel.validateProjectRiskData();
+    // Track changes before updating
+    const changes = await trackProjectRiskChanges(existingProjectRisk as RiskModel, updateDataTyped);
 
     const updatedProjectRisk = await updateRiskByIdQuery(
       projectRiskId,
@@ -388,6 +406,17 @@ export async function updateRiskById(
     );
 
     if (updatedProjectRisk) {
+      // Record changes in change history
+      if (changes.length > 0 && req.userId) {
+        await recordMultipleFieldChanges(
+          projectRiskId,
+          req.userId,
+          req.tenantId!,
+          changes,
+          transaction
+        );
+      }
+
       await transaction.commit();
       logStructured(
         "successful",
@@ -483,6 +512,16 @@ export async function deleteRiskById(
     );
 
     if (deletedProjectRisk) {
+      // Record deletion in change history
+      if (req.userId) {
+        await recordProjectRiskDeletion(
+          projectRiskId,
+          req.userId,
+          req.tenantId!,
+          transaction
+        );
+      }
+
       await transaction.commit();
       logStructured(
         "successful",

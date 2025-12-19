@@ -30,7 +30,7 @@ import {
 } from "../../../../application/hooks/useAITrustCentreSubprocessorsQuery";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
-import { Subprocessor } from "../../../../domain/interfaces/iAITrustCenter";
+import { Subprocessor } from "../../../../domain/interfaces/i.aiTrustCenter";
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 import { GroupBy } from "../../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../../application/hooks/useTableGrouping";

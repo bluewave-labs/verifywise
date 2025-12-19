@@ -19,17 +19,11 @@ import {
   uploadCompanyLogoQuery,
 } from "../utils/aiTrustCentre.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
-import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
+import { uploadFile } from "../utils/fileUpload.utils";
 import { IAITrustCentreOverview } from "../domain.layer/interfaces/i.aiTrustCentreOverview";
-import { IAITrustCentreResources } from "../domain.layer/interfaces/i.aiTrustCentreResources";
 import { IAITrustCentreSubprocessors } from "../domain.layer/interfaces/i.aiTrustCentreSubprocessors";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
-import {
-  logProcessing,
-  logSuccess,
-  logFailure,
-} from "../utils/logger/logHelper";
 
 export async function getCompanyLogo(req: Request, res: Response) {
   const { hash } = req.params;
@@ -409,7 +403,6 @@ export async function createAITrustResource(
 }
 
 export async function createAITrustSubprocessor(req: Request, res: Response) {
-
   const transaction = await sequelize.transaction();
   const body = req.body as IAITrustCentreSubprocessors;
 
@@ -505,7 +498,6 @@ export async function uploadCompanyLogo(req: RequestWithFile, res: Response) {
   logger.debug("🖼️ Uploading company logo");
 
   try {
-
     const file = await uploadFile(
       attachment,
       req.userId!,

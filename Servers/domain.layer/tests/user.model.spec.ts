@@ -1,4 +1,3 @@
-import { UserModel } from "../models/user/user.model";
 import {
   ValidationException,
   BusinessLogicException,
@@ -207,7 +206,7 @@ class TestUserModel {
     };
   }
 
-  get(options?: any) {
+  get(_options?: any) {
     return this;
   }
 }
@@ -220,14 +219,6 @@ describe("UserModel", () => {
     email: "john.doe@example.com",
     password: "SecurePass123!", // This password has: lowercase, uppercase, digit, special char, >8 chars
     role_id: 1,
-  };
-
-  const invalidUserData = {
-    name: "",
-    surname: "",
-    email: "invalid-email",
-    password: "weak",
-    role_id: 0,
   };
 
   // Clear all mocks before each test

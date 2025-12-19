@@ -1,6 +1,6 @@
-import { GetRequestParams } from "../../domain/interfaces/iRequestParams";
+import { GetRequestParams } from "../../domain/interfaces/i.requestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { RequestParams } from "../../domain/interfaces/iRequestParams";
+import { RequestParams } from "../../domain/interfaces/i.requestParams";
 
 /**
  * Retrieves the current user's organization details.
@@ -46,13 +46,11 @@ export async function CreateMyOrganization({
 
 export async function createNewOrganizationWithGoogle({
   googleToken,
-  body,
 }: {
   googleToken: string;
-  body: any;
 }): Promise<any> {
   const response = await apiServices.post(`/organizations/with-google`, {
-    token: googleToken, organizationData: body
+    token: googleToken
   });
   return response;
 }

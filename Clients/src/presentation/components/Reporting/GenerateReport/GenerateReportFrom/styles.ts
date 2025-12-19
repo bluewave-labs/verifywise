@@ -1,3 +1,5 @@
+import { Theme } from "@mui/material/styles";
+
 export const styles = {
   btnWrap: {
     marginTop: 'auto',
@@ -23,7 +25,7 @@ export const styles = {
   },
 };
 
-export const fieldStyle = (theme: any) => ({
+export const fieldStyle = (theme: Theme) => ({
   fontWeight: "bold",
   backgroundColor: theme.palette.background.main,
   "& input": {
@@ -31,7 +33,7 @@ export const fieldStyle = (theme: any) => ({
   },
 });
 
-export const selectReportStyle = (theme:any) => ({
+export const selectReportStyle = (theme: Theme) => ({
   width: "100%",
   backgroundColor: theme.palette.background.main,
 });

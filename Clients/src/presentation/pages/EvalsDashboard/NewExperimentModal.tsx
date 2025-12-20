@@ -542,7 +542,7 @@ export default function NewExperimentModal({
       setAlert({
         show: true,
         variant: "error",
-        title: "Eval Creation Failed",
+        title: "Experiment Creation Failed",
         body: errorMessage,
       });
     } finally {

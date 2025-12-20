@@ -930,6 +930,10 @@ async def list_deepeval_scorers_controller(
             items = await list_scorers(tenant=tenant, db=db, project_id=project_id)
             return JSONResponse(status_code=200, content={"scorers": items})
     except Exception as e:
+        error_str = str(e).lower()
+        # If the table doesn't exist yet, return empty list instead of 500 error
+        if "does not exist" in error_str or "undefined" in error_str or "relation" in error_str:
+            return JSONResponse(status_code=200, content={"scorers": []})
         raise HTTPException(status_code=500, detail=f"Failed to list scorers: {e}")
 
 

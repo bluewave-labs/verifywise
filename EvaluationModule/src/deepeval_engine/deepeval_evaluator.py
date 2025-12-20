@@ -416,7 +416,7 @@ class DeepEvalEvaluator:
                     "use_case": "chatbot",
                     "description": "Single-turn Chatbot evaluation"
                 }
-
+    
     def evaluate_test_cases(
         self,
         test_cases_data: List[Dict[str, Any]],
@@ -637,52 +637,52 @@ class DeepEvalEvaluator:
                     )
             else:
                 # Use standard single-turn metrics
-                for metric_name, metric in metrics_to_use:
-                    try:
-                        # Some metrics require retrieval/context. If missing, skip gracefully.
-                        # RAG-specific metrics require context
-                        requires_context = metric_name in {"Faithfulness", "Context Relevancy", "Context Precision", "Context Recall"}
+            for metric_name, metric in metrics_to_use:
+                try:
+                    # Some metrics require retrieval/context. If missing, skip gracefully.
+                    # RAG-specific metrics require context
+                    requires_context = metric_name in {"Faithfulness", "Context Relevancy", "Context Precision", "Context Recall"}
                         
-                        retrieval_context = getattr(test_case, "retrieval_context", None)
-                        context = getattr(test_case, "context", None)
-                        has_context = bool(retrieval_context) or bool(context)
-                        
-                        if requires_context and not has_context:
-                            print(f"  Evaluating {metric_name}... ⏭ Skipped (no context)")
-                            metric_scores[metric_name] = {
-                                "score": None,
-                                "passed": False,
-                                "threshold": getattr(metric, "threshold", None),
-                                "skipped": True,
-                                "reason": "No retrieval/context provided",
-                            }
-                            continue
-
-                        print(f"  Evaluating {metric_name}...", end=" ")
-
-                        metric.measure(test_case)
-                        score = metric.score
-                        passed = metric.is_successful()
-
-                        metric_scores[metric_name] = {
-                            "score": round(score, 3) if score is not None else None,
-                            "passed": passed,
-                            "threshold": getattr(metric, "threshold", None),
-                            "reason": getattr(metric, 'reason', 'N/A')
-                        }
-
-                        status = "✓ PASS" if passed else "✗ FAIL"
-                        print(f"{status} (score: {score:.3f})")
-
-                    except Exception as e:
-                        error_msg = str(e)
-                        print(f"✗ Error: {error_msg}")
+                    retrieval_context = getattr(test_case, "retrieval_context", None)
+                    context = getattr(test_case, "context", None)
+                    has_context = bool(retrieval_context) or bool(context)
+                    
+                    if requires_context and not has_context:
+                        print(f"  Evaluating {metric_name}... ⏭ Skipped (no context)")
                         metric_scores[metric_name] = {
                             "score": None,
                             "passed": False,
                             "threshold": getattr(metric, "threshold", None),
-                            "error": str(e)
+                            "skipped": True,
+                            "reason": "No retrieval/context provided",
                         }
+                        continue
+
+                    print(f"  Evaluating {metric_name}...", end=" ")
+
+                    metric.measure(test_case)
+                    score = metric.score
+                    passed = metric.is_successful()
+
+                    metric_scores[metric_name] = {
+                        "score": round(score, 3) if score is not None else None,
+                        "passed": passed,
+                        "threshold": getattr(metric, "threshold", None),
+                        "reason": getattr(metric, 'reason', 'N/A')
+                    }
+
+                    status = "✓ PASS" if passed else "✗ FAIL"
+                    print(f"{status} (score: {score:.3f})")
+
+                except Exception as e:
+                    error_msg = str(e)
+                    print(f"✗ Error: {error_msg}")
+                    metric_scores[metric_name] = {
+                        "score": None,
+                        "passed": False,
+                        "threshold": getattr(metric, "threshold", None),
+                        "error": str(e)
+                    }
             
             # Calculate basic statistics based on test case type
             if is_conversational and isinstance(test_case, ConversationalTestCase):

@@ -24,6 +24,9 @@ def upgrade() -> None:
     # Create tables in tenant schema (following existing pattern)
     schema_name = "a4ayc80OGd"  # Default tenant schema
     
+    # Ensure schema exists first
+    op.execute(sa.text(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"'))
+    
     # Create evaluation_logs table
     op.execute(
         sa.text(

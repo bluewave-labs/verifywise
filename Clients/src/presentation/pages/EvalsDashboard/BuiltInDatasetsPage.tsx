@@ -680,43 +680,43 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                         const stp = p as SingleTurnPrompt;
                         return (
                           <Paper key={stp.id} variant="outlined" sx={{ p: 1.25 }}>
-                            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                              <Typography sx={{ fontWeight: 700, fontSize: "12px" }}>{`Prompt ${idx + 1}`}</Typography>
-                              <Chip
+                        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: "12px" }}>{`Prompt ${idx + 1}`}</Typography>
+                          <Chip
                                 label={stp.category}
-                                size="small"
-                                sx={{
-                                  height: 18,
-                                  fontSize: "10px",
+                            size="small"
+                            sx={{
+                              height: 18,
+                              fontSize: "10px",
                                   bgcolor: stp.category?.toLowerCase().includes("coding")
-                                    ? "#E6F4EF"
+                                ? "#E6F4EF"
                                     : stp.category?.toLowerCase().includes("math")
-                                    ? "#E6F1FF"
+                                ? "#E6F1FF"
                                     : stp.category?.toLowerCase().includes("reason")
-                                    ? "#FFF4E6"
-                                    : "#F3F4F6",
-                                }}
-                              />
-                            </Stack>
-                            <Typography sx={{ fontSize: "12px", color: "#111827", whiteSpace: "pre-wrap" }}>
+                                ? "#FFF4E6"
+                                : "#F3F4F6",
+                            }}
+                          />
+                        </Stack>
+                        <Typography sx={{ fontSize: "12px", color: "#111827", whiteSpace: "pre-wrap" }}>
                               {stp.prompt}
-                            </Typography>
+                        </Typography>
                             {stp.expected_output && (
-                              <Typography sx={{ mt: 0.75, fontSize: "12px", color: "#4B5563" }}>
+                          <Typography sx={{ mt: 0.75, fontSize: "12px", color: "#4B5563" }}>
                                 <b>Expected:</b> {stp.expected_output}
-                              </Typography>
-                            )}
+                          </Typography>
+                        )}
                             {Array.isArray(stp.expected_keywords) && stp.expected_keywords.length > 0 && (
-                              <Typography sx={{ mt: 0.5, fontSize: "12px", color: "#4B5563" }}>
+                          <Typography sx={{ mt: 0.5, fontSize: "12px", color: "#4B5563" }}>
                                 <b>Keywords:</b> {stp.expected_keywords.join(", ")}
-                              </Typography>
-                            )}
+                          </Typography>
+                        )}
                             {Array.isArray(stp.retrieval_context) && stp.retrieval_context.length > 0 && (
-                              <Typography sx={{ mt: 0.5, fontSize: "12px", color: "#4B5563", whiteSpace: "pre-wrap" }}>
+                          <Typography sx={{ mt: 0.5, fontSize: "12px", color: "#4B5563", whiteSpace: "pre-wrap" }}>
                                 <b>Context:</b> {stp.retrieval_context.join("\n")}
-                              </Typography>
-                            )}
-                          </Paper>
+                          </Typography>
+                        )}
+                      </Paper>
                         );
                       } else {
                         // Multi-turn conversation

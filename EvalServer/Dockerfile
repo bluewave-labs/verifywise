@@ -14,6 +14,9 @@ RUN pip install --no-cache-dir torch==2.5.1 --index-url https://download.pytorch
 # Copy the application source
 COPY ./EvalServer/src .
 
+# Copy the deepeval_engine module from EvaluationModule
+COPY ./EvaluationModule/src/deepeval_engine /app/deepeval_engine
+
 # Copy the datasets from EvaluationModule
 COPY ./EvaluationModule/data/datasets /app/datasets
 

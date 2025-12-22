@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Stack,
   Typography,
@@ -288,6 +289,10 @@ const Framework = () => {
     return localStorage.getItem(NIST_AI_RMF_TAB_KEY) || "govern";
   });
 
+  const [risksFrameworkIndex, setRisksFrameworkIndex] = useState(0);
+  const [linkedModelsFrameworkIndex, setLinkedModelsFrameworkIndex] = useState(0);
+
+
   // Sync mainTabValue with URL tab param when navigating programmatically
   useEffect(() => {
     const newTabValue = tab || "dashboard";
@@ -536,7 +541,7 @@ const Framework = () => {
     const getLinkedModelCount = async() => {
       if (filteredFrameworks.length === 0) return;
 
-      const framework = filteredFrameworks[selectedFramework];
+      const framework = filteredFrameworks[linkedModelsFrameworkIndex];
       if (!framework) return;
       const frameworkId = framework?.id;
 
@@ -551,7 +556,7 @@ const Framework = () => {
 
     getLinkedModelCount();
 
-  }, [filteredFrameworks, selectedFramework]);
+  }, [filteredFrameworks, linkedModelsFrameworkIndex]);
 
   const renderFrameworkContent = () => {
     if (loading) {
@@ -1047,165 +1052,6 @@ const Framework = () => {
       {/* Tips */}
       <TipBox entityName="framework" />
 
-      {/* <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          mb: 2,
-        }}
-      >
-        {organizationalProject ? (
-          <>
-            <Button
-              variant="contained"
-              endIcon={<WhiteDownArrowIcon size={16} style={{ transform: rotated ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />}
-              onClick={(event: React.MouseEvent<any>) => {
-                setRotated((prev) => !prev);
-                handleManageProjectClick(event);
-              }}
-              disabled={
-                !allowedRoles.frameworks.manage.includes(userRoleName) &&
-                !allowedRoles.projects.edit.includes(userRoleName) &&
-                !allowedRoles.projects.delete.includes(userRoleName)
-              }
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "#0e5c47",
-                  boxShadow: "0px 4px 8px rgba(19, 113, 91, 0.3)",
-                },
-                "&:disabled": {
-                  backgroundColor: "#cccccc",
-                  color: "#666666",
-                  boxShadow: "none",
-                },
-                "& .MuiButton-endIcon": {
-                  marginLeft: 1,
-                  transition: "transform 0.2s ease",
-                  transform: rotated ? "rotate(180deg)" : "rotate(0deg)",
-                },
-              }}
-            >
-              Manage Project
-            </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={isMenuOpen}
-              onClose={handleMenuClose}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              slotProps={{
-                paper: {
-                  sx: {
-                    ...dropDownStyle,
-                    width: 200,
-                    mt: 1,
-                  },
-                },
-              }}
-            >
-              <MenuItem
-                onClick={handleManageFrameworksClick}
-                disabled={
-                  !allowedRoles.frameworks.manage.includes(userRoleName)
-                }
-              >
-                <ListItemIcon sx={{ minWidth: 32 }}>
-                  <SettingsIcon
-                    size={16}
-                    style={{
-                      color: "text.secondary",
-                    }}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Manage Frameworks"
-                  primaryTypographyProps={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    color: "text.primary",
-                  }}
-                />
-              </MenuItem>
-              <MenuItem
-                onClick={handleEditProjectClick}
-                disabled={!allowedRoles.projects.edit.includes(userRoleName)}
-              >
-                <ListItemIcon sx={{ minWidth: 32 }}>
-                  <EditIconGrey
-                    size={16}
-                    style={{
-                      color: "text.secondary",
-                    }}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Edit Project"
-                  primaryTypographyProps={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    color: "text.primary",
-                  }}
-                />
-              </MenuItem>
-              <Divider sx={{ my: 0.5 }} />
-              <MenuItem
-                onClick={handleDeleteProjectClick}
-                disabled={
-                  !allowedRoles.projects.delete.includes(userRoleName)
-                }
-              >
-                <ListItemIcon sx={{ minWidth: 32 }}>
-                  <DeleteIconRed
-                    size={16}
-                    style={{
-                      color: "#DB504A",
-                    }}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Delete Project"
-                  primaryTypographyProps={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    color: "error.main",
-                  }}
-                />
-              </MenuItem>
-            </Menu>
-          </>
-        ) : (
-          <Button
-            variant="contained"
-            startIcon={<AddCircleOutlineIcon size={16} />}
-            onClick={() => setIsProjectFormModalOpen(true)}
-            disabled={!allowedRoles.projects.create.includes(userRoleName)}
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              textTransform: "none",
-              "&:hover": {
-                backgroundColor: "#0e5c47",
-              },
-              "&:disabled": {
-                backgroundColor: "#cccccc",
-                color: "#666666",
-              },
-            }}
-          >
-            New Project
-          </Button>
-        )}
-      </Box> */}
-
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
         <>
@@ -1280,8 +1126,8 @@ const Framework = () => {
               <FrameworkRisks
                 organizationalProject={organizationalProject}
                 filteredFrameworks={filteredFrameworks}
-                selectedFramework={selectedFramework}
-                onFrameworkSelect={handleFrameworkSelect}
+                selectedFramework={risksFrameworkIndex}
+                onFrameworkSelect={setRisksFrameworkIndex}
               />
             </TabPanel>
 
@@ -1289,8 +1135,8 @@ const Framework = () => {
               <FrameworkLinkedModels
                 organizationalProject={organizationalProject}
                 filteredFrameworks={filteredFrameworks}
-                selectedFramework={selectedFramework}
-                onFrameworkSelect={handleFrameworkSelect}
+                selectedFramework={linkedModelsFrameworkIndex}
+                onFrameworkSelect={setLinkedModelsFrameworkIndex}
               />
             </TabPanel>
 

@@ -13,7 +13,7 @@ import torch
 
 class ModelRunner:
     """
-    Runs inference on language models to generate responses for evaluation
+    Runs inference on language models to generate responses for evaluation.
     
     Supports HuggingFace models, OpenAI API, and Ollama.
     """

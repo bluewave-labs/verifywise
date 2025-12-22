@@ -193,7 +193,7 @@ export default function DatasetEditorPage() {
             startIcon={<SaveIcon size={16} />}
             onClick={handleSave}
           >
-            {saving ? "Saving..." : "Save copy"}
+            {saving ? "Saving..." : "Save"}
           </Button>
         </Stack>
       </Stack>
@@ -209,7 +209,7 @@ export default function DatasetEditorPage() {
           placeholder="Enter a descriptive name for this dataset"
         />
         <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
-          Edit the prompts below, then click Save to add a copy to your datasets.
+          Edit the prompts below, then click Save to create your dataset.
         </Typography>
       </Stack>
 

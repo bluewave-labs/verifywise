@@ -90,7 +90,7 @@ const VWProjectRisksTableBody = ({
   const [searchParams] = useSearchParams();
   const riskId = searchParams.get("riskId");
 
-  const [selectedRiskId, setShowRiskId] = useState<number | null>(null);
+  const [selectedRiskId, setSelectedRiskId] = useState<number | null>(null);
 
 
 
@@ -122,7 +122,7 @@ const VWProjectRisksTableBody = ({
   };
 
   const handleViewLinkedPolicies = async (riskId: number) => {
-    setShowRiskId(riskId)
+    setSelectedRiskId(riskId)
     setShowLinkedPoliciesToRisk(true);
   };
 

@@ -255,10 +255,12 @@ const LinkedPolicyObjectsTable: React.FC<LinkedPolicyObjectsTableProps> = ({
         []
     );
 
+    const MAX_VISIBLE_CHARS = 15;
+
     const TruncatedCell: React.FC<{ value?: string | null }> = ({ value }) => {
         const text = value ?? "-";
-        const shouldTruncate = text.length > 15;
-        const displayText = shouldTruncate ? `${text.slice(0, 25)}...` : text;
+        const shouldTruncate = text.length > MAX_VISIBLE_CHARS;
+        const displayText = shouldTruncate ? `${text.slice(0, MAX_VISIBLE_CHARS)}...` : text;
       
         return shouldTruncate ? (
           <Tooltip title={text} arrow>

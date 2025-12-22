@@ -22,45 +22,40 @@ export async function getAllLinkedObjects(req: Request, res: Response) {
     const tenant = req.tenantId!;
     const rows = await getAllPolicyLinkedObjectsQuery(tenant);
 
-    if (rows && rows.length > 0) {
-      const controls = rows.filter((r: any) => r.object_type === "control");
-      const risks = rows.filter((r: any) => r.object_type === "risk");
-      const evidence = rows.filter((r: any) => r.object_type === "evidence");
-
-      logStructured(
-        "successful",
-        "linked objects found",
-        "getAllLinkedObjects",
-        "policyLinkedObjects.ctrl.ts"
-      );
-
-      logger.debug(
-        `✅ Linked objects fetched: controls=${controls.length}, risks=${risks.length}, evidence=${evidence.length}`
-      );
-
-      return res.status(200).json(
-        STATUS_CODE[200]({
-          controls,
-          risks,
-          evidence,
-        })
-      );
-    }
+    const grouped = rows.reduce(
+      (acc, row: any) => {
+        switch (row.object_type) {
+          case "control":
+            acc.controls.push(row);
+            break;
+          case "risk":
+            acc.risks.push(row);
+            break;
+          case "evidence":
+            acc.evidence.push(row);
+            break;
+        }
+        return acc;
+      },
+      {
+        controls: [] as any[],
+        risks: [] as any[],
+        evidence: [] as any[],
+      }
+    );
 
     logStructured(
       "successful",
-      "no linked objects found",
+      rows.length > 0 ? "linked objects found" : "no linked objects found",
       "getAllLinkedObjects",
       "policyLinkedObjects.ctrl.ts"
     );
 
-    return res.status(200).json(
-      STATUS_CODE[200]({
-        controls: [],
-        risks: [],
-        evidence: [],
-      })
+    logger.debug(
+      `✅ Linked objects fetched: controls=${grouped.controls.length}, risks=${grouped.risks.length}, evidence=${grouped.evidence.length}`
     );
+
+    return res.status(200).json(STATUS_CODE[200](grouped));
   } catch (error) {
     logStructured(
       "error",
@@ -94,9 +89,27 @@ export async function getLinkedObjects(req: Request, res: Response) {
     const tenant = req.tenantId!;
     const rows = await getPolicyLinkedObjectByIdQuery(policyId, tenant);
 
-    const controls = rows.filter((r: any) => r.object_type === "control");
-    const risks = rows.filter((r: any) => r.object_type === "risk");
-    const evidence = rows.filter((r: any) => r.object_type === "evidence");
+    const grouped = rows.reduce(
+      (acc, row: any) => {
+        switch (row.object_type) {
+          case "control":
+            acc.controls.push(row);
+            break;
+          case "risk":
+            acc.risks.push(row);
+            break;
+          case "evidence":
+            acc.evidence.push(row);
+            break;
+        }
+        return acc;
+      },
+      {
+        controls: [] as any[],
+        risks: [] as any[],
+        evidence: [] as any[],
+      }
+    );
 
     logStructured(
       "successful",
@@ -105,16 +118,10 @@ export async function getLinkedObjects(req: Request, res: Response) {
       "policyLinkedObjects.ctrl.ts"
     );
     logger.debug(
-      `✅ Linked objects fetched: controls=${controls.length}, risks=${risks.length}, evidence=${evidence.length}`
+      `✅ Linked objects fetched: controls=${grouped.controls.length}, risks=${grouped.risks.length}, evidence=${grouped.evidence.length}`
     );
 
-    return res.status(200).json(
-      STATUS_CODE[200]({
-        controls,
-        risks,
-        evidence,
-      })
-    );
+    return res.status(200).json(STATUS_CODE[200](grouped));
   } catch (error) {
     logStructured(
       "error",
@@ -123,7 +130,9 @@ export async function getLinkedObjects(req: Request, res: Response) {
       "policyLinkedObjects.ctrl.ts"
     );
     logger.error("❌ Error in getLinkedObjects:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    return res.status(500).json(
+      STATUS_CODE[500]((error as Error).message)
+    );
   }
 }
 

@@ -171,6 +171,7 @@ const TrustCenterResources: React.FC = () => {
 
   // State management
   const [formData, setFormData] = useState<FormData | null>(null);
+  const [flashRowId, setFlashRowId] = useState<number | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [newResource, setNewResource] = useState<{
@@ -416,6 +417,10 @@ const TrustCenterResources: React.FC = () => {
         oldFileId: oldFileId,
       });
 
+      // Flash the updated resource row
+      setFlashRowId(editResource.id);
+      setTimeout(() => setFlashRowId(null), 3000);
+
       handleAlert({
         variant: "success",
         body: "Resource updated successfully",
@@ -655,6 +660,7 @@ const TrustCenterResources: React.FC = () => {
                 )}
                 tableId="resources-table"
                 hidePagination={options?.hidePagination}
+                flashRowId={flashRowId}
               />
             )}
           />

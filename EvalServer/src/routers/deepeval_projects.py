@@ -54,7 +54,7 @@ async def create_project(request: Request, project_data: dict = Body(...)):
     """
     return await create_project_controller(
         project_data=project_data,
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        tenant=request.headers["x-tenant-id"]
     )
 
 
@@ -78,7 +78,7 @@ async def get_all_projects(request: Request):
     }
     """
     return await get_all_projects_controller(
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        tenant=request.headers["x-tenant-id"]
     )
 
 
@@ -89,7 +89,7 @@ async def get_project(project_id: str, request: Request):
     """
     return await get_project_controller(
         project_id=project_id,
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        tenant=request.headers["x-tenant-id"]
     )
 
 
@@ -105,7 +105,7 @@ async def update_project(
     return await update_project_controller(
         project_id=project_id,
         project_data=project_data,
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        tenant=request.headers["x-tenant-id"]
     )
 
 
@@ -116,7 +116,7 @@ async def delete_project(project_id: str, request: Request):
     """
     return await delete_project_controller(
         project_id=project_id,
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        tenant=request.headers["x-tenant-id"]
     )
 
 
@@ -141,6 +141,6 @@ async def get_project_stats(project_id: str, request: Request):
     """
     return await get_project_stats_controller(
         project_id=project_id,
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        tenant=request.headers["x-tenant-id"]
     )
 

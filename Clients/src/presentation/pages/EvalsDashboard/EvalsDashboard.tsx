@@ -2124,11 +2124,44 @@ export default function EvalsDashboard() {
                   placeholder={selectedLocalProviderType === "ollama" ? "http://localhost:11434" : "http://localhost:8000/api/generate"}
                   isRequired
                 />
-                <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 0.5, ml: 0.5 }}>
-                  {selectedLocalProviderType === "ollama" 
-                    ? "Default Ollama endpoint is http://localhost:11434"
-                    : "Must be OpenAI Chat Completions API compatible (POST /v1/chat/completions)"}
-                </Typography>
+                {selectedLocalProviderType === "ollama" ? (
+                  <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 0.5, ml: 0.5 }}>
+                    Default Ollama endpoint is http://localhost:11434
+                  </Typography>
+                ) : (
+                  <Box
+                    sx={{
+                      mt: 2,
+                      p: 2,
+                      backgroundColor: "#F8FAFC",
+                      border: "1px solid #E2E8F0",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "#334155",
+                        mb: 1,
+                      }}
+                    >
+                      API Compatibility
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: 12,
+                        color: "#64748B",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      Your endpoint must be OpenAI-compatible, accepting{" "}
+                      <Box component="span" sx={{ fontFamily: "monospace", backgroundColor: "#E2E8F0", px: 0.5, borderRadius: "3px", fontSize: 11 }}>
+                        POST /v1/chat/completions
+                      </Box>
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </>
           )}

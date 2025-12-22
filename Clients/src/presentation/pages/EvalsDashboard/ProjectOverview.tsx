@@ -398,7 +398,7 @@ export default function ProjectOverview({
                 />
               </Box>
             ) : (
-              <Box sx={{ padding: "16px" }}>
+              <Box sx={{ padding: "8px" }}>
               {[...experiments]
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .slice(0, 4)

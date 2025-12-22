@@ -32,6 +32,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const hasProcessedUrlParam = useRef(false);
   const [policies, setPolicies] = useState<PolicyManagerModel[]>([]);
+  const [flashRowId, setFlashRowId] = useState<number | null>(null);
 
   useEffect(() => {
     setPolicies(policyList);
@@ -90,8 +91,18 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   };
 
   const handleSaved = (successMessage?: string) => {
-    fetchAll();
+    // Flash the updated policy row if we have a selected policy
+    if (selectedPolicy?.id) {
+      setFlashRowId(selectedPolicy.id);
+    }
+    
     handleClose();
+
+    // Delay fetchAll to allow flash to be visible, then clear flash after data loads
+    setTimeout(() => {
+      fetchAll();
+      setTimeout(() => setFlashRowId(null), 3000);
+    }, 100);
 
     // Show success alert if message is provided
     if (successMessage) {
@@ -367,6 +378,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
                 onOpen={handleOpen}
                 onDelete={handleDelete}
                 hidePagination={options?.hidePagination}
+                flashRowId={flashRowId}
               />
             )}
           />

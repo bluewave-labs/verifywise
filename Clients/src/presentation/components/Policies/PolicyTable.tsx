@@ -27,6 +27,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
   error,
   onRefresh,
   hidePagination = false,
+  flashRowId,
 }) => {
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -68,12 +69,23 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
         setAnchorEl={() => {}}
         onRowClick={(id: string) => onOpen(Number(id))}
         hidePagination={hidePagination}
+        flashRowId={flashRowId}
         renderRow={(policy, sortConfig) => (
           <TableRow
             key={policy.id}
             tabIndex={0}
             aria-label={`Policy: ${policy.title}`}
-            sx={{ ...singleTheme.tableStyles.primary.body.row }}
+            sx={{ 
+              ...singleTheme.tableStyles.primary.body.row,
+              backgroundColor: flashRowId === policy.id 
+                ? "rgba(5, 150, 105, 0.1)"
+                : "transparent",
+              "&:hover": {
+                backgroundColor: flashRowId === policy.id 
+                  ? "rgba(5, 150, 105, 0.15)"
+                  : "rgba(0, 0, 0, 0.04)",
+              }
+            }}
             onClick={(_event) => {
               const target = _event.target as HTMLElement;
 

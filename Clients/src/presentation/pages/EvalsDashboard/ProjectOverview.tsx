@@ -114,7 +114,6 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
               fontWeight: 600,
               color: "#111827",
               lineHeight: 1.3,
-              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             }}
           >
             {value}
@@ -441,9 +440,9 @@ export default function ProjectOverview({
                         alignItems: "center",
                         justifyContent: "space-between",
                         px: 2,
+                        py: 1.5,
                         cursor: "pointer",
                         borderBottom: index < arr.length - 1 ? "1px solid #d0d5dd" : "none",
-                        flex: 1,
                         "&:hover": {
                           backgroundColor: "#F9FAFB",
                         },

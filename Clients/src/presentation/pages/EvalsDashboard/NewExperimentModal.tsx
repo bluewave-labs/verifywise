@@ -1611,7 +1611,7 @@ export default function NewExperimentModal({
                   : "Select metrics for your evaluation. Universal core metrics run for all use cases."}
               </Typography>
               {isMultiTurnDataset && (
-                <Box sx={{ mt: 1.5, mb: 1 }}>
+                <Box sx={{ mt: 1.5, mb: 3 }}>
                   <Chip 
                     label="Multi-turn dataset detected" 
                     size="small" 

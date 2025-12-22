@@ -522,6 +522,16 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       const finalName = slug ? `${slug}.json` : "dataset.json";
       const file = new File([blob], finalName, { type: "application/json" });
       const datasetType = editingDataset?.datasetType || "chatbot";
+      
+      // If editing an existing user dataset, delete the old one first
+      if (editingDataset?.isUserDataset && editingDataset?.path) {
+        try {
+          await deepEvalDatasetsService.deleteDatasets([editingDataset.path]);
+        } catch (deleteErr) {
+          console.warn("Could not delete old dataset, proceeding with save:", deleteErr);
+        }
+      }
+      
       await deepEvalDatasetsService.uploadDataset(file, datasetType);
       setAlert({ variant: "success", body: `Dataset "${editDatasetName}" saved successfully!` });
       setTimeout(() => setAlert(null), 3000);
@@ -938,7 +948,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               startIcon={<SaveIcon size={16} />}
               onClick={handleSaveDataset}
             >
-              {savingDataset ? "Saving..." : "Save copy"}
+              {savingDataset ? "Saving..." : "Save"}
             </Button>
           </Stack>
         </Stack>
@@ -953,7 +963,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             isRequired
           />
           <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
-            Edit the prompts below, then click Save to add a copy to your datasets.
+            Edit the prompts below, then click Save to update your dataset.
           </Typography>
         </Stack>
 

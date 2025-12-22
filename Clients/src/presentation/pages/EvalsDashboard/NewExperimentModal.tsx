@@ -15,7 +15,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  ListItemText,
   FormHelperText,
 } from "@mui/material";
 import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";

@@ -353,9 +353,9 @@ async function createNewUser(req: Request, res: Response) {
       name,
       surname,
       email,
-      password,
       roleId,
-      organizationId
+      organizationId,
+      password
     );
     await userModel.validateUserData();
 

@@ -12,12 +12,17 @@ import {
   MenuItem,
   FormControl,
   CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
-import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers } from "lucide-react";
+import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
+import SelectableCard from "../../components/SelectableCard";
 import Field from "../../components/Inputs/Field";
 import Checkbox from "../../components/Inputs/Checkbox";
 import Alert from "../../components/Alert";
+import Chip from "../../components/Chip";
 
 // Import provider logos
 import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
@@ -27,6 +32,7 @@ import { ReactComponent as OllamaLogo } from "../../assets/icons/ollama_logo.svg
 import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg";
 import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
 import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
+import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
@@ -76,11 +82,12 @@ export default function NewExperimentModal({
   const [datasetPrompts, setDatasetPrompts] = useState<DatasetPrompt[]>([]);
   const [datasetLoaded, setDatasetLoaded] = useState(false);
   // User's saved datasets (for "My datasets" option)
-  const [userDatasets, setUserDatasets] = useState<Array<{ id: string; name: string; path: string }>>([]);
-  const [selectedUserDataset, setSelectedUserDataset] = useState<{ id: string; name: string; path: string } | null>(null);
+  const [userDatasets, setUserDatasets] = useState<Array<{ id: string; name: string; path: string; promptCount: number; turnType?: "single-turn" | "multi-turn" | "simulated" }>>([]);
+  const [selectedUserDataset, setSelectedUserDataset] = useState<{ id: string; name: string; path: string; promptCount: number; turnType?: "single-turn" | "multi-turn" | "simulated" } | null>(null);
   const [loadingUserDatasets, setLoadingUserDatasets] = useState(false);
   const [uploadingDataset, setUploadingDataset] = useState(false);
   const [selectedPresetPath, setSelectedPresetPath] = useState<string>("");
+
 
   // Scorer / Judge mode state: scorer = custom only, standard = judge only, both = run both
   const [judgeMode, setJudgeMode] = useState<"scorer" | "standard" | "both">("standard");
@@ -119,93 +126,149 @@ export default function NewExperimentModal({
       categories: [] as string[],
       limit: 10,
       benchmark: "",
+      // Simulated mode: when true, uses ConversationSimulator to generate turns
+      simulatedMode: false,
+      // Scenarios for simulated mode (optional - can be loaded from dataset)
+      scenarios: [] as Array<{ scenario: string; expected_outcome: string; user_description?: string; max_turns?: number }>,
+      // Max turns for simulated conversations
+      maxTurns: 6,
     },
-    // Step 4: Metrics - defaults for chatbot (no RAG context metrics)
+    // Step 4: Metrics - Universal core for all, plus use-case specific
     metrics: {
-      // General metrics (all use cases)
+      // Universal Core (always runs for every use case - single-turn)
       answerRelevancy: true,
-      bias: true,
+      correctness: true,
+      completeness: true,
+      hallucination: true,
+      instructionFollowing: true,
       toxicity: true,
-      // RAG-specific (require retrieval_context) - disabled for chatbot
+      bias: true,
+      // RAG-specific (requires retrieval_context)
+      contextRelevancy: false,
+      contextPrecision: false,
+      contextRecall: false,
       faithfulness: false,
-      hallucination: false,
-      contextualRelevancy: false,
-      // Chatbot-specific
-      knowledgeRetention: true,
-      conversationRelevancy: true,
-      conversationCompleteness: true,
-      roleAdherence: true,
-      // Agent-specific
-      taskCompletion: false,
+      // Agent-specific (requires tools)
+      toolSelection: false,
       toolCorrectness: false,
+      actionRelevance: false,
+      planningQuality: false,
+      // Conversational metrics (multi-turn datasets)
+      turnRelevancy: true,
+      knowledgeRetention: true,
+      conversationCoherence: true,
+      conversationHelpfulness: true,
+      taskCompletion: true,
+      conversationSafety: true,
     },
     thresholds: {
       answerRelevancy: 0.5,
-      bias: 0.5,
-      toxicity: 0.5,
-      faithfulness: 0.5,
+      correctness: 0.5,
+      completeness: 0.5,
       hallucination: 0.5,
-      contextualRelevancy: 0.5,
-      knowledgeRetention: 0.5,
-      conversationRelevancy: 0.5,
-      conversationCompleteness: 0.5,
-      roleAdherence: 0.5,
-      taskCompletion: 0.5,
+      instructionFollowing: 0.5,
+      toxicity: 0.5,
+      bias: 0.5,
+      contextRelevancy: 0.5,
+      contextPrecision: 0.5,
+      contextRecall: 0.5,
+      faithfulness: 0.5,
+      toolSelection: 0.5,
       toolCorrectness: 0.5,
+      actionRelevance: 0.5,
+      planningQuality: 0.5,
+      turnRelevancy: 0.5,
+      knowledgeRetention: 0.5,
+      conversationCoherence: 0.5,
+      conversationHelpfulness: 0.5,
+      taskCompletion: 0.5,
+      conversationSafety: 0.5,
     },
   });
+  
+  // Track if selected dataset is multi-turn
+  const isMultiTurnDataset = selectedUserDataset?.turnType === "multi-turn" || 
+    (selectedPresetPath && selectedPresetPath.includes("multiturn"));
 
   // Update metric defaults when task type changes
   useEffect(() => {
     setConfig((prev) => {
-      const baseMetrics = {
-        // General metrics (always available)
+      // Universal Core - always runs for every use case (single-turn)
+      const universalCore = {
         answerRelevancy: true,
-        bias: true,
+        correctness: true,
+        completeness: true,
+        hallucination: true,
+        instructionFollowing: true,
         toxicity: true,
-        // RAG-specific
+        bias: true,
+      };
+
+      // RAG-specific metrics (disabled by default)
+      const ragMetrics = {
+        contextRelevancy: false,
+        contextPrecision: false,
+        contextRecall: false,
         faithfulness: false,
-        hallucination: false,
-        contextualRelevancy: false,
-        // Chatbot-specific
-        knowledgeRetention: false,
-        conversationRelevancy: false,
-        conversationCompleteness: false,
-        roleAdherence: false,
-        // Agent-specific
-        taskCompletion: false,
+      };
+
+      // Agent-specific metrics (disabled by default)
+      const agentMetrics = {
+        toolSelection: false,
         toolCorrectness: false,
+        actionRelevance: false,
+        planningQuality: false,
+      };
+      
+      // Conversational metrics (for multi-turn - enabled by default)
+      const conversationalMetrics = {
+        turnRelevancy: true,
+        knowledgeRetention: true,
+        conversationCoherence: true,
+        conversationHelpfulness: true,
+        taskCompletion: true,
+        conversationSafety: true,
       };
 
       if (prev.taskType === "rag") {
         return {
           ...prev,
           metrics: {
-            ...baseMetrics,
+            ...universalCore,
+            ...ragMetrics,
+            ...agentMetrics,
+            ...conversationalMetrics,
+            // Enable RAG metrics
+            contextRelevancy: true,
+            contextPrecision: true,
+            contextRecall: true,
             faithfulness: true,
-            hallucination: true,
-            contextualRelevancy: true,
           },
         };
       } else if (prev.taskType === "agent") {
         return {
           ...prev,
           metrics: {
-            ...baseMetrics,
-            taskCompletion: true,
+            ...universalCore,
+            ...ragMetrics,
+            ...agentMetrics,
+            ...conversationalMetrics,
+            // Enable Agent metrics
+            toolSelection: true,
             toolCorrectness: true,
+            actionRelevance: true,
+            planningQuality: true,
           },
         };
       } else {
-        // chatbot
+        // chatbot - Universal core only (no extra metrics)
         return {
           ...prev,
           metrics: {
-            ...baseMetrics,
-            knowledgeRetention: true,
-            conversationRelevancy: true,
-            conversationCompleteness: true,
-            roleAdherence: true,
+            ...universalCore,
+            ...ragMetrics,
+            ...agentMetrics,
+            ...conversationalMetrics,
           },
         };
       }
@@ -244,6 +307,8 @@ export default function NewExperimentModal({
           id: String(d.id),
           name: d.name,
           path: d.path,
+          promptCount: d.promptCount ?? 0,
+          turnType: d.turnType,
         }));
         setUserDatasets(datasets);
       } catch { /* ignore */ }
@@ -382,6 +447,29 @@ export default function NewExperimentModal({
             scorerId: selectedScorer.id,
             scorerName: selectedScorer.name,
             scorerMetricKey: selectedScorer.metricKey,
+            // Tell backend which providers the custom scorer needs (for API key injection)
+            scorerProviders: (() => {
+              const providers: string[] = [];
+              const judgeModel = selectedScorer.config?.judgeModel;
+              if (typeof judgeModel === 'object' && judgeModel?.provider) {
+                providers.push(judgeModel.provider.toLowerCase());
+              } else if (typeof judgeModel === 'string') {
+                // Legacy format - infer provider from model name
+                const modelLower = judgeModel.toLowerCase();
+                if (modelLower.includes('gpt') || modelLower.includes('o1') || modelLower.includes('o3')) {
+                  providers.push('openai');
+                } else if (modelLower.includes('claude')) {
+                  providers.push('anthropic');
+                } else if (modelLower.includes('gemini')) {
+                  providers.push('google');
+                } else if (modelLower.includes('mistral') || modelLower.includes('magistral')) {
+                  providers.push('mistral');
+                } else if (modelLower.includes('grok')) {
+                  providers.push('xai');
+                }
+              }
+              return providers.length > 0 ? providers : ['openai']; // Default to OpenAI
+            })(),
             // API key is automatically injected by the backend from organization settings
           } : {}),
           // Include judge LLM config if using standard mode or both
@@ -454,7 +542,7 @@ export default function NewExperimentModal({
       setAlert({
         show: true,
         variant: "error",
-        title: "Eval Creation Failed",
+        title: "Experiment Creation Failed",
         body: errorMessage,
       });
     } finally {
@@ -492,39 +580,64 @@ export default function NewExperimentModal({
         categories: [],
         limit: 10,
         benchmark: "",
+        simulatedMode: false,
+        scenarios: [],
+        maxTurns: 6,
       },
       metrics: {
+        // Universal Core (runs for every use case)
         answerRelevancy: true,
-        bias: true,
+        correctness: true,
+        completeness: true,
+        hallucination: true,
+        instructionFollowing: true,
         toxicity: true,
+        bias: true,
+        // RAG-specific
+        contextRelevancy: false,
+        contextPrecision: false,
+        contextRecall: false,
         faithfulness: false,
-        hallucination: false,
-        contextualRelevancy: false,
-        knowledgeRetention: true,
-        conversationRelevancy: true,
-        conversationCompleteness: true,
-        roleAdherence: true,
-        taskCompletion: false,
+        // Agent-specific
+        toolSelection: false,
         toolCorrectness: false,
+        actionRelevance: false,
+        planningQuality: false,
+        // Conversational metrics (multi-turn)
+        turnRelevancy: true,
+        knowledgeRetention: true,
+        conversationCoherence: true,
+        conversationHelpfulness: true,
+        taskCompletion: true,
+        conversationSafety: true,
       },
       thresholds: {
         answerRelevancy: 0.5,
-        bias: 0.5,
-        toxicity: 0.5,
-        faithfulness: 0.5,
+        correctness: 0.5,
+        completeness: 0.5,
         hallucination: 0.5,
-        contextualRelevancy: 0.5,
-        knowledgeRetention: 0.5,
-        conversationRelevancy: 0.5,
-        conversationCompleteness: 0.5,
-        roleAdherence: 0.5,
-        taskCompletion: 0.5,
+        instructionFollowing: 0.5,
+        toxicity: 0.5,
+        bias: 0.5,
+        contextRelevancy: 0.5,
+        contextPrecision: 0.5,
+        contextRecall: 0.5,
+        faithfulness: 0.5,
+        toolSelection: 0.5,
         toolCorrectness: 0.5,
+        actionRelevance: 0.5,
+        planningQuality: 0.5,
+        turnRelevancy: 0.5,
+        knowledgeRetention: 0.5,
+        conversationCoherence: 0.5,
+        conversationHelpfulness: 0.5,
+        taskCompletion: 0.5,
+        conversationSafety: 0.5,
       },
     });
   };
 
-  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api";
+  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api" | "openrouter";
 
   // Check if a provider has a configured API key
   const hasApiKey = (providerId: string): boolean => {
@@ -533,6 +646,7 @@ export default function NewExperimentModal({
 
   // All cloud providers that need API keys (using the saved models)
   const cloudProviders = [
+    { id: "openrouter" as ProviderType, name: "OpenRouter", Logo: OpenRouterLogo, needsApiKey: true },
     { id: "openai" as ProviderType, name: "OpenAI", Logo: OpenAILogo, needsApiKey: true },
     { id: "anthropic" as ProviderType, name: "Anthropic", Logo: AnthropicLogo, needsApiKey: true },
     { id: "google" as ProviderType, name: "Gemini", Logo: GeminiLogo, needsApiKey: true },
@@ -601,7 +715,7 @@ export default function NewExperimentModal({
           <Stack spacing={4}>
             <Box>
               <Typography variant="body2" color="text.secondary">
-                Configure the model that will be evaluated by the Judge LLM.
+                Select the model you want to evaluate.
               </Typography>
             </Box>
 
@@ -615,7 +729,7 @@ export default function NewExperimentModal({
             ) : (
               <Box>
                 <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                  Model Provider
+                  Model provider
                 </Typography>
                 <Grid container spacing={1.5}>
                   {/* Show all providers */}
@@ -852,23 +966,28 @@ export default function NewExperimentModal({
       case 1:
         // Step 2: Dataset
         return (
-          <Stack spacing={2}>
+          <Stack spacing="16px">
             {/* Description */}
             <Typography sx={{ fontSize: "13px", color: "#6B7280", lineHeight: 1.5 }}>
               Choose a dataset containing prompts and expected outputs. Upload your own JSON file, select from saved datasets, or use a template.
               </Typography>
 
-            {/* Upload Section - Compact drop zone */}
-            <Box
+            {/* Option 1: Custom dataset */}
+            <Box>
+              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: "8px" }}>
+                Option 1: Use custom dataset
+              </Typography>
+              {/* Upload Section - Compact drop zone */}
+              <Box
               component="label"
                   sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1.5,
-                    p: 1.5,
+                gap: "8px",
+                    p: "8px",
                 border: "1px dashed",
                 borderColor: uploadingDataset ? "#13715B" : "#D1D5DB",
-                borderRadius: "8px",
+                borderRadius: "4px",
                 backgroundColor: "#FAFAFA",
                 cursor: uploadingDataset ? "wait" : "pointer",
                 transition: "all 0.15s ease",
@@ -907,8 +1026,41 @@ export default function NewExperimentModal({
                   if (!file) return;
                         try {
                           setUploadingDataset(true);
+                          // Validate file content before uploading
+                          const fileContent = await file.text();
+                          let parsedData: unknown[];
+                          try {
+                            parsedData = JSON.parse(fileContent);
+                          } catch {
+                            setAlert({ show: true, variant: "error", title: "Invalid JSON", body: "The file does not contain valid JSON" });
+                            return;
+                          }
+                          if (!Array.isArray(parsedData) || parsedData.length === 0) {
+                            setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with at least one prompt." });
+                            return;
+                          }
+                          // Count only prompts with actual content
+                          const validPromptCount = parsedData.filter((item) => {
+                            if (typeof item !== "object" || item === null) return false;
+                            const obj = item as Record<string, unknown>;
+                            // Single-turn: check if prompt field has content
+                            if (obj.prompt && typeof obj.prompt === "string" && obj.prompt.trim()) return true;
+                            // Multi-turn: check if turns array has at least one turn with content
+                            if (Array.isArray(obj.turns) && obj.turns.length > 0) {
+                              return obj.turns.some((turn) => {
+                                if (typeof turn !== "object" || turn === null) return false;
+                                const t = turn as Record<string, unknown>;
+                                return t.content && typeof t.content === "string" && t.content.trim();
+                              });
+                            }
+                            return false;
+                          }).length;
+                          if (validPromptCount === 0) {
+                            setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with prompts that have actual content." });
+                            return;
+                          }
                           const resp = await deepEvalDatasetsService.uploadDataset(file);
-                    const newDataset = { id: resp.path, name: file.name.replace(/\.json$/i, ""), path: resp.path };
+                    const newDataset = { id: resp.path, name: file.name.replace(/\.json$/i, ""), path: resp.path, promptCount: validPromptCount };
                     setUserDatasets((prev) => [newDataset, ...prev]);
                     setSelectedUserDataset(newDataset);
                     setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
@@ -929,6 +1081,7 @@ export default function NewExperimentModal({
                     }}
                   />
               </Box>
+            </Box>
 
             {/* My Datasets Section */}
             {loadingUserDatasets ? (
@@ -939,7 +1092,7 @@ export default function NewExperimentModal({
                 <Box>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                   <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                    Your Datasets
+                    Option 2: Your datasets
                   </Typography>
                   <Button
                   size="small"
@@ -951,13 +1104,28 @@ export default function NewExperimentModal({
                     Manage
                   </Button>
                 </Stack>
-                <Stack spacing={0.5}>
+                <Stack spacing="8px">
                   {userDatasets.slice(0, 4).map((dataset) => {
                     const isSelected = selectedUserDataset?.id === dataset.id && !config.dataset.useBuiltin;
+                    const isMultiTurn = dataset.turnType === "multi-turn";
+                    const isSimulated = dataset.turnType === "simulated";
+                    const isEmpty = dataset.promptCount === 0;
+                    const typeChip = isEmpty ? (
+                      <Chip label="Empty" backgroundColor="#FEE2E2" textColor="#DC2626" uppercase={false} />
+                    ) : isMultiTurn ? (
+                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Multi-Turn"} backgroundColor="#E3F2FD" textColor="#1565C0" uppercase={false} />
+                    ) : isSimulated ? (
+                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Simulated"} backgroundColor="#F3E8FF" textColor="#7C3AED" uppercase={false} />
+                    ) : (
+                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Single-Turn"} backgroundColor="#FEF3C7" textColor="#92400E" uppercase={false} />
+                    );
                     return (
-                      <Box
+                      <SelectableCard
                         key={dataset.id}
+                        isSelected={isSelected}
+                        disabled={isEmpty}
                         onClick={async () => {
+                          if (isEmpty) return;
                           setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
                           setSelectedUserDataset(dataset);
                           setSelectedPresetPath("");
@@ -969,24 +1137,11 @@ export default function NewExperimentModal({
                             setDatasetPrompts([]);
                           }
                         }}
-                        sx={{
-                          p: 1,
-                          border: "1px solid",
-                          borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          backgroundColor: isSelected ? "#F0FDF4" : "#FFFFFF",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          transition: "all 0.15s ease",
-                          "&:hover": { borderColor: "#13715B", backgroundColor: isSelected ? "#F0FDF4" : "#F9FAFB" },
-                        }}
-                      >
-                        <Database size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />
-                        <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", flex: 1 }}>{dataset.name}</Typography>
-                        {isSelected && <Check size={14} color="#13715B" />}
-                      </Box>
+                        icon={<Database size={14} color={isEmpty ? "#DC2626" : isSelected ? "#13715B" : "#9CA3AF"} />}
+                        title={dataset.name}
+                        description={isEmpty ? "Cannot use empty dataset" : "Custom uploaded dataset"}
+                        chip={typeChip}
+                      />
                     );
                   })}
                 </Stack>
@@ -996,28 +1151,43 @@ export default function NewExperimentModal({
             {/* Template Datasets Section */}
             <Box>
               <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
-                {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} Templates
+                Option 3: {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} templates
                   </Typography>
-              <Stack spacing={0.5}>
+              <Stack spacing="8px">
                 {[
                   ...(config.taskType === "chatbot" ? [
-                    { name: "Basic Chatbot", path: "chatbot/chatbot_basic.json", desc: "Standard question-answer pairs" },
-                    { name: "Coding Helper", path: "chatbot/chatbot_coding_helper.json", desc: "Code assistance scenarios" },
-                    { name: "Customer Support", path: "chatbot/chatbot_customer_support.json", desc: "Support conversation samples" },
+                    // Single-turn chatbot templates
+                    { name: "Basic Chatbot", path: "chatbot/chatbot_basic.json", desc: "Standard question-answer pairs", type: "single-turn" as const },
+                    { name: "Coding Helper", path: "chatbot/chatbot_coding_helper.json", desc: "Code assistance scenarios", type: "single-turn" as const },
+                    { name: "Customer Support (Single-Turn)", path: "chatbot/chatbot_customer_support.json", desc: "Support Q&A pairs", type: "single-turn" as const },
+                    // Multi-turn chatbot templates
+                    { name: "General Assistant Multi-Turn", path: "chatbot/chatbot_general_assistant_multiturn.json", desc: "Multi-turn conversations", type: "multi-turn" as const },
+                    { name: "Customer Support Multi-Turn", path: "chatbot/chatbot_customer_support_multiturn.json", desc: "Support conversations", type: "multi-turn" as const },
+                    { name: "Tech Support Multi-Turn", path: "chatbot/chatbot_tech_support_multiturn.json", desc: "Technical help conversations", type: "multi-turn" as const },
                   ] : []),
                   ...(config.taskType === "rag" ? [
-                    { name: "Product Docs", path: "rag/rag_product_docs.json", desc: "Product documentation queries" },
-                    { name: "Wikipedia QA", path: "rag/rag_wikipedia_small.json", desc: "Wikipedia-based questions" },
-                    { name: "Research Papers", path: "rag/rag_research_papers.json", desc: "Academic content retrieval" },
+                    { name: "Product Docs", path: "rag/rag_product_docs.json", desc: "Product documentation queries", type: "single-turn" as const },
+                    { name: "Wikipedia QA", path: "rag/rag_wikipedia_small.json", desc: "Wikipedia-based questions", type: "single-turn" as const },
+                    { name: "Research Papers", path: "rag/rag_research_papers.json", desc: "Academic content retrieval", type: "single-turn" as const },
+                    { name: "Document Q&A Multi-Turn", path: "rag/rag_document_qa_multiturn.json", desc: "Multi-turn document conversations", type: "multi-turn" as const },
                   ] : []),
                   ...(config.taskType === "agent" ? [
-                    { name: "Agent Tasks", path: "presets/agent_dataset.json", desc: "Tool usage and multi-step tasks" },
+                    { name: "Agent Planning", path: "agent/agent_planning_multiturn.json", desc: "Multi-step planning scenarios", type: "multi-turn" as const },
+                    { name: "Agent Task Execution", path: "agent/agent_task_execution_multiturn.json", desc: "Tool usage and task completion", type: "multi-turn" as const },
+                    { name: "Agent Workflow Automation", path: "agent/agent_workflow_automation_multiturn.json", desc: "Automated workflow tasks", type: "multi-turn" as const },
                   ] : []),
                 ].map((template) => {
                   const isSelected = selectedPresetPath === template.path && config.dataset.useBuiltin;
+                  const chipLabel = isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : (template.type === "multi-turn" ? "Multi-Turn" : "Single-Turn");
+                  const typeChip = template.type === "multi-turn" ? (
+                    <Chip label={chipLabel} backgroundColor="#E3F2FD" textColor="#1565C0" uppercase={false} />
+                  ) : (
+                    <Chip label={chipLabel} backgroundColor="#FEF3C7" textColor="#92400E" uppercase={false} />
+                  );
                   return (
-                    <Box
+                    <SelectableCard
                       key={template.path}
+                      isSelected={isSelected}
                       onClick={async () => {
                         setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: true } }));
                         setSelectedUserDataset(null);
@@ -1029,194 +1199,53 @@ export default function NewExperimentModal({
                         } catch {
                           setDatasetPrompts([]);
                         }
-                              }}
-                              sx={{
-                        p: 1,
-                        border: "1px solid",
-                        borderColor: isSelected ? "#6366F1" : "#E5E7EB",
-                        borderRadius: "6px",
-                                cursor: "pointer",
-                        backgroundColor: isSelected ? "#EEF2FF" : "#FFFFFF",
-                                display: "flex",
-                                alignItems: "center",
-                        gap: 1,
-                        transition: "all 0.15s ease",
-                        "&:hover": { borderColor: "#6366F1", backgroundColor: isSelected ? "#EEF2FF" : "#F9FAFB" },
                       }}
-                    >
-                      <Database size={14} color={isSelected ? "#6366F1" : "#9CA3AF"} />
-                      <Box sx={{ flex: 1 }}>
-                        <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>{template.name}</Typography>
-                        <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>{template.desc}</Typography>
-                            </Box>
-                      {isSelected && <Check size={14} color="#6366F1" />}
-                        </Box>
+                      icon={<Database size={14} color={isSelected ? "#6366F1" : "#9CA3AF"} />}
+                      title={template.name}
+                      description={template.desc}
+                      accentColor="#6366F1"
+                      chip={typeChip}
+                    />
                   );
                 })}
-                          </Stack>
+              </Stack>
             </Box>
-
-            {/* Selected dataset confirmation */}
-            {(selectedUserDataset || (config.dataset.useBuiltin && selectedPresetPath)) && datasetPrompts.length > 0 && (
-              <Box sx={{ p: 1.5, backgroundColor: "#ECFDF5", borderRadius: "8px", border: "1px solid #A7F3D0" }}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Check size={16} color="#059669" />
-                  <Typography sx={{ fontSize: "13px", color: "#065F46", fontWeight: 500 }}>
-                    {datasetPrompts.length} prompts ready
-                  </Typography>
-                </Stack>
-              </Box>
-            )}
           </Stack>
         );
 
       case 2:
         // Step 3: Scorer / Judge - Choose evaluation method
         return (
-          <Stack spacing={3}>
-            {/* Explanation */}
-            <Box sx={{ 
-              p: 2, 
-              backgroundColor: "#F9FAFB", 
-              borderRadius: "8px", 
-              border: "1px solid #E5E7EB",
-            }}>
-              <Typography sx={{ fontSize: "13px", color: "#374151", lineHeight: 1.6 }}>
-                <strong>Standard Judge:</strong> Uses built-in metrics (Relevancy, Bias, Toxicity) with fixed evaluation criteria.
-                <br />
-                <strong>Custom Scorer:</strong> Uses your own prompts for domain-specific evaluation (e.g., "Is this code correct?").
-              </Typography>
-            </Box>
-
+          <Stack spacing="16px">
             {/* Mode Toggle - 3 Options */}
-            <Stack spacing={1.5}>
-              {/* Option 1: Custom Scorer Only */}
-              <Box
+            <Stack spacing="8px">
+              <SelectableCard
+                isSelected={judgeMode === "scorer"}
                 onClick={() => {
                   setJudgeMode("scorer");
                   setConfig((prev) => ({ ...prev, judgeLlm: { ...prev.judgeLlm, provider: "" } }));
                 }}
-                sx={{
-                  p: 2,
-                  border: "1px solid",
-                  borderColor: judgeMode === "scorer" ? "#13715B" : "#E5E7EB",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  backgroundColor: judgeMode === "scorer" ? "#F0FDF4" : "#FFFFFF",
-                  transition: "all 0.15s ease",
-                  "&:hover": { borderColor: "#13715B", backgroundColor: judgeMode === "scorer" ? "#F0FDF4" : "#F9FAFB" },
-                }}
-              >
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                  <Box
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "8px",
-                      backgroundColor: judgeMode === "scorer" ? "#13715B" : "#F3F4F6",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Sparkles size={18} color={judgeMode === "scorer" ? "#FFFFFF" : "#6B7280"} />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#374151" }}>
-                      Custom Scorer Only
-                    </Typography>
-                    <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                      Run only your custom evaluation prompts
-                    </Typography>
-                  </Box>
-                  {judgeMode === "scorer" && <Check size={18} color="#13715B" />}
-                </Stack>
-              </Box>
-
-              {/* Option 2: Standard Judge Only */}
-              <Box
+                icon={<Sparkles size={14} color={judgeMode === "scorer" ? "#13715B" : "#9CA3AF"} />}
+                title="Custom scorer only"
+                description="Use your own prompts for domain-specific evaluation"
+              />
+              <SelectableCard
+                isSelected={judgeMode === "standard"}
                 onClick={() => {
                   setJudgeMode("standard");
                   setSelectedScorer(null);
                 }}
-                sx={{
-                  p: 2,
-                  border: "1px solid",
-                  borderColor: judgeMode === "standard" ? "#13715B" : "#E5E7EB",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  backgroundColor: judgeMode === "standard" ? "#F0FDF4" : "#FFFFFF",
-                  transition: "all 0.15s ease",
-                  "&:hover": { borderColor: "#13715B", backgroundColor: judgeMode === "standard" ? "#F0FDF4" : "#F9FAFB" },
-                }}
-              >
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                  <Box
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "8px",
-                      backgroundColor: judgeMode === "standard" ? "#13715B" : "#F3F4F6",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Settings size={18} color={judgeMode === "standard" ? "#FFFFFF" : "#6B7280"} />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#374151" }}>
-                      Standard Judge Only
-                    </Typography>
-                    <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                      Run built-in metrics (Relevancy, Bias, Toxicity, etc.)
-                    </Typography>
-                  </Box>
-                  {judgeMode === "standard" && <Check size={18} color="#13715B" />}
-                </Stack>
-              </Box>
-
-              {/* Option 3: Both Judge + Scorer */}
-              <Box
-                onClick={() => {
-                  setJudgeMode("both");
-                }}
-                sx={{
-                  p: 2,
-                  border: "1px solid",
-                  borderColor: judgeMode === "both" ? "#13715B" : "#E5E7EB",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  backgroundColor: judgeMode === "both" ? "#F0FDF4" : "#FFFFFF",
-                  transition: "all 0.15s ease",
-                  "&:hover": { borderColor: "#13715B", backgroundColor: judgeMode === "both" ? "#F0FDF4" : "#F9FAFB" },
-                }}
-              >
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                  <Box
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "8px",
-                      backgroundColor: judgeMode === "both" ? "#13715B" : "#F3F4F6",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Layers size={18} color={judgeMode === "both" ? "#FFFFFF" : "#6B7280"} />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#374151" }}>
-                      Judge + Scorer
-                    </Typography>
-                    <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                      Run both built-in metrics AND your custom scorers
-                    </Typography>
-                  </Box>
-                  {judgeMode === "both" && <Check size={18} color="#13715B" />}
-                </Stack>
-              </Box>
+                icon={<Settings size={14} color={judgeMode === "standard" ? "#13715B" : "#9CA3AF"} />}
+                title="Standard judge only"
+                description="Use built-in metrics with fixed evaluation criteria"
+              />
+              <SelectableCard
+                isSelected={judgeMode === "both"}
+                onClick={() => setJudgeMode("both")}
+                icon={<Layers size={14} color={judgeMode === "both" ? "#13715B" : "#9CA3AF"} />}
+                title="Judge + scorer"
+                description="Use both built-in metrics and your custom scorers"
+              />
             </Stack>
 
             {/* Custom Scorers Section - shown for "scorer" and "both" modes */}
@@ -1242,54 +1271,21 @@ export default function NewExperimentModal({
                         Manage
                       </Button>
                     </Stack>
-                    <Stack spacing={1}>
+                    <Stack spacing="8px">
                       {userScorers.map((scorer) => {
                         const isSelected = selectedScorer?.id === scorer.id;
-                        const modelName = typeof scorer.config?.judgeModel === 'string' 
-                          ? scorer.config.judgeModel 
+                        const modelName = typeof scorer.config?.judgeModel === 'string'
+                          ? scorer.config.judgeModel
                           : scorer.config?.judgeModel?.name || scorer.config?.model || "LLM Judge";
                         return (
-                          <Box
+                          <SelectableCard
                             key={scorer.id}
+                            isSelected={isSelected}
                             onClick={() => setSelectedScorer(scorer)}
-                            sx={{
-                              p: 1.5,
-                              border: "1px solid",
-                              borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                              borderRadius: "8px",
-                              cursor: "pointer",
-                              backgroundColor: isSelected ? "#F0FDF4" : "#FFFFFF",
-                              transition: "all 0.15s ease",
-                              "&:hover": { borderColor: "#13715B", backgroundColor: isSelected ? "#F0FDF4" : "#F9FAFB" },
-                            }}
-                          >
-                            <Stack direction="row" alignItems="center" justifyContent="space-between">
-                              <Stack direction="row" alignItems="center" spacing={1.5}>
-                                <Box
-                                  sx={{
-                                    width: 32,
-                                    height: 32,
-                                    borderRadius: "6px",
-                                    backgroundColor: isSelected ? "#13715B" : "#E5E7EB",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                  }}
-                                >
-                                  <Sparkles size={16} color={isSelected ? "#FFFFFF" : "#6B7280"} />
-                                </Box>
-                                <Box>
-                                  <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                                    {scorer.name}
-                                  </Typography>
-                                  <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                                    {modelName} • {scorer.metricKey}
-                                  </Typography>
-                                </Box>
-                              </Stack>
-                              {isSelected && <Check size={18} color="#13715B" />}
-                            </Stack>
-                          </Box>
+                            icon={<Sparkles size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />}
+                            title={scorer.name}
+                            description={`${modelName} • ${scorer.metricKey}`}
+                          />
                         );
                       })}
                     </Stack>
@@ -1342,11 +1338,7 @@ export default function NewExperimentModal({
                   </Typography>
                 )}
                 <Box>
-                  <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                    Providers and frameworks
-                  </Typography>
-                  
-                  <Grid container spacing={1.5}>
+                  <Grid container spacing="8px">
                     {availableJudgeProviders.map((provider) => {
                       const { Logo } = provider;
                       const isSelected = config.judgeLlm.provider === provider.id;
@@ -1602,7 +1594,8 @@ export default function NewExperimentModal({
                   No metrics available
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
-                  Standard metrics require a Judge LLM to evaluate model outputs. Since you selected "Custom Scorer Only", your experiment will use only your custom scorer ({selectedScorer?.name || "selected scorer"}) for evaluation.
+                  Standard metrics require a Judge LLM. 
+                  <br /> Your custom scorer will be used instead.
                 </Typography>
               </Box>
             </Stack>
@@ -1610,125 +1603,252 @@ export default function NewExperimentModal({
         }
 
         return (
-          <Stack spacing={3}>
+          <Stack spacing="16px">
             <Box>
               <Typography variant="body2" color="text.secondary">
-                Select metrics for your evaluation. Metrics are organized by use case.
+                {isMultiTurnDataset 
+                  ? "Select metrics for your multi-turn conversation evaluation."
+                  : "Select metrics for your evaluation. Universal core metrics run for all use cases."}
               </Typography>
-            </Box>
-
-            {/* General Metrics - All Use Cases */}
-            <Box>
-              <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
-                General Metrics
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                Available for all evaluation types
-              </Typography>
-              {Object.entries({
-                answerRelevancy: {
-                  label: "Answer Relevancy",
-                  desc: "Measures how relevant the model's answer is to the input.",
-                },
-                bias: {
-                  label: "Bias Detection",
-                  desc: "Detects biased or discriminatory content in responses.",
-                },
-                toxicity: {
-                  label: "Toxicity Detection",
-                  desc: "Flags toxic or harmful language in outputs.",
-                },
-              }).map(([key, meta]) => (
-                <Box key={key} sx={{ mb: 1.5 }}>
-                  <Stack spacing={0.5}>
-                    <Checkbox
-                      id={`metric-${key}`}
-                      label={(meta as { label: string }).label}
-                      size="small"
-                      value={key}
-                      isChecked={config.metrics[key as keyof typeof config.metrics]}
-                      onChange={() =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          metrics: {
-                            ...prev.metrics,
-                            [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                          },
-                        }))
-                      }
-                    />
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
-                    >
-                      {(meta as { desc: string }).desc}
-                    </Typography>
-                  </Stack>
+              {isMultiTurnDataset && (
+                <Box sx={{ mt: 1.5, mb: 1 }}>
+                  <Chip 
+                    label="Multi-turn dataset detected" 
+                    size="small" 
+                    backgroundColor="#DBEAFE"
+                    textColor="#1E40AF"
+                  />
                 </Box>
-              ))}
+              )}
             </Box>
 
-            {/* Chatbot-Specific Metrics */}
-            {config.taskType === "chatbot" && (
-              <Box>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
-                  Chatbot Metrics
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                  Specifically designed for conversational AI evaluation
-                </Typography>
-                {Object.entries({
-                  knowledgeRetention: {
-                    label: "Knowledge Retention",
-                    desc: "Evaluates how well the model remembers and reuses information across the conversation.",
-                  },
-                  conversationRelevancy: {
-                    label: "Conversation Relevancy",
-                    desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
-                  },
-                  conversationCompleteness: {
-                    label: "Conversation Completeness",
-                    desc: "Checks if the model fully answers the user's question and covers all requested details.",
-                  },
-                  roleAdherence: {
-                    label: "Role Adherence",
-                    desc: "Evaluates how well the model follows its assigned role, persona, or instructions.",
-                  },
-                }).map(([key, meta]) => (
-                  <Box key={key} sx={{ mb: 1.5 }}>
-                    <Stack spacing={0.5}>
-                      <Checkbox
-                        id={`metric-${key}`}
-                        label={(meta as { label: string }).label}
-                        size="small"
-                        value={key}
-                        isChecked={config.metrics[key as keyof typeof config.metrics]}
-                        onChange={() =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            metrics: {
-                              ...prev.metrics,
-                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                            },
-                          }))
-                        }
-                      />
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
-                      >
-                        {(meta as { desc: string }).desc}
-                      </Typography>
-                    </Stack>
+            {/* Conversational Metrics - For Multi-turn Datasets */}
+            {isMultiTurnDataset && (
+              <Accordion
+                defaultExpanded
+                disableGutters
+                elevation={0}
+                sx={{
+                  border: "1px solid #DBEAFE",
+                  borderRadius: "4px !important",
+                  backgroundColor: "#F0F9FF",
+                  "&:before": { display: "none" },
+                  "&.Mui-expanded": { margin: 0 },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ChevronDown size={18} color="#1E40AF" />}
+                  sx={{
+                    minHeight: 48,
+                    px: "8px",
+                    "&.Mui-expanded": { minHeight: 48 },
+                    "& .MuiAccordionSummary-content": { my: "8px" },
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#1E40AF" }}>
+                      Conversational Metrics
+                    </Typography>
+                    <Typography variant="caption" sx={{ mt: 0.5, display: "block", color: "#3B82F6" }}>
+                      Designed for multi-turn conversation evaluation
+                    </Typography>
                   </Box>
-                ))}
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: "12px", pt: "12px", pb: "16px" }}>
+                  <Stack spacing={2.5}>
+                    {Object.entries({
+                      turnRelevancy: {
+                        label: "Turn Relevancy",
+                        desc: "Evaluates if each assistant response is relevant to the user's input in that turn.",
+                      },
+                      knowledgeRetention: {
+                        label: "Knowledge Retention",
+                        desc: "Checks if the model retains context and information across conversation turns.",
+                      },
+                      conversationCoherence: {
+                        label: "Conversation Coherence",
+                        desc: "Evaluates overall coherence, correctness, and logical consistency across turns.",
+                      },
+                      conversationHelpfulness: {
+                        label: "Conversation Helpfulness",
+                        desc: "Measures how helpful the assistant is in addressing the user's needs throughout.",
+                      },
+                      taskCompletion: {
+                        label: "Task Completion",
+                        desc: "Evaluates if the conversation successfully achieved the expected outcome.",
+                      },
+                      conversationSafety: {
+                        label: "Conversation Safety",
+                        desc: "Checks for toxic, biased, or harmful content across all conversation turns.",
+                      },
+                    }).map(([key, meta]) => (
+                      <Box key={key}>
+                        <Checkbox
+                          id={`metric-${key}`}
+                          label={(meta as { label: string }).label}
+                          size="small"
+                          value={key}
+                          isChecked={config.metrics[key as keyof typeof config.metrics]}
+                          onChange={() =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              metrics: {
+                                ...prev.metrics,
+                                [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                              },
+                            }))
+                          }
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ ml: 3.5, mt: 0.5, pr: 2, display: "block", fontSize: "12px", lineHeight: 1.4 }}
+                        >
+                          {(meta as { desc: string }).desc}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+            )}
+
+            {/* Per-Turn Safety Metrics (for multi-turn) */}
+            {isMultiTurnDataset && (
+              <Box sx={{ p: 2.5, border: "1px solid #FED7AA", borderRadius: "4px", backgroundColor: "#FFF7ED" }}>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#C2410C", mb: 0.5 }}>
+                  Per-Turn Safety Metrics
+                </Typography>
+                <Typography variant="caption" sx={{ display: "block", mb: 2, color: "#EA580C" }}>
+                  Bias and Toxicity will be evaluated on each assistant turn and aggregated
+                </Typography>
+                <Stack direction="row" spacing={4}>
+                  <Checkbox
+                    id="metric-toxicity-perturn"
+                    label="Toxicity (per-turn)"
+                    size="small"
+                    value="toxicity"
+                    isChecked={config.metrics.toxicity}
+                    onChange={() =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        metrics: { ...prev.metrics, toxicity: !prev.metrics.toxicity },
+                      }))
+                    }
+                  />
+                  <Checkbox
+                    id="metric-bias-perturn"
+                    label="Bias (per-turn)"
+                    size="small"
+                    value="bias"
+                    isChecked={config.metrics.bias}
+                    onChange={() =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        metrics: { ...prev.metrics, bias: !prev.metrics.bias },
+                      }))
+                    }
+                  />
+                </Stack>
               </Box>
             )}
 
-            {/* RAG-Specific Metrics */}
-            {config.taskType === "rag" && (
+            {/* Universal Core Metrics - For Single-turn Datasets */}
+            {!isMultiTurnDataset && (
+              <Accordion
+                defaultExpanded
+                disableGutters
+                elevation={0}
+                sx={{
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "4px !important",
+                  "&:before": { display: "none" },
+                  "&.Mui-expanded": { margin: 0 },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ChevronDown size={18} color="#6B7280" />}
+                  sx={{
+                    minHeight: 48,
+                    px: "8px",
+                    "&.Mui-expanded": { minHeight: 48 },
+                    "& .MuiAccordionSummary-content": { my: "8px" },
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
+                      Universal Core Metrics
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+                      Runs for every use case (Chatbot, RAG, Agent)
+                    </Typography>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: "12px", pt: "12px", pb: "16px" }}>
+                  <Stack spacing={2.5}>
+                    {Object.entries({
+                      answerRelevancy: {
+                        label: "Answer Relevancy",
+                        desc: "Measures how relevant the model's answer is to the input (GEval).",
+                      },
+                      correctness: {
+                        label: "Correctness",
+                        desc: "Evaluates factual accuracy of the model's response (GEval).",
+                      },
+                      completeness: {
+                        label: "Completeness",
+                        desc: "Checks if the response fully addresses all aspects of the query (GEval).",
+                      },
+                      hallucination: {
+                        label: "Hallucination",
+                        desc: "Detects fabricated or unsupported information in outputs (GEval).",
+                      },
+                      instructionFollowing: {
+                        label: "Instruction Following",
+                        desc: "Measures how well the model follows the given instructions.",
+                      },
+                      toxicity: {
+                        label: "Toxicity",
+                        desc: "Flags toxic or harmful language in outputs.",
+                      },
+                      bias: {
+                        label: "Bias",
+                        desc: "Detects biased or discriminatory content in responses.",
+                      },
+                    }).map(([key, meta]) => (
+                      <Box key={key}>
+                        <Checkbox
+                          id={`metric-${key}`}
+                          label={(meta as { label: string }).label}
+                          size="small"
+                          value={key}
+                          isChecked={config.metrics[key as keyof typeof config.metrics]}
+                          onChange={() =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              metrics: {
+                                ...prev.metrics,
+                                [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                              },
+                            }))
+                          }
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ ml: 3.5, mt: 0.5, pr: 2, display: "block", fontSize: "12px", lineHeight: 1.4 }}
+                        >
+                          {(meta as { desc: string }).desc}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </AccordionDetails>
+                </Accordion>
+            )}
+
+            {/* RAG-Specific Metrics (single-turn only) */}
+            {config.taskType === "rag" && !isMultiTurnDataset && (
               <Box>
                 <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
                   RAG Metrics
@@ -1737,17 +1857,21 @@ export default function NewExperimentModal({
                   Requires retrieval_context in your dataset
                 </Typography>
                 {Object.entries({
+                  contextRelevancy: {
+                    label: "Context Relevancy",
+                    desc: "Measures whether retrieved context is relevant to the query.",
+                  },
+                  contextPrecision: {
+                    label: "Context Precision",
+                    desc: "Evaluates if the retrieved context contains only relevant information.",
+                  },
+                  contextRecall: {
+                    label: "Context Recall",
+                    desc: "Checks if all relevant information needed for the answer was retrieved.",
+                  },
                   faithfulness: {
                     label: "Faithfulness",
-                    desc: "Checks if the answer aligns with provided retrieval context.",
-                  },
-                  hallucination: {
-                    label: "Hallucination Detection",
-                    desc: "Identifies unsupported or fabricated statements not in context.",
-                  },
-                  contextualRelevancy: {
-                    label: "Contextual Relevancy",
-                    desc: "Measures whether retrieved context is relevant to the query.",
+                    desc: "Checks if the answer is grounded in the provided retrieval context.",
                   },
                 }).map(([key, meta]) => (
                   <Box key={key} sx={{ mb: 1.5 }}>
@@ -1781,8 +1905,8 @@ export default function NewExperimentModal({
               </Box>
             )}
 
-            {/* Agent-Specific Metrics */}
-            {config.taskType === "agent" && (
+            {/* Agent-Specific Metrics (single-turn only) */}
+            {config.taskType === "agent" && !isMultiTurnDataset && (
               <Box>
                 <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
                   Agent Metrics
@@ -1791,13 +1915,21 @@ export default function NewExperimentModal({
                   Specifically designed for evaluating AI agents with tool usage
                 </Typography>
                 {Object.entries({
-                  taskCompletion: {
-                    label: "Task Completion",
-                    desc: "Evaluates whether the agent successfully completed the assigned task or goal.",
+                  toolSelection: {
+                    label: "Tool Selection",
+                    desc: "Evaluates whether the agent selected the appropriate tool for the task.",
                   },
                   toolCorrectness: {
                     label: "Tool Correctness",
-                    desc: "Measures whether the agent used the correct tools with appropriate parameters.",
+                    desc: "Measures whether the agent used tools with correct parameters.",
+                  },
+                  actionRelevance: {
+                    label: "Action Relevance",
+                    desc: "Checks if the agent's actions are relevant to achieving the goal.",
+                  },
+                  planningQuality: {
+                    label: "Planning Quality",
+                    desc: "Evaluates the quality and efficiency of the agent's multi-step plan.",
                   },
                 }).map(([key, meta]) => (
                   <Box key={key} sx={{ mb: 1.5 }}>
@@ -1849,8 +1981,17 @@ export default function NewExperimentModal({
       // Check conditional fields based on access method
       if (selectedModelProvider && 'needsUrl' in selectedModelProvider && selectedModelProvider.needsUrl && !config.model.endpointUrl) return false;
       
-      // Only require API key for custom_api (cloud providers use saved keys)
-      if (config.model.accessMethod === "custom_api" && !config.model.apiKey) return false;
+      // Providers that don't need API keys
+      const noApiKeyNeeded = ["ollama", "local"];
+      
+      // For all cloud providers (including custom_api), require either a saved API key OR an entered API key
+      if (!noApiKeyNeeded.includes(config.model.accessMethod)) {
+        // Map custom_api to "custom" for checking saved keys
+        const providerForKeyCheck = config.model.accessMethod === "custom_api" ? "custom" : config.model.accessMethod;
+        const hasSavedKey = hasApiKey(providerForKeyCheck);
+        const hasEnteredKey = !!config.model.apiKey;
+        if (!hasSavedKey && !hasEnteredKey) return false;
+      }
       
       return true;
     }

@@ -1,11 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Select, MenuItem, FormControl } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../../infrastructure/api/evaluationLogsService";
 
 interface PerformanceChartProps {
   projectId: string;
 }
+
+type TimeRange = "7d" | "30d" | "100d" | "all";
+
+const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
+  { value: "7d", label: "Last 7 days" },
+  { value: "30d", label: "Last 30 days" },
+  { value: "100d", label: "Last 100 days" },
+  { value: "all", label: "All time" },
+];
 
 // 15 distinct colors for the chart - no repetition
 const CHART_COLORS = [
@@ -102,6 +111,15 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
   const [data, setData] = useState<ChartPoint[]>([]);
   const [activeMetrics, setActiveMetrics] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
+
+  // Get cutoff date based on time range
+  const getCutoffDate = useCallback((range: TimeRange): Date | null => {
+    if (range === "all") return null;
+    const now = new Date();
+    const days = range === "7d" ? 7 : range === "30d" ? 30 : 100;
+    return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  }, []);
 
   // Load experiments and compute metric averages from evaluation logs
   const loadPerformanceData = useCallback(async () => {
@@ -110,11 +128,19 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
       const expsResp = await experimentsService.getAllExperiments({ project_id: projectId });
       const experiments: Experiment[] = expsResp.experiments || [];
 
-      // Filter completed experiments and sort by date
+      // Get cutoff date for filtering
+      const cutoffDate = getCutoffDate(timeRange);
+
+      // Filter completed experiments by date range and sort by date
       const completedExps = experiments
-        .filter((exp) => exp.status === "completed")
-        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-        .slice(-10); // Limit to last 10 runs
+        .filter((exp) => {
+          if (exp.status !== "completed") return false;
+          if (cutoffDate) {
+            return new Date(exp.created_at) >= cutoffDate;
+          }
+          return true;
+        })
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
       if (completedExps.length === 0) {
         setData([]);
@@ -190,7 +216,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [projectId, timeRange, getCutoffDate]);
 
   useEffect(() => {
     void loadPerformanceData();
@@ -220,6 +246,15 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
   const metricsToDisplay = activeMetrics.length > 0 
     ? activeMetrics 
     : Object.keys(metricDefinitions);
+
+  // Calculate dynamic height based on number of legend items
+  // Estimate ~10 items per line, each line ~20px
+  const itemsPerLine = 10;
+  const legendLineHeight = 20;
+  const legendLines = Math.ceil(metricsToDisplay.length / itemsPerLine);
+  const baseChartHeight = 200; // Base height for chart area
+  const legendHeight = legendLines * legendLineHeight + 12; // +12 for padding
+  const dynamicHeight = baseChartHeight + legendHeight;
 
   // Create a color map for metrics (used by custom tooltip)
   const metricColorMap: Record<string, string> = {};
@@ -317,33 +352,70 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
   };
 
   return (
+    <Box sx={{ width: "100%" }}>
+      {/* Time range selector */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <FormControl size="small">
+          <Select
+            value={timeRange}
+            onChange={(e) => setTimeRange(e.target.value as TimeRange)}
+            sx={{
+              fontSize: "12px",
+              height: "28px",
+              "& .MuiSelect-select": {
+                py: 0.5,
+                px: 1.5,
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#E5E7EB",
+              },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#D1D5DB",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#13715B",
+              },
+            }}
+          >
+            {TIME_RANGE_OPTIONS.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: "12px" }}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      {/* Chart */}
     <Box sx={{
       width: "100%",
-      minHeight: 320,
-      height: 360,
+      minHeight: 220,
+      height: dynamicHeight,
       "& *": { outline: "none !important" },
       "& *:focus": { outline: "none !important" },
     }}>
-      <ResponsiveContainer key={`rc-${projectId}-${data.length}-${activeMetrics.join(",")}`} width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <ResponsiveContainer key={`rc-${projectId}-${data.length}-${activeMetrics.join(",")}-${timeRange}`} width="100%" height="100%">
+        <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
           <XAxis 
             dataKey="uniqueId" 
-            tick={{ fontSize: 11, fill: "#6B7280" }}
+            tick={{ fontSize: 10, fill: "#6B7280" }}
             axisLine={{ stroke: "#E5E7EB" }}
             interval={0}
             angle={-20}
             textAnchor="end"
-            height={50}
+            height={40}
           />
           <YAxis 
             domain={[0, 1]} 
-            tick={{ fontSize: 12, fill: "#6B7280" }}
+            tick={{ fontSize: 10, fill: "#6B7280" }}
             axisLine={{ stroke: "#E5E7EB" }}
             tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
+            width={40}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
+            wrapperStyle={{ paddingTop: 12, fontSize: 11 }}
             formatter={(value: string) => {
               const metricDef = metricDefinitions[value as keyof typeof metricDefinitions];
               return metricDef?.label || formatMetricLabel(value);
@@ -357,10 +429,10 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
                 type="monotone"
                 dataKey={metricKey}
                 stroke={color}
-                strokeWidth={2}
+                strokeWidth={1.5}
                 name={metricKey}
-                dot={{ r: 4, fill: color }}
-                activeDot={{ r: 6 }}
+                dot={{ r: 3, fill: color }}
+                activeDot={{ r: 5 }}
                 isAnimationActive={false}
                 connectNulls={false}
                 legendType="plainline"
@@ -369,6 +441,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
           })}
         </LineChart>
       </ResponsiveContainer>
+      </Box>
     </Box>
   );
 }

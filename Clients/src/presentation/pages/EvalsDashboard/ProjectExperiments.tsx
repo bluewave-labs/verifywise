@@ -12,7 +12,12 @@ import type { IEvaluationRow } from "../../../domain/interfaces/i.table";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import HelperIcon from "../../components/HelperIcon";
+import { useAuth } from "../../../application/hooks/useAuth";
+import allowedRoles from "../../../application/constants/permissions";
 
 interface ProjectExperimentsProps {
   projectId: string;
@@ -29,6 +34,18 @@ interface AlertState {
   body: string;
 }
 
+/**
+ * Shortens model names by removing date suffixes for cleaner display
+ * e.g., "claude-sonnet-4-20250514" → "claude-sonnet-4"
+ *       "claude-3-5-haiku-20241022" → "claude-3-5-haiku"
+ *       "gpt-4o-2024-05-13" → "gpt-4o"
+ */
+function shortenModelName(modelName: string): string {
+  if (!modelName) return modelName;
+  // Remove date patterns like -20250514 or -2024-05-13 from the end
+  return modelName.replace(/-\d{8}$/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '');
+}
+
 export default function ProjectExperiments({ projectId, onViewExperiment }: ProjectExperimentsProps) {
   const navigate = useNavigate();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
@@ -38,6 +55,14 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
   const [alert, setAlert] = useState<AlertState | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // RBAC permissions
+  const { userRoleName } = useAuth();
+  const canCreateExperiment = allowedRoles.evals.createExperiment.includes(userRoleName);
+  const canDeleteExperiment = allowedRoles.evals.deleteExperiment.includes(userRoleName);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   useEffect(() => {
     loadExperiments();
@@ -369,7 +394,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
   }, [experiments, filterData, searchTerm]);
 
   // Transform to table format
-  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
+  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
 
   const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => {
     // Get dataset name from config - try multiple sources
@@ -409,7 +434,8 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
 
     // Determine judge display based on evaluation mode
     const evaluationMode = exp.config?.evaluationMode || "standard";
-    const judgeModel = exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "";
+    const judgeModelRaw = exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "";
+    const judgeModel = shortenModelName(judgeModelRaw);
     const scorerName = exp.config?.scorerName || "";
     
     let judgeDisplay = "-";
@@ -441,15 +467,40 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
     };
   });
 
+  // Define how to get the group key for each row
+  const getRowGroupKey = useCallback((row: IEvaluationRow, field: string): string => {
+    switch (field) {
+      case "status":
+        return row.status || "Unknown";
+      case "model":
+        return row.model || "Unknown";
+      case "judge":
+        return row.judge || "Unknown";
+      default:
+        return "Other";
+    }
+  }, []);
+
+  // Apply grouping to table rows
+  const groupedRows = useTableGrouping({
+    data: tableRows,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getRowGroupKey,
+  });
+
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       {/* Header + description */}
       <Stack spacing={1} mb={4}>
-        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-          Experiments
-        </Typography>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Experiments
+          </Typography>
+          <HelperIcon articlePath="llm-evals/running-experiments" />
+        </Box>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Experiments run evaluations on your models using datasets and scorers. Track performance metrics over time and compare different model configurations.
         </Typography>
@@ -457,11 +508,11 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
 
       {/* Performance Chart */}
       <Card sx={{ marginBottom: "16px", border: "1px solid #d0d5dd", borderRadius: "4px", boxShadow: "none" }}>
-        <CardContent>
-          <Box mb={2}>
-            <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600 }}>Performance tracking</Typography>
+        <CardContent sx={{ py: 2 }}>
+          <Box mb={1}>
+            <Typography variant="h6" sx={{ fontSize: "14px", fontWeight: 600 }}>Performance tracking</Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "13px" }}>
             Track metric scores across eval runs
           </Typography>
 
@@ -514,9 +565,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
               { id: "model", label: "Model" },
               { id: "judge", label: "Judge" },
             ]}
-            onGroupChange={() => {
-              /* Grouping behaviour will be added in a later iteration */
-            }}
+            onGroupChange={handleGroupChange}
           />
           <SearchBox
             placeholder="Search experiments..."
@@ -536,21 +585,29 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
             gap: 2,
           }}
           onClick={() => setNewEvalModalOpen(true)}
+          isDisabled={!canCreateExperiment}
         />
       </Stack>
 
       {/* Experiments Table with Pagination */}
       <Box mb={4}>
-        <EvaluationTable
-          columns={tableColumns}
-          rows={tableRows}
-          removeModel={{
-            onConfirm: handleDeleteExperiment,
-          }}
-          page={currentPage}
-          setCurrentPagingation={setCurrentPage}
-          onShowDetails={handleViewExperiment}
-          onRerun={handleRerunExperiment}
+        <GroupedTableView
+          groupedData={groupedRows}
+          ungroupedData={tableRows}
+          renderTable={(data, options) => (
+            <EvaluationTable
+              columns={tableColumns}
+              rows={data}
+              removeModel={canDeleteExperiment ? {
+                onConfirm: handleDeleteExperiment,
+              } : undefined}
+              page={currentPage}
+              setCurrentPagingation={setCurrentPage}
+              onShowDetails={handleViewExperiment}
+              onRerun={canCreateExperiment ? handleRerunExperiment : undefined}
+              hidePagination={options?.hidePagination}
+            />
+          )}
         />
       </Box>
 

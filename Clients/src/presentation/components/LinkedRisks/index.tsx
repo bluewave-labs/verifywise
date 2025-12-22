@@ -2,10 +2,7 @@ import { Stack } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import Field from "../Inputs/Field";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
-import {
-  getAllProjectRisks,
-  getAllRisksByFrameworkId,
-} from "../../../application/repository/projectRisk.repository";
+import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import LinkedRisksTable from "../Table/LinkedRisksTable";
 import { useSearchParams } from "react-router-dom";
 import StandardModal from "../Modals/StandardModal";
@@ -55,20 +52,18 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
       };
       fetchAllRisks();
     } else if (frameworkId === 1) {
-      // For EU AI Act, fetch risks by frameworkId
-      const fetchRisksByFramework = async () => {
+      // For EU AI Act, fetch ALL risks (not just those already linked to framework)
+      // The framework association will be created when the risk is linked to the subcategory
+      const fetchAllRisks = async () => {
         try {
-          const response = await getAllRisksByFrameworkId({
-            frameworkId: 1,
-            filter: "active",
-          });
+          const response = await getAllProjectRisks({ filter: "active" });
           setFrameworkRisks(response.data || []);
         } catch (error) {
-          console.error("Error fetching risks by framework:", error);
+          console.error("Error fetching all risks for EU AI Act:", error);
           setFrameworkRisks([]);
         }
       };
-      fetchRisksByFramework();
+      fetchAllRisks();
     } else if (projectId === 0) {
       // Fallback: if projectId is 0, fetch all risks
       const fetchAllRisks = async () => {

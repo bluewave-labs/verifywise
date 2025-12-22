@@ -2,25 +2,53 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   Chip,
   Stack,
   useTheme,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  TableFooter,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
-import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil, Trash2, FileSearch, Bot } from "lucide-react";
+import { CirclePlus, Pencil, Trash2, FileSearch, MessageSquare, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import SelectableCard from "../../components/SelectableCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
 import EmptyState from "../../components/EmptyState";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
+import TablePaginationActions from "../../components/TablePagination";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
+import singleTheme from "../../themes/v1SingleTheme";
 import type { DeepEvalProject } from "./types";
-// NewProjectModal was merged into StandardModal-based flow
+import { useAuth } from "../../../application/hooks/useAuth";
+import allowedRoles from "../../../application/constants/permissions";
+
+const EVALS_PROJECTS_ROWS_PER_PAGE_KEY = "verifywise_evals_projects_rows_per_page";
+const EVALS_PROJECTS_SORTING_KEY = "verifywise_evals_projects_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
+
+const columns = [
+  { id: "name", label: "Project name", minWidth: 200, sortable: true },
+  { id: "description", label: "Description", minWidth: 300, sortable: false },
+  { id: "runs", label: "Runs", minWidth: 80, sortable: true },
+  { id: "created", label: "Created", minWidth: 120, sortable: true },
+  { id: "actions", label: "", minWidth: 80, sortable: false },
+];
 
 export default function ProjectsList() {
   const navigate = useNavigate();
@@ -29,11 +57,45 @@ export default function ProjectsList() {
   const [runsByProject, setRunsByProject] = useState<Record<string, number>>({});
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [alert, setAlert] = useState<{
     variant: "success" | "error";
     body: string;
   } | null>(null);
+
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    const saved = localStorage.getItem(EVALS_PROJECTS_ROWS_PER_PAGE_KEY);
+    return saved ? parseInt(saved, 10) : 10;
+  });
+
+  // Sorting state
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(EVALS_PROJECTS_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save preferences to localStorage
+  useEffect(() => {
+    localStorage.setItem(EVALS_PROJECTS_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
+  }, [rowsPerPage]);
+
+  useEffect(() => {
+    localStorage.setItem(EVALS_PROJECTS_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
+  // RBAC permissions
+  const { userRoleName } = useAuth();
+  const canCreateProject = allowedRoles.evals.createProject.includes(userRoleName);
+  const canEditProject = allowedRoles.evals.editProject.includes(userRoleName);
+  const canDeleteProject = allowedRoles.evals.deleteProject.includes(userRoleName);
 
   const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({
     name: "",
@@ -52,48 +114,13 @@ export default function ProjectsList() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<DeepEvalProject | null>(null);
 
-  // Color palette for project icons
-  const iconColors = [
-    { bg: "rgba(19, 113, 91, 0.1)", color: "#13715B" },     // Green (default)
-    { bg: "rgba(59, 130, 246, 0.1)", color: "#3B82F6" },    // Blue
-    { bg: "rgba(168, 85, 247, 0.1)", color: "#A855F7" },    // Purple
-    { bg: "rgba(249, 115, 22, 0.1)", color: "#F97316" },    // Orange
-    { bg: "rgba(236, 72, 153, 0.1)", color: "#EC4899" },    // Pink
-    { bg: "rgba(20, 184, 166, 0.1)", color: "#14B8A6" },    // Teal
-    { bg: "rgba(245, 158, 11, 0.1)", color: "#F59E0B" },    // Amber
-    { bg: "rgba(99, 102, 241, 0.1)", color: "#6366F1" },    // Indigo
-  ];
-
-  const getIconColor = (projectId: string) => {
-    // Use project ID to deterministically pick a color
-    let hash = 0;
-    for (let i = 0; i < projectId.length; i++) {
-      hash = projectId.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const index = Math.abs(hash) % iconColors.length;
-    return iconColors[index];
-  };
-
-  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null);
-
   const loadProjects = useCallback(async () => {
     try {
       const data = await deepEvalProjectsService.getAllProjects();
-      let list = data.projects || [];
-      // If an organization is selected, filter projects strictly to that org
-      if (currentOrgId) {
-        try {
-          const ids = await deepEvalOrgsService.getProjectsForOrg(currentOrgId);
-          const byId = new Set(ids);
-          list = list.filter((p) => byId.has(p.id));
-        } catch {
-          // On any error fetching org->projects mapping, show none rather than leaking other orgs
-          list = [];
-        }
-      }
+      const list = data.projects || [];
       setProjects(list);
 
-      // Fetch run counts for each project in parallel (using experiments API)
+      // Fetch run counts for each project in parallel
       const statsArray = await Promise.all(
         (list || []).map(async (p) => {
           try {
@@ -101,7 +128,6 @@ export default function ProjectsList() {
             const total = Array.isArray(res?.experiments) ? res.experiments.length : (res?.length ?? 0);
             return { id: p.id, total };
           } catch {
-            // Fallback to project stats if available
             try {
               const res = await deepEvalProjectsService.getProjectStats(p.id);
               return { id: p.id, total: res.stats.totalExperiments ?? 0 };
@@ -121,29 +147,86 @@ export default function ProjectsList() {
       setProjects([]);
       setRunsByProject({});
     }
-  }, [currentOrgId]);
+  }, []);
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const { org } = await deepEvalOrgsService.getCurrentOrg();
-        setCurrentOrgId(org?.id || null);
-      } catch { /* ignore */ }
-      await loadProjects();
-    };
-    void init();
+    loadProjects();
   }, [loadProjects]);
+
+  // Sorting handler
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
+
+  // Sort projects
+  const sortedProjects = [...projects].sort((a, b) => {
+    if (!sortConfig.key || !sortConfig.direction) return 0;
+
+    let aValue: string | number;
+    let bValue: string | number;
+
+    switch (sortConfig.key) {
+      case "name":
+        aValue = a.name.toLowerCase();
+        bValue = b.name.toLowerCase();
+        break;
+      case "runs":
+        aValue = runsByProject[a.id] ?? 0;
+        bValue = runsByProject[b.id] ?? 0;
+        break;
+      case "created":
+        aValue = new Date(a.createdAt).getTime();
+        bValue = new Date(b.createdAt).getTime();
+        break;
+      default:
+        return 0;
+    }
+
+    if (typeof aValue === "string" && typeof bValue === "string") {
+      const comparison = aValue.localeCompare(bValue);
+      return sortConfig.direction === "asc" ? comparison : -comparison;
+    }
+
+    if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  // Pagination
+  const paginatedProjects = sortedProjects.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
+  const handleChangePage = useCallback((_event: unknown, newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    },
+    []
+  );
 
   const handleCreateProject = async () => {
     setLoading(true);
     try {
-      // Create project with selected use case; default dataset follows use case
       const projectConfig = {
         name: newProject.name,
         description: newProject.description,
         useCase: newProject.useCase,
         defaultDataset: newProject.useCase,
-        orgId: currentOrgId || undefined,
       };
 
       await deepEvalProjectsService.createProject(projectConfig);
@@ -236,18 +319,27 @@ export default function ProjectsList() {
     }
   };
 
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const getRange = () => {
+    const start = page * rowsPerPage + 1;
+    const end = Math.min(page * rowsPerPage + rowsPerPage, sortedProjects.length);
+    return `${start} - ${end}`;
+  };
+
   return (
     <>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Header with Description */}
-      <Box sx={{ mb: 4, px: 0 }}>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px", mb: 2 }}>
-          Comprehensive LLM evaluation platform powered by LLM-as-a-Judge methodology. Create projects to organize your evaluations, configure models and judge LLMs, select datasets, and run experiments with multiple fairness and performance metrics. Each project can contain multiple evaluation runs with different configurations to help you systematically assess model behavior, detect bias, and ensure quality outputs.
-        </Typography>
-
-        {/* Projects Title */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ pt: 2, pb: 2 }}>
+      {/* Header */}
+      <Box sx={{ mb: 3 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Box display="flex" alignItems="center" gap={1}>
             <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
               Projects
@@ -271,260 +363,280 @@ export default function ProjectsList() {
               />
             )}
           </Box>
-          
-          {/* Create Project Button - Right Aligned */}
-          <Box display="flex" alignItems="center" gap={1}>
-            <CustomizableButton
-              onClick={() => setCreateModalOpen(true)}
-              variant="contained"
-              startIcon={<CirclePlus size={20} />}
-              sx={{
-                textTransform: "none",
-                backgroundColor: "#13715B",
-                "&:hover": { backgroundColor: "0f5a47" },
-              }}
-            >
-              Create project
-            </CustomizableButton>
-          </Box>
+
+          <CustomizableButton
+            onClick={() => setCreateModalOpen(true)}
+            variant="contained"
+            startIcon={<CirclePlus size={20} />}
+            isDisabled={!canCreateProject}
+            sx={{
+              textTransform: "none",
+              backgroundColor: "#13715B",
+              "&:hover": { backgroundColor: "#0f5a47" },
+            }}
+          >
+            Create project
+          </CustomizableButton>
         </Stack>
       </Box>
 
-      {/* Projects Grid */}
+      {/* Projects Table */}
       {projects.length === 0 ? (
         <EmptyState
           message="No projects yet. Create your first project to start evaluating LLMs."
           showBorder
         />
       ) : (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-          {projects.map((project) => (
-            <Box
-              key={project.id}
+        <TableContainer>
+          <Table sx={singleTheme.tableStyles.primary.frame}>
+            <TableHead
               sx={{
-                width: { xs: "100%", md: "calc(50% - 8px)", lg: "calc(33.333% - 11px)" }
+                backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors,
               }}
             >
-              <Card
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: theme.shape.borderRadius,
-                  boxShadow: "none",
-                  background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-                  "&:hover": {
-                    background: "linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%)",
-                    borderColor: "#D1D5DB",
-                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
-                  },
-                }}
-                onMouseEnter={() => setHoveredCard(project.id)}
-                onMouseLeave={() => setHoveredCard(null)}
-                onClick={() => handleOpenProject(project.id)}
-              >
-                <CardContent
+              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    sx={{
+                      ...singleTheme.tableStyles.primary.header.cell,
+                      minWidth: column.minWidth,
+                      cursor: column.sortable ? "pointer" : "default",
+                      userSelect: "none",
+                      "&:hover": column.sortable ? {
+                        backgroundColor: "rgba(0, 0, 0, 0.04)",
+                      } : {},
+                    }}
+                    onClick={() => column.sortable && handleSort(column.id)}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: theme.spacing(2),
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 500,
+                          color: sortConfig.key === column.id ? "primary.main" : "inherit",
+                        }}
+                      >
+                        {column.label}
+                      </Typography>
+                      {column.sortable && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                          }}
+                        >
+                          {sortConfig.key === column.id && sortConfig.direction === "asc" && <ChevronUp size={16} />}
+                          {sortConfig.key === column.id && sortConfig.direction === "desc" && <ChevronDown size={16} />}
+                          {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
+                        </Box>
+                      )}
+                    </Box>
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedProjects.map((project) => (
+                <TableRow
+                  key={project.id}
+                  onClick={() => handleOpenProject(project.id)}
                   sx={{
-                    p: 2,
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    position: "relative",
-                    backgroundColor: "transparent",
-                    "&:last-child": {
-                      paddingBottom: 2,
+                    ...singleTheme.tableStyles.primary.body.row,
+                    cursor: "pointer",
+                    "&:hover": {
+                      backgroundColor: "#F9FAFB",
                     },
                   }}
                 >
-                  {/* Header Section: Icon and Name */}
-                  <Box sx={{ p: 2, m: 3, backgroundColor: "transparent" }}>
-                    {/* Project Icon */}
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        mb: 3,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: getIconColor(project.id).bg,
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <Beaker size={24} color={getIconColor(project.id).color} strokeWidth={2} />
-                    </Box>
-
-                    {/* Project Name */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 2 }}>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: 600,
-                          color: theme.palette.text.primary,
-                          fontSize: "15px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          maxWidth: "calc(100% - 60px)",
-                        }}
-                      >
-                        {project.name}
-                      </Typography>
-                      {/* Edit Button */}
-                      <Box
-                        onClick={(e) => handleEditClick(e, project)}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "24px",
-                          height: "24px",
-                          borderRadius: "4px",
-                          color: "#6b7280",
-                          cursor: "pointer",
-                          flexShrink: 0,
-                          opacity: hoveredCard === project.id ? 1 : 0,
-                          transition: "opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease",
-                          "&:hover": {
-                            color: "#13715B",
-                            backgroundColor: "rgba(19, 113, 91, 0.1)",
-                          },
-                        }}
-                      >
-                        <Pencil size={14} strokeWidth={2} />
-                      </Box>
-                      {/* Delete Button */}
-                      <Box
-                        onClick={(e) => handleDeleteClick(e, project)}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "24px",
-                          height: "24px",
-                          borderRadius: "4px",
-                          color: "#6b7280",
-                          cursor: "pointer",
-                          flexShrink: 0,
-                          opacity: hoveredCard === project.id ? 1 : 0,
-                          transition: "opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease",
-                          "&:hover": {
-                            color: "#D32F2F",
-                            backgroundColor: "rgba(211, 47, 47, 0.1)",
-                          },
-                        }}
-                      >
-                        <Trash2 size={14} strokeWidth={2} />
-                      </Box>
-                    </Box>
-                  </Box>
-
-                  {/* Content Section: Description and Date */}
-                  <Box sx={{ backgroundColor: "transparent", mx: 3, mb: 4, px: 2, flexGrow: 1 }}>
-                    {/* Project Description */}
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: theme.palette.text.secondary,
-                        fontSize: "13px",
-                        mb: 2,
-                        minHeight: 40,
-                        lineHeight: 1.5,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                      }}
-                    >
-                      {project.description || "No description provided"}
-                    </Typography>
-
-                    {/* Bottom Row: Date and Runs Count */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
-                      <Chip
-                        size="small"
-                        icon={<Calendar size={12} />}
-                        label={new Date(project.createdAt).toLocaleDateString()}
-                        sx={{
-                          backgroundColor: "#f5f5f5",
-                          color: "#616161",
-                          fontWeight: 500,
-                          fontSize: "11px",
-                          letterSpacing: "0.5px",
-                          borderRadius: "4px",
-                          "& .MuiChip-label": {
-                            padding: "4px 8px",
-                          },
-                          "& .MuiChip-icon": {
-                            color: "#616161",
-                          },
-                        }}
-                      />
-                      <Chip
-                        size="small"
-                        label={`${runsByProject[project.id] ?? 0} ${
-                          (runsByProject[project.id] ?? 0) === 1 ? "run" : "runs"
-                        }`}
-                        sx={{
-                          backgroundColor: "#e0e0e0",
-                          color: "#424242",
-                          fontWeight: 500,
-                          fontSize: "11px",
-                          letterSpacing: "0.5px",
-                          borderRadius: "4px",
-                          "& .MuiChip-label": {
-                            padding: "4px 8px",
-                          },
-                        }}
-                      />
-                    </Box>
-                  </Box>
-
-                  {/* Top Right: Open Button */}
-                  <Box
+                  <TableCell
                     sx={{
-                      position: "absolute",
-                      top: 20,
-                      right: 20,
-                      display: "flex",
-                      alignItems: "center",
-                      color: theme.palette.primary.main,
-                      transition: "all 0.3s ease",
-                      cursor: "pointer",
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      color: "#111827",
                     }}
                   >
-                    <Typography
-                      variant="body2"
+                    {project.name}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      fontSize: "13px",
+                      color: "#6B7280",
+                      maxWidth: 300,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {project.description || "-"}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      fontSize: "13px",
+                    }}
+                  >
+                    <Chip
+                      size="small"
+                      label={runsByProject[project.id] ?? 0}
                       sx={{
+                        backgroundColor: "#F3F4F6",
+                        color: "#374151",
                         fontWeight: 500,
-                        fontSize: "13px",
-                        opacity: hoveredCard === project.id ? 1 : 0,
-                        transform: hoveredCard === project.id ? "translateX(0)" : "translateX(10px)",
-                        transition: "all 0.3s ease",
-                        whiteSpace: "nowrap",
-                        mr: hoveredCard === project.id ? 1 : 0,
-                      }}
-                    >
-                      Open
-                    </Typography>
-                    <ChevronRight
-                      size={20}
-                      style={{
-                        transition: "all 0.3s ease",
+                        fontSize: "12px",
+                        height: "22px",
+                        minWidth: "32px",
+                        borderRadius: "4px",
                       }}
                     />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Box>
-          ))}
-        </Box>
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      fontSize: "13px",
+                      color: "#6B7280",
+                    }}
+                  >
+                    {formatDate(project.createdAt)}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Box sx={{ display: "flex", gap: 0.5 }}>
+                      {canEditProject && (
+                        <Tooltip title="Edit project">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => handleEditClick(e, project)}
+                            sx={{
+                              color: "#6B7280",
+                              "&:hover": {
+                                color: "#13715B",
+                                backgroundColor: "rgba(19, 113, 91, 0.1)",
+                              },
+                            }}
+                          >
+                            <Pencil size={16} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      {canDeleteProject && (
+                        <Tooltip title="Delete project">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => handleDeleteClick(e, project)}
+                            sx={{
+                              color: "#6B7280",
+                              "&:hover": {
+                                color: "#D32F2F",
+                                backgroundColor: "rgba(211, 47, 47, 0.1)",
+                              },
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow
+                sx={{
+                  "& .MuiTableCell-root.MuiTableCell-footer": {
+                    paddingX: theme.spacing(8),
+                    paddingY: theme.spacing(4),
+                  },
+                }}
+              >
+                <TableCell
+                  sx={{
+                    paddingX: theme.spacing(2),
+                    fontSize: 12,
+                    opacity: 0.7,
+                    color: theme.palette.text.tertiary,
+                  }}
+                  colSpan={2}
+                >
+                  Showing {getRange()} of {sortedProjects.length} project(s)
+                </TableCell>
+                <TablePagination
+                  count={sortedProjects.length}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  rowsPerPage={rowsPerPage}
+                  rowsPerPageOptions={[5, 10, 15, 20, 25]}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                  labelRowsPerPage="Projects per page"
+                  labelDisplayedRows={({ page, count }) =>
+                    `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
+                  }
+                  slotProps={{
+                    select: {
+                      MenuProps: {
+                        keepMounted: true,
+                        PaperProps: {
+                          className: "pagination-dropdown",
+                          sx: {
+                            mt: 0,
+                            mb: theme.spacing(2),
+                          },
+                        },
+                        transformOrigin: {
+                          vertical: "bottom",
+                          horizontal: "left",
+                        },
+                        anchorOrigin: { vertical: "top", horizontal: "left" },
+                        sx: { mt: theme.spacing(-2) },
+                      },
+                      inputProps: { id: "pagination-dropdown" },
+                      IconComponent: () => <ChevronsUpDown size={16} />,
+                      sx: {
+                        ml: theme.spacing(4),
+                        mr: theme.spacing(12),
+                        minWidth: theme.spacing(20),
+                        textAlign: "left",
+                        "&.Mui-focused > div": {
+                          backgroundColor: theme.palette.background.main,
+                        },
+                      },
+                    },
+                  }}
+                  sx={{
+                    mt: theme.spacing(6),
+                    color: theme.palette.text.secondary,
+                    "& .MuiSelect-icon": {
+                      width: "24px",
+                      height: "fit-content",
+                    },
+                    "& .MuiSelect-select": {
+                      width: theme.spacing(10),
+                      borderRadius: theme.shape.borderRadius,
+                      border: `1px solid ${theme.palette.border.light}`,
+                      padding: theme.spacing(4),
+                    },
+                  }}
+                />
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </TableContainer>
       )}
 
       {/* Create Project Modal */}
@@ -537,7 +649,7 @@ export default function ProjectsList() {
         submitButtonText="Create project"
         isSubmitting={loading || !newProject.name}
       >
-        <Stack spacing={3}>
+        <Stack spacing="8px">
           <Field
             label="Project name"
             value={newProject.name}
@@ -548,59 +660,25 @@ export default function ProjectsList() {
 
           {/* LLM Use Case - card selection */}
           <Box>
-            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
-              LLM Use Case
+            <Box sx={{ fontSize: "12px", color: "#374151", mb: "8px", fontWeight: 600 }}>
+              LLM use case
             </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-              <Box
+            <Stack spacing="8px">
+              <SelectableCard
+                isSelected={newProject.useCase === "rag"}
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
-                sx={{
-                  border: newProject.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: "#FFFFFF",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <FileSearch size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
+                icon={<FileSearch size={16} color={newProject.useCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                title="RAG"
+                description="Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness."
+              />
+              <SelectableCard
+                isSelected={newProject.useCase === "chatbot"}
                 onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
-                sx={{
-                  border: newProject.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: "#FFFFFF",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Bot size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate conversational experiences for coherence, correctness and safety.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
+                icon={<MessageSquare size={16} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                title="Chatbots"
+                description="Evaluate conversational experiences for coherence, correctness and safety."
+              />
+            </Stack>
           </Box>
         </Stack>
       </StandardModal>

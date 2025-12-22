@@ -14,10 +14,13 @@ import { cardStyles } from "../../themes";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import VWLink from "../../components/Link/VWLink";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import { experimentsService, monitoringService, type Experiment, type MonitorDashboard } from "../../../infrastructure/api/evaluationLogsService";
+import { experimentsService, monitoringService, evaluationLogsService, type Experiment, type MonitorDashboard, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
 import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
+import HelperIcon from "../../components/HelperIcon";
+import { useAuth } from "../../../application/hooks/useAuth";
+import allowedRoles from "../../../application/constants/permissions";
 
 interface ProjectOverviewProps {
   projectId: string;
@@ -44,49 +47,50 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       sx={{
-        ...(cardStyles.base(theme) as any),
+        ...(cardStyles.base(theme) as Record<string, unknown>),
         background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-        border: "1px solid #DCDFE3",
+        border: "1px solid #E5E7EB",
         height: "100%",
-        minHeight: "90px",
+        minHeight: "80px",
         position: "relative",
         transition: "all 0.2s ease",
         display: "flex",
         flexDirection: "column",
         boxSizing: "border-box",
-        borderRadius: "4px",
+        borderRadius: "8px",
         overflow: "hidden",
         "&:hover": {
           background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
+          borderColor: "#D1D5DB",
         },
       }}
     >
       <CardContent
         sx={{
-          p: 2,
+          p: "14px 16px",
           position: "relative",
           height: "100%",
           display: "flex",
           flexDirection: "column",
           flex: 1,
           overflow: "hidden",
-          "&:last-child": { pb: 2 },
+          "&:last-child": { pb: "14px" },
         }}
       >
         {/* Background Icon */}
         <Box
           sx={{
             position: "absolute",
-            bottom: "-24px",
-            right: "-24px",
-            opacity: isHovered ? 0.06 : 0.025,
-            transform: isHovered ? "translateY(-5px)" : "translateY(0px)",
+            bottom: "-20px",
+            right: "-20px",
+            opacity: isHovered ? 0.06 : 0.03,
+            transform: isHovered ? "translateY(-4px)" : "translateY(0px)",
             zIndex: 0,
             pointerEvents: "none",
             transition: "opacity 0.2s ease, transform 0.3s ease",
           }}
         >
-          <Icon size={80} />
+          <Icon size={64} />
         </Box>
 
         {/* Content */}
@@ -94,20 +98,23 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
           <Typography
             variant="body2"
             sx={{
-              color: theme.palette.text.secondary,
-              fontSize: "12px",
-              fontWeight: 400,
-              mb: 1,
+              color: "#6B7280",
+              fontSize: "11px",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              mb: 0.5,
             }}
           >
             {title}
           </Typography>
           <Typography
             sx={{
-              fontSize: "28px",
+              fontSize: "20px",
               fontWeight: 600,
-              color: theme.palette.text.primary,
-              lineHeight: 1.2,
+              color: "#111827",
+              lineHeight: 1.3,
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             }}
           >
             {value}
@@ -115,9 +122,10 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
           {subtitle && (
             <Typography
               sx={{
-                fontSize: "11px",
-                color: theme.palette.text.secondary,
-                mt: 0.5,
+                fontSize: "10px",
+                color: "#9CA3AF",
+                mt: 0.25,
+                fontWeight: 400,
               }}
             >
               {subtitle}
@@ -138,8 +146,13 @@ export default function ProjectOverview({
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [experiments, setExperiments] = useState<Experiment[]>([]);
+  const [evaluationLogs, setEvaluationLogs] = useState<EvaluationLog[]>([]);
   const [dashboardData, setDashboardData] = useState<MonitorDashboard | null>(null);
   const [newExperimentModalOpen, setNewExperimentModalOpen] = useState(false);
+
+  // RBAC permissions
+  const { userRoleName } = useAuth();
+  const canCreateExperiment = allowedRoles.evals.createExperiment.includes(userRoleName);
 
   const loadOverviewData = useCallback(async () => {
     try {
@@ -151,13 +164,15 @@ export default function ProjectOverview({
         onProjectUpdate(projectData.project);
       }
 
-      // Load experiments and dashboard data in parallel
-      const [experimentsData, dashboardResponse] = await Promise.all([
-        experimentsService.getExperiments({ project_id: projectId, limit: 10 }),
+      // Load experiments, logs, and dashboard data in parallel
+      const [experimentsData, logsData, dashboardResponse] = await Promise.all([
+        experimentsService.getExperiments({ project_id: projectId, limit: 100 }),
+        evaluationLogsService.getLogs({ project_id: projectId, limit: 1000 }).catch(() => ({ logs: [] })),
         monitoringService.getDashboard(projectId).catch(() => ({ data: null })),
       ]);
 
       setExperiments(experimentsData.experiments || []);
+      setEvaluationLogs(logsData.logs || []);
       setDashboardData(dashboardResponse.data);
     } catch (err) {
       console.error("Failed to load overview data:", err);
@@ -193,12 +208,6 @@ export default function ProjectOverview({
     return `${Math.round(ms)}ms`;
   };
 
-  const formatPercentage = (rate: number | undefined): string => {
-    if (rate === undefined || rate === null || isNaN(rate)) return "-";
-    const successRate = 100 - rate;
-    return `${successRate.toFixed(1)}%`;
-  };
-
   const formatScore = (score: number | undefined): string => {
     if (score === undefined || score === null || isNaN(score)) return "-";
     return score.toFixed(2);
@@ -214,28 +223,67 @@ export default function ProjectOverview({
 
   const hasExperiments = experiments.length > 0;
 
-  // Extract metrics from dashboard data
-  const totalEvals = dashboardData?.logs?.total ?? 0;
-  const successRate = dashboardData?.logs?.error_rate !== undefined
-    ? formatPercentage(dashboardData.logs.error_rate)
+  // Calculate metrics from experiments data
+  const totalExperiments = experiments.length;
+  const completedExperiments = experiments.filter(e => e.status === "completed").length;
+  const failedExperiments = experiments.filter(e => e.status === "failed").length;
+  
+  // Success rate: completed / (completed + failed) - ignore running/pending
+  const finishedExperiments = completedExperiments + failedExperiments;
+  const successRate = finishedExperiments > 0 
+    ? `${((completedExperiments / finishedExperiments) * 100).toFixed(0)}%`
     : "-";
-  const avgLatency = dashboardData?.metrics?.latency?.average !== undefined
-    ? formatLatency(dashboardData.metrics.latency.average)
-    : "-";
-  const avgScore = dashboardData?.metrics?.score_average?.average !== undefined
-    ? formatScore(dashboardData.metrics.score_average.average)
-    : "-";
-  const totalTokens = dashboardData?.metrics?.token_count?.average !== undefined && dashboardData?.logs?.total
-    ? formatNumber(dashboardData.metrics.token_count.average * dashboardData.logs.total)
-    : "-";
+  
+  // Calculate avg latency from evaluation logs (each log = one prompt evaluation)
+  const logsWithLatency = evaluationLogs.filter(log => 
+    typeof log.latency_ms === 'number' && !isNaN(log.latency_ms) && log.latency_ms > 0
+  );
+  const avgLatency = logsWithLatency.length > 0
+    ? formatLatency(logsWithLatency.reduce((sum, log) => sum + (log.latency_ms || 0), 0) / logsWithLatency.length)
+    : dashboardData?.metrics?.latency?.average !== undefined
+      ? formatLatency(dashboardData.metrics.latency.average)
+      : "-";
+  
+  // Calculate avg score from experiment results (avg_scores contains metric averages)
+  const experimentsWithResults = experiments.filter(e => e.results && typeof e.results === 'object');
+  const allScores: number[] = [];
+  experimentsWithResults.forEach(e => {
+    const results = e.results as Record<string, unknown>;
+    const avgScores = results?.avg_scores as Record<string, number> | undefined;
+    if (avgScores && typeof avgScores === 'object') {
+      // Get all metric scores and average them
+      const metricValues = Object.values(avgScores).filter((v): v is number => typeof v === 'number' && !isNaN(v) && v > 0);
+      if (metricValues.length > 0) {
+        allScores.push(metricValues.reduce((a, b) => a + b, 0) / metricValues.length);
+      }
+    }
+  });
+  const avgScore = allScores.length > 0
+    ? formatScore(allScores.reduce((a, b) => a + b, 0) / allScores.length)
+    : dashboardData?.metrics?.score_average?.average !== undefined
+      ? formatScore(dashboardData.metrics.score_average.average)
+      : "-";
+  
+  // Calculate total tokens from evaluation logs
+  const logsWithTokens = evaluationLogs.filter(log => 
+    typeof log.token_count === 'number' && !isNaN(log.token_count) && log.token_count > 0
+  );
+  const totalTokens = logsWithTokens.length > 0
+    ? formatNumber(logsWithTokens.reduce((sum, log) => sum + (log.token_count || 0), 0))
+    : dashboardData?.metrics?.token_count?.average !== undefined && dashboardData?.logs?.total
+      ? formatNumber(dashboardData.metrics.token_count.average * dashboardData.logs.total)
+      : "-";
 
   return (
     <Box>
       {/* Header + description */}
       <Stack spacing={1} mb={4}>
-        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-          Overview
-        </Typography>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Overview
+          </Typography>
+          <HelperIcon articlePath="llm-evals/llm-evals-overview" />
+        </Box>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance.
         </Typography>
@@ -248,6 +296,7 @@ export default function ProjectOverview({
           variant="contained"
           text="New experiment"
           icon={<Play size={16} />}
+          isDisabled={!canCreateExperiment}
           sx={{
             backgroundColor: "#13715B",
             border: "1px solid #13715B",
@@ -262,14 +311,16 @@ export default function ProjectOverview({
       {/* Top row: 4 stat cards */}
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", mb: "16px" }}>
         <StatCard
-          title="Total evaluations"
-          value={formatNumber(totalEvals)}
-          Icon={Activity}
+          title="Experiments"
+          value={formatNumber(totalExperiments)}
+          Icon={Beaker}
+          subtitle={`${completedExperiments} completed`}
         />
         <StatCard
           title="Success rate"
           value={successRate}
           Icon={CheckCircle}
+          subtitle={finishedExperiments > 0 ? `${finishedExperiments} finished` : undefined}
         />
         <StatCard
           title="Avg latency"
@@ -306,10 +357,13 @@ export default function ProjectOverview({
           <Box sx={{
             display: "flex",
             flexDirection: "column",
+            justifyContent: hasExperiments ? "flex-start" : "center",
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
             overflow: "hidden",
             backgroundColor: "#FFFFFF",
+            // Fixed height to match two stat cards (90px each) + gap between them
+            minHeight: "214px",
           }}>
             {!hasExperiments ? (
               /* Empty state inside the consistent layout */
@@ -335,6 +389,7 @@ export default function ProjectOverview({
                   variant="contained"
                   text="Run first experiment"
                   icon={<Play size={14} />}
+                  isDisabled={!canCreateExperiment}
                   sx={{
                     backgroundColor: "#13715B",
                     border: "1px solid #13715B",
@@ -350,7 +405,7 @@ export default function ProjectOverview({
             ) : (
               [...experiments]
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .slice(0, 5)
+                .slice(0, 4)
                 .map((exp, index, arr) => {
                   const cfg = exp.config as { model?: { name?: string }; judgeLlm?: { model?: string; provider?: string } } | undefined;
                   const modelName = cfg?.model?.name || "-";
@@ -385,10 +440,10 @@ export default function ProjectOverview({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        py: 2,
                         px: 2,
                         cursor: "pointer",
                         borderBottom: index < arr.length - 1 ? "1px solid #d0d5dd" : "none",
+                        flex: 1,
                         "&:hover": {
                           backgroundColor: "#F9FAFB",
                         },
@@ -442,13 +497,13 @@ export default function ProjectOverview({
             title="Total tokens"
             value={totalTokens}
             Icon={Coins}
-            subtitle="Across all evaluations"
+            subtitle="Across all experiments"
           />
           <StatCard
-            title="Experiments"
-            value={formatNumber(experiments.length)}
-            Icon={Beaker}
-            subtitle="Total experiments run"
+            title="Running"
+            value={experiments.filter(e => e.status === "running").length}
+            Icon={Activity}
+            subtitle="Experiments in progress"
           />
         </Box>
       </Box>

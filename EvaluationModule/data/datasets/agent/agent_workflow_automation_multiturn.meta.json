@@ -1,0 +1,9 @@
+{
+  "name": "Workflow Automation Multi-Turn",
+  "description": "Multi-turn agent conversations for setting up workflow automations and integrations.",
+  "type": "multi-turn",
+  "use_case": "agent",
+  "tags": ["agent", "multi-turn", "automation", "workflow"],
+  "prompt_count": 2
+}
+

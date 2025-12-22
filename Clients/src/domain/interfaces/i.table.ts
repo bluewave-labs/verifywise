@@ -90,6 +90,7 @@ export interface IEvaluationTableProps {
   setCurrentPagingation: (pageNo: number) => void;
   onShowDetails: (model: IEvaluationRow) => void;
   onRerun?: (model: IEvaluationRow) => void;
+  hidePagination?: boolean;
 }
 
 export interface IEventsTableProps {

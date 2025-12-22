@@ -376,7 +376,7 @@ export const createNewProjectQuery = async (
       // Build replacements
       const replacements = buildProjectReplacements({
         ...createdProject.dataValues,
-        owner_name: owner_name[0][0].full_name,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
       });
 
       // Replace variables in subject and body
@@ -578,7 +578,7 @@ export const updateProjectByIdQuery = async (
       // Build replacements
       const replacements = buildProjectUpdateReplacements(oldProject, {
         ...updatedProject.dataValues,
-        owner_name: owner_name[0][0].full_name,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
       });
 
       // Replace variables in subject and body
@@ -786,7 +786,7 @@ export const deleteProjectByIdQuery = async (
       // Build replacements
       const replacements = buildProjectReplacements({
         ...deletedProject,
-        owner_name: owner_name[0][0].full_name,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
       });
 
       // Replace variables in subject and body

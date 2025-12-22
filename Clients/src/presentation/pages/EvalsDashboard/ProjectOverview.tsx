@@ -354,12 +354,8 @@ export default function ProjectOverview({
 
           {/* Recent experiments list */}
           <Box sx={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: hasExperiments ? "flex-start" : "center",
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
-            overflow: "hidden",
             backgroundColor: "#FFFFFF",
             // Fixed height to match two stat cards (90px each) + gap between them
             minHeight: "214px",
@@ -402,7 +398,8 @@ export default function ProjectOverview({
                 />
               </Box>
             ) : (
-              [...experiments]
+              <Box sx={{ padding: "16px" }}>
+              {[...experiments]
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .slice(0, 4)
                 .map((exp, index, arr) => {
@@ -439,12 +436,12 @@ export default function ProjectOverview({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        px: 2,
                         py: 1.5,
                         cursor: "pointer",
-                        borderBottom: index < arr.length - 1 ? "1px solid #d0d5dd" : "none",
+                        borderBottom: index < arr.length - 1 ? "1px solid #E5E7EB" : "none",
                         "&:hover": {
                           backgroundColor: "#F9FAFB",
+                          borderRadius: "4px",
                         },
                       }}
                     >
@@ -484,7 +481,8 @@ export default function ProjectOverview({
                       </Box>
                     </Box>
                   );
-                })
+                })}
+              </Box>
             )}
           </Box>
         </Box>

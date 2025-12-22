@@ -166,6 +166,9 @@ export default function CreateScorerModal({
 
   // Update config when initialConfig changes (for editing)
   useEffect(() => {
+    // Always reset popover state when modal opens or scorer changes
+    setParamsPopoverOpen(false);
+    
     if (initialConfig) {
       setConfig({
         name: initialConfig.name || "",

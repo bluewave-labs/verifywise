@@ -280,7 +280,7 @@ export const getDecryptedKeyForProviderQuery = async (
   try {
     return decrypt(result[0][0].encrypted_api_key);
   } catch (err) {
-    console.error(`Failed to decrypt key for provider ${provider}:`, err);
+    console.error("Failed to decrypt key for provider:", provider, err);
     return null;
   }
 };

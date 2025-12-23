@@ -575,6 +575,7 @@ async def upload_deepeval_dataset_controller(
     org_id: str,
     dataset_type: str = "chatbot",
     turn_type: str = "single-turn",
+    user_id: Optional[str] = None,
 ) -> JSONResponse:
     """
     Upload a custom dataset JSON file for DeepEval and return a server-relative path
@@ -677,7 +678,8 @@ async def upload_deepeval_dataset_controller(
                     prompt_count=prompt_count,
                     dataset_type=dataset_type,
                     turn_type=turn_type,
-                    org_id=org_id
+                    org_id=org_id,
+                    created_by=user_id,
                 )
                 await db.commit()
         except Exception:

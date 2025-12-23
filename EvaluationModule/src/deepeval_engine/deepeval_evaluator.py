@@ -41,6 +41,11 @@ class CustomDeepEvalLLM(DeepEvalBaseLLM):
     DeepEval's built-in metrics only accept OpenAI model strings by default.
     This wrapper allows using Anthropic, Mistral, Google, xAI, and other providers
     by implementing the DeepEvalBaseLLM interface and using our ModelRunner.
+    
+    IMPORTANT: DeepEval's native metrics (TurnRelevancyMetric, KnowledgeRetentionMetric,
+    ConversationalGEval) call generate/a_generate with a `schema` parameter expecting
+    structured outputs. When `schema` is provided and we don't support it, we must
+    raise TypeError to trigger DeepEval's fallback JSON parsing logic.
     """
     
     def __init__(self, model_name: str, provider: str):
@@ -71,17 +76,31 @@ class CustomDeepEvalLLM(DeepEvalBaseLLM):
         self._ensure_runner()
         return self
     
-    def generate(self, prompt: str, **kwargs) -> str:
+    def generate(self, prompt: str, schema=None, **kwargs) -> str:
         """
         Generate a response from the LLM.
         
         Args:
             prompt: The input prompt
+            schema: Optional Pydantic schema for structured output. If provided,
+                   we raise TypeError to trigger DeepEval's JSON parsing fallback.
             **kwargs: Additional generation parameters (max_tokens, temperature, etc.)
             
         Returns:
             The generated response text
+            
+        Raises:
+            TypeError: When schema is provided (triggers DeepEval's fallback parsing)
         """
+        # If schema is provided, raise TypeError to trigger DeepEval's fallback
+        # JSON parsing logic. DeepEval will then call generate without schema
+        # and parse the JSON from the response string.
+        if schema is not None:
+            raise TypeError(
+                f"CustomDeepEvalLLM does not support structured output schema. "
+                f"DeepEval will fall back to JSON parsing."
+            )
+        
         self._ensure_runner()
         
         max_tokens = kwargs.get("max_tokens", 2048)
@@ -97,13 +116,31 @@ class CustomDeepEvalLLM(DeepEvalBaseLLM):
         except Exception as e:
             raise RuntimeError(f"Generation failed with {self.provider}: {e}")
     
-    async def a_generate(self, prompt: str, **kwargs) -> str:
+    async def a_generate(self, prompt: str, schema=None, **kwargs) -> str:
         """
         Async generate (falls back to sync for now).
         
         DeepEval may call this for async evaluation. We use sync generation
         since ModelRunner doesn't have native async support yet.
+        
+        Args:
+            prompt: The input prompt
+            schema: Optional Pydantic schema for structured output. If provided,
+                   we raise TypeError to trigger DeepEval's JSON parsing fallback.
+            **kwargs: Additional generation parameters
+            
+        Returns:
+            The generated response text
+            
+        Raises:
+            TypeError: When schema is provided (triggers DeepEval's fallback parsing)
         """
+        # If schema is provided, raise TypeError to trigger DeepEval's fallback
+        if schema is not None:
+            raise TypeError(
+                f"CustomDeepEvalLLM does not support structured output schema. "
+                f"DeepEval will fall back to JSON parsing."
+            )
         return self.generate(prompt, **kwargs)
     
     def get_model_name(self) -> str:

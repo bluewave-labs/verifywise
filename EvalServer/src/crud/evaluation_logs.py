@@ -126,7 +126,7 @@ async def get_logs(
         where_clauses.append("status = :status")
         params["status"] = status
     
-    where_clause = " AND ".join(where_clauses)
+    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     
     result = await db.execute(
         text(f'''
@@ -134,7 +134,7 @@ async def get_logs(
                    input_text, output_text, model_name, metadata, latency_ms, token_count,
                    cost, status, error_message, timestamp
             FROM "{tenant}".evaluation_logs
-            WHERE {where_clause}
+            {where_clause}
             ORDER BY timestamp DESC
             LIMIT :limit OFFSET :offset
         '''),
@@ -182,10 +182,10 @@ async def get_log_count(
         where_clauses.append("status = :status")
         params["status"] = status
     
-    where_clause = " AND ".join(where_clauses)
+    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     
     result = await db.execute(
-        text(f'SELECT COUNT(*) as count FROM "{tenant}".evaluation_logs WHERE {where_clause}'),
+        text(f'SELECT COUNT(*) as count FROM "{tenant}".evaluation_logs {where_clause}'),
         params
     )
     
@@ -264,7 +264,7 @@ async def get_metric_aggregates(
         where_clauses.append("timestamp <= :end_date")
         params["end_date"] = end_date
     
-    where_clause = " AND ".join(where_clauses)
+    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     
     result = await db.execute(
         text(f'''
@@ -274,7 +274,7 @@ async def get_metric_aggregates(
                 MAX(value) as max,
                 COUNT(*) as count
             FROM "{tenant}".evaluation_metrics
-            WHERE {where_clause}
+            {where_clause}
         '''),
         params
     )
@@ -414,14 +414,14 @@ async def get_experiments(
         where_clauses.append("status = :status")
         params["status"] = status
 
-    where_clause = " AND ".join(where_clauses)
+    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
 
     result = await db.execute(
         text(f'''
             SELECT id, project_id, name, description, config, status,
                    results, created_at, updated_at, started_at, completed_at
             FROM "{tenant}".experiments
-            WHERE {where_clause}
+            {where_clause}
             ORDER BY created_at DESC
             LIMIT :limit OFFSET :offset
         '''),
@@ -461,10 +461,10 @@ async def get_experiment_count(
         where_clauses.append("project_id = :project_id")
         params["project_id"] = project_id
 
-    where_clause = " AND ".join(where_clauses)
+    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
 
     result = await db.execute(
-        text(f'SELECT COUNT(*) as count FROM "{tenant}".experiments WHERE {where_clause}'),
+        text(f'SELECT COUNT(*) as count FROM "{tenant}".experiments {where_clause}'),
         params
     )
 

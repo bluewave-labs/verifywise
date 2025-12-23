@@ -92,8 +92,14 @@ def upgrade() -> None:
                 turn_type VARCHAR(50) DEFAULT 'single-turn',
                 org_id VARCHAR(255) NOT NULL REFERENCES "{schema_name}".deepeval_organizations(id) ON DELETE CASCADE,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255)
             );
+        '''))
+        # Add created_by column if table already exists without it
+        op.execute(sa.text(f'''
+            ALTER TABLE "{schema_name}".deepeval_user_datasets 
+            ADD COLUMN IF NOT EXISTS created_by VARCHAR(255);
         '''))
         op.execute(sa.text(f'''
             CREATE INDEX IF NOT EXISTS idx_deepeval_user_datasets_org_id 

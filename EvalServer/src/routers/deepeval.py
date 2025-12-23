@@ -237,12 +237,15 @@ async def upload_dataset(
         "turnType": "single-turn"
     }
     """
+    # Extract user_id from headers for created_by tracking
+    user_id = request.headers.get("x-user-id")
     return await upload_deepeval_dataset_controller(
         dataset=dataset,
         tenant=request.headers["x-tenant-id"],
         org_id=org_id,
         dataset_type=dataset_type,
         turn_type=turn_type,
+        user_id=user_id,
     )
 
 @router.get("/datasets/list")
@@ -320,6 +323,11 @@ async def create_scorer_endpoint(request: Request, payload: dict = Body(...)):
     Create a new scorer definition.
     """
     tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    # Add user_id from headers if not already in payload
+    if "createdBy" not in payload:
+        user_id = request.headers.get("x-user-id")
+        if user_id:
+            payload["createdBy"] = user_id
     return await create_deepeval_scorer_controller(tenant=tenant, payload=payload)
 
 

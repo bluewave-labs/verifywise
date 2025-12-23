@@ -52,6 +52,11 @@ async def create_project(request: Request, project_data: dict = Body(...)):
         }
     }
     """
+    # Add user_id from headers if not in payload
+    if "createdBy" not in project_data:
+        user_id = request.headers.get("x-user-id")
+        if user_id:
+            project_data["createdBy"] = user_id
     return await create_project_controller(
         project_data=project_data,
         tenant=request.headers["x-tenant-id"]

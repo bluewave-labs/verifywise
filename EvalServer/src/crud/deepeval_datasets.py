@@ -17,16 +17,26 @@ async def create_user_dataset(
     prompt_count: int = 0,
     dataset_type: str = "chatbot",
     turn_type: str = "single-turn",
+    created_by: Optional[str] = None,
 ) -> Dict[str, Any]:
     res = await db.execute(
         text(
             f'''
-            INSERT INTO "{tenant}".deepeval_user_datasets (name, path, size, prompt_count, dataset_type, turn_type, org_id)
-            VALUES (:name, :path, :size, :prompt_count, :dataset_type, :turn_type, :org_id)
-            RETURNING id, name, path, size, prompt_count, dataset_type, turn_type, created_at;
+            INSERT INTO "{tenant}".deepeval_user_datasets (name, path, size, prompt_count, dataset_type, turn_type, org_id, created_by)
+            VALUES (:name, :path, :size, :prompt_count, :dataset_type, :turn_type, :org_id, :created_by)
+            RETURNING id, name, path, size, prompt_count, dataset_type, turn_type, created_at, created_by;
             '''
         ),
-        {"name": name, "path": path, "size": int(size), "prompt_count": int(prompt_count), "dataset_type": dataset_type, "turn_type": turn_type, "org_id": org_id},
+        {
+            "name": name,
+            "path": path,
+            "size": int(size),
+            "prompt_count": int(prompt_count),
+            "dataset_type": dataset_type,
+            "turn_type": turn_type,
+            "org_id": org_id,
+            "created_by": created_by,
+        },
     )
     row = res.mappings().first()
     return {
@@ -38,6 +48,7 @@ async def create_user_dataset(
         "datasetType": row["dataset_type"],
         "turnType": row["turn_type"],
         "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
+        "createdBy": row["created_by"],
     }
 
 
@@ -62,7 +73,7 @@ async def list_user_datasets(
     res = await db.execute(
         text(
             f'''
-            SELECT id, name, path, size, prompt_count, dataset_type, turn_type, org_id, created_at
+            SELECT id, name, path, size, prompt_count, dataset_type, turn_type, org_id, created_at, created_by
             FROM "{tenant}".deepeval_user_datasets
             {where_clause}
             ORDER BY created_at DESC;
@@ -83,6 +94,7 @@ async def list_user_datasets(
                 "turnType": r["turn_type"] if r["turn_type"] else None,
                 "orgId": r["org_id"],
                 "createdAt": r["created_at"].isoformat() if r["created_at"] else None,
+                "createdBy": r["created_by"],
             }
         )
     return items

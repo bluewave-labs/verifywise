@@ -33,6 +33,7 @@ import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_
 import { ReactComponent as OllamaLogo } from "../../assets/icons/ollama_logo.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
+import { ENV_VARs } from "../../../../env.vars";
 
 // Tab components
 import ProjectsList from "./ProjectsList";
@@ -1446,20 +1447,58 @@ export default function EvalsDashboard() {
                       Run models locally without API keys
                     </Typography>
                   </Box>
-                  <CustomizableButton
-                    variant="contained"
-                    text="Add local provider"
-                    icon={<PlusIcon size={16} />}
-                    onClick={() => setLocalProviderModalOpen(true)}
-                    sx={{
-                      backgroundColor: "#13715B",
-                      color: "#fff",
-                      "&:hover": { backgroundColor: "#0e5c47" },
-                    }}
-                  />
+                  {!ENV_VARs.IS_DEMO_APP && (
+                    <CustomizableButton
+                      variant="contained"
+                      text="Add local provider"
+                      icon={<PlusIcon size={16} />}
+                      onClick={() => setLocalProviderModalOpen(true)}
+                      sx={{
+                        backgroundColor: "#13715B",
+                        color: "#fff",
+                        "&:hover": { backgroundColor: "#0e5c47" },
+                      }}
+                    />
+                  )}
                 </Box>
 
-                {localProviders.length === 0 ? (
+                {ENV_VARs.IS_DEMO_APP ? (
+                  <Box
+                    sx={{
+                      border: "1px solid #E0E7FF",
+                      borderRadius: "8px",
+                      p: 3,
+                      backgroundColor: "#EEF2FF",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        backgroundColor: "#C7D2FE",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <OllamaLogo style={{ width: 18, height: 18 }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#3730A3", mb: 0.5 }}>
+                        Local providers are only available for self-hosted deployments
+                      </Typography>
+                      <Typography sx={{ fontSize: 13, color: "#4F46E5", lineHeight: 1.5 }}>
+                        To use Ollama or other local models, deploy VerifyWise on your own infrastructure. 
+                        Local providers require direct access to your machine's network which isn't possible on the hosted demo.
+                      </Typography>
+                    </Box>
+                  </Box>
+                ) : localProviders.length === 0 ? (
                   <Box
                     sx={{
                       border: "2px dashed #E5E7EB",

@@ -15,9 +15,12 @@ import {
   TablePagination,
   TableFooter,
   IconButton,
-  Tooltip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
-import { CirclePlus, Pencil, Trash2, FileSearch, MessageSquare, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { CirclePlus, Pencil, Trash2, FileSearch, MessageSquare, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
 import SelectableCard from "../../components/SelectableCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
@@ -43,11 +46,12 @@ type SortConfig = {
 };
 
 const columns = [
-  { id: "name", label: "Project name", minWidth: 200, sortable: true },
-  { id: "description", label: "Description", minWidth: 300, sortable: false },
+  { id: "name", label: "Project name", minWidth: 180, sortable: true },
+  { id: "useCase", label: "Use case", minWidth: 100, sortable: true },
+  { id: "description", label: "Description", minWidth: 250, sortable: false },
   { id: "runs", label: "Runs", minWidth: 80, sortable: true },
   { id: "created", label: "Created", minWidth: 120, sortable: true },
-  { id: "actions", label: "", minWidth: 80, sortable: false },
+  { id: "actions", label: "Action", minWidth: 60, sortable: false },
 ];
 
 export default function ProjectsList() {
@@ -114,6 +118,10 @@ export default function ProjectsList() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<DeepEvalProject | null>(null);
 
+  // Action menu state
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuProject, setMenuProject] = useState<DeepEvalProject | null>(null);
+
   const loadProjects = useCallback(async () => {
     try {
       const data = await deepEvalProjectsService.getAllProjects();
@@ -178,6 +186,10 @@ export default function ProjectsList() {
       case "name":
         aValue = a.name.toLowerCase();
         bValue = b.name.toLowerCase();
+        break;
+      case "useCase":
+        aValue = (a.useCase || "chatbot").toLowerCase();
+        bValue = (b.useCase || "chatbot").toLowerCase();
         break;
       case "runs":
         aValue = runsByProject[a.id] ?? 0;
@@ -256,16 +268,6 @@ export default function ProjectsList() {
     navigate(`/evals/${projectId}#overview`);
   };
 
-  const handleEditClick = (e: React.MouseEvent, project: DeepEvalProject) => {
-    e.stopPropagation();
-    setEditingProject(project);
-    setEditProjectData({
-      name: project.name,
-      description: project.description || "",
-    });
-    setEditModalOpen(true);
-  };
-
   const handleUpdateProject = async () => {
     if (!editingProject) return;
     setLoading(true);
@@ -288,12 +290,6 @@ export default function ProjectsList() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDeleteClick = (e: React.MouseEvent, project: DeepEvalProject) => {
-    e.stopPropagation();
-    setProjectToDelete(project);
-    setDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -327,6 +323,50 @@ export default function ProjectsList() {
     });
   };
 
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, project: DeepEvalProject) => {
+    event.stopPropagation();
+    setMenuAnchorEl(event.currentTarget);
+    setMenuProject(project);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+    setMenuProject(null);
+  };
+
+  const handleMenuEdit = () => {
+    if (menuProject) {
+      setEditingProject(menuProject);
+      setEditProjectData({
+        name: menuProject.name,
+        description: menuProject.description || "",
+      });
+      setEditModalOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const handleMenuDelete = () => {
+    if (menuProject) {
+      setProjectToDelete(menuProject);
+      setDeleteModalOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const getUseCaseLabel = (useCase: string | undefined) => {
+    switch (useCase) {
+      case "rag":
+        return "RAG";
+      case "chatbot":
+        return "Chatbot";
+      case "agent":
+        return "Agent";
+      default:
+        return "Chatbot";
+    }
+  };
+
   const getRange = () => {
     const start = page * rowsPerPage + 1;
     const end = Math.min(page * rowsPerPage + rowsPerPage, sortedProjects.length);
@@ -339,29 +379,34 @@ export default function ProjectsList() {
 
       {/* Header */}
       <Box sx={{ mb: 3 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={1}>
-            <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-              Projects
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+          <Box>
+            <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+              <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+                Projects
+              </Typography>
+              {projects.length > 0 && (
+                <Chip
+                  label={projects.length}
+                  size="small"
+                  sx={{
+                    backgroundColor: "#e0e0e0",
+                    color: "#424242",
+                    fontWeight: 600,
+                    fontSize: "11px",
+                    height: "20px",
+                    minWidth: "20px",
+                    borderRadius: "10px",
+                    "& .MuiChip-label": {
+                      padding: "0 6px",
+                    },
+                  }}
+                />
+              )}
+            </Box>
+            <Typography variant="body2" color="#6B7280" fontSize={13}>
+              Projects organize your LLM evaluations. Each project groups related experiments, datasets, and configurations for a specific use case.
             </Typography>
-            {projects.length > 0 && (
-              <Chip
-                label={projects.length}
-                size="small"
-                sx={{
-                  backgroundColor: "#e0e0e0",
-                  color: "#424242",
-                  fontWeight: 600,
-                  fontSize: "11px",
-                  height: "20px",
-                  minWidth: "20px",
-                  borderRadius: "10px",
-                  "& .MuiChip-label": {
-                    padding: "0 6px",
-                  },
-                }}
-              />
-            )}
           </Box>
 
           <CustomizableButton
@@ -373,6 +418,8 @@ export default function ProjectsList() {
               textTransform: "none",
               backgroundColor: "#13715B",
               "&:hover": { backgroundColor: "#0f5a47" },
+              flexShrink: 0,
+              ml: 2,
             }}
           >
             Create project
@@ -471,8 +518,32 @@ export default function ProjectsList() {
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
+                    }}
+                  >
+                    <Chip
+                      size="small"
+                      icon={project.useCase === "rag" ? <FileSearch size={12} /> : <MessageSquare size={12} />}
+                      label={getUseCaseLabel(project.useCase)}
+                      sx={{
+                        backgroundColor: project.useCase === "rag" ? "#E0F2FE" : "#F0FDF4",
+                        color: project.useCase === "rag" ? "#0369A1" : "#166534",
+                        fontWeight: 500,
+                        fontSize: "12px",
+                        height: "24px",
+                        borderRadius: "4px",
+                        "& .MuiChip-icon": {
+                          color: "inherit",
+                          marginLeft: "8px",
+                        },
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      fontSize: "13px",
                       color: "#6B7280",
-                      maxWidth: 300,
+                      maxWidth: 250,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -515,42 +586,20 @@ export default function ProjectsList() {
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Box sx={{ display: "flex", gap: 0.5 }}>
-                      {canEditProject && (
-                        <Tooltip title="Edit project">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleEditClick(e, project)}
-                            sx={{
-                              color: "#6B7280",
-                              "&:hover": {
-                                color: "#13715B",
-                                backgroundColor: "rgba(19, 113, 91, 0.1)",
-                              },
-                            }}
-                          >
-                            <Pencil size={16} />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      {canDeleteProject && (
-                        <Tooltip title="Delete project">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleDeleteClick(e, project)}
-                            sx={{
-                              color: "#6B7280",
-                              "&:hover": {
-                                color: "#D32F2F",
-                                backgroundColor: "rgba(211, 47, 47, 0.1)",
-                              },
-                            }}
-                          >
-                            <Trash2 size={16} />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Box>
+                    {(canEditProject || canDeleteProject) && (
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuOpen(e, project)}
+                        sx={{
+                          color: "#6B7280",
+                          "&:hover": {
+                            backgroundColor: "rgba(0, 0, 0, 0.04)",
+                          },
+                        }}
+                      >
+                        <MoreVertical size={18} />
+                      </IconButton>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -571,7 +620,7 @@ export default function ProjectsList() {
                     opacity: 0.7,
                     color: theme.palette.text.tertiary,
                   }}
-                  colSpan={2}
+                  colSpan={3}
                 >
                   Showing {getRange()} of {sortedProjects.length} project(s)
                 </TableCell>
@@ -638,6 +687,47 @@ export default function ProjectsList() {
           </Table>
         </TableContainer>
       )}
+
+      {/* Action Menu */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+        onClick={(e) => e.stopPropagation()}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        PaperProps={{
+          sx: {
+            minWidth: 140,
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            borderRadius: "8px",
+            border: "1px solid #E5E7EB",
+          },
+        }}
+      >
+        {canEditProject && (
+          <MenuItem onClick={handleMenuEdit} sx={{ fontSize: "13px", py: 1 }}>
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <Pencil size={16} color="#6B7280" />
+            </ListItemIcon>
+            <ListItemText primary="Edit" primaryTypographyProps={{ fontSize: "13px" }} />
+          </MenuItem>
+        )}
+        {canDeleteProject && (
+          <MenuItem onClick={handleMenuDelete} sx={{ fontSize: "13px", py: 1, color: "#DC2626" }}>
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <Trash2 size={16} color="#DC2626" />
+            </ListItemIcon>
+            <ListItemText primary="Delete" primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }} />
+          </MenuItem>
+        )}
+      </Menu>
 
       {/* Create Project Modal */}
       <StandardModal

@@ -46,6 +46,7 @@ interface NewExperimentModalProps {
   isOpen: boolean;
   onClose: () => void;
   projectId: string;
+  orgId?: string | null;
   onSuccess: () => void;
   onStarted?: (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => void;
 }
@@ -56,6 +57,7 @@ export default function NewExperimentModal({
   isOpen,
   onClose,
   projectId,
+  orgId,
   onSuccess,
   onStarted,
 }: NewExperimentModalProps) {
@@ -326,7 +328,7 @@ export default function NewExperimentModal({
     (async () => {
       try {
         setLoadingScorers(true);
-        const res = await deepEvalScorersService.list({ project_id: projectId });
+        const res = await deepEvalScorersService.list({ org_id: orgId || undefined });
         const enabledScorers = (res.scorers || []).filter((s) => s.enabled);
         setUserScorers(enabledScorers);
         // If user has scorers, default to scorer mode
@@ -339,7 +341,7 @@ export default function NewExperimentModal({
         setLoadingScorers(false);
       }
     })();
-  }, [activeStep, projectId]);
+  }, [activeStep, orgId]);
 
   // Keep selectedScorer in sync with first selectedScorerId for backward compatibility
   useEffect(() => {
@@ -545,8 +547,8 @@ export default function NewExperimentModal({
       setAlert({
         show: true,
         variant: "success",
-        title: "Eval Created!",
-        body: `Your evaluation has been created and is now running. Eval ID: ${response.experiment?.id || "N/A"}`,
+        title: "Experiment Created!",
+        body: `Your experiment has been created and is now running. Experiment ID: ${response.experiment?.id || "N/A"}`,
       });
       
       // Close modal after a short delay to let user see the success message
@@ -560,7 +562,7 @@ export default function NewExperimentModal({
       console.error("Failed to create experiment:", err);
       
       // Extract error message
-      let errorMessage = "Failed to create eval. Please try again.";
+      let errorMessage = "Failed to create experiment. Please try again.";
       if (err instanceof Error) {
         errorMessage = err.message;
       } else if (typeof err === "object" && err !== null && "response" in err) {
@@ -1088,7 +1090,7 @@ export default function NewExperimentModal({
                             setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with prompts that have actual content." });
                             return;
                           }
-                          const resp = await deepEvalDatasetsService.uploadDataset(file);
+                          const resp = await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
                     const newDataset = { id: resp.path, name: file.name.replace(/\.json$/i, ""), path: resp.path, promptCount: validPromptCount };
                     setUserDatasets((prev) => [newDataset, ...prev]);
                     setSelectedUserDataset(newDataset);
@@ -2092,7 +2094,7 @@ export default function NewExperimentModal({
           resetForm();
           setAlert(null);
         }}
-        title="Create new eval"
+        title="Create new experiment"
         steps={steps}
         activeStep={activeStep}
         onNext={handleNext}
@@ -2100,7 +2102,7 @@ export default function NewExperimentModal({
         onSubmit={handleSubmit}
         isSubmitting={loading}
         canProceed={canProceed}
-        submitButtonText="Start Eval"
+        submitButtonText="Start Experiment"
         maxWidth="700px"
       >
         {renderStepContent()}

@@ -24,6 +24,7 @@ import allowedRoles from "../../../application/constants/permissions";
 
 interface ProjectOverviewProps {
   projectId: string;
+  orgId?: string | null;
   project: DeepEvalProject | null;
   onProjectUpdate: (project: DeepEvalProject) => void;
   onViewExperiment?: (experimentId: string) => void;
@@ -138,6 +139,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
 
 export default function ProjectOverview({
   projectId,
+  orgId,
   project,
   onProjectUpdate,
   onViewExperiment,
@@ -510,6 +512,7 @@ export default function ProjectOverview({
         isOpen={newExperimentModalOpen}
         onClose={() => setNewExperimentModalOpen(false)}
         projectId={projectId}
+        orgId={orgId}
         onSuccess={handleExperimentSuccess}
       />
     </Box>

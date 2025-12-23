@@ -33,6 +33,7 @@ import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_
 import { ReactComponent as OllamaLogo } from "../../assets/icons/ollama_logo.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
+import { ENV_VARs } from "../../../../env.vars";
 
 // Tab components
 import ProjectsList from "./ProjectsList";
@@ -48,7 +49,7 @@ const LLM_PROVIDERS = [
   { _id: "openrouter", name: "OpenRouter", Logo: OpenRouterLogo },
   { _id: "openai", name: "OpenAI", Logo: OpenAILogo },
   { _id: "anthropic", name: "Anthropic", Logo: AnthropicLogo },
-  { _id: "google", name: "Google (Gemini)", Logo: GeminiLogo },
+  { _id: "google", name: "Gemini", Logo: GeminiLogo },
   { _id: "xai", name: "xAI", Logo: XAILogo },
   { _id: "mistral", name: "Mistral", Logo: MistralLogo },
   { _id: "huggingface", name: "Hugging Face", Logo: HuggingFaceLogo },
@@ -640,7 +641,7 @@ export default function EvalsDashboard() {
         setDatasetsCount(userDatasetsData.datasets?.length || 0);
 
         // Load scorers count
-        const scorersData = await deepEvalScorersService.list({ project_id: projectId });
+        const scorersData = await deepEvalScorersService.list({ org_id: orgId || undefined });
         setScorersCount(scorersData.scorers?.length || 0);
       } catch (err) {
         console.error("Failed to load counts:", err);
@@ -650,14 +651,14 @@ export default function EvalsDashboard() {
     };
 
     loadCounts();
-  }, [projectId, currentProject]);
+  }, [projectId, currentProject, orgId]);
 
   // Sync sidebar counts and callbacks with context (not activeTab - that's handled via URL)
   useEffect(() => {
     sidebarContext.setExperimentsCount(experimentsCount);
     sidebarContext.setDatasetsCount(datasetsCount);
     sidebarContext.setScorersCount(scorersCount);
-    sidebarContext.setDisabled(!projectId);
+    sidebarContext.setDisabled(!projectId && !currentProject);
     sidebarContext.setRecentExperiments(recentExperiments);
     sidebarContext.setRecentProjects(recentProjects);
     sidebarContext.setCurrentProject(currentProject);
@@ -921,6 +922,92 @@ export default function EvalsDashboard() {
     }
   };
 
+  // Verify API key by making a real API call to the provider
+  const verifyApiKey = async (provider: string, apiKey: string): Promise<{ valid: boolean; error?: string }> => {
+    try {
+      const endpoints: Record<string, { url: string; headers: Record<string, string>; method?: string }> = {
+        openai: {
+          url: "https://api.openai.com/v1/models",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+        anthropic: {
+          url: "https://api.anthropic.com/v1/models",
+          headers: { 
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+          },
+        },
+        google: {
+          url: `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`,
+          headers: {},
+        },
+        xai: {
+          url: "https://api.x.ai/v1/models",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+        mistral: {
+          url: "https://api.mistral.ai/v1/models",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+        huggingface: {
+          url: "https://huggingface.co/api/whoami",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+        openrouter: {
+          url: "https://openrouter.ai/api/v1/auth/key",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+      };
+
+      const config = endpoints[provider];
+      if (!config) {
+        // For custom/unknown providers, skip verification
+        return { valid: true };
+      }
+
+      const response = await fetch(config.url, {
+        method: config.method || "GET",
+        headers: {
+          ...config.headers,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        return { valid: true };
+      } else if (response.status === 401 || response.status === 403) {
+        return { valid: false, error: "Invalid API key - authentication failed" };
+      } else if (response.status === 400) {
+        // 400 often means invalid API key format or key doesn't exist
+        // Parse response to get specific error message
+        try {
+          const data = await response.json();
+          const errorMsg = data?.error?.message || data?.message || "Invalid API key";
+          console.warn(`API key verification failed with 400:`, errorMsg);
+          return { valid: false, error: errorMsg };
+        } catch {
+          return { valid: false, error: "Invalid API key - bad request" };
+        }
+      } else if (response.status === 429) {
+        // Rate limited - key might be valid, let it through
+        console.warn("API key verification rate limited, assuming valid");
+        return { valid: true };
+      } else {
+        // Other errors (5xx, etc) - give benefit of doubt
+        const text = await response.text();
+        console.warn(`API key verification got status ${response.status}:`, text);
+        return { valid: true };
+      }
+    } catch (err) {
+      console.error("API key verification error:", err);
+      // Network errors (CORS, etc) - can't verify, assume valid
+      return { valid: true };
+    }
+  };
+
+  // State for verification
+  const [verifyingApiKey, setVerifyingApiKey] = useState(false);
+
   // Handle API key modal submission
   const handleAddApiKey = async () => {
     if (!selectedProvider || !newApiKey.trim()) {
@@ -944,7 +1031,25 @@ export default function EvalsDashboard() {
       return;
     }
 
+    // Verify the API key actually works
+    setVerifyingApiKey(true);
+    setApiKeyAlert(null); // Clear any previous alerts
+
+    const verification = await verifyApiKey(selectedProvider, newApiKey);
+    setVerifyingApiKey(false);
+
+    if (!verification.valid) {
+      setApiKeyError(verification.error || "Invalid API key");
+      setApiKeyAlert({
+        variant: "error",
+        body: verification.error || "Invalid API key - please check and try again",
+      });
+      setTimeout(() => setApiKeyAlert(null), 5000);
+      return;
+    }
+
     setApiKeySaving(true);
+
     try {
       const response = await CustomAxios.post('/evaluation-llm-keys', {
         provider: selectedProvider,
@@ -957,7 +1062,7 @@ export default function EvalsDashboard() {
 
       setApiKeyAlert({
         variant: "success",
-        body: "API key added successfully",
+        body: "API key verified and saved successfully",
       });
       // Refresh the keys list
       await fetchLlmApiKeys();
@@ -1357,20 +1462,58 @@ export default function EvalsDashboard() {
                       Run models locally without API keys
                     </Typography>
                   </Box>
-                  <CustomizableButton
-                    variant="contained"
-                    text="Add local provider"
-                    icon={<PlusIcon size={16} />}
-                    onClick={() => setLocalProviderModalOpen(true)}
-                    sx={{
-                      backgroundColor: "#13715B",
-                      color: "#fff",
-                      "&:hover": { backgroundColor: "#0e5c47" },
-                    }}
-                  />
+                  {!ENV_VARs.IS_DEMO_APP && (
+                    <CustomizableButton
+                      variant="contained"
+                      text="Add local provider"
+                      icon={<PlusIcon size={16} />}
+                      onClick={() => setLocalProviderModalOpen(true)}
+                      sx={{
+                        backgroundColor: "#13715B",
+                        color: "#fff",
+                        "&:hover": { backgroundColor: "#0e5c47" },
+                      }}
+                    />
+                  )}
                 </Box>
 
-                {localProviders.length === 0 ? (
+                {ENV_VARs.IS_DEMO_APP ? (
+                  <Box
+                    sx={{
+                      border: "1px solid #E0E7FF",
+                      borderRadius: "8px",
+                      p: 3,
+                      backgroundColor: "#EEF2FF",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        backgroundColor: "#C7D2FE",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <OllamaLogo style={{ width: 18, height: 18 }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#3730A3", mb: 0.5 }}>
+                        Local providers are only available for self-hosted deployments
+                      </Typography>
+                      <Typography sx={{ fontSize: 13, color: "#4F46E5", lineHeight: 1.5 }}>
+                        To use Ollama or other local models, deploy VerifyWise on your own infrastructure. 
+                        Local providers require direct access to your machine's network which isn't possible on the hosted demo.
+                      </Typography>
+                    </Box>
+                  </Box>
+                ) : localProviders.length === 0 ? (
                   <Box
                     sx={{
                       border: "2px dashed #E5E7EB",
@@ -1480,6 +1623,7 @@ export default function EvalsDashboard() {
               {tab === "overview" && (
                 <ProjectOverview
                   projectId={projectId}
+                  orgId={orgId}
                   project={currentProject}
                   onProjectUpdate={setCurrentProject}
                   onViewExperiment={(experimentId) => {
@@ -1500,17 +1644,18 @@ export default function EvalsDashboard() {
                 ) : (
                   <ProjectExperiments
                     projectId={projectId}
+                    orgId={orgId}
                     onViewExperiment={(experimentId) => setSelectedExperimentId(experimentId)}
                   />
                 )
               )}
 
               {tab === "datasets" && (
-                <ProjectDatasets projectId={projectId} />
+                <ProjectDatasets projectId={projectId} orgId={orgId} />
               )}
 
               {tab === "scorers" && projectId && (
-                <ProjectScorers projectId={projectId} />
+                <ProjectScorers projectId={projectId} orgId={orgId} />
               )}
 
               {tab === "configuration" && (
@@ -1743,8 +1888,8 @@ export default function EvalsDashboard() {
         title="Add API key"
         description="Configure API keys for LLM providers to run evaluations. Your keys are encrypted and stored securely."
         onSubmit={handleAddApiKey}
-        submitButtonText={apiKeySaving ? "Adding..." : "Add API key"}
-        isSubmitting={apiKeySaving || !selectedProvider || !newApiKey.trim() || !!apiKeyError}
+        submitButtonText={verifyingApiKey ? "Verifying..." : apiKeySaving ? "Saving..." : "Add API key"}
+        isSubmitting={verifyingApiKey || apiKeySaving || !selectedProvider || !newApiKey.trim() || !!apiKeyError}
       >
         <Stack spacing={3}>
           {/* Provider Selection Grid - show ALL providers */}

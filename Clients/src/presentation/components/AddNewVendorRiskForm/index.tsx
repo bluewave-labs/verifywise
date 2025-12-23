@@ -50,7 +50,7 @@ interface ApiResponse {
 
 // Constants
 const VALIDATION_LIMITS = {
-  RISK_NAME: { MIN: 1, MAX: 64 },
+  RISK_NAME: { MIN: 1, MAX: 255 },
   DESCRIPTION: { MIN: 1, MAX: 256 },
   REVIEW_DATE: { MIN: 1 },
 } as const;

@@ -1,7 +1,7 @@
 import {
   Assessments,
   Controls,
-} from "../../application/hooks/useProjectStatus";
+} from "../types/projectStatus.types";
 import { Project } from "../types/Project";
 import { ProjectRiskMitigation } from "../types/ProjectRisk";
 

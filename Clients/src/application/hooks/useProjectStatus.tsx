@@ -1,79 +1,10 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { getProjectProgressData } from "../repository/project.repository";
-
-/**
- * Represents the status of a project, including assessments and controls.
- *
- * @interface ProjectStatus
- * @property {Assessments} assessments - The assessments associated with the project.
- * @property {Controls} controls - The controls associated with the project.
- */
-
-export interface AssessmentsProject {
-  projectId: number;
-  totalAssessments: number;
-  doneAssessments: number;
-}
-
-export interface ControlsProject {
-  projectId: number;
-  totalSubControls: number;
-  doneSubControls: number;
-}
-
-export interface Assessments {
-  percentageComplete: number;
-  allDoneAssessments: number;
-  allTotalAssessments: number;
-  projects?: AssessmentsProject[];
-}
-
-export interface Controls {
-  percentageComplete: number;
-  allDoneSubControls: number;
-  allTotalSubControls: number;
-  projects?: ControlsProject[];
-}
-
-export interface MetricSectionProps {
-  title: string;
-  metricType?: "compliance" | "risk";
-  assessments: Assessments;
-  controls: Controls;
-}
-
-export interface ProjectStatus {
-  assessments: Assessments;
-  controls: Controls;
-}
-
-// const defaultControlsProject: ControlsProject = {
-//   projectId: 1,
-//   totalSubControls: 1,
-//   doneSubControls: 0,
-// };
-
-// const defaultAssessmentsProject: AssessmentsProject = {
-//   projectId: 1,
-//   totalAssessments: 1,
-//   doneAssessments: 0,
-// };
-
-export const defaultProjectStatus: ProjectStatus = {
-  assessments: {
-    percentageComplete: 0,
-    allDoneAssessments: 0,
-    // projects: [defaultAssessmentsProject],
-    allTotalAssessments: 0,
-  },
-  controls: {
-    percentageComplete: 0,
-    allDoneSubControls: 0,
-    allTotalSubControls: 0,
-    // projects: [defaultControlsProject],
-  },
-};
+import {
+  ProjectStatus,
+  defaultProjectStatus,
+} from "../../domain/types/projectStatus.types";
 
 const useProjectStatus = ({ userId }: { userId: number | null }) => {
   const [projectStatus, setProjectStatus] = useState<ProjectStatus>(defaultProjectStatus);

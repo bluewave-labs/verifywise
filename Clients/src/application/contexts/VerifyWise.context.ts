@@ -1,5 +1,5 @@
 import React, { createContext } from "react";
-import { defaultProjectStatus, ProjectStatus } from "../hooks/useProjectStatus";
+import { defaultProjectStatus, ProjectStatus } from "../../domain/types/projectStatus.types";
 import { Project } from "../../domain/types/Project";
 import { ComponentVisible } from "../../application/interfaces/ComponentVisible";
 import { User } from "../../domain/types/User";

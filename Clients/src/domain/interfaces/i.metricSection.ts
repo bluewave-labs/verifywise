@@ -1,6 +1,4 @@
-import { Assessments } from "../../application/hooks/useProjectStatus";
-
-import { Controls } from "../../application/hooks/useProjectStatus";
+import { Assessments, Controls } from "../types/projectStatus.types";
 
 export interface MetricSectionProps {
   title: string;

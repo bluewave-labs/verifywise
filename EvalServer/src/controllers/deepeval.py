@@ -33,6 +33,57 @@ from crud.deepeval_scorers import (
 )
 from utils.run_custom_scorer import run_custom_scorer
 
+METRICS = [
+    {
+        "name": "answer_relevancy",
+        "display_name": "Answer Relevancy",
+        "description": "Measures if the answer is relevant to the input",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "faithfulness",
+        "display_name": "Faithfulness",
+        "description": "Checks if the answer is faithful to the provided context",
+        "requires_context": True,
+        "requires_openai_key": True,
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "contextual_relevancy",
+        "display_name": "Contextual Relevancy",
+        "description": "Evaluates if the context is relevant to the input",
+        "requires_context": True,
+        "requires_openai_key": True,
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "hallucination",
+        "display_name": "Hallucination Detection",
+        "description": "Detects hallucinations or fabricated information in the output",
+        "requires_context": True,
+        "requires_openai_key": True,
+        "score_interpretation": "Lower is better (0.0 - 1.0)"
+    },
+    {
+        "name": "bias",
+        "display_name": "Bias Detection",
+        "description": "Identifies potential biases in responses",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "score_interpretation": "Lower is better (0.0 - 1.0)"
+    },
+    {
+        "name": "toxicity",
+        "display_name": "Toxicity Detection",
+        "description": "Detects toxic or harmful content",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "score_interpretation": "Lower is better (0.0 - 1.0)"
+    }
+]
+
 
 # In-memory storage for evaluation results (can be replaced with database)
 DEEPEVAL_RESULTS = {}
@@ -454,7 +505,7 @@ async def delete_deepeval_evaluation_controller(
             "eval_id": eval_id
         }
     )
-
+  
 
 async def get_available_deepeval_metrics_controller() -> JSONResponse:
     """
@@ -463,60 +514,11 @@ async def get_available_deepeval_metrics_controller() -> JSONResponse:
     Returns:
         JSONResponse with available metrics
     """
-    metrics = [
-        {
-            "name": "answer_relevancy",
-            "display_name": "Answer Relevancy",
-            "description": "Measures if the answer is relevant to the input",
-            "requires_context": False,
-            "requires_openai_key": True,
-            "score_interpretation": "Higher is better (0.0 - 1.0)"
-        },
-        {
-            "name": "faithfulness",
-            "display_name": "Faithfulness",
-            "description": "Checks if the answer is faithful to the provided context",
-            "requires_context": True,
-            "requires_openai_key": True,
-            "score_interpretation": "Higher is better (0.0 - 1.0)"
-        },
-        {
-            "name": "contextual_relevancy",
-            "display_name": "Contextual Relevancy",
-            "description": "Evaluates if the context is relevant to the input",
-            "requires_context": True,
-            "requires_openai_key": True,
-            "score_interpretation": "Higher is better (0.0 - 1.0)"
-        },
-        {
-            "name": "hallucination",
-            "display_name": "Hallucination Detection",
-            "description": "Detects hallucinations or fabricated information in the output",
-            "requires_context": True,
-            "requires_openai_key": True,
-            "score_interpretation": "Lower is better (0.0 - 1.0)"
-        },
-        {
-            "name": "bias",
-            "display_name": "Bias Detection",
-            "description": "Identifies potential biases in responses",
-            "requires_context": False,
-            "requires_openai_key": True,
-            "score_interpretation": "Lower is better (0.0 - 1.0)"
-        },
-        {
-            "name": "toxicity",
-            "display_name": "Toxicity Detection",
-            "description": "Detects toxic or harmful content",
-            "requires_context": False,
-            "requires_openai_key": True,
-            "score_interpretation": "Lower is better (0.0 - 1.0)"
-        }
-    ]
-    
+    global METRICS
+
     return JSONResponse(
         status_code=200,
-        content={"metrics": metrics}
+        content={"metrics": METRICS}
     )
 
 
@@ -570,6 +572,7 @@ async def get_evaluation_dataset_info_controller() -> JSONResponse:
 async def upload_deepeval_dataset_controller(
     dataset: UploadFile,
     tenant: str,
+    org_id: str,
     dataset_type: str = "chatbot",
     turn_type: str = "single-turn",
 ) -> JSONResponse:
@@ -673,7 +676,8 @@ async def upload_deepeval_dataset_controller(
                     size=len(content_bytes),
                     prompt_count=prompt_count,
                     dataset_type=dataset_type,
-                    turn_type=turn_type
+                    turn_type=turn_type,
+                    org_id=org_id
                 )
                 await db.commit()
         except Exception:
@@ -920,14 +924,14 @@ async def delete_user_datasets_controller(tenant: str, paths: list[str]) -> JSON
 
 async def list_deepeval_scorers_controller(
     tenant: str,
-    project_id: Optional[str] = None,
+    org_id: Optional[str] = None,
 ) -> JSONResponse:
     """
     List scorer definitions for the current tenant (optionally filtered by project).
     """
     try:
         async with get_db() as db:
-            items = await list_scorers(tenant=tenant, db=db, project_id=project_id)
+            items = await list_scorers(tenant=tenant, db=db, org_id=org_id)
             return JSONResponse(status_code=200, content={"scorers": items})
     except Exception as e:
         error_str = str(e).lower()
@@ -962,7 +966,7 @@ async def create_deepeval_scorer_controller(
     from uuid import uuid4
 
     scorer_id = payload.get("id") or f"scorer_{uuid4().hex}"
-    project_id = payload.get("projectId")
+    org_id = payload.get("orgId")
     name = payload.get("name")
     scorer_type = payload.get("type") or "llm"
     metric_key = payload.get("metricKey")
@@ -981,7 +985,7 @@ async def create_deepeval_scorer_controller(
         async with get_db() as db:
             created = await create_scorer(
                 scorer_id=scorer_id,
-                project_id=project_id,
+                org_id=org_id,
                 name=name,
                 description=description,
                 scorer_type=scorer_type,

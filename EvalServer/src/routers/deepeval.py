@@ -75,7 +75,7 @@ async def create_deepeval_evaluation(
     return await create_deepeval_evaluation_controller(
         background_tasks=background_tasks,
         config_data=config_data,
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        tenant=request.headers["x-tenant-id"]
     )
 
 
@@ -221,6 +221,7 @@ async def upload_dataset(
     dataset: UploadFile = File(...),
     dataset_type: str = Form("chatbot"),
     turn_type: str = Form("single-turn"),
+    org_id: str = Form()
 ):
     """
     Upload a custom JSON dataset to be used in evaluations.
@@ -238,7 +239,8 @@ async def upload_dataset(
     """
     return await upload_deepeval_dataset_controller(
         dataset=dataset,
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")),
+        tenant=request.headers["x-tenant-id"],
+        org_id=org_id,
         dataset_type=dataset_type,
         turn_type=turn_type,
     )
@@ -303,12 +305,12 @@ async def delete_user_datasets(request: Request):
 # ==================== SCORERS ====================
 
 @router.get("/scorers")
-async def list_scorers_endpoint(request: Request, project_id: str | None = None):
+async def list_scorers_endpoint(request: Request, org_id: str | None = None):
     """
     List scorer definitions for the current tenant (optionally for a single project).
     """
     tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
-    return await list_deepeval_scorers_controller(tenant=tenant, project_id=project_id)
+    return await list_deepeval_scorers_controller(tenant=tenant, org_id=org_id)
 
 
 @router.post("/scorers")

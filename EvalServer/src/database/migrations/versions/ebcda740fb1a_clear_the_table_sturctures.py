@@ -9,12 +9,12 @@ from typing import Sequence, Union, List
 import os
 from alembic import op
 import sqlalchemy as sa
-from util import _discover_tenant_schemas
+from database.migrations.util import _discover_tenant_schemas
 
 
 # revision identifiers, used by Alembic.
 revision: str = 'ebcda740fb1a'
-down_revision: Union[str, None] = '20251220_cleanup_public'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

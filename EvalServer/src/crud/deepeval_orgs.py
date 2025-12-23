@@ -47,7 +47,7 @@ async def create_org(
 
 async def get_all_orgs(tenant: str, db: AsyncSession) -> List[Dict[str, Any]]:
     res = await db.execute(
-        text(f'SELECT id, name, created_at FROM "{tenant}".deepeval_organizations WHERE ORDER BY created_at DESC')
+        text(f'SELECT id, name, created_at FROM "{tenant}".deepeval_organizations ORDER BY created_at DESC')
     )
     orgs: List[Dict[str, Any]] = []
     for row in res.mappings().all():

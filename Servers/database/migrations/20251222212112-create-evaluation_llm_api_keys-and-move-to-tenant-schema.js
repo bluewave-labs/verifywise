@@ -40,7 +40,7 @@ module.exports = {
 
         // Create trigger on evaluation_llm_api_keys table
         await queryInterface.sequelize.query(`
-          CREATE TRIGGER "${tenantHash}".trg_update_evaluation_llm_api_keys_updated_at
+          CREATE TRIGGER trg_${tenantHash}_update_evaluation_llm_api_keys_updated_at
           BEFORE UPDATE ON "${tenantHash}".evaluation_llm_api_keys
           FOR EACH ROW EXECUTE PROCEDURE update_evaluation_llm_api_keys_updated_at();
         `, { transaction });

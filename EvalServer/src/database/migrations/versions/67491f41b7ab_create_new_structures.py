@@ -9,7 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-from util import _discover_tenant_schemas
+from database.migrations.util import _discover_tenant_schemas
 
 
 # revision identifiers, used by Alembic.

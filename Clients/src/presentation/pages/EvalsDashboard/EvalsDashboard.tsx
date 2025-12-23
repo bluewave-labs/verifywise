@@ -657,7 +657,7 @@ export default function EvalsDashboard() {
     sidebarContext.setExperimentsCount(experimentsCount);
     sidebarContext.setDatasetsCount(datasetsCount);
     sidebarContext.setScorersCount(scorersCount);
-    sidebarContext.setDisabled(!projectId);
+    sidebarContext.setDisabled(!projectId && !currentProject);
     sidebarContext.setRecentExperiments(recentExperiments);
     sidebarContext.setRecentProjects(recentProjects);
     sidebarContext.setCurrentProject(currentProject);

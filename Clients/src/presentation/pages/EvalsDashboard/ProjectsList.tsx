@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -20,7 +20,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import { CirclePlus, Pencil, Trash2, FileSearch, MessageSquare, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, FileSearch, MessageSquare, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
 import SelectableCard from "../../components/SelectableCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
@@ -29,6 +29,10 @@ import Alert from "../../components/Alert";
 import EmptyState from "../../components/EmptyState";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import TablePaginationActions from "../../components/TablePagination";
+import SearchBox from "../../components/Search/SearchBox";
+import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -46,12 +50,12 @@ type SortConfig = {
 };
 
 const columns = [
-  { id: "name", label: "Project name", minWidth: 180, sortable: true },
-  { id: "useCase", label: "Use case", minWidth: 100, sortable: true },
-  { id: "description", label: "Description", minWidth: 250, sortable: false },
-  { id: "runs", label: "Runs", minWidth: 80, sortable: true },
-  { id: "created", label: "Created", minWidth: 120, sortable: true },
-  { id: "actions", label: "Action", minWidth: 60, sortable: false },
+  { id: "name", label: "Name", minWidth: 180, sortable: true, align: "left" as const },
+  { id: "useCase", label: "Use case", minWidth: 120, sortable: true, align: "center" as const },
+  { id: "description", label: "Description", minWidth: 200, sortable: false, align: "center" as const },
+  { id: "runs", label: "Runs", minWidth: 100, sortable: true, align: "center" as const },
+  { id: "created", label: "Created", minWidth: 140, sortable: true, align: "center" as const },
+  { id: "actions", label: "Action", minWidth: 80, sortable: false, align: "center" as const },
 ];
 
 export default function ProjectsList() {
@@ -100,6 +104,47 @@ export default function ProjectsList() {
   const canCreateProject = allowedRoles.evals.createProject.includes(userRoleName);
   const canEditProject = allowedRoles.evals.editProject.includes(userRoleName);
   const canDeleteProject = allowedRoles.evals.deleteProject.includes(userRoleName);
+
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filterColumns: FilterColumn[] = [
+    { id: "name", label: "Project name", type: "text" },
+    { id: "useCase", label: "Use case", type: "select", options: [
+      { label: "Chatbot", value: "chatbot" },
+      { label: "RAG", value: "rag" },
+      { label: "Agent", value: "agent" },
+    ]},
+  ];
+
+  const getFieldValue = useCallback(
+    (project: DeepEvalProject, field: string): string => {
+      switch (field) {
+        case "name":
+          return project.name;
+        case "useCase":
+          return project.useCase || "";
+        default:
+          return "";
+      }
+    },
+    []
+  );
+
+  const { filterData, handleFilterChange } = useFilterBy<DeepEvalProject>(getFieldValue);
+
+  const filteredProjects = useMemo(() => {
+    const afterFilter = filterData(projects);
+    if (!searchTerm.trim()) return afterFilter;
+    const q = searchTerm.toLowerCase();
+    return afterFilter.filter((p) =>
+      [p.name, p.description, p.useCase]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [projects, filterData, searchTerm]);
 
   const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({
     name: "",
@@ -175,8 +220,8 @@ export default function ProjectsList() {
     });
   }, []);
 
-  // Sort projects
-  const sortedProjects = [...projects].sort((a, b) => {
+  // Sort projects (uses filtered results)
+  const sortedProjects = [...filteredProjects].sort((a, b) => {
     if (!sortConfig.key || !sortConfig.direction) return 0;
 
     let aValue: string | number;
@@ -377,60 +422,82 @@ export default function ProjectsList() {
     <>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
-          <Box>
-            <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-              <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-                Projects
-              </Typography>
-              {projects.length > 0 && (
-                <Chip
-                  label={projects.length}
-                  size="small"
-                  sx={{
-                    backgroundColor: "#e0e0e0",
-                    color: "#424242",
-                    fontWeight: 600,
-                    fontSize: "11px",
-                    height: "20px",
-                    minWidth: "20px",
-                    borderRadius: "10px",
-                    "& .MuiChip-label": {
-                      padding: "0 6px",
-                    },
-                  }}
-                />
-              )}
-            </Box>
-            <Typography variant="body2" color="#6B7280" fontSize={13}>
-              Projects organize your LLM evaluations. Each project groups related experiments, datasets, and configurations for a specific use case.
-            </Typography>
-          </Box>
+      {/* Header + description */}
+      <Stack spacing={1} mb={6}>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Projects
+          </Typography>
+          {projects.length > 0 && (
+            <Chip
+              label={projects.length}
+              size="small"
+              sx={{
+                backgroundColor: "#e0e0e0",
+                color: "#424242",
+                fontWeight: 600,
+                fontSize: "11px",
+                height: "20px",
+                minWidth: "20px",
+                borderRadius: "10px",
+                "& .MuiChip-label": {
+                  padding: "0 6px",
+                },
+              }}
+            />
+          )}
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Projects organize your LLM evaluations. Each project groups related experiments, datasets, and configurations for a specific use case.
+        </Typography>
+      </Stack>
 
-          <CustomizableButton
-            onClick={() => setCreateModalOpen(true)}
-            variant="contained"
-            startIcon={<CirclePlus size={20} />}
-            isDisabled={!canCreateProject}
-            sx={{
-              textTransform: "none",
-              backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "#0f5a47" },
-              flexShrink: 0,
-              ml: 2,
-            }}
-          >
-            Create project
-          </CustomizableButton>
+      {/* Controls row */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ marginBottom: "18px" }}
+        gap={2}
+      >
+        <Stack direction="row" alignItems="center" gap={2}>
+          <FilterBy columns={filterColumns} onFilterChange={handleFilterChange} />
+          <GroupBy
+            options={[
+              { id: "useCase", label: "Use case" },
+            ]}
+            onGroupChange={() => {}}
+          />
+          <SearchBox
+            placeholder="Search projects..."
+            value={searchTerm}
+            onChange={setSearchTerm}
+            inputProps={{ "aria-label": "Search projects" }}
+            fullWidth={false}
+          />
         </Stack>
-      </Box>
+        <CustomizableButton
+          onClick={() => setCreateModalOpen(true)}
+          variant="contained"
+          text="Create project"
+          icon={<Plus size={16} />}
+          isDisabled={!canCreateProject}
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
+          }}
+        />
+      </Stack>
 
       {/* Projects Table */}
-      {projects.length === 0 ? (
+      {filteredProjects.length === 0 ? (
         <EmptyState
-          message="No projects yet. Create your first project to start evaluating LLMs."
+          message={
+            projects.length === 0
+              ? "No projects yet. Create your first project to start evaluating LLMs."
+              : "No projects match your search or filter criteria."
+          }
           showBorder
         />
       ) : (
@@ -450,6 +517,7 @@ export default function ProjectsList() {
                       minWidth: column.minWidth,
                       cursor: column.sortable ? "pointer" : "default",
                       userSelect: "none",
+                      textAlign: column.align,
                       "&:hover": column.sortable ? {
                         backgroundColor: "rgba(0, 0, 0, 0.04)",
                       } : {},
@@ -460,8 +528,8 @@ export default function ProjectsList() {
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: theme.spacing(2),
+                        justifyContent: column.align === "center" ? "center" : "flex-start",
+                        gap: 0.5,
                       }}
                     >
                       <Typography
@@ -479,11 +547,12 @@ export default function ProjectsList() {
                             display: "flex",
                             alignItems: "center",
                             color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                            flexShrink: 0,
                           }}
                         >
-                          {sortConfig.key === column.id && sortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {sortConfig.key === column.id && sortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
+                          {sortConfig.key === column.id && sortConfig.direction === "asc" && <ChevronUp size={14} />}
+                          {sortConfig.key === column.id && sortConfig.direction === "desc" && <ChevronDown size={14} />}
+                          {sortConfig.key !== column.id && <ChevronsUpDown size={14} />}
                         </Box>
                       )}
                     </Box>
@@ -504,20 +573,23 @@ export default function ProjectsList() {
                     },
                   }}
                 >
+                  {/* Name - Left aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
-                      fontWeight: 600,
                       color: "#111827",
+                      textAlign: "left",
                     }}
                   >
                     {project.name}
                   </TableCell>
+                  {/* Use Case - Center aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
+                      textAlign: "center",
                     }}
                   >
                     <Chip
@@ -538,12 +610,14 @@ export default function ProjectsList() {
                       }}
                     />
                   </TableCell>
+                  {/* Description - Center aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
                       color: "#6B7280",
-                      maxWidth: 250,
+                      textAlign: "center",
+                      maxWidth: 200,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -551,10 +625,12 @@ export default function ProjectsList() {
                   >
                     {project.description || "-"}
                   </TableCell>
+                  {/* Runs - Center aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
+                      textAlign: "center",
                     }}
                   >
                     <Chip
@@ -571,18 +647,22 @@ export default function ProjectsList() {
                       }}
                     />
                   </TableCell>
+                  {/* Created - Center aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
                       color: "#6B7280",
+                      textAlign: "center",
                     }}
                   >
                     {formatDate(project.createdAt)}
                   </TableCell>
+                  {/* Action - Center aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
+                      textAlign: "center",
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >

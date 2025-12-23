@@ -283,12 +283,13 @@ async def list_uploaded_datasets(request: Request):
         raise HTTPException(status_code=500, detail=f"Failed to list uploads: {e}")
 
 @router.get("/datasets/user")
-async def list_user_datasets(request: Request):
+async def list_user_datasets(request: Request, org_id: str | None = None):
     """
     List user-uploaded datasets from DB for the current tenant.
+    Optionally filter by org_id.
     """
     tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
-    return await list_user_datasets_controller(tenant=tenant)
+    return await list_user_datasets_controller(tenant=tenant, org_id=org_id)
 
 @router.delete("/datasets/user")
 async def delete_user_datasets(request: Request):

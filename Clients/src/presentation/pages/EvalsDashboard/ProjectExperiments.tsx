@@ -21,6 +21,7 @@ import allowedRoles from "../../../application/constants/permissions";
 
 interface ProjectExperimentsProps {
   projectId: string;
+  orgId?: string | null;
   onViewExperiment?: (experimentId: string) => void;
 }
 
@@ -46,7 +47,7 @@ function shortenModelName(modelName: string): string {
   return modelName.replace(/-\d{8}$/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '');
 }
 
-export default function ProjectExperiments({ projectId, onViewExperiment }: ProjectExperimentsProps) {
+export default function ProjectExperiments({ projectId, orgId, onViewExperiment }: ProjectExperimentsProps) {
   const navigate = useNavigate();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
   const [, setLoading] = useState(true);
@@ -616,6 +617,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
         isOpen={newEvalModalOpen}
         onClose={() => setNewEvalModalOpen(false)}
         projectId={projectId}
+        orgId={orgId}
         onSuccess={() => {
           setNewEvalModalOpen(false);
           loadExperiments();

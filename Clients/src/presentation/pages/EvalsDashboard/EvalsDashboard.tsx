@@ -640,7 +640,7 @@ export default function EvalsDashboard() {
         setDatasetsCount(userDatasetsData.datasets?.length || 0);
 
         // Load scorers count
-        const scorersData = await deepEvalScorersService.list({ project_id: projectId });
+        const scorersData = await deepEvalScorersService.list({ org_id: orgId || undefined });
         setScorersCount(scorersData.scorers?.length || 0);
       } catch (err) {
         console.error("Failed to load counts:", err);
@@ -650,7 +650,7 @@ export default function EvalsDashboard() {
     };
 
     loadCounts();
-  }, [projectId, currentProject]);
+  }, [projectId, currentProject, orgId]);
 
   // Sync sidebar counts and callbacks with context (not activeTab - that's handled via URL)
   useEffect(() => {
@@ -921,6 +921,77 @@ export default function EvalsDashboard() {
     }
   };
 
+  // Verify API key by making a real API call to the provider
+  const verifyApiKey = async (provider: string, apiKey: string): Promise<{ valid: boolean; error?: string }> => {
+    try {
+      const endpoints: Record<string, { url: string; headers: Record<string, string>; method?: string }> = {
+        openai: {
+          url: "https://api.openai.com/v1/models",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+        anthropic: {
+          url: "https://api.anthropic.com/v1/models",
+          headers: { 
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+          },
+        },
+        google: {
+          url: `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`,
+          headers: {},
+        },
+        xai: {
+          url: "https://api.x.ai/v1/models",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+        mistral: {
+          url: "https://api.mistral.ai/v1/models",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+        huggingface: {
+          url: "https://huggingface.co/api/whoami",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+        openrouter: {
+          url: "https://openrouter.ai/api/v1/auth/key",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+      };
+
+      const config = endpoints[provider];
+      if (!config) {
+        // For custom/unknown providers, skip verification
+        return { valid: true };
+      }
+
+      const response = await fetch(config.url, {
+        method: config.method || "GET",
+        headers: {
+          ...config.headers,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        return { valid: true };
+      } else if (response.status === 401 || response.status === 403) {
+        return { valid: false, error: "Invalid API key - authentication failed" };
+      } else {
+        // Other errors might be rate limits etc, consider key potentially valid
+        const text = await response.text();
+        console.warn(`API key verification got status ${response.status}:`, text);
+        return { valid: true }; // Give benefit of doubt for non-auth errors
+      }
+    } catch (err) {
+      console.error("API key verification error:", err);
+      // Network errors - can't verify, assume valid
+      return { valid: true };
+    }
+  };
+
+  // State for verification
+  const [verifyingApiKey, setVerifyingApiKey] = useState(false);
+
   // Handle API key modal submission
   const handleAddApiKey = async () => {
     if (!selectedProvider || !newApiKey.trim()) {
@@ -944,7 +1015,25 @@ export default function EvalsDashboard() {
       return;
     }
 
+    // Verify the API key actually works
+    setVerifyingApiKey(true);
+    setApiKeyAlert(null); // Clear any previous alerts
+
+    const verification = await verifyApiKey(selectedProvider, newApiKey);
+    setVerifyingApiKey(false);
+
+    if (!verification.valid) {
+      setApiKeyError(verification.error || "Invalid API key");
+      setApiKeyAlert({
+        variant: "error",
+        body: verification.error || "Invalid API key - please check and try again",
+      });
+      setTimeout(() => setApiKeyAlert(null), 5000);
+      return;
+    }
+
     setApiKeySaving(true);
+
     try {
       const response = await CustomAxios.post('/evaluation-llm-keys', {
         provider: selectedProvider,
@@ -957,7 +1046,7 @@ export default function EvalsDashboard() {
 
       setApiKeyAlert({
         variant: "success",
-        body: "API key added successfully",
+        body: "API key verified and saved successfully",
       });
       // Refresh the keys list
       await fetchLlmApiKeys();
@@ -1480,6 +1569,7 @@ export default function EvalsDashboard() {
               {tab === "overview" && (
                 <ProjectOverview
                   projectId={projectId}
+                  orgId={orgId}
                   project={currentProject}
                   onProjectUpdate={setCurrentProject}
                   onViewExperiment={(experimentId) => {
@@ -1500,17 +1590,18 @@ export default function EvalsDashboard() {
                 ) : (
                   <ProjectExperiments
                     projectId={projectId}
+                    orgId={orgId}
                     onViewExperiment={(experimentId) => setSelectedExperimentId(experimentId)}
                   />
                 )
               )}
 
               {tab === "datasets" && (
-                <ProjectDatasets projectId={projectId} />
+                <ProjectDatasets projectId={projectId} orgId={orgId} />
               )}
 
               {tab === "scorers" && projectId && (
-                <ProjectScorers projectId={projectId} />
+                <ProjectScorers projectId={projectId} orgId={orgId} />
               )}
 
               {tab === "configuration" && (
@@ -1743,8 +1834,8 @@ export default function EvalsDashboard() {
         title="Add API key"
         description="Configure API keys for LLM providers to run evaluations. Your keys are encrypted and stored securely."
         onSubmit={handleAddApiKey}
-        submitButtonText={apiKeySaving ? "Adding..." : "Add API key"}
-        isSubmitting={apiKeySaving || !selectedProvider || !newApiKey.trim() || !!apiKeyError}
+        submitButtonText={verifyingApiKey ? "Verifying..." : apiKeySaving ? "Saving..." : "Add API key"}
+        isSubmitting={verifyingApiKey || apiKeySaving || !selectedProvider || !newApiKey.trim() || !!apiKeyError}
       >
         <Stack spacing={3}>
           {/* Provider Selection Grid - show ALL providers */}

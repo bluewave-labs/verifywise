@@ -16,16 +16,17 @@ async def list_scorers(
 ) -> List[Dict[str, Any]]:
   """
   List scorers for a tenant (optionally filtered by org_id).
+  Multi-tenancy is handled by the schema name, not a tenant column.
   """
 
-  conditions = ['tenant = :tenant']
-  params: Dict[str, Any] = {"tenant": tenant}
+  params: Dict[str, Any] = {}
 
+  # Build WHERE clause - org_id filter is optional
   if org_id:
-    conditions.append("org_id = :org_id")
+    where_clause = "WHERE org_id = :org_id"
     params["org_id"] = org_id
-
-  where_clause = " AND ".join(conditions)
+  else:
+    where_clause = ""
 
   result = await db.execute(
     text(
@@ -44,11 +45,11 @@ async def list_scorers(
              updated_at,
              created_by
       FROM "{tenant}".deepeval_scorers
-      WHERE {where_clause}
+      {where_clause}
       ORDER BY created_at DESC
       '''
     ),
-    params,
+    params if params else {},
   )
 
   rows = result.mappings().all()

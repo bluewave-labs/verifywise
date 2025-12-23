@@ -44,7 +44,7 @@ import SelectableCard from "../../components/SelectableCard";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 
-type ProjectDatasetsProps = { projectId: string };
+type ProjectDatasetsProps = { projectId: string; orgId?: string | null };
 
 type BuiltInDataset = ListedDataset & {
   promptCount?: number;
@@ -61,7 +61,7 @@ type BuiltInDataset = ListedDataset & {
   tags?: string[];
 };
 
-export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
+export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   void projectId; // Used for future project-scoped features
   const theme = useTheme();
 
@@ -380,7 +380,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       const fileName = `${template.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}.json`;
       const file = new File([blob], fileName, { type: "application/json" });
 
-      await deepEvalDatasetsService.uploadDataset(file);
+      await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
       setAlert({ variant: "success", body: `"${template.name}" copied to your datasets` });
       setTimeout(() => setAlert(null), 3000);
 
@@ -532,7 +532,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
         }
       }
       
-      await deepEvalDatasetsService.uploadDataset(file, datasetType);
+      const turnType = editablePrompts.length > 0 && !isSingleTurnPrompt(editablePrompts[0]) ? "multi-turn" : "single-turn";
+      await deepEvalDatasetsService.uploadDataset(file, datasetType, turnType, orgId || undefined);
       setAlert({ variant: "success", body: `Dataset "${editDatasetName}" saved successfully!` });
       setTimeout(() => setAlert(null), 3000);
       handleCloseEditor();
@@ -848,7 +849,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     try {
       setUploading(true);
       setUploadModalOpen(false);
-      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType, datasetTurnType);
+      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType, datasetTurnType, orgId || undefined);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
       void loadMyDatasets();

@@ -871,13 +871,17 @@ async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
     # End of read_deepeval_dataset_controller
 
 
-async def list_user_datasets_controller(tenant: str) -> JSONResponse:
+async def list_user_datasets_controller(
+    tenant: str,
+    org_id: Optional[str] = None,
+) -> JSONResponse:
     """
     List user-uploaded datasets from the database (tenant-scoped).
+    Optionally filter by org_id.
     """
     try:
         async with get_db() as db:
-            items = await list_user_datasets(tenant=tenant, db=db)
+            items = await list_user_datasets(tenant=tenant, db=db, org_id=org_id)
             return JSONResponse(status_code=200, content={"datasets": items})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list user datasets: {e}")

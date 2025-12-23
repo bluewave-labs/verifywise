@@ -59,11 +59,34 @@ export function isMultiTurnConversation(record: DatasetPromptRecord): record is 
 }
 
 class DeepEvalDatasetsService {
-  async uploadDataset(file: File, datasetType: DatasetType = "chatbot", turnType: TurnType = "single-turn"): Promise<UploadDatasetResponse> {
+  async uploadDataset(file: File, datasetType: DatasetType = "chatbot", turnType: TurnType = "single-turn", orgId?: string): Promise<UploadDatasetResponse> {
+    // org_id is required by the backend - fetch current org if not provided
+    let finalOrgId = orgId;
+    if (!finalOrgId) {
+      // Dynamically import to avoid circular dependency
+      const { deepEvalOrgsService } = await import("./deepEvalOrgsService");
+      const { org } = await deepEvalOrgsService.getCurrentOrg();
+      if (org) {
+        finalOrgId = org.id;
+      } else {
+        // Try to get first org
+        const { orgs } = await deepEvalOrgsService.getAllOrgs();
+        if (orgs && orgs.length > 0) {
+          finalOrgId = orgs[0].id;
+          await deepEvalOrgsService.setCurrentOrg(finalOrgId);
+        }
+      }
+    }
+    
+    if (!finalOrgId) {
+      throw new Error("No organization available. Please create an organization first.");
+    }
+    
     const form = new FormData();
     form.append("dataset", file);
     form.append("dataset_type", datasetType);
     form.append("turn_type", turnType);
+    form.append("org_id", finalOrgId);
     const res = await CustomAxios.post("/deepeval/datasets/upload", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });

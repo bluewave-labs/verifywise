@@ -411,11 +411,11 @@ export default function CreateScorerModal({
                 </Typography>
                 <CustomizableButton
                   variant="text"
-                  text="Add API key in Configuration"
+                  text="Add API key in Settings"
                   icon={<Settings size={14} />}
                   onClick={() => {
                     onClose();
-                    navigate(`/evals/${projectId}#configuration`)
+                    navigate(`/evals/${projectId}#settings`)
                   }}
                   sx={{
                     color: "#92400E",

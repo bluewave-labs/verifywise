@@ -41,15 +41,34 @@ async def create_user_dataset(
     }
 
 
-async def list_user_datasets(tenant: str, db: AsyncSession) -> List[Dict[str, Any]]:
+async def list_user_datasets(
+    tenant: str,
+    db: AsyncSession,
+    org_id: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """
+    List user datasets for a tenant (optionally filtered by org_id).
+    Multi-tenancy is handled by the schema name.
+    """
+    params: Dict[str, Any] = {}
+    
+    # Build WHERE clause - org_id filter is optional
+    if org_id:
+        where_clause = "WHERE org_id = :org_id"
+        params["org_id"] = org_id
+    else:
+        where_clause = ""
+    
     res = await db.execute(
         text(
             f'''
             SELECT id, name, path, size, prompt_count, dataset_type, turn_type, org_id, created_at
             FROM "{tenant}".deepeval_user_datasets
+            {where_clause}
             ORDER BY created_at DESC;
             '''
-        )
+        ),
+        params if params else {},
     )
     items: List[Dict[str, Any]] = []
     for r in res.mappings().all():

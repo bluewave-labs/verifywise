@@ -15,6 +15,4 @@ def _discover_tenant_schemas(op, sa) -> List[str]:
             )
         ).fetchall()
     ]
-    if not candidates:
-        return ["public"]
     return candidates

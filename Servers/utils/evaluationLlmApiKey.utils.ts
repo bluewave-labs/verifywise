@@ -263,7 +263,6 @@ export const deleteKeyQuery = async (
 export const getDecryptedKeyForProviderQuery = async (
   tenant: string,
   provider: LLMProvider,
-  transaction: Transaction
 ): Promise<string | null> => {
   validateProvider(provider);
 
@@ -271,7 +270,6 @@ export const getDecryptedKeyForProviderQuery = async (
     `SELECT encrypted_api_key FROM "${tenant}".evaluation_llm_api_keys WHERE provider = :provider`,
     {
       replacements: { provider },
-      transaction,
     }
   ) as [IEvaluationLlmApiKey[], number];
 

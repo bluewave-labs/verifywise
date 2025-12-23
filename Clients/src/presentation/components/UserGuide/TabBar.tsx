@@ -1,13 +1,14 @@
 import React from 'react';
-import { BookOpen, HelpCircle } from 'lucide-react';
+import { BookOpen, HelpCircle, MessageSquare } from 'lucide-react';
 import { colors, typography } from './styles/theme';
 import './TabBar.css';
 
-type Tab = 'user-guide' | 'help';
+type Tab = 'user-guide' | 'advisor' | 'help';
 
 interface TabBarProps {
   activeTab: Tab | undefined;
   onTabChange: (tab: Tab) => void;
+  displayAdvisor: boolean;
 }
 
 interface TabItemProps {
@@ -60,7 +61,7 @@ const TabItem: React.FC<TabItemProps> = ({ label, icon, isActive, onClick }) => 
   );
 };
 
-const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
+const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, displayAdvisor }) => {
   return (
     <div
       style={{
@@ -80,6 +81,15 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
         isActive={activeTab === 'user-guide'}
         onClick={() => onTabChange('user-guide')}
       />
+      {displayAdvisor && (
+        <TabItem
+          id="advisor"
+          label="Advisor"
+          icon={<MessageSquare size={18} strokeWidth={1.5} />}
+          isActive={activeTab === 'advisor'}
+          onClick={() => onTabChange('advisor')}
+        />
+      )}
       <TabItem
         id="help"
         label="Help"

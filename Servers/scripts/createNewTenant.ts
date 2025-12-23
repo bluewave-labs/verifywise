@@ -1882,6 +1882,21 @@ export const createNewTenant = async (
         ON "${tenantHash}".vendor_risk_change_history(vendor_risk_id, changed_at DESC);
       `
     ].map((query) => sequelize.query(query, { transaction })));
+
+    // Create llm_keys table for LLM API key management
+    // Note: Requires global ENUM type enum_llm_keys_provider to exist
+    // This is created by migration 20251126220719-create-llm-keys-table.js
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_keys (
+        id SERIAL PRIMARY KEY,
+        key TEXT NOT NULL UNIQUE,
+        name enum_llm_keys_provider NOT NULL,
+        url TEXT,
+        model TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );`,
+      { transaction }
+    );
   } catch (error) {
     throw error;
   }

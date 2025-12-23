@@ -49,6 +49,10 @@ const allowedRoles = {
     view: ["Admin"],
     manage: ["Admin"],
   },
+  llmKeys: {
+    view: ["Admin"],
+    manage: ["Admin"],
+  },
   evals: {
     view: ["Admin", "Editor", "Reviewer", "Auditor"],
     createProject: ["Admin", "Editor"],

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { VendorModel } from "../models/Common/vendor/vendor.model";
 import { RiskModel } from "../models/Common/risks/risk.model";
-import { FileModel } from "../models/Common/file/file.model";
+import { FileModel } from "../models/Common/File/file.model";
 import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
 import { ITask } from "./i.task";

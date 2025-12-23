@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserPreferencesModel } from "../../domain/models/Common/userPreferences/userPreferences.model";
+import { UserPreferencesModel } from "../../domain/models/Common/UserPreferences/userPreferences.model";
 import { getUserPreferencesByUserId } from "../repository/userPreferences.repository";
 import { useAuth } from "./useAuth";
 import { UserDateFormat } from "../../domain/enums/userDateFormat.enum";

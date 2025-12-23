@@ -5,10 +5,8 @@ import {
   LayoutGrid as ViewModuleIcon,
   List as TableRowsIcon,
 } from "lucide-react";
-import {
-  IViewMode,
-  IViewToggleProps,
-} from "../../../domain/interfaces/i.toggle";
+import { IViewMode } from "../../../domain/interfaces/i.toggle";
+import { IViewToggleProps } from "../../types/toggle.types";
 
 /**
  * ViewToggle - Reusable component for switching between card and table views

@@ -1,4 +1,12 @@
 import { Likelihood, Severity } from "../RiskLevel/constants";
+import {
+  RiskFormValues as DomainRiskFormValues,
+  MitigationFormValues as DomainMitigationFormValues,
+} from "../../../domain/types/riskForm.types";
+
+// Re-export domain types for backwards compatibility
+export type RiskFormValues = DomainRiskFormValues;
+export type MitigationFormValues = DomainMitigationFormValues;
 
 export type ProjectRisk = {
   riskName: string;
@@ -25,23 +33,6 @@ export type ProjectRisk = {
   recommendations?: string;
 };
 
-export interface RiskFormValues {
-  riskName: string;
-  actionOwner: number;
-  aiLifecyclePhase: number;
-  riskDescription: string;
-  riskCategory: number[];
-  potentialImpact: string;
-  assessmentMapping: number;
-  controlsMapping: number;
-  likelihood: Likelihood;
-  riskSeverity: Severity;
-  riskLevel: number;
-  reviewNotes: string;
-  applicableProjects: number[];
-  applicableFrameworks: number[];
-}
-
 export interface RiskFormErrors {
   riskName?: string;
   actionOwner?: string;
@@ -54,21 +45,6 @@ export interface RiskFormErrors {
   reviewNotes?: string;
   applicableProjects?: string;
   applicableFrameworks?: string;
-}
-
-export interface MitigationFormValues {
-  mitigationStatus: number;
-  mitigationPlan: string;
-  currentRiskLevel: number;
-  implementationStrategy: string;
-  deadline: string;
-  doc: string;
-  likelihood: Likelihood;
-  riskSeverity: Severity;
-  approver: number;
-  approvalStatus: number;
-  dateOfAssessment: string;
-  recommendations: string;
 }
 
 export interface MitigationFormErrors {

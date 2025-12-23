@@ -94,19 +94,37 @@ const RichTextEditor: React.FC<IRichTextEditorProps> = ({
             aria-label={title}
             sx={{ fontSize: 13 }}
           >
-            <IconButton
-              onClick={() => applyFormatting(action)}
-              disableRipple
-              color={
-                (action === "bullets" && activeList === "bulleted") ||
-                (action === "numbers" && activeList === "numbered")
-                  ? "primary"
-                  : "default"
-              }
-              disabled={!isEditable}
-            >
-              {icon}
-            </IconButton>
+            {!isEditable ? (
+              <span style={{ display: "inline-block" }}>
+                <IconButton
+                  onClick={() => applyFormatting(action)}
+                  disableRipple
+                  color={
+                    (action === "bullets" && activeList === "bulleted") ||
+                    (action === "numbers" && activeList === "numbered")
+                      ? "primary"
+                      : "default"
+                  }
+                  disabled={!isEditable}
+                >
+                  {icon}
+                </IconButton>
+              </span>
+            ) : (
+              <IconButton
+                onClick={() => applyFormatting(action)}
+                disableRipple
+                color={
+                  (action === "bullets" && activeList === "bulleted") ||
+                  (action === "numbers" && activeList === "numbered")
+                    ? "primary"
+                    : "default"
+                }
+                disabled={!isEditable}
+              >
+                {icon}
+              </IconButton>
+            )}
           </Tooltip>
         ))}
       </Box>

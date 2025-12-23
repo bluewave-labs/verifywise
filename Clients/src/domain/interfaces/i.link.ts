@@ -1,9 +1,8 @@
-import { SxProps, Theme } from "@mui/material";
-
 /**
- * Props interface for the VWLink component
+ * Core props interface for VWLink component
+ * Pure domain types with zero framework dependencies
  */
-export interface IVWLinkProps {
+export interface IVWLinkCoreProps {
   /** The URL to navigate to (optional if onClick is provided) */
   url?: string;
   /** Link text content */
@@ -16,8 +15,6 @@ export interface IVWLinkProps {
   showUnderline?: boolean;
   /** If true, shows icon on hover for URL links (default: true) */
   showIcon?: boolean;
-  /** Custom styles using MUI's sx prop */
-  sx?: SxProps<Theme>;
   /** Custom class name */
   className?: string;
   /** ARIA label for accessibility */

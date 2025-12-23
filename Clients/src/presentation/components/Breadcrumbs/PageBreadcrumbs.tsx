@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { Stack, useTheme, Divider } from "@mui/material";
 import Breadcrumbs from "./index";
-import { IPageBreadcrumbsProps } from "../../../domain/interfaces/i.breadcrumbs";
+import { IPageBreadcrumbsProps } from "../../types/breadcrumbs.types";
 import DashboardActionButtons from "../Layout/DashboardActionButtons";
 
 /**

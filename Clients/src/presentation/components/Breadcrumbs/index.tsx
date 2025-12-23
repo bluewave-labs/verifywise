@@ -10,10 +10,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getRouteMapping, getRouteIcon } from "./routeMapping";
 
 import { ChevronRight as ChevronRightGreyIcon } from "lucide-react";
-import {
-  IBreadcrumbItem,
-  IBreadcrumbsProps,
-} from "../../../domain/interfaces/i.breadcrumbs";
+import { IBreadcrumbItem } from "../../../domain/interfaces/i.breadcrumbs";
+import { IBreadcrumbsProps } from "../../types/breadcrumbs.types";
 
 /**
  * A customizable Breadcrumbs component that wraps Material-UI Breadcrumbs.

@@ -1,7 +1,9 @@
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import authenticateJWT from "../middleware/auth.middleware";
 import { NextFunction, Request, Response } from "express";
-import { EvaluationLlmApiKeyModel, LLMProvider, VALID_PROVIDERS } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
+import { LLMProvider, VALID_PROVIDERS } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
+import { getDecryptedKeyForProviderQuery } from "../utils/evaluationLlmApiKey.utils";
+import { sequelize } from "../database/db";
 
 function addHeaders(req: Request, _res: Response, next: NextFunction) {
   req.headers["x-organization-id"] = req.organizationId?.toString();
@@ -17,6 +19,7 @@ function addHeaders(req: Request, _res: Response, next: NextFunction) {
  * This modifies req.body before the proxy forwards it
  */
 async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
+  const transaction = await sequelize.transaction();
   // Only process POST requests to experiments endpoint
   if (req.method !== "POST" || !req.url.includes("/experiments")) {
     return next();
@@ -26,11 +29,7 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
 
   try {
     const body = req.body;
-    const organizationId = req.organizationId;
-    
-    if (!organizationId) {
-      return next();
-    }
+    const tenantId = req.tenantId;
 
     // 1. Inject API keys for custom scorers (scorer or both mode)
     // Frontend sends scorerProviders: ["mistral", "openai"] - only the providers actually needed
@@ -42,9 +41,10 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
         const normalizedProvider = provider.toLowerCase();
         if (VALID_PROVIDERS.includes(normalizedProvider as LLMProvider)) {
           try {
-            const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
-              organizationId,
-              normalizedProvider as LLMProvider
+            const apiKey = await getDecryptedKeyForProviderQuery(
+              tenantId!,
+              normalizedProvider as LLMProvider,
+              transaction
             );
             if (apiKey) {
               scorerApiKeys[normalizedProvider] = apiKey;
@@ -67,9 +67,10 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
       const hasJudgeApiKey = body.config.judgeLlm.apiKey && body.config.judgeLlm.apiKey !== "***" && body.config.judgeLlm.apiKey !== "";
       
       if (judgeProvider && !hasJudgeApiKey && VALID_PROVIDERS.includes(judgeProvider as LLMProvider)) {
-        const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
-          organizationId,
-          judgeProvider as LLMProvider
+        const apiKey = await getDecryptedKeyForProviderQuery(
+          tenantId!,
+          judgeProvider as LLMProvider,
+          transaction
         );
         
         if (apiKey) {
@@ -85,9 +86,10 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
       const hasModelApiKey = body.config.model.apiKey && body.config.model.apiKey !== "***" && body.config.model.apiKey !== "";
       
       if (modelProvider && !hasModelApiKey && VALID_PROVIDERS.includes(modelProvider as LLMProvider)) {
-        const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
-          organizationId,
-          modelProvider as LLMProvider
+        const apiKey = await getDecryptedKeyForProviderQuery(
+          tenantId!,
+          modelProvider as LLMProvider,
+          transaction
         );
         
         if (apiKey) {
@@ -114,9 +116,10 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
         // Only fetch if we don't already have this provider's key
         if (!req.body.config.scorerApiKeys[judgeProvider]) {
           try {
-            const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
-              organizationId,
-              judgeProvider as LLMProvider
+            const apiKey = await getDecryptedKeyForProviderQuery(
+              tenantId!,
+              judgeProvider as LLMProvider,
+              transaction
             );
             if (apiKey) {
               req.body.config.scorerApiKeys[judgeProvider] = apiKey;

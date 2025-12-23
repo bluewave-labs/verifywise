@@ -21,7 +21,7 @@ const LLM_PROVIDERS = [
   { _id: "openrouter", name: "OpenRouter" },
   { _id: "openai", name: "OpenAI" },
   { _id: "anthropic", name: "Anthropic" },
-  { _id: "google", name: "Google (Gemini)" },
+  { _id: "google", name: "Gemini" },
   { _id: "xai", name: "xAI" },
   { _id: "mistral", name: "Mistral" },
   { _id: "huggingface", name: "Hugging Face" },

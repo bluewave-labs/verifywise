@@ -4,7 +4,7 @@ export type ScorerType = "llm" | "builtin" | "custom";
 
 export interface DeepEvalScorer {
   id: string;
-  projectId?: string | null;
+  orgId?: string | null;
   name: string;
   description?: string | null;
   type: ScorerType;
@@ -24,13 +24,35 @@ export interface ListScorersResponse {
 }
 
 class DeepEvalScorersService {
-  async list(params?: { project_id?: string }): Promise<ListScorersResponse> {
+  async list(params?: { org_id?: string }): Promise<ListScorersResponse> {
     const res = await CustomAxios.get("/deepeval/scorers", { params });
     return res.data as ListScorersResponse;
   }
 
   async create(payload: Partial<DeepEvalScorer> & { name: string; metricKey: string }): Promise<DeepEvalScorer> {
-    const res = await CustomAxios.post("/deepeval/scorers", payload);
+    // org_id is required by the backend - fetch current org if not provided
+    let finalOrgId = payload.orgId;
+    if (!finalOrgId) {
+      // Dynamically import to avoid circular dependency
+      const { deepEvalOrgsService } = await import("./deepEvalOrgsService");
+      const { org } = await deepEvalOrgsService.getCurrentOrg();
+      if (org) {
+        finalOrgId = org.id;
+      } else {
+        // Try to get first org
+        const { orgs } = await deepEvalOrgsService.getAllOrgs();
+        if (orgs && orgs.length > 0) {
+          finalOrgId = orgs[0].id;
+          await deepEvalOrgsService.setCurrentOrg(finalOrgId);
+        }
+      }
+    }
+    
+    if (!finalOrgId) {
+      throw new Error("No organization available. Please create an organization first.");
+    }
+    
+    const res = await CustomAxios.post("/deepeval/scorers", { ...payload, orgId: finalOrgId });
     return res.data as DeepEvalScorer;
   }
 

@@ -49,7 +49,7 @@ const LLM_PROVIDERS = [
   { _id: "openrouter", name: "OpenRouter", Logo: OpenRouterLogo },
   { _id: "openai", name: "OpenAI", Logo: OpenAILogo },
   { _id: "anthropic", name: "Anthropic", Logo: AnthropicLogo },
-  { _id: "google", name: "Google (Gemini)", Logo: GeminiLogo },
+  { _id: "google", name: "Gemini", Logo: GeminiLogo },
   { _id: "xai", name: "xAI", Logo: XAILogo },
   { _id: "mistral", name: "Mistral", Logo: MistralLogo },
   { _id: "huggingface", name: "Hugging Face", Logo: HuggingFaceLogo },
@@ -977,15 +977,30 @@ export default function EvalsDashboard() {
         return { valid: true };
       } else if (response.status === 401 || response.status === 403) {
         return { valid: false, error: "Invalid API key - authentication failed" };
+      } else if (response.status === 400) {
+        // 400 often means invalid API key format or key doesn't exist
+        // Parse response to get specific error message
+        try {
+          const data = await response.json();
+          const errorMsg = data?.error?.message || data?.message || "Invalid API key";
+          console.warn(`API key verification failed with 400:`, errorMsg);
+          return { valid: false, error: errorMsg };
+        } catch {
+          return { valid: false, error: "Invalid API key - bad request" };
+        }
+      } else if (response.status === 429) {
+        // Rate limited - key might be valid, let it through
+        console.warn("API key verification rate limited, assuming valid");
+        return { valid: true };
       } else {
-        // Other errors might be rate limits etc, consider key potentially valid
+        // Other errors (5xx, etc) - give benefit of doubt
         const text = await response.text();
         console.warn(`API key verification got status ${response.status}:`, text);
-        return { valid: true }; // Give benefit of doubt for non-auth errors
+        return { valid: true };
       }
     } catch (err) {
       console.error("API key verification error:", err);
-      // Network errors - can't verify, assume valid
+      // Network errors (CORS, etc) - can't verify, assume valid
       return { valid: true };
     }
   };

@@ -15,6 +15,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  FormHelperText,
 } from "@mui/material";
 import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
@@ -45,6 +46,7 @@ interface NewExperimentModalProps {
   isOpen: boolean;
   onClose: () => void;
   projectId: string;
+  orgId?: string | null;
   onSuccess: () => void;
   onStarted?: (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => void;
 }
@@ -55,6 +57,7 @@ export default function NewExperimentModal({
   isOpen,
   onClose,
   projectId,
+  orgId,
   onSuccess,
   onStarted,
 }: NewExperimentModalProps) {
@@ -93,6 +96,7 @@ export default function NewExperimentModal({
   const [judgeMode, setJudgeMode] = useState<"scorer" | "standard" | "both">("standard");
   const [userScorers, setUserScorers] = useState<DeepEvalScorer[]>([]);
   const [selectedScorer, setSelectedScorer] = useState<DeepEvalScorer | null>(null);
+  const [selectedScorerIds, setSelectedScorerIds] = useState<string[]>([]); // Multi-select scorer IDs
   const [loadingScorers, setLoadingScorers] = useState(false);
   
   // Configured API keys state
@@ -324,7 +328,7 @@ export default function NewExperimentModal({
     (async () => {
       try {
         setLoadingScorers(true);
-        const res = await deepEvalScorersService.list({ project_id: projectId });
+        const res = await deepEvalScorersService.list({ org_id: orgId || undefined });
         const enabledScorers = (res.scorers || []).filter((s) => s.enabled);
         setUserScorers(enabledScorers);
         // If user has scorers, default to scorer mode
@@ -337,7 +341,17 @@ export default function NewExperimentModal({
         setLoadingScorers(false);
       }
     })();
-  }, [activeStep, projectId]);
+  }, [activeStep, orgId]);
+
+  // Keep selectedScorer in sync with first selectedScorerId for backward compatibility
+  useEffect(() => {
+    if (selectedScorerIds.length > 0) {
+      const firstScorer = userScorers.find(s => s.id === selectedScorerIds[0]);
+      setSelectedScorer(firstScorer || null);
+    } else {
+      setSelectedScorer(null);
+    }
+  }, [selectedScorerIds, userScorers]);
 
   const handleBack = () => {
     setActiveStep((prev) => prev - 1);
@@ -442,32 +456,49 @@ export default function NewExperimentModal({
             modelPath: config.model.modelPath,
           },
           // Include scorer info if using custom scorer mode or both
-          ...((judgeMode === "scorer" || judgeMode === "both") && selectedScorer ? {
+          ...((judgeMode === "scorer" || judgeMode === "both") ? {
             useCustomScorer: true,
-            scorerId: selectedScorer.id,
-            scorerName: selectedScorer.name,
-            scorerMetricKey: selectedScorer.metricKey,
-            // Tell backend which providers the custom scorer needs (for API key injection)
+            // NEW: Include selectedScorers array for backend filtering
+            ...(selectedScorerIds.length > 0 && {
+              selectedScorers: selectedScorerIds,
+            }),
+            // Keep backward compatibility fields (single scorer)
+            ...(selectedScorer ? {
+              scorerId: selectedScorer.id,
+              scorerName: selectedScorer.name,
+              scorerMetricKey: selectedScorer.metricKey,
+            } : {}),
+            // Tell backend which providers the custom scorers need (for API key injection)
             scorerProviders: (() => {
               const providers: string[] = [];
-              const judgeModel = selectedScorer.config?.judgeModel;
-              if (typeof judgeModel === 'object' && judgeModel?.provider) {
-                providers.push(judgeModel.provider.toLowerCase());
-              } else if (typeof judgeModel === 'string') {
-                // Legacy format - infer provider from model name
-                const modelLower = judgeModel.toLowerCase();
-                if (modelLower.includes('gpt') || modelLower.includes('o1') || modelLower.includes('o3')) {
-                  providers.push('openai');
-                } else if (modelLower.includes('claude')) {
-                  providers.push('anthropic');
-                } else if (modelLower.includes('gemini')) {
-                  providers.push('google');
-                } else if (modelLower.includes('mistral') || modelLower.includes('magistral')) {
-                  providers.push('mistral');
-                } else if (modelLower.includes('grok')) {
-                  providers.push('xai');
+              // Collect providers from all selected scorers
+              const scorersToCheck = selectedScorerIds.length > 0
+                ? userScorers.filter(s => selectedScorerIds.includes(s.id))
+                : userScorers; // If none selected, include all for API key purposes
+
+              scorersToCheck.forEach(scorer => {
+                const judgeModel = scorer.config?.judgeModel;
+                if (typeof judgeModel === 'object' && judgeModel?.provider) {
+                  const provider = judgeModel.provider.toLowerCase();
+                  if (!providers.includes(provider)) {
+                    providers.push(provider);
+                  }
+                } else if (typeof judgeModel === 'string') {
+                  // Legacy format - infer provider from model name
+                  const modelLower = judgeModel.toLowerCase();
+                  if ((modelLower.includes('gpt') || modelLower.includes('o1') || modelLower.includes('o3')) && !providers.includes('openai')) {
+                    providers.push('openai');
+                  } else if (modelLower.includes('claude') && !providers.includes('anthropic')) {
+                    providers.push('anthropic');
+                  } else if (modelLower.includes('gemini') && !providers.includes('google')) {
+                    providers.push('google');
+                  } else if ((modelLower.includes('mistral') || modelLower.includes('magistral')) && !providers.includes('mistral')) {
+                    providers.push('mistral');
+                  } else if (modelLower.includes('grok') && !providers.includes('xai')) {
+                    providers.push('xai');
+                  }
                 }
-              }
+              });
               return providers.length > 0 ? providers : ['openai']; // Default to OpenAI
             })(),
             // API key is automatically injected by the backend from organization settings
@@ -516,8 +547,8 @@ export default function NewExperimentModal({
       setAlert({
         show: true,
         variant: "success",
-        title: "Eval Created!",
-        body: `Your evaluation has been created and is now running. Eval ID: ${response.experiment?.id || "N/A"}`,
+        title: "Experiment Created!",
+        body: `Your experiment has been created and is now running. Experiment ID: ${response.experiment?.id || "N/A"}`,
       });
       
       // Close modal after a short delay to let user see the success message
@@ -531,7 +562,7 @@ export default function NewExperimentModal({
       console.error("Failed to create experiment:", err);
       
       // Extract error message
-      let errorMessage = "Failed to create eval. Please try again.";
+      let errorMessage = "Failed to create experiment. Please try again.";
       if (err instanceof Error) {
         errorMessage = err.message;
       } else if (typeof err === "object" && err !== null && "response" in err) {
@@ -1059,7 +1090,7 @@ export default function NewExperimentModal({
                             setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with prompts that have actual content." });
                             return;
                           }
-                          const resp = await deepEvalDatasetsService.uploadDataset(file);
+                          const resp = await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
                     const newDataset = { id: resp.path, name: file.name.replace(/\.json$/i, ""), path: resp.path, promptCount: validPromptCount };
                     setUserDatasets((prev) => [newDataset, ...prev]);
                     setSelectedUserDataset(newDataset);
@@ -1261,19 +1292,35 @@ export default function NewExperimentModal({
                       <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                         Your Scorers
                       </Typography>
-                      <Button
-                        size="small"
-                        variant="text"
-                        startIcon={<ExternalLink size={12} />}
-                        onClick={() => window.open(`/evals/${projectId}#scorers`, "_blank")}
-                        sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
-                      >
-                        Manage
-                      </Button>
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          size="small"
+                          variant="text"
+                          onClick={() => {
+                            if (selectedScorerIds.length === userScorers.length) {
+                              setSelectedScorerIds([]);
+                            } else {
+                              setSelectedScorerIds(userScorers.map(s => s.id));
+                            }
+                          }}
+                          sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                        >
+                          {selectedScorerIds.length === userScorers.length ? "Clear All" : "Select All"}
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="text"
+                          startIcon={<ExternalLink size={12} />}
+                          onClick={() => window.open(`/evals/${projectId}#scorers`, "_blank")}
+                          sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                        >
+                          Manage
+                        </Button>
+                      </Stack>
                     </Stack>
                     <Stack spacing="8px">
                       {userScorers.map((scorer) => {
-                        const isSelected = selectedScorer?.id === scorer.id;
+                        const isSelected = selectedScorerIds.includes(scorer.id);
                         const modelName = typeof scorer.config?.judgeModel === 'string'
                           ? scorer.config.judgeModel
                           : scorer.config?.judgeModel?.name || scorer.config?.model || "LLM Judge";
@@ -1281,7 +1328,13 @@ export default function NewExperimentModal({
                           <SelectableCard
                             key={scorer.id}
                             isSelected={isSelected}
-                            onClick={() => setSelectedScorer(scorer)}
+                            onClick={() => {
+                              setSelectedScorerIds(prev =>
+                                prev.includes(scorer.id)
+                                  ? prev.filter(id => id !== scorer.id)
+                                  : [...prev, scorer.id]
+                              );
+                            }}
                             icon={<Sparkles size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />}
                             title={scorer.name}
                             description={`${modelName} • ${scorer.metricKey}`}
@@ -1289,6 +1342,11 @@ export default function NewExperimentModal({
                         );
                       })}
                     </Stack>
+                    <FormHelperText sx={{ mt: 1, fontSize: "11px", color: "#6B7280" }}>
+                      {selectedScorerIds.length > 0
+                        ? `${selectedScorerIds.length} scorer${selectedScorerIds.length > 1 ? 's' : ''} selected. Only these will run during evaluation.`
+                        : "No scorers selected. All enabled scorers will run if none are selected."}
+                    </FormHelperText>
                   </Box>
                 ) : (
                   <Box sx={{ py: 4, textAlign: "center", border: "1px dashed #E5E7EB", borderRadius: "8px" }}>
@@ -1611,7 +1669,7 @@ export default function NewExperimentModal({
                   : "Select metrics for your evaluation. Universal core metrics run for all use cases."}
               </Typography>
               {isMultiTurnDataset && (
-                <Box sx={{ mt: 1.5, mb: 1 }}>
+                <Box sx={{ mt: 1.5, mb: 3 }}>
                   <Chip 
                     label="Multi-turn dataset detected" 
                     size="small" 
@@ -2004,8 +2062,9 @@ export default function NewExperimentModal({
     if (activeStep === 2) {
       // Step 3: Scorer / Judge validation
       if (judgeMode === "scorer") {
-        // Custom scorer only - must have a scorer selected
-        return !!selectedScorer;
+        // Custom scorer only - can proceed even with no selection (all enabled scorers will run)
+        // But if there are no enabled scorers at all, can't proceed
+        return userScorers.length > 0;
       } else if (judgeMode === "standard") {
         // Standard judge only - must have provider and model (API key is from saved settings)
         return !!(
@@ -2013,13 +2072,13 @@ export default function NewExperimentModal({
           config.judgeLlm.model
         );
       } else {
-        // Both mode - must have scorer selected AND standard judge configured
-        const hasScorer = !!selectedScorer;
+        // Both mode - can proceed if scorers exist AND standard judge configured
+        const hasScorers = userScorers.length > 0;
         const hasJudge = !!(
           config.judgeLlm.provider &&
           config.judgeLlm.model
         );
-        return hasScorer && hasJudge;
+        return hasScorers && hasJudge;
       }
     }
     
@@ -2035,7 +2094,7 @@ export default function NewExperimentModal({
           resetForm();
           setAlert(null);
         }}
-        title="Create new eval"
+        title="Create new experiment"
         steps={steps}
         activeStep={activeStep}
         onNext={handleNext}
@@ -2043,7 +2102,7 @@ export default function NewExperimentModal({
         onSubmit={handleSubmit}
         isSubmitting={loading}
         canProceed={canProceed}
-        submitButtonText="Start Eval"
+        submitButtonText="Start Experiment"
         maxWidth="700px"
       >
         {renderStepContent()}

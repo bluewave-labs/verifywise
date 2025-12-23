@@ -44,7 +44,7 @@ import SelectableCard from "../../components/SelectableCard";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 
-type ProjectDatasetsProps = { projectId: string };
+type ProjectDatasetsProps = { projectId: string; orgId?: string | null };
 
 type BuiltInDataset = ListedDataset & {
   promptCount?: number;
@@ -61,7 +61,7 @@ type BuiltInDataset = ListedDataset & {
   tags?: string[];
 };
 
-export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
+export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   void projectId; // Used for future project-scoped features
   const theme = useTheme();
 
@@ -380,7 +380,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       const fileName = `${template.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}.json`;
       const file = new File([blob], fileName, { type: "application/json" });
 
-      await deepEvalDatasetsService.uploadDataset(file);
+      await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
       setAlert({ variant: "success", body: `"${template.name}" copied to your datasets` });
       setTimeout(() => setAlert(null), 3000);
 
@@ -522,7 +522,18 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       const finalName = slug ? `${slug}.json` : "dataset.json";
       const file = new File([blob], finalName, { type: "application/json" });
       const datasetType = editingDataset?.datasetType || "chatbot";
-      await deepEvalDatasetsService.uploadDataset(file, datasetType);
+      
+      // If editing an existing user dataset, delete the old one first
+      if (editingDataset?.isUserDataset && editingDataset?.path) {
+        try {
+          await deepEvalDatasetsService.deleteDatasets([editingDataset.path]);
+        } catch (deleteErr) {
+          console.warn("Could not delete old dataset, proceeding with save:", deleteErr);
+        }
+      }
+      
+      const turnType = editablePrompts.length > 0 && !isSingleTurnPrompt(editablePrompts[0]) ? "multi-turn" : "single-turn";
+      await deepEvalDatasetsService.uploadDataset(file, datasetType, turnType, orgId || undefined);
       setAlert({ variant: "success", body: `Dataset "${editDatasetName}" saved successfully!` });
       setTimeout(() => setAlert(null), 3000);
       handleCloseEditor();
@@ -838,7 +849,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     try {
       setUploading(true);
       setUploadModalOpen(false);
-      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType, datasetTurnType);
+      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType, datasetTurnType, orgId || undefined);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
       void loadMyDatasets();
@@ -938,7 +949,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               startIcon={<SaveIcon size={16} />}
               onClick={handleSaveDataset}
             >
-              {savingDataset ? "Saving..." : "Save copy"}
+              {savingDataset ? "Saving..." : "Save"}
             </Button>
           </Stack>
         </Stack>
@@ -953,7 +964,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             isRequired
           />
           <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
-            Edit the prompts below, then click Save to add a copy to your datasets.
+            Edit the prompts below, then click Save to update your dataset.
           </Typography>
         </Stack>
 

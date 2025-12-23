@@ -21,6 +21,7 @@ import allowedRoles from "../../../application/constants/permissions";
 
 interface ProjectExperimentsProps {
   projectId: string;
+  orgId?: string | null;
   onViewExperiment?: (experimentId: string) => void;
 }
 
@@ -46,7 +47,7 @@ function shortenModelName(modelName: string): string {
   return modelName.replace(/-\d{8}$/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '');
 }
 
-export default function ProjectExperiments({ projectId, onViewExperiment }: ProjectExperimentsProps) {
+export default function ProjectExperiments({ projectId, orgId, onViewExperiment }: ProjectExperimentsProps) {
   const navigate = useNavigate();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
   const [, setLoading] = useState(true);
@@ -55,6 +56,8 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
   const [alert, setAlert] = useState<AlertState | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [chartRefreshKey, setChartRefreshKey] = useState(0);
+  const prevRunningIdsRef = useRef<Set<string>>(new Set());
 
   // RBAC permissions
   const { userRoleName } = useAuth();
@@ -85,7 +88,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
     if (hasRunningExperiments) {
       pollIntervalRef.current = setInterval(() => {
         loadExperiments();
-      }, 10000); // Poll every 10 seconds
+      }, 5000); // Poll every 5 seconds for faster updates
     }
 
     return () => {
@@ -94,6 +97,37 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [experiments]);
+
+  // Detect when running experiments complete and refresh the chart
+  useEffect(() => {
+    const currentRunningIds = new Set(
+      experiments
+        .filter((exp) => exp.status === "running" || exp.status === "pending")
+        .map((exp) => exp.id)
+    );
+
+    // Check if any previously running experiments are now completed
+    const prevRunning = prevRunningIdsRef.current;
+    let anyCompleted = false;
+    
+    prevRunning.forEach((id) => {
+      if (!currentRunningIds.has(id)) {
+        // This experiment was running but is no longer running (completed or failed)
+        const exp = experiments.find((e) => e.id === id);
+        if (exp && (exp.status === "completed" || exp.status === "failed")) {
+          anyCompleted = true;
+        }
+      }
+    });
+
+    // Update the ref with current running IDs
+    prevRunningIdsRef.current = currentRunningIds;
+
+    // If any experiment just completed, refresh the chart
+    if (anyCompleted) {
+      setChartRefreshKey((prev) => prev + 1);
+    }
   }, [experiments]);
 
   const loadExperiments = async () => {
@@ -521,7 +555,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
               filter: experiments.length === 0 ? "blur(4px)" : "none",
               pointerEvents: experiments.length === 0 ? "none" : "auto",
             }}>
-              <PerformanceChart projectId={projectId} />
+              <PerformanceChart key={`chart-${chartRefreshKey}`} projectId={projectId} />
             </Box>
             {experiments.length === 0 && (
               <Box
@@ -616,6 +650,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
         isOpen={newEvalModalOpen}
         onClose={() => setNewEvalModalOpen(false)}
         projectId={projectId}
+        orgId={orgId}
         onSuccess={() => {
           setNewEvalModalOpen(false);
           loadExperiments();

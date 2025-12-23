@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Box, Stack, Typography, Chip, Paper, Divider, Button, CircularProgress, IconButton, Select, MenuItem, useTheme } from "@mui/material";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { deepEvalDatasetsService, DatasetPromptRecord, isSingleTurnPrompt, SingleTurnPrompt } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import Alert from "../../components/Alert";
 import { ArrowLeft, X, Settings, ChevronDown, Upload } from "lucide-react";
@@ -151,6 +152,19 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [activeSection, setActiveSection] = useState<"datasets" | "benchmarks">("datasets");
+  const [orgId, setOrgId] = useState<string | null>(null);
+
+  // Fetch current org on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const { org } = await deepEvalOrgsService.getCurrentOrg();
+        if (org) setOrgId(org.id);
+      } catch {
+        // Ignore - org might not be set
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -233,7 +247,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
 
     try {
       setUploading(true);
-      const resp = await deepEvalDatasetsService.uploadDataset(file);
+      const resp = await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
       // Reload groups so any new datasets that are exposed via list() appear

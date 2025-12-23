@@ -166,6 +166,9 @@ export default function CreateScorerModal({
 
   // Update config when initialConfig changes (for editing)
   useEffect(() => {
+    // Always reset popover state when modal opens or scorer changes
+    setParamsPopoverOpen(false);
+    
     if (initialConfig) {
       setConfig({
         name: initialConfig.name || "",
@@ -408,11 +411,11 @@ export default function CreateScorerModal({
                 </Typography>
                 <CustomizableButton
                   variant="text"
-                  text="Add API key in Configuration"
+                  text="Add API key in Settings"
                   icon={<Settings size={14} />}
                   onClick={() => {
                     onClose();
-                    navigate(`/evals/${projectId}#configuration`)
+                    navigate(`/evals/${projectId}#settings`)
                   }}
                   sx={{
                     color: "#92400E",

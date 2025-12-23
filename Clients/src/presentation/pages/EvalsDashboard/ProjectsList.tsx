@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -15,9 +15,12 @@ import {
   TablePagination,
   TableFooter,
   IconButton,
-  Tooltip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
-import { CirclePlus, Pencil, Trash2, FileSearch, MessageSquare, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, FileSearch, MessageSquare, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
 import SelectableCard from "../../components/SelectableCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
@@ -26,6 +29,10 @@ import Alert from "../../components/Alert";
 import EmptyState from "../../components/EmptyState";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import TablePaginationActions from "../../components/TablePagination";
+import SearchBox from "../../components/Search/SearchBox";
+import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -43,11 +50,12 @@ type SortConfig = {
 };
 
 const columns = [
-  { id: "name", label: "Project name", minWidth: 200, sortable: true },
-  { id: "description", label: "Description", minWidth: 300, sortable: false },
-  { id: "runs", label: "Runs", minWidth: 80, sortable: true },
-  { id: "created", label: "Created", minWidth: 120, sortable: true },
-  { id: "actions", label: "", minWidth: 80, sortable: false },
+  { id: "name", label: "Name", minWidth: 180, sortable: true, align: "left" as const },
+  { id: "useCase", label: "Use case", minWidth: 120, sortable: true, align: "center" as const },
+  { id: "description", label: "Description", minWidth: 200, sortable: false, align: "center" as const },
+  { id: "runs", label: "Runs", minWidth: 100, sortable: true, align: "center" as const },
+  { id: "created", label: "Created", minWidth: 140, sortable: true, align: "center" as const },
+  { id: "actions", label: "Action", minWidth: 80, sortable: false, align: "center" as const },
 ];
 
 export default function ProjectsList() {
@@ -97,6 +105,47 @@ export default function ProjectsList() {
   const canEditProject = allowedRoles.evals.editProject.includes(userRoleName);
   const canDeleteProject = allowedRoles.evals.deleteProject.includes(userRoleName);
 
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filterColumns: FilterColumn[] = [
+    { id: "name", label: "Project name", type: "text" },
+    { id: "useCase", label: "Use case", type: "select", options: [
+      { label: "Chatbot", value: "chatbot" },
+      { label: "RAG", value: "rag" },
+      { label: "Agent", value: "agent" },
+    ]},
+  ];
+
+  const getFieldValue = useCallback(
+    (project: DeepEvalProject, field: string): string => {
+      switch (field) {
+        case "name":
+          return project.name;
+        case "useCase":
+          return project.useCase || "";
+        default:
+          return "";
+      }
+    },
+    []
+  );
+
+  const { filterData, handleFilterChange } = useFilterBy<DeepEvalProject>(getFieldValue);
+
+  const filteredProjects = useMemo(() => {
+    const afterFilter = filterData(projects);
+    if (!searchTerm.trim()) return afterFilter;
+    const q = searchTerm.toLowerCase();
+    return afterFilter.filter((p) =>
+      [p.name, p.description, p.useCase]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [projects, filterData, searchTerm]);
+
   const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({
     name: "",
     description: "",
@@ -113,6 +162,10 @@ export default function ProjectsList() {
   // Delete confirmation modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<DeepEvalProject | null>(null);
+
+  // Action menu state
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuProject, setMenuProject] = useState<DeepEvalProject | null>(null);
 
   const loadProjects = useCallback(async () => {
     try {
@@ -167,8 +220,8 @@ export default function ProjectsList() {
     });
   }, []);
 
-  // Sort projects
-  const sortedProjects = [...projects].sort((a, b) => {
+  // Sort projects (uses filtered results)
+  const sortedProjects = [...filteredProjects].sort((a, b) => {
     if (!sortConfig.key || !sortConfig.direction) return 0;
 
     let aValue: string | number;
@@ -178,6 +231,10 @@ export default function ProjectsList() {
       case "name":
         aValue = a.name.toLowerCase();
         bValue = b.name.toLowerCase();
+        break;
+      case "useCase":
+        aValue = (a.useCase || "chatbot").toLowerCase();
+        bValue = (b.useCase || "chatbot").toLowerCase();
         break;
       case "runs":
         aValue = runsByProject[a.id] ?? 0;
@@ -256,16 +313,6 @@ export default function ProjectsList() {
     navigate(`/evals/${projectId}#overview`);
   };
 
-  const handleEditClick = (e: React.MouseEvent, project: DeepEvalProject) => {
-    e.stopPropagation();
-    setEditingProject(project);
-    setEditProjectData({
-      name: project.name,
-      description: project.description || "",
-    });
-    setEditModalOpen(true);
-  };
-
   const handleUpdateProject = async () => {
     if (!editingProject) return;
     setLoading(true);
@@ -288,12 +335,6 @@ export default function ProjectsList() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDeleteClick = (e: React.MouseEvent, project: DeepEvalProject) => {
-    e.stopPropagation();
-    setProjectToDelete(project);
-    setDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -327,6 +368,50 @@ export default function ProjectsList() {
     });
   };
 
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, project: DeepEvalProject) => {
+    event.stopPropagation();
+    setMenuAnchorEl(event.currentTarget);
+    setMenuProject(project);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+    setMenuProject(null);
+  };
+
+  const handleMenuEdit = () => {
+    if (menuProject) {
+      setEditingProject(menuProject);
+      setEditProjectData({
+        name: menuProject.name,
+        description: menuProject.description || "",
+      });
+      setEditModalOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const handleMenuDelete = () => {
+    if (menuProject) {
+      setProjectToDelete(menuProject);
+      setDeleteModalOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const getUseCaseLabel = (useCase: string | undefined) => {
+    switch (useCase) {
+      case "rag":
+        return "RAG";
+      case "chatbot":
+        return "Chatbot";
+      case "agent":
+        return "Agent";
+      default:
+        return "Chatbot";
+    }
+  };
+
   const getRange = () => {
     const start = page * rowsPerPage + 1;
     const end = Math.min(page * rowsPerPage + rowsPerPage, sortedProjects.length);
@@ -337,53 +422,82 @@ export default function ProjectsList() {
     <>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={1}>
-            <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-              Projects
-            </Typography>
-            {projects.length > 0 && (
-              <Chip
-                label={projects.length}
-                size="small"
-                sx={{
-                  backgroundColor: "#e0e0e0",
-                  color: "#424242",
-                  fontWeight: 600,
-                  fontSize: "11px",
-                  height: "20px",
-                  minWidth: "20px",
-                  borderRadius: "10px",
-                  "& .MuiChip-label": {
-                    padding: "0 6px",
-                  },
-                }}
-              />
-            )}
-          </Box>
+      {/* Header + description */}
+      <Stack spacing={1} mb={6}>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Projects
+          </Typography>
+          {projects.length > 0 && (
+            <Chip
+              label={projects.length}
+              size="small"
+              sx={{
+                backgroundColor: "#e0e0e0",
+                color: "#424242",
+                fontWeight: 600,
+                fontSize: "11px",
+                height: "20px",
+                minWidth: "20px",
+                borderRadius: "10px",
+                "& .MuiChip-label": {
+                  padding: "0 6px",
+                },
+              }}
+            />
+          )}
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Projects organize your LLM evaluations. Each project groups related experiments, datasets, and configurations for a specific use case.
+        </Typography>
+      </Stack>
 
-          <CustomizableButton
-            onClick={() => setCreateModalOpen(true)}
-            variant="contained"
-            startIcon={<CirclePlus size={20} />}
-            isDisabled={!canCreateProject}
-            sx={{
-              textTransform: "none",
-              backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "#0f5a47" },
-            }}
-          >
-            Create project
-          </CustomizableButton>
+      {/* Controls row */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ marginBottom: "18px" }}
+        gap={2}
+      >
+        <Stack direction="row" alignItems="center" gap={2}>
+          <FilterBy columns={filterColumns} onFilterChange={handleFilterChange} />
+          <GroupBy
+            options={[
+              { id: "useCase", label: "Use case" },
+            ]}
+            onGroupChange={() => {}}
+          />
+          <SearchBox
+            placeholder="Search projects..."
+            value={searchTerm}
+            onChange={setSearchTerm}
+            inputProps={{ "aria-label": "Search projects" }}
+            fullWidth={false}
+          />
         </Stack>
-      </Box>
+        <CustomizableButton
+          onClick={() => setCreateModalOpen(true)}
+          variant="contained"
+          text="Create project"
+          icon={<Plus size={16} />}
+          isDisabled={!canCreateProject}
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
+          }}
+        />
+      </Stack>
 
       {/* Projects Table */}
-      {projects.length === 0 ? (
+      {filteredProjects.length === 0 ? (
         <EmptyState
-          message="No projects yet. Create your first project to start evaluating LLMs."
+          message={
+            projects.length === 0
+              ? "No projects yet. Create your first project to start evaluating LLMs."
+              : "No projects match your search or filter criteria."
+          }
           showBorder
         />
       ) : (
@@ -403,6 +517,7 @@ export default function ProjectsList() {
                       minWidth: column.minWidth,
                       cursor: column.sortable ? "pointer" : "default",
                       userSelect: "none",
+                      textAlign: column.align,
                       "&:hover": column.sortable ? {
                         backgroundColor: "rgba(0, 0, 0, 0.04)",
                       } : {},
@@ -413,8 +528,8 @@ export default function ProjectsList() {
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: theme.spacing(2),
+                        justifyContent: column.align === "center" ? "center" : "flex-start",
+                        gap: 0.5,
                       }}
                     >
                       <Typography
@@ -432,11 +547,12 @@ export default function ProjectsList() {
                             display: "flex",
                             alignItems: "center",
                             color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                            flexShrink: 0,
                           }}
                         >
-                          {sortConfig.key === column.id && sortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {sortConfig.key === column.id && sortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
+                          {sortConfig.key === column.id && sortConfig.direction === "asc" && <ChevronUp size={14} />}
+                          {sortConfig.key === column.id && sortConfig.direction === "desc" && <ChevronDown size={14} />}
+                          {sortConfig.key !== column.id && <ChevronsUpDown size={14} />}
                         </Box>
                       )}
                     </Box>
@@ -457,22 +573,51 @@ export default function ProjectsList() {
                     },
                   }}
                 >
+                  {/* Name - Left aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
-                      fontWeight: 600,
                       color: "#111827",
+                      textAlign: "left",
                     }}
                   >
                     {project.name}
                   </TableCell>
+                  {/* Use Case - Center aligned */}
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      fontSize: "13px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Chip
+                      size="small"
+                      icon={project.useCase === "rag" ? <FileSearch size={12} /> : <MessageSquare size={12} />}
+                      label={getUseCaseLabel(project.useCase)}
+                      sx={{
+                        backgroundColor: project.useCase === "rag" ? "#E0F2FE" : "#F0FDF4",
+                        color: project.useCase === "rag" ? "#0369A1" : "#166534",
+                        fontWeight: 500,
+                        fontSize: "12px",
+                        height: "24px",
+                        borderRadius: "4px",
+                        "& .MuiChip-icon": {
+                          color: "inherit",
+                          marginLeft: "8px",
+                        },
+                      }}
+                    />
+                  </TableCell>
+                  {/* Description - Center aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
                       color: "#6B7280",
-                      maxWidth: 300,
+                      textAlign: "center",
+                      maxWidth: 200,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -480,10 +625,12 @@ export default function ProjectsList() {
                   >
                     {project.description || "-"}
                   </TableCell>
+                  {/* Runs - Center aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
+                      textAlign: "center",
                     }}
                   >
                     <Chip
@@ -500,57 +647,39 @@ export default function ProjectsList() {
                       }}
                     />
                   </TableCell>
+                  {/* Created - Center aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
                       color: "#6B7280",
+                      textAlign: "center",
                     }}
                   >
                     {formatDate(project.createdAt)}
                   </TableCell>
+                  {/* Action - Center aligned */}
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
+                      textAlign: "center",
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Box sx={{ display: "flex", gap: 0.5 }}>
-                      {canEditProject && (
-                        <Tooltip title="Edit project">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleEditClick(e, project)}
-                            sx={{
-                              color: "#6B7280",
-                              "&:hover": {
-                                color: "#13715B",
-                                backgroundColor: "rgba(19, 113, 91, 0.1)",
-                              },
-                            }}
-                          >
-                            <Pencil size={16} />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      {canDeleteProject && (
-                        <Tooltip title="Delete project">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleDeleteClick(e, project)}
-                            sx={{
-                              color: "#6B7280",
-                              "&:hover": {
-                                color: "#D32F2F",
-                                backgroundColor: "rgba(211, 47, 47, 0.1)",
-                              },
-                            }}
-                          >
-                            <Trash2 size={16} />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Box>
+                    {(canEditProject || canDeleteProject) && (
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuOpen(e, project)}
+                        sx={{
+                          color: "#6B7280",
+                          "&:hover": {
+                            backgroundColor: "rgba(0, 0, 0, 0.04)",
+                          },
+                        }}
+                      >
+                        <MoreVertical size={18} />
+                      </IconButton>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -571,7 +700,7 @@ export default function ProjectsList() {
                     opacity: 0.7,
                     color: theme.palette.text.tertiary,
                   }}
-                  colSpan={2}
+                  colSpan={3}
                 >
                   Showing {getRange()} of {sortedProjects.length} project(s)
                 </TableCell>
@@ -638,6 +767,47 @@ export default function ProjectsList() {
           </Table>
         </TableContainer>
       )}
+
+      {/* Action Menu */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+        onClick={(e) => e.stopPropagation()}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        PaperProps={{
+          sx: {
+            minWidth: 140,
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            borderRadius: "8px",
+            border: "1px solid #E5E7EB",
+          },
+        }}
+      >
+        {canEditProject && (
+          <MenuItem onClick={handleMenuEdit} sx={{ fontSize: "13px", py: 1 }}>
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <Pencil size={16} color="#6B7280" />
+            </ListItemIcon>
+            <ListItemText primary="Edit" primaryTypographyProps={{ fontSize: "13px" }} />
+          </MenuItem>
+        )}
+        {canDeleteProject && (
+          <MenuItem onClick={handleMenuDelete} sx={{ fontSize: "13px", py: 1, color: "#DC2626" }}>
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <Trash2 size={16} color="#DC2626" />
+            </ListItemIcon>
+            <ListItemText primary="Delete" primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }} />
+          </MenuItem>
+        )}
+      </Menu>
 
       {/* Create Project Modal */}
       <StandardModal

@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { deepEvalDatasetsService, DatasetPromptRecord, SingleTurnPrompt, isSingleTurnPrompt } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 import Alert from "../../components/Alert";
 import { ArrowLeft, ChevronDown, Save as SaveIcon, Plus, Trash2, Download, Copy, Check } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -30,6 +31,19 @@ export default function DatasetEditorPage() {
   const [saving, setSaving] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
+
+  // Fetch current org on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const { org } = await deepEvalOrgsService.getCurrentOrg();
+        if (org) setOrgId(org.id);
+      } catch {
+        // Ignore - org might not be set
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -63,7 +77,7 @@ export default function DatasetEditorPage() {
       const slug = datasetName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
       const finalName = slug ? `${slug}.json` : "dataset.json";
       const file = new File([blob], finalName, { type: "application/json" });
-      await deepEvalDatasetsService.uploadDataset(file);
+      await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
       setAlert({ variant: "success", body: `Dataset "${datasetName}" saved successfully!` });
       setTimeout(() => {
         setAlert(null);
@@ -193,7 +207,7 @@ export default function DatasetEditorPage() {
             startIcon={<SaveIcon size={16} />}
             onClick={handleSave}
           >
-            {saving ? "Saving..." : "Save copy"}
+            {saving ? "Saving..." : "Save"}
           </Button>
         </Stack>
       </Stack>
@@ -209,7 +223,7 @@ export default function DatasetEditorPage() {
           placeholder="Enter a descriptive name for this dataset"
         />
         <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
-          Edit the prompts below, then click Save to add a copy to your datasets.
+          Edit the prompts below, then click Save to create your dataset.
         </Typography>
       </Stack>
 

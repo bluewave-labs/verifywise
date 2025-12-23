@@ -1620,15 +1620,20 @@ export const createNewTenant = async (
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_organizations (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL UNIQUE,
-        member_ids INTEGER[] DEFAULT ARRAY[]::INTEGER[],
-        tenant VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        description TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,
       { transaction }
     );
     await sequelize.query(
-      `CREATE INDEX IF NOT EXISTS idx_deepeval_organizations_tenant ON "${tenantHash}".deepeval_organizations(tenant);`,
-      { transaction }
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_org_members (
+        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        role VARCHAR(50) DEFAULT 'member',
+        joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (org_id, user_id)
+      );`, { transaction }
     );
 
     // 2. deepeval_projects table
@@ -1637,8 +1642,7 @@ export const createNewTenant = async (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
-        tenant VARCHAR(255) NOT NULL,
-        org_id VARCHAR(255),
+        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         created_by VARCHAR(255)
@@ -1648,10 +1652,6 @@ export const createNewTenant = async (
 
     // Create indexes for deepeval_projects
     await Promise.all([
-      sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_deepeval_projects_tenant ON "${tenantHash}".deepeval_projects(tenant);`,
-        { transaction }
-      ),
       sequelize.query(
         `CREATE INDEX IF NOT EXISTS idx_deepeval_projects_created_at ON "${tenantHash}".deepeval_projects(created_at DESC);`,
         { transaction }
@@ -1671,13 +1671,12 @@ export const createNewTenant = async (
         size BIGINT NOT NULL DEFAULT 0,
         prompt_count INTEGER DEFAULT 0,
         dataset_type VARCHAR(50) DEFAULT 'chatbot',
-        tenant VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        turn_type VARCHAR(50) DEFAULT 'single-turn',
+        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(255)
       );`,
-      { transaction }
-    );
-    await sequelize.query(
-      `CREATE INDEX IF NOT EXISTS idx_deepeval_user_datasets_tenant ON "${tenantHash}".deepeval_user_datasets(tenant);`,
       { transaction }
     );
 
@@ -1685,7 +1684,7 @@ export const createNewTenant = async (
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_scorers (
         id VARCHAR(255) PRIMARY KEY,
-        project_id VARCHAR(255),
+        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
         name VARCHAR(255) NOT NULL,
         description TEXT,
         type VARCHAR(255) NOT NULL,
@@ -1694,7 +1693,6 @@ export const createNewTenant = async (
         enabled BOOLEAN DEFAULT true,
         default_threshold DOUBLE PRECISION,
         weight DOUBLE PRECISION,
-        tenant VARCHAR(255) NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         created_by VARCHAR(255)
@@ -1706,11 +1704,11 @@ export const createNewTenant = async (
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".experiments (
         id VARCHAR(255) PRIMARY KEY,
-        project_id VARCHAR(255) NOT NULL,
+        project_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_projects(id) ON DELETE CASCADE,
         name VARCHAR(255) NOT NULL,
         description TEXT,
         config JSONB NOT NULL,
-        baseline_experiment_id VARCHAR(255),
+        baseline_experiment_id VARCHAR(255) REFERENCES "${tenantHash}".experiments(id) ON DELETE SET NULL,
         status VARCHAR(50) DEFAULT 'pending',
         results JSONB,
         error_message TEXT,
@@ -1718,8 +1716,7 @@ export const createNewTenant = async (
         completed_at TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        tenant VARCHAR(255) NOT NULL,
-        created_by INTEGER
+        created_by VARCHAR(255)
       );`,
       { transaction }
     );
@@ -1740,8 +1737,8 @@ export const createNewTenant = async (
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".evaluation_logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        project_id VARCHAR(255) NOT NULL,
-        experiment_id VARCHAR(255),
+        project_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_projects(id) ON DELETE CASCADE,
+        experiment_id VARCHAR(255) REFERENCES "${tenantHash}".experiments(id) ON DELETE CASCADE,
         trace_id UUID,
         parent_trace_id UUID,
         span_name VARCHAR(255),
@@ -1755,8 +1752,7 @@ export const createNewTenant = async (
         status VARCHAR(50),
         error_message TEXT,
         timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        tenant VARCHAR(255) NOT NULL,
-        created_by INTEGER
+        created_by VARCHAR(255)
       );`,
       { transaction }
     );
@@ -1781,14 +1777,13 @@ export const createNewTenant = async (
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".evaluation_metrics (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        project_id VARCHAR(255) NOT NULL,
-        experiment_id VARCHAR(255),
+        project_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_projects(id) ON DELETE CASCADE,
+        experiment_id VARCHAR(255) REFERENCES "${tenantHash}".experiments(id) ON DELETE CASCADE,
         metric_name VARCHAR(255) NOT NULL,
         metric_type VARCHAR(255) NOT NULL,
         value DOUBLE PRECISION NOT NULL,
         dimensions JSONB,
-        timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        tenant VARCHAR(255) NOT NULL
+        timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,
       { transaction }
     );
@@ -1808,6 +1803,23 @@ export const createNewTenant = async (
         { transaction }
       ),
     ]);
+
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".evaluation_llm_api_keys (
+        id SERIAL PRIMARY KEY,
+        provider VARCHAR(50) NOT NULL UNIQUE,
+        encrypted_api_key TEXT NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `, { transaction });
+
+    // Create trigger on evaluation_llm_api_keys table
+    await sequelize.query(`
+      CREATE TRIGGER trg_${tenantHash}_update_evaluation_llm_api_keys_updated_at
+      BEFORE UPDATE ON "${tenantHash}".evaluation_llm_api_keys
+      FOR EACH ROW EXECUTE PROCEDURE update_evaluation_llm_api_keys_updated_at();
+    `, { transaction });
 
     console.log(`✅ EvalServer tables created successfully for tenant: ${tenantHash}`);
 

@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useRef, useContext } from "react";
+import { FC, useState, useEffect, useRef, useContext, useCallback } from "react";
 import {
   Box,
   IconButton,
@@ -30,6 +30,12 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import Logo from "../../assets/imgs/logo.png";
 import SidebarFooter from "./SidebarFooter";
 import FlyingHearts from "../FlyingHearts";
+import { useAuth } from "../../../application/hooks/useAuth";
+import { useLogoFetch } from "../../../application/hooks/useLogoFetch";
+import { getAuthToken } from "../../../application/redux/auth/getAuthToken";
+import { extractUserToken } from "../../../application/tools/extractToken";
+import { GetMyOrganization } from "../../../application/repository/organization.repository";
+import { OrganizationModel } from "../../../domain/models/Common/organization/organization.model";
 
 declare const __APP_VERSION__: string;
 
@@ -119,6 +125,14 @@ const SidebarShell: FC<SidebarShellProps> = ({
   // VerifyWiseContext available for future use
   useContext(VerifyWiseContext);
 
+  // Organization logo and name state
+  const { organizationId } = useAuth();
+  const { fetchLogoAsBlobUrl } = useLogoFetch();
+  const [organizationLogoUrl, setOrganizationLogoUrl] = useState<string | null>(null);
+  const [organizationName, setOrganizationName] = useState<string>("VerifyWise");
+  const [logoLoading, setLogoLoading] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
   // Delayed collapsed state for smooth animation
@@ -140,6 +154,58 @@ const SidebarShell: FC<SidebarShellProps> = ({
       return () => clearTimeout(timer);
     }
   }, [collapsed]);
+
+  // Fetch organization logo and name
+  const fetchOrganizationData = useCallback(async () => {
+    if (!organizationId) return;
+    
+    setLogoLoading(true);
+    setLogoError(false);
+    try {
+      // Fetch organization details
+      const organizationResponse = await GetMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+      });
+      
+      if (organizationResponse?.data?.data) {
+        const org = OrganizationModel.fromApiData(organizationResponse.data.data);
+        setOrganizationName(org.name || "VerifyWise");
+      }
+      
+      // Fetch organization logo
+      const authToken = getAuthToken();
+      const tokenData = extractUserToken(authToken);
+      const tenantId = tokenData?.tenantId;
+      
+      if (tenantId) {
+        const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
+        if (logoBlobUrl) {
+          setOrganizationLogoUrl(logoBlobUrl);
+          setLogoError(false);
+        } else {
+          setLogoError(true);
+        }
+      }
+    } catch (error) {
+      setLogoError(true);
+    } finally {
+      setLogoLoading(false);
+    }
+  }, [organizationId, fetchLogoAsBlobUrl]);
+
+  // Fetch organization data on component mount
+  useEffect(() => {
+    fetchOrganizationData();
+  }, [fetchOrganizationData]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (organizationLogoUrl && organizationLogoUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(organizationLogoUrl);
+      }
+    };
+  }, [organizationLogoUrl]);
 
   // Heart hover handler
   const handleLogoHover = () => {
@@ -597,17 +663,42 @@ const SidebarShell: FC<SidebarShellProps> = ({
                   </IconButton>
                 </Tooltip>
               )}
-              <RouterLink
-                to="/"
-                style={{ display: "flex", alignItems: "center" }}
-              >
-                <img
-                  src={Logo}
-                  alt="Logo"
-                  width={20}
-                  height={20}
-                  style={{ position: "relative", zIndex: 1, display: "block" }}
-                />
+              <RouterLink to="/" style={{ display: "flex", alignItems: "center" }}>
+                {logoLoading ? (
+                  <Box
+                    sx={{
+                      width: 20,
+                      height: 20,
+                      backgroundColor: "#f0f0f0",
+                      borderRadius: "2px",
+                      position: "relative",
+                      zIndex: 1
+                    }}
+                  />
+                ) : organizationLogoUrl && !logoError ? (
+                  <img
+                    src={organizationLogoUrl}
+                    alt="Organization Logo"
+                    width={20}
+                    height={20}
+                    style={{
+                      position: "relative",
+                      zIndex: 1,
+                      display: "block",
+                      objectFit: "contain",
+                      borderRadius: "2px"
+                    }}
+                    onError={() => setLogoError(true)}
+                  />
+                ) : (
+                  <img
+                    src={Logo}
+                    alt="VerifyWise Logo"
+                    width={20}
+                    height={20}
+                    style={{ position: "relative", zIndex: 1, display: "block" }}
+                  />
+                )}
               </RouterLink>
             </Box>
           )}
@@ -631,18 +722,19 @@ const SidebarShell: FC<SidebarShellProps> = ({
                 }}
                 className="app-title"
               >
-                Verify
-                <span style={{ color: "#0f604d" }}>Wise</span>
-                <span
-                  style={{
-                    fontSize: "8px",
-                    marginLeft: "4px",
-                    opacity: 0.6,
-                    fontWeight: 400,
-                  }}
-                >
-                  {__APP_VERSION__}
-                </span>
+                {organizationName === "VerifyWise" ? (
+                  <>
+                    Verify
+                    <span style={{ color: "#0f604d" }}>Wise</span>
+                    <span style={{ fontSize: "8px", marginLeft: "4px", opacity: 0.6, fontWeight: 400 }}>
+                      {__APP_VERSION__}
+                    </span>
+                  </>
+                ) : (
+                  <span style={{ color: theme.palette.text.primary }}>
+                    {organizationName}
+                  </span>
+                )}
               </Typography>
             </MuiLink>
           )}

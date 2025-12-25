@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
-import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
+import { OnboardingStepProps } from "../../../types/interfaces/i.onboarding";
 import { CheckSquare, MessageSquare, BarChart3, Bell } from "lucide-react";
 import Alert from "../../Alert";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";

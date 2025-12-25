@@ -1,5 +1,5 @@
 import { BarChart3, Filter, Search, FilePlus } from "lucide-react";
-import { IPageTourStep } from "../../../domain/interfaces/i.tour";
+import { IPageTourStep } from "../../types/interfaces/i.tour";
 
 const PolicySteps: IPageTourStep[] = [
   {

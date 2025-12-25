@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
-import { IButtonToggleProps } from "../../../domain/interfaces/i.button";
+import { IButtonToggleProps } from "../../types/interfaces/i.button";
 
 const frameworkTabsContainerStyle = (height: number) => ({
   position: "relative",

@@ -23,7 +23,7 @@ import "./index.css";
 
 import { Square } from "lucide-react";
 import { FC } from "react";
-import { CheckboxProps } from "../../../../domain/interfaces/i.widget";
+import { CheckboxProps } from "../../../types/widget.types";
 
 // Custom filled checkbox icon matching Lucide's Square dimensions
 const FilledCheckSquare: FC<{ size?: number }> = ({ size = 24 }) => (

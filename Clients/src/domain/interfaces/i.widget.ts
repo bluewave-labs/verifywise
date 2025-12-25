@@ -26,17 +26,3 @@ export type {
   IProtectedRouteProps,
   IPopupProps,
 } from "../types/widget.types";
-
-/**
- * Backwards compatibility: re-export presentation adapter types
- * Note: These re-exports enable consumers to use MUI-specific props
- * The actual types are defined in presentation/types/widget.types.ts
- */
-export type {
-  AutoCompleteFieldProps,
-  CheckboxProps,
-  DatePickerProps,
-  FieldProps,
-  SelectProps,
-  ISearchBoxProps,
-} from "../../presentation/types/widget.types";

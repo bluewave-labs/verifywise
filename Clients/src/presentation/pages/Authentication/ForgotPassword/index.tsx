@@ -12,7 +12,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useLocation } from "react-router-dom";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../../types/alert.types";
 import Alert from "../../../components/Alert";
 
 // Define the shape of form values

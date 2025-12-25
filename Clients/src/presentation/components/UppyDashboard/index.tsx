@@ -2,7 +2,7 @@ import { Dashboard } from "@uppy/react";
 import "@uppy/core/dist/style.min.css";
 import "@uppy/dashboard/dist/style.min.css";
 import styled from "styled-components";
-import { IUppyDashboardProps } from "../../../domain/interfaces/i.uppy";
+import { IUppyDashboardProps } from "../../types/interfaces/i.uppy";
 
 const StyledDashboard = styled.div`
   .uppy-Dashboard-AddFiles-title {

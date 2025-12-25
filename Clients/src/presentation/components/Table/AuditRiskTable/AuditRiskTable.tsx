@@ -9,7 +9,7 @@ import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 import {
   IAuditRiskTableProps,
   ITypeRisk,
-} from "../../../../domain/interfaces/i.table";
+} from "../../../types/interfaces/i.table";
 
 const TITLE_OF_COLUMNS = [
   "Unlink",

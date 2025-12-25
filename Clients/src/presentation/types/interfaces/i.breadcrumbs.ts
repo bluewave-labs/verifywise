@@ -6,4 +6,4 @@ export type {
   IBreadcrumbItem,
   IBreadcrumbsCoreProps,
   IPageBreadcrumbsCoreProps,
-} from "../types/breadcrumbs.types";
+} from "../../../domain/types/breadcrumbs.types";

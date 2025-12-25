@@ -2,7 +2,7 @@
  
 import { Layouts } from 'react-grid-layout';
 import { WidgetType } from '../enums/dashboard.enum';
-import { IStatusData } from './i.chart';
+import { IStatusData } from '../../presentation/types/interfaces/i.chart';
 
 // Widget configuration
 export interface WidgetConfig {

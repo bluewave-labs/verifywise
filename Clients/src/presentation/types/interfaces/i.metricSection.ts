@@ -1,4 +1,4 @@
-import { Assessments, Controls } from "../types/projectStatus.types";
+import { Assessments, Controls } from "../../../domain/types/projectStatus.types";
 
 export interface MetricSectionProps {
   title: string;

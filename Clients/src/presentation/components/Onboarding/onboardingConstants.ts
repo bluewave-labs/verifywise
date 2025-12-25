@@ -1,4 +1,4 @@
-import { OnboardingStepConfig } from "../../../domain/interfaces/i.onboarding";
+import { OnboardingStepConfig } from "../../types/interfaces/i.onboarding";
 import { IllustrationType } from "../../../domain/enums/onboarding.enum";
 
 export const ONBOARDING_DURATION = "3 minutes";

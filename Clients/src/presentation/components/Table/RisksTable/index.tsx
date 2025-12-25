@@ -21,7 +21,7 @@ import Chip from "../../Chip";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import { User } from "../../../../domain/types/User";
-import { IRiskTableProps } from "../../../../domain/interfaces/i.table";
+import { IRiskTableProps } from "../../../types/interfaces/i.table";
 import { VWLink } from "../../Link";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 

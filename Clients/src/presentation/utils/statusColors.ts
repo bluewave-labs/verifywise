@@ -1,4 +1,4 @@
-import { IStatusData } from "../../domain/interfaces/i.chart";
+import { IStatusData } from "../types/interfaces/i.chart";
 
 // Color schemes for different entity statuses
 export const statusColorSchemes = {

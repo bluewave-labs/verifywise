@@ -24,7 +24,7 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
-import { IEventsTableProps } from "../../../../domain/interfaces/i.table";
+import { IEventsTableProps } from "../../../types/interfaces/i.table";
 
 const EVENTS_TABLE_SORTING_KEY = "verifywise_events_table_sorting";
 

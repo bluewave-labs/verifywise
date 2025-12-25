@@ -26,7 +26,7 @@ import CustomizableButton from "../../Button/CustomizableButton";
 import {
   IAuditRiskTableBodyProps,
   ITypeRisk,
-} from "../../../../domain/interfaces/i.table";
+} from "../../../types/interfaces/i.table";
 
 const navigteToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");

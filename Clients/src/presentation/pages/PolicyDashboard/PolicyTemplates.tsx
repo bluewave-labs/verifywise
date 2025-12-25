@@ -10,7 +10,7 @@ import {
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
-import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../types/alert.types";
 import { SearchBox } from "../../components/Search";
 import { PolicyTemplateCategory } from "../../../domain/enums/policy.enum";
 import TagChip from "../../components/Tags/TagChip";

@@ -2,7 +2,7 @@ import Joyride, { Step, TooltipRenderProps } from "react-joyride";
 import React, { useEffect, useState } from "react";
 import { CustomStepWrapper } from "./CustomStep";
 import { Global } from "@emotion/react";
-import { IPageTourProps } from "../../../domain/interfaces/i.tour";
+import { IPageTourProps } from "../../types/interfaces/i.tour";
 
 const PageTour: React.FC<IPageTourProps> = ({
   steps,

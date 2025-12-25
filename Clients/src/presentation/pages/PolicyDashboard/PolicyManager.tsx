@@ -10,7 +10,7 @@ import EmptyState from "../../components/EmptyState";
 import { SearchBox } from "../../components/Search";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
-import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../types/alert.types";
 import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyManager.model";
 import { PolicyManagerProps } from "../../../domain/interfaces/i.policy";
 import PolicyStatusCard from "./PolicyStatusCard";

@@ -1,5 +1,5 @@
 import { SxProps, Theme } from "@mui/material";
-import { IVWLinkCoreProps } from "../../domain/interfaces/i.link";
+import { IVWLinkCoreProps } from "./interfaces/i.link";
 
 /**
  * Presentation adapter for VWLink component

@@ -25,7 +25,7 @@ import {
 } from "@mui/material";
 import "./index.css";
 import { ChevronDown } from "lucide-react";
-import { SelectProps } from "../../../../domain/interfaces/i.widget";
+import { SelectProps } from "../../../types/widget.types";
 import { getSelectStyles } from "../../../utils/inputStyles";
 
 const Select: React.FC<SelectProps> = ({

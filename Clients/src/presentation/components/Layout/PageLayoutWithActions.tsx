@@ -2,7 +2,7 @@ import React from 'react';
 import { Box } from '@mui/material';
 import PageBreadcrumbs from '../Breadcrumbs/PageBreadcrumbs';
 import DashboardActionButtons from './DashboardActionButtons';
-import { IBreadcrumbItem } from '../../../domain/interfaces/i.breadcrumbs';
+import { IBreadcrumbItem } from '../../types/interfaces/i.breadcrumbs';
 
 interface PageLayoutWithActionsProps {
   children: React.ReactNode;

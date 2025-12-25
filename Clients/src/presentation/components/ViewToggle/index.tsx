@@ -5,7 +5,7 @@ import {
   LayoutGrid as ViewModuleIcon,
   List as TableRowsIcon,
 } from "lucide-react";
-import { IViewMode } from "../../../domain/interfaces/i.toggle";
+import { IViewMode } from "../../types/toggle.types";
 import { IViewToggleProps } from "../../types/toggle.types";
 
 /**

@@ -8,7 +8,7 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import { useNavigate } from "react-router-dom";
 import EvaluationTable from "../../components/Table/EvaluationTable";
 import PerformanceChart from "./components/PerformanceChart";
-import type { IEvaluationRow } from "../../../domain/interfaces/i.table";
+import type { IEvaluationRow } from "../../types/interfaces/i.table";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";

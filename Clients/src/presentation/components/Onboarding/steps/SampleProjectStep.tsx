@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, Stack, FormControl, Checkbox, SelectChangeEvent } from "@mui/material";
-import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
+import { OnboardingStepProps } from "../../../types/interfaces/i.onboarding";
 import { DEMO_PROJECT_BANNER } from "../onboardingConstants";
 import Select from "../../../components/Inputs/Select";
 import useFrameworks from "../../../../application/hooks/useFrameworks";

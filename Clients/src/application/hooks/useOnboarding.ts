@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useContext } from "react";
-import { OnboardingState, UserPreferences, SampleProjectData } from "../../domain/interfaces/i.onboarding";
+import { OnboardingState, UserPreferences, SampleProjectData } from "../../presentation/types/interfaces/i.onboarding";
 import { VerifyWiseContext } from "../contexts/VerifyWise.context";
 import { useAuth } from "./useAuth";
 

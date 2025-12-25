@@ -1,5 +1,8 @@
 import { SxProps, Theme } from "@mui/material";
-import { IViewToggleCoreProps } from "../../domain/interfaces/i.toggle";
+import { IViewToggleCoreProps, IViewMode } from "./interfaces/i.toggle";
+
+// Re-export for consumers
+export type { IViewMode };
 
 /**
  * Presentation adapter for ViewToggle component

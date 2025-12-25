@@ -4,7 +4,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Bold, Italic, List, ListOrdered } from "lucide-react";
 import "./index.css";
-import { IRichTextEditorProps } from "../../../domain/interfaces/i.editor";
+import { IRichTextEditorProps } from "../../types/interfaces/i.editor";
 
 const FormatBold = () => <Bold size={20} />;
 const FormatItalic = () => <Italic size={20} />;

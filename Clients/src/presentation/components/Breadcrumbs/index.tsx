@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getRouteMapping, getRouteIcon } from "./routeMapping";
 
 import { ChevronRight as ChevronRightGreyIcon } from "lucide-react";
-import { IBreadcrumbItem } from "../../../domain/interfaces/i.breadcrumbs";
+import { IBreadcrumbItem } from "../../types/interfaces/i.breadcrumbs";
 import { IBreadcrumbsProps } from "../../types/breadcrumbs.types";
 
 /**

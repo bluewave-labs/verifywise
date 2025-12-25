@@ -21,7 +21,7 @@ import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
 import { IconButtonProps } from "../../../domain/interfaces/i.widget";
-import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../types/alert.types";
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Typography, Stack, SelectChangeEvent } from "@mui/material";
-import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
+import { OnboardingStepProps } from "../../../types/interfaces/i.onboarding";
 import { UserPlus } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
 import Select from "../../Inputs/Select";

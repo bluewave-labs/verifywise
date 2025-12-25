@@ -13,7 +13,7 @@ import CustomizableToast from "../Toast";
 import CustomizableSkeleton from "../Skeletons";
 import useUsers from "../../../application/hooks/useUsers";
 import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
-import { IFilterState } from "../../../domain/interfaces/i.filter";
+import { IFilterState } from "../../types/interfaces/i.filter";
 import { IRiskLoadingStatus, IRisksViewProps } from "../../../domain/interfaces/i.risk";
 
 const initialLoadingState: IRiskLoadingStatus = {

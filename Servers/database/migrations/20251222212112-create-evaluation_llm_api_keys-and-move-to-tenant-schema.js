@@ -7,7 +7,14 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
     try {
       await queryInterface.sequelize.query(`
-        DROP TABLE IF EXISTS evaluation_llm_api_keys;
+        DROP TABLE IF EXISTS public.evaluation_llm_api_keys;
+        
+        -- Drop the trigger
+        DROP TRIGGER IF EXISTS trigger_update_evaluation_llm_api_keys_updated_at
+        ON evaluation_llm_api_keys;
+
+        -- Drop the function
+        DROP FUNCTION IF EXISTS update_evaluation_llm_api_keys_updated_at();
       `, { transaction });
 
       const organizations = await queryInterface.sequelize.query(

@@ -5,9 +5,16 @@ import {
 import { Project } from "../types/Project";
 import { ProjectRiskMitigation } from "../types/ProjectRisk";
 
+/**
+ * Props for project list component
+ * Pure domain type with no framework dependencies
+ * 
+ * Note: newProjectButton type uses 'unknown' to avoid React dependencies.
+ * Presentation layer will handle React-specific type casting.
+ */
 export interface IProjectListProps {
   projects: Project[];
-  newProjectButton?: React.ReactNode;
+  newProjectButton?: unknown;
   onFilterChange?: (filteredProjects: Project[], filters: any) => void;
 }
 

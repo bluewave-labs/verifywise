@@ -1,6 +1,9 @@
 /**
  * Interface for individual breadcrumb item
  * Pure domain type with no framework dependencies
+ * 
+ * Note: Icon type uses 'unknown' to avoid React dependencies.
+ * Presentation layer will handle React-specific type casting.
  */
 export interface IBreadcrumbItem {
   /** Display label for the breadcrumb */
@@ -16,18 +19,21 @@ export interface IBreadcrumbItem {
   /** Tooltip text for additional context */
   tooltip?: string;
   /** Icon to display next to the breadcrumb label */
-  icon?: React.ReactNode;
+  icon?: unknown;
 }
 
 /**
  * Props for the Breadcrumbs component
  * Pure domain type with no framework dependencies
+ * 
+ * Note: Separator type uses 'unknown' to avoid React dependencies.
+ * Presentation layer will handle React-specific type casting.
  */
 export interface IBreadcrumbsCoreProps {
   /** Array of breadcrumb items */
   items?: IBreadcrumbItem[];
   /** Custom separator icon */
-  separator?: React.ReactNode;
+  separator?: unknown;
   /** Maximum number of items to show (collapses middle items) */
   maxItems?: number;
   /** Whether to auto-generate breadcrumbs from current route */

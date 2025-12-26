@@ -1,6 +1,9 @@
 /**
  * Props interface for the CustomizableButton component
  * Pure domain type with no framework dependencies
+ * 
+ * Note: Icon and content types use 'unknown' to avoid React dependencies.
+ * Presentation layer will handle React-specific type casting.
  */
 export interface ICustomizableButtonCoreProps {
   /** The variant of the button */
@@ -14,21 +17,21 @@ export interface ICustomizableButtonCoreProps {
   /** The color theme of the button */
   color?: "primary" | "secondary" | "success" | "warning" | "error" | "info";
   /** Click event handler */
-  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onClick?: (event: unknown) => void;
   /** Button text content (deprecated: use children instead) */
   text?: string;
   /** Icon element (deprecated: use startIcon or endIcon instead) */
-  icon?: React.ReactNode;
+  icon?: unknown;
   /** Icon to display at the start of the button */
-  startIcon?: React.ReactNode;
+  startIcon?: unknown;
   /** Icon to display at the end of the button */
-  endIcon?: React.ReactNode;
+  endIcon?: unknown;
   /** Button content */
-  children?: React.ReactNode;
+  children?: unknown;
   /** Loading state - shows spinner and disables button */
   loading?: boolean;
   /** Custom loading indicator */
-  loadingIndicator?: React.ReactNode;
+  loadingIndicator?: unknown;
   /** ARIA label for accessibility */
   ariaLabel?: string;
   /** ARIA described by for accessibility */

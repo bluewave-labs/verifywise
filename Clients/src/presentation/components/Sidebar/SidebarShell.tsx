@@ -15,7 +15,6 @@ import {
 import { useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
-import { Link as MuiLink } from "@mui/material";
 import { PanelLeftClose, PanelLeftOpen, Heart, ChevronDown, FolderKanban, Plus, LayoutGrid } from "lucide-react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -26,8 +25,6 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { useLogoFetch } from "../../../application/hooks/useLogoFetch";
 import { getAuthToken } from "../../../application/redux/auth/getAuthToken";
 import { extractUserToken } from "../../../application/tools/extractToken";
-import { GetMyOrganization } from "../../../application/repository/organization.repository";
-import { OrganizationModel } from "../../../domain/models/Common/organization/organization.model";
 
 declare const __APP_VERSION__: string;
 

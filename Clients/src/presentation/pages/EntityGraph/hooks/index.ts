@@ -3,6 +3,8 @@ export {
   useEntityGraphState,
   type EntityGraphState,
   type EntityGraphAction,
-  type ContextMenuState,
   type QueryState
 } from './useEntityGraphState';
+
+// Re-export ContextMenuState from types for convenience
+export type { ContextMenuState } from '../types';

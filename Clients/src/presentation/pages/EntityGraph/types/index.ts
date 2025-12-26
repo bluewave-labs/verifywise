@@ -62,12 +62,12 @@ export interface ExtendedNodeData {
   [key: string]: unknown;
 }
 
-// Context menu state
+// Context menu state - used in index.tsx and hooks
 export interface ContextMenuState {
-  x: number;
-  y: number;
+  mouseX: number;
+  mouseY: number;
   nodeId: string;
-  entityType: EntityType;
+  nodeData: ExtendedNodeData;
 }
 
 // Impacted node for impact analysis

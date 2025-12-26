@@ -1,17 +1,10 @@
 import { useReducer, useCallback } from 'react';
 import type { AlertProps } from '../../../../domain/interfaces/i.alert';
 import type { EntityDetails } from '../DetailSidebar';
-import type { GapRule, GapResult, SavedView, ExtendedNodeData } from '../types';
+import type { GapRule, GapResult, SavedView, ContextMenuState } from '../types';
 import { defaultGapRules, defaultVisibleRelationships } from '../constants';
 
-// State interfaces
-interface ContextMenuState {
-  mouseX: number;
-  mouseY: number;
-  nodeId: string;
-  nodeData: ExtendedNodeData;
-}
-
+// Query state interface (local to this hook)
 interface QueryState {
   entityType: string;
   condition: string;

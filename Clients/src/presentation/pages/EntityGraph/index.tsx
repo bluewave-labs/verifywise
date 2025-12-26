@@ -93,6 +93,7 @@ import type {
   GapRule,
   GapResult,
   ExtendedNodeData,
+  ContextMenuState,
 } from './types';
 import {
   detectGaps,
@@ -108,18 +109,6 @@ import {
 const nodeTypes = {
   entity: EntityNode,
 };
-
-// generateNodesAndEdges and getConnectedEntities now imported from ./utils
-
-// Context menu state interface
-interface ContextMenuState {
-  mouseX: number;
-  mouseY: number;
-  nodeId: string;
-  nodeData: ExtendedNodeData;
-}
-
-// Path finding functions now imported from ./utils
 
 const EntityGraphInner: React.FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);

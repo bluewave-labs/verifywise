@@ -1,15 +1,6 @@
 import type { EntityGraphData } from '../../../../application/repository/entityGraph.repository';
 import type { GapRule, GapResult, GapSeverity } from '../types';
-
-/**
- * Helper to calculate days since creation
- */
-function getDaysSinceCreation(createdAt?: string): number | undefined {
-  if (!createdAt) return undefined;
-  const created = new Date(createdAt);
-  const now = new Date();
-  return Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
-}
+import { getDaysSinceCreation } from './dateHelpers';
 
 /**
  * Helper to get highest severity from a list of gaps

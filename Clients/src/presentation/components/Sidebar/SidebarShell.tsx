@@ -15,7 +15,6 @@ import {
 import { useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
-import { Link as MuiLink } from "@mui/material";
 import {
   PanelLeftClose,
   PanelLeftOpen,
@@ -34,10 +33,6 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { useLogoFetch } from "../../../application/hooks/useLogoFetch";
 import { getAuthToken } from "../../../application/redux/auth/getAuthToken";
 import { extractUserToken } from "../../../application/tools/extractToken";
-import { GetMyOrganization } from "../../../application/repository/organization.repository";
-import { OrganizationModel } from "../../../domain/models/Common/organization/organization.model";
-
-declare const __APP_VERSION__: string;
 
 // Types for menu items
 export interface SidebarMenuItem {
@@ -125,11 +120,10 @@ const SidebarShell: FC<SidebarShellProps> = ({
   // VerifyWiseContext available for future use
   useContext(VerifyWiseContext);
 
-  // Organization logo and name state
+  // Organization logo state
   const { organizationId } = useAuth();
   const { fetchLogoAsBlobUrl } = useLogoFetch();
   const [organizationLogoUrl, setOrganizationLogoUrl] = useState<string | null>(null);
-  const [organizationName, setOrganizationName] = useState<string>("VerifyWise");
   const [logoLoading, setLogoLoading] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
@@ -155,24 +149,14 @@ const SidebarShell: FC<SidebarShellProps> = ({
     }
   }, [collapsed]);
 
-  // Fetch organization logo and name
+  // Fetch organization logo
   const fetchOrganizationData = useCallback(async () => {
     if (!organizationId) return;
     
     setLogoLoading(true);
     setLogoError(false);
     try {
-      // Fetch organization details
-      const organizationResponse = await GetMyOrganization({
-        routeUrl: `/organizations/${organizationId}`,
-      });
-      
-      if (organizationResponse?.data?.data) {
-        const org = OrganizationModel.fromApiData(organizationResponse.data.data);
-        setOrganizationName(org.name || "VerifyWise");
-      }
-      
-      // Fetch organization logo
+      // Fetch organization logo using AI Trust Centre endpoint (same as settings)
       const authToken = getAuthToken();
       const tokenData = extractUserToken(authToken);
       const tenantId = tokenData?.tenantId;
@@ -185,6 +169,8 @@ const SidebarShell: FC<SidebarShellProps> = ({
         } else {
           setLogoError(true);
         }
+      } else {
+        setLogoError(true);
       }
     } catch (error) {
       setLogoError(true);
@@ -585,19 +571,16 @@ const SidebarShell: FC<SidebarShellProps> = ({
         pb={theme.spacing(12)}
         sx={{
           position: "relative",
-          pl: delayedCollapsed
-            ? theme.spacing(8)
-            : `calc(${theme.spacing(8)} + ${theme.spacing(4)})`,
+          pl: theme.spacing(8),
           pr: theme.spacing(8),
         }}
       >
         <Stack
           direction="row"
           alignItems="center"
-          justifyContent={delayedCollapsed ? "center" : "flex-start"}
-          gap={theme.spacing(2)}
+          justifyContent="center"
           className="app-title"
-          sx={{ position: "relative", height: "20px" }}
+          sx={{ position: "relative", height: collapsed ? "32px" : "40px" }}
         >
           {!delayedCollapsed && (
             <Box
@@ -606,6 +589,10 @@ const SidebarShell: FC<SidebarShellProps> = ({
                 position: "relative",
                 display: "flex",
                 alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                maxWidth: "160px",
+                height: "100%",
               }}
             >
               {/* Heart Icon Easter Egg */}
@@ -663,30 +650,41 @@ const SidebarShell: FC<SidebarShellProps> = ({
                   </IconButton>
                 </Tooltip>
               )}
-              <RouterLink to="/" style={{ display: "flex", alignItems: "center" }}>
+              <RouterLink
+                to="/"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "100%",
+                  height: "100%",
+                }}
+              >
                 {logoLoading ? (
                   <Box
                     sx={{
-                      width: 20,
-                      height: 20,
+                      width: "120px",
+                      height: "32px",
                       backgroundColor: "#f0f0f0",
-                      borderRadius: "2px",
+                      borderRadius: "4px",
                       position: "relative",
-                      zIndex: 1
+                      zIndex: 1,
                     }}
                   />
                 ) : organizationLogoUrl && !logoError ? (
                   <img
                     src={organizationLogoUrl}
                     alt="Organization Logo"
-                    width={20}
-                    height={20}
                     style={{
+                      maxWidth: "120px",
+                      maxHeight: "32px",
+                      width: "auto",
+                      height: "auto",
                       position: "relative",
                       zIndex: 1,
                       display: "block",
                       objectFit: "contain",
-                      borderRadius: "2px"
+                      borderRadius: "4px",
                     }}
                     onError={() => setLogoError(true)}
                   />
@@ -694,49 +692,20 @@ const SidebarShell: FC<SidebarShellProps> = ({
                   <img
                     src={Logo}
                     alt="VerifyWise Logo"
-                    width={20}
-                    height={20}
-                    style={{ position: "relative", zIndex: 1, display: "block" }}
+                    style={{
+                      maxWidth: "32px",
+                      maxHeight: "32px",
+                      width: "auto",
+                      height: "auto",
+                      position: "relative",
+                      zIndex: 1,
+                      display: "block",
+                      objectFit: "contain",
+                    }}
                   />
                 )}
               </RouterLink>
             </Box>
-          )}
-          {!delayedCollapsed && (
-            <MuiLink
-              component={RouterLink}
-              to="/"
-              sx={{
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <Typography
-                component="span"
-                sx={{
-                  opacity: 0.8,
-                  fontWeight: 500,
-                  fontSize: "13px",
-                  lineHeight: 1,
-                }}
-                className="app-title"
-              >
-                {organizationName === "VerifyWise" ? (
-                  <>
-                    Verify
-                    <span style={{ color: "#0f604d" }}>Wise</span>
-                    <span style={{ fontSize: "8px", marginLeft: "4px", opacity: 0.6, fontWeight: 400 }}>
-                      {__APP_VERSION__}
-                    </span>
-                  </>
-                ) : (
-                  <span style={{ color: theme.palette.text.primary }}>
-                    {organizationName}
-                  </span>
-                )}
-              </Typography>
-            </MuiLink>
           )}
           {/* Sidebar Toggle Button */}
           <IconButton
@@ -753,6 +722,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
               alignItems: "center",
               p: theme.spacing(2),
               borderRadius: theme.shape.borderRadius,
+              zIndex: 2,
               transition:
                 "right 0.65s cubic-bezier(0.36, -0.01, 0, 0.77), transform 0.65s cubic-bezier(0.36, -0.01, 0, 0.77)",
               "& svg": {

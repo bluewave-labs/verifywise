@@ -239,7 +239,7 @@ const Organization = () => {
         }
       }
     },
-    [fetchLogoAsBlobUrl, showAlert, clearLogoPreview]
+    [fetchLogoAsBlobUrl, showAlert, clearLogoPreview, logoUrl]
   );
 
   // Logo removal handlers

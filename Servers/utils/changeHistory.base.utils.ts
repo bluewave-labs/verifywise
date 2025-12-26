@@ -3,7 +3,17 @@
  *
  * Base utilities for tracking entity changes across all entity types.
  * These functions are entity-agnostic and work with any entity that has
- * a configuration defined in changeHistory.config.ts
+ * a configuration defined in changeHistory.config.ts.
+ *
+ * Features:
+ * - Entity-agnostic change recording
+ * - Field value formatting with custom formatters
+ * - Automatic change detection between old and new states
+ * - Evidence attachment tracking
+ * - Paginated history retrieval
+ *
+ * @module utils/changeHistory.base
+ * @see {@link ../config/changeHistory.config.ts} for entity configurations
  */
 
 import { sequelize } from "../database/db";
@@ -16,6 +26,16 @@ import {
 
 /**
  * Record a single change for any entity type
+ *
+ * @param entityType - The type of entity being changed
+ * @param entityId - The ID of the entity being changed
+ * @param action - The action being performed ('created', 'updated', 'deleted')
+ * @param changedByUserId - ID of the user making the change
+ * @param tenant - Tenant schema identifier
+ * @param fieldName - Optional name of the field being changed
+ * @param oldValue - Optional previous value of the field
+ * @param newValue - Optional new value of the field
+ * @param transaction - Optional database transaction
  */
 export const recordEntityChange = async (
   entityType: EntityType,
@@ -55,6 +75,13 @@ export const recordEntityChange = async (
 
 /**
  * Record multiple field changes for an entity
+ *
+ * @param entityType - The type of entity being changed
+ * @param entityId - The ID of the entity being changed
+ * @param changedByUserId - ID of the user making the change
+ * @param tenant - Tenant schema identifier
+ * @param changes - Array of field changes to record
+ * @param transaction - Optional database transaction
  */
 export const recordMultipleFieldChanges = async (
   entityType: EntityType,
@@ -81,6 +108,13 @@ export const recordMultipleFieldChanges = async (
 
 /**
  * Get change history for a specific entity with pagination support
+ *
+ * @param entityType - The type of entity to get history for
+ * @param entityId - The ID of the entity
+ * @param tenant - Tenant schema identifier
+ * @param limit - Maximum number of records to return (default: 100)
+ * @param offset - Number of records to skip (default: 0)
+ * @returns Object containing data array, hasMore flag, and total count
  */
 export const getEntityChangeHistory = async (
   entityType: EntityType,
@@ -135,7 +169,13 @@ export const getEntityChangeHistory = async (
 
 /**
  * Format field value for display using entity-specific formatters
- * Includes error handling - if formatter fails, falls back to raw value
+ *
+ * Includes error handling - if formatter fails, falls back to raw value.
+ *
+ * @param entityType - The type of entity
+ * @param fieldName - The name of the field being formatted
+ * @param value - The value to format
+ * @returns Formatted string representation of the value
  */
 export const formatFieldValue = async (
   entityType: EntityType,
@@ -170,6 +210,10 @@ export const formatFieldValue = async (
 
 /**
  * Get formatted field name (from config or auto-format)
+ *
+ * @param entityType - The type of entity
+ * @param fieldName - The database field name
+ * @returns Human-readable field label from config or the original name
  */
 export const getFieldLabel = (
   entityType: EntityType,
@@ -181,6 +225,13 @@ export const getFieldLabel = (
 
 /**
  * Track changes between old and new entity data
+ *
+ * Compares old and new data objects and returns an array of detected changes.
+ *
+ * @param entityType - The type of entity being tracked
+ * @param oldData - The original entity data
+ * @param newData - The updated entity data
+ * @returns Array of field changes with formatted old and new values
  */
 export const trackEntityChanges = async (
   entityType: EntityType,
@@ -222,6 +273,15 @@ export const trackEntityChanges = async (
 
 /**
  * Record entity creation with initial field values
+ *
+ * Records each non-empty initial field as a 'created' change entry.
+ *
+ * @param entityType - The type of entity being created
+ * @param entityId - The ID of the newly created entity
+ * @param changedByUserId - ID of the user creating the entity
+ * @param tenant - Tenant schema identifier
+ * @param entityData - The initial entity data
+ * @param transaction - Optional database transaction
  */
 export const recordEntityCreation = async (
   entityType: EntityType,
@@ -254,6 +314,14 @@ export const recordEntityCreation = async (
 
 /**
  * Record entity deletion
+ *
+ * Records a 'deleted' change entry for the entity.
+ *
+ * @param entityType - The type of entity being deleted
+ * @param entityId - The ID of the entity being deleted
+ * @param changedByUserId - ID of the user deleting the entity
+ * @param tenant - Tenant schema identifier
+ * @param transaction - Optional database transaction
  */
 export const recordEntityDeletion = async (
   entityType: EntityType,
@@ -283,7 +351,16 @@ export const recordEntityDeletion = async (
 
 /**
  * Record evidence being added to an entity
- * Note: This is specific to entities that can have evidence mapped
+ *
+ * Note: This is specific to entities that can have evidence mapped.
+ *
+ * @param entityType - The type of entity receiving evidence
+ * @param entityId - The ID of the entity
+ * @param changedByUserId - ID of the user adding the evidence
+ * @param tenant - Tenant schema identifier
+ * @param evidenceName - Name of the evidence being added
+ * @param evidenceType - Type of the evidence being added
+ * @param transaction - Optional database transaction
  */
 export const recordEvidenceAddedToEntity = async (
   entityType: EntityType,
@@ -309,7 +386,16 @@ export const recordEvidenceAddedToEntity = async (
 
 /**
  * Record evidence being removed from an entity
- * Note: This is specific to entities that can have evidence mapped
+ *
+ * Note: This is specific to entities that can have evidence mapped.
+ *
+ * @param entityType - The type of entity losing evidence
+ * @param entityId - The ID of the entity
+ * @param changedByUserId - ID of the user removing the evidence
+ * @param tenant - Tenant schema identifier
+ * @param evidenceName - Name of the evidence being removed
+ * @param evidenceType - Type of the evidence being removed
+ * @param transaction - Optional database transaction
  */
 export const recordEvidenceRemovedFromEntity = async (
   entityType: EntityType,
@@ -335,7 +421,18 @@ export const recordEvidenceRemovedFromEntity = async (
 
 /**
  * Record evidence field changes for a specific entity
- * Note: This is specific to entities that can have evidence mapped
+ *
+ * Note: This is specific to entities that can have evidence mapped.
+ *
+ * @param entityType - The type of entity
+ * @param entityId - The ID of the entity
+ * @param changedByUserId - ID of the user making the change
+ * @param tenant - Tenant schema identifier
+ * @param evidenceName - Name of the evidence being modified
+ * @param fieldName - Name of the evidence field being changed
+ * @param oldValue - Previous value of the field
+ * @param newValue - New value of the field
+ * @param transaction - Optional database transaction
  */
 export const recordEvidenceFieldChangeForEntity = async (
   entityType: EntityType,

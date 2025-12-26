@@ -11,8 +11,8 @@ export interface ExtendedNodeData {
   riskSource?: 'model' | 'project' | 'vendor';
   rawData?: Record<string, unknown>;
   hasHighRisk?: boolean;
-  connectedRiskCount?: number;
   connectionCount?: number;
   isHighlighted?: boolean;
+  evidenceCount?: number;
   [key: string]: unknown;
 }

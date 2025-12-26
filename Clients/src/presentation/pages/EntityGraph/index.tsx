@@ -85,6 +85,7 @@ const EntityGraphInner: React.FC = () => {
         control: 'controls',
         useCase: 'useCases',
         evidence: 'evidence',
+        framework: 'frameworks',
       };
       const pluralType = entityTypeMap[focusEntity.type];
       if (pluralType) {
@@ -134,13 +135,6 @@ const EntityGraphInner: React.FC = () => {
       }))
     );
   }, [highlightedNodeId, setNodes]);
-
-  // Reset focus flag
-  useEffect(() => {
-    if (!focusEntity) {
-      hasFocusedOnEntity.current = false;
-    }
-  }, [focusEntity]);
 
   // Debounce search query
   useEffect(() => {
@@ -474,6 +468,10 @@ const EntityGraphInner: React.FC = () => {
                 <ToggleButton value="evidence">
                   <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: entityColors.evidence, mr: 0.5 }} />
                   Evidence
+                </ToggleButton>
+                <ToggleButton value="frameworks">
+                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: entityColors.framework, mr: 0.5 }} />
+                  Frameworks
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>

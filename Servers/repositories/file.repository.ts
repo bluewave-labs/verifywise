@@ -276,6 +276,7 @@ export async function getProjectFileMetadata(
  * @param tenant - Tenant schema identifier
  * @param modelId - Optional model ID to associate with
  * @param source - Optional source identifier
+ * @param transaction - Optional database transaction for atomicity
  * @returns The created file manager record
  */
 export async function uploadFileManagerFile(
@@ -284,7 +285,8 @@ export async function uploadFileManagerFile(
   orgId: number,
   tenant: string,
   modelId?: number,
-  source?: string
+  source?: string,
+  transaction?: Transaction
 ): Promise<FileManagerMetadata> {
   validateTenant(tenant);
 
@@ -310,6 +312,7 @@ export async function uploadFileManagerFile(
       source: source ?? null,
     },
     type: QueryTypes.SELECT,
+    ...(transaction && { transaction }),
   });
 
   return result[0] as FileManagerMetadata;
@@ -347,12 +350,14 @@ export async function getFileById(
  * @param fileId - The file ID to delete
  * @param tenant - Tenant schema identifier
  * @param isFileManagerFile - Whether to delete from file_manager table (default: files table)
+ * @param transaction - Optional database transaction for atomicity
  * @returns True if file was deleted, false otherwise
  */
 export async function deleteFileById(
   fileId: number,
   tenant: string,
-  isFileManagerFile: boolean = false
+  isFileManagerFile: boolean = false,
+  transaction?: Transaction
 ): Promise<boolean> {
   validateTenant(tenant);
 
@@ -362,6 +367,7 @@ export async function deleteFileById(
   const result = await sequelize.query(query, {
     replacements: { fileId },
     type: QueryTypes.SELECT,
+    ...(transaction && { transaction }),
   });
 
   return Array.isArray(result) && result.length > 0;
@@ -419,7 +425,8 @@ export async function getOrganizationFiles(
     type: QueryTypes.SELECT,
   });
 
-  const total = parseInt((countResult[0] as { count: string }).count);
+  const countRow = countResult[0] as { count: string } | undefined;
+  const total = countRow ? parseInt(countRow.count, 10) : 0;
 
   return { files: files as FileManagerMetadata[], total };
 }
@@ -436,13 +443,15 @@ export async function getOrganizationFiles(
  * @param orgId - Organization ID for the log entry
  * @param action - Type of access action ('download' or 'view')
  * @param tenant - Tenant schema identifier
+ * @param transaction - Optional database transaction for atomicity
  */
 export async function logFileAccess(
   fileId: number,
   userId: number,
   orgId: number,
   action: "download" | "view",
-  tenant: string
+  tenant: string,
+  transaction?: Transaction
 ): Promise<void> {
   validateTenant(tenant);
 
@@ -455,6 +464,7 @@ export async function logFileAccess(
   await sequelize.query(query, {
     replacements: { fileId, userId, action, orgId },
     type: QueryTypes.INSERT,
+    ...(transaction && { transaction }),
   });
 }
 

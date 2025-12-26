@@ -1,7 +1,21 @@
 /**
- * Reusable validation utilities for API endpoints
- * Provides comprehensive validation functions for various data types and business rules
+ * Validation Utilities
+ *
+ * Reusable validation utilities for API endpoints.
+ * Provides comprehensive validation functions for various data types and business rules.
+ *
+ * Features:
+ * - String, number, date, enum validation with configurable options
+ * - Foreign key validation for database references
+ * - Schema-based validation for complex objects
+ * - Express middleware integration
+ * - Sanitization utilities
+ *
+ * @module validations/validation
+ * @see {@link ./vendorValidation.utils.ts} for vendor-specific validations
  */
+
+import { Request, Response, NextFunction } from "express";
 
 export interface ValidationResult {
   isValid: boolean;
@@ -13,7 +27,7 @@ export interface ValidationError {
   field: string;
   message: string;
   code: string;
-  value?: any;
+  value?: unknown;
 }
 
 export class ValidationErrors extends Error {
@@ -30,7 +44,7 @@ export class ValidationErrors extends Error {
  * String validation with comprehensive checks
  */
 export const validateString = (
-  value: any,
+  value: unknown,
   fieldName: string,
   options: {
     required?: boolean;
@@ -110,7 +124,7 @@ export const validateString = (
  * Number validation with range checks
  */
 export const validateNumber = (
-  value: any,
+  value: unknown,
   fieldName: string,
   options: {
     required?: boolean;
@@ -194,7 +208,7 @@ export const validateNumber = (
  * Enum validation
  */
 export const validateEnum = <T extends string>(
-  value: any,
+  value: unknown,
   fieldName: string,
   allowedValues: readonly T[],
   required: boolean = false
@@ -212,7 +226,7 @@ export const validateEnum = <T extends string>(
   }
 
   // Handle array values
-  if (Array.isArray(value) && value.length > 1) {
+  if (Array.isArray(value)) {
     // Check if array is empty and required
     if (value.length === 0) {
       if (required) {
@@ -228,7 +242,7 @@ export const validateEnum = <T extends string>(
     // Validate each element in the array
     for (let i = 0; i < value.length; i++) {
       const element = value[i];
-      if ((allowedValues as readonly string[]).indexOf(element as string) === -1) {
+      if (typeof element !== "string" || !allowedValues.includes(element as T)) {
         return {
           isValid: false,
           message: `${fieldName}[${i}] must be one of: ${allowedValues.join(', ')}`,
@@ -240,7 +254,7 @@ export const validateEnum = <T extends string>(
   }
 
   // Check if single value is in allowed values
-  if ((allowedValues as readonly string[]).indexOf(value as string) === -1) {
+  if (typeof value !== "string" || !allowedValues.includes(value as T)) {
     return {
       isValid: false,
       message: `${fieldName} must be one of: ${allowedValues.join(', ')}`,
@@ -255,7 +269,7 @@ export const validateEnum = <T extends string>(
  * Date validation
  */
 export const validateDate = (
-  value: any,
+  value: unknown,
   fieldName: string,
   options: {
     required?: boolean;
@@ -286,7 +300,7 @@ export const validateDate = (
   }
 
   // Convert to date
-  const dateValue = new Date(value);
+  const dateValue = new Date(value as string | number | Date);
 
   // Check if it's a valid date
   if (isNaN(dateValue.getTime())) {
@@ -342,7 +356,7 @@ export const validateDate = (
  * Foreign key validation (checks if ID exists and is valid)
  */
 export const validateForeignKey = (
-  value: any,
+  value: unknown,
   fieldName: string,
   required: boolean = false
 ): ValidationResult => {
@@ -388,24 +402,21 @@ export const validateForeignKey = (
  * Validation schema validator - validates an object against a schema
  */
 export const validateSchema = (
-  data: any,
-  schema: Record<string, (value: any) => ValidationResult>
+  data: Record<string, unknown>,
+  schema: Record<string, (value: unknown) => ValidationResult>
 ): ValidationError[] => {
   const errors: ValidationError[] = [];
 
-  // Use for...in loop instead of Object.entries for better TypeScript compatibility
-  for (const field in schema) {
-    if (schema.hasOwnProperty(field)) {
-      const validator = schema[field];
-      const result = validator(data[field]);
-      if (!result.isValid) {
-        errors.push({
-          field,
-          message: result.message || 'Invalid value',
-          code: result.code || 'INVALID_VALUE',
-          value: data[field]
-        });
-      }
+  for (const field of Object.keys(schema)) {
+    const validator = schema[field];
+    const result = validator(data[field]);
+    if (!result.isValid) {
+      errors.push({
+        field,
+        message: result.message || 'Invalid value',
+        code: result.code || 'INVALID_VALUE',
+        value: data[field]
+      });
     }
   }
 
@@ -414,15 +425,32 @@ export const validateSchema = (
 
 /**
  * Express middleware for validation
+ *
+ * Creates a middleware function that validates the request body against the provided schema.
+ * Returns 400 with detailed error information if validation fails.
+ *
+ * @param schema - Object mapping field names to validation functions
+ * @returns Express middleware function
+ *
+ * @example
+ * ```typescript
+ * app.post('/vendors',
+ *   validateRequest({
+ *     vendor_name: (v) => validateString(v, 'Vendor name', { required: true }),
+ *     risk_score: (v) => validateNumber(v, 'Risk score', { min: 0, max: 100 })
+ *   }),
+ *   vendorController.create
+ * );
+ * ```
  */
 export const validateRequest = (
-  schema: Record<string, (value: any) => ValidationResult>
+  schema: Record<string, (value: unknown) => ValidationResult>
 ) => {
-  return (req: any, res: any, next: any) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const errors = validateSchema(req.body, schema);
 
     if (errors.length > 0) {
-      return res.status(400).json({
+      res.status(400).json({
         status: 'error',
         message: 'Validation failed',
         errors: errors.map(err => ({
@@ -431,6 +459,7 @@ export const validateRequest = (
           code: err.code
         }))
       });
+      return;
     }
 
     next();

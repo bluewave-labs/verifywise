@@ -10,6 +10,25 @@ import { QueryTypes } from "sequelize";
 import { sequelize } from "../database/db";
 
 /**
+ * User query result type for formatters
+ */
+interface UserQueryResult {
+  id: number;
+  name: string | null;
+  surname: string | null;
+  email: string | null;
+}
+
+/**
+ * Framework object type for formatters
+ */
+interface FrameworkObject {
+  name?: string;
+  framework_id?: number;
+  id?: number;
+}
+
+/**
  * Entity type enum - add new entity types here
  */
 export type EntityType =
@@ -27,7 +46,7 @@ export type EntityType =
 /**
  * Field formatter function type
  */
-export type FieldFormatter = (value: any) => Promise<string>;
+export type FieldFormatter = (value: unknown) => Promise<string>;
 
 /**
  * Entity configuration interface
@@ -57,13 +76,13 @@ export const SYSTEM_FIELDS_TO_EXCLUDE = [
  */
 export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
   // Boolean formatter
-  boolean: async (value: any): Promise<string> => {
+  boolean: async (value: unknown): Promise<string> => {
     if (value === null || value === undefined) return "-";
     return value ? "Yes" : "No";
   },
 
   // Date formatter
-  date: async (value: any): Promise<string> => {
+  date: async (value: unknown): Promise<string> => {
     if (value === null || value === undefined || value === "") return "-";
     if (value instanceof Date) {
       return value.toISOString().split("T")[0];
@@ -75,7 +94,7 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
   },
 
   // Array formatter (preserves order - IMPORTANT for tracking reordering)
-  array: async (value: any): Promise<string> => {
+  array: async (value: unknown): Promise<string> => {
     if (!value) return "-";
     if (Array.isArray(value)) {
       if (value.length === 0) return "-";
@@ -106,11 +125,11 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
   },
 
   // User lookup formatter (resolves user ID to name)
-  user: async (value: any): Promise<string> => {
+  user: async (value: unknown): Promise<string> => {
     if (!value) return "-";
     if (typeof value === "number") {
       try {
-        const users: any[] = await sequelize.query(
+        const users = await sequelize.query<UserQueryResult>(
           `SELECT id, name, surname, email FROM public.users WHERE id = :userId`,
           {
             replacements: { userId: value },
@@ -138,7 +157,7 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
   },
 
   // Default text formatter
-  text: async (value: any): Promise<string> => {
+  text: async (value: unknown): Promise<string> => {
     if (value === null || value === undefined || value === "") {
       return "-";
     }
@@ -146,17 +165,17 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
   },
 
   // User array formatter (resolves array of user IDs to names)
-  userArray: async (value: any): Promise<string> => {
+  userArray: async (value: unknown): Promise<string> => {
     if (!value) return "-";
 
     let userIds: number[] = [];
     if (Array.isArray(value)) {
-      userIds = value.filter((id) => typeof id === "number");
+      userIds = value.filter((id): id is number => typeof id === "number");
     } else if (typeof value === "string") {
       try {
         const parsed = JSON.parse(value);
         if (Array.isArray(parsed)) {
-          userIds = parsed.filter((id) => typeof id === "number");
+          userIds = parsed.filter((id): id is number => typeof id === "number");
         }
       } catch {
         return value;
@@ -166,7 +185,7 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
     if (userIds.length === 0) return "-";
 
     try {
-      const users: any[] = await sequelize.query(
+      const users = await sequelize.query<UserQueryResult>(
         `SELECT id, name, surname, email FROM public.users WHERE id IN (:userIds)`,
         {
           replacements: { userIds },
@@ -191,10 +210,10 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
   },
 
   // Framework array formatter (formats project frameworks)
-  frameworkArray: async (value: any): Promise<string> => {
+  frameworkArray: async (value: unknown): Promise<string> => {
     if (!value) return "-";
 
-    let frameworks: any[] = [];
+    let frameworks: FrameworkObject[] = [];
     if (Array.isArray(value)) {
       frameworks = value;
     } else if (typeof value === "string") {

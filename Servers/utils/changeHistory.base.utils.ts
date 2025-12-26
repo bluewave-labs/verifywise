@@ -23,6 +23,30 @@ import {
   getEntityConfig,
   GENERIC_FORMATTERS,
 } from "../config/changeHistory.config";
+import { ValidationException } from "../domain.layer/exceptions/custom.exception";
+
+/**
+ * Validates tenant identifier to prevent SQL injection
+ *
+ * @param tenant - The tenant identifier to validate
+ * @throws {ValidationException} If tenant contains invalid characters
+ */
+function validateTenant(tenant: string): void {
+  if (!/^[A-Za-z0-9_]{1,30}$/.test(tenant)) {
+    throw new ValidationException("Invalid tenant identifier");
+  }
+}
+
+/**
+ * Escapes a PostgreSQL identifier safely
+ *
+ * @param ident - The identifier to escape
+ * @returns Safely escaped identifier wrapped in double quotes
+ */
+function escapePgIdentifier(ident: string): string {
+  validateTenant(ident);
+  return '"' + ident.replace(/"/g, '""') + '"';
+}
 
 /**
  * Record a single change for any entity type
@@ -50,9 +74,10 @@ export const recordEntityChange = async (
 ): Promise<void> => {
   try {
     const config = getEntityConfig(entityType);
+    const schemaName = escapePgIdentifier(tenant);
 
     await sequelize.query(
-      `INSERT INTO "${tenant}".${config.tableName}
+      `INSERT INTO ${schemaName}.${config.tableName}
        (${config.foreignKeyField}, action, field_name, old_value, new_value, changed_by_user_id, changed_at, created_at)
        VALUES (:entity_id, :action, :field_name, :old_value, :new_value, :changed_by_user_id, NOW(), NOW())`,
       {
@@ -125,11 +150,12 @@ export const getEntityChangeHistory = async (
 ): Promise<{ data: any[]; hasMore: boolean; total: number }> => {
   try {
     const config = getEntityConfig(entityType);
+    const schemaName = escapePgIdentifier(tenant);
 
     // Get total count
     const countResult: any[] = await sequelize.query(
       `SELECT COUNT(*) as count
-       FROM "${tenant}".${config.tableName}
+       FROM ${schemaName}.${config.tableName}
        WHERE ${config.foreignKeyField} = :entity_id`,
       {
         replacements: { entity_id: entityId },
@@ -145,7 +171,7 @@ export const getEntityChangeHistory = async (
         u.name as user_name,
         u.surname as user_surname,
         u.email as user_email
-       FROM "${tenant}".${config.tableName} ch
+       FROM ${schemaName}.${config.tableName} ch
        LEFT JOIN public.users u ON ch.changed_by_user_id = u.id
        WHERE ch.${config.foreignKeyField} = :entity_id
        ORDER BY ch.changed_at DESC

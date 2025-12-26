@@ -67,7 +67,7 @@ import VWTooltip from '../../components/VWTooltip';
 import Alert from '../../components/Alert';
 import PageTour from '../../components/PageTour';
 import { handleAlert } from '../../../application/tools/alertUtils';
-import { AlertProps } from '../../../domain/interfaces/iAlert';
+import { AlertProps } from '../../../domain/interfaces/i.alert';
 import { fetchEntityGraphData, EntityGraphData } from '../../../application/repository/entityGraph.repository';
 import * as entityGraphUserData from '../../../application/repository/entityGraphUserData.repository';
 import EntityNode, { EntityType } from './EntityNode';

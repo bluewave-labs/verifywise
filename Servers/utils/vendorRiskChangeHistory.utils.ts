@@ -1,9 +1,18 @@
 /**
  * Vendor Risk Change History Utilities
  *
- * Wrapper functions that use the generic change history system.
- * These functions maintain backward compatibility while leveraging
- * the new generic utilities.
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * Use the generic change history functions from `changeHistory.base.utils.ts` directly instead.
+ *
+ * Migration guide:
+ * - Replace `recordVendorRiskChange()` with `recordEntityChange("vendor_risk", ...)`
+ * - Replace `recordMultipleFieldChanges()` with `recordMultipleFieldChanges("vendor_risk", ...)`
+ * - Replace `getVendorRiskChangeHistory()` with `getEntityChangeHistory("vendor_risk", ...)`
+ * - Replace `trackVendorRiskChanges()` with `trackEntityChanges("vendor_risk", ...)`
+ * - Replace `recordVendorRiskCreation()` with `recordEntityCreation("vendor_risk", ...)`
+ * - Replace `recordVendorRiskDeletion()` with `recordEntityDeletion("vendor_risk", ...)`
+ *
+ * These wrapper functions are maintained for backward compatibility only.
  */
 
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
@@ -19,6 +28,7 @@ import {
 
 /**
  * Record a change in vendor risk
+ * @deprecated Use `recordEntityChange("vendor_risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordVendorRiskChange = async (
   vendorRiskId: number,
@@ -45,6 +55,7 @@ export const recordVendorRiskChange = async (
 
 /**
  * Record multiple field changes for a vendor risk
+ * @deprecated Use `recordMultipleFieldChanges("vendor_risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordMultipleFieldChanges = async (
   vendorRiskId: number,
@@ -65,6 +76,7 @@ export const recordMultipleFieldChanges = async (
 
 /**
  * Get change history for a specific vendor risk with pagination support
+ * @deprecated Use `getEntityChangeHistory("vendor_risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const getVendorRiskChangeHistory = async (
   vendorRiskId: number,
@@ -83,6 +95,7 @@ export const getVendorRiskChangeHistory = async (
 
 /**
  * Track changes between old and new vendor risk data
+ * @deprecated Use `trackEntityChanges("vendor_risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const trackVendorRiskChanges = async (
   oldModel: VendorRiskModel,
@@ -93,6 +106,7 @@ export const trackVendorRiskChanges = async (
 
 /**
  * Record creation of a vendor risk
+ * @deprecated Use `recordEntityCreation("vendor_risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordVendorRiskCreation = async (
   vendorRiskId: number,
@@ -113,6 +127,7 @@ export const recordVendorRiskCreation = async (
 
 /**
  * Record deletion of a vendor risk
+ * @deprecated Use `recordEntityDeletion("vendor_risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordVendorRiskDeletion = async (
   vendorRiskId: number,

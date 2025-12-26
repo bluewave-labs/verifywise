@@ -1,9 +1,21 @@
 /**
  * Model Inventory Change History Utilities
  *
- * Wrapper functions that use the generic change history system.
- * These functions maintain backward compatibility while leveraging
- * the new generic utilities.
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * Use the generic change history functions from `changeHistory.base.utils.ts` directly instead.
+ *
+ * Migration guide:
+ * - Replace `recordModelInventoryChange()` with `recordEntityChange("model_inventory", ...)`
+ * - Replace `recordMultipleFieldChanges()` with `recordMultipleFieldChanges("model_inventory", ...)`
+ * - Replace `getModelInventoryChangeHistory()` with `getEntityChangeHistory("model_inventory", ...)`
+ * - Replace `trackModelInventoryChanges()` with `trackEntityChanges("model_inventory", ...)`
+ * - Replace `recordModelInventoryCreation()` with `recordEntityCreation("model_inventory", ...)`
+ * - Replace `recordModelInventoryDeletion()` with `recordEntityDeletion("model_inventory", ...)`
+ * - Replace `recordEvidenceAddedToModel()` with `recordEvidenceAddedToEntity("model_inventory", ...)`
+ * - Replace `recordEvidenceRemovedFromModel()` with `recordEvidenceRemovedFromEntity("model_inventory", ...)`
+ * - Replace `recordEvidenceFieldChangeForModel()` with `recordEvidenceFieldChangeForEntity("model_inventory", ...)`
+ *
+ * These wrapper functions are maintained for backward compatibility only.
  */
 
 import { ModelInventoryModel } from "../domain.layer/models/modelInventory/modelInventory.model";
@@ -22,6 +34,7 @@ import {
 
 /**
  * Record a change in model inventory
+ * @deprecated Use `recordEntityChange("model_inventory", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordModelInventoryChange = async (
   modelInventoryId: number,
@@ -48,6 +61,7 @@ export const recordModelInventoryChange = async (
 
 /**
  * Record multiple field changes for a model inventory
+ * @deprecated Use `recordMultipleFieldChanges("model_inventory", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordMultipleFieldChanges = async (
   modelInventoryId: number,
@@ -68,6 +82,7 @@ export const recordMultipleFieldChanges = async (
 
 /**
  * Get change history for a specific model inventory with pagination support
+ * @deprecated Use `getEntityChangeHistory("model_inventory", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const getModelInventoryChangeHistory = async (
   modelInventoryId: number,
@@ -86,6 +101,7 @@ export const getModelInventoryChangeHistory = async (
 
 /**
  * Track changes between old and new model inventory data
+ * @deprecated Use `trackEntityChanges("model_inventory", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const trackModelInventoryChanges = async (
   oldModel: ModelInventoryModel,
@@ -96,6 +112,7 @@ export const trackModelInventoryChanges = async (
 
 /**
  * Record creation of a model inventory
+ * @deprecated Use `recordEntityCreation("model_inventory", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordModelInventoryCreation = async (
   modelInventoryId: number,
@@ -116,6 +133,7 @@ export const recordModelInventoryCreation = async (
 
 /**
  * Record deletion of a model inventory
+ * @deprecated Use `recordEntityDeletion("model_inventory", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordModelInventoryDeletion = async (
   modelInventoryId: number,
@@ -134,6 +152,7 @@ export const recordModelInventoryDeletion = async (
 
 /**
  * Record evidence being added to a model
+ * @deprecated Use `recordEvidenceAddedToEntity("model_inventory", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordEvidenceAddedToModel = async (
   modelInventoryId: number,
@@ -156,6 +175,7 @@ export const recordEvidenceAddedToModel = async (
 
 /**
  * Record evidence being removed from a model
+ * @deprecated Use `recordEvidenceRemovedFromEntity("model_inventory", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordEvidenceRemovedFromModel = async (
   modelInventoryId: number,
@@ -178,6 +198,7 @@ export const recordEvidenceRemovedFromModel = async (
 
 /**
  * Record evidence field changes for a specific model
+ * @deprecated Use `recordEvidenceFieldChangeForEntity("model_inventory", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordEvidenceFieldChangeForModel = async (
   modelInventoryId: number,

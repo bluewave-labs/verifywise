@@ -65,52 +65,80 @@ const iconMap: Record<string, LucideIcon> = {
 
 const getIcon = (name: string): LucideIcon => iconMap[name] || Info;
 
-// Parse basic markdown in text
-const parseMarkdown = (text: string): React.ReactNode => {
-  const parts: React.ReactNode[] = [];
-  let key = 0;
-
-  const combinedRegex = /\*\*([^*]+)\*\*|`([^`]+)`/g;
-  let lastIndex = 0;
-  let match;
-
-  const getChipStyle = (content: string) => {
-    const isUrl = /^https?:\/\//.test(content);
-    return isUrl ? chipStyles.url : chipStyles.code;
-  };
-
-  while ((match = combinedRegex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
-    }
-
-    if (match[1]) {
-      parts.push(<strong key={key++}>{match[1]}</strong>);
-    } else if (match[2]) {
-      const style = getChipStyle(match[2]);
-      parts.push(
-        <span key={key++} style={style}>
-          {match[2]}
-        </span>
-      );
-    }
-
-    lastIndex = match.index + match[0].length;
-  }
-
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
-  }
-
-  return parts.length > 0 ? parts : text;
-};
-
 interface ContentRendererProps {
   content: ArticleContent;
   onNavigate?: (collectionId: string, articleId: string) => void;
 }
 
 const ContentRenderer: React.FC<ContentRendererProps> = ({ content, onNavigate }) => {
+  // Parse basic markdown in text (inside component to access onNavigate)
+  const parseMarkdown = (text: string): React.ReactNode => {
+    const parts: React.ReactNode[] = [];
+    let key = 0;
+
+    // Supports: **bold**, `code`, [[link text]](collection/article)
+    const combinedRegex = /\*\*([^*]+)\*\*|`([^`]+)`|\[\[([^\]]+)\]\]\(([^)]+)\)/g;
+    let lastIndex = 0;
+    let match;
+
+    const getChipStyle = (content: string) => {
+      const isUrl = /^https?:\/\//.test(content);
+      return isUrl ? chipStyles.url : chipStyles.code;
+    };
+
+    while ((match = combinedRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+
+      if (match[1]) {
+        // Bold: **text**
+        parts.push(<strong key={key++}>{match[1]}</strong>);
+      } else if (match[2]) {
+        // Code: `text`
+        const style = getChipStyle(match[2]);
+        parts.push(
+          <span key={key++} style={style}>
+            {match[2]}
+          </span>
+        );
+      } else if (match[3] && match[4]) {
+        // Article link: [[text]](collection/article)
+        const linkText = match[3];
+        const linkPath = match[4];
+        const [collectionId, articleId] = linkPath.split('/');
+        parts.push(
+          <span
+            key={key++}
+            onClick={() => onNavigate?.(collectionId, articleId)}
+            style={{
+              color: colors.brand.primary,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              textDecorationColor: 'transparent',
+              transition: 'text-decoration-color 150ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.textDecorationColor = colors.brand.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.textDecorationColor = 'transparent';
+            }}
+          >
+            {linkText}
+          </span>
+        );
+      }
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : text;
+  };
   const renderBlock = (block: ContentBlock, index: number): React.ReactNode => {
     switch (block.type) {
       case 'heading':

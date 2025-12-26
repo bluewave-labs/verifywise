@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Box,
   Table,
@@ -25,6 +26,8 @@ import {
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
 import { IFileBasicTableProps } from "../../../../domain/interfaces/i.table";
+import { deleteEntityById } from "../../../../application/repository/entity.repository";
+import ProjectRiskLinkedPolicies from "../../ProjectRiskMitigation/ProjectRiskLinkedPolicies";
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 const FILES_BASIC_SORTING_KEY = "verifywise_files_basic_sorting";
@@ -40,7 +43,10 @@ const navigteToNewTab = (url: string) => {
 };
 
 // Helper function to match column name with sort key
-const getSortMatchForColumn = (columnName: string, sortConfig?: SortConfig): boolean => {
+const getSortMatchForColumn = (
+  columnName: string,
+  sortConfig?: SortConfig
+): boolean => {
   if (!sortConfig?.key || !columnName) return false;
 
   const sortKey = sortConfig.key.toLowerCase().trim();
@@ -51,9 +57,12 @@ const getSortMatchForColumn = (columnName: string, sortConfig?: SortConfig): boo
     sortKey === colName ||
     (sortKey.includes("file") && colName.includes("name")) ||
     (sortKey.includes("project") && colName.includes("project")) ||
-    (sortKey.includes("date") || sortKey.includes("upload")) && (colName.includes("date") || colName.includes("upload")) ||
-    (sortKey.includes("uploader") || sortKey.includes("user")) && (colName.includes("uploader") || colName.includes("user")) ||
-    (sortKey.includes("source") || sortKey.includes("type")) && (colName.includes("source") || colName.includes("type"))
+    ((sortKey.includes("date") || sortKey.includes("upload")) &&
+      (colName.includes("date") || colName.includes("upload"))) ||
+    ((sortKey.includes("uploader") || sortKey.includes("user")) &&
+      (colName.includes("uploader") || colName.includes("user"))) ||
+    ((sortKey.includes("source") || sortKey.includes("type")) &&
+      (colName.includes("source") || colName.includes("type")))
   );
 };
 
@@ -84,13 +93,6 @@ const SortableTableHead: React.FC<{
               style={{
                 ...singleTheme.tableStyles.primary.header.cell,
                 ...col.sx,
-                ...(isLastColumn && {
-                  position: "sticky",
-                  right: 0,
-                  zIndex: 10,
-                  backgroundColor:
-                    singleTheme.tableStyles.primary.header.backgroundColors,
-                }),
                 ...(!isLastColumn && sortable
                   ? {
                       cursor: "pointer",
@@ -166,6 +168,10 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   const [rowsPerPage, setRowsPerPage] = useState(() =>
     getPaginationRowCount("evidences", DEFAULT_ROWS_PER_PAGE)
   );
+
+
+  const [showLinkedPoliciesToEvidence, setShowLinkedPoliciesToEvidence] = useState(false);
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState<number | null>(null);
 
   // Initialize sorting state from localStorage or default to no sorting
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
@@ -276,7 +282,10 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
 
   const paginatedRows = hidePagination
     ? sortedBodyData
-    : sortedBodyData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    : sortedBodyData.slice(
+        page * rowsPerPage,
+        page * rowsPerPage + rowsPerPage
+      );
 
   const handleRowClick = (item: FileModel, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -325,6 +334,11 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
         if (onFileDeleted) {
           onFileDeleted();
         }
+        await deleteEntityById({
+          routeUrl: `/policy-linked/evidence/${fileId}/unlink-all`,
+        });
+        
+
       } catch (error) {
         console.error("Failed to delete file:", error);
         throw error; // Re-throw so IconButton can show error
@@ -332,6 +346,11 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
     },
     [onFileDeleted]
   );
+
+  const handleViewLinkedPolicies = async (evidenceId: number) => {
+    setSelectedEvidenceId(evidenceId)
+    setShowLinkedPoliciesToEvidence(true);
+  };
 
   return (
     <>
@@ -355,7 +374,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[0]?.name, sortConfig) ? "#e8e8e8" : "#fafafa",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[0]?.name,
+                      sortConfig
+                    )
+                      ? "#e8e8e8"
+                      : "#fafafa",
                   }}
                 >
                   <Box
@@ -372,7 +396,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[1]?.name,
+                      sortConfig
+                    )
+                      ? "#f5f5f5"
+                      : "inherit",
                   }}
                 >
                   {row.projectTitle}
@@ -380,7 +409,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[2]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[2]?.name,
+                      sortConfig
+                    )
+                      ? "#f5f5f5"
+                      : "inherit",
                   }}
                 >
                   {row.getFormattedUploadDate()}
@@ -388,7 +422,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[3]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[3]?.name,
+                      sortConfig
+                    )
+                      ? "#f5f5f5"
+                      : "inherit",
                   }}
                 >
                   {row.uploaderName || row.uploader}
@@ -396,7 +435,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[4]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[4]?.name,
+                      sortConfig
+                    )
+                      ? "#f5f5f5"
+                      : "inherit",
                   }}
                 >
                   <Box
@@ -420,19 +464,24 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
                     minWidth: "50px",
-                    backgroundColor: getSortMatchForColumn(data.cols[data.cols.length - 1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[data.cols.length - 1]?.name,
+                      sortConfig
+                    )
+                      ? "#f5f5f5"
+                      : "inherit",
                   }}
                 >
                   <IconButton
                     id={Number(row.id)}
                     type="report"
                     onEdit={() => {}}
-                    onDownload={() => handleDownload(row.id, row.fileName, row.source)}
+                    onDownload={() =>
+                      handleDownload(row.id, row.fileName, row.source)
+                    }
                     onDelete={createDeleteHandler(row.id, row.source)}
+                    openLinkedPolicies={() => handleViewLinkedPolicies(Number(row.id!))}
                     warningTitle="Delete this file?"
                     warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
                     onMouseEvent={() => {}}
@@ -483,6 +532,19 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
           )}
         </Table>
       </TableContainer>
+
+      {
+        showLinkedPoliciesToEvidence && (
+          <ProjectRiskLinkedPolicies 
+            type = "evidence"
+            evidenceId = {selectedEvidenceId}
+            isOpen = {showLinkedPoliciesToEvidence}
+            onClose={() => {
+              setShowLinkedPoliciesToEvidence(false);
+            }}/>
+  
+        )
+      }
     </>
   );
 };

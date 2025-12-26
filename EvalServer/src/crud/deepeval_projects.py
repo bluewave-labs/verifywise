@@ -32,13 +32,11 @@ async def create_project(
     Returns:
         Created project as dictionary, or None if failed
     """
-    # Use the correct schema name
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
 
     if org_id:
         result = await db.execute(
             text(f'''
-                INSERT INTO "{schema_name}".deepeval_projects
+                INSERT INTO "{tenant}".deepeval_projects
                 (id, name, description, org_id, created_by)
                 VALUES (:id, :name, :description, :org_id, :created_by)
                 RETURNING id, name, description, org_id, created_at, updated_at, created_by
@@ -54,7 +52,7 @@ async def create_project(
     else:
         result = await db.execute(
             text(f'''
-                INSERT INTO "{schema_name}".deepeval_projects
+                INSERT INTO "{tenant}".deepeval_projects
                 (id, name, description, created_by)
                 VALUES (:id, :name, :description, :created_by)
                 RETURNING id, name, description, NULL::varchar as org_id, created_at, updated_at, created_by
@@ -86,19 +84,17 @@ async def get_all_projects(tenant: str, db: AsyncSession) -> List[Dict[str, Any]
     Get all projects for a tenant.
 
     Args:
-        tenant: Tenant ID (used for schema selection)
+        tenant: Tenant ID (used for schema selection and filtering)
         db: Database session
 
     Returns:
         List of projects
     """
-    # Use the correct schema name
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
 
     result = await db.execute(
         text(f'''
             SELECT id, name, description, org_id, created_at, updated_at, created_by
-            FROM "{schema_name}".deepeval_projects
+            FROM "{tenant}".deepeval_projects
             ORDER BY created_at DESC
         ''')
     )
@@ -128,19 +124,17 @@ async def get_project_by_id(
 
     Args:
         project_id: Project ID
-        tenant: Tenant ID (used for schema selection)
+        tenant: Tenant ID (used for schema selection and filtering)
         db: Database session
 
     Returns:
         Project as dictionary, or None if not found
     """
-    # Use the correct schema name
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
 
     result = await db.execute(
         text(f'''
             SELECT id, name, description, created_at, updated_at, created_by
-            FROM "{schema_name}".deepeval_projects
+            FROM "{tenant}".deepeval_projects
             WHERE id = :id
         '''),
         {"id": project_id}
@@ -173,14 +167,12 @@ async def update_project(
         project_id: Project ID
         name: New name (optional)
         description: New description (optional)
-        tenant: Tenant ID (used for schema selection)
+        tenant: Tenant ID (used for schema selection and filtering)
         db: Database session
 
     Returns:
         Updated project as dictionary, or None if not found
     """
-    # Use the correct schema name
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
 
     # Build update query dynamically based on provided fields
     updates = []
@@ -202,7 +194,7 @@ async def update_project(
 
     result = await db.execute(
         text(f'''
-            UPDATE "{schema_name}".deepeval_projects
+            UPDATE "{tenant}".deepeval_projects
             SET {", ".join(updates)}
             WHERE id = :id
             RETURNING id, name, description, created_at, updated_at, created_by
@@ -233,18 +225,16 @@ async def delete_project(
 
     Args:
         project_id: Project ID
-        tenant: Tenant ID (used for schema selection)
+        tenant: Tenant ID (used for schema selection and filtering)
         db: Database session
 
     Returns:
         True if deleted, False if not found
     """
-    # Use the correct schema name
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
 
     result = await db.execute(
         text(f'''
-            DELETE FROM "{schema_name}".deepeval_projects
+            DELETE FROM "{tenant}".deepeval_projects
             WHERE id = :id
             RETURNING id
         '''),

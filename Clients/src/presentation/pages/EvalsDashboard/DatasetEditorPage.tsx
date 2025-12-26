@@ -14,9 +14,10 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { deepEvalDatasetsService, DatasetPromptRecord } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalDatasetsService, DatasetPromptRecord, SingleTurnPrompt, isSingleTurnPrompt } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 import Alert from "../../components/Alert";
-import { ArrowLeft, ChevronDown, Save as SaveIcon } from "lucide-react";
+import { ArrowLeft, ChevronDown, Save as SaveIcon, Plus, Trash2, Download, Copy, Check } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 
 export default function DatasetEditorPage() {
@@ -28,7 +29,21 @@ export default function DatasetEditorPage() {
   const [prompts, setPrompts] = useState<DatasetPromptRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
+
+  // Fetch current org on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const { org } = await deepEvalOrgsService.getCurrentOrg();
+        if (org) setOrgId(org.id);
+      } catch {
+        // Ignore - org might not be set
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -50,7 +65,9 @@ export default function DatasetEditorPage() {
     })();
   }, [path]);
 
-  const isValidToSave = useMemo(() => prompts && prompts.length > 0, [prompts]);
+  const isValidToSave = useMemo(() => {
+    return prompts && prompts.length > 0 && prompts.some((p) => isSingleTurnPrompt(p) && p.prompt.trim());
+  }, [prompts]);
 
   const handleSave = async () => {
     try {
@@ -60,7 +77,7 @@ export default function DatasetEditorPage() {
       const slug = datasetName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
       const finalName = slug ? `${slug}.json` : "dataset.json";
       const file = new File([blob], finalName, { type: "application/json" });
-      await deepEvalDatasetsService.uploadDataset(file);
+      await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
       setAlert({ variant: "success", body: `Dataset "${datasetName}" saved successfully!` });
       setTimeout(() => {
         setAlert(null);
@@ -82,6 +99,48 @@ export default function DatasetEditorPage() {
 
   const handleBack = () => {
     navigate(`/evals/${projectId}#datasets`);
+  };
+
+  const handleDownload = () => {
+    const json = JSON.stringify(prompts, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const slug = datasetName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "dataset";
+    a.download = `${slug}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyJson = async () => {
+    try {
+      const json = JSON.stringify(prompts, null, 2);
+      await navigator.clipboard.writeText(json);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setAlert({ variant: "error", body: "Failed to copy to clipboard" });
+      setTimeout(() => setAlert(null), 3000);
+    }
+  };
+
+  const handleAddPrompt = () => {
+    const newPrompt: SingleTurnPrompt = {
+      id: `prompt_${Date.now()}`,
+      category: "General",
+      prompt: "",
+      expected_output: "",
+      expected_keywords: [],
+      retrieval_context: [],
+    };
+    setPrompts((prev) => [...prev, newPrompt]);
+  };
+
+  const handleDeletePrompt = (idx: number) => {
+    setPrompts((prev) => prev.filter((_, i) => i !== idx));
   };
 
   if (loading) {
@@ -116,15 +175,41 @@ export default function DatasetEditorPage() {
             Edit dataset
           </Typography>
         </Stack>
-        <Button
-          variant="contained"
-          disabled={!isValidToSave || saving || !datasetName.trim()}
-          sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
-          startIcon={<SaveIcon size={16} />}
-          onClick={handleSave}
-        >
-          {saving ? "Saving..." : "Save copy"}
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="outlined"
+            onClick={handleCopyJson}
+            startIcon={copied ? <Check size={16} /> : <Copy size={16} />}
+            sx={{
+              color: copied ? "#059669" : "#374151",
+              borderColor: copied ? "#059669" : "#E5E7EB",
+              "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+            }}
+          >
+            {copied ? "Copied!" : "Copy JSON"}
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={handleDownload}
+            startIcon={<Download size={16} />}
+            sx={{
+              color: "#374151",
+              borderColor: "#E5E7EB",
+              "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+            }}
+          >
+            Download
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!isValidToSave || saving || !datasetName.trim()}
+            sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
+            startIcon={<SaveIcon size={16} />}
+            onClick={handleSave}
+          >
+            {saving ? "Saving..." : "Save"}
+          </Button>
+        </Stack>
       </Stack>
 
       {/* Dataset name input */}
@@ -138,88 +223,197 @@ export default function DatasetEditorPage() {
           placeholder="Enter a descriptive name for this dataset"
         />
         <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
-          Edit the prompts below, then click Save to add a copy to your datasets.
+          Edit the prompts below, then click Save to create your dataset.
         </Typography>
       </Stack>
 
       {/* Prompts editor */}
       <Stack spacing={1.25}>
         {prompts.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4 }}>
-            No prompts found in this dataset.
-          </Typography>
+          <Paper 
+            variant="outlined" 
+            sx={{ 
+              textAlign: "center", 
+              py: 4, 
+              px: 2,
+              borderStyle: "dashed",
+              borderColor: "#D1D5DB",
+            }}
+          >
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              No prompts in this dataset yet.
+            </Typography>
+            <Button
+              variant="outlined"
+              startIcon={<Plus size={16} />}
+              onClick={handleAddPrompt}
+              sx={{
+                color: "#13715B",
+                borderColor: "#13715B",
+                "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#E8F5F1" },
+              }}
+            >
+              Add your first prompt
+            </Button>
+          </Paper>
         ) : (
-          prompts.map((p, idx) => (
-            <Accordion key={p.id || idx} disableGutters>
+          prompts.map((p, idx) => {
+            // This editor only handles single-turn prompts
+            const stp = p as SingleTurnPrompt;
+            return (
+            <Accordion key={stp.id || idx} disableGutters defaultExpanded={!stp.prompt}>
               <AccordionSummary expandIcon={<ChevronDown size={16} />}>
-                <Stack direction="row" alignItems="center" spacing={1}>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, mr: 1 }}>
                   <Typography sx={{ fontWeight: 700, fontSize: "13px" }}>{`Prompt ${idx + 1}`}</Typography>
-                  <Chip size="small" label={p.category || "uncategorized"} sx={{ height: 18, fontSize: "10px" }} />
+                  <Chip size="small" label={stp.category || "uncategorized"} sx={{ height: 18, fontSize: "10px" }} />
+                  {stp.prompt && (
+                    <Typography 
+                      sx={{ 
+                        fontSize: "12px", 
+                        color: "#9CA3AF", 
+                        ml: 1,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: "300px",
+                      }}
+                    >
+                      {stp.prompt.substring(0, 50)}{stp.prompt.length > 50 ? "..." : ""}
+                    </Typography>
+                  )}
                 </Stack>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeletePrompt(idx);
+                  }}
+                  sx={{ 
+                    color: "#9CA3AF",
+                    "&:hover": { color: "#EF4444", backgroundColor: "#FEE2E2" },
+                  }}
+                >
+                  <Trash2 size={14} />
+                </IconButton>
               </AccordionSummary>
               <AccordionDetails>
-                <Paper variant="outlined" sx={{ p: 1.25 }}>
-                  <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Prompt</Typography>
-                  <TextField
-                    size="small"
-                    value={p.prompt}
-                    onChange={(e) => {
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], prompt: e.target.value };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                  />
+                <Paper variant="outlined" sx={{ p: 1.5 }}>
+                  <Stack spacing={2}>
+                    {/* Category */}
+                    <Box>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Category</Typography>
+                      <TextField
+                        size="small"
+                        value={stp.category || ""}
+                        onChange={(e) => {
+                          const next = [...prompts];
+                          next[idx] = { ...next[idx], category: e.target.value };
+                          setPrompts(next);
+                        }}
+                        fullWidth
+                        placeholder="e.g., General, Safety, Factual"
+                      />
+                    </Box>
 
-                  <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 1, mb: 0.5 }}>Expected output</Typography>
-                  <TextField
-                    size="small"
-                    value={p.expected_output || ""}
-                    onChange={(e) => {
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], expected_output: e.target.value };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                  />
+                    {/* Prompt */}
+                    <Box>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Prompt *</Typography>
+                      <TextField
+                        size="small"
+                        value={stp.prompt}
+                        onChange={(e) => {
+                          const next = [...prompts];
+                          next[idx] = { ...next[idx], prompt: e.target.value };
+                          setPrompts(next);
+                        }}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        placeholder="Enter the prompt text..."
+                      />
+                    </Box>
 
-                  <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 1, mb: 0.5 }}>Keywords</Typography>
-                  <TextField
-                    size="small"
-                    value={(p.expected_keywords || []).join(", ")}
-                    onChange={(e) => {
-                      const value = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], expected_keywords: value };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    placeholder="Comma separated"
-                  />
+                    {/* Expected output */}
+                    <Box>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Expected output</Typography>
+                      <TextField
+                        size="small"
+                        value={stp.expected_output || ""}
+                        onChange={(e) => {
+                          const next = [...prompts];
+                          next[idx] = { ...next[idx], expected_output: e.target.value };
+                          setPrompts(next);
+                        }}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        placeholder="Expected model response..."
+                      />
+                    </Box>
 
-                  <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 1, mb: 0.5 }}>Retrieval context</Typography>
-                  <TextField
-                    size="small"
-                    value={(p.retrieval_context || []).join("\n")}
-                    onChange={(e) => {
-                      const lines = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], retrieval_context: lines };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    placeholder="One entry per line"
-                  />
+                    {/* Keywords */}
+                    <Box>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Keywords</Typography>
+                      <TextField
+                        size="small"
+                        value={(stp.expected_keywords || []).join(", ")}
+                        onChange={(e) => {
+                          const value = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
+                          const next = [...prompts];
+                          next[idx] = { ...next[idx], expected_keywords: value };
+                          setPrompts(next);
+                        }}
+                        fullWidth
+                        placeholder="Comma separated keywords"
+                      />
+                    </Box>
+
+                    {/* Retrieval context */}
+                    <Box>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Retrieval context</Typography>
+                      <TextField
+                        size="small"
+                        value={(stp.retrieval_context || []).join("\n")}
+                        onChange={(e) => {
+                          const lines = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
+                          const next = [...prompts];
+                          next[idx] = { ...next[idx], retrieval_context: lines };
+                          setPrompts(next);
+                        }}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        placeholder="One context entry per line"
+                      />
+                    </Box>
+                  </Stack>
                 </Paper>
               </AccordionDetails>
             </Accordion>
-          ))
+            );
+          })
+        )}
+
+        {/* Add prompt button */}
+        {prompts.length > 0 && (
+          <Button
+            variant="outlined"
+            startIcon={<Plus size={16} />}
+            onClick={handleAddPrompt}
+            sx={{
+              color: "#13715B",
+              borderColor: "#E5E7EB",
+              borderStyle: "dashed",
+              py: 1.5,
+              "&:hover": { 
+                borderColor: "#13715B", 
+                backgroundColor: "#E8F5F1",
+                borderStyle: "dashed",
+              },
+            }}
+          >
+            Add prompt
+          </Button>
         )}
       </Stack>
     </Box>

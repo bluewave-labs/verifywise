@@ -23,7 +23,10 @@ import { useAuth } from "../../../application/hooks/useAuth"; // RBAC
 import TipBox from "../../components/TipBox";
 import { SearchBox } from "../../components/Search";
 import { GroupBy } from "../../components/Table/GroupBy";
-import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import {
+  useTableGrouping,
+  useGroupByState,
+} from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
@@ -105,7 +108,7 @@ const FileManager: React.FC = (): JSX.Element => {
       setLoadingFiles(true);
       const response = await getUserFilesMetaData();
       setFilesData(transformFilesData(response));
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // SECURITY FIX: Use secure logger (no PII leak) instead of logEngine
       //  includes user ID/email/name which violates GDPR/compliance
@@ -122,7 +125,7 @@ const FileManager: React.FC = (): JSX.Element => {
     if (!isUploadAllowed) {
       console.warn(
         "[FileManager] Upload attempt by unauthorized role:",
-        userRoleName,
+        userRoleName
       );
       return;
     }
@@ -149,7 +152,9 @@ const FileManager: React.FC = (): JSX.Element => {
     });
     return Array.from(projectIds)
       .map((projectId) => {
-        const project = projects.find((p: Project) => p.id.toString() === projectId);
+        const project = projects.find(
+          (p: Project) => p.id.toString() === projectId
+        );
         return {
           value: projectId,
           label: project?.project_title || `Project ${projectId}`,
@@ -162,7 +167,7 @@ const FileManager: React.FC = (): JSX.Element => {
     const uploaders = new Set<string>();
     filesData.forEach((file) => {
       if (file.uploaderName || file.uploader) {
-        uploaders.add(file.uploaderName || file.uploader || '');
+        uploaders.add(file.uploaderName || file.uploader || "");
       }
     });
     return Array.from(uploaders)
@@ -175,42 +180,48 @@ const FileManager: React.FC = (): JSX.Element => {
   }, [filesData]);
 
   // FilterBy - Filter columns configuration
-  const fileFilterColumns: FilterColumn[] = useMemo(() => [
-    {
-      id: 'fileName',
-      label: 'File name',
-      type: 'text' as const,
-    },
-    {
-      id: 'projectId',
-      label: 'Use case',
-      type: 'select' as const,
-      options: getUniqueProjects(),
-    },
-    {
-      id: 'uploader',
-      label: 'Uploader',
-      type: 'select' as const,
-      options: getUniqueUploaders(),
-    },
-    {
-      id: 'uploadDate',
-      label: 'Upload date',
-      type: 'date' as const,
-    },
-  ], [getUniqueProjects, getUniqueUploaders]);
+  const fileFilterColumns: FilterColumn[] = useMemo(
+    () => [
+      {
+        id: "fileName",
+        label: "File name",
+        type: "text" as const,
+      },
+      {
+        id: "projectId",
+        label: "Use case",
+        type: "select" as const,
+        options: getUniqueProjects(),
+      },
+      {
+        id: "uploader",
+        label: "Uploader",
+        type: "select" as const,
+        options: getUniqueUploaders(),
+      },
+      {
+        id: "uploadDate",
+        label: "Upload date",
+        type: "date" as const,
+      },
+    ],
+    [getUniqueProjects, getUniqueUploaders]
+  );
 
   // FilterBy - Field value getter
   const getFileFieldValue = useCallback(
-    (item: FileModel, fieldId: string): string | number | Date | null | undefined => {
+    (
+      item: FileModel,
+      fieldId: string
+    ): string | number | Date | null | undefined => {
       switch (fieldId) {
-        case 'fileName':
+        case "fileName":
           return item.fileName;
-        case 'projectId':
+        case "projectId":
           return item.projectId?.toString();
-        case 'uploader':
+        case "uploader":
           return item.uploaderName || item.uploader;
-        case 'uploadDate':
+        case "uploadDate":
           return item.uploadDate;
         default:
           return null;
@@ -220,7 +231,10 @@ const FileManager: React.FC = (): JSX.Element => {
   );
 
   // FilterBy - Initialize hook
-  const { filterData: filterFileData, handleFilterChange: handleFileFilterChange } = useFilterBy<FileModel>(getFileFieldValue);
+  const {
+    filterData: filterFileData,
+    handleFilterChange: handleFileFilterChange,
+  } = useFilterBy<FileModel>(getFileFieldValue);
 
   // Filter files using FilterBy and search
   const filteredFiles = useMemo(() => {
@@ -231,7 +245,7 @@ const FileManager: React.FC = (): JSX.Element => {
     if (searchTerm.trim()) {
       const query = searchTerm.toLowerCase();
       result = result.filter((file) =>
-        file.fileName?.toLowerCase().includes(query),
+        file.fileName?.toLowerCase().includes(query)
       );
     }
 
@@ -239,16 +253,19 @@ const FileManager: React.FC = (): JSX.Element => {
   }, [filterFileData, filesData, searchTerm]);
 
   // Define how to get the group key for each file
-  const getFileGroupKey = useCallback((file: FileModel, field: string): string => {
-    switch (field) {
-      case 'project':
-        return file.projectTitle || 'No Project';
-      case 'uploader':
-        return file.uploaderName || file.uploader || 'Unknown';
-      default:
-        return 'Other';
-    }
-  }, []);
+  const getFileGroupKey = useCallback(
+    (file: FileModel, field: string): string => {
+      switch (field) {
+        case "project":
+          return file.projectTitle || "No Project";
+        case "uploader":
+          return file.uploaderName || file.uploader || "Unknown";
+        default:
+          return "Other";
+      }
+    },
+    []
+  );
 
   // Apply grouping to filtered files
   const groupedFiles = useTableGrouping({
@@ -265,7 +282,7 @@ const FileManager: React.FC = (): JSX.Element => {
       pointerEvents: loadingFiles ? "none" : "auto",
       opacity: loadingFiles ? 0.5 : 1,
     }),
-    [filteredFiles.length, loadingFiles],
+    [filteredFiles.length, loadingFiles]
   );
 
   useEffect(() => {
@@ -308,15 +325,17 @@ const FileManager: React.FC = (): JSX.Element => {
               gap: 2,
             }}
           >
-            <Box sx={{ display: "flex", gap: 2, flex: 1, alignItems: "center" }}>
+            <Box
+              sx={{ display: "flex", gap: 2, flex: 1, alignItems: "center" }}
+            >
               <FilterBy
                 columns={fileFilterColumns}
                 onFilterChange={handleFileFilterChange}
               />
               <GroupBy
                 options={[
-                  { id: 'project', label: 'Project' },
-                  { id: 'uploader', label: 'Uploader' },
+                  { id: "project", label: "Project" },
+                  { id: "uploader", label: "Uploader" },
                 ]}
                 onGroupChange={handleGroupChange}
               />
@@ -378,7 +397,10 @@ const FileManagerHeader: React.FC = () => (
     title="Evidence & documents"
     description="This table lists all the files uploaded to the system."
     rightContent={
-      <HelperIcon articlePath="ai-governance/evidence-collection" size="small" />
+      <HelperIcon
+        articlePath="ai-governance/evidence-collection"
+        size="small"
+      />
     }
   />
 );

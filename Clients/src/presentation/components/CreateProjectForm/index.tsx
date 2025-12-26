@@ -26,8 +26,8 @@ import useUsers from "../../../application/hooks/useUsers";
 import {
   CreateProjectFormErrors,
   CreateProjectFormValues,
-} from "../../../domain/interfaces/iForm";
-// import { CreateProjectFormUser } from "../../../domain/interfaces/iUser";
+} from "../../../domain/interfaces/i.form";
+// import { CreateProjectFormUser } from "../../../domain/interfaces/i.user";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";
@@ -244,7 +244,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const handleOnMultiSelect = useCallback(
     (prop: keyof CreateProjectFormValues) =>
-      (_event: React.SyntheticEvent, newValue: CreateProjectFormUserModel[]) => {
+      (
+        _event: React.SyntheticEvent,
+        newValue: CreateProjectFormUserModel[]
+      ) => {
         setValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue,

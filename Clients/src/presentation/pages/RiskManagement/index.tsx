@@ -511,6 +511,18 @@ const RiskManagement = () => {
         routeUrl: `/projectRisks/${riskId}`,
       });
       if (response.status === 200) {
+
+          // Delete the risk from all linked policies
+      try {
+        await deleteEntityById({
+          routeUrl: `/policy-linked/risk/${riskId}/unlink-all`, 
+        });
+      } catch (linkedError) {
+        console.error("Error deleting risk from linked policies", linkedError);
+        handleToast("warning", "Risk deleted but failed to remove from some linked policies.");
+      }
+
+
         // Set current pagination number after deleting the risk
         const rowsPerPage = 5;
         const rowCount = projectRisks.slice(
@@ -582,7 +594,7 @@ const RiskManagement = () => {
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
 
-      <Stack gap={"16px"} maxWidth={1400} key={refreshKey}>
+      <Stack gap={"16px"} key={refreshKey}>
         <PageHeader
           title="Risk Management"
           description="Manage and monitor risks across all your projects"

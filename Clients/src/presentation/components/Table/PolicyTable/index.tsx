@@ -197,13 +197,6 @@ const CustomizablePolicyTable = ({
               key={col.id}
               style={{
                 ...singleTheme.tableStyles.primary.header.cell,
-                ...(isLastColumn && {
-                  position: "sticky",
-                  right: 0,
-                  zIndex: 10,
-                  backgroundColor:
-                    singleTheme.tableStyles.primary.header.backgroundColors,
-                }),
                 ...(!isLastColumn && sortable
                   ? {
                       cursor: "pointer",

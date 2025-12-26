@@ -170,6 +170,8 @@ export const getAssessmentReportQuery = async (
     }
   )) as [{ id: number }[], number];
 
+  const assessmentIdValue = assessmentId[0]?.[0]?.id;
+
   const allTopics: TopicStructEUModel[] = await getAllTopicsQuery(tenant);
   await Promise.all(
     allTopics.map(async (topic) => {
@@ -177,10 +179,10 @@ export const getAssessmentReportQuery = async (
         const subtopicStruct = await getAllSubTopicsQuery(topic.id, tenant);
         await Promise.all(
           subtopicStruct.map(async (subtopic) => {
-            if (subtopic.id && assessmentId.length > 0) {
+            if (subtopic.id && assessmentIdValue) {
               const questionAnswers = await getAllQuestionsQuery(
                 subtopic.id!,
-                assessmentId[0][0].id,
+                assessmentIdValue,
                 tenant
               );
               (subtopic.dataValues as any).questions = questionAnswers.map(

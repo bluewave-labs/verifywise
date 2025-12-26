@@ -21,7 +21,7 @@ import Select from "../../Inputs/Select";
 import Alert from "../../Alert";
 import { RiskFormValues, RiskFormErrors } from "../interface";
 import { aiLifecyclePhase, riskCategoryItems } from "../projectRiskValue";
-import { alertState } from "../../../../domain/interfaces/iAlert";
+import { alertState } from "../../../../domain/interfaces/i.alert";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
@@ -130,6 +130,7 @@ const RiskSection: FC<RiskSectionProps> = ({
     (prop: keyof RiskFormValues) =>
       (
         _event: React.SyntheticEvent,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         newValue: any[]
       ) => {
         setRiskValues((prevValues) => ({
@@ -453,8 +454,8 @@ const RiskSection: FC<RiskSectionProps> = ({
                     name: `${user.name} ${user.surname}`,
                   })) || []
                 }
-                isRequired
-                error={riskErrors.actionOwner}
+                // isRequired
+                // error={riskErrors.actionOwner}
                 sx={{
                   width: fieldWidth,
                 }}

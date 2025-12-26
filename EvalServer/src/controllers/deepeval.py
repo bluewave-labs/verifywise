@@ -9,6 +9,7 @@ import sys
 import os
 import json
 import asyncio
+import traceback
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -28,7 +29,60 @@ from crud.deepeval_scorers import (
     create_scorer,
     update_scorer,
     delete_scorer,
+    get_scorer_by_id,
 )
+from utils.run_custom_scorer import run_custom_scorer
+
+METRICS = [
+    {
+        "name": "answer_relevancy",
+        "display_name": "Answer Relevancy",
+        "description": "Measures if the answer is relevant to the input",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "faithfulness",
+        "display_name": "Faithfulness",
+        "description": "Checks if the answer is faithful to the provided context",
+        "requires_context": True,
+        "requires_openai_key": True,
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "contextual_relevancy",
+        "display_name": "Contextual Relevancy",
+        "description": "Evaluates if the context is relevant to the input",
+        "requires_context": True,
+        "requires_openai_key": True,
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "hallucination",
+        "display_name": "Hallucination Detection",
+        "description": "Detects hallucinations or fabricated information in the output",
+        "requires_context": True,
+        "requires_openai_key": True,
+        "score_interpretation": "Lower is better (0.0 - 1.0)"
+    },
+    {
+        "name": "bias",
+        "display_name": "Bias Detection",
+        "description": "Identifies potential biases in responses",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "score_interpretation": "Lower is better (0.0 - 1.0)"
+    },
+    {
+        "name": "toxicity",
+        "display_name": "Toxicity Detection",
+        "description": "Detects toxic or harmful content",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "score_interpretation": "Lower is better (0.0 - 1.0)"
+    }
+]
 
 
 # In-memory storage for evaluation results (can be replaced with database)
@@ -451,7 +505,7 @@ async def delete_deepeval_evaluation_controller(
             "eval_id": eval_id
         }
     )
-
+  
 
 async def get_available_deepeval_metrics_controller() -> JSONResponse:
     """
@@ -460,60 +514,11 @@ async def get_available_deepeval_metrics_controller() -> JSONResponse:
     Returns:
         JSONResponse with available metrics
     """
-    metrics = [
-        {
-            "name": "answer_relevancy",
-            "display_name": "Answer Relevancy",
-            "description": "Measures if the answer is relevant to the input",
-            "requires_context": False,
-            "requires_openai_key": True,
-            "score_interpretation": "Higher is better (0.0 - 1.0)"
-        },
-        {
-            "name": "faithfulness",
-            "display_name": "Faithfulness",
-            "description": "Checks if the answer is faithful to the provided context",
-            "requires_context": True,
-            "requires_openai_key": True,
-            "score_interpretation": "Higher is better (0.0 - 1.0)"
-        },
-        {
-            "name": "contextual_relevancy",
-            "display_name": "Contextual Relevancy",
-            "description": "Evaluates if the context is relevant to the input",
-            "requires_context": True,
-            "requires_openai_key": True,
-            "score_interpretation": "Higher is better (0.0 - 1.0)"
-        },
-        {
-            "name": "hallucination",
-            "display_name": "Hallucination Detection",
-            "description": "Detects hallucinations or fabricated information in the output",
-            "requires_context": True,
-            "requires_openai_key": True,
-            "score_interpretation": "Lower is better (0.0 - 1.0)"
-        },
-        {
-            "name": "bias",
-            "display_name": "Bias Detection",
-            "description": "Identifies potential biases in responses",
-            "requires_context": False,
-            "requires_openai_key": True,
-            "score_interpretation": "Lower is better (0.0 - 1.0)"
-        },
-        {
-            "name": "toxicity",
-            "display_name": "Toxicity Detection",
-            "description": "Detects toxic or harmful content",
-            "requires_context": False,
-            "requires_openai_key": True,
-            "score_interpretation": "Lower is better (0.0 - 1.0)"
-        }
-    ]
-    
+    global METRICS
+
     return JSONResponse(
         status_code=200,
-        content={"metrics": metrics}
+        content={"metrics": METRICS}
     )
 
 
@@ -567,6 +572,10 @@ async def get_evaluation_dataset_info_controller() -> JSONResponse:
 async def upload_deepeval_dataset_controller(
     dataset: UploadFile,
     tenant: str,
+    org_id: str,
+    dataset_type: str = "chatbot",
+    turn_type: str = "single-turn",
+    user_id: Optional[str] = None,
 ) -> JSONResponse:
     """
     Upload a custom dataset JSON file for DeepEval and return a server-relative path
@@ -575,6 +584,16 @@ async def upload_deepeval_dataset_controller(
     try:
         if not dataset:
             raise HTTPException(status_code=400, detail="No dataset file provided")
+
+        # Validate dataset_type
+        valid_types = ["chatbot", "rag", "agent"]
+        if dataset_type not in valid_types:
+            dataset_type = "chatbot"
+        
+        # Validate turn_type
+        valid_turn_types = ["single-turn", "multi-turn"]
+        if turn_type not in valid_turn_types:
+            turn_type = "single-turn"
 
         # Basic content-type check (best-effort)
         content_type = (dataset.content_type or "").lower()
@@ -598,22 +617,48 @@ async def upload_deepeval_dataset_controller(
         uploads_dir = evaluation_module_path / "data" / "uploads" / tenant
         uploads_dir.mkdir(parents=True, exist_ok=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        # Remove .json extension from original filename to avoid double extension
+        # Use only the original filename, no timestamp prefix
         original_name = dataset.filename.replace("/", "_").replace("\\", "_")
         if original_name.lower().endswith(".json"):
             original_name = original_name[:-5]
         
-        # Extract dataset name from filename (clean it up)
+        # Extract dataset name from filename (clean it up) - just the file name
+        # Apply title case so each word is capitalized
         dataset_name = original_name.replace("_", " ").replace("-", " ").strip().title()
         if not dataset_name:
             dataset_name = "Untitled Dataset"
         
-        # Count prompts
-        prompt_count = len(data) if isinstance(data, list) else 0
+        # Count prompts - only count items with actual content
+        prompt_count = 0
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    # Single-turn: check if prompt field has content
+                    if item.get("prompt") and str(item.get("prompt", "")).strip():
+                        prompt_count += 1
+                    # Multi-turn: check if turns array has at least one turn with content
+                    elif item.get("turns") and isinstance(item.get("turns"), list) and len(item.get("turns", [])) > 0:
+                        # Verify at least one turn has content
+                        has_content = any(
+                            turn.get("content") and str(turn.get("content", "")).strip()
+                            for turn in item.get("turns", [])
+                            if isinstance(turn, dict)
+                        )
+                        if has_content:
+                            prompt_count += 1
         
-        filename = f"{timestamp}_{original_name}.json"
+        # Use original filename without timestamp prefix
+        filename = f"{original_name}.json"
         full_path = uploads_dir / filename
+
+        # If file exists, add a suffix to both filename and display name
+        counter = 1
+        final_dataset_name = dataset_name
+        while full_path.exists():
+            filename = f"{original_name}_{counter}.json"
+            final_dataset_name = f"{dataset_name} ({counter + 1})"
+            full_path = uploads_dir / filename
+            counter += 1
 
         # Save pretty JSON back to disk to ensure UTF-8 and normalized formatting
         with open(full_path, "w", encoding="utf-8") as f:
@@ -625,12 +670,16 @@ async def upload_deepeval_dataset_controller(
         try:
             async with get_db() as db:
                 await create_user_dataset(
-                    tenant=tenant, 
-                    db=db, 
-                    name=dataset_name, 
-                    path=relative_path, 
+                    tenant=tenant,
+                    db=db,
+                    name=final_dataset_name,
+                    path=relative_path,
                     size=len(content_bytes),
-                    prompt_count=prompt_count
+                    prompt_count=prompt_count,
+                    dataset_type=dataset_type,
+                    turn_type=turn_type,
+                    org_id=org_id,
+                    created_by=user_id,
                 )
                 await db.commit()
         except Exception:
@@ -644,6 +693,8 @@ async def upload_deepeval_dataset_controller(
                 "filename": filename,
                 "size": len(content_bytes),
                 "tenant": tenant,
+                "datasetType": dataset_type,
+                "turnType": turn_type,
             },
         )
     except HTTPException:
@@ -656,14 +707,29 @@ async def upload_deepeval_dataset_controller(
 
 
 def _safe_evalmodule_data_root() -> Path:
+    """
+    Returns the path to built-in datasets.
+    In Docker: /app/datasets
+    In development: EvaluationModule/data/datasets (relative to repo root)
+    """
+    # Check for Docker environment first (datasets copied to /app/datasets)
+    docker_datasets = Path("/app/datasets")
+    if docker_datasets.exists():
+        return docker_datasets
+
+    # Fallback for local development
     root_path = Path(__file__).parent.parent.parent.parent
     evaluation_module_path = root_path / "EvaluationModule"
-    # Prefer new datasets folder; fall back to presets
-    data_root = evaluation_module_path / "data"
-    datasets_dir = data_root / "datasets"
-    if datasets_dir.exists():
-        return datasets_dir
-    return data_root / "presets"
+    return evaluation_module_path / "data" / "datasets"
+
+
+def _get_evaluation_module_path() -> Path:
+    """
+    Returns the path to EvaluationModule/data directory.
+    Used for user uploads and other data files.
+    """
+    root_path = Path(__file__).parent.parent.parent.parent
+    return root_path / "EvaluationModule" / "data"
 
 
 def _extract_dataset_stats(file_path: Path) -> dict:
@@ -719,7 +785,7 @@ def _load_dataset_metadata(file_path: Path) -> dict:
 async def list_deepeval_datasets_controller() -> JSONResponse:
     """
     List available built-in datasets grouped by use case.
-    Looks under EvaluationModule/data/datasets (preferred) or data/presets.
+    Looks under EvaluationModule/data/datasets.
     Includes statistics (test count, categories, difficulty) and metadata.
     """
     base = _safe_evalmodule_data_root()
@@ -730,57 +796,28 @@ async def list_deepeval_datasets_controller() -> JSONResponse:
         "safety": [],
     }
     try:
-        if (base / "chatbot").exists():
-            subdirs = ["chatbot", "rag", "agent", "safety"]
-            for sub in subdirs:
-                sd = base / sub
-                if not sd.exists():
-                    continue
-                for f in sd.glob("*.json"):
-                    # Skip metadata files
-                    if f.stem.endswith(".meta"):
-                        continue
-
-                    stats = _extract_dataset_stats(f)
-                    metadata = _load_dataset_metadata(f)
-
-                    dataset_info = {
-                        "key": f"{sub}/{f.name}",
-                        "name": f.stem.replace("_", " ").title(),
-                        "path": str(f.relative_to(base)),
-                        "use_case": sub,
-                        **stats,
-                        **metadata,
-                    }
-                    result[sub].append(dataset_info)
-        else:
-            # Flat presets folder fallback
-            for f in base.glob("*.json"):
+        subdirs = ["chatbot", "rag", "agent", "safety"]
+        for sub in subdirs:
+            sd = base / sub
+            if not sd.exists():
+                continue
+            for f in sd.glob("*.json"):
+                # Skip metadata files
                 if f.stem.endswith(".meta"):
                     continue
-
-                name = f.stem
-                use_case = "chatbot"
-                lowered = name.lower()
-                if "rag" in lowered:
-                    use_case = "rag"
-                elif "agent" in lowered:
-                    use_case = "agent"
-                elif "safety" in lowered:
-                    use_case = "safety"
 
                 stats = _extract_dataset_stats(f)
                 metadata = _load_dataset_metadata(f)
 
                 dataset_info = {
-                    "key": f.name,
-                    "name": name.replace("_", " ").title(),
+                    "key": f"{sub}/{f.name}",
+                    "name": f.stem.replace("_", " ").title(),
                     "path": str(f.relative_to(base)),
-                    "use_case": use_case,
+                    "use_case": sub,
                     **stats,
                     **metadata,
                 }
-                result[use_case].append(dataset_info)
+                result[sub].append(dataset_info)
 
         return JSONResponse(status_code=200, content={"datasets": result})
     except Exception as e:
@@ -791,35 +828,43 @@ async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
     """
     Return the JSON contents of a dataset at a relative path.
     Path can be:
-    - Relative to EvaluationModule (e.g., "data/uploads/tenant/file.json")
     - Relative to datasets folder (e.g., "chatbot/chatbot_basic.json")
+    - For uploads: "data/uploads/tenant/file.json"
     """
     try:
-        root_path = Path(__file__).parent.parent.parent.parent
-        evaluation_module_path = root_path / "EvaluationModule"
-        
-        # Try as full path first (for uploads: data/uploads/...)
-        target = (evaluation_module_path / path).resolve()
-        
-        # If not found, try in datasets folder (for built-ins: chatbot/...)
-        if not target.is_file():
+        # Security: Early rejection of suspicious path patterns
+        if ".." in path or path.startswith("/") or path.startswith("\\"):
+            raise HTTPException(status_code=400, detail="Invalid dataset path: path traversal not allowed")
+
+        target = None
+        allowed_base = None
+
+        # Check if it's a user upload path (starts with "data/uploads/")
+        if path.startswith("data/uploads/"):
+            eval_data_path = _get_evaluation_module_path()
+            target = (eval_data_path.parent / path).resolve()
+            allowed_base = eval_data_path.resolve()
+        else:
+            # Built-in dataset path (e.g., "chatbot/chatbot_basic.json")
             datasets_base = _safe_evalmodule_data_root()
             target = (datasets_base / path).resolve()
-        
-        # Security check: ensure target is inside EvaluationModule/data
-        data_dir = (evaluation_module_path / "data").resolve()
-        if data_dir not in target.parents:
-            raise HTTPException(status_code=400, detail="Invalid dataset path")
-        
+            allowed_base = datasets_base.resolve()
+
+        # Security check: ensure resolved target is inside allowed directory
+        try:
+            target.relative_to(allowed_base)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid dataset path: access denied")
+
         if not target.is_file():
             raise HTTPException(status_code=404, detail="Dataset file not found")
-        
+
         with open(target, "r", encoding="utf-8") as f:
             data = json.load(f)
-        
+
         if not isinstance(data, list):
             raise HTTPException(status_code=400, detail="Dataset file is not a list of prompts")
-        
+
         return JSONResponse(status_code=200, content={"path": path, "prompts": data})
     except HTTPException:
         raise
@@ -828,13 +873,17 @@ async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
     # End of read_deepeval_dataset_controller
 
 
-async def list_user_datasets_controller(tenant: str) -> JSONResponse:
+async def list_user_datasets_controller(
+    tenant: str,
+    org_id: Optional[str] = None,
+) -> JSONResponse:
     """
     List user-uploaded datasets from the database (tenant-scoped).
+    Optionally filter by org_id.
     """
     try:
         async with get_db() as db:
-            items = await list_user_datasets(tenant=tenant, db=db)
+            items = await list_user_datasets(tenant=tenant, db=db, org_id=org_id)
             return JSONResponse(status_code=200, content={"datasets": items})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list user datasets: {e}")
@@ -881,16 +930,20 @@ async def delete_user_datasets_controller(tenant: str, paths: list[str]) -> JSON
 
 async def list_deepeval_scorers_controller(
     tenant: str,
-    project_id: Optional[str] = None,
+    org_id: Optional[str] = None,
 ) -> JSONResponse:
     """
     List scorer definitions for the current tenant (optionally filtered by project).
     """
     try:
         async with get_db() as db:
-            items = await list_scorers(tenant=tenant, db=db, project_id=project_id)
+            items = await list_scorers(tenant=tenant, db=db, org_id=org_id)
             return JSONResponse(status_code=200, content={"scorers": items})
     except Exception as e:
+        error_str = str(e).lower()
+        # If the table doesn't exist yet, return empty list instead of 500 error
+        if "does not exist" in error_str or "undefined" in error_str or "relation" in error_str:
+            return JSONResponse(status_code=200, content={"scorers": []})
         raise HTTPException(status_code=500, detail=f"Failed to list scorers: {e}")
 
 
@@ -919,7 +972,7 @@ async def create_deepeval_scorer_controller(
     from uuid import uuid4
 
     scorer_id = payload.get("id") or f"scorer_{uuid4().hex}"
-    project_id = payload.get("projectId")
+    org_id = payload.get("orgId")
     name = payload.get("name")
     scorer_type = payload.get("type") or "llm"
     metric_key = payload.get("metricKey")
@@ -938,7 +991,7 @@ async def create_deepeval_scorer_controller(
         async with get_db() as db:
             created = await create_scorer(
                 scorer_id=scorer_id,
-                project_id=project_id,
+                org_id=org_id,
                 name=name,
                 description=description,
                 scorer_type=scorer_type,
@@ -1023,4 +1076,75 @@ async def delete_deepeval_scorer_controller(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete scorer: {e}")
+
+
+async def test_deepeval_scorer_controller(
+    scorer_id: str,
+    *,
+    tenant: str,
+    payload: Dict[str, Any],
+) -> JSONResponse:
+    """
+    Test a scorer with sample input/output data.
+    
+    Expected payload:
+    {
+      "input": "The source text to evaluate...",
+      "output": "The model's output to judge...",
+      "expected": "Optional expected/reference output..."
+    }
+    """
+    try:
+        # Get scorer config from database
+        async with get_db() as db:
+            scorer = await get_scorer_by_id(scorer_id=scorer_id, tenant=tenant, db=db)
+        
+        if not scorer:
+            raise HTTPException(status_code=404, detail="Scorer not found")
+        
+        if scorer.get("type") != "llm":
+            raise HTTPException(
+                status_code=400, 
+                detail="Only LLM judge scorers can be tested via this endpoint"
+            )
+        
+        # Extract test data from payload
+        input_text = payload.get("input", "")
+        output_text = payload.get("output", "")
+        expected_text = payload.get("expected", "")
+        
+        if not input_text or not output_text:
+            raise HTTPException(
+                status_code=400,
+                detail="Both 'input' and 'output' are required for testing"
+            )
+        
+        # Run the scorer
+        result = await run_custom_scorer(
+            scorer_config=scorer,
+            input_text=input_text,
+            output_text=output_text,
+            expected_text=expected_text,
+        )
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "scorerId": result.scorer_id,
+                "scorerName": result.scorer_name,
+                "label": result.label,
+                "score": result.score,
+                "passed": result.passed,
+                "rawResponse": result.raw_response,
+                "tokenUsage": {
+                    "promptTokens": result.prompt_tokens,
+                    "completionTokens": result.completion_tokens,
+                    "totalTokens": result.total_tokens,
+                } if result.total_tokens else None,
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to test scorer: {e}")
 

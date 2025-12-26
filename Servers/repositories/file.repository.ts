@@ -79,6 +79,9 @@ export interface FileAccessLog {
 
 /**
  * Validates tenant identifier to prevent SQL injection
+ *
+ * @param tenant - The tenant identifier to validate
+ * @throws {ValidationException} If tenant contains invalid characters
  */
 function validateTenant(tenant: string): void {
   if (!/^[A-Za-z0-9_]{1,30}$/.test(tenant)) {
@@ -88,6 +91,9 @@ function validateTenant(tenant: string): void {
 
 /**
  * Escapes a PostgreSQL identifier safely
+ *
+ * @param ident - The identifier to escape
+ * @returns Safely escaped identifier wrapped in double quotes
  */
 function escapePgIdentifier(ident: string): string {
   validateTenant(ident);
@@ -96,6 +102,9 @@ function escapePgIdentifier(ident: string): string {
 
 /**
  * Sanitizes filename to remove dangerous characters
+ *
+ * @param name - The filename to sanitize
+ * @returns Sanitized filename with dangerous characters removed
  */
 function sanitizeFilenameStr(name: string): string {
   // Use industry-standard sanitization first, fallback to regex
@@ -109,6 +118,14 @@ function sanitizeFilenameStr(name: string): string {
 
 /**
  * Uploads a file to project files table
+ *
+ * @param file - The uploaded file containing buffer and metadata
+ * @param userId - ID of the user uploading the file
+ * @param projectId - ID of the project (null for organization-level files)
+ * @param source - Source identifier for the file
+ * @param tenant - Tenant schema identifier
+ * @param transaction - Optional database transaction
+ * @returns The created file record
  */
 export async function uploadProjectFile(
   file: UploadedFile,
@@ -164,6 +181,10 @@ export async function uploadProjectFile(
 
 /**
  * Gets a project file by ID
+ *
+ * @param id - The file ID to retrieve
+ * @param tenant - Tenant schema identifier
+ * @returns The file record or null if not found
  */
 export async function getProjectFileById(
   id: number,
@@ -183,6 +204,11 @@ export async function getProjectFileById(
 
 /**
  * Deletes a project file by ID
+ *
+ * @param id - The file ID to delete
+ * @param tenant - Tenant schema identifier
+ * @param transaction - Database transaction for atomicity
+ * @returns True if file was deleted, false otherwise
  */
 export async function deleteProjectFileById(
   id: number,
@@ -204,6 +230,10 @@ export async function deleteProjectFileById(
 
 /**
  * Gets file metadata for a project
+ *
+ * @param projectId - The project ID to get files for
+ * @param tenant - Tenant schema identifier
+ * @returns Array of file metadata with uploader information
  */
 export async function getProjectFileMetadata(
   projectId: number,
@@ -239,6 +269,14 @@ export async function getProjectFileMetadata(
 
 /**
  * Uploads a file to file manager
+ *
+ * @param file - The Express multer file object
+ * @param userId - ID of the user uploading the file
+ * @param orgId - Organization ID for the file
+ * @param tenant - Tenant schema identifier
+ * @param modelId - Optional model ID to associate with
+ * @param source - Optional source identifier
+ * @returns The created file manager record
  */
 export async function uploadFileManagerFile(
   file: Express.Multer.File,
@@ -279,6 +317,11 @@ export async function uploadFileManagerFile(
 
 /**
  * Gets a file by ID from either files or file_manager table
+ *
+ * @param fileId - The file ID to retrieve
+ * @param tenant - Tenant schema identifier
+ * @param isFileManagerFile - Whether to look in file_manager table (default: files table)
+ * @returns The file record or null if not found
  */
 export async function getFileById(
   fileId: number,
@@ -300,6 +343,11 @@ export async function getFileById(
 
 /**
  * Deletes a file by ID from either files or file_manager table
+ *
+ * @param fileId - The file ID to delete
+ * @param tenant - Tenant schema identifier
+ * @param isFileManagerFile - Whether to delete from file_manager table (default: files table)
+ * @returns True if file was deleted, false otherwise
  */
 export async function deleteFileById(
   fileId: number,
@@ -321,6 +369,11 @@ export async function deleteFileById(
 
 /**
  * Gets files for an organization with pagination
+ *
+ * @param orgId - Organization ID to get files for
+ * @param tenant - Tenant schema identifier
+ * @param options - Pagination options (limit and offset)
+ * @returns Object containing files array and total count
  */
 export async function getOrganizationFiles(
   orgId: number,
@@ -377,6 +430,12 @@ export async function getOrganizationFiles(
 
 /**
  * Logs file access (download/view)
+ *
+ * @param fileId - The file ID being accessed
+ * @param userId - ID of the user accessing the file
+ * @param orgId - Organization ID for the log entry
+ * @param action - Type of access action ('download' or 'view')
+ * @param tenant - Tenant schema identifier
  */
 export async function logFileAccess(
   fileId: number,
@@ -401,6 +460,11 @@ export async function logFileAccess(
 
 /**
  * Gets file access logs with pagination
+ *
+ * @param fileId - The file ID to get logs for
+ * @param tenant - Tenant schema identifier
+ * @param options - Pagination options (limit and offset)
+ * @returns Array of file access log entries with user information
  */
 export async function getFileAccessLogs(
   fileId: number,

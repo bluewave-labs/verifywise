@@ -48,17 +48,13 @@ const EntityGraphInner: React.FC = () => {
   const [entityLookup, setEntityLookup] = useState<Map<string, Record<string, unknown>>>(new Map());
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
 
-  const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { fitView, setCenter } = useReactFlow();
   const { focusEntity } = useEntityGraphFocus();
   const hasFocusedOnEntity = useRef(false);
 
-  // Handle focus entity - reset flag, ensure visibility, and center on node
+  // Handle focus entity - ensure visibility and reset filters
   useEffect(() => {
-    if (!focusEntity) {
-      hasFocusedOnEntity.current = false;
-      return;
-    }
+    if (!focusEntity) return;
     hasFocusedOnEntity.current = false;
     const pluralType = ENTITY_TYPE_MAP[focusEntity.type];
     if (pluralType) {
@@ -178,7 +174,7 @@ const EntityGraphInner: React.FC = () => {
   }
 
   return (
-    <Box ref={reactFlowWrapper} sx={{ height: 'calc(100vh - 64px)', width: '100%', backgroundColor: '#fafafa', position: 'relative' }}>
+    <Box sx={{ height: 'calc(100vh - 64px)', width: '100%', backgroundColor: '#fafafa', position: 'relative' }}>
       <ReactFlow
         nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick} nodeTypes={nodeTypes} fitView minZoom={0.1} maxZoom={2}

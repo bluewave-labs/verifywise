@@ -5,8 +5,7 @@
 export type {
   RiskFormValues,
   MitigationFormValues,
-  AddNewRiskFormCoreProps,
-  IRiskSectionProps,
+  AddNewRiskFormCorePropsBase,
   RiskSectionProps,
   IRiskFormValues,
   IRiskFormErrors,
@@ -16,5 +15,5 @@ export type {
   IRiskChipProps,
 } from "../types/riskForm.types";
 
-// For backwards compatibility
-export type { AddNewRiskFormCoreProps as AddNewRiskFormProps } from "../types/riskForm.types";
+// Note: AddNewRiskFormCoreProps and IRiskSectionProps (with React deps)
+// are defined in: presentation/types/riskForm.types.ts

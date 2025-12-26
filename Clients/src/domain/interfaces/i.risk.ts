@@ -1,9 +1,9 @@
-import { ReactNode } from "react";
-import { RiskModel } from "../models/Common/risks/risk.model";
-import { IFilterState } from "../../presentation/types/interfaces/i.filter";
 import { Project } from "../types/Project";
 import { Framework } from "../types/Framework";
 
+/**
+ * Core risk interface - pure domain type
+ */
 export interface IRisk {
   id: number;
   title: string;
@@ -11,82 +11,25 @@ export interface IRisk {
   severity: string;
 }
 
-export interface IRiskCategoriesProps {
-  risks: RiskModel[];
-  selectedRisk?: RiskModel | null;
-  onRiskSelect?: (risk: RiskModel) => void;
-}
-
-export interface IRiskFiltersProps {
-  risks: RiskModel[];
-  onFilterChange: (
-    filteredRisks: RiskModel[],
-    activeFilters: IFilterState
-  ) => void;
-}
-
-export interface IRiskHeatMapProps {
-  risks: RiskModel[];
-  onRiskSelect?: (risk: RiskModel) => void;
-  selectedRisk?: RiskModel | null;
-}
-
-export interface IRiskTimelineProps {
-  risks: RiskModel[];
-  selectedRisk?: RiskModel | null;
-  onRiskSelect?: (risk: RiskModel) => void;
-}
-
-export interface IRiskVisualizationTabsProps {
-  risks: RiskModel[];
-  selectedRisk?: RiskModel | null;
-  onRiskSelect?: (risk: RiskModel) => void;
-}
-
-export interface IVWProjectRisksTable {
-  rows: RiskModel[];
-  setSelectedRow: (risk: RiskModel) => void;
-  setAnchor: React.Dispatch<React.SetStateAction<HTMLElement | null>>;
-  onDeleteRisk: (id: number) => void;
-  setPage: (pageNo: number) => void;
-  page: number;
-  flashRow: number | null;
-  hidePagination?: boolean;
-}
-
-export interface IVWProjectRisksTableRow {
-  rows: RiskModel[];
-  page: number;
-  rowsPerPage: number;
-  setSelectedRow: (risk: RiskModel) => void;
-  setAnchor: React.Dispatch<React.SetStateAction<HTMLElement | null>>;
-  onDeleteRisk: (id: number) => void;
-  flashRow: number | null;
-  sortConfig: {
-    key: string;
-    direction: "asc" | "desc" | null;
-  };
-}
-
-export interface IRisksViewProps {
-  // Function to fetch risks - should return Promise<RiskModel[]>
-  fetchRisks: (filter?: string) => Promise<RiskModel[]>;
-  // Title to display above the risks table
-  title: string;
-  // Optional header content (e.g., framework toggle)
-  headerContent?: ReactNode;
-  // Refresh key for forcing re-fetches
-  refreshTrigger?: number;
-}
-
+/**
+ * Risk loading status - pure domain type
+ */
 export interface IRiskLoadingStatus {
   loading: boolean;
   message: string;
 }
 
+/**
+ * Framework risks props - pure domain type
+ */
 export interface IFrameworkRisksProps {
   organizationalProject: Project;
   filteredFrameworks: Framework[];
   selectedFramework: number;
   onFrameworkSelect: (index: number) => void;
 }
+
+// Note: Presentation-specific interfaces (IRiskCategoriesProps, IRiskFiltersProps,
+// IRiskHeatMapProps, IRiskTimelineProps, IRiskVisualizationTabsProps,
+// IVWProjectRisksTable, IVWProjectRisksTableRow, IRisksViewProps) have been moved to:
+// presentation/types/interfaces/i.risk.ts

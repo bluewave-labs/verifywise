@@ -4,25 +4,22 @@
  */
 export type {
   CloseIconProps,
-  IconButtonProps,
   AutoCompleteOption,
   AutoCompleteFieldCoreProps,
-  CheckboxCoreProps,
   DatePickerCoreProps,
   DropDownsProps,
-  FieldCoreProps,
-  ImageFieldProps,
-  RadioProps,
   SelectCorProps,
   IBannerProps,
   IStatusDropdownProps,
-  ISearchBoxCoreProps,
+  ISearchBoxCorePropsBase,
   IHeatMapCell,
   ITimelineEvent,
   IGenerateReportProps,
   ReportFormat,
   IInputProps,
   IHeaderProps,
-  IProtectedRouteProps,
-  IPopupProps,
 } from "../types/widget.types";
+
+// Note: React-dependent interfaces (IconButtonProps, CheckboxCoreProps, FieldCoreProps,
+// ImageFieldProps, RadioProps, ISearchBoxCoreProps, IProtectedRouteProps, IPopupProps)
+// have been moved to: presentation/types/widget.types.ts

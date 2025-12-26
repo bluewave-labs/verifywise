@@ -65,3 +65,19 @@ export async function UpdateMyOrganization({
     throw error;
   }
 }
+
+/**
+ * Checks if any organization exists in the system.
+ *
+ * @returns {Promise<boolean>} True if at least one organization exists.
+ * @throws Will throw an error if the request fails.
+ */
+export async function checkOrganizationExists(): Promise<boolean> {
+  try {
+    const response = await apiServices.get("/organizations/exists");
+    const data = response.data as { data?: { exists?: boolean } };
+    return data?.data?.exists ?? false;
+  } catch (error) {
+    throw error;
+  }
+}

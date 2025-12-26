@@ -20,7 +20,7 @@ import { Typography } from "@mui/material";
 import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
-import { IconButtonProps } from "../../../domain/interfaces/i.widget";
+import { IconButtonProps } from "../../types/widget.types";
 import { AlertProps } from "../../types/alert.types";
 
 const IconButton: React.FC<IconButtonProps> = ({
@@ -133,7 +133,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     onEdit();
     if (e) {
       closeDropDownMenu(e);
-      onMouseEvent(e);
+      onMouseEvent?.(e);
     }
   };
 
@@ -264,21 +264,21 @@ const IconButton: React.FC<IconButtonProps> = ({
 
   const getListOfButtons = () => {
     const normalizedType = type?.toLowerCase();
-  
+
     if (normalizedType === "task") {
       return isArchived
         ? ["restore", "delete"]
         : ["edit", "archive", "delete"];
     }
-  
+
     if (normalizedType === "vendor") {
       return canDelete ? ["edit", "remove"] : ["edit"];
     }
-  
-    if (normalizedType in BUTTONS_BY_TYPE) {
+
+    if (normalizedType && normalizedType in BUTTONS_BY_TYPE) {
       return BUTTONS_BY_TYPE[normalizedType as ButtonType];
     }
-  
+
     return ["edit", "remove"];
   };
   
@@ -312,8 +312,8 @@ const IconButton: React.FC<IconButtonProps> = ({
       linked_policies: "Linked policies",
     };
   
-    // Type-specific 
-    const typeLabel = LABELS_BY_TYPE[normalizedType]?.[item];
+    // Type-specific
+    const typeLabel = normalizedType ? LABELS_BY_TYPE[normalizedType]?.[item] : undefined;
     if (typeLabel) {
       return typeLabel;
     }

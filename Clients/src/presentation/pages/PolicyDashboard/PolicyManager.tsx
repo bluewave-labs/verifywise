@@ -12,7 +12,7 @@ import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
 import { AlertProps } from "../../types/alert.types";
 import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyManager.model";
-import { PolicyManagerProps } from "../../../domain/interfaces/i.policy";
+import { PolicyManagerProps } from "../../types/interfaces/i.policy";
 import PolicyStatusCard from "./PolicyStatusCard";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import useUsers from "../../../application/hooks/useUsers";

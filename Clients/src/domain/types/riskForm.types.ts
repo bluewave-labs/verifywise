@@ -1,4 +1,3 @@
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { User } from "./User";
 
 /**
@@ -42,33 +41,29 @@ export interface MitigationFormValues {
 }
 
 /**
- * Props for AddNewRiskForm component
+ * Core props for AddNewRiskForm component - without React refs
  * Pure domain type with no framework dependencies
  */
-export interface AddNewRiskFormCoreProps {
+export interface AddNewRiskFormCorePropsBase {
   closePopup: () => void;
   popupStatus: string;
   initialRiskValues?: RiskFormValues;
   initialMitigationValues?: MitigationFormValues;
   onSuccess: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onError?: (message: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onLoading?: (message: any) => void;
   users?: User[];
   usersLoading?: boolean;
-  onSubmitRef?: MutableRefObject<(() => void) | null>;
   compactMode?: boolean;
 }
 
-/**
- * Props for IRiskSection component
- * Pure domain type with no framework dependencies
- */
-export interface IRiskSectionProps {
-  riskValues: IRiskFormValues;
-  setRiskValues: Dispatch<SetStateAction<IRiskFormValues>>;
-  riskErrors: IRiskFormErrors;
-  userRoleName: string;
-}
+// Note: AddNewRiskFormCoreProps with React MutableRefObject has been moved to:
+// presentation/types/riskForm.types.ts
+
+// Note: IRiskSectionProps with React Dispatch/SetStateAction has been moved to:
+// presentation/types/riskForm.types.ts
 
 /**
  * Risk section props

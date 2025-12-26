@@ -9,7 +9,7 @@ import {
 import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
 import CustomizableToast from "../Toast";
 import { extractUserToken } from "../../../application/tools/extractToken";
-import { IProtectedRouteProps } from "../../../domain/interfaces/i.widget";
+import { IProtectedRouteProps } from "../../types/widget.types";
 
 const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
   const authState = useSelector(

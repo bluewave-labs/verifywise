@@ -1,9 +1,44 @@
+import { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { SelectChangeEvent } from "@mui/material";
 import {
-  AddNewRiskFormCoreProps,
+  AddNewRiskFormCorePropsBase,
   IRiskLevelCoreProps,
   IRiskLevelFormValues,
+  IRiskFormValues,
+  IRiskFormErrors,
 } from "../../domain/types/riskForm.types";
+
+// Re-export domain types for convenience
+export type {
+  RiskFormValues,
+  MitigationFormValues,
+  AddNewRiskFormCorePropsBase,
+  RiskSectionProps,
+  IRiskFormValues,
+  IRiskFormErrors,
+  IAuditRiskModalProps,
+  IRiskLevelFormValues,
+  IRiskLevelCoreProps,
+  IRiskChipProps,
+} from "../../domain/types/riskForm.types";
+
+/**
+ * Props for AddNewRiskForm component - with React MutableRefObject
+ * Extends domain base props with React-specific onSubmitRef
+ */
+export interface AddNewRiskFormCoreProps extends AddNewRiskFormCorePropsBase {
+  onSubmitRef?: MutableRefObject<(() => void) | null>;
+}
+
+/**
+ * Props for IRiskSection component - with React Dispatch/SetStateAction
+ */
+export interface IRiskSectionProps {
+  riskValues: IRiskFormValues;
+  setRiskValues: Dispatch<SetStateAction<IRiskFormValues>>;
+  riskErrors: IRiskFormErrors;
+  userRoleName: string;
+}
 
 /**
  * Presentation adapter for AddNewRiskForm component

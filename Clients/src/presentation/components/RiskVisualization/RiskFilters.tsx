@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Box, Stack } from "@mui/material";
 import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
-import { IRiskFiltersProps } from "../../../domain/interfaces/i.risk";
+import { IRiskFiltersProps } from "../../types/interfaces/i.risk";
 import { IFilterState } from "../../types/interfaces/i.filter";
 import { User } from "../../../domain/types/User";
 

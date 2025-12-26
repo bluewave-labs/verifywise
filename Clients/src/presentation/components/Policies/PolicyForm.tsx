@@ -13,7 +13,7 @@ import dayjs, { Dayjs } from "dayjs";
 import useUsers from "../../../application/hooks/useUsers";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useCallback } from "react";
-import { PolicyFormData, PolicyFormProps } from "../../../domain/interfaces/i.policy";
+import { PolicyFormData, PolicyFormProps } from "../../types/interfaces/i.policy";
 import { getAutocompleteStyles } from "../../utils/inputStyles";
 
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import CustomAxios from "../../infrastructure/api/customAxios";
+import { checkOrganizationExists } from "../repository/organization.repository";
 
 // Cache for organization exists check
 let organizationCheckCache: {
@@ -41,8 +41,7 @@ export const useIsMultiTenant = () => {
       }
 
       try {
-        const response = await CustomAxios.get("/organizations/exists");
-        const exists = response.data.data.exists;
+        const exists = await checkOrganizationExists();
 
         // Update cache
         organizationCheckCache = {

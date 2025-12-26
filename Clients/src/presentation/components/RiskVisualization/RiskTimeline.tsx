@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Box, Typography, Stack, Chip } from "@mui/material";
-import { IRiskTimelineProps } from "../../../domain/interfaces/i.risk";
+import { IRiskTimelineProps } from "../../types/interfaces/i.risk";
 import { ITimelineEvent } from "../../../domain/interfaces/i.widget";
 
 const RiskTimeline: React.FC<IRiskTimelineProps> = ({

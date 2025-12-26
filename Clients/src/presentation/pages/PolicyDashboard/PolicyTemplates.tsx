@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useMemo, useState, useRef } from "react"
 import { useSearchParams } from "react-router-dom";
 import { Box, Stack, TableRow, TableCell } from "@mui/material";
 import EmptyState from "../../components/EmptyState";
-import policyTemplates from "../../assets/PolicyTemplates.json";
+import policyTemplates from "../../../application/data/PolicyTemplates.json";
 import {
   PolicyTemplate,
   PolicyTemplatesProps,
-} from "../../../domain/interfaces/i.policy";
+} from "../../types/interfaces/i.policy";
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";

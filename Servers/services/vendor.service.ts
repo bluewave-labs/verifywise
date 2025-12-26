@@ -59,6 +59,12 @@ export interface ServiceContext {
 
 /**
  * Creates a new vendor with validation and change tracking.
+ *
+ * @param input - The vendor data to create
+ * @param ctx - Service context containing userId, role, and tenantId
+ * @param transaction - Database transaction for atomicity
+ * @returns The created vendor model
+ * @throws {DatabaseException} If vendor creation fails
  */
 export async function createVendor(
   input: CreateVendorInput,
@@ -121,6 +127,12 @@ export async function createVendor(
 
 /**
  * Updates an existing vendor with validation and change tracking.
+ *
+ * @param vendorId - The ID of the vendor to update
+ * @param input - The vendor data to update (partial)
+ * @param ctx - Service context containing userId, role, and tenantId
+ * @param transaction - Database transaction for atomicity
+ * @returns The updated vendor model or null if not found
  */
 export async function updateVendor(
   vendorId: number,

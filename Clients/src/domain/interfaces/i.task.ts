@@ -55,14 +55,4 @@ export interface ICreateTaskFormValues {
   categories: string[];
 }
 
-// Note: ICreateTaskProps has been moved to: presentation/types/interfaces/i.task.ts
-
-export interface ICreateTaskFormErrors {
-  title?: string;
-  description?: string;
-  priority?: string;
-  status?: string;
-  due_date?: string;
-  assignees?: string;
-  categories?: string;
-}
+// Note: ICreateTaskProps and ICreateTaskFormErrors have been moved to: presentation/types/interfaces/i.task.ts

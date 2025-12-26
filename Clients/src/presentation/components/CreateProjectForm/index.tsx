@@ -23,10 +23,8 @@ import { checkStringValidation } from "../../../application/validations/stringVa
 import selectValidation from "../../../application/validations/selectValidation";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import useUsers from "../../../application/hooks/useUsers";
-import {
-  CreateProjectFormErrors,
-  CreateProjectFormValues,
-} from "../../../domain/interfaces/i.form";
+import { CreateProjectFormValues } from "../../../domain/interfaces/i.form";
+import { CreateProjectFormErrors } from "../../../types/form.props";
 // import { CreateProjectFormUser } from "../../../domain/interfaces/i.user";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";

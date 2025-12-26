@@ -1,6 +1,6 @@
 /**
  * Task presentation-layer interfaces
- * Contains UI component props with callbacks
+ * Contains UI component props with callbacks and form error types
  */
 
 import { ITask, ICreateTaskFormValues } from "../../../domain/interfaces/i.task";
@@ -12,7 +12,6 @@ export type {
   TaskSummary,
   TaskFilters,
   ICreateTaskFormValues,
-  ICreateTaskFormErrors,
 } from "../../../domain/interfaces/i.task";
 
 /**
@@ -24,4 +23,18 @@ export interface ICreateTaskProps {
   onSuccess?: (data: ICreateTaskFormValues) => void;
   initialData?: ITask;
   mode?: "create" | "edit";
+}
+
+/**
+ * Form validation errors for task creation/editing
+ * Moved from domain layer as this is a UI concern
+ */
+export interface ICreateTaskFormErrors {
+  title?: string;
+  description?: string;
+  priority?: string;
+  status?: string;
+  due_date?: string;
+  assignees?: string;
+  categories?: string;
 }

@@ -21,7 +21,8 @@ import useUsers from "../../../application/hooks/useUsers";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { AlertProps } from "../../types/alert.types";
 import { RiskSectionProps } from "../../../domain/interfaces/i.riskForm";
-import { FormErrors, FormValues } from "../../../domain/interfaces/i.form";
+import { FormValues } from "../../../domain/interfaces/i.form";
+import { FormErrors } from "../../../types/form.props";
 
 // Types
 interface Vendor {

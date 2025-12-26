@@ -1,6 +1,18 @@
 /**
- * Reusable validation utilities for API endpoints
- * Provides comprehensive validation functions for various data types and business rules
+ * Validation Utilities
+ *
+ * Reusable validation utilities for API endpoints.
+ * Provides comprehensive validation functions for various data types and business rules.
+ *
+ * Features:
+ * - String, number, date, enum validation with configurable options
+ * - Foreign key validation for database references
+ * - Schema-based validation for complex objects
+ * - Express middleware integration
+ * - Sanitization utilities
+ *
+ * @module validations/validation
+ * @see {@link ./vendorValidation.utils.ts} for vendor-specific validations
  */
 
 import { Request, Response, NextFunction } from "express";
@@ -413,15 +425,32 @@ export const validateSchema = (
 
 /**
  * Express middleware for validation
+ *
+ * Creates a middleware function that validates the request body against the provided schema.
+ * Returns 400 with detailed error information if validation fails.
+ *
+ * @param schema - Object mapping field names to validation functions
+ * @returns Express middleware function
+ *
+ * @example
+ * ```typescript
+ * app.post('/vendors',
+ *   validateRequest({
+ *     vendor_name: (v) => validateString(v, 'Vendor name', { required: true }),
+ *     risk_score: (v) => validateNumber(v, 'Risk score', { min: 0, max: 100 })
+ *   }),
+ *   vendorController.create
+ * );
+ * ```
  */
 export const validateRequest = (
   schema: Record<string, (value: unknown) => ValidationResult>
 ) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const errors = validateSchema(req.body, schema);
 
     if (errors.length > 0) {
-      return res.status(400).json({
+      res.status(400).json({
         status: 'error',
         message: 'Validation failed',
         errors: errors.map(err => ({
@@ -430,6 +459,7 @@ export const validateRequest = (
           code: err.code
         }))
       });
+      return;
     }
 
     next();

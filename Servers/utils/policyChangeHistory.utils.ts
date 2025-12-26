@@ -1,9 +1,18 @@
 /**
  * Policy Change History Utilities
  *
- * Wrapper functions that use the generic change history system.
- * These functions maintain backward compatibility while leveraging
- * the new generic utilities.
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * Use the generic change history functions from `changeHistory.base.utils.ts` directly instead.
+ *
+ * Migration guide:
+ * - Replace `recordPolicyChange()` with `recordEntityChange("policy", ...)`
+ * - Replace `recordMultipleFieldChanges()` with `recordMultipleFieldChanges("policy", ...)`
+ * - Replace `getPolicyChangeHistory()` with `getEntityChangeHistory("policy", ...)`
+ * - Replace `trackPolicyChanges()` with `trackEntityChanges("policy", ...)`
+ * - Replace `recordPolicyCreation()` with `recordEntityCreation("policy", ...)`
+ * - Replace `recordPolicyDeletion()` with `recordEntityDeletion("policy", ...)`
+ *
+ * These wrapper functions are maintained for backward compatibility only.
  */
 
 import { IPolicy } from "../domain.layer/interfaces/i.policy";
@@ -19,6 +28,7 @@ import {
 
 /**
  * Record a change in policy
+ * @deprecated Use `recordEntityChange("policy", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordPolicyChange = async (
   policyId: number,
@@ -45,6 +55,7 @@ export const recordPolicyChange = async (
 
 /**
  * Record multiple field changes for a policy
+ * @deprecated Use `recordMultipleFieldChanges("policy", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordMultipleFieldChanges = async (
   policyId: number,
@@ -65,6 +76,7 @@ export const recordMultipleFieldChanges = async (
 
 /**
  * Get change history for a specific policy with pagination support
+ * @deprecated Use `getEntityChangeHistory("policy", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const getPolicyChangeHistory = async (
   policyId: number,
@@ -83,6 +95,7 @@ export const getPolicyChangeHistory = async (
 
 /**
  * Track changes between old and new policy data
+ * @deprecated Use `trackEntityChanges("policy", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const trackPolicyChanges = async (
   oldModel: IPolicy,
@@ -93,6 +106,7 @@ export const trackPolicyChanges = async (
 
 /**
  * Record creation of a policy
+ * @deprecated Use `recordEntityCreation("policy", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordPolicyCreation = async (
   policyId: number,
@@ -113,6 +127,7 @@ export const recordPolicyCreation = async (
 
 /**
  * Record deletion of a policy
+ * @deprecated Use `recordEntityDeletion("policy", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordPolicyDeletion = async (
   policyId: number,

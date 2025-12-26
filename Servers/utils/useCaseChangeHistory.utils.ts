@@ -1,9 +1,18 @@
 /**
  * Use Case Change History Utilities
  *
- * Wrapper functions that use the generic change history system.
- * These functions maintain backward compatibility while leveraging
- * the new generic utilities.
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * Use the generic change history functions from `changeHistory.base.utils.ts` directly instead.
+ *
+ * Migration guide:
+ * - Replace `recordUseCaseChange()` with `recordEntityChange("use_case", ...)`
+ * - Replace `recordMultipleFieldChanges()` with `recordMultipleFieldChanges("use_case", ...)`
+ * - Replace `getUseCaseChangeHistory()` with `getEntityChangeHistory("use_case", ...)`
+ * - Replace `trackUseCaseChanges()` with `trackEntityChanges("use_case", ...)`
+ * - Replace `recordUseCaseCreation()` with `recordEntityCreation("use_case", ...)`
+ * - Replace `recordUseCaseDeletion()` with `recordEntityDeletion("use_case", ...)`
+ *
+ * These wrapper functions are maintained for backward compatibility only.
  */
 
 import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
@@ -19,6 +28,7 @@ import {
 
 /**
  * Record a change in use case
+ * @deprecated Use `recordEntityChange("use_case", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordUseCaseChange = async (
   useCaseId: number,
@@ -45,6 +55,7 @@ export const recordUseCaseChange = async (
 
 /**
  * Record multiple field changes for a use case
+ * @deprecated Use `recordMultipleFieldChanges("use_case", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordMultipleFieldChanges = async (
   useCaseId: number,
@@ -65,6 +76,7 @@ export const recordMultipleFieldChanges = async (
 
 /**
  * Get change history for a specific use case with pagination support
+ * @deprecated Use `getEntityChangeHistory("use_case", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const getUseCaseChangeHistory = async (
   useCaseId: number,
@@ -83,6 +95,7 @@ export const getUseCaseChangeHistory = async (
 
 /**
  * Track changes between old and new use case data
+ * @deprecated Use `trackEntityChanges("use_case", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const trackUseCaseChanges = async (
   oldModel: IProjectAttributes,
@@ -93,6 +106,7 @@ export const trackUseCaseChanges = async (
 
 /**
  * Record creation of a use case
+ * @deprecated Use `recordEntityCreation("use_case", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordUseCaseCreation = async (
   useCaseId: number,
@@ -113,6 +127,7 @@ export const recordUseCaseCreation = async (
 
 /**
  * Record deletion of a use case
+ * @deprecated Use `recordEntityDeletion("use_case", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordUseCaseDeletion = async (
   useCaseId: number,

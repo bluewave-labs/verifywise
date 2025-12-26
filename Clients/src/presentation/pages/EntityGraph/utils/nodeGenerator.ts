@@ -1,9 +1,8 @@
 import type { Node, Edge } from '@xyflow/react';
 import { Position, MarkerType } from '@xyflow/react';
 import type { EntityGraphData } from '../../../../application/repository/entityGraph.repository';
-import type { GapResult, ExtendedNodeData } from '../types';
+import type { ExtendedNodeData } from '../types';
 import { entityColors, riskPriority, layoutConfig } from '../constants';
-import { getDeadlineStatus, getEvidenceFreshness, getVendorTier } from './dateHelpers';
 
 /**
  * Options for generating nodes and edges
@@ -13,9 +12,6 @@ export interface NodeGeneratorOptions {
   showProblemsOnly: boolean;
   searchQuery: string;
   visibleRelationships: string[];
-  activeQuery?: { entityType: string; condition: string; attribute: string };
-  gapResults?: Map<string, GapResult>;
-  showGapsOnly?: boolean;
 }
 
 /**
@@ -41,71 +37,6 @@ function matchesSearch(searchQuery: string, label: string, sublabel?: string): b
   if (!searchQuery) return true;
   const query = searchQuery.toLowerCase();
   return label.toLowerCase().includes(query) || (sublabel?.toLowerCase().includes(query) ?? false);
-}
-
-/**
- * Apply smart query filter to entity
- */
-function matchesQuery(
-  entityType: string,
-  entity: Record<string, unknown>,
-  activeQuery: NodeGeneratorOptions['activeQuery'],
-  data: EntityGraphData
-): boolean {
-  if (!activeQuery?.entityType || !activeQuery?.condition || !activeQuery?.attribute) return true;
-  if (activeQuery.entityType !== entityType) return true;
-
-  const { condition, attribute } = activeQuery;
-
-  switch (attribute) {
-    case 'risk': {
-      const hasRisk = entityType === 'models'
-        ? data.risks.some(r => r.model_id === entity.id)
-        : entityType === 'vendors'
-          ? data.risks.some(r => r.vendor_id === entity.id)
-          : entityType === 'useCases'
-            ? data.risks.some(r => r.project_id === entity.id)
-            : false;
-      return condition === 'with' ? hasRisk : !hasRisk;
-    }
-    case 'owner': {
-      const hasOwner = Boolean(entity.owner);
-      return condition === 'with' ? hasOwner : !hasOwner;
-    }
-    case 'evidence': {
-      const hasEvidence = entityType === 'controls'
-        ? data.evidence.some(e => e.control_id === entity.id)
-        : false;
-      return condition === 'with' ? hasEvidence : !hasEvidence;
-    }
-    case 'control': {
-      const hasControl = entityType === 'useCases'
-        ? data.controls.some(c => c.project_id === entity.id)
-        : false;
-      return condition === 'with' ? hasControl : !hasControl;
-    }
-    case 'high_severity': {
-      const isHighSeverity = entityType === 'risks'
-        ? riskPriority[entity.risk_level as string] >= 3
-        : entityType === 'models'
-          ? data.risks.some(r => r.model_id === entity.id && riskPriority[r.risk_level] >= 3)
-          : entityType === 'vendors'
-            ? data.risks.some(r => r.vendor_id === entity.id && riskPriority[r.risk_level] >= 3)
-            : false;
-      return isHighSeverity;
-    }
-    case 'overdue': {
-      const targetDate = entity.target_date || entity.review_date;
-      if (!targetDate) return false;
-      return new Date(targetDate as string) < new Date();
-    }
-    case 'pending_review': {
-      const status = (entity.status || entity.review_status) as string;
-      return status?.toLowerCase().includes('pending') || status?.toLowerCase().includes('review');
-    }
-    default:
-      return true;
-  }
 }
 
 /**
@@ -176,9 +107,6 @@ export function generateNodesAndEdges(
     showProblemsOnly,
     searchQuery,
     visibleRelationships,
-    activeQuery,
-    gapResults,
-    showGapsOnly
   } = options;
 
   const nodes: Node[] = [];
@@ -205,8 +133,8 @@ export function generateNodesAndEdges(
   // Filter non-organizational use cases
   const regularUseCases = data.useCases.filter(p => !(p as { is_organizational?: boolean }).is_organizational);
 
-  // Helper to check if edge should be visible
-  const shouldShowEdge = (label: string) => visibleRelationships.includes(label);
+  // Helper to check if edge should be visible (show all if empty array)
+  const shouldShowEdge = (label: string) => visibleRelationships.length === 0 || visibleRelationships.includes(label);
 
   // Add Use Case nodes
   if (visibleEntities.includes('useCases')) {
@@ -215,18 +143,12 @@ export function generateNodesAndEdges(
         r => r.project_id === useCase.id && hasHighRisk(r.risk_level)
       );
       const nodeId = `useCase-${useCase.id}`;
-      const gapResult = gapResults?.get(nodeId);
 
       if (showProblemsOnly && !useCaseHasHighRisk) return;
-      if (showGapsOnly && !gapResult) return;
       if (!matchesSearch(searchQuery, useCase.uc_id || useCase.project_title, useCase.project_title)) return;
-      if (!matchesQuery('useCases', useCase as unknown as Record<string, unknown>, activeQuery, data)) return;
 
       const angle = (2 * Math.PI * index) / Math.max(regularUseCases.length, 1);
       entityLookup.set(nodeId, useCase as unknown as Record<string, unknown>);
-
-      const useCaseReviewDate = useCase.review_date;
-      const deadlineInfo = getDeadlineStatus(useCaseReviewDate);
 
       nodes.push({
         id: nodeId,
@@ -242,10 +164,6 @@ export function generateNodesAndEdges(
           color: useCaseHasHighRisk ? entityColors.risk : entityColors.useCase,
           hasHighRisk: useCaseHasHighRisk,
           rawData: { ...useCase, owner_name: getUserName(useCase.owner) },
-          gapResult,
-          reviewDate: useCaseReviewDate,
-          deadlineStatus: deadlineInfo?.status,
-          daysUntilDeadline: deadlineInfo?.daysUntil,
           connectionCount: connectionCounts.get(nodeId) || 0,
         } as ExtendedNodeData,
         sourcePosition: Position.Right,
@@ -263,12 +181,9 @@ export function generateNodesAndEdges(
         r => r.model_id === model.id && hasHighRisk(r.risk_level)
       );
       const nodeId = `model-${model.id}`;
-      const gapResult = gapResults?.get(nodeId);
 
       if (showProblemsOnly && !modelHasHighRisk) return;
-      if (showGapsOnly && !gapResult) return;
       if (!matchesSearch(searchQuery, model.model, model.provider)) return;
-      if (!matchesQuery('models', model as unknown as Record<string, unknown>, activeQuery, data)) return;
 
       const angle = (2 * Math.PI * index) / Math.max(data.models.length, 1) - Math.PI / 4;
       entityLookup.set(nodeId, model as unknown as Record<string, unknown>);
@@ -288,7 +203,6 @@ export function generateNodesAndEdges(
           status: model.status,
           hasHighRisk: modelHasHighRisk,
           rawData: { ...model, owner_name: getUserName(model.owner) },
-          gapResult,
           connectionCount: connectionCounts.get(nodeId) || 0,
         } as ExtendedNodeData,
         sourcePosition: Position.Right,
@@ -327,19 +241,12 @@ export function generateNodesAndEdges(
         r => r.vendor_id === vendor.id && hasHighRisk(r.risk_level)
       );
       const nodeId = `vendor-${vendor.id}`;
-      const gapResult = gapResults?.get(nodeId);
 
       if (showProblemsOnly && !vendorHasHighRisk) return;
-      if (showGapsOnly && !gapResult) return;
       if (!matchesSearch(searchQuery, vendor.vendor_name)) return;
-      if (!matchesQuery('vendors', vendor as unknown as Record<string, unknown>, activeQuery, data)) return;
 
       const angle = (2 * Math.PI * index) / Math.max(data.vendors.length, 1) + Math.PI / 4;
       entityLookup.set(nodeId, vendor as unknown as Record<string, unknown>);
-
-      const vendorReviewDate = (vendor as { review_date?: string }).review_date;
-      const deadlineInfo = getDeadlineStatus(vendorReviewDate);
-      const vendorTier = getVendorTier(vendor);
 
       nodes.push({
         id: nodeId,
@@ -360,11 +267,6 @@ export function generateNodesAndEdges(
             assignee_name: getUserName(vendor.assignee),
             reviewer_name: getUserName(vendor.reviewer),
           },
-          gapResult,
-          vendorTier,
-          reviewDate: vendorReviewDate,
-          deadlineStatus: deadlineInfo?.status,
-          daysUntilDeadline: deadlineInfo?.daysUntil,
           connectionCount: connectionCounts.get(nodeId) || 0,
         } as ExtendedNodeData,
         sourcePosition: Position.Left,
@@ -401,12 +303,9 @@ export function generateNodesAndEdges(
     data.risks.forEach((risk, index) => {
       const isHighRisk = hasHighRisk(risk.risk_level);
       const nodeId = `risk-${risk.id}`;
-      const gapResult = gapResults?.get(nodeId);
 
       if (showProblemsOnly && !isHighRisk) return;
-      if (showGapsOnly && !gapResult) return;
       if (!matchesSearch(searchQuery, risk.risk_name)) return;
-      if (!matchesQuery('risks', risk as unknown as Record<string, unknown>, activeQuery, data)) return;
 
       const angle = (2 * Math.PI * index) / Math.max(data.risks.length, 1);
       entityLookup.set(nodeId, risk as unknown as Record<string, unknown>);
@@ -426,7 +325,6 @@ export function generateNodesAndEdges(
           riskSource: risk.source,
           hasHighRisk: isHighRisk,
           rawData: { ...risk, action_owner_name: getUserName(risk.action_owner) },
-          gapResult,
           connectionCount: connectionCounts.get(nodeId) || 0,
         } as ExtendedNodeData,
         sourcePosition: Position.Top,
@@ -493,28 +391,16 @@ export function generateNodesAndEdges(
   if (visibleEntities.includes('controls')) {
     data.controls.forEach((control, index) => {
       const nodeId = `control-${control.id}`;
-      const gapResult = gapResults?.get(nodeId);
 
       if (!matchesSearch(searchQuery, control.title)) return;
-      if (showProblemsOnly && !gapResult) return;
-      if (showGapsOnly && !gapResult) return;
-      if (!matchesQuery('controls', control as unknown as Record<string, unknown>, activeQuery, data)) return;
+      if (showProblemsOnly) return;
 
       const angle = (2 * Math.PI * index) / Math.max(data.controls.length, 1) + Math.PI / 6;
       entityLookup.set(nodeId, control as unknown as Record<string, unknown>);
 
-      // Calculate evidence count and freshness
+      // Calculate evidence count
       const controlEvidence = data.evidence.filter(e => e.control_id === control.id);
       const evidenceCount = controlEvidence.length;
-      const lastEvidence = controlEvidence.reduce((latest, e) => {
-        const eDate = e.uploaded_at || e.created_at;
-        const latestDate = latest?.uploaded_at || latest?.created_at;
-        if (!eDate) return latest;
-        if (!latestDate) return e;
-        return new Date(eDate) > new Date(latestDate) ? e : latest;
-      }, controlEvidence[0] as typeof controlEvidence[0] | undefined);
-      const lastEvidenceDate = lastEvidence?.uploaded_at || lastEvidence?.created_at;
-      const evidenceFreshness = getEvidenceFreshness(lastEvidenceDate);
 
       nodes.push({
         id: nodeId,
@@ -534,10 +420,7 @@ export function generateNodesAndEdges(
             approver_name: getUserName(control.approver),
             reviewer_name: getUserName(control.reviewer),
           },
-          gapResult,
           evidenceCount,
-          evidenceFreshness: evidenceFreshness || undefined,
-          lastEvidenceDate,
           connectionCount: connectionCounts.get(nodeId) || 0,
         } as ExtendedNodeData,
         sourcePosition: Position.Right,
@@ -571,12 +454,9 @@ export function generateNodesAndEdges(
     data.evidence.forEach((ev, index) => {
       const evName = ev.name || 'Untitled Evidence';
       const nodeId = `evidence-${ev.id}`;
-      const gapResult = gapResults?.get(nodeId);
 
       if (!matchesSearch(searchQuery, evName)) return;
       if (showProblemsOnly) return;
-      if (showGapsOnly && !gapResult) return;
-      if (!matchesQuery('evidence', ev as unknown as Record<string, unknown>, activeQuery, data)) return;
 
       const angle = (2 * Math.PI * index) / Math.max(data.evidence.length, 1) + Math.PI / 3;
       entityLookup.set(nodeId, ev as unknown as Record<string, unknown>);
@@ -593,7 +473,6 @@ export function generateNodesAndEdges(
           entityType: 'evidence',
           color: entityColors.evidence,
           rawData: { ...ev },
-          gapResult,
           connectionCount: connectionCounts.get(nodeId) || 0,
         } as ExtendedNodeData,
         sourcePosition: Position.Left,
@@ -627,7 +506,6 @@ export function generateNodesAndEdges(
     data.frameworks.forEach((framework, index) => {
       if (!matchesSearch(searchQuery, framework.name)) return;
       if (showProblemsOnly) return;
-      if (!matchesQuery('frameworks', framework as unknown as Record<string, unknown>, activeQuery, data)) return;
 
       const angle = (2 * Math.PI * index) / Math.max(data.frameworks.length, 1) + Math.PI / 2;
       const nodeId = `framework-${framework.id}`;

@@ -22,10 +22,10 @@ import TablePaginationActions from "../../TablePagination";
 import Chip from "../../Chip";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
-import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 import { User } from "../../../../domain/types/User";
 import { IRiskTableProps } from "../../../../domain/interfaces/i.table";
 import { VWLink } from "../../Link";
+import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 
 const VENDOR_RISKS_ROWS_PER_PAGE_KEY = "verifywise_vendor_risks_rows_per_page";
 const VENDOR_RISKS_SORTING_KEY = "verifywise_vendor_risks_sorting";
@@ -67,20 +67,11 @@ const SortableTableHead: React.FC<{
       }}
     >
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {columns.map((column, index) => (
+        {columns.map((column) => (
           <TableCell
             key={column.id}
             sx={{
               ...singleTheme.tableStyles.primary.header.cell,
-              ...(index === columns.length - 1
-                ? {
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
-                    backgroundColor:
-                      singleTheme.tableStyles.primary.header.backgroundColors,
-                  }
-                : {}),
               ...(column.sortable
                 ? {
                     cursor: "pointer",
@@ -378,7 +369,9 @@ const RiskTable: React.FC<IRiskTableProps> = ({
           sortedRisks
             .slice(
               hidePagination ? 0 : page * rowsPerPage,
-              hidePagination ? Math.min(sortedRisks.length, 100) : page * rowsPerPage + rowsPerPage
+              hidePagination
+                ? Math.min(sortedRisks.length, 100)
+                : page * rowsPerPage + rowsPerPage
             )
             .map((row: VendorRisk & { project_titles: string }) => (
               <TableRow
@@ -398,7 +391,10 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     maxWidth: 300,
                     whiteSpace: "normal",
                     wordBreak: "break-word",
-                    backgroundColor: sortConfig.key === "risk_description" ? "#e8e8e8" : "#fafafa",
+                    backgroundColor:
+                      sortConfig.key === "risk_description"
+                        ? "#e8e8e8"
+                        : "#fafafa",
                   }}
                 >
                   <Tooltip title={row.risk_description} arrow placement="top">
@@ -422,7 +418,8 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                 <TableCell
                   sx={{
                     ...getCellStyle(row),
-                    backgroundColor: sortConfig.key === "vendor_name" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "vendor_name" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {
@@ -439,7 +436,10 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
-                    backgroundColor: sortConfig.key === "project_titles" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "project_titles"
+                        ? "#f5f5f5"
+                        : "inherit",
                   }}
                 >
                   {(() => {
@@ -530,7 +530,8 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                 <TableCell
                   sx={{
                     ...getCellStyle(row),
-                    backgroundColor: sortConfig.key === "action_owner" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "action_owner" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {
@@ -543,19 +544,19 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                 <TableCell
                   sx={{
                     ...getCellStyle(row),
-                    backgroundColor: sortConfig.key === "risk_severity" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "risk_severity"
+                        ? "#f5f5f5"
+                        : "inherit",
                   }}
                 >
-                  {row.risk_severity ? (
-                    <Chip label={row.risk_severity} />
-                  ) : (
-                    "-"
-                  )}
+                  {row.risk_severity ? <Chip label={row.risk_severity} /> : "-"}
                 </TableCell>
                 <TableCell
                   sx={{
                     ...getCellStyle(row),
-                    backgroundColor: sortConfig.key === "likelihood" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "likelihood" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {row.likelihood}
@@ -563,7 +564,8 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                 <TableCell
                   sx={{
                     ...getCellStyle(row),
-                    backgroundColor: sortConfig.key === "risk_level" ? "#f5f5f5" : "inherit",
+                    backgroundColor:
+                      sortConfig.key === "risk_level" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <VWLink
@@ -580,9 +582,6 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
                     minWidth: "80px",
                   }}
                   onClick={(e) => e.stopPropagation()}

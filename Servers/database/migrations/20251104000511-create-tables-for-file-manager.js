@@ -6,6 +6,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+
       const queries = [
         // Create file_manager table for organization-wide file storage
         (tenantHash) => `CREATE TABLE IF NOT EXISTS "${tenantHash}".file_manager (

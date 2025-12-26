@@ -127,6 +127,9 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       if (!isNaN(parsed)) modelId = parsed;
     }
 
+    // Parse source from request body (e.g., "policy_editor", "evidence", etc.)
+    const source: string | undefined = req.body.source || undefined;
+
     if (!file) {
       await logFailure({
         eventType: "Error",
@@ -165,7 +168,8 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       userId,
       orgId,
       tenant,
-      modelId
+      modelId,
+      source
     );
 
     await logSuccess({

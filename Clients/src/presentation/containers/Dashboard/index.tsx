@@ -1,9 +1,9 @@
 import { Stack, Typography, Box } from "@mui/material";
 import "./index.css";
-import Sidebar from "../../components/Sidebar";
 import { Outlet, useLocation } from "react-router";
 import { useContext, useEffect, FC, useState } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { EvalsSidebarProvider } from "../../../application/contexts/EvalsSidebar.context";
 import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 import { getAllProjects } from "../../../application/repository/project.repository";
 import {
@@ -17,6 +17,9 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
 import { AlertState } from "../../../application/interfaces/appStates";
 import { useDashboard } from "../../../application/hooks/useDashboard";
+import { useActiveModule } from "../../../application/hooks/useActiveModule";
+import AppSwitcher from "../../components/AppSwitcher";
+import ContextSidebar from "../../components/ContextSidebar";
 
 interface DashboardProps {
   reloadTrigger: boolean;
@@ -25,6 +28,7 @@ interface DashboardProps {
 const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { setDashboardValues, setProjects } = useContext(VerifyWiseContext);
   const location = useLocation();
+  const { activeModule, setActiveModule } = useActiveModule();
 
   // Demo data state
   const [showToastNotification, setShowToastNotification] =
@@ -269,32 +273,38 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   };
 
   return (
-    <Stack
-      maxWidth="100%"
-      className="home-layout"
-      flexDirection="row"
-      gap={0}
-      sx={{ backgroundColor: "#FCFCFD" }}
-    >
-      <Sidebar
-        onOpenCreateDemoData={() => setOpenDemoDataModal(true)}
-        onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
-        hasDemoData={hasDemoData}
-      />
-      <Stack>
-        <DemoAppBanner />
-        {alertState && (
-          <Alert
-            variant={alertState.variant}
-            title={alertState.title}
-            body={alertState.body}
-            isToast={true}
-            onClick={() => setAlertState(undefined)}
-          />
-        )}
-        {showToastNotification && <CustomizableToast title={toastMessage} />}
-        <Outlet />
-      </Stack>
+    <EvalsSidebarProvider>
+      <Stack
+        maxWidth="100%"
+        className="home-layout"
+        flexDirection="row"
+        gap={0}
+        sx={{ backgroundColor: "#FCFCFD" }}
+      >
+        <AppSwitcher
+          activeModule={activeModule}
+          onModuleChange={setActiveModule}
+        />
+        <ContextSidebar
+          activeModule={activeModule}
+          onOpenCreateDemoData={() => setOpenDemoDataModal(true)}
+          onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
+          hasDemoData={hasDemoData}
+        />
+        <Stack sx={{ flex: 1, minWidth: 0 }}>
+          <DemoAppBanner />
+          {alertState && (
+            <Alert
+              variant={alertState.variant}
+              title={alertState.title}
+              body={alertState.body}
+              isToast={true}
+              onClick={() => setAlertState(undefined)}
+            />
+          )}
+          {showToastNotification && <CustomizableToast title={toastMessage} />}
+          <Outlet />
+        </Stack>
 
       {/* Demo Data Modals */}
       <StandardModal
@@ -438,7 +448,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
           </Typography>
         </Stack>
       </StandardModal>
-    </Stack>
+      </Stack>
+    </EvalsSidebarProvider>
   );
 };
 

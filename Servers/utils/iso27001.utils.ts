@@ -180,7 +180,7 @@ export const getAllClausesWithSubClauseQuery = async (
 
   for (let clause of clauses[0]) {
     const subClauses = (await sequelize.query(
-      `SELECT scs.id, scs.title, scs.order_no, sc.status, sc.owner FROM public.subclauses_struct_iso27001 scs JOIN "${tenant}".subclauses_iso27001 sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT sc.id, scs.title, scs.order_no, sc.status, sc.owner FROM public.subclauses_struct_iso27001 scs JOIN "${tenant}".subclauses_iso27001 sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY scs.id;`,
       {
         replacements: {
           id: clause.id,
@@ -266,8 +266,9 @@ export const getSubClausesByClauseIdQuery = async (
   transaction: Transaction | null = null
 ) => {
   const subClauses = await sequelize.query(
-    `SELECT scs.*, sc.owner AS owner, sc.reviewer AS reviewer, sc.due_date 
-    FROM "${tenant}".subclauses_iso27001 sc JOIN public.subclauses_struct_iso27001 scs ON 
+    `SELECT sc.id, scs.title, scs.order_no, scs.clause_id, scs.requirement_summary, scs.key_questions, scs.evidence_examples,
+            sc.owner AS owner, sc.reviewer AS reviewer, sc.due_date, sc.status
+    FROM "${tenant}".subclauses_iso27001 sc JOIN public.subclauses_struct_iso27001 scs ON
     sc.subclause_meta_id = scs.id WHERE scs.clause_id = :id ORDER BY scs.id;`,
     {
       replacements: { id: clauseId },
@@ -280,20 +281,11 @@ export const getSubClausesByClauseIdQuery = async (
 
 export const getSubClauseByIdForProjectQuery = async (
   subClauseId: number,
-  projectFrameworkId: number,
+  _projectFrameworkId: number,
   tenant: string
 ) => {
-  const _subClauseId = (await sequelize.query(
-    `SELECT id FROM "${tenant}".subclauses_iso27001 WHERE subclause_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
-    {
-      replacements: {
-        id: subClauseId,
-        projects_frameworks_id: projectFrameworkId,
-      },
-    }
-  )) as [{ id: number }[], number];
-  const subClauses = await getSubClauseByIdQuery(_subClauseId[0][0].id, tenant);
-  return subClauses;
+  const subClause = await getSubClauseByIdQuery(subClauseId, tenant);
+  return subClause;
 };
 
 export const getSubClauseByIdQuery = async (
@@ -329,6 +321,9 @@ export const getSubClauseByIdQuery = async (
     number,
   ];
   const subClause = subClauses[0][0];
+  if (!subClause) {
+    return null;
+  }
   (subClause as any).risks = [];
   const risks = (await sequelize.query(
     `SELECT projects_risks_id FROM "${tenant}".subclauses_iso27001__risks WHERE subclause_id = :id`,
@@ -381,9 +376,11 @@ export const getMainClausesQuery = async (
       tenant,
       transaction
     );
-    (clausesStruct as any)[
-      clausesStructMap.get(subClause.clause_id!)
-    ].dataValues.subClauses.push(subClause);
+    if (subClause) {
+      (clausesStruct as any)[
+        clausesStructMap.get(subClause.clause_id!)
+      ].dataValues.subClauses.push(subClause);
+    }
   }
   return clausesStruct;
 };
@@ -533,6 +530,9 @@ export const getAnnexControlsByIdQuery = async (
     number,
   ];
   const annexControl = annexControls[0][0];
+  if (!annexControl) {
+    return null;
+  }
   (annexControl as any).risks = [];
   const risks = (await sequelize.query(
     `SELECT projects_risks_id FROM "${tenant}".annexcontrols_iso27001__risks WHERE annexcontrol_id = :id`,
@@ -585,9 +585,11 @@ export const getAnnexControlsQuery = async (
       tenant,
       transaction
     );
-    (annexesStruct as any)[
-      annexStructMap.get(annex.annex_id!)
-    ].dataValues.subClauses.push(annex);
+    if (annex) {
+      (annexesStruct as any)[
+        annexStructMap.get(annex.annex_id!)
+      ].dataValues.subClauses.push(annex);
+    }
   }
   return annexesStruct;
 };

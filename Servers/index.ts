@@ -21,7 +21,6 @@ import frameworks from "./routes/frameworks.route";
 import organizationRoutes from "./routes/organization.route";
 import isoRoutes from "./routes/iso42001.route";
 import trainingRoutes from "./routes/trainingRegistar.route";
-import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
 import aiTrustCentreRoutes from "./routes/aiTrustCentre.route";
 import policyRoutes from "./routes/policy.route";
 import loggerRoutes from "./routes/logger.route";
@@ -60,6 +59,7 @@ import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
 import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
+import policyLinkedObjects from "./routes/policyLinkedObjects.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -115,11 +115,13 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (
-      req.url.includes("/api/bias_and_fairness/") ||
-      req.url.includes("/api/deepeval/")
-    ) {
-      // Let the proxy handle the raw body
+    if (req.url.includes("/api/bias_and_fairness/")) {
+      // Let the proxy handle the raw body for bias/fairness
+      return next();
+    }
+    // For deepeval experiment creation, we need to parse body to inject API keys
+    // For other deepeval routes, let proxy handle raw body
+    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments")) {
       return next();
     }
     express.json()(req, res, next);
@@ -152,7 +154,6 @@ try {
   app.use("/api/iso-42001", isoRoutes); // **
   app.use("/api/iso-27001", iso27001Routes); // **
   app.use("/api/training", trainingRoutes);
-  app.use("/api/bias_and_fairness", biasAndFairnessRoutes());
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
@@ -179,6 +180,7 @@ try {
   app.use("/api/user-preferences", userPreferenceRouter);
   app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
   app.use("/api/evidenceHub", evidenceHubRouter);
+  app.use("/api/policy-linked", policyLinkedObjects);
 
   // Adding background jobs in the Queue
   (async () => {

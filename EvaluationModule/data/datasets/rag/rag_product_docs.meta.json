@@ -1,0 +1,8 @@
+{
+  "name": "Product Documentation RAG",
+  "description": "Evaluates retrieval-augmented generation with product documentation, testing accuracy of information retrieval and contextual response generation.",
+  "type": "single-turn",
+  "use_case": "rag",
+  "tags": ["RAG", "documentation", "product-knowledge"],
+  "prompt_count": 5
+}

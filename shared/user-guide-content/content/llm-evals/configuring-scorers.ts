@@ -117,6 +117,95 @@ export const configuringScorersContent: ArticleContent = {
     },
     {
       type: 'heading',
+      id: 'conversational-metrics',
+      level: 2,
+      text: 'Conversational metrics',
+    },
+    {
+      type: 'paragraph',
+      text: 'When evaluating chatbots with multi-turn datasets, additional metrics become available. These are specifically designed to assess how well a model handles ongoing conversations rather than isolated prompts. Learn how to create multi-turn datasets in [[Managing datasets]](llm-evals/managing-datasets).',
+    },
+    {
+      type: 'heading',
+      id: 'turn-relevancy',
+      level: 3,
+      text: 'Turn relevancy',
+    },
+    {
+      type: 'paragraph',
+      text: 'Measures whether each response in a conversation directly addresses the user\'s current message. Unlike general answer relevancy, this considers the conversational context—a response might be relevant to the overall topic but miss what the user just asked.',
+    },
+    {
+      type: 'heading',
+      id: 'knowledge-retention',
+      level: 3,
+      text: 'Knowledge retention',
+    },
+    {
+      type: 'paragraph',
+      text: 'Evaluates whether the model remembers information from earlier in the conversation. If a user mentions their name in turn 1 and asks "What\'s my name?" in turn 5, the model should know. Low scores indicate the model is treating each turn as isolated.',
+    },
+    {
+      type: 'heading',
+      id: 'conversation-coherence',
+      level: 3,
+      text: 'Conversation coherence',
+    },
+    {
+      type: 'paragraph',
+      text: 'Assesses the logical flow of the conversation. Does the model\'s response make sense given everything that came before? Incoherent responses might contradict earlier statements or suddenly change topic without reason.',
+    },
+    {
+      type: 'heading',
+      id: 'conversation-helpfulness',
+      level: 3,
+      text: 'Conversation helpfulness',
+    },
+    {
+      type: 'paragraph',
+      text: 'Measures how useful the model\'s responses are in progressing the conversation toward the user\'s goal. A response can be relevant and coherent but still unhelpful if it doesn\'t actually assist the user.',
+    },
+    {
+      type: 'heading',
+      id: 'task-completion',
+      level: 3,
+      text: 'Task completion',
+    },
+    {
+      type: 'paragraph',
+      text: 'For goal-oriented conversations, this evaluates whether the model successfully helps the user complete their task. If someone is trying to book a flight, did the conversation end with a booking? Particularly important for customer service and assistant chatbots.',
+    },
+    {
+      type: 'heading',
+      id: 'conversation-safety',
+      level: 3,
+      text: 'Conversation safety',
+    },
+    {
+      type: 'paragraph',
+      text: 'A conversation-aware version of toxicity detection. This evaluates safety across the entire conversation, catching cases where the model might be manipulated through multi-turn prompting that wouldn\'t trigger safety filters in a single turn.',
+    },
+    {
+      type: 'callout',
+      variant: 'tip',
+      text: 'Conversational metrics are automatically enabled when you select a multi-turn dataset. You\'ll see them in an expandable "Conversational metrics" section in the experiment wizard.',
+    },
+    {
+      type: 'heading',
+      id: 'per-turn-safety',
+      level: 2,
+      text: 'Per-turn safety evaluation',
+    },
+    {
+      type: 'paragraph',
+      text: 'For multi-turn conversations, bias and toxicity are evaluated on each individual assistant response, not just the final output. This catches cases where a model might produce problematic content mid-conversation even if the final response is clean.',
+    },
+    {
+      type: 'paragraph',
+      text: 'Results show per-turn scores in the experiment detail view, making it easy to identify exactly where in a conversation the model went wrong.',
+    },
+    {
+      type: 'heading',
       id: 'accessing-scorers',
       level: 2,
       text: 'Managing scorers',
@@ -263,6 +352,14 @@ export const configuringScorersContent: ArticleContent = {
         { bold: 'All scores are too high', text: 'Your dataset might be too easy, or your thresholds too permissive. Add challenging test cases and review failing examples to calibrate.' },
         { bold: 'Inconsistent scores', text: 'Judge model temperature might be too high. Lower it (try 0.3-0.5) for more consistent evaluations.' },
         { bold: 'Evaluations are slow', text: 'Each metric requires a judge call. Disable metrics you don\'t need, or use faster judge models for iterative testing.' },
+      ],
+    },
+    {
+      type: 'article-links',
+      title: 'Related articles',
+      items: [
+        { collectionId: 'llm-evals', articleId: 'running-experiments', title: 'Running experiments', description: 'Apply your scorers in evaluation runs' },
+        { collectionId: 'llm-evals', articleId: 'managing-datasets', title: 'Managing datasets', description: 'Create multi-turn datasets for conversational metrics' },
       ],
     },
   ],

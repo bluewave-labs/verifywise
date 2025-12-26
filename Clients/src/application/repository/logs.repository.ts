@@ -1,5 +1,5 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { RequestParams } from "../../domain/interfaces/iRequestParams";
+import { RequestParams } from "../../domain/interfaces/i.requestParams";
 
 /**
  * Retrieves all logs from the server.

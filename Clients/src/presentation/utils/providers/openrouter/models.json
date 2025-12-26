@@ -1,0 +1,91 @@
+{
+  "provider": "openrouter",
+  "displayName": "OpenRouter",
+  "models": [
+    {
+      "id": "openai/gpt-4o",
+      "name": "GPT-4o (via OpenRouter)",
+      "description": "OpenAI's most advanced model via OpenRouter",
+      "inputCost": 2.5,
+      "outputCost": 10
+    },
+    {
+      "id": "openai/gpt-4o-mini",
+      "name": "GPT-4o Mini (via OpenRouter)",
+      "description": "Fast and affordable GPT-4o variant",
+      "inputCost": 0.15,
+      "outputCost": 0.6
+    },
+    {
+      "id": "anthropic/claude-3.5-sonnet",
+      "name": "Claude 3.5 Sonnet (via OpenRouter)",
+      "description": "Anthropic's most intelligent model via OpenRouter",
+      "inputCost": 3,
+      "outputCost": 15
+    },
+    {
+      "id": "anthropic/claude-3-haiku",
+      "name": "Claude 3 Haiku (via OpenRouter)",
+      "description": "Fast and affordable Claude model",
+      "inputCost": 0.25,
+      "outputCost": 1.25
+    },
+    {
+      "id": "google/gemini-2.0-flash-exp:free",
+      "name": "Gemini 2.0 Flash (Free)",
+      "description": "Google's latest Gemini model - free tier",
+      "inputCost": 0,
+      "outputCost": 0
+    },
+    {
+      "id": "google/gemini-pro-1.5",
+      "name": "Gemini Pro 1.5 (via OpenRouter)",
+      "description": "Google's Gemini Pro via OpenRouter",
+      "inputCost": 1.25,
+      "outputCost": 5
+    },
+    {
+      "id": "meta-llama/llama-3.3-70b-instruct",
+      "name": "Llama 3.3 70B Instruct",
+      "description": "Meta's latest open-source model",
+      "inputCost": 0.3,
+      "outputCost": 0.4
+    },
+    {
+      "id": "meta-llama/llama-3.1-8b-instruct:free",
+      "name": "Llama 3.1 8B (Free)",
+      "description": "Smaller Llama model - free tier",
+      "inputCost": 0,
+      "outputCost": 0
+    },
+    {
+      "id": "mistralai/mistral-large",
+      "name": "Mistral Large (via OpenRouter)",
+      "description": "Mistral's flagship model",
+      "inputCost": 2,
+      "outputCost": 6
+    },
+    {
+      "id": "mistralai/mixtral-8x7b-instruct",
+      "name": "Mixtral 8x7B (via OpenRouter)",
+      "description": "Mistral's mixture-of-experts model",
+      "inputCost": 0.24,
+      "outputCost": 0.24
+    },
+    {
+      "id": "deepseek/deepseek-chat",
+      "name": "DeepSeek Chat",
+      "description": "DeepSeek's conversational model",
+      "inputCost": 0.14,
+      "outputCost": 0.28
+    },
+    {
+      "id": "qwen/qwen-2.5-72b-instruct",
+      "name": "Qwen 2.5 72B Instruct",
+      "description": "Alibaba's latest large model",
+      "inputCost": 0.35,
+      "outputCost": 0.4
+    }
+  ]
+}
+

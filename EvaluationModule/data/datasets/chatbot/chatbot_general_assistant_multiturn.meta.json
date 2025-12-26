@@ -1,0 +1,9 @@
+{
+  "name": "General Assistant Multi-Turn",
+  "description": "Multi-turn conversations with a general assistant covering meeting planning, email drafting, and learning guidance.",
+  "type": "multi-turn",
+  "use_case": "chatbot",
+  "tags": ["general-assistant", "multi-turn", "productivity"],
+  "prompt_count": 3
+}
+

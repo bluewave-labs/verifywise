@@ -4,7 +4,7 @@ DeepEval Router
 Endpoints for running DeepEval LLM evaluations.
 """
 
-from fastapi import APIRouter, BackgroundTasks, Request, Body, HTTPException, UploadFile, File
+from fastapi import APIRouter, BackgroundTasks, Request, Body, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from pathlib import Path
 import json
@@ -25,6 +25,7 @@ from controllers.deepeval import (
     create_deepeval_scorer_controller,
     update_deepeval_scorer_controller,
     delete_deepeval_scorer_controller,
+    test_deepeval_scorer_controller,
 )
 
 router = APIRouter()
@@ -38,7 +39,7 @@ async def create_deepeval_evaluation(
 ):
     """
     Create and run a DeepEval evaluation.
-    
+
     Request body:
     {
         "model": {
@@ -67,13 +68,14 @@ async def create_deepeval_evaluation(
             "answer_relevancy": 0.5,
             "bias": 0.5,
             "toxicity": 0.5
-        }
+        },
+        "selectedScorers": ["scorer_id_1", "scorer_id_2"]  // optional - if not specified, all enabled scorers will run
     }
     """
     return await create_deepeval_evaluation_controller(
         background_tasks=background_tasks,
         config_data=config_data,
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        tenant=request.headers["x-tenant-id"]
     )
 
 
@@ -214,7 +216,13 @@ async def get_dataset_info():
 
 
 @router.post("/datasets/upload")
-async def upload_dataset(request: Request, dataset: UploadFile = File(...)):
+async def upload_dataset(
+    request: Request, 
+    dataset: UploadFile = File(...),
+    dataset_type: str = Form("chatbot"),
+    turn_type: str = Form("single-turn"),
+    org_id: str = Form()
+):
     """
     Upload a custom JSON dataset to be used in evaluations.
     
@@ -224,12 +232,20 @@ async def upload_dataset(request: Request, dataset: UploadFile = File(...)):
         "path": "data/uploads/{tenant}/{filename}.json",
         "filename": "{filename}.json",
         "size": 12345,
-        "tenant": "default"
+        "tenant": "default",
+        "datasetType": "chatbot",
+        "turnType": "single-turn"
     }
     """
+    # Extract user_id from headers for created_by tracking
+    user_id = request.headers.get("x-user-id")
     return await upload_deepeval_dataset_controller(
         dataset=dataset,
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")),
+        tenant=request.headers["x-tenant-id"],
+        org_id=org_id,
+        dataset_type=dataset_type,
+        turn_type=turn_type,
+        user_id=user_id,
     )
 
 @router.get("/datasets/list")
@@ -270,12 +286,13 @@ async def list_uploaded_datasets(request: Request):
         raise HTTPException(status_code=500, detail=f"Failed to list uploads: {e}")
 
 @router.get("/datasets/user")
-async def list_user_datasets(request: Request):
+async def list_user_datasets(request: Request, org_id: str | None = None):
     """
     List user-uploaded datasets from DB for the current tenant.
+    Optionally filter by org_id.
     """
     tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
-    return await list_user_datasets_controller(tenant=tenant)
+    return await list_user_datasets_controller(tenant=tenant, org_id=org_id)
 
 @router.delete("/datasets/user")
 async def delete_user_datasets(request: Request):
@@ -292,12 +309,12 @@ async def delete_user_datasets(request: Request):
 # ==================== SCORERS ====================
 
 @router.get("/scorers")
-async def list_scorers_endpoint(request: Request, project_id: str | None = None):
+async def list_scorers_endpoint(request: Request, org_id: str | None = None):
     """
     List scorer definitions for the current tenant (optionally for a single project).
     """
     tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
-    return await list_deepeval_scorers_controller(tenant=tenant, project_id=project_id)
+    return await list_deepeval_scorers_controller(tenant=tenant, org_id=org_id)
 
 
 @router.post("/scorers")
@@ -306,6 +323,11 @@ async def create_scorer_endpoint(request: Request, payload: dict = Body(...)):
     Create a new scorer definition.
     """
     tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    # Add user_id from headers if not already in payload
+    if "createdBy" not in payload:
+        user_id = request.headers.get("x-user-id")
+        if user_id:
+            payload["createdBy"] = user_id
     return await create_deepeval_scorer_controller(tenant=tenant, payload=payload)
 
 
@@ -325,4 +347,20 @@ async def delete_scorer_endpoint(request: Request, scorer_id: str):
     """
     tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     return await delete_deepeval_scorer_controller(scorer_id, tenant=tenant)
+
+
+@router.post("/scorers/{scorer_id}/test")
+async def test_scorer_endpoint(request: Request, scorer_id: str, payload: dict = Body(...)):
+    """
+    Test a scorer with sample input/output.
+    
+    Expected payload:
+    {
+      "input": "The source text...",
+      "output": "The model's output...",
+      "expected": "Optional expected output..."
+    }
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    return await test_deepeval_scorer_controller(scorer_id, tenant=tenant, payload=payload)
 

@@ -64,20 +64,24 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/verifywise-backend:${{ env.TAG }}
             ghcr.io/${{ github.repository_owner }}/verifywise-backend:latest
 
-      # - name: Build and push BiasAndFairnessServers image
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: ./BiasAndFairnessServers
-      #     platforms: linux/amd64,linux/arm64
-      #     push: true
-      #     tags: |
-      #       ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:${{ env.TAG }}
-      #       ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:latest
+      - name: Clean up after Servers build
+        run: |
+          docker system prune -f
+          docker builder prune -f
+
+      - name: Check disk space
+        run: df . -h
+
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
       - name: Build and push EvalServer image
         uses: docker/build-push-action@v4
         with:
-          context: ./EvalServer
+          context: .
+          file: ./EvalServer/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |

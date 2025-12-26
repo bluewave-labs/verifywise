@@ -30,7 +30,6 @@ async def create_log(
     created_by: Optional[int] = None,
 ) -> Optional[Dict[str, Any]]:
     """Create a new evaluation log entry"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     log_id = str(uuid.uuid4())
     trace = trace_id or str(uuid.uuid4())
     
@@ -38,13 +37,13 @@ async def create_log(
     
     result = await db.execute(
         text(f'''
-            INSERT INTO "{schema_name}".evaluation_logs 
+            INSERT INTO "{tenant}".evaluation_logs 
             (id, project_id, experiment_id, trace_id, parent_trace_id, span_name,
              input_text, output_text, model_name, metadata, latency_ms, token_count,
-             cost, status, error_message, tenant, created_by)
+             cost, status, error_message, created_by)
             VALUES (:id, :project_id, :experiment_id, CAST(:trace_id AS uuid), CAST(:parent_trace_id AS uuid), :span_name,
                     :input_text, :output_text, :model_name, CAST(:metadata_json AS jsonb), :latency_ms, :token_count,
-                    :cost, :status, :error_message, :tenant, :created_by)
+                    :cost, :status, :error_message, :created_by)
             RETURNING id, project_id, experiment_id, trace_id, timestamp, status
         '''),
         {
@@ -63,8 +62,7 @@ async def create_log(
             "cost": cost,
             "status": status,
             "error_message": error_message,
-            "tenant": tenant,
-            "created_by": created_by,
+            "created_by": str(created_by) if created_by is not None else None,
         }
     )
     
@@ -90,16 +88,15 @@ async def update_log_metadata(
     metadata: Dict[str, Any],
 ) -> bool:
     """Merge/replace metadata for a specific log id"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     metadata_json = json.dumps(metadata) if metadata else '{}'
     result = await db.execute(
         text(f'''
-            UPDATE "{schema_name}".evaluation_logs
+            UPDATE "{tenant}".evaluation_logs
             SET metadata = COALESCE(metadata, '{{}}'::jsonb) || CAST(:metadata_json AS jsonb)
-            WHERE id = :log_id AND tenant = :tenant
+            WHERE id = :log_id
             RETURNING id
         '''),
-        {"metadata_json": metadata_json, "log_id": log_id, "tenant": tenant}
+        {"metadata_json": metadata_json, "log_id": log_id}
     )
     await db.commit()
     return result.mappings().first() is not None
@@ -115,10 +112,9 @@ async def get_logs(
     offset: int = 0,
 ) -> List[Dict[str, Any]]:
     """Get logs with optional filtering"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     
-    where_clauses = ["tenant = :tenant"]
-    params = {"tenant": tenant, "limit": limit, "offset": offset}
+    where_clauses = []
+    params: Dict[str, Any] = {"limit": limit, "offset": offset}
     
     if project_id:
         where_clauses.append("project_id = :project_id")
@@ -130,15 +126,15 @@ async def get_logs(
         where_clauses.append("status = :status")
         params["status"] = status
     
-    where_clause = " AND ".join(where_clauses)
+    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     
     result = await db.execute(
         text(f'''
             SELECT id, project_id, experiment_id, trace_id, span_name,
                    input_text, output_text, model_name, metadata, latency_ms, token_count,
                    cost, status, error_message, timestamp
-            FROM "{schema_name}".evaluation_logs
-            WHERE {where_clause}
+            FROM "{tenant}".evaluation_logs
+            {where_clause}
             ORDER BY timestamp DESC
             LIMIT :limit OFFSET :offset
         '''),
@@ -175,10 +171,9 @@ async def get_log_count(
     status: Optional[str] = None,
 ) -> int:
     """Get total count of logs"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     
-    where_clauses = ["tenant = :tenant"]
-    params = {"tenant": tenant}
+    where_clauses = []
+    params: Dict[str, Any] = {}
     
     if project_id:
         where_clauses.append("project_id = :project_id")
@@ -187,10 +182,10 @@ async def get_log_count(
         where_clauses.append("status = :status")
         params["status"] = status
     
-    where_clause = " AND ".join(where_clauses)
+    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     
     result = await db.execute(
-        text(f'SELECT COUNT(*) as count FROM "{schema_name}".evaluation_logs WHERE {where_clause}'),
+        text(f'SELECT COUNT(*) as count FROM "{tenant}".evaluation_logs {where_clause}'),
         params
     )
     
@@ -211,15 +206,14 @@ async def create_metric(
     dimensions: Optional[Dict] = None,
 ) -> Optional[Dict[str, Any]]:
     """Create a new metric entry"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     metric_id = str(uuid.uuid4())
     dimensions_json = json.dumps(dimensions) if dimensions else '{}'
     
     result = await db.execute(
         text(f'''
-            INSERT INTO "{schema_name}".evaluation_metrics 
-            (id, project_id, experiment_id, metric_name, metric_type, value, dimensions, tenant)
-            VALUES (:id, :project_id, :experiment_id, :metric_name, :metric_type, :value, CAST(:dimensions_json AS jsonb), :tenant)
+            INSERT INTO "{tenant}".evaluation_metrics 
+            (id, project_id, experiment_id, metric_name, metric_type, value, dimensions)
+            VALUES (:id, :project_id, :experiment_id, :metric_name, :metric_type, :value, CAST(:dimensions_json AS jsonb))
             RETURNING id, project_id, metric_name, value, timestamp
         '''),
         {
@@ -230,7 +224,6 @@ async def create_metric(
             "metric_type": metric_type,
             "value": value,
             "dimensions_json": dimensions_json,
-            "tenant": tenant,
         }
     )
     
@@ -257,11 +250,9 @@ async def get_metric_aggregates(
     end_date: Optional[datetime] = None,
 ) -> Dict[str, float]:
     """Get aggregated statistics for a metric"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     
-    where_clauses = ["tenant = :tenant", "project_id = :project_id", "metric_name = :metric_name"]
-    params = {
-        "tenant": tenant,
+    where_clauses = ["project_id = :project_id", "metric_name = :metric_name"]
+    params: Dict[str, Any] = {
         "project_id": project_id,
         "metric_name": metric_name,
     }
@@ -273,7 +264,7 @@ async def get_metric_aggregates(
         where_clauses.append("timestamp <= :end_date")
         params["end_date"] = end_date
     
-    where_clause = " AND ".join(where_clauses)
+    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     
     result = await db.execute(
         text(f'''
@@ -282,8 +273,8 @@ async def get_metric_aggregates(
                 MIN(value) as min,
                 MAX(value) as max,
                 COUNT(*) as count
-            FROM "{schema_name}".evaluation_metrics
-            WHERE {where_clause}
+            FROM "{tenant}".evaluation_metrics
+            {where_clause}
         '''),
         params
     )
@@ -314,12 +305,11 @@ async def create_experiment(
     created_by: Optional[int] = None,
 ) -> Optional[Dict[str, Any]]:
     """Create a new experiment"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     experiment_id = f"exp_{timestamp}"
     
     print(f"💾 CRUD - Inserting experiment into database...")
-    print(f"   Schema: {schema_name}")
+    print(f"   Schema: {tenant}")
     print(f"   Experiment ID: {experiment_id}")
     print(f"   Project ID: {project_id}")
     
@@ -328,9 +318,9 @@ async def create_experiment(
         
         result = await db.execute(
             text(f'''
-                INSERT INTO "{schema_name}".experiments 
-                (id, project_id, name, description, config, baseline_experiment_id, status, tenant, created_by)
-                VALUES (:id, :project_id, :name, :description, CAST(:config_json AS jsonb), :baseline_experiment_id, :status, :tenant, :created_by)
+                INSERT INTO "{tenant}".experiments 
+                (id, project_id, name, description, config, baseline_experiment_id, status, created_by)
+                VALUES (:id, :project_id, :name, :description, CAST(:config_json AS jsonb), :baseline_experiment_id, :status, :created_by)
                 RETURNING id, name, status, created_at
             '''),
             {
@@ -341,8 +331,7 @@ async def create_experiment(
                 "config_json": config_json,
                 "baseline_experiment_id": baseline_experiment_id,
                 "status": "pending",
-                "tenant": tenant,
-                "created_by": created_by,
+                "created_by": str(created_by) if created_by is not None else None,
             }
         )
         
@@ -371,17 +360,16 @@ async def get_experiment_by_id(
     tenant: str,
 ) -> Optional[Dict[str, Any]]:
     """Get a specific experiment by ID"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     
     result = await db.execute(
         text(f'''
             SELECT id, project_id, name, description, config, baseline_experiment_id,
                    status, results, error_message, started_at, completed_at, 
-                   created_at, updated_at, tenant, created_by
-            FROM "{schema_name}".experiments
-            WHERE id = :experiment_id AND tenant = :tenant
+                   created_at, updated_at, created_by
+            FROM "{tenant}".experiments
+            WHERE id = :experiment_id
         '''),
-        {"experiment_id": experiment_id, "tenant": tenant}
+        {"experiment_id": experiment_id}
     )
     
     row = result.mappings().first()
@@ -401,7 +389,6 @@ async def get_experiment_by_id(
             "completed_at": row["completed_at"].isoformat() if row["completed_at"] else None,
             "created_at": row["created_at"].isoformat() if row["created_at"] else None,
             "updated_at": row["updated_at"].isoformat() if row["updated_at"] else None,
-            "tenant": row["tenant"],
             "created_by": row["created_by"],
         }
     return None
@@ -416,10 +403,9 @@ async def get_experiments(
     offset: int = 0,
 ) -> List[Dict[str, Any]]:
     """Get experiments with optional filtering"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
 
     where_clauses = []
-    params = {"limit": limit, "offset": offset}
+    params: Dict[str, Any] = {"limit": limit, "offset": offset}
     
     if project_id:
         where_clauses.append("project_id = :project_id")
@@ -428,13 +414,13 @@ async def get_experiments(
         where_clauses.append("status = :status")
         params["status"] = status
 
-    where_clause = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
 
     result = await db.execute(
         text(f'''
             SELECT id, project_id, name, description, config, status,
                    results, created_at, updated_at, started_at, completed_at
-            FROM "{schema_name}".experiments
+            FROM "{tenant}".experiments
             {where_clause}
             ORDER BY created_at DESC
             LIMIT :limit OFFSET :offset
@@ -467,19 +453,18 @@ async def get_experiment_count(
     project_id: Optional[str] = None
 ) -> int:
     """Get total count of experiments"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
 
     where_clauses = []
-    params = {}
+    params: Dict[str, Any] = {}
 
     if project_id:
         where_clauses.append("project_id = :project_id")
         params["project_id"] = project_id
 
-    where_clause = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
 
     result = await db.execute(
-        text(f'SELECT COUNT(*) as count FROM "{schema_name}".experiments {where_clause}'),
+        text(f'SELECT COUNT(*) as count FROM "{tenant}".experiments {where_clause}'),
         params
     )
 
@@ -496,11 +481,10 @@ async def update_experiment_status(
     error_message: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """Update experiment status and results"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     
     # Build update fields
     updates = ["status = :status", "updated_at = CURRENT_TIMESTAMP"]
-    params = {"experiment_id": experiment_id, "tenant": tenant, "status": status}
+    params = {"experiment_id": experiment_id, "status": status}
     
     if results is not None:
         updates.append("results = CAST(:results_json AS jsonb)")
@@ -519,9 +503,9 @@ async def update_experiment_status(
     
     result = await db.execute(
         text(f'''
-            UPDATE "{schema_name}".experiments
+            UPDATE "{tenant}".experiments
             SET {update_clause}
-            WHERE id = :experiment_id AND tenant = :tenant
+            WHERE id = :experiment_id
             RETURNING id, status, updated_at
         '''),
         params
@@ -547,11 +531,10 @@ async def update_experiment(
     description: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """Update experiment name and/or description"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
 
     # Build update fields dynamically
     updates = ["updated_at = CURRENT_TIMESTAMP"]
-    params = {"experiment_id": experiment_id, "tenant": tenant}
+    params = {"experiment_id": experiment_id}
 
     if name is not None:
         updates.append("name = :name")
@@ -568,9 +551,9 @@ async def update_experiment(
 
     result = await db.execute(
         text(f'''
-            UPDATE "{schema_name}".experiments
+            UPDATE "{tenant}".experiments
             SET {update_clause}
-            WHERE id = :experiment_id AND tenant = :tenant
+            WHERE id = :experiment_id
             RETURNING *
         '''),
         params
@@ -600,26 +583,25 @@ async def delete_experiment(
     Returns:
         True if deleted successfully, False if not found
     """
-    schema_name = tenant
     
     try:
         # First, delete associated evaluation logs
         await db.execute(
             text(f'''
-                DELETE FROM "{schema_name}".evaluation_logs
-                WHERE experiment_id = :experiment_id AND tenant = :tenant
+                DELETE FROM "{tenant}".evaluation_logs
+                WHERE experiment_id = :experiment_id
             '''),
-            {"experiment_id": experiment_id, "tenant": tenant}
+            {"experiment_id": experiment_id}
         )
         
         # Then delete the experiment
         result = await db.execute(
             text(f'''
-                DELETE FROM "{schema_name}".experiments
-                WHERE id = :experiment_id AND tenant = :tenant
+                DELETE FROM "{tenant}".experiments
+                WHERE id = :experiment_id
                 RETURNING id
             '''),
-            {"experiment_id": experiment_id, "tenant": tenant}
+            {"experiment_id": experiment_id}
         )
         
         await db.commit()

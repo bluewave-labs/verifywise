@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { AssessmentProgress } from "../../domain/interfaces/iAssessment";
+import { AssessmentProgress } from "../../domain/interfaces/i.assessment";
 import { getAssessmentProgress } from "../repository/assesment.repository";
 
 /**
@@ -50,7 +50,11 @@ const useAssessmentProgress = ({
         } else {
           setAssessmentProgress(defaultAssessmentProgress);
         }
-      } catch (error) {
+      } catch (error: any) {
+        // Ignore abort errors (caused by React StrictMode or component unmount)
+        if (error?.message === "canceled" || error?.name === "AbortError") {
+          return;
+        }
         console.error("Failed to fetch progress data:", error);
         setAssessmentProgress(defaultAssessmentProgress);
       } finally {

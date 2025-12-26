@@ -15,6 +15,7 @@ import { IVWProjectRisksTableRow } from "../../../../domain/interfaces/i.risk";
 import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 import { User } from "../../../../domain/types/User";
 import Chip from "../../Chip";
+import ProjectRiskLinkedPolicies from "../../../components/ProjectRiskMitigation/ProjectRiskLinkedPolicies";
 
 function getDummyEvent() {
   const realEvent = new Event("click", { bubbles: true, cancelable: true });
@@ -83,8 +84,15 @@ const VWProjectRisksTableBody = ({
   const [showMitigationProjectRisk, setShowMitigationProjectRisk] =
     useState<ProjectRisk | null>(null);
 
+
+  const [showLinkedPoliciesToRisk, setShowLinkedPoliciesToRisk] = useState(false);
+
   const [searchParams] = useSearchParams();
   const riskId = searchParams.get("riskId");
+
+  const [selectedRiskId, setSelectedRiskId] = useState<number | null>(null);
+
+
 
   useEffect(() => {
     if (riskId) {
@@ -111,6 +119,11 @@ const VWProjectRisksTableBody = ({
 
   const handleDeleteRisk = async (riskId: number) => {
     onDeleteRisk(riskId);
+  };
+
+  const handleViewLinkedPolicies = async (riskId: number) => {
+    setSelectedRiskId(riskId)
+    setShowLinkedPoliciesToRisk(true);
   };
 
   const displayUserFullName = (userId: number) => {
@@ -266,8 +279,6 @@ const VWProjectRisksTableBody = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
                     minWidth: "50px",
                     backgroundColor: flashRow === row.id
                       ? "#e3f5e6"
@@ -283,6 +294,7 @@ const VWProjectRisksTableBody = ({
                       onMouseEvent={(e) => handleEditRisk(row, e)}
                       onDelete={() => handleDeleteRisk(row.id!)}
                       onEdit={() => handleEditRisk(row)}
+                      openLinkedPolicies={() => handleViewLinkedPolicies(row.id!)}
                       warningTitle="Delete this project risk?"
                       warningMessage={
                         <Stack gap={2}>
@@ -361,6 +373,21 @@ const VWProjectRisksTableBody = ({
           </Suspense>
         </Dialog>
       )}
+
+      {
+        showLinkedPoliciesToRisk && (
+          <ProjectRiskLinkedPolicies 
+            type = "risk"
+            riskId = {selectedRiskId}
+            isOpen = {showLinkedPoliciesToRisk}
+            onClose={() => {
+              setShowLinkedPoliciesToRisk(false);
+            }}/>
+  
+        )
+      }
+
+
     </>
   );
 };

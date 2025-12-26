@@ -38,7 +38,7 @@ const WatchTower = () => {
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
 
-      <Stack gap={"16px"} maxWidth={1400}>
+      <Stack gap={"16px"}>
       <PageHeader
                title="Event Tracker"
                description="Event Tracker gives you a live window into VerifyWise. It records

@@ -13,6 +13,11 @@ export const llmEvalsOverviewContent: ArticleContent = {
       text: 'Building an LLM application is one thing—knowing whether it actually works well is another. LLM Evals gives you a systematic way to measure how your models perform before they reach users, and to catch regressions as you iterate on prompts, fine-tune models, or swap providers.',
     },
     {
+      type: 'callout',
+      variant: 'tip',
+      text: 'New to LLM Evals? Start with [[Running experiments]](llm-evals/running-experiments) to create your first evaluation, or explore [[Managing datasets]](llm-evals/managing-datasets) to set up test cases.',
+    },
+    {
       type: 'paragraph',
       text: 'Think of it as automated quality assurance for your AI. Instead of manually testing outputs or waiting for user complaints, you can run structured evaluations that check for the things that matter: Is the response relevant? Is it accurate? Does it contain harmful content? Is the model making things up?',
     },
@@ -24,7 +29,7 @@ export const llmEvalsOverviewContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'LLM Evals uses what\'s called a **Judge LLM** approach. Here\'s the basic idea: you send prompts to your model, collect its responses, and then have a separate (usually more capable) model evaluate those responses against your criteria.',
+      text: 'LLM Evals uses what\'s called a **Judge LLM** approach. Here\'s the basic idea: you send prompts to your model, collect its responses, and then have a separate (usually more capable) model evaluate those responses against your criteria. Learn more about setting up judges in [[Running experiments]](llm-evals/running-experiments).',
     },
     {
       type: 'paragraph',
@@ -49,9 +54,10 @@ export const llmEvalsOverviewContent: ArticleContent = {
       type: 'bullet-list',
       items: [
         { bold: 'Projects', text: 'Your workspace for a specific application or use case. A customer support bot would be one project; an internal knowledge assistant would be another. Each project has its own experiments, datasets, and configuration.' },
+        { bold: 'Use cases', text: 'The type of application you\'re building: Chatbot (conversational AI), RAG (retrieval-augmented generation), or Agent (tool-using assistants). The use case determines which metrics are available and how evaluations are structured.' },
         { bold: 'Experiments', text: 'A single evaluation run. Each experiment tests a specific model configuration against a dataset and produces scores. Run experiments whenever you change prompts, switch models, or want to compare approaches.' },
-        { bold: 'Datasets', text: 'Collections of test cases—prompts paired with expected outputs or evaluation criteria. Good datasets reflect real usage patterns and cover edge cases your model might struggle with.' },
-        { bold: 'Scorers', text: 'The metrics you\'re measuring. Out of the box, you get answer relevancy, bias detection, toxicity detection, faithfulness, hallucination detection, and contextual relevancy. You can also create custom scorers for domain-specific needs.' },
+        { bold: 'Datasets', text: 'Collections of test cases. Single-turn datasets have isolated prompts with expected outputs. Multi-turn datasets contain conversations where the model generates responses at each turn. See [[Managing datasets]](llm-evals/managing-datasets) for details.' },
+        { bold: 'Scorers', text: 'The metrics you\'re measuring. Core metrics include answer relevancy, bias, and toxicity. Multi-turn chatbot evaluations add conversational metrics like knowledge retention, coherence, and task completion. See [[Configuring scorers]](llm-evals/configuring-scorers) to customize.' },
         { bold: 'Judge LLM', text: 'The model that evaluates your model\'s outputs. This is typically a frontier model like GPT-4 or Claude that can reliably assess quality. You configure the judge separately from the model being evaluated.' },
       ],
     },
@@ -132,10 +138,20 @@ export const llmEvalsOverviewContent: ArticleContent = {
     {
       type: 'bullet-list',
       items: [
-        { text: 'Learn how to configure experiments in detail, including model selection and metric customization' },
-        { text: 'Upload custom datasets that reflect your actual user queries and expected responses' },
-        { text: 'Create custom scorers for domain-specific evaluation criteria' },
+        { text: 'Learn how to configure experiments in detail, including use case selection and metric customization' },
+        { text: 'Try multi-turn datasets to evaluate how your chatbot handles real conversations' },
+        { text: 'Upload custom datasets that reflect your actual user queries and conversation patterns' },
+        { text: 'Explore conversational metrics like knowledge retention and task completion for deeper chatbot insights' },
         { text: 'Set up regular evaluation runs to track model performance over time' },
+      ],
+    },
+    {
+      type: 'article-links',
+      title: 'Continue learning',
+      items: [
+        { collectionId: 'llm-evals', articleId: 'running-experiments', title: 'Running experiments', description: 'Step-by-step guide to creating and running evaluations' },
+        { collectionId: 'llm-evals', articleId: 'managing-datasets', title: 'Managing datasets', description: 'Upload custom datasets or use built-in test suites' },
+        { collectionId: 'llm-evals', articleId: 'configuring-scorers', title: 'Configuring scorers', description: 'Set up metrics including conversational evaluation' },
       ],
     },
   ],

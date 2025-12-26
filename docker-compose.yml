@@ -47,6 +47,7 @@ services:
       - SMTP_PORT=587
       - FAIRNESS_AND_BIAS_URL=http://eval_server:8000
       - REDIS_URL=redis://redis:6379/0
+      - ENCRYPTION_KEY=$ENCRYPTION_KEY
   frontend:
     depends_on:
       - backend
@@ -69,6 +70,7 @@ services:
       - DB_NAME=$DB_NAME
       - JWT_SECRET=$JWT_SECRET
       - REDIS_URL=redis://redis:6379/0
+      - ENCRYPTION_KEY=$ENCRYPTION_KEY
     restart: unless-stopped
   eval_server:
     depends_on:

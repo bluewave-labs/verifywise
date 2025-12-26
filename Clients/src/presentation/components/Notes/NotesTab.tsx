@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Stack, useTheme } from "@mui/material";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../domain/interfaces/i.alert";
 import { useAuth } from "../../../application/hooks/useAuth";
 import * as notesRepository from "../../../application/repository/notes.repository";
 import NoteComposer from "./NoteComposer";
@@ -283,7 +283,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
       </Stack>
 
       {/* Notes List - Display All Notes */}
-      <Stack spacing={0} sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <Stack spacing={0} sx={{ flex: 1, minHeight: 0, overflow: "visible" }}>
         <NotesList
           notes={notes}
           onEdit={handleEditNote}

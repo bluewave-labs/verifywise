@@ -24,21 +24,65 @@ export const managingDatasetsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'VerifyWise maintains a library of curated datasets organized by use case. These are designed to test common capabilities and provide a baseline for comparison.',
+      text: 'VerifyWise maintains a library of curated datasets organized by use case. Each dataset specifies its type (single-turn or multi-turn) and intended use case, helping you quickly find relevant test cases.',
+    },
+    {
+      type: 'heading',
+      id: 'chatbot-datasets',
+      level: 3,
+      text: 'Chatbot datasets',
+    },
+    {
+      type: 'paragraph',
+      text: 'For conversational AI evaluation:',
     },
     {
       type: 'bullet-list',
       items: [
-        { bold: 'Chatbot', text: 'General conversational prompts testing how models handle dialogue. Available in single-turn (isolated Q&A) and multi-turn (conversational) formats. The multi-turn datasets include conversation history so you can evaluate how models maintain context.' },
-        { bold: 'RAG', text: 'Prompts paired with retrieval context for retrieval-augmented generation systems. These test whether models can ground their answers in provided documents rather than making things up. Each prompt includes context documents that the model should reference.' },
-        { bold: 'Agent', text: 'Prompts that require tool use, multi-step reasoning, or task completion. Useful for evaluating AI assistants that need to take actions, call functions, or follow complex multi-step instructions.' },
-        { bold: 'Safety', text: 'Adversarial prompts designed to stress-test model guardrails. These include attempts to elicit harmful content, jailbreak attempts, and edge cases that test whether your model appropriately refuses dangerous or inappropriate requests.' },
+        { bold: 'Basic Chatbot', text: 'General-purpose prompts covering conversation, coding, math, knowledge, creative writing, and reasoning. Single-turn format, great for getting started.' },
+        { bold: 'Coding Helper', text: 'Programming assistance scenarios testing code generation, debugging, and technical explanations.' },
+        { bold: 'Customer Support', text: 'Customer service interactions for support chatbot evaluation. Tests helpfulness, accuracy, and appropriate responses to common support queries.' },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'rag-datasets',
+      level: 3,
+      text: 'RAG datasets',
+    },
+    {
+      type: 'paragraph',
+      text: 'For retrieval-augmented generation systems:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Product Documentation', text: 'Tests accuracy of information retrieval and contextual response generation with product docs.' },
+        { bold: 'Research Papers', text: 'Academic and technical content retrieval, testing comprehension of complex material.' },
+        { bold: 'Wikipedia', text: 'General knowledge retrieval from encyclopedia-style content.' },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'agent-datasets',
+      level: 3,
+      text: 'Agent datasets',
+    },
+    {
+      type: 'paragraph',
+      text: 'For AI assistants that take actions:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Tool use', text: 'Prompts requiring function calls, API interactions, or external tool usage.' },
+        { bold: 'Multi-step reasoning', text: 'Tasks that require planning and executing multiple steps to complete.' },
       ],
     },
     {
       type: 'callout',
       variant: 'tip',
-      text: 'Browse the built-in datasets before creating your own. They often include prompts you hadn\'t thought to test, and they give you a sense of what a well-structured dataset looks like.',
+      text: 'Each dataset card shows its type (single-turn or multi-turn) and use case. Filter by use case to find datasets that match your application.',
     },
     {
       type: 'heading',
@@ -134,11 +178,47 @@ export const managingDatasetsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'For multi-turn conversations, include the conversation history in your prompt. The model needs context about what was said before.',
+      text: 'Multi-turn datasets test how models handle ongoing conversations. Unlike single-turn prompts where you provide pre-written expected outputs, multi-turn evaluation works differently: the model actually generates responses at each turn, which are then evaluated for quality. These datasets unlock [[conversational metrics]](llm-evals/configuring-scorers) like knowledge retention and coherence.',
+    },
+    {
+      type: 'heading',
+      id: 'multi-turn-structure',
+      level: 3,
+      text: 'Multi-turn dataset structure',
     },
     {
       type: 'paragraph',
-      text: 'A typical approach is to format the prompt as a transcript:',
+      text: 'Multi-turn datasets use a conversation array format where each item represents one turn in the conversation:',
+    },
+    {
+      type: 'code',
+      language: 'json',
+      code: `{
+  "id": "support-conv-001",
+  "category": "customer-support",
+  "conversation": [
+    { "role": "user", "content": "Hi, I need help with my order" },
+    { "role": "assistant", "content": "" },
+    { "role": "user", "content": "Order #12345 hasn't arrived yet" },
+    { "role": "assistant", "content": "" },
+    { "role": "user", "content": "Can you check where it is?" },
+    { "role": "assistant", "content": "" }
+  ]
+}`,
+    },
+    {
+      type: 'paragraph',
+      text: 'Notice the empty assistant content fields—during evaluation, the model generates these responses based on the conversation context up to that point. This tests real conversational ability rather than just comparing against pre-written answers.',
+    },
+    {
+      type: 'heading',
+      id: 'legacy-format',
+      level: 3,
+      text: 'Single-turn format for conversations',
+    },
+    {
+      type: 'paragraph',
+      text: 'You can also include conversation history in single-turn format by embedding it in the prompt. This approach uses pre-written expected outputs:',
     },
     {
       type: 'code',
@@ -150,6 +230,11 @@ export const managingDatasetsContent: ArticleContent = {
   "expected_output": "Without a receipt, we can offer store credit for the current selling price. Just bring the item and a valid ID.",
   "difficulty": "medium"
 }`,
+    },
+    {
+      type: 'callout',
+      variant: 'tip',
+      text: 'For chatbot evaluation, the multi-turn conversation format is recommended. It tests actual model behavior across turns rather than comparing against static expected outputs.',
     },
     {
       type: 'heading',
@@ -187,6 +272,20 @@ export const managingDatasetsContent: ArticleContent = {
     {
       type: 'paragraph',
       text: 'When you\'re done, click **Save copy** to create a new custom dataset with your changes. The original dataset remains unchanged—this is non-destructive editing.',
+    },
+    {
+      type: 'heading',
+      id: 'multi-turn-editor',
+      level: 3,
+      text: 'Multi-turn dataset editor',
+    },
+    {
+      type: 'paragraph',
+      text: 'Multi-turn datasets have a specialized editor that displays conversations in a chat-like format. Each turn shows role icons (user or assistant) with color-coded backgrounds, making it easy to see the conversation flow at a glance.',
+    },
+    {
+      type: 'paragraph',
+      text: 'In the editor, you can add new turns to existing conversations, modify message content, or rearrange the conversation flow. The visual format helps you maintain realistic dialogue patterns while editing.',
     },
     {
       type: 'callout',
@@ -230,6 +329,14 @@ export const managingDatasetsContent: ArticleContent = {
         { bold: 'Use clear names', text: 'Include the purpose, version, or date in the name. "Customer Support v2 - Dec 2024" is better than "test_data_final".' },
         { bold: 'Delete obsolete versions', text: 'Click the action menu and select "Remove" to delete datasets you no longer need. This keeps your list manageable.' },
         { bold: 'Document your datasets', text: 'Keep notes (even externally) about what each dataset covers, when it was last updated, and any known limitations.' },
+      ],
+    },
+    {
+      type: 'article-links',
+      title: 'Related articles',
+      items: [
+        { collectionId: 'llm-evals', articleId: 'running-experiments', title: 'Running experiments', description: 'Use your datasets in evaluation runs' },
+        { collectionId: 'llm-evals', articleId: 'configuring-scorers', title: 'Configuring scorers', description: 'Set up metrics for multi-turn and single-turn evaluations' },
       ],
     },
   ],

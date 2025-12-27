@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useRef, useContext } from "react";
+import { FC, useState, useEffect, useRef, useContext, useCallback } from "react";
 import {
   Box,
   IconButton,
@@ -15,13 +15,16 @@ import {
 import { useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
-import { Link as MuiLink } from "@mui/material";
 import { PanelLeftClose, PanelLeftOpen, Heart, ChevronDown, FolderKanban, Plus, LayoutGrid } from "lucide-react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import Logo from "../../assets/imgs/logo.png";
 import SidebarFooter from "./SidebarFooter";
 import FlyingHearts from "../FlyingHearts";
+import { useAuth } from "../../../application/hooks/useAuth";
+import { useLogoFetch } from "../../../application/hooks/useLogoFetch";
+import { getAuthToken } from "../../../application/redux/auth/getAuthToken";
+import { extractUserToken } from "../../../application/tools/extractToken";
 
 declare const __APP_VERSION__: string;
 
@@ -111,6 +114,13 @@ const SidebarShell: FC<SidebarShellProps> = ({
   // VerifyWiseContext available for future use
   useContext(VerifyWiseContext);
 
+  // Organization logo state
+  const { organizationId } = useAuth();
+  const { fetchLogoAsBlobUrl } = useLogoFetch();
+  const [organizationLogoUrl, setOrganizationLogoUrl] = useState<string | null>(null);
+  const [logoLoading, setLogoLoading] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
   // Delayed collapsed state for smooth animation
@@ -131,6 +141,50 @@ const SidebarShell: FC<SidebarShellProps> = ({
       return () => clearTimeout(timer);
     }
   }, [collapsed]);
+
+  // Fetch organization logo
+  const fetchOrganizationData = useCallback(async () => {
+    if (!organizationId) return;
+    
+    setLogoLoading(true);
+    setLogoError(false);
+    try {
+      // Fetch organization logo using AI Trust Centre endpoint (same as settings)
+      const authToken = getAuthToken();
+      const tokenData = extractUserToken(authToken);
+      const tenantId = tokenData?.tenantId;
+      
+      if (tenantId) {
+        const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
+        if (logoBlobUrl) {
+          setOrganizationLogoUrl(logoBlobUrl);
+          setLogoError(false);
+        } else {
+          setLogoError(true);
+        }
+      } else {
+        setLogoError(true);
+      }
+    } catch (error) {
+      setLogoError(true);
+    } finally {
+      setLogoLoading(false);
+    }
+  }, [organizationId, fetchLogoAsBlobUrl]);
+
+  // Fetch organization data on component mount
+  useEffect(() => {
+    fetchOrganizationData();
+  }, [fetchOrganizationData]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (organizationLogoUrl && organizationLogoUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(organizationLogoUrl);
+      }
+    };
+  }, [organizationLogoUrl]);
 
   // Heart hover handler
   const handleLogoHover = () => {
@@ -358,87 +412,110 @@ const SidebarShell: FC<SidebarShellProps> = ({
         pb={theme.spacing(12)}
         sx={{
           position: "relative",
-          pl: delayedCollapsed ? theme.spacing(8) : `calc(${theme.spacing(8)} + ${theme.spacing(4)})`,
+          pl: theme.spacing(8),
           pr: theme.spacing(8),
         }}
       >
         <Stack
           direction="row"
           alignItems="center"
-          justifyContent={delayedCollapsed ? "center" : "flex-start"}
-          gap={theme.spacing(2)}
+          justifyContent="center"
           className="app-title"
-          sx={{ position: "relative", height: "20px" }}
+          sx={{ position: "relative", height: collapsed ? "32px" : "40px" }}
         >
-          {!delayedCollapsed && (
-            <Box
-              onMouseEnter={handleLogoHover}
-              sx={{ position: "relative", display: "flex", alignItems: "center" }}
-            >
-              {/* Heart Icon Easter Egg */}
-              {enableFlyingHearts && showHeartIcon && (
-                <Tooltip title="Spread some love!">
-                  <IconButton
-                    onClick={handleHeartClick}
-                    sx={{
-                      position: "absolute",
-                      top: "-16px",
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      padding: 0,
-                      zIndex: 10,
-                      "&:hover": { backgroundColor: "transparent" },
-                      animation: heartReturning
-                        ? "slideDownBehind 0.5s ease-in forwards"
-                        : "slideUpFromBehind 0.5s ease-out",
-                      "@keyframes slideUpFromBehind": {
-                        "0%": { opacity: 0, transform: "translateX(-50%) translateY(28px)", zIndex: -1 },
-                        "60%": { zIndex: -1 },
-                        "70%": { opacity: 1, zIndex: 10 },
-                        "100%": { opacity: 1, transform: "translateX(-50%) translateY(0)", zIndex: 10 },
-                      },
-                      "@keyframes slideDownBehind": {
-                        "0%": { opacity: 1, transform: "translateX(-50%) translateY(0)", zIndex: 10 },
-                        "30%": { opacity: 0.7, zIndex: 10 },
-                        "40%": { zIndex: -1 },
-                        "100%": { opacity: 0, transform: "translateX(-50%) translateY(28px)", zIndex: -1 },
-                      },
-                    }}
-                  >
-                    <Heart size={14} color="#FF1493" strokeWidth={1.5} fill="#FF1493" />
-                  </IconButton>
-                </Tooltip>
-              )}
-              <RouterLink to="/" style={{ display: "flex", alignItems: "center" }}>
+          <Box
+            onMouseEnter={handleLogoHover}
+            sx={{ 
+              position: "relative", 
+              display: "flex", 
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              maxWidth: collapsed ? "32px" : "160px",
+              height: "100%"
+            }}
+          >
+            {/* Heart Icon Easter Egg */}
+            {enableFlyingHearts && showHeartIcon && !collapsed && (
+              <Tooltip title="Spread some love!">
+                <IconButton
+                  onClick={handleHeartClick}
+                  sx={{
+                    position: "absolute",
+                    top: "-16px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    padding: 0,
+                    zIndex: 10,
+                    "&:hover": { backgroundColor: "transparent" },
+                    animation: heartReturning
+                      ? "slideDownBehind 0.5s ease-in forwards"
+                      : "slideUpFromBehind 0.5s ease-out",
+                    "@keyframes slideUpFromBehind": {
+                      "0%": { opacity: 0, transform: "translateX(-50%) translateY(28px)", zIndex: -1 },
+                      "60%": { zIndex: -1 },
+                      "70%": { opacity: 1, zIndex: 10 },
+                      "100%": { opacity: 1, transform: "translateX(-50%) translateY(0)", zIndex: 10 },
+                    },
+                    "@keyframes slideDownBehind": {
+                      "0%": { opacity: 1, transform: "translateX(-50%) translateY(0)", zIndex: 10 },
+                      "30%": { opacity: 0.7, zIndex: 10 },
+                      "40%": { zIndex: -1 },
+                      "100%": { opacity: 0, transform: "translateX(-50%) translateY(28px)", zIndex: -1 },
+                    },
+                  }}
+                >
+                  <Heart size={14} color="#FF1493" strokeWidth={1.5} fill="#FF1493" />
+                </IconButton>
+              </Tooltip>
+            )}
+            <RouterLink to="/" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+              {logoLoading ? (
+                <Box
+                  sx={{
+                    width: collapsed ? "24px" : "120px",
+                    height: collapsed ? "24px" : "32px",
+                    backgroundColor: "#f0f0f0",
+                    borderRadius: "4px",
+                    position: "relative",
+                    zIndex: 1
+                  }}
+                />
+              ) : organizationLogoUrl && !logoError ? (
+                <img
+                  src={organizationLogoUrl}
+                  alt="Organization Logo"
+                  style={{ 
+                    maxWidth: collapsed ? "24px" : "120px",
+                    maxHeight: collapsed ? "24px" : "32px",
+                    width: "auto",
+                    height: "auto",
+                    position: "relative", 
+                    zIndex: 1, 
+                    display: "block",
+                    objectFit: "contain",
+                    borderRadius: "4px"
+                  }}
+                  onError={() => setLogoError(true)}
+                />
+              ) : (
                 <img
                   src={Logo}
-                  alt="Logo"
-                  width={20}
-                  height={20}
-                  style={{ position: "relative", zIndex: 1, display: "block" }}
+                  alt="VerifyWise Logo"
+                  style={{ 
+                    maxWidth: collapsed ? "24px" : "32px",
+                    maxHeight: collapsed ? "24px" : "32px",
+                    width: "auto",
+                    height: "auto",
+                    position: "relative", 
+                    zIndex: 1, 
+                    display: "block",
+                    objectFit: "contain"
+                  }}
                 />
-              </RouterLink>
-            </Box>
-          )}
-          {!delayedCollapsed && (
-            <MuiLink
-              component={RouterLink}
-              to="/"
-              sx={{ textDecoration: "none", display: "flex", alignItems: "center" }}
-            >
-              <Typography
-                component="span"
-                sx={{ opacity: 0.8, fontWeight: 500, fontSize: "13px", lineHeight: 1 }}
-                className="app-title"
-              >
-                Verify
-                <span style={{ color: "#0f604d" }}>Wise</span>
-                <span style={{ fontSize: "8px", marginLeft: "4px", opacity: 0.6, fontWeight: 400 }}>
-                  {__APP_VERSION__}
-                </span>
-              </Typography>
-            </MuiLink>
-          )}
+              )}
+            </RouterLink>
+          </Box>
           {/* Sidebar Toggle Button */}
           <IconButton
             disableRipple={theme.components?.MuiListItemButton?.defaultProps?.disableRipple}

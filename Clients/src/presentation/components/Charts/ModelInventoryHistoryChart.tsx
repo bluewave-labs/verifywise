@@ -214,7 +214,7 @@ const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
               margin={{ top: 10, right: 30, bottom: 30, left: 70 }}
               slotProps={{
                 legend: {
-                  direction: "row" as any,
+                  direction: "horizontal",
                   position: { vertical: "bottom", horizontal: "center" },
                 },
               }}

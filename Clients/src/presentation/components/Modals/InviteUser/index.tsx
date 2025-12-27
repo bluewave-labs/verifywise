@@ -21,7 +21,7 @@ import {
 import React, { useState, useMemo, useEffect } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { sendInviteEmail } from "../../../../application/repository/mail.repository";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { isValidEmail } from "../../../../application/validations/emailAddress.rule";
@@ -132,7 +132,14 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
       };
 
       try {
-        const response = await apiServices.post("/mail/invite", formData);
+        const response = await sendInviteEmail({
+          to: formData.to,
+          email: formData.email,
+          name: formData.name,
+          surname: formData.surname,
+          roleId: formData.roleId,
+          organizationId: String(formData.organizationId || ""),
+        });
         const data = response.data as {
           message: string;
           error?: string;

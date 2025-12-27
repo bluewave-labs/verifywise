@@ -20,7 +20,7 @@ import createUppy from "../../../application/tools/createUppy";
 import Alert from "../Alert";
 import { AlertProps } from "../../types/alert.types";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import { apiServices } from "../../../infrastructure/api/networkServices";
+import { deleteQuestionEvidenceFiles } from "../../../application/repository/file.repository";
 import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
 import Button from "../Button";
@@ -181,7 +181,6 @@ const QuestionFrame = ({
   };
 
   const handleRemoveFile = async (fileId: string) => {
-    const formData = new FormData();
     const fileIdNumber = parseInt(fileId);
     if (isNaN(fileIdNumber)) {
       handleAlert({
@@ -191,17 +190,12 @@ const QuestionFrame = ({
       });
       return;
     }
-    formData.append("delete", JSON.stringify([fileIdNumber]));
-    formData.append("question_id", question.question_id?.toString() || "");
-    formData.append("user_id", String(userId || ""));
-    if (currentProjectId) {
-      formData.append("project_id", currentProjectId.toString());
-    }
     try {
-      const response = await apiServices.post("/files", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const response = await deleteQuestionEvidenceFiles({
+        deleteFileIds: [fileIdNumber],
+        questionId: question.question_id?.toString() || "",
+        userId: String(userId || ""),
+        projectId: currentProjectId?.toString(),
       });
 
       if (response.status === 201 && response.data) {

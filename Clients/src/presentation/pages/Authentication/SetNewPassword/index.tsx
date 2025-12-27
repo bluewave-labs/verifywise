@@ -14,7 +14,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { validatePassword } from "../../../../application/validations/formValidation";
 import type { FormErrors } from "../../../../application/validations/formValidation";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { resetPassword } from "../../../../application/repository/auth.repository";
 import CustomizableSkeleton from "../../../components/Skeletons";
 
 interface ResetPasswordFormValues {
@@ -120,14 +120,13 @@ const SetNewPassword: React.FC = () => {
         return;
       }
 
-      const response = await apiServices.post("/users/reset-password", {
-        email: userInfo?.email,
-        newPassword: values.password,
-      }, {
-        headers: {
-          "Authorization": `Bearer ${userToken}`,
-        }
-      });
+      const response = await resetPassword(
+        {
+          email: userInfo?.email || "",
+          newPassword: values.password,
+        },
+        userToken || ""
+      );
 
       if (response.status === 202) {
         setValues(initialState);

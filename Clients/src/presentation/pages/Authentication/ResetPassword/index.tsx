@@ -8,7 +8,7 @@ import { Mail as Email } from "lucide-react";
 import { ArrowLeft as LeftArrowLong } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, lazy, Suspense } from "react";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { sendPasswordResetEmail } from "../../../../application/repository/auth.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../types/alert.types";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -56,7 +56,7 @@ const ResetPassword = () => {
       email: values.email,
       name: values.email,
     };
-    const response = await apiServices.post("/mail/reset-password", formData);
+    const response = await sendPasswordResetEmail(formData);
     handleAlert({
       variant: response.status === 200 ? "success" : "error",
       body:

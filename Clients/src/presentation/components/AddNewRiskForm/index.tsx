@@ -35,7 +35,7 @@ import { AddNewRiskFormProps } from "../../types/riskForm.types";
 import { ApiResponse } from "../../../domain/interfaces/i.response";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
-import { apiServices } from "../../../infrastructure/api/networkServices";
+import { createProjectRisk, updateProjectRisk } from "../../../application/repository/projectRisk.repository";
 import useUsers from "../../../application/hooks/useUsers";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -686,8 +686,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       try {
         const response =
           popupStatus !== "new"
-            ? await apiServices.put("/projectRisks/" + inputValues.id, formData)
-            : await apiServices.post("/projectRisks", formData);
+            ? await updateProjectRisk({ id: Number(inputValues.id), body: formData })
+            : await createProjectRisk({ body: formData });
 
         if (response && response.status === 201) {
           // risk create success

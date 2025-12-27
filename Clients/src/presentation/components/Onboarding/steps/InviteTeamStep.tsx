@@ -5,7 +5,7 @@ import { UserPlus } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
 import Select from "../../Inputs/Select";
 import Field from "../../Inputs/Field";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { sendInviteEmail } from "../../../../application/repository/mail.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";
@@ -69,13 +69,13 @@ const InviteTeamStep: React.FC<OnboardingStepProps> = () => {
       try {
         // Send all invites in parallel
         const invitePromises = validInvites.map((invite) =>
-          apiServices.post("/mail/invite", {
+          sendInviteEmail({
             to: invite.email,
             email: invite.email,
             name: "",
             surname: "",
             roleId: getRoleId(invite.role),
-            organizationId,
+            organizationId: String(organizationId || ""),
           })
         );
 

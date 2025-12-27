@@ -4,7 +4,7 @@ import { tableWrapper } from "../styles";
 import TableHeader from "../TableHead";
 import { AuditRiskTableBody } from "./AuditRiskTableBody";
 import { useEffect, useState } from "react";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { getProjectRiskById } from "../../../../application/repository/projectRisk.repository";
 import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 import {
   IAuditRiskTableProps,
@@ -36,24 +36,22 @@ export const AuditRiskTable: React.FC<IAuditRiskTableProps> = ({
     const fetchRiskDetails = async () => {
       await Promise.all(
         risks.map(async (riskId) => {
-          const response = await apiServices.get(`/projectRisks/${riskId}`);
-          if (response.status === 200) {
-            const responseData = (
-              response.data as {
-                data: RiskModel;
-                message: string;
-                status: number;
-              }
-            ).data;
-            setRiskDetails((prev) => [
-              ...prev,
-              {
-                id: responseData.id ?? 0,
-                title: responseData.risk_name,
-                status: responseData.approval_status,
-                severity: responseData.severity,
-              },
-            ]);
+          try {
+            const responseData = await getProjectRiskById({ id: riskId });
+            if (responseData?.data) {
+              const riskData = responseData.data as RiskModel;
+              setRiskDetails((prev) => [
+                ...prev,
+                {
+                  id: riskData.id ?? 0,
+                  title: riskData.risk_name,
+                  status: riskData.approval_status,
+                  severity: riskData.severity,
+                },
+              ]);
+            }
+          } catch (error) {
+            console.error(`Failed to fetch risk ${riskId}:`, error);
           }
         })
       );

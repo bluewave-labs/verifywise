@@ -38,7 +38,7 @@ export async function CreateMyOrganization({
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.post(routeUrl, body);
-    return response.data;
+    return response;
   } catch (error) {
     throw error;
   }

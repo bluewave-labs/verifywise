@@ -14,7 +14,7 @@ import {
 import Alert from "../../components/Alert";
 import useSlackIntegrations from "../../../application/hooks/useSlackIntegrations";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { apiServices } from "../../../infrastructure/api/networkServices";
+import { getMlflowConfig, getMlflowSyncStatus } from "../../../application/repository/integration.repository";
 
 const Integrations: React.FC = () => {
   const navigate = useNavigate();
@@ -56,28 +56,13 @@ const Integrations: React.FC = () => {
   useEffect(() => {
     const fetchMlflowStatus = async () => {
       try {
-        const [configResponse, statusResponse] = await Promise.all([
-          apiServices.get<{
-            configured: boolean;
-            config?: {
-              lastTestStatus?: "success" | "error";
-              lastTestedAt?: string;
-            };
-          }>("/integrations/mlflow/config"),
-          apiServices.get<{
-            success: boolean;
-            data: {
-              configured: boolean;
-              lastSyncedAt: string | null;
-              lastSyncStatus: "success" | "partial" | "error" | null;
-              lastTestStatus: "success" | "error" | null;
-              lastTestedAt: string | null;
-            };
-          }>("/integrations/mlflow/sync-status"),
+        const [configData, statusData] = await Promise.all([
+          getMlflowConfig({}),
+          getMlflowSyncStatus({}),
         ]);
 
-        const configured = configResponse.data?.configured;
-        const syncData = statusResponse.data?.data;
+        const configured = configData?.configured;
+        const syncData = statusData?.data;
 
         setIntegrations((prev) =>
           prev.map((int) =>
@@ -91,11 +76,11 @@ const Integrations: React.FC = () => {
                   lastSyncStatus: syncData?.lastSyncStatus ?? null,
                   lastTestStatus:
                     syncData?.lastTestStatus ??
-                    configResponse.data?.config?.lastTestStatus ??
+                    configData?.config?.lastTestStatus ??
                     null,
                   lastTestedAt:
                     syncData?.lastTestedAt ??
-                    configResponse.data?.config?.lastTestedAt ??
+                    configData?.config?.lastTestedAt ??
                     null,
                 }
               : int

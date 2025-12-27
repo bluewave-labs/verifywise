@@ -11,6 +11,7 @@ import { SMTPProvider } from './SMTPProvider';
 import { ExchangeOnlineProvider } from './ExchangeOnlineProvider';
 import { OnPremisesExchangeProvider } from './OnPremisesExchangeProvider';
 import { AmazonSESProvider } from './AmazonSESProvider';
+import { AzureCommunicationServicesProvider } from './AzureCommunicationServicesProvider';
 
 export class EmailProviderFactory {
   static createProvider(providerType: EmailProviderType): EmailProvider {
@@ -25,6 +26,8 @@ export class EmailProviderFactory {
         return EmailProviderFactory.createOnPremisesExchangeProvider();
       case 'amazon-ses':
         return EmailProviderFactory.createAmazonSESProvider();
+      case 'azure-communication-services':
+        return EmailProviderFactory.createAzureCommunicationServicesProvider();
       default:
         throw new Error(`Unsupported email provider: ${providerType}`);
     }
@@ -126,9 +129,19 @@ export class EmailProviderFactory {
     return new AmazonSESProvider(config);
   }
 
+  private static createAzureCommunicationServicesProvider(): EmailProvider {
+    const connectionString = process.env.AZURE_COMMUNICATION_CONNECTION_STRING;
+
+    if (!connectionString) {
+      throw new Error('Azure Communication Services configuration incomplete. Required: AZURE_COMMUNICATION_CONNECTION_STRING');
+    }
+
+    return new AzureCommunicationServicesProvider(connectionString);
+  }
+
   static getProviderType(): EmailProviderType {
     const providerType = process.env.EMAIL_PROVIDER as EmailProviderType;
-    const validProviders = ['resend', 'smtp', 'exchange-online', 'exchange-onprem', 'amazon-ses'];
+    const validProviders = ['resend', 'smtp', 'exchange-online', 'exchange-onprem', 'amazon-ses', 'azure-communication-services'];
 
     if (!providerType || !validProviders.includes(providerType)) {
       console.warn('EMAIL_PROVIDER not set or invalid, defaulting to "resend"');

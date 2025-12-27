@@ -53,6 +53,7 @@ import searchRoutes from "./routes/search.route";
 import deepEvalRoutes from "./routes/deepEvalRoutes.route";
 import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
 import notesRoutes from "./routes/notes.route";
+import entityGraphRoutes from "./routes/entityGraph.route";
 import vendorRiskChangeHistoryRoutes from "./routes/vendorRiskChangeHistory.route";
 import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
 import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
@@ -191,6 +192,7 @@ try {
   app.use("/api/deepeval", deepEvalRoutes());
   app.use("/api/evaluation-llm-keys", evaluationLlmApiKeyRoutes);
   app.use("/api/notes", notesRoutes);
+  app.use("/api/entity-graph", entityGraphRoutes);
   app.use("/api/vendor-risk-change-history", vendorRiskChangeHistoryRoutes);
   app.use("/api/policy-change-history", policyChangeHistoryRoutes);
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);

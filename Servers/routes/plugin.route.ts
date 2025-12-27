@@ -17,6 +17,8 @@ import {
   getOAuthWorkspaces,
   updateOAuthWorkspace,
   disconnectOAuthWorkspace,
+  getMLflowModels,
+  syncMLflowModels,
 } from "../controllers/plugin.ctrl";
 
 // Rate limiter for plugin installation (prevent abuse)
@@ -47,5 +49,9 @@ router.post("/:key/oauth/connect", authenticateJWT, connectOAuthWorkspace);
 router.get("/:key/oauth/workspaces", authenticateJWT, getOAuthWorkspaces);
 router.patch("/:key/oauth/workspaces/:webhookId", authenticateJWT, updateOAuthWorkspace);
 router.delete("/:key/oauth/workspaces/:webhookId", authenticateJWT, disconnectOAuthWorkspace);
+
+// MLflow plugin routes
+router.get("/:key/models", authenticateJWT, getMLflowModels);
+router.post("/:key/sync", authenticateJWT, syncMLflowModels);
 
 export default router;

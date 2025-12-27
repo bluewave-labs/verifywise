@@ -33,6 +33,7 @@ import {
 } from "../../../application/repository/entity.repository";
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { useIsPluginInstalled } from "../../../application/hooks/useIsPluginInstalled";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
@@ -135,6 +136,9 @@ const ModelInventory: React.FC = () => {
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
   const theme = useTheme();
+
+  // Check if MLflow plugin is installed
+  const { isInstalled: isMlflowPluginInstalled } = useIsPluginInstalled("mlflow");
 
   // Share link mutations
   const createShareMutation = useCreateShareLink();
@@ -618,10 +622,17 @@ const ModelInventory: React.FC = () => {
   // Sync activeTab with URL changes (for browser back/forward navigation)
   useEffect(() => {
     const newTab = getInitialTab();
+
+    // If trying to access mlflow tab but plugin is not installed, redirect to models
+    if (newTab === "mlflow" && !isMlflowPluginInstalled) {
+      setActiveTab("models");
+      return;
+    }
+
     if (newTab !== activeTab) {
       setActiveTab(newTab);
     }
-  }, [location.pathname]);
+  }, [location.pathname, isMlflowPluginInstalled]);
 
   // Calculate summary from data
   const summary: Summary = {
@@ -859,16 +870,16 @@ const ModelInventory: React.FC = () => {
     setIsMlflowLoading(true);
     try {
       const response = await apiServices.get<{
-        configured: boolean;
-        models: any[];
-      }>("/integrations/mlflow/models");
-      if (response.data) {
-        // Handle new response format: { configured: boolean, models: [] }
-        if ("models" in response.data && Array.isArray(response.data.models)) {
-          setMlflowData(response.data.models);
-        } else if (Array.isArray(response.data)) {
-          // Backwards compatibility: handle old format where response is directly an array
-          setMlflowData(response.data as unknown as any[]);
+        message: string;
+        data: {
+          configured: boolean;
+          models: any[];
+        };
+      }>("/plugins/mlflow/models");
+      if (response.data?.data) {
+        // Handle plugin API response format: { message: "OK", data: { configured: boolean, models: [] } }
+        if ("models" in response.data.data && Array.isArray(response.data.data.models)) {
+          setMlflowData(response.data.data.models);
         } else {
           setMlflowData([]);
         }
@@ -2016,13 +2027,18 @@ const ModelInventory: React.FC = () => {
                   count: modelRisksData.length,
                   isLoading: isModelRisksLoading,
                 },
-                {
-                  label: "MLFlow data",
-                  value: "mlflow",
-                  icon: "Database",
-                  count: mlflowData.length,
-                  isLoading: isMlflowLoading,
-                },
+                // Only show MLFlow tab if the plugin is installed
+                ...(isMlflowPluginInstalled
+                  ? [
+                      {
+                        label: "MLFlow data",
+                        value: "mlflow",
+                        icon: "Database",
+                        count: mlflowData.length,
+                        isLoading: isMlflowLoading,
+                      },
+                    ]
+                  : []),
                 {
                   label: "Evidence hub",
                   value: "evidence-hub",
@@ -2226,7 +2242,8 @@ const ModelInventory: React.FC = () => {
           </>
         )}
 
-        {activeTab === "mlflow" && <MLFlowDataTable />}
+        {/* Only render MLFlow tab content if the plugin is installed */}
+        {activeTab === "mlflow" && isMlflowPluginInstalled && <MLFlowDataTable />}
 
         {activeTab === "evidence-hub" && (
           <>

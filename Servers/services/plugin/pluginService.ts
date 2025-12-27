@@ -1,8 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 // import axios from "axios"; // Uncomment for production (remote Git repo)
-import { createInstallation, findByIdWithValidation, getInstalledPlugins, toJSON, updateConfiguration, deleteInstallation } from "../../utils/pluginInstallation.utils";
+import { createInstallation, findByIdWithValidation, getInstalledPlugins, toJSON, updateConfiguration, deleteInstallation, findByPlugin } from "../../utils/pluginInstallation.utils";
 import { PluginInstallationStatus } from "../../domain.layer/enums/plugin.enum";
+import { QueryTypes } from "sequelize";
 import {
   ValidationException,
   NotFoundException,
@@ -822,4 +823,80 @@ export class PluginService {
   //     throw new Error(`Failed to download plugin: ${error.message}`);
   //   }
   // }
+
+  /**
+   * Get MLflow models from mlflow_model_records table
+   */
+  static async getMLflowModels(tenantId: string): Promise<any[]> {
+    try {
+      // Check if MLflow plugin is installed
+      const installation = await findByPlugin("mlflow", tenantId);
+
+      if (!installation) {
+        throw new Error("MLflow plugin is not installed");
+      }
+
+      // Query mlflow_model_records table
+      const models = await sequelize.query(
+        `SELECT * FROM "${tenantId}".mlflow_model_records ORDER BY created_at DESC`,
+        {
+          type: QueryTypes.SELECT,
+        }
+      );
+
+      return models;
+    } catch (error: any) {
+      console.error("[PluginService] Error fetching MLflow models:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Sync MLflow models from tracking server
+   */
+  static async syncMLflowModels(tenantId: string): Promise<any> {
+    try {
+      // Check if MLflow plugin is installed
+      const installation = await findByPlugin("mlflow", tenantId);
+
+      if (!installation) {
+        throw new Error("MLflow plugin is not installed");
+      }
+
+      // Get configuration
+      const configuration = installation.configuration;
+      if (!configuration || !configuration.tracking_server_url) {
+        throw new Error("MLflow plugin is not configured. Please configure the tracking server URL.");
+      }
+
+      // Load plugin and execute syncModels method
+      const plugin = await this.getPluginByKey("mlflow");
+      if (!plugin) {
+        throw new Error("MLflow plugin not found in marketplace");
+      }
+
+      const pluginCode = await this.loadPluginCode(plugin);
+      if (!pluginCode || typeof pluginCode.syncModels !== "function") {
+        throw new Error("MLflow plugin does not support sync operation");
+      }
+
+      const context = {
+        sequelize,
+      };
+
+      // Execute sync
+      const result = await pluginCode.syncModels(
+        tenantId,
+        configuration,
+        context
+      );
+
+      console.log(`[PluginService] MLflow models synced for tenant ${tenantId}:`, result);
+
+      return result;
+    } catch (error: any) {
+      console.error("[PluginService] Error syncing MLflow models:", error);
+      throw error;
+    }
+  }
 }

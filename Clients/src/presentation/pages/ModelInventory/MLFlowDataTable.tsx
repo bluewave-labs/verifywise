@@ -91,24 +91,31 @@ const MLFlowDataTable: React.FC = () => {
     setWarning(null);
 
     try {
-      const response = await apiServices.get<{ configured: boolean; connected?: boolean; models: any[]; message?: string; error?: string }>("/integrations/mlflow/models");
+      const response = await apiServices.get<{
+        message: string;
+        data: {
+          configured: boolean;
+          connected?: boolean;
+          models: any[];
+          message?: string;
+          error?: string;
+        };
+      }>("/plugins/mlflow/models");
 
-      if (response.data) {
-        // Handle new response format: { configured: boolean, connected?: boolean, models: [], message?: string }
-        if ('models' in response.data && Array.isArray(response.data.models)) {
+      if (response.data?.data) {
+        // Handle plugin API response format: { message: "OK", data: { configured: boolean, models: [] } }
+        const pluginData = response.data.data;
+        if ('models' in pluginData && Array.isArray(pluginData.models)) {
           // Check various states
-          if (!response.data.configured) {
-            setWarning("Configure the MLFlow integration to start syncing live data.");
-          } else if (response.data.connected === false) {
+          if (!pluginData.configured) {
+            setWarning("Configure the MLFlow plugin to start syncing live data.");
+          } else if (pluginData.connected === false) {
             // MLFlow is configured but server is not reachable
-            setWarning(response.data.message || "MLFlow server is not reachable.");
-          } else if (response.data.error) {
-            setWarning(response.data.error);
+            setWarning(pluginData.message || "MLFlow server is not reachable.");
+          } else if (pluginData.error) {
+            setWarning(pluginData.error);
           }
-          setMlflowData(response.data.models);
-        } else if (Array.isArray(response.data)) {
-          // Backwards compatibility: handle old format where response is directly an array
-          setMlflowData(response.data as unknown as any[]);
+          setMlflowData(pluginData.models);
         } else {
           setMlflowData([]);
         }
@@ -128,8 +135,29 @@ const MLFlowDataTable: React.FC = () => {
     fetchMLFlowData();
   }, []);
 
-  const handleRefresh = () => {
-    fetchMLFlowData();
+  const handleRefresh = async () => {
+    setLoading(true);
+    setWarning(null);
+
+    try {
+      // Call sync endpoint to fetch fresh data from MLflow server
+      await apiServices.post("/plugins/mlflow/sync");
+
+      // Then fetch the updated data from database
+      await fetchMLFlowData();
+    } catch (error: any) {
+      console.error("Error syncing MLflow data:", error);
+
+      // If sync fails, still try to fetch existing data
+      await fetchMLFlowData();
+
+      // Show warning if sync failed but data was fetched
+      if (error.response?.data?.message) {
+        setWarning(`Sync failed: ${error.response.data.message}`);
+      } else {
+        setWarning("Failed to sync with MLflow server. Showing cached data.");
+      }
+    }
   };
 
   const handleModelClick = (model: MLFlowModel) => {
@@ -166,7 +194,7 @@ const MLFlowDataTable: React.FC = () => {
       case 'experiment':
         return model.experiment_info?.experiment_name || model.experiment_info?.experiment_id || 'Unknown Experiment';
       case 'model_name':
-        return model.name || 'Unknown Model';
+        return model.model_name || 'Unknown Model';
       default:
         return 'Other';
     }
@@ -213,7 +241,7 @@ const MLFlowDataTable: React.FC = () => {
           onClick={handleRefresh}
           disabled={loading}
         >
-          Refresh
+          Sync
         </Button>
       </Box>
 
@@ -241,7 +269,7 @@ const MLFlowDataTable: React.FC = () => {
       {/* Table Section - increased spacing */}
       <Box sx={{ mt: 8, mb: 2 }}>
         {mlflowData.length === 0 && !loading ? (
-          <EmptyState message="No MLFlow runs have been synced yet. Configure the integration and click Refresh to pull the latest models." />
+          <EmptyState message="No MLFlow runs have been synced yet. Configure the integration and click Sync to pull the latest models." />
         ) : (
           <GroupedTableView
             groupedData={groupedMLFlowData}
@@ -279,7 +307,7 @@ const MLFlowDataTable: React.FC = () => {
                     onClick={() => handleModelClick(model)}
                   >
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      {model.name}
+                      {model.model_name}
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {model.version}
@@ -364,7 +392,7 @@ const MLFlowDataTable: React.FC = () => {
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "15px" }}>
-                  {selectedModel.name}
+                  {selectedModel.model_name}
                 </Typography>
                 <IconButton onClick={handleCloseModal}>
                   <XCircle size={20} />

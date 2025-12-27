@@ -86,36 +86,7 @@ export async function install(
   try {
     const { sequelize } = context;
 
-    // Create mlflow_integrations table if it doesn't exist (for compatibility with old integration system)
-    await sequelize.query(`
-      CREATE TABLE IF NOT EXISTS "${tenantId}".mlflow_integrations (
-        id SERIAL PRIMARY KEY,
-        tracking_server_url VARCHAR(255) NOT NULL,
-        auth_method VARCHAR(10) NOT NULL DEFAULT 'none' CHECK (auth_method IN ('none', 'basic', 'token')),
-        username VARCHAR(255),
-        username_iv VARCHAR(255),
-        password VARCHAR(255),
-        password_iv VARCHAR(255),
-        api_token VARCHAR(255),
-        api_token_iv VARCHAR(255),
-        verify_ssl BOOLEAN NOT NULL DEFAULT TRUE,
-        timeout INTEGER NOT NULL DEFAULT 30,
-        last_tested_at TIMESTAMP,
-        last_test_status VARCHAR(10) CHECK (last_test_status IN ('success', 'error')),
-        last_test_message TEXT,
-        last_successful_test_at TIMESTAMP,
-        last_failed_test_at TIMESTAMP,
-        last_failed_test_message TEXT,
-        last_synced_at TIMESTAMP,
-        last_sync_status VARCHAR(20) CHECK (last_sync_status IN ('success', 'error', 'in_progress')),
-        last_sync_message TEXT,
-        updated_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Create mlflow_model_records table (same structure as integration)
+    // Create mlflow_model_records table for storing synced models
     await sequelize.query(`
       CREATE TABLE IF NOT EXISTS "${tenantId}".mlflow_model_records (
         id SERIAL PRIMARY KEY,
@@ -219,8 +190,6 @@ export async function configure(
   context: PluginContext
 ): Promise<ConfigureResult> {
   try {
-    const { sequelize } = context;
-
     // Validate configuration
     const validation = validateConfig(config);
     if (!validation.valid) {
@@ -233,97 +202,11 @@ export async function configure(
       throw new Error(`Connection test failed: ${testResult.message}`);
     }
 
-    // Store configuration in mlflow_integrations table (for compatibility with old integration system)
-    const now = new Date();
-
-    // Check if configuration record exists
-    const existingRecord = await sequelize.query(`
-      SELECT id FROM "${tenantId}".mlflow_integrations LIMIT 1
-    `);
-
-    if (existingRecord[0] && existingRecord[0].length > 0) {
-      // Update existing record
-      await sequelize.query(`
-        UPDATE "${tenantId}".mlflow_integrations
-        SET tracking_server_url = :tracking_server_url,
-            auth_method = :auth_method,
-            verify_ssl = :verify_ssl,
-            timeout = :timeout,
-            last_tested_at = :tested_at,
-            last_test_status = 'success',
-            last_test_message = :test_message,
-            last_successful_test_at = :tested_at,
-            updated_at = :now
-        WHERE id = (SELECT id FROM "${tenantId}".mlflow_integrations LIMIT 1)
-      `, {
-        replacements: {
-          tracking_server_url: config.tracking_server_url,
-          auth_method: config.auth_method || 'none',
-          verify_ssl: config.verify_ssl !== false,
-          timeout: config.timeout || 30,
-          tested_at: now,
-          test_message: testResult.message,
-          now: now
-        }
-      });
-    } else {
-      // Insert new record
-      await sequelize.query(`
-        INSERT INTO "${tenantId}".mlflow_integrations (
-          tracking_server_url,
-          auth_method,
-          verify_ssl,
-          timeout,
-          last_tested_at,
-          last_test_status,
-          last_test_message,
-          last_successful_test_at,
-          updated_at
-        ) VALUES (
-          :tracking_server_url,
-          :auth_method,
-          :verify_ssl,
-          :timeout,
-          :tested_at,
-          'success',
-          :test_message,
-          :tested_at,
-          :now
-        )
-      `, {
-        replacements: {
-          tracking_server_url: config.tracking_server_url,
-          auth_method: config.auth_method || 'none',
-          verify_ssl: config.verify_ssl !== false,
-          timeout: config.timeout || 30,
-          tested_at: now,
-          test_message: testResult.message,
-          now: now
-        }
-      });
-    }
-
     // Trigger sync with the new configuration
     const syncResult = await syncModels(tenantId, config, context);
     if (!syncResult.success) {
       throw new Error(`Sync failed: ${syncResult.status}`);
     }
-
-    // Update sync status in mlflow_integrations table
-    await sequelize.query(`
-      UPDATE "${tenantId}".mlflow_integrations
-      SET last_synced_at = :synced_at,
-          last_sync_status = 'success',
-          last_sync_message = :sync_message,
-          updated_at = :now
-      WHERE id = (SELECT id FROM "${tenantId}".mlflow_integrations LIMIT 1)
-    `, {
-      replacements: {
-        synced_at: new Date(syncResult.syncedAt),
-        sync_message: `Synced ${syncResult.modelCount} models`,
-        now: new Date()
-      }
-    });
 
     return {
       success: true,
@@ -730,100 +613,6 @@ function buildHeaders(config: MLflowConfig): Record<string, string> {
   }
 
   return headers;
-}
-
-/**
- * Fetch registered models from MLflow
- */
-export async function getRegisteredModels(
-  config: MLflowConfig,
-  maxResults: number = 100
-): Promise<any[]> {
-  if (!config.tracking_server_url) {
-    throw new Error("Tracking server URL is required");
-  }
-
-  const headers = buildHeaders(config);
-  const baseUrl = config.tracking_server_url.replace(/\/$/, '');
-
-  const response = await fetch(
-    `${baseUrl}/api/2.0/mlflow/registered-models/search`,
-    {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ max_results: maxResults }),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch registered models: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.registered_models || [];
-}
-
-/**
- * Get model versions for a specific model
- */
-export async function getModelVersions(
-  config: MLflowConfig,
-  modelName: string
-): Promise<any[]> {
-  if (!config.tracking_server_url) {
-    throw new Error("Tracking server URL is required");
-  }
-
-  const headers = buildHeaders(config);
-  const baseUrl = config.tracking_server_url.replace(/\/$/, '');
-
-  const response = await fetch(
-    `${baseUrl}/api/2.0/mlflow/model-versions/search`,
-    {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        filter: `name='${modelName}'`,
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch model versions: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.model_versions || [];
-}
-
-/**
- * Get run details by ID
- */
-export async function getRunDetails(
-  config: MLflowConfig,
-  runId: string
-): Promise<any> {
-  if (!config.tracking_server_url) {
-    throw new Error("Tracking server URL is required");
-  }
-
-  const headers = buildHeaders(config);
-  const baseUrl = config.tracking_server_url.replace(/\/$/, '');
-
-  const response = await fetch(
-    `${baseUrl}/api/2.0/mlflow/runs/get?run_id=${runId}`,
-    {
-      method: "GET",
-      headers,
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch run details: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.run;
 }
 
 // ========== PLUGIN METADATA ==========

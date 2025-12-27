@@ -613,3 +613,136 @@ export async function disconnectOAuthWorkspace(
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
+
+/**
+ * Get MLflow models from plugin
+ */
+export async function getMLflowModels(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const pluginKey = req.params.key;
+  const tenantId = (req as any).tenantId;
+
+  const functionName = "getMLflowModels";
+  logStructured(
+    "processing",
+    `fetching MLflow models for plugin ${pluginKey}`,
+    functionName,
+    fileName
+  );
+
+  if (!tenantId) {
+    return res
+      .status(401)
+      .json(STATUS_CODE[401]("User not authenticated"));
+  }
+
+  if (pluginKey !== "mlflow") {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Invalid plugin key"));
+  }
+
+  try {
+    const models = await PluginService.getMLflowModels(tenantId);
+
+    logStructured(
+      "successful",
+      `${models.length} MLflow models found`,
+      functionName,
+      fileName
+    );
+
+    return res.status(200).json(STATUS_CODE[200]({
+      configured: true,
+      models: models,
+    }));
+  } catch (error) {
+    // If error is about plugin not being installed
+    if (error instanceof Error && error.message.includes("not installed")) {
+      return res.status(200).json(STATUS_CODE[200]({
+        configured: false,
+        models: [],
+      }));
+    }
+
+    // If error is about table not existing
+    if (error instanceof Error && error.message.includes("does not exist")) {
+      return res.status(200).json(STATUS_CODE[200]({
+        configured: false,
+        models: [],
+      }));
+    }
+
+    logStructured("error", "failed to fetch MLflow models", functionName, fileName);
+    logger.error("❌ Error in getMLflowModels:", error);
+
+    // Return gracefully for connection errors
+    return res.status(200).json(STATUS_CODE[200]({
+      configured: true,
+      connected: false,
+      models: [],
+      error: "Failed to fetch MLflow models",
+    }));
+  }
+}
+
+/**
+ * Sync MLflow models from tracking server
+ */
+export async function syncMLflowModels(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const pluginKey = req.params.key;
+  const tenantId = (req as any).tenantId;
+
+  const functionName = "syncMLflowModels";
+  logStructured(
+    "processing",
+    `syncing MLflow models for plugin ${pluginKey}`,
+    functionName,
+    fileName
+  );
+
+  if (!tenantId) {
+    return res
+      .status(401)
+      .json(STATUS_CODE[401]("User not authenticated"));
+  }
+
+  if (pluginKey !== "mlflow") {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Invalid plugin key"));
+  }
+
+  try {
+    const result = await PluginService.syncMLflowModels(tenantId);
+
+    logStructured(
+      "successful",
+      `synced ${result.modelCount} MLflow models`,
+      functionName,
+      fileName
+    );
+
+    return res.status(200).json(STATUS_CODE[200](result));
+  } catch (error) {
+    // If error is about plugin not being installed
+    if (error instanceof Error && error.message.includes("not installed")) {
+      return res.status(400).json(STATUS_CODE[400]("MLflow plugin is not installed"));
+    }
+
+    // If error is about plugin not being configured
+    if (error instanceof Error && error.message.includes("not configured")) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    logStructured("error", "failed to sync MLflow models", functionName, fileName);
+    logger.error("❌ Error in syncMLflowModels:", error);
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}

@@ -24,8 +24,7 @@ export interface IAutomationExecutionLog {
 @Table({
   tableName: "automation_execution_logs",
   timestamps: true,
-  createdAt: "created_at",
-  updatedAt: false,
+  underscored: true,
 })
 export class AutomationExecutionLogModel extends Model<AutomationExecutionLogModel> implements IAutomationExecutionLog {
   @Column({
@@ -88,9 +87,14 @@ export class AutomationExecutionLogModel extends Model<AutomationExecutionLogMod
   @Column({
     type: DataType.DATE,
     allowNull: false,
-    defaultValue: DataType.NOW,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Factory method to create a new execution log
@@ -107,7 +111,6 @@ export class AutomationExecutionLogModel extends Model<AutomationExecutionLogMod
     log.status = status;
     log.error_message = error_message;
     log.triggered_at = new Date();
-    log.created_at = new Date();
 
     return log;
   }
@@ -177,6 +180,7 @@ export class AutomationExecutionLogModel extends Model<AutomationExecutionLogMod
       error_message: this.error_message,
       execution_time_ms: this.execution_time_ms,
       created_at: this.created_at,
+      updated_at: this.updated_at,
     };
   }
 }

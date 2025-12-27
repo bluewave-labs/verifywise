@@ -11,6 +11,7 @@ import {
 @Table({
     tableName: "ai_incident_managements",
     timestamps: true,
+    underscored: true,
 })
 export class AIIncidentManagementModel
     extends Model<AIIncidentManagementModel>
@@ -156,11 +157,13 @@ export class AIIncidentManagementModel
 
     @Column({
         type: DataType.DATE,
+        allowNull: false,
     })
     created_at?: Date;
 
     @Column({
         type: DataType.DATE,
+        allowNull: false,
     })
     updated_at?: Date;
 

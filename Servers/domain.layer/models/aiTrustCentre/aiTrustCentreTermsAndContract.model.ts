@@ -5,6 +5,8 @@ type IAITrustCentreOverviewTermsAndContact = IAITrustCentreOverview["terms_and_c
 
 @Table({
   tableName: "ai_trust_center_terms_and_contact",
+  timestamps: true,
+  underscored: true,
 })
 export class AITrustCenterTermsAndContactModel extends Model<AITrustCenterTermsAndContactModel> implements IAITrustCentreOverviewTermsAndContact {
   @Column({
@@ -52,4 +54,16 @@ export class AITrustCenterTermsAndContactModel extends Model<AITrustCenterTermsA
     allowNull: false,
   })
   email_text!: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 }

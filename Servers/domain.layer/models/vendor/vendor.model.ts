@@ -16,6 +16,8 @@ import {
 
 @Table({
   tableName: "vendors",
+  timestamps: true,
+  underscored: true,
 })
 export class VendorModel extends Model<VendorModel> implements IVendor {
   @Column({
@@ -99,8 +101,15 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   @Column({
     type: DataType.ENUM(

@@ -10,6 +10,8 @@ import { IPolicy, PolicyTag } from "../../interfaces/i.policy";
 
 @Table({
   tableName: "policy_manager",
+  timestamps: true,
+  underscored: true,
 })
 export class PolicyManagerModel extends Model<PolicyManagerModel> implements IPolicy {
   @Column({
@@ -74,6 +76,12 @@ export class PolicyManagerModel extends Model<PolicyManagerModel> implements IPo
     allowNull: false,
   })
   created_at!: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   toJSON(): any {
     return {

@@ -5,6 +5,8 @@ import { TiersModel } from "../tiers/tiers.model";
 
 @Table({
   tableName: "subscriptions",
+  timestamps: true,
+  underscored: true,
 })
 export class SubscriptionModel
   extends Model<SubscriptionModel>

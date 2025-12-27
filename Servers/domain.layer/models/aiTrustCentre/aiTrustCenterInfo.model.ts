@@ -6,6 +6,8 @@ type IAITrustCentreOverviewInfo = IAITrustCentreOverview["info"]
 
 @Table({
   tableName: "ai_trust_center_info",
+  timestamps: true,
+  underscored: true,
 })
 export class AITrustCenterInfoModel extends Model<AITrustCenterInfoModel> implements IAITrustCentreOverviewInfo {
   @Column({
@@ -82,5 +84,17 @@ export class AITrustCenterInfoModel extends Model<AITrustCenterInfoModel> implem
     defaultValue: true,
   })
   subprocessor_visible!: boolean;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
 }

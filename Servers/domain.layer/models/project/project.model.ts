@@ -14,6 +14,7 @@ import { ProjectStatus } from "../../enums/project-status.enum";
 @Table({
   tableName: "projects",
   timestamps: true,
+  underscored: true,
 })
 export class ProjectModel
   extends Model<ProjectModel>
@@ -98,8 +99,15 @@ export class ProjectModel
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   @Column({
     type: DataType.BOOLEAN,

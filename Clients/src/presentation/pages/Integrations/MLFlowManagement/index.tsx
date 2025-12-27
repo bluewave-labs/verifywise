@@ -23,15 +23,9 @@ import PageBreadcrumbs from '../../../components/Breadcrumbs/PageBreadcrumbs';
 import HeaderCard from '../../../components/Cards/DashboardHeaderCard';
 import Chip from '@mui/material/Chip';
 import useTheme from '@mui/material/styles/useTheme';
-import { apiServices } from '../../../../infrastructure/api/networkServices';
+import { getMlflowConfig, getMlflowSyncStatus, configureMlflow, testMlflowConnection, getMlflowModels } from '../../../../application/repository/integration.repository';
 
 type AuthMethod = 'none' | 'basic' | 'token';
-
-type MLFlowActionResponse = {
-  success: boolean;
-  message?: string;
-  error?: string;
-};
 
 interface MLFlowFormState {
   trackingServerUrl: string;
@@ -135,7 +129,7 @@ const MLFlowManagement: React.FC = () => {
     setIsFetchingConfig(true);
     setIsLoadingSyncStatus(true);
     try {
-      const { data: configData } = await apiServices.get<{
+      const configData = await getMlflowConfig({}) as {
         configured: boolean;
         config?: {
           trackingServerUrl: string;
@@ -152,7 +146,7 @@ const MLFlowManagement: React.FC = () => {
           lastFailedTestAt?: string | null;
           lastFailedTestMessage?: string | null;
         };
-      }>("/integrations/mlflow/config");
+      };
 
       let syncData:
         | {
@@ -169,22 +163,8 @@ const MLFlowManagement: React.FC = () => {
         | null = null;
 
       try {
-        const { data } = await apiServices.get<{
-          success: boolean;
-          data: {
-            configured: boolean;
-            lastSyncedAt: string | null;
-            lastSyncStatus: 'success' | 'partial' | 'error' | null;
-            lastSyncMessage: string | null;
-            lastTestedAt: string | null;
-            lastTestStatus: 'success' | 'error' | null;
-            lastTestMessage: string | null;
-            lastSuccessfulTestAt: string | null;
-            lastFailedTestAt: string | null;
-            lastFailedTestMessage: string | null;
-          };
-        }>("/integrations/mlflow/sync-status");
-        syncData = data?.data ?? null;
+        const statusResponse = await getMlflowSyncStatus({});
+        syncData = statusResponse?.data ?? null;
       } catch {
         syncData = null;
       } finally {
@@ -248,34 +228,20 @@ const MLFlowManagement: React.FC = () => {
       setIsLoadingSyncStatus(true);
     }
     try {
-      const { data } = await apiServices.get<{
-        success: boolean;
-        data: {
-          configured: boolean;
-          lastSyncedAt: string | null;
-          lastSyncStatus: 'success' | 'partial' | 'error' | null;
-          lastSyncMessage: string | null;
-          lastTestedAt: string | null;
-          lastTestStatus: 'success' | 'error' | null;
-          lastTestMessage: string | null;
-          lastSuccessfulTestAt: string | null;
-          lastFailedTestAt: string | null;
-          lastFailedTestMessage: string | null;
-        };
-      }>("/integrations/mlflow/sync-status");
+      const statusResponse = await getMlflowSyncStatus({});
 
-      if (data?.data && configMeta) {
+      if (statusResponse?.data && configMeta) {
         setConfigMeta({
           ...configMeta,
-          lastTestedAt: data.data.lastTestedAt || configMeta.lastTestedAt,
-          lastTestStatus: data.data.lastTestStatus || configMeta.lastTestStatus,
-          lastTestMessage: data.data.lastTestMessage || configMeta.lastTestMessage,
-          lastSyncedAt: data.data.lastSyncedAt ?? configMeta.lastSyncedAt,
-          lastSyncStatus: data.data.lastSyncStatus ?? configMeta.lastSyncStatus,
-          lastSyncMessage: data.data.lastSyncMessage ?? configMeta.lastSyncMessage,
-          lastSuccessfulTestAt: data.data.lastSuccessfulTestAt || configMeta.lastSuccessfulTestAt,
-          lastFailedTestAt: data.data.lastFailedTestAt || configMeta.lastFailedTestAt,
-          lastFailedTestMessage: data.data.lastFailedTestMessage || configMeta.lastFailedTestMessage,
+          lastTestedAt: statusResponse.data.lastTestedAt || configMeta.lastTestedAt,
+          lastTestStatus: statusResponse.data.lastTestStatus || configMeta.lastTestStatus,
+          lastTestMessage: statusResponse.data.lastTestMessage || configMeta.lastTestMessage,
+          lastSyncedAt: statusResponse.data.lastSyncedAt ?? configMeta.lastSyncedAt,
+          lastSyncStatus: statusResponse.data.lastSyncStatus ?? configMeta.lastSyncStatus,
+          lastSyncMessage: statusResponse.data.lastSyncMessage ?? configMeta.lastSyncMessage,
+          lastSuccessfulTestAt: statusResponse.data.lastSuccessfulTestAt || configMeta.lastSuccessfulTestAt,
+          lastFailedTestAt: statusResponse.data.lastFailedTestAt || configMeta.lastFailedTestAt,
+          lastFailedTestMessage: statusResponse.data.lastFailedTestMessage || configMeta.lastFailedTestMessage,
         });
       }
     } catch (error) {
@@ -301,7 +267,7 @@ const MLFlowManagement: React.FC = () => {
   const handleSaveConfiguration = useCallback(async () => {
     setIsConfiguring(true);
     try {
-      const { data } = await apiServices.post<MLFlowActionResponse>("/integrations/mlflow/configure", buildPayload());
+      const data = await configureMlflow(buildPayload() as any);
       handleToast('success', data?.message || 'MLFlow configuration saved successfully!', 'Configuration saved');
       await loadConfiguration();
     } catch (error) {
@@ -324,7 +290,7 @@ const MLFlowManagement: React.FC = () => {
     setTestStatus('testing');
 
     try {
-      const { data } = await apiServices.post<MLFlowActionResponse>("/integrations/mlflow/test", buildPayload());
+      const data = await testMlflowConnection(buildPayload() as any);
 
       if (data?.success) {
         setTestStatus('success');
@@ -445,7 +411,7 @@ const MLFlowManagement: React.FC = () => {
   const handleResync = useCallback(async () => {
     setIsResyncing(true);
     try {
-      await apiServices.get("/integrations/mlflow/models");
+      await getMlflowModels({});
       handleToast("success", "Sync triggered successfully.", "Sync started");
       await loadConfiguration();
     } catch (error) {

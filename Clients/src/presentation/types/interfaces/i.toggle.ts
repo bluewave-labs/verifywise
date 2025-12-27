@@ -1,8 +1,14 @@
-import { SxProps, Theme } from "@mui/material";
-
+/**
+ * View mode type for toggle component
+ * Pure domain type with no framework dependencies
+ */
 export type IViewMode = "card" | "table";
 
-export interface IViewToggleProps {
+/**
+ * Core props for ViewToggle component
+ * Pure domain types with no framework dependencies
+ */
+export interface IViewToggleCoreProps {
   /**
    * Current view mode
    */
@@ -19,8 +25,4 @@ export interface IViewToggleProps {
    * Size of the toggle buttons
    */
   size?: "small" | "medium" | "large";
-  /**
-   * Additional styling
-   */
-  sx?: SxProps<Theme>;
 }

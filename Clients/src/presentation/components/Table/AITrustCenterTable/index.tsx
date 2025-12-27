@@ -17,7 +17,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
-import { IAITrustCenterTableProps } from "../../../../domain/interfaces/i.table";
+import { IAITrustCenterTableProps } from "../../../types/interfaces/i.table";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />

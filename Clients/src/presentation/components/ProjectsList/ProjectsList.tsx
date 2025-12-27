@@ -12,6 +12,7 @@ import { GroupBy } from "../Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../Table/GroupedTableView";
 import { Project } from "../../../domain/types/Project";
+import { User } from "../../../domain/types/User";
 import { ExportMenu } from "../Table/ExportMenu";
 import { FilterBy, FilterColumn } from "../Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
@@ -29,7 +30,7 @@ const ProjectList = ({ projects, newProjectButton }: IProjectListProps) => {
     "table"
   );
 
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -49,18 +50,14 @@ const ProjectList = ({ projects, newProjectButton }: IProjectListProps) => {
     }
   }, [projects.length]);
 
-  const getUserNameById = (userId: string): string => {
+  const getUserNameById = useCallback((userId: string): string => {
     const user = users.find((u) => u.id.toString() === userId.toString());
     if (user) {
-      const firstName =
-        user.firstName || user.first_name || user.name?.split(" ")[0] || "";
-      const lastName =
-        user.lastName || user.last_name || user.surname || user.name?.split(" ")[1] || "";
-      const fullName = `${firstName} ${lastName}`.trim();
+      const fullName = `${user.name || ""} ${user.surname || ""}`.trim();
       return fullName || user.email || `User ${userId}`;
     }
     return userId;
-  };
+  }, [users]);
 
   // FilterBy - Dynamic options generators
   const getUniqueProjectOwners = useCallback(() => {
@@ -76,7 +73,7 @@ const ProjectList = ({ projects, newProjectButton }: IProjectListProps) => {
         value: ownerId,
         label: getUserNameById(ownerId),
       }));
-  }, [projects, users]);
+  }, [projects, getUserNameById]);
 
   const getUniqueProjectStatuses = useCallback(() => {
     const statuses = new Set<string>();
@@ -282,7 +279,7 @@ const ProjectList = ({ projects, newProjectButton }: IProjectListProps) => {
         status: project.status || '-',
       };
     });
-  }, [filteredProjects, users]);
+  }, [filteredProjects, getUserNameById]);
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -340,7 +337,7 @@ const ProjectList = ({ projects, newProjectButton }: IProjectListProps) => {
               title="Use Cases"
             />
           )}
-          {newProjectButton}
+          {newProjectButton as React.ReactNode}
           {projects && projects.length > 0 && (
             <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
           )}

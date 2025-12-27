@@ -24,7 +24,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../Inputs/FileUpload";
 import Alert from "../../Alert";
-import { AlertProps } from "../../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../../types/alert.types";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import Uppy from "@uppy/core";
 import {

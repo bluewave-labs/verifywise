@@ -1,7 +1,9 @@
-import { SxProps, Theme } from "@mui/material";
-
 /**
  * Interface for individual breadcrumb item
+ * Pure domain type with no framework dependencies
+ * 
+ * Note: Icon type uses 'unknown' to avoid React dependencies.
+ * Presentation layer will handle React-specific type casting.
  */
 export interface IBreadcrumbItem {
   /** Display label for the breadcrumb */
@@ -17,21 +19,23 @@ export interface IBreadcrumbItem {
   /** Tooltip text for additional context */
   tooltip?: string;
   /** Icon to display next to the breadcrumb label */
-  icon?: React.ReactNode;
+  icon?: unknown;
 }
 
 /**
  * Props for the Breadcrumbs component
+ * Pure domain type with no framework dependencies
+ * 
+ * Note: Separator type uses 'unknown' to avoid React dependencies.
+ * Presentation layer will handle React-specific type casting.
  */
-export interface IBreadcrumbsProps {
+export interface IBreadcrumbsCoreProps {
   /** Array of breadcrumb items */
   items?: IBreadcrumbItem[];
   /** Custom separator icon */
-  separator?: React.ReactNode;
+  separator?: unknown;
   /** Maximum number of items to show (collapses middle items) */
   maxItems?: number;
-  /** Custom styles */
-  sx?: SxProps<Theme>;
   /** Whether to auto-generate breadcrumbs from current route */
   autoGenerate?: boolean;
   /** Whether to show the current page as the last item */
@@ -50,8 +54,9 @@ export interface IBreadcrumbsProps {
 
 /**
  * Props for the PageBreadcrumbs component
+ * Pure domain type with no framework dependencies
  */
-export interface IPageBreadcrumbsProps {
+export interface IPageBreadcrumbsCoreProps {
   /** Custom breadcrumb items (overrides auto-generation) */
   items?: IBreadcrumbItem[];
   /** Whether to auto-generate breadcrumbs from current route */
@@ -70,8 +75,6 @@ export interface IPageBreadcrumbsProps {
   maxLabelLength?: number;
   /** Custom click handler for breadcrumb items */
   onItemClick?: (item: IBreadcrumbItem, index: number) => void;
-  /** Additional styling with proper MUI typing */
-  sx?: SxProps<Theme>;
   /** Additional className for custom styling */
   className?: string;
   /** Test identifier for automated testing */

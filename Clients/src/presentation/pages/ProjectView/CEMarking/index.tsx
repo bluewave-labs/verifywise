@@ -14,6 +14,7 @@ import {
   TableHead,
   TableRow,
   CircularProgress,
+  SelectChangeEvent,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
@@ -29,8 +30,20 @@ import Field from "../../../components/Inputs/Field";
 import DatePicker from "../../../components/Inputs/Datepicker";
 import VWTooltip from "../../../components/VWTooltip";
 import Checkbox from "../../../components/Inputs/Checkbox";
-import { ceMarkingService } from "../../../../infrastructure/api/ceMarkingService";
-import { showAlert as showGlobalAlert } from "../../../../infrastructure/api/customAxios";
+import {
+  getCEMarking,
+  updateClassificationAndScope,
+  updateConformityStep,
+  updateDeclaration,
+  updateRegistration,
+  getAllPolicies,
+  getAllEvidences,
+  getAllIncidents,
+  updateLinkedPolicies,
+  updateLinkedEvidences,
+  updateLinkedIncidents,
+} from "../../../../application/repository/ceMarking.repository";
+import { showAlert as showGlobalAlert } from "../../../../application/tools/alertUtils";
 import useUsers from "../../../../application/hooks/useUsers";
 import useProjectData from "../../../../application/hooks/useProjectData";
 
@@ -104,7 +117,7 @@ const formatStatusDisplay = (status: string): string => {
 };
 
 // Helper function to get user name from ID
-const getUserNameById = (userId: string | null, users: any[]): string => {
+const getUserNameById = (userId: string | null, users: Array<{ id: string | number; name: string; surname: string }>): string => {
   if (!userId) return "–";
   const user = users?.find(u => String(u.id) === String(userId));
   return user ? `${user.name} ${user.surname}` : userId; // Fallback to ID if user not found
@@ -238,19 +251,19 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
 
   // Modal state for linking policies
   const [isPoliciesModalOpen, setIsPoliciesModalOpen] = useState(false);
-  const [availablePolicies, setAvailablePolicies] = useState<any[]>([]);
+  const [availablePolicies, setAvailablePolicies] = useState<Array<{ id: number; title: string; status: string; tags?: string[] }>>([]);
   const [selectedPolicies, setSelectedPolicies] = useState<number[]>([]);
   const [loadingPolicies, setLoadingPolicies] = useState(false);
 
   // Modal state for linking evidences
   const [isEvidencesModalOpen, setIsEvidencesModalOpen] = useState(false);
-  const [availableEvidences, setAvailableEvidences] = useState<any[]>([]);
+  const [availableEvidences, setAvailableEvidences] = useState<Array<{ id: number; filename: string; source: string; project_title?: string; uploaded_time?: string }>>([]);
   const [selectedEvidences, setSelectedEvidences] = useState<number[]>([]);
   const [loadingEvidences, setLoadingEvidences] = useState(false);
 
   // Modal state for linking incidents
   const [isIncidentsModalOpen, setIsIncidentsModalOpen] = useState(false);
-  const [availableIncidents, setAvailableIncidents] = useState<any[]>([]);
+  const [availableIncidents, setAvailableIncidents] = useState<Array<{ id: number; incident_id?: string; type: string; severity: string; status: string; occurred_date?: string; description?: string }>>([]);
   const [selectedIncidents, setSelectedIncidents] = useState<number[]>([]);
   const [loadingIncidents, setLoadingIncidents] = useState(false);
 
@@ -270,24 +283,24 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   // Fetch CE Marking data on mount
   useEffect(() => {
     fetchCEMarkingData();
-  }, [projectId]);
+  }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-fill completed date when status changes to Completed
   useEffect(() => {
     if (stepEditForm.status === ConformityStepStatus.Completed && !stepEditForm.completedDate) {
       setStepEditForm((prev) => ({ ...prev, completedDate: dayjs() }));
     }
-  }, [stepEditForm.status]);
+  }, [stepEditForm.status, stepEditForm.completedDate]);
 
   const fetchCEMarkingData = async () => {
     try {
       setLoading(true);
-      const ceMarkingData = await ceMarkingService.getCEMarking(projectId);
+      const ceMarkingData = await getCEMarking(projectId);
       setData(ceMarkingData);
       setIsHighRiskAISystem(ceMarkingData.isHighRiskAISystem || false);
       setAnnexIIICategory(ceMarkingData.annexIIICategory || "annex_iii_5");
       setRoleInProduct(ceMarkingData.roleInProduct || "standalone");
-    } catch (error) {
+    } catch {
       showAlert("Failed to load CE Marking data", "error");
     } finally {
       setLoading(false);
@@ -308,7 +321,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     navigate(`/project-view?projectId=${projectId}&tab=frameworks&framework=eu-ai-act`);
   };
 
-  const handleHighRiskChange = (event: any) => {
+  const handleHighRiskChange = (event: SelectChangeEvent<string | number>) => {
     const newValue = event.target.value === "true";
 
     // Show confirmation dialog for this critical change
@@ -321,12 +334,12 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
 
         try {
           setSaving(true);
-          const updatedData = await ceMarkingService.updateClassificationAndScope(projectId, {
+          const updatedData = await updateClassificationAndScope(projectId, {
             isHighRiskAISystem: newValue,
           });
           setData(updatedData);
           showAlert("High risk classification updated successfully");
-        } catch (error) {
+        } catch {
           showAlert("Failed to update high risk classification", "error");
           // Revert on error
           setIsHighRiskAISystem(data?.isHighRiskAISystem || false);
@@ -338,40 +351,40 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     });
   };
 
-  const handleAnnexIIICategoryChange = async (event: any) => {
-    const newValue = event.target.value;
+  const handleAnnexIIICategoryChange = async (event: SelectChangeEvent<string | number>) => {
+    const newValue = String(event.target.value);
     const previousValue = annexIIICategory;
 
     // Optimistic update - update UI immediately
     setAnnexIIICategory(newValue);
 
     try {
-      const updatedData = await ceMarkingService.updateClassificationAndScope(projectId, {
+      const updatedData = await updateClassificationAndScope(projectId, {
         annexIIICategory: newValue,
       });
       setData(updatedData);
       showAlert("Annex III category updated successfully");
-    } catch (error) {
+    } catch {
       showAlert("Failed to update Annex III category", "error");
       // Revert on error
       setAnnexIIICategory(previousValue);
     }
   };
 
-  const handleRoleInProductChange = async (event: any) => {
-    const newValue = event.target.value;
+  const handleRoleInProductChange = async (event: SelectChangeEvent<string | number>) => {
+    const newValue = String(event.target.value);
     const previousValue = roleInProduct;
 
     // Optimistic update - update UI immediately
     setRoleInProduct(newValue);
 
     try {
-      const updatedData = await ceMarkingService.updateClassificationAndScope(projectId, {
+      const updatedData = await updateClassificationAndScope(projectId, {
         roleInProduct: newValue,
       });
       setData(updatedData);
       showAlert("Role in product updated successfully");
-    } catch (error) {
+    } catch {
       showAlert("Failed to update role in product", "error");
       // Revert on error
       setRoleInProduct(previousValue);
@@ -407,7 +420,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
 
     try {
       setSaving(true);
-      const updatedData = await ceMarkingService.updateConformityStep(
+      const updatedData = await updateConformityStep(
         projectId,
         selectedStep.id,
         {
@@ -422,7 +435,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       setData(updatedData);
       showAlert("Conformity step updated successfully");
       handleStepModalClose();
-    } catch (error) {
+    } catch {
       showAlert("Failed to update conformity step", "error");
     } finally {
       setSaving(false);
@@ -454,7 +467,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleDeclarationModalSave = async () => {
     try {
       setSaving(true);
-      const updatedData = await ceMarkingService.updateDeclaration(
+      const updatedData = await updateDeclaration(
         projectId,
         {
           declarationStatus: declarationEditForm.status,
@@ -467,7 +480,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       setData(updatedData);
       showAlert("Declaration details updated successfully");
       handleDeclarationModalClose();
-    } catch (error) {
+    } catch {
       showAlert("Failed to update declaration details", "error");
     } finally {
       setSaving(false);
@@ -499,7 +512,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleRegistrationModalSave = async () => {
     try {
       setSaving(true);
-      const updatedData = await ceMarkingService.updateRegistration(
+      const updatedData = await updateRegistration(
         projectId,
         {
           registrationStatus: registrationEditForm.status,
@@ -512,7 +525,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       setData(updatedData);
       showAlert("EU registration details updated successfully");
       handleRegistrationModalClose();
-    } catch (error) {
+    } catch {
       showAlert("Failed to update EU registration details", "error");
     } finally {
       setSaving(false);
@@ -524,11 +537,11 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     setIsPoliciesModalOpen(true);
     setLoadingPolicies(true);
     try {
-      const policies = await ceMarkingService.getAllPolicies();
+      const policies = await getAllPolicies();
       setAvailablePolicies(policies || []);
       // Set currently linked policies as selected
       setSelectedPolicies(data?.linkedPolicies || []);
-    } catch (error) {
+    } catch {
       showAlert("Failed to load policies", "error");
     } finally {
       setLoadingPolicies(false);
@@ -543,11 +556,11 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleSavePolicies = async () => {
     try {
       setSaving(true);
-      const updatedData = await ceMarkingService.updateLinkedPolicies(projectId, selectedPolicies);
+      const updatedData = await updateLinkedPolicies(projectId, selectedPolicies);
       setData(updatedData);
       showAlert("Linked policies updated successfully");
       handleClosePoliciesModal();
-    } catch (error) {
+    } catch {
       showAlert("Failed to update linked policies", "error");
     } finally {
       setSaving(false);
@@ -567,11 +580,11 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     setIsEvidencesModalOpen(true);
     setLoadingEvidences(true);
     try {
-      const evidences = await ceMarkingService.getAllEvidences();
+      const evidences = await getAllEvidences();
       setAvailableEvidences(evidences || []);
       // Set currently linked evidence as selected
       setSelectedEvidences(data?.linkedEvidences || []);
-    } catch (error) {
+    } catch {
       showAlert("Failed to load evidence", "error");
     } finally {
       setLoadingEvidences(false);
@@ -586,11 +599,11 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleSaveEvidences = async () => {
     try {
       setSaving(true);
-      const updatedData = await ceMarkingService.updateLinkedEvidences(projectId, selectedEvidences);
+      const updatedData = await updateLinkedEvidences(projectId, selectedEvidences);
       setData(updatedData);
       showAlert("Linked evidence updated successfully");
       handleCloseEvidencesModal();
-    } catch (error) {
+    } catch {
       showAlert("Failed to update linked evidence", "error");
     } finally {
       setSaving(false);
@@ -610,11 +623,11 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     setIsIncidentsModalOpen(true);
     setLoadingIncidents(true);
     try {
-      const incidents = await ceMarkingService.getAllIncidents();
+      const incidents = await getAllIncidents();
       setAvailableIncidents(incidents || []);
       // Set currently linked incidents as selected
       setSelectedIncidents(data?.linkedIncidents || []);
-    } catch (error) {
+    } catch {
       showAlert("Failed to load incidents", "error");
     } finally {
       setLoadingIncidents(false);
@@ -629,11 +642,11 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleSaveIncidents = async () => {
     try {
       setSaving(true);
-      const updatedData = await ceMarkingService.updateLinkedIncidents(projectId, selectedIncidents);
+      const updatedData = await updateLinkedIncidents(projectId, selectedIncidents);
       setData(updatedData);
       showAlert("Linked incidents updated successfully");
       handleCloseIncidentsModal();
-    } catch (error) {
+    } catch {
       showAlert("Failed to update linked incidents", "error");
     } finally {
       setSaving(false);

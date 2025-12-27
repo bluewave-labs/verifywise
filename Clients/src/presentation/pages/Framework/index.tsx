@@ -326,6 +326,7 @@ const Framework = () => {
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
   // Filter states following ProjectFrameworks pattern
@@ -913,9 +914,9 @@ const Framework = () => {
                 variant="contained"
                 text="Manage frameworks"
                 endIcon={<WhiteDownArrowIcon size={16} style={{ transform: rotated ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />}
-                onClick={(event: React.MouseEvent<any>) => {
+                onClick={(event) => {
                   setRotated((prev) => !prev);
-                  handleManageProjectClick(event);
+                  handleManageProjectClick(event as React.MouseEvent<any>);
                 }}
                 isDisabled={
                   !allowedRoles.frameworks.manage.includes(userRoleName) &&

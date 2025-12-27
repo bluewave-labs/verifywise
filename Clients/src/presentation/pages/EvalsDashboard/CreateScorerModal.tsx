@@ -22,7 +22,7 @@ import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { PROVIDERS, getModelsForProvider } from "../../utils/providers";
-import { evaluationLlmApiKeysService, type LLMApiKey } from "../../../infrastructure/api/evaluationLlmApiKeysService";
+import { getAllLlmApiKeys, type LLMApiKey } from "../../../application/repository/deepEval.repository";
 
 interface ChoiceScore {
   label: string;
@@ -217,7 +217,7 @@ export default function CreateScorerModal({
   useEffect(() => {
     if (isOpen) {
       setLoadingProviders(true);
-      evaluationLlmApiKeysService.getAllKeys()
+      getAllLlmApiKeys()
         .then((keys) => {
           setConfiguredProviders(keys);
           // Set default provider to first configured one (only if not already set and not editing)

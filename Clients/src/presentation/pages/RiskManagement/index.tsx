@@ -696,7 +696,7 @@ const RiskManagement = () => {
                   border: "1px solid #13715B",
                   gap: 2,
                 }}
-                onClick={handleInsertFromMenuOpen}
+                onClick={handleInsertFromMenuOpen as (event: unknown) => void}
                 icon={<ChevronDown size={16} />}
                 isDisabled={
                   !allowedRoles.projectRisks.create.includes(userRoleName)

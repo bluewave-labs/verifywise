@@ -1,4 +1,4 @@
-import { FileData } from "../types/File";
+import { FileData } from "../../../domain/types/File";
 
 export interface IRichTextEditorProps {
   onContentChange?: (content: string) => void;

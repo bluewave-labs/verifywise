@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Box, Typography, Select, MenuItem, FormControl } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../../infrastructure/api/evaluationLogsService";
+import { getAllExperiments, getLogs, type Experiment, type EvaluationLog } from "../../../../application/repository/deepEval.repository";
 
 interface PerformanceChartProps {
   projectId: string;
@@ -126,7 +126,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
   const loadPerformanceData = useCallback(async () => {
     try {
       setLoading(true);
-      const expsResp = await experimentsService.getAllExperiments({ project_id: projectId });
+      const expsResp = await getAllExperiments({ project_id: projectId });
       const experiments: Experiment[] = expsResp.experiments || [];
 
       // Get cutoff date for filtering
@@ -156,7 +156,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
       for (let i = 0; i < completedExps.length; i++) {
         const exp = completedExps[i];
         try {
-          const logsResp = await evaluationLogsService.getLogs({
+          const logsResp = await getLogs({
             experiment_id: exp.id,
             limit: 1000,
           });

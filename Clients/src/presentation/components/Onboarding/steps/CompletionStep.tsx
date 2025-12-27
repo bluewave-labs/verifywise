@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { CheckCircle2, Check } from "lucide-react";
 import confetti from "canvas-confetti";
-import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
+import { OnboardingStepProps } from "../../../types/interfaces/i.onboarding";
 import CustomizableButton from "../../Button/CustomizableButton";
 
 const CompletionStep: React.FC<OnboardingStepProps> = ({ onNext }) => {

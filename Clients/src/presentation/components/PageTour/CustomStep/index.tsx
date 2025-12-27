@@ -1,10 +1,8 @@
 import React from "react";
 import { Box, Typography, Button, IconButton } from "@mui/material";
 import { X } from "lucide-react";
-import {
-  ICustomStepProps,
-  ICustomStepWrapperProps,
-} from "../../../../domain/interfaces/i.customs";
+import { ICustomStepProps } from "../../../../domain/interfaces/i.customs";
+import { ICustomStepWrapperProps } from "../../../types/customs.types";
 
 export const CustomStepWrapper: React.FC<ICustomStepWrapperProps> = ({
   content,

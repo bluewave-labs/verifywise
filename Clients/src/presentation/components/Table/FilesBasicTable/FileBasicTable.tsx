@@ -25,7 +25,7 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
-import { IFileBasicTableProps } from "../../../../domain/interfaces/i.table";
+import { IFileBasicTableProps } from "../../../types/interfaces/i.table";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
 import ProjectRiskLinkedPolicies from "../../ProjectRiskMitigation/ProjectRiskLinkedPolicies";
 

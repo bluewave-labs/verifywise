@@ -13,8 +13,15 @@ import { Play, Beaker, ChevronRight, Activity, CheckCircle, Clock, Star, Coins, 
 import { cardStyles } from "../../themes";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import VWLink from "../../components/Link/VWLink";
-import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import { experimentsService, monitoringService, evaluationLogsService, type Experiment, type MonitorDashboard, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
+import {
+  getProject,
+  getExperiments,
+  getMonitorDashboard,
+  getLogs,
+  type Experiment,
+  type MonitorDashboard,
+  type EvaluationLog,
+} from "../../../application/repository/deepEval.repository";
 import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
@@ -161,15 +168,15 @@ export default function ProjectOverview({
 
       // Load project if not provided
       if (!project) {
-        const projectData = await deepEvalProjectsService.getProject(projectId);
+        const projectData = await getProject(projectId);
         onProjectUpdate(projectData.project);
       }
 
       // Load experiments, logs, and dashboard data in parallel
       const [experimentsData, logsData, dashboardResponse] = await Promise.all([
-        experimentsService.getExperiments({ project_id: projectId, limit: 100 }),
-        evaluationLogsService.getLogs({ project_id: projectId, limit: 1000 }).catch(() => ({ logs: [] })),
-        monitoringService.getDashboard(projectId).catch(() => ({ data: null })),
+        getExperiments({ project_id: projectId, limit: 100 }),
+        getLogs({ project_id: projectId, limit: 1000 }).catch(() => ({ logs: [] })),
+        getMonitorDashboard(projectId).catch(() => ({ data: null })),
       ]);
 
       setExperiments(experimentsData.experiments || []);

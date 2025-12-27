@@ -8,13 +8,7 @@ export interface FormValues {
   riskDescription: string;
 }
 
-export interface FormErrors {
-  vendorName?: string;
-  actionOwner?: string;
-  riskName?: string;
-  reviewDate?: string;
-  riskDescription?: string;
-}
+// Note: FormErrors has been moved to: presentation/types/form.props.ts
 
 export interface CreateProjectFormValues {
   project_title: string;
@@ -26,12 +20,4 @@ export interface CreateProjectFormValues {
   goal: string;
 }
 
-export interface CreateProjectFormErrors {
-  projectTitle?: string;
-  members?: string;
-  owner?: string;
-  startDate?: string;
-  riskClassification?: string;
-  typeOfHighRiskRole?: string;
-  goal?: string;
-}
+// Note: CreateProjectFormErrors has been moved to: presentation/types/form.props.ts

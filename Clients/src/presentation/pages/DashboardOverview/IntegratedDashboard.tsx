@@ -57,7 +57,7 @@ import PageTour from "../../components/PageTour";
 import DashboardSteps from "./DashboardSteps";
 import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown";
 import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
-import { MetricCardProps } from "../../../domain/interfaces/i.dashboard";
+import { MetricCardProps } from "../../types/interfaces/i.dashboard";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import ChangeOrganizationNameModal from "../../components/Modals/ChangeOrganizationName";
 

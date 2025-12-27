@@ -4,7 +4,7 @@ import {
   IChipProps,
   ChipVariant,
   ChipColorConfig,
-} from "../../domain/interfaces/i.chip";
+} from "../types/interfaces/i.chip";
 
 /**
  * Color mappings for all chip variants

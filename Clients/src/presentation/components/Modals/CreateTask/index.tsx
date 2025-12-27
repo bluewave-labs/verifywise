@@ -26,7 +26,7 @@ import {
   ICreateTaskFormErrors,
   ICreateTaskFormValues,
   ICreateTaskProps,
-} from "../../../../domain/interfaces/i.task";
+} from "../../../types/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
 import { datePickerStyle } from "../../Forms/ProjectForm/style";
 import useUsers from "../../../../application/hooks/useUsers";

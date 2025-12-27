@@ -1,5 +1,5 @@
 import { Layout, AlertTriangle, BarChart3, FileText } from "lucide-react";
-import { IPageTourStep } from "../../../domain/interfaces/i.tour";
+import { IPageTourStep } from "../../types/interfaces/i.tour";
 
 const ProjectViewSteps: IPageTourStep[] = [
   {

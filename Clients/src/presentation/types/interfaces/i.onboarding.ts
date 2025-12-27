@@ -1,4 +1,4 @@
-import { OnboardingRole, OnboardingIndustry, OnboardingUseCase, IllustrationType } from "../enums/onboarding.enum";
+import { OnboardingRole, OnboardingIndustry, OnboardingUseCase, IllustrationType } from "../../../domain/enums/onboarding.enum";
 
 export interface UserPreferences {
   role?: OnboardingRole;

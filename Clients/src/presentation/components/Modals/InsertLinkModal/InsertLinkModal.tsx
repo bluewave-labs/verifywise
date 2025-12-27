@@ -109,7 +109,7 @@ const InsertLinkModal: React.FC<InsertLinkModalProps> = ({
           color="primary"
           sx={{ width: 120 }}
           onClick={(e) => {
-            e.stopPropagation();
+            (e as React.MouseEvent).stopPropagation();
             handleInsert();
           }}
           isDisabled={!url.trim()}

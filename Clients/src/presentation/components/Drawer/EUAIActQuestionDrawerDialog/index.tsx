@@ -53,7 +53,7 @@ import {
   EUAIACT_STATUS_OPTIONS,
 } from "./types";
 import { FileData } from "../../../../domain/types/File";
-import { AlertProps } from "../../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../../types/alert.types";
 import { getPriorityColors } from "../../../pages/Assessment/1.0AssessmentTracker/euaiact.style";
 
 // Hooks & Utilities

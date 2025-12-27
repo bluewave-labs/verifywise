@@ -18,7 +18,7 @@ import {
   paginationSelect,
 } from "../../styles";
 import TablePaginationActions from "../../../TablePagination";
-import { IProjectRiskTableBodyProps } from "../../../../../domain/interfaces/i.table";
+import { IProjectRiskTableBodyProps } from "../../../../types/interfaces/i.table";
 import { RiskModel } from "../../../../../domain/models/Common/risks/risk.model";
 
 const SelectorVertical = (props: any) => (

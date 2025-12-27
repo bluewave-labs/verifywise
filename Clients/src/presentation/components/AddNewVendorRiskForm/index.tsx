@@ -14,14 +14,15 @@ import DatePicker from "../Inputs/Datepicker";
 import selectValidation from "../../../application/validations/selectValidation";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import Select from "../Inputs/Select";
-import { apiServices } from "../../../infrastructure/api/networkServices";
+import { createVendorRisk, updateVendorRisk } from "../../../application/repository/vendorRisk.repository";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { useSearchParams } from "react-router-dom";
 import useUsers from "../../../application/hooks/useUsers";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../types/alert.types";
 import { RiskSectionProps } from "../../../domain/interfaces/i.riskForm";
-import { FormErrors, FormValues } from "../../../domain/interfaces/i.form";
+import { FormValues } from "../../../domain/interfaces/i.form";
+import { FormErrors } from "../../types/form.props";
 
 // Types
 interface Vendor {
@@ -45,7 +46,7 @@ interface VendorRiskFormData {
 
 interface ApiResponse {
   status: number;
-  data?: any;
+  data?: unknown;
 }
 
 // Constants
@@ -160,7 +161,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
         ...prevValues,
         reviewDate: newDate ? newDate.toISOString() : "",
       }));
-      setErrors((prevErrors) => ({
+      setErrors((prevErrors: FormErrors) => ({
         ...prevErrors,
         reviewDate: "",
       }));
@@ -174,7 +175,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
         ...prevValues, 
         [prop]: value 
       }));
-      setErrors((prevErrors) => ({ 
+      setErrors((prevErrors: FormErrors) => ({ 
         ...prevErrors, 
         [prop]: "" 
       }));
@@ -190,7 +191,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
         ...prevValues, 
         [prop]: value 
       }));
-      setErrors((prevErrors) => ({ 
+      setErrors((prevErrors: FormErrors) => ({ 
         ...prevErrors, 
         [prop]: "" 
       }));
@@ -272,10 +273,10 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
       
       if (popupStatus === "edit") {
         // Update existing risk
-        response = await apiServices.put(
-          `/vendorRisks/${inputValues.id}`,
-          formData
-        );
+        response = await updateVendorRisk({
+          id: Number(inputValues.id),
+          body: formData,
+        });
         
         if (response.status === HTTP_STATUS.UPDATED) {
           onSuccess?.();
@@ -290,7 +291,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
         }
       } else {
         // Create new risk
-        response = await apiServices.post("/vendorRisks", formData);
+        response = await createVendorRisk({ body: formData });
         
         if (response.status === HTTP_STATUS.CREATED) {
           onSuccess?.();

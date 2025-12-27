@@ -74,7 +74,9 @@ const WatchTowerLogs = () => {
       result = result.filter((line) => {
         const lowerLine = line.toLowerCase();
         if (stateFilter === "successful") {
-          return lowerLine.includes("successful") || lowerLine.includes("success");
+          return (
+            lowerLine.includes("successful") || lowerLine.includes("success")
+          );
         }
         return lowerLine.includes(stateFilter.toLowerCase());
       });
@@ -137,7 +139,9 @@ const WatchTowerLogs = () => {
           gap: theme.spacing(2),
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: theme.spacing(2) }}>
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: theme.spacing(2) }}
+        >
           <SearchBox
             value={searchQuery}
             onChange={setSearchQuery}
@@ -156,7 +160,9 @@ const WatchTowerLogs = () => {
             }}
           />
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: theme.spacing(2) }}>
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: theme.spacing(2) }}
+        >
           <Typography
             variant="body2"
             sx={{
@@ -171,24 +177,47 @@ const WatchTowerLogs = () => {
             disableInteractive
             sx={{ fontSize: 13 }}
           >
-            <IconButton
-              disableRipple={
-                theme.components?.MuiIconButton?.defaultProps?.disableRipple
-              }
-              onClick={handleRefresh}
-              disabled={isLoading}
-              sx={{
-                "&:focus": { outline: "none" },
-                "&:hover": {
-                  backgroundColor: theme.palette.grey[100],
-                },
-                "&:disabled svg": {
-                  color: theme.palette.action.disabled,
-                },
-              }}
-            >
-              <RefreshIcon size={16} color={theme.palette.text.disabled} />
-            </IconButton>
+            {isLoading ? (
+              <span style={{ display: "inline-block" }}>
+                <IconButton
+                  disableRipple={
+                    theme.components?.MuiIconButton?.defaultProps?.disableRipple
+                  }
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  sx={{
+                    "&:focus": { outline: "none" },
+                    "&:hover": {
+                      backgroundColor: theme.palette.grey[100],
+                    },
+                    "&:disabled svg": {
+                      color: theme.palette.action.disabled,
+                    },
+                  }}
+                >
+                  <RefreshIcon size={16} color={theme.palette.text.disabled} />
+                </IconButton>
+              </span>
+            ) : (
+              <IconButton
+                disableRipple={
+                  theme.components?.MuiIconButton?.defaultProps?.disableRipple
+                }
+                onClick={handleRefresh}
+                disabled={isLoading}
+                sx={{
+                  "&:focus": { outline: "none" },
+                  "&:hover": {
+                    backgroundColor: theme.palette.grey[100],
+                  },
+                  "&:disabled svg": {
+                    color: theme.palette.action.disabled,
+                  },
+                }}
+              >
+                <RefreshIcon size={16} color={theme.palette.text.disabled} />
+              </IconButton>
+            )}
           </Tooltip>
         </Box>
       </Box>

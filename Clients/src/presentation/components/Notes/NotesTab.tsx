@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Stack, useTheme } from "@mui/material";
-import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../types/alert.types";
 import { useAuth } from "../../../application/hooks/useAuth";
 import * as notesRepository from "../../../application/repository/notes.repository";
 import NoteComposer from "./NoteComposer";

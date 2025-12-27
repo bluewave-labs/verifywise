@@ -9,7 +9,7 @@
  * @param {React.Dispatch<React.SetStateAction<AlertProps | null>>} props.setAlert - The function to set the alert state.
  * @returns {() => void} A function to clear the timeout for the alert.
  */
-import { AlertProps } from "../../domain/interfaces/i.alert";
+import { AlertProps } from "../../presentation/types/alert.types";
 
 interface HandleAlertProps extends AlertProps {
   setAlert: React.Dispatch<React.SetStateAction<AlertProps | null>>;
@@ -28,5 +28,9 @@ const handleAlert = ({ variant, body, title, setAlert, alertTimeout = ALERT_TIME
   }, alertTimeout);
   return () => clearTimeout(timeoutId);
 };
+
+// Re-export global alert functions from infrastructure layer
+// This maintains clean architecture by providing application-layer access
+export { showAlert, setShowAlertCallback } from "../../infrastructure/api/customAxios";
 
 export { handleAlert };

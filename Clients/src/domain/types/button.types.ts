@@ -1,9 +1,11 @@
-import { SxProps, Theme } from "@mui/material";
-
 /**
  * Props interface for the CustomizableButton component
+ * Pure domain type with no framework dependencies
+ * 
+ * Note: Icon and content types use 'unknown' to avoid React dependencies.
+ * Presentation layer will handle React-specific type casting.
  */
-export interface ICustomizableButtonProps {
+export interface ICustomizableButtonCoreProps {
   /** The variant of the button */
   variant?: "contained" | "outlined" | "text";
   /** The size of the button */
@@ -15,23 +17,21 @@ export interface ICustomizableButtonProps {
   /** The color theme of the button */
   color?: "primary" | "secondary" | "success" | "warning" | "error" | "info";
   /** Click event handler */
-  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  /** Custom styles using MUI's sx prop */
-  sx?: SxProps<Theme>;
+  onClick?: (event: unknown) => void;
   /** Button text content (deprecated: use children instead) */
   text?: string;
   /** Icon element (deprecated: use startIcon or endIcon instead) */
-  icon?: React.ReactNode;
+  icon?: unknown;
   /** Icon to display at the start of the button */
-  startIcon?: React.ReactNode;
+  startIcon?: unknown;
   /** Icon to display at the end of the button */
-  endIcon?: React.ReactNode;
+  endIcon?: unknown;
   /** Button content */
-  children?: React.ReactNode;
+  children?: unknown;
   /** Loading state - shows spinner and disables button */
   loading?: boolean;
   /** Custom loading indicator */
-  loadingIndicator?: React.ReactNode;
+  loadingIndicator?: unknown;
   /** ARIA label for accessibility */
   ariaLabel?: string;
   /** ARIA described by for accessibility */
@@ -46,11 +46,17 @@ export interface ICustomizableButtonProps {
   className?: string;
   /** Tooltip text */
   title?: string;
-  indicator?: boolean; //`indicator` prop: used to optionally show a custom visual indicator on the button.
-  textColor?: string; // Added textColor prop to allow custom inline text color customization when needed.
+  /** Indicator prop: used to optionally show a custom visual indicator on the button */
+  indicator?: boolean;
+  /** Custom inline text color */
+  textColor?: string;
 }
 
-export interface IFilterButtonProps {
+/**
+ * Props interface for the FilterButton component
+ * Pure domain type with no framework dependencies
+ */
+export interface IFilterButtonCoreProps {
   /** Whether the filters panel is currently open */
   isOpen: boolean;
   /** Whether there are any active filters */
@@ -61,16 +67,22 @@ export interface IFilterButtonProps {
   onClick: () => void;
   /** Whether the button is disabled */
   disabled?: boolean;
-  /** Additional styles */
-  sx?: object;
 }
 
+/**
+ * Option for ButtonToggle component
+ * Pure domain type with no framework dependencies
+ */
 export interface IButtonToggleOption {
   value: string;
   label: string;
   count?: number;
 }
 
+/**
+ * Props interface for ButtonToggle component
+ * Pure domain type with no framework dependencies
+ */
 export interface IButtonToggleProps {
   options: IButtonToggleOption[];
   value: string;

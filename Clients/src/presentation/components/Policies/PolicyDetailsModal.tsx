@@ -1,7 +1,7 @@
 import React, { CSSProperties, useEffect, useState, useCallback, useRef } from "react";
 import DOMPurify from "dompurify";
 import PolicyForm from "./PolicyForm";
-import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../../domain/interfaces/i.policy";
+import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../types/interfaces/i.policy";
 import { Plate, PlateContent, createPlateEditor } from "platejs/react";
 import { AutoformatPlugin } from "@platejs/autoformat";
 import { Range, Editor, BaseRange, Transforms, Path } from "slate";

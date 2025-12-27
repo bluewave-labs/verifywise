@@ -72,7 +72,7 @@ export async function updateVendorRisk({
   id: number;
   body: any;
 }): Promise<any> {
-  const response = await apiServices.patch(`/vendorRisks/${id}`, body);
+  const response = await apiServices.put(`/vendorRisks/${id}`, body);
   return response;
 }
 

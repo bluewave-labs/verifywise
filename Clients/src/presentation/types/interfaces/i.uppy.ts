@@ -1,5 +1,5 @@
 import Uppy from "@uppy/core";
-import { FileData } from "../types/File";
+import { FileData } from "../../../domain/types/File";
 
 export interface IUppyDashboardProps {
   uppy: Uppy;

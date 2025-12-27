@@ -18,7 +18,7 @@ import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
-import { AlertProps } from "../../../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../../../types/alert.types";
 import NISTAIRMFDrawerDialog from "../../../../components/Drawer/NISTAIRMFDashboardDrawerDialog";
 import { NISTAIRMFFunction } from "../types";
 import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";

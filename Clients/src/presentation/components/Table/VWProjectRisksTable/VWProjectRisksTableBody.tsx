@@ -11,7 +11,7 @@ import { useSearchParams } from "react-router-dom";
 import { ProjectRiskMitigation } from "../../ProjectRiskMitigation/ProjectRiskMitigation";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { IVWProjectRisksTableRow } from "../../../../domain/interfaces/i.risk";
+import { IVWProjectRisksTableRow } from "../../../types/interfaces/i.risk";
 import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 import { User } from "../../../../domain/types/User";
 import Chip from "../../Chip";

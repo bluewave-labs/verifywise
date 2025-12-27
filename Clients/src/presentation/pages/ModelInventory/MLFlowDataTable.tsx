@@ -22,7 +22,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { RefreshCw, XCircle, Eye, ChevronsUpDown } from "lucide-react";
-import { apiServices } from "../../../infrastructure/api/networkServices";
+import { getMlflowModels } from "../../../application/repository/integration.repository";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import VWChip from "../../components/Chip";
 import EmptyState from "../../components/EmptyState";
@@ -91,24 +91,24 @@ const MLFlowDataTable: React.FC = () => {
     setWarning(null);
 
     try {
-      const response = await apiServices.get<{ configured: boolean; connected?: boolean; models: any[]; message?: string; error?: string }>("/integrations/mlflow/models");
+      const data = await getMlflowModels({});
 
-      if (response.data) {
+      if (data) {
         // Handle new response format: { configured: boolean, connected?: boolean, models: [], message?: string }
-        if ('models' in response.data && Array.isArray(response.data.models)) {
+        if ('models' in data && Array.isArray(data.models)) {
           // Check various states
-          if (!response.data.configured) {
+          if (!data.configured) {
             setWarning("Configure the MLFlow integration to start syncing live data.");
-          } else if (response.data.connected === false) {
+          } else if (data.connected === false) {
             // MLFlow is configured but server is not reachable
-            setWarning(response.data.message || "MLFlow server is not reachable.");
-          } else if (response.data.error) {
-            setWarning(response.data.error);
+            setWarning(data.message || "MLFlow server is not reachable.");
+          } else if (data.error) {
+            setWarning(data.error);
           }
-          setMlflowData(response.data.models);
-        } else if (Array.isArray(response.data)) {
+          setMlflowData(data.models);
+        } else if (Array.isArray(data)) {
           // Backwards compatibility: handle old format where response is directly an array
-          setMlflowData(response.data as unknown as any[]);
+          setMlflowData(data as unknown as any[]);
         } else {
           setMlflowData([]);
         }

@@ -23,7 +23,7 @@ import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 import { User } from "../../../../domain/types/User";
-import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
+import { ITableWithPlaceholderProps } from "../../../types/interfaces/i.table";
 import { ReviewStatus } from "../../../../domain/enums/status.enum";
 import { getRiskScoreColor } from "../../../../domain/utils/vendorScorecard.utils";
 import { VWLink } from "../../Link";

@@ -8,7 +8,7 @@ import { useSearchParams } from "react-router-dom";
 import StandardModal from "../Modals/StandardModal";
 
 import { textfieldStyle } from "./styles";
-import { LinkedRisksModalProps } from "../../../domain/interfaces/i.table";
+import { LinkedRisksModalProps } from "../../types/interfaces/i.table";
 
 const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   onClose,

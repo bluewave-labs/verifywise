@@ -75,7 +75,7 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
         <span data-joyride-id="generate-report-button">
           <CustomizableButton
             variant="contained"
-            onClick={handleButtonClick}
+            onClick={handleButtonClick as (event: unknown) => void}
             isDisabled={isDisabled}
             endIcon={<ChevronDown size={16} />}
             sx={{

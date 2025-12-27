@@ -17,7 +17,7 @@ import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";
 import EmptyState from "../../EmptyState";
-import { IVWProjectRisksTable } from "../../../../domain/interfaces/i.risk";
+import { IVWProjectRisksTable } from "../../../types/interfaces/i.risk";
 import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (

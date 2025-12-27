@@ -21,7 +21,7 @@ import Activity from "../Activity";
 import allowedRoles from "../../../../application/constants/permissions";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { IBreadcrumbItem } from "../../../../domain/interfaces/i.breadcrumbs";
+import { IBreadcrumbItem } from "../../../types/interfaces/i.breadcrumbs";
 import { getRouteIcon } from "../../../components/Breadcrumbs/routeMapping";
 import { FileText as FileTextIcon } from "lucide-react";
 import TabBar from "../../../components/TabBar";

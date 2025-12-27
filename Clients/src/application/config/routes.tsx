@@ -38,6 +38,7 @@ import IntegratedDashboard from "../../presentation/pages/DashboardOverview/Inte
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
+import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -46,6 +47,8 @@ export const createRoutes = (
   triggerSidebar: boolean,
   _triggerSidebarReload: () => void
 ) => [
+  // ReactFlow Demo - Development only (must be before dashboard route)
+  ...(isDev ? [<Route key="reactflow-demo" path="/reactflow-demo" element={<ReactFlowDemo />} />] : []),
   <Route
     key="dashboard"
     path="/"

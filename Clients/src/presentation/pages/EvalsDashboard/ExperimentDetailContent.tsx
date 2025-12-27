@@ -22,7 +22,14 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
 import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw } from "lucide-react";
 import DOMPurify from "dompurify";
-import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
+import {
+  getExperiment,
+  getLogs,
+  updateExperiment,
+  createExperiment,
+  type Experiment,
+  type EvaluationLog,
+} from "../../../application/repository/deepEval.repository";
 
 interface ExperimentDetailContentProps {
   experimentId: string;
@@ -81,8 +88,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     try {
       setLoading(true);
       const [expData, logsData] = await Promise.all([
-        experimentsService.getExperiment(experimentId),
-        evaluationLogsService.getLogs({ experiment_id: experimentId, limit: 1000 }),
+        getExperiment(experimentId),
+        getLogs({ experiment_id: experimentId, limit: 1000 }),
       ]);
 
       setExperiment(expData.experiment);
@@ -110,7 +117,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
     try {
       setSaving(true);
-      await experimentsService.updateExperiment(experimentId, {
+      await updateExperiment(experimentId, {
         name: editedName.trim(),
       });
 
@@ -128,7 +135,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
     try {
       setSaving(true);
-      await experimentsService.updateExperiment(experimentId, {
+      await updateExperiment(experimentId, {
         description: editedDescription.trim(),
       });
 
@@ -173,7 +180,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         },
       };
 
-      const response = await experimentsService.createExperiment(payload);
+      const response = await createExperiment(payload);
 
       if (response?.experiment?.id) {
         setAlert({ variant: "success", body: `Rerun started: "${nextName}"` });

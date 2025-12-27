@@ -1,7 +1,14 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Box, Card, CardContent, Typography, Stack } from "@mui/material";
 import { Play } from "lucide-react";
-import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
+import {
+  getAllExperiments,
+  createExperiment,
+  deleteExperiment,
+  getLogs,
+  type Experiment,
+  type EvaluationLog,
+} from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import NewExperimentModal from "./NewExperimentModal";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -133,7 +140,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
   const loadExperiments = async () => {
     try {
       setLoading(true);
-      const data = await experimentsService.getAllExperiments({
+      const data = await getAllExperiments({
         project_id: projectId
       });
 
@@ -157,7 +164,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
 
           try {
             // Get logs for this experiment to calculate metrics
-            const logsData = await evaluationLogsService.getLogs({
+            const logsData = await getLogs({
               experiment_id: exp.id,
               limit: 1000
             });
@@ -276,7 +283,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
 
       setAlert({ variant: "success", body: "Starting new evaluation run..." });
       
-      const response = await experimentsService.createExperiment(payload);
+      const response = await createExperiment(payload);
 
       if (response?.experiment?.id) {
         // Add the new experiment to the list optimistically
@@ -299,7 +306,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
 
   const handleDeleteExperiment = async (experimentId: string) => {
     try {
-      await experimentsService.deleteExperiment(experimentId);
+      await deleteExperiment(experimentId);
       setAlert({ variant: "success", body: "Eval deleted" });
       setTimeout(() => setAlert(null), 3000);
       loadExperiments();

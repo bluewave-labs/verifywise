@@ -29,4 +29,8 @@ const handleAlert = ({ variant, body, title, setAlert, alertTimeout = ALERT_TIME
   return () => clearTimeout(timeoutId);
 };
 
+// Re-export global alert functions from infrastructure layer
+// This maintains clean architecture by providing application-layer access
+export { showAlert, setShowAlertCallback } from "../../infrastructure/api/customAxios";
+
 export { handleAlert };

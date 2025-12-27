@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -17,8 +17,7 @@ import {
 } from '@mui/material';
 import { ChevronDown, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, Timer, ArrowRight } from 'lucide-react';
 import Chip from '../../../../components/Chip';
-import CustomAxios from '../../../../../infrastructure/api/customAxios';
-import { AutomationExecutionLog } from '../../../../../domain/types/Automation';
+import { getAutomationHistory, getAutomationStats, type AutomationExecutionLog } from '../../../../../application/repository/automations.repository';
 import TablePaginationActions from '../../../../components/TablePagination';
 import EmptyState from '../../../../components/EmptyState';
 import singleTheme from '../../../../themes/v1SingleTheme';
@@ -46,45 +45,40 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
     last_execution_at?: Date;
   } | null>(null);
 
-  useEffect(() => {
-    fetchHistory();
-    fetchStats();
-  }, [automationId, page, rowsPerPage]);
-
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await CustomAxios.get(
-        `/automations/${automationId}/history`,
-        {
-          params: {
-            limit: rowsPerPage,
-            offset: page * rowsPerPage,
-          },
-        }
-      );
+      const historyData = await getAutomationHistory(automationId, {
+        limit: rowsPerPage,
+        offset: page * rowsPerPage,
+      });
 
-      if (response.data?.data) {
-        setLogs(response.data.data.logs || []);
-        setTotal(response.data.data.total || 0);
+      if (historyData) {
+        setLogs(historyData.logs || []);
+        setTotal(historyData.total || 0);
       }
     } catch (error) {
       console.error('Error fetching automation history:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [automationId, page, rowsPerPage]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
-      const response = await CustomAxios.get(`/automations/${automationId}/stats`);
-      if (response.data?.data) {
-        setStats(response.data.data);
+      const statsData = await getAutomationStats(automationId);
+      if (statsData) {
+        setStats(statsData);
       }
     } catch (error) {
       console.error('Error fetching automation stats:', error);
     }
-  };
+  }, [automationId]);
+
+  useEffect(() => {
+    fetchHistory();
+    fetchStats();
+  }, [fetchHistory, fetchStats]);
 
   const toggleRow = (logId: string) => {
     const newExpanded = new Set(expandedRows);
@@ -124,9 +118,9 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
     return `${(ms / 60000).toFixed(2)}m`;
   };
 
-  const getTriggerType = (triggerData: Record<string, any>) => {
+  const getTriggerType = (triggerData: Record<string, unknown>) => {
     // Extract trigger type from trigger data if available
-    if (triggerData?.trigger_type) {
+    if (triggerData?.trigger_type && typeof triggerData.trigger_type === 'string') {
       return formatActionType(triggerData.trigger_type);
     }
     return 'Manual';

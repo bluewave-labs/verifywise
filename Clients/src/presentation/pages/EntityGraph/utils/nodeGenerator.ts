@@ -61,34 +61,30 @@ function calculateConnectionCounts(data: EntityGraphData): Map<string, number> {
   const counts = new Map<string, number>();
   const add = (id: string) => counts.set(id, (counts.get(id) || 0) + 1);
 
-  const regularUseCases = data.useCases.filter(p => !(p as { is_organizational?: boolean }).is_organizational);
+  const useCases = data.useCases || [];
+  const models = data.models || [];
+  const vendors = data.vendors || [];
+  const risks = data.risks || [];
+
+  const regularUseCases = useCases.filter(p => !(p as { is_organizational?: boolean }).is_organizational);
 
   regularUseCases.forEach(uc => {
     const ucId = `useCase-${uc.id}`;
-    data.models.forEach(m => { if (m.projects?.includes(uc.id)) add(ucId); });
-    data.controls.forEach(c => { if (c.project_id === uc.id) add(ucId); });
-    data.risks.forEach(r => { if (r.project_id === uc.id) add(ucId); });
+    models.forEach(m => { if (m.projects?.includes(uc.id)) add(ucId); });
+    risks.forEach(r => { if (r.project_id === uc.id) add(ucId); });
   });
 
-  data.models.forEach(m => {
+  models.forEach(m => {
     const id = `model-${m.id}`;
     if (m.projects?.length) counts.set(id, (counts.get(id) || 0) + m.projects.length);
-    data.risks.filter(r => r.model_id === m.id).forEach(() => add(id));
+    risks.filter(r => r.model_id === m.id).forEach(() => add(id));
   });
 
-  data.vendors.forEach(v => {
+  vendors.forEach(v => {
     const id = `vendor-${v.id}`;
     if (v.projects?.length) counts.set(id, (counts.get(id) || 0) + v.projects.length);
-    data.risks.filter(r => r.vendor_id === v.id).forEach(() => add(id));
+    risks.filter(r => r.vendor_id === v.id).forEach(() => add(id));
   });
-
-  data.controls.forEach(c => {
-    const id = `control-${c.id}`;
-    if (c.project_id) add(id);
-    data.evidence.filter(e => e.control_id === c.id).forEach(() => add(id));
-  });
-
-  data.evidence.forEach(e => { if (e.control_id) add(`evidence-${e.id}`); });
 
   return counts;
 }
@@ -110,8 +106,17 @@ export function generateNodesAndEdges(
   const getUserName = (id?: number) => id ? userMap.get(id) : undefined;
 
   const connectionCounts = calculateConnectionCounts(data);
-  const { centerX, centerY, useCaseRadius, modelRadius, vendorRadius, riskRadius, controlRadius, evidenceRadius } = layoutConfig;
-  const regularUseCases = data.useCases.filter(p => !(p as { is_organizational?: boolean }).is_organizational);
+  const { centerX, centerY, useCaseRadius, modelRadius, vendorRadius, riskRadius, evidenceRadius } = layoutConfig;
+
+  // Defensive array access
+  const useCases = data.useCases || [];
+  const models = data.models || [];
+  const vendors = data.vendors || [];
+  const risks = data.risks || [];
+  const evidence = data.evidence || [];
+  const frameworks = data.frameworks || [];
+
+  const regularUseCases = useCases.filter(p => !(p as { is_organizational?: boolean }).is_organizational);
   const shouldShowEdge = (label: string) => visibleRelationships.length === 0 || visibleRelationships.includes(label);
 
   // Helper to create a node
@@ -138,7 +143,7 @@ export function generateNodesAndEdges(
   // USE CASES
   if (visibleEntities.includes('useCases')) {
     regularUseCases.forEach((uc, i) => {
-      const hasRisk = data.risks.some(r => r.project_id === uc.id && hasHighRisk(r.risk_level));
+      const hasRisk = risks.some(r => r.project_id === uc.id && hasHighRisk(r.risk_level));
       if (showProblemsOnly && !hasRisk) return;
       if (!matchesSearch(searchQuery, uc.uc_id || uc.project_title, uc.project_title)) return;
 
@@ -156,12 +161,12 @@ export function generateNodesAndEdges(
 
   // MODELS
   if (visibleEntities.includes('models')) {
-    data.models.forEach((m, i) => {
-      const hasRisk = data.risks.some(r => r.model_id === m.id && hasHighRisk(r.risk_level));
+    models.forEach((m, i) => {
+      const hasRisk = risks.some(r => r.model_id === m.id && hasHighRisk(r.risk_level));
       if (showProblemsOnly && !hasRisk) return;
       if (!matchesSearch(searchQuery, m.model, m.provider)) return;
 
-      const angle = (2 * Math.PI * i) / Math.max(data.models.length, 1) - Math.PI / 4;
+      const angle = (2 * Math.PI * i) / Math.max(models.length, 1) - Math.PI / 4;
       const id = `model-${m.id}`;
       entityLookup.set(id, m as unknown as Record<string, unknown>);
       addNode(id, 'model',
@@ -185,12 +190,12 @@ export function generateNodesAndEdges(
 
   // VENDORS
   if (visibleEntities.includes('vendors')) {
-    data.vendors.forEach((v, i) => {
-      const hasRisk = data.risks.some(r => r.vendor_id === v.id && hasHighRisk(r.risk_level));
+    vendors.forEach((v, i) => {
+      const hasRisk = risks.some(r => r.vendor_id === v.id && hasHighRisk(r.risk_level));
       if (showProblemsOnly && !hasRisk) return;
       if (!matchesSearch(searchQuery, v.vendor_name)) return;
 
-      const angle = (2 * Math.PI * i) / Math.max(data.vendors.length, 1) + Math.PI / 4;
+      const angle = (2 * Math.PI * i) / Math.max(vendors.length, 1) + Math.PI / 4;
       const id = `vendor-${v.id}`;
       entityLookup.set(id, v as unknown as Record<string, unknown>);
       addNode(id, 'vendor',
@@ -214,12 +219,12 @@ export function generateNodesAndEdges(
 
   // RISKS
   if (visibleEntities.includes('risks')) {
-    data.risks.forEach((r, i) => {
+    risks.forEach((r, i) => {
       const isHigh = hasHighRisk(r.risk_level);
       if (showProblemsOnly && !isHigh) return;
       if (!matchesSearch(searchQuery, r.risk_name)) return;
 
-      const angle = (2 * Math.PI * i) / Math.max(data.risks.length, 1);
+      const angle = (2 * Math.PI * i) / Math.max(risks.length, 1);
       const id = `risk-${r.id}`;
       entityLookup.set(id, r as unknown as Record<string, unknown>);
       addNode(id, 'risk',
@@ -244,38 +249,14 @@ export function generateNodesAndEdges(
     });
   }
 
-  // CONTROLS
-  if (visibleEntities.includes('controls')) {
-    data.controls.forEach((c, i) => {
-      if (showProblemsOnly) return;
-      if (!matchesSearch(searchQuery, c.title)) return;
-
-      const angle = (2 * Math.PI * i) / Math.max(data.controls.length, 1) + Math.PI / 6;
-      const id = `control-${c.id}`;
-      const evidenceCount = data.evidence.filter(e => e.control_id === c.id).length;
-      entityLookup.set(id, c as unknown as Record<string, unknown>);
-      addNode(id, 'control',
-        { x: centerX + controlRadius * Math.cos(angle) - 150, y: centerY + controlRadius * Math.sin(angle) + 100 },
-        c.title.substring(0, 30) + (c.title.length > 30 ? '...' : ''),
-        entityColors.control,
-        { status: c.status, evidenceCount, rawData: { ...c, owner_name: getUserName(c.owner), approver_name: getUserName(c.approver), reviewer_name: getUserName(c.reviewer) } }
-      );
-
-      // Control → UseCase edges
-      if (c.project_id && visibleEntities.includes('useCases') && shouldShowEdge('protects') && createdNodeIds.has(`useCase-${c.project_id}`)) {
-        edges.push(createEdge(`control-${c.id}-useCase-${c.project_id}`, id, `useCase-${c.project_id}`, 'protects', entityColors.control, { dashed: true }));
-      }
-    });
-  }
-
   // EVIDENCE
   if (visibleEntities.includes('evidence')) {
-    data.evidence.forEach((e, i) => {
+    evidence.forEach((e, i) => {
       if (showProblemsOnly) return;
       const name = e.name || 'Untitled Evidence';
       if (!matchesSearch(searchQuery, name)) return;
 
-      const angle = (2 * Math.PI * i) / Math.max(data.evidence.length, 1) + Math.PI / 3;
+      const angle = (2 * Math.PI * i) / Math.max(evidence.length, 1) + Math.PI / 3;
       const id = `evidence-${e.id}`;
       entityLookup.set(id, e as unknown as Record<string, unknown>);
       addNode(id, 'evidence',
@@ -284,21 +265,16 @@ export function generateNodesAndEdges(
         entityColors.evidence,
         { rawData: { ...e } }
       );
-
-      // Evidence → Control edges
-      if (e.control_id && visibleEntities.includes('controls') && shouldShowEdge('supports') && createdNodeIds.has(`control-${e.control_id}`)) {
-        edges.push(createEdge(`evidence-${e.id}-control-${e.control_id}`, id, `control-${e.control_id}`, 'supports', entityColors.evidence));
-      }
     });
   }
 
   // FRAMEWORKS
   if (visibleEntities.includes('frameworks')) {
-    data.frameworks.forEach((f, i) => {
+    frameworks.forEach((f, i) => {
       if (showProblemsOnly) return;
       if (!matchesSearch(searchQuery, f.name)) return;
 
-      const angle = (2 * Math.PI * i) / Math.max(data.frameworks.length, 1) + Math.PI / 2;
+      const angle = (2 * Math.PI * i) / Math.max(frameworks.length, 1) + Math.PI / 2;
       const id = `framework-${f.id}`;
       entityLookup.set(id, f as unknown as Record<string, unknown>);
       addNode(id, 'framework',
@@ -311,7 +287,7 @@ export function generateNodesAndEdges(
 
     // Model → Framework edges
     if (visibleEntities.includes('models') && shouldShowEdge('complies with')) {
-      data.models.forEach(m => {
+      models.forEach(m => {
         const sourceId = `model-${m.id}`;
         if (!createdNodeIds.has(sourceId) || !m.frameworks?.length) return;
         m.frameworks.forEach(fid => {

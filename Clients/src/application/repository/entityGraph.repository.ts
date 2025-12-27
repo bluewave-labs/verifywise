@@ -87,24 +87,6 @@ export interface EntityGraphData {
     regulatory_exposure?: string;
     risk_score?: number;
   }>;
-  controls: Array<{
-    id: number;
-    title: string;
-    status?: string;
-    control_category_id?: number;
-    project_id?: number;
-    created_at?: string;
-    // Additional fields
-    description?: string;
-    approver?: number;
-    owner?: number;
-    reviewer?: number;
-    risk_review?: string;
-    due_date?: string;
-    implementation_details?: string;
-    numberOfSubcontrols?: number;
-    numberOfDoneSubcontrols?: number;
-  }>;
   evidence: Array<{
     id: number;
     name: string;
@@ -146,7 +128,6 @@ export async function fetchEntityGraphData(onProgress?: ProgressCallback): Promi
     { name: 'vendors', url: "/vendors" },
     { name: 'vendorRisks', url: "/vendorRisks/all" },
     { name: 'projectRisks', url: "/projectRisks" },
-    { name: 'controls', url: "/controls" },
     { name: 'evidence', url: "/evidenceHub" },
     { name: 'frameworks', url: "/frameworks" },
     { name: 'users', url: "/users" },
@@ -180,7 +161,6 @@ export async function fetchEntityGraphData(onProgress?: ProgressCallback): Promi
     vendorsRes,
     vendorRisksRes,
     projectRisksRes,
-    controlsRes,
     evidenceRes,
     frameworksRes,
     usersRes,
@@ -274,7 +254,6 @@ export async function fetchEntityGraphData(onProgress?: ProgressCallback): Promi
     models: extractData(modelsRes) as EntityGraphData['models'],
     risks: combinedRisks,
     vendors: extractData(vendorsRes) as EntityGraphData['vendors'],
-    controls: extractData(controlsRes) as EntityGraphData['controls'],
     evidence: extractData(evidenceRes) as EntityGraphData['evidence'],
     frameworks: extractData(frameworksRes) as EntityGraphData['frameworks'],
     users: extractData(usersRes) as EntityGraphData['users'],

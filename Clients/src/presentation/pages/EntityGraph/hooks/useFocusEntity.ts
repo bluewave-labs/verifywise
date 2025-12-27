@@ -52,29 +52,29 @@ export function useFocusEntity({
     if (!focusEntity || loading || nodes.length === 0 || hasFocusedRef.current) return;
 
     const targetNode = nodes.find((n) => n.id === focusEntity.id);
-    if (targetNode) {
-      // Wait for fitView to complete, then smoothly zoom to focused entity
-      const zoomTimer = setTimeout(() => {
-        setCenter(
-          targetNode.position.x + VIEWPORT.FOCUS_OFFSET_X,
-          targetNode.position.y + VIEWPORT.FOCUS_OFFSET_Y,
-          { zoom: VIEWPORT.FOCUS_ZOOM, duration: TIMING.ZOOM_DURATION }
-        );
-        hasFocusedRef.current = true;
-        setHighlightedNodeId(targetNode.id);
-      }, TIMING.FOCUS_DELAY);
+    if (!targetNode) return;
 
-      // Clear highlight after duration
-      const highlightTimer = setTimeout(
-        () => setHighlightedNodeId(null),
-        TIMING.FOCUS_DELAY + TIMING.HIGHLIGHT_DURATION
+    // Wait for fitView to complete, then smoothly zoom to focused entity
+    const zoomTimer = setTimeout(() => {
+      setCenter(
+        targetNode.position.x + VIEWPORT.FOCUS_OFFSET_X,
+        targetNode.position.y + VIEWPORT.FOCUS_OFFSET_Y,
+        { zoom: VIEWPORT.FOCUS_ZOOM, duration: TIMING.ZOOM_DURATION }
       );
+      hasFocusedRef.current = true;
+      setHighlightedNodeId(targetNode.id);
+    }, TIMING.FOCUS_DELAY);
 
-      return () => {
-        clearTimeout(zoomTimer);
-        clearTimeout(highlightTimer);
-      };
-    }
+    // Clear highlight after duration
+    const highlightTimer = setTimeout(
+      () => setHighlightedNodeId(null),
+      TIMING.FOCUS_DELAY + TIMING.HIGHLIGHT_DURATION
+    );
+
+    return () => {
+      clearTimeout(zoomTimer);
+      clearTimeout(highlightTimer);
+    };
   }, [focusEntity, loading, nodes, setCenter]);
 
   // Update nodes with highlight state

@@ -133,7 +133,7 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
 
 function deepEvalRoutes() {
   const targetUrl =
-    process.env.FAIRNESS_AND_BIAS_URL || "http://127.0.0.1:8000";
+    process.env.LLM_EVALS_URL || "http://127.0.0.1:8000";
 
   const proxy = createProxyMiddleware({
     target: targetUrl,

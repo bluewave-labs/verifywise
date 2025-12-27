@@ -157,6 +157,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
   hidePagination = false,
   onRestore,
   onHardDelete,
+  flashRowId,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -310,9 +311,14 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.row,
                     cursor: isArchived ? "default" : "pointer",
-                    backgroundColor: isArchived
-                      ? "rgba(0, 0, 0, 0.02)"
-                      : "transparent",
+                    backgroundColor: (() => {
+                      const isFlashing = flashRowId === task.id;
+                      return isFlashing
+                        ? "rgba(5, 150, 105, 0.1)"
+                        : isArchived
+                        ? "rgba(0, 0, 0, 0.02)"
+                        : "transparent";
+                    })(),
                     opacity: isArchived ? 0.7 : 1,
                     "&:hover": {
                       backgroundColor: isArchived

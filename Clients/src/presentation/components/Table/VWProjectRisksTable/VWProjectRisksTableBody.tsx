@@ -157,7 +157,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? "rgba(5, 150, 105, 0.1)"
                       : sortConfig.key === "risk_name"
                       ? "#e8e8e8"
                       : "#fafafa",
@@ -173,7 +173,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? "rgba(5, 150, 105, 0.1)"
                       : sortConfig.key === "risk_owner"
                       ? "#f5f5f5"
                       : "",
@@ -187,7 +187,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? "rgba(5, 150, 105, 0.1)"
                       : sortConfig.key === "severity"
                       ? "#f5f5f5"
                       : "",
@@ -203,7 +203,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? "rgba(5, 150, 105, 0.1)"
                       : sortConfig.key === "likelihood"
                       ? "#f5f5f5"
                       : "",
@@ -219,7 +219,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? "rgba(5, 150, 105, 0.1)"
                       : sortConfig.key === "mitigation_status"
                       ? "#f5f5f5"
                       : "",
@@ -235,7 +235,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? "rgba(5, 150, 105, 0.1)"
                       : sortConfig.key === "risk_level_autocalculated"
                       ? "#f5f5f5"
                       : "",
@@ -251,7 +251,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? "rgba(5, 150, 105, 0.1)"
                       : sortConfig.key === "deadline"
                       ? "#f5f5f5"
                       : "",
@@ -263,7 +263,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? "rgba(5, 150, 105, 0.1)"
                       : sortConfig.key === "controls_mapping"
                       ? "#f5f5f5"
                       : "",
@@ -282,7 +282,7 @@ const VWProjectRisksTableBody = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     minWidth: "80px",
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? "rgba(5, 150, 105, 0.1)"
                       : sortConfig.key === "actions"
                       ? "#f5f5f5"
                       : "",

@@ -81,6 +81,9 @@ const Tasks: React.FC = () => {
     title: string;
     body?: string;
   } | null>(null);
+  
+  // Flash indicator state for updated rows
+  const [flashRowId, setFlashRowId] = useState<number | null>(null);
 
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
@@ -344,6 +347,13 @@ const Tasks: React.FC = () => {
             task.id === editingTask.id ? response.data : task
           )
         );
+        
+        // Flash the updated row
+        setFlashRowId(editingTask.id!);
+        setTimeout(() => {
+          setFlashRowId(null);
+        }, 3000);
+        
         setEditingTask(null);
         setAlert({
           variant: "success",
@@ -366,6 +376,8 @@ const Tasks: React.FC = () => {
   const handleTaskStatusChange =
     (taskId: number) =>
     async (newStatus: string): Promise<boolean> => {
+      console.log("🚀 handleTaskStatusChange called with taskId:", taskId, "newStatus:", newStatus);
+      console.log("📝 Current tasks:", tasks.map(t => ({ id: t.id, title: t.title, status: t.status })));
       try {
         const response = await updateTaskStatus({
           id: taskId,
@@ -379,6 +391,13 @@ const Tasks: React.FC = () => {
                 : task
             )
           );
+          
+          // Flash the updated row
+          setFlashRowId(taskId);
+          setTimeout(() => {
+            setFlashRowId(null);
+          }, 3000);
+          
           return true;
         }
         return false;
@@ -675,6 +694,7 @@ const Tasks: React.FC = () => {
                 hidePagination={options?.hidePagination}
                 onRestore={handleRestoreTask}
                 onHardDelete={handleHardDeleteTask}
+                flashRowId={flashRowId}
               />
             )}
           />

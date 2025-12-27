@@ -43,6 +43,7 @@ const AITrustCenterTable = <T extends { id: number }>({
   tableId = "ai-trust-center-table",
   disabled = false,
   hidePagination = false,
+  flashRowId,
 }: IAITrustCenterTableProps<T>) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -260,6 +261,9 @@ const AITrustCenterTable = <T extends { id: number }>({
                 key={item.id}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
+                  backgroundColor: flashRowId === item.id 
+                    ? "rgba(5, 150, 105, 0.1)"
+                    : "transparent",
                   "& .MuiTableCell-root": {
                     padding: "8px 10px !important",
                     // Remove width constraints to match original AI Trust Center behavior
@@ -270,7 +274,9 @@ const AITrustCenterTable = <T extends { id: number }>({
                     !disabled && {
                       cursor: "pointer",
                       "&:hover": {
-                        backgroundColor: "#FBFBFB",
+                        backgroundColor: flashRowId === item.id 
+                          ? "rgba(5, 150, 105, 0.15)"
+                          : "#FBFBFB",
                       },
                     }),
                 }}
@@ -281,7 +287,7 @@ const AITrustCenterTable = <T extends { id: number }>({
             ))}
       </TableBody>
     ),
-    [sortedData, page, rowsPerPage, renderRow, onRowClick, disabled, hidePagination]
+    [sortedData, page, rowsPerPage, renderRow, onRowClick, disabled, hidePagination, flashRowId, sortConfig]
   );
 
   const emptyState = useMemo(

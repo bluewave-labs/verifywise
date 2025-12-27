@@ -1,0 +1,19 @@
+{
+  "name": "@verifywise/plugin-mlflow",
+  "version": "1.0.0",
+  "description": "MLflow integration plugin for VerifyWise",
+  "main": "index.js",
+  "author": "VerifyWise",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "keywords": [
+    "verifywise",
+    "plugin",
+    "mlflow",
+    "ml-ops",
+    "model-tracking",
+    "integration"
+  ]
+}

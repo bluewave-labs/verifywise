@@ -36,6 +36,7 @@ import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
+import pluginRoutes from "./routes/plugin.route";
 import tokenRoutes from "./routes/tokens.route";
 import shareLinkRoutes from "./routes/shareLink.route";
 import automation from "./routes/automation.route.js";
@@ -171,6 +172,7 @@ try {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
+  app.use("/api/plugins", pluginRoutes);
   app.use("/api/tokens", tokenRoutes);
   app.use("/api/shares", shareLinkRoutes);
   app.use("/api/file-manager", fileManagerRoutes);

@@ -1,0 +1,18 @@
+{
+  "name": "@verifywise/plugin-slack",
+  "version": "1.0.0",
+  "description": "Slack integration plugin for VerifyWise",
+  "main": "index.js",
+  "author": "VerifyWise",
+  "license": "MIT",
+  "dependencies": {
+    "@slack/web-api": "^6.9.0"
+  },
+  "keywords": [
+    "verifywise",
+    "plugin",
+    "slack",
+    "notifications",
+    "integration"
+  ]
+}

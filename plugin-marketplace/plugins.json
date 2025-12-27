@@ -1,0 +1,127 @@
+{
+  "version": "1.0.0",
+  "plugins": [
+    {
+      "key": "slack",
+      "name": "Slack",
+      "displayName": "Slack",
+      "description": "Get real-time notifications about AI model updates, risk assessments, and compliance changes directly in your Slack workspace.",
+      "longDescription": "Slack integration enables your team to receive real-time notifications about critical events in VerifyWise. Configure notification routing to send different types of alerts to specific channels, ensuring your team stays informed about AI governance activities, policy changes, risk assessments, and compliance updates.",
+      "version": "1.0.0",
+      "author": "VerifyWise",
+      "category": "communication",
+      "iconUrl": "/assets/slack_logo.svg",
+      "documentationUrl": "https://docs.verifywise.com/integrations/slack",
+      "supportUrl": "https://support.verifywise.com",
+      "isOfficial": true,
+      "isPublished": true,
+      "requiresConfiguration": true,
+      "installationType": "standard",
+      "features": [
+        {
+          "name": "Real-time Notifications",
+          "description": "Receive instant alerts about critical events in your workspace",
+          "displayOrder": 1
+        },
+        {
+          "name": "Channel Routing",
+          "description": "Route different notification types to specific channels",
+          "displayOrder": 2
+        },
+        {
+          "name": "OAuth Integration",
+          "description": "Secure authentication with Slack workspace",
+          "displayOrder": 3
+        },
+        {
+          "name": "Policy Reminders",
+          "description": "Automated reminders for policy reviews and updates",
+          "displayOrder": 4
+        }
+      ],
+      "tags": ["notifications", "messaging", "collaboration", "alerts"],
+      "pluginPath": "plugins/slack",
+      "entryPoint": "index.ts",
+      "dependencies": {
+        "@slack/web-api": "^6.9.0"
+      }
+    },
+    {
+      "key": "mlflow",
+      "name": "MLflow",
+      "displayName": "MLflow",
+      "description": "Track and manage machine learning experiments, models, and deployments with comprehensive ML lifecycle management.",
+      "longDescription": "MLflow integration connects VerifyWise with your MLflow tracking server, enabling automatic synchronization of ML models and experiments. Track model versions, monitor training metrics, and maintain a comprehensive inventory of all ML models used in your AI systems for compliance and governance purposes.",
+      "version": "1.0.0",
+      "author": "VerifyWise",
+      "category": "ml_ops",
+      "iconUrl": "/assets/mlflow_logo.svg",
+      "documentationUrl": "https://docs.verifywise.com/integrations/mlflow",
+      "supportUrl": "https://support.verifywise.com",
+      "isOfficial": true,
+      "isPublished": true,
+      "requiresConfiguration": true,
+      "installationType": "tenant_scoped",
+      "features": [
+        {
+          "name": "Model Tracking",
+          "description": "Automatically sync ML models from your MLflow server",
+          "displayOrder": 1
+        },
+        {
+          "name": "Experiment Management",
+          "description": "Track experiments and training runs",
+          "displayOrder": 2
+        },
+        {
+          "name": "Version Control",
+          "description": "Maintain model version history and lineage",
+          "displayOrder": 3
+        },
+        {
+          "name": "Metrics Monitoring",
+          "description": "Monitor model performance metrics and parameters",
+          "displayOrder": 4
+        },
+        {
+          "name": "Scheduled Sync",
+          "description": "Hourly automated synchronization of models",
+          "displayOrder": 5
+        }
+      ],
+      "tags": ["ml-ops", "model-tracking", "experiments", "model-registry"],
+      "pluginPath": "plugins/mlflow",
+      "entryPoint": "index.ts",
+      "dependencies": {
+        "axios": "^1.6.0"
+      }
+    }
+  ],
+  "categories": [
+    {
+      "id": "communication",
+      "name": "Communication",
+      "description": "Integrations for team communication and notifications"
+    },
+    {
+      "id": "ml_ops",
+      "name": "ML Operations",
+      "description": "Tools for managing machine learning workflows and models"
+    },
+    {
+      "id": "version_control",
+      "name": "Version Control",
+      "description": "Integration with version control systems"
+    },
+    {
+      "id": "monitoring",
+      "name": "Monitoring",
+      "description": "System and application monitoring tools"
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "description": "Security and compliance tools"
+    }
+  ]
+}

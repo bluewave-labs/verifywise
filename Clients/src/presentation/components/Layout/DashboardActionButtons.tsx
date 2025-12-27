@@ -1,7 +1,7 @@
 import React, { useMemo, memo, useCallback } from 'react';
 import { Stack, IconButton } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Puzzle, Zap } from 'lucide-react';
+import { Search, Puzzle, Zap, Package } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
@@ -58,6 +58,13 @@ const STYLE = {
     border: '1px solid #e5e5e5',
     '&:hover': { backgroundColor: 'rgba(139, 92, 246, 0.08)', borderColor: '#8B5CF6' },
     '&.Mui-disabled': { backgroundColor: 'transparent', color: '#8B5CF6', opacity: 0.5 },
+  },
+  plugins: {
+    backgroundColor: 'transparent',
+    color: '#10B981',
+    border: '1px solid #e5e5e5',
+    '&:hover': { backgroundColor: 'rgba(16, 185, 129, 0.08)', borderColor: '#10B981' },
+    '&.Mui-disabled': { backgroundColor: 'transparent', color: '#10B981', opacity: 0.5 },
   },
   automations: {
     backgroundColor: 'transparent',
@@ -142,6 +149,25 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
             sx={{ ...baseStyles, ...STYLE.integrations }}
           >
             <Puzzle size={16} />
+          </IconButton>
+        </span>
+      </VWTooltip>
+
+      {/* Plugins */}
+      <VWTooltip
+        header="Plugins"
+        content={isAdmin ? "Browse and manage plugins from the marketplace." : "Admin access required."}
+        placement="bottom"
+        maxWidth={200}
+      >
+        <span>
+          <IconButton
+            size="small"
+            onClick={isAdmin ? () => navigate('/plugins/marketplace') : undefined}
+            disabled={!isAdmin}
+            sx={{ ...baseStyles, ...STYLE.plugins }}
+          >
+            <Package size={16} />
           </IconButton>
         </span>
       </VWTooltip>

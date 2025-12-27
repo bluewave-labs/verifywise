@@ -5,7 +5,7 @@
  * explore relationships without leaving their current context.
  */
 
-import React, { Suspense, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   Modal,
   Box,
@@ -16,8 +16,12 @@ import {
 } from '@mui/material';
 import { X } from 'lucide-react';
 import { EntityGraphFocusProvider, useEntityGraphFocus } from '../../contexts/EntityGraphFocusContext';
+// Import ReactFlow CSS at modal level to ensure it's available in the portal
+import '@xyflow/react/dist/style.css';
+// Import EntityGraph directly (not lazy) to avoid portal/context issues
+import EntityGraph from '../../pages/EntityGraph';
 
-export type FocusEntityType = 'model' | 'risk' | 'vendor' | 'control' | 'useCase' | 'evidence';
+export type FocusEntityType = 'model' | 'risk' | 'vendor' | 'useCase' | 'evidence' | 'framework';
 
 interface EntityGraphModalProps {
   open: boolean;
@@ -26,9 +30,6 @@ interface EntityGraphModalProps {
   focusEntityType: FocusEntityType;
   focusEntityLabel?: string;
 }
-
-// Lazy load the full Entity Graph page
-const EntityGraph = React.lazy(() => import('../../pages/EntityGraph'));
 
 // Inner component that uses the focus context
 const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
@@ -39,6 +40,17 @@ const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
   focusEntityLabel,
 }) => {
   const { setFocusEntity, clearFocus } = useEntityGraphFocus();
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  // Delay rendering until modal is fully open to prevent NaN viewport issues
+  useEffect(() => {
+    if (open) {
+      const timer = setTimeout(() => setIsMounted(true), 100);
+      return () => clearTimeout(timer);
+    }
+    setIsMounted(false);
+    return undefined;
+  }, [open]);
 
   // Set focus entity when modal opens
   useEffect(() => {
@@ -64,9 +76,9 @@ const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
       model: 'Model',
       risk: 'Risk',
       vendor: 'Vendor',
-      control: 'Control',
       useCase: 'Use case',
       evidence: 'Evidence',
+      framework: 'Framework',
     };
     return labels[type] || type;
   };
@@ -161,30 +173,25 @@ const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
             flex: 1,
             position: 'relative',
             overflow: 'hidden',
-            // Hide the page header/breadcrumbs in modal mode
-            '& > div > div:first-of-type': {
-              display: 'none', // Hide PageBreadcrumbs
-            },
+            minHeight: 400,
           }}
         >
-          <Suspense
-            fallback={
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%',
-                  gap: 2,
-                }}
-              >
-                <CircularProgress size={24} />
-                <Typography sx={{ color: '#667085' }}>Loading graph...</Typography>
-              </Box>
-            }
-          >
+          {isMounted ? (
             <EntityGraph />
-          </Suspense>
+          ) : (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                gap: 2,
+              }}
+            >
+              <CircularProgress size={24} />
+              <Typography sx={{ color: '#667085' }}>Loading graph...</Typography>
+            </Box>
+          )}
         </Box>
       </Box>
     </Modal>

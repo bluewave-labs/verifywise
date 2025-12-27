@@ -6,7 +6,6 @@ import {
   List,
   AlertTriangle,
   Building2,
-  Shield,
   FileText,
   BookOpen,
   User,
@@ -14,7 +13,7 @@ import {
 } from 'lucide-react';
 import VWTooltip from '../../components/VWTooltip';
 
-export type EntityType = 'useCase' | 'model' | 'risk' | 'vendor' | 'control' | 'evidence' | 'framework' | 'user';
+export type EntityType = 'useCase' | 'model' | 'risk' | 'vendor' | 'evidence' | 'framework' | 'user';
 
 interface EntityNodeData {
   label: string;
@@ -34,7 +33,6 @@ const entityIcons: Record<EntityType, LucideIcon> = {
   model: List,
   risk: AlertTriangle,
   vendor: Building2,
-  control: Shield,
   evidence: FileText,
   framework: BookOpen,
   user: User,
@@ -56,7 +54,6 @@ const EntityNode: React.FC<NodeProps> = ({ data, sourcePosition, targetPosition 
   const nodeData = data as unknown as EntityNodeData;
   const IconComponent = entityIcons[nodeData.entityType] || FolderTree;
   const isRiskNode = nodeData.entityType === 'risk';
-  const isControlNode = nodeData.entityType === 'control';
   const riskColor = nodeData.riskLevel ? riskLevelColors[nodeData.riskLevel] : undefined;
 
   // Node size based on connections (subtle scaling)
@@ -71,14 +68,11 @@ const EntityNode: React.FC<NodeProps> = ({ data, sourcePosition, targetPosition 
       {nodeData.sublabel && <p>{nodeData.sublabel}</p>}
       {nodeData.status && <p>Status: {nodeData.status}</p>}
       {nodeData.riskLevel && <p>Risk level: {nodeData.riskLevel}</p>}
-      {isControlNode && nodeData.evidenceCount !== undefined && (
-        <p>{nodeData.evidenceCount} evidence file{nodeData.evidenceCount !== 1 ? 's' : ''}</p>
-      )}
     </Box>
   );
 
   return (
-    <VWTooltip header={nodeData.label} content={tooltipContent} placement="top" maxWidth={300}>
+    <VWTooltip header={nodeData.label} content={tooltipContent} placement="top" maxWidth={400}>
       <Box
         sx={{
           backgroundColor: nodeData.isHighlighted ? '#fffbeb' : 'white',
@@ -189,29 +183,6 @@ const EntityNode: React.FC<NodeProps> = ({ data, sourcePosition, targetPosition 
           </Box>
         )}
 
-        {/* Evidence count for control nodes */}
-        {isControlNode && nodeData.evidenceCount !== undefined && nodeData.evidenceCount > 0 && (
-          <Box
-            sx={{
-              mt: 0.5,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-            }}
-          >
-            <FileText size={10} color="#667085" />
-            <Typography
-              variant="caption"
-              sx={{
-                fontSize: 9,
-                color: '#667085',
-                fontWeight: 500,
-              }}
-            >
-              {nodeData.evidenceCount} file{nodeData.evidenceCount !== 1 ? 's' : ''}
-            </Typography>
-          </Box>
-        )}
 
         <Handle
           type="source"

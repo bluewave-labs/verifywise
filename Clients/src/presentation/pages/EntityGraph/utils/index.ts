@@ -5,3 +5,5 @@ export {
   type NodeGeneratorOptions,
   type NodeGeneratorResult
 } from './nodeGenerator';
+
+export { getConnectedEntityTypes } from './connectedEntityTypes';

@@ -39,7 +39,6 @@ import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
 import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
-import EntityGraph from "../../presentation/pages/EntityGraph";
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -96,7 +95,6 @@ export const createRoutes = (
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
-    <Route path="/entity-graph" element={<EntityGraph />} />
   </Route>,
   <Route
     key="admin-reg"

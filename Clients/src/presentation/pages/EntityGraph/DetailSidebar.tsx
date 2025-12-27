@@ -63,7 +63,6 @@ const entityTypeLabels: Record<EntityType, string> = {
   model: 'Model',
   risk: 'Risk',
   vendor: 'Vendor',
-  control: 'Control',
   evidence: 'Evidence',
   framework: 'Framework',
   user: 'User',
@@ -74,7 +73,6 @@ const entityRoutes: Record<EntityType, string> = {
   model: '/model-inventory',
   risk: '/risk-management',
   vendor: '/vendors',
-  control: '/controls',
   evidence: '/file-manager',
   framework: '/framework',
   user: '/settings',
@@ -153,7 +151,7 @@ const DetailSidebar: React.FC<DetailSidebarProps> = ({
         position: 'absolute',
         top: 0,
         right: 0,
-        width: 360,
+        width: 410,
         height: '100%',
         backgroundColor: 'white',
         borderLeft: '1px solid #d0d5dd',
@@ -207,6 +205,9 @@ const DetailSidebar: React.FC<DetailSidebarProps> = ({
               fontWeight: 600,
               color: '#101828',
               wordBreak: 'break-word',
+              whiteSpace: 'normal',
+              overflow: 'visible',
+              textOverflow: 'clip',
             }}
           >
             {entity.label}
@@ -395,27 +396,6 @@ const DetailSidebar: React.FC<DetailSidebarProps> = ({
               )}
               {Boolean(rawData.action_plan) && (
                 <DetailText label="Action plan" value={String(rawData.action_plan)} />
-              )}
-            </>
-          )}
-
-          {/* CONTROL Details */}
-          {entity.entityType === 'control' && (
-            <>
-              {Boolean(rawData.description) && (
-                <DetailText label="Description" value={String(rawData.description)} />
-              )}
-              {Boolean(rawData.risk_review) && (
-                <DetailRow icon={<Shield size={14} />} label="Risk review" value={String(rawData.risk_review)} isChip />
-              )}
-              {Boolean(rawData.due_date) && (
-                <DetailRow icon={<Calendar size={14} />} label="Due date" value={formatDate(rawData.due_date)} />
-              )}
-              {(rawData.numberOfDoneSubcontrols !== undefined && rawData.numberOfSubcontrols !== undefined) && (
-                <DetailRow icon={<CheckCircle2 size={14} />} label="Subcontrols" value={`${rawData.numberOfDoneSubcontrols}/${rawData.numberOfSubcontrols}`} />
-              )}
-              {Boolean(rawData.implementation_details) && (
-                <DetailText label="Implementation" value={String(rawData.implementation_details)} />
               )}
             </>
           )}

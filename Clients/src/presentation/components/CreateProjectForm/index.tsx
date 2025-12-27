@@ -24,7 +24,7 @@ import selectValidation from "../../../application/validations/selectValidation"
 import { extractUserToken } from "../../../application/tools/extractToken";
 import useUsers from "../../../application/hooks/useUsers";
 import { CreateProjectFormValues } from "../../../domain/interfaces/i.form";
-import { CreateProjectFormErrors } from "../../../types/form.props";
+import { CreateProjectFormErrors } from "../../types/form.props";
 // import { CreateProjectFormUser } from "../../../domain/interfaces/i.user";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -103,7 +103,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           ...prevValues,
           [prop]: event.target.value,
         }));
-        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+        setErrors((prevErrors: CreateProjectFormErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
   );
@@ -115,7 +115,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           ...prevValues,
           [prop]: event.target.value,
         }));
-        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+        setErrors((prevErrors: CreateProjectFormErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
   );
@@ -251,7 +251,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           [prop]: newValue,
         }));
         setMemberRequired(false);
-        setErrors((prevErrors) => ({ ...prevErrors, members: "" }));
+        setErrors((prevErrors: CreateProjectFormErrors) => ({ ...prevErrors, members: "" }));
       },
     []
   );

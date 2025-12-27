@@ -11,7 +11,11 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { ChevronsUpDown } from "lucide-react";
 import Checkbox from "../../Inputs/Checkbox";
 
-const SelectorVertical = (props: any) => (
+interface SelectorVerticalProps {
+  [key: string]: unknown;
+}
+
+const SelectorVertical = (props: SelectorVerticalProps) => (
   <ChevronsUpDown size={16} {...props} />
 );
 import {
@@ -67,6 +71,8 @@ export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
     event.stopPropagation();
     const riskId = riskData.id;
     if (deletedRisks.includes(riskId)) {
+      // Risk is deleted, skip selection
+      return;
     } else if (checkedRows.includes(riskId)) {
       setCheckedRows(checkedRows.filter((id) => id !== riskId));
     } else {
@@ -135,8 +141,8 @@ export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
                     }}
                     variant="contained"
                     text="View"
-                    onClick={(e: React.MouseEvent<HTMLElement>) => {
-                      handleRowClick(row, e);
+                    onClick={(e) => {
+                      handleRowClick(row, e as React.MouseEvent<HTMLElement>);
                     }}
                   />
                 </TableCell>

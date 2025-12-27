@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getRouteMapping, getRouteIcon } from "./routeMapping";
 
 import { ChevronRight as ChevronRightGreyIcon } from "lucide-react";
-import { IBreadcrumbItem } from "../../types/interfaces/i.breadcrumbs";
+import { IBreadcrumbItemPresentation } from "../../types/breadcrumbs.types";
 import { IBreadcrumbsProps } from "../../types/breadcrumbs.types";
 
 /**
@@ -64,12 +64,12 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
   /**
    * Auto-generate breadcrumbs from current route
    */
-  const generateBreadcrumbs = useMemo((): IBreadcrumbItem[] => {
+  const generateBreadcrumbs = useMemo((): IBreadcrumbItemPresentation[] => {
     if (!autoGenerate) return [];
 
     const pathSegments = location.pathname.split("/").filter(Boolean);
 
-    const breadcrumbs: IBreadcrumbItem[] = [];
+    const breadcrumbs: IBreadcrumbItemPresentation[] = [];
 
     // Add home item
     breadcrumbs.push({
@@ -110,7 +110,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
    * Enhanced with error handling
    */
   const handleItemClick = useCallback(
-    (item: IBreadcrumbItem, index: number) => {
+    (item: IBreadcrumbItemPresentation, index: number) => {
       if (item.disabled) return;
 
       try {
@@ -138,7 +138,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
    * Memoized for better performance
    */
   const renderBreadcrumbItem = useCallback(
-    (item: IBreadcrumbItem, index: number, totalItems: number) => {
+    (item: IBreadcrumbItemPresentation, index: number, totalItems: number) => {
       const isLast = index === totalItems - 1;
       const isDisabled = item.disabled || isLast;
       const truncatedLabel = truncateText(item.label);
@@ -185,7 +185,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
         >
           {item.icon && (
             <span style={{ display: "flex", alignItems: "center" }}>
-              {item.icon}
+              {item.icon as React.ReactNode}
             </span>
           )}
           {truncatedLabel}
@@ -256,7 +256,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
       }}
     >
       <MUIBreadcrumbs
-        separator={separator}
+        separator={separator as React.ReactNode}
         maxItems={maxItems}
         aria-label="Page navigation breadcrumbs"
         sx={{
@@ -278,7 +278,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
         }}
       >
         {breadcrumbItems.map((item, index) =>
-          renderBreadcrumbItem(item, index, breadcrumbItems.length)
+          renderBreadcrumbItem(item as IBreadcrumbItemPresentation, index, breadcrumbItems.length)
         )}
       </MUIBreadcrumbs>
     </Stack>

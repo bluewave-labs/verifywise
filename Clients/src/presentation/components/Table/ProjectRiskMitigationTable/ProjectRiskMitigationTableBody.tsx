@@ -12,7 +12,11 @@ import { useCallback, useState } from "react";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 
-const SelectorVertical = (props: any) => (
+interface SelectorVerticalProps {
+  [key: string]: unknown;
+}
+
+const SelectorVertical = (props: SelectorVerticalProps) => (
   <ChevronsUpDown size={16} {...props} />
 );
 import {
@@ -136,8 +140,8 @@ export const ProjectRiskMitigationTableBody: React.FC<
                     }}
                     variant="contained"
                     text="View"
-                    onClick={(e: React.MouseEvent<HTMLElement>) => {
-                      handleRowClick(row, e);
+                    onClick={(e) => {
+                      handleRowClick(row, e as React.MouseEvent<HTMLElement>);
                     }}
                   />
                 </TableCell>

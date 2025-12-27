@@ -1,3 +1,4 @@
+import React from "react";
 import { SxProps, Theme } from "@mui/material";
 import {
   ICustomizableButtonCoreProps,
@@ -7,8 +8,21 @@ import {
 /**
  * Presentation adapter for CustomizableButton component
  * Extends domain props with MUI-specific styling
+ * Overrides unknown types from domain with React.ReactNode
  */
-export interface ICustomizableButtonProps extends ICustomizableButtonCoreProps {
+export interface ICustomizableButtonProps extends Omit<ICustomizableButtonCoreProps, 'icon' | 'startIcon' | 'endIcon' | 'children' | 'loadingIndicator' | 'onClick'> {
+  /** Icon element (overrides domain unknown type) */
+  icon?: React.ReactNode;
+  /** Icon to display at the start of the button */
+  startIcon?: React.ReactNode;
+  /** Icon to display at the end of the button */
+  endIcon?: React.ReactNode;
+  /** Button content */
+  children?: React.ReactNode;
+  /** Custom loading indicator */
+  loadingIndicator?: React.ReactNode;
+  /** Click event handler (overrides domain unknown type) */
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   /** Custom styles using MUI's sx prop */
   sx?: SxProps<Theme>;
 }

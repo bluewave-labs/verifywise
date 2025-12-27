@@ -226,10 +226,10 @@ const CustomizableButton = memo(
                 {spinner}
               </Box>
             ) : (
-              resolvedStartIcon
+              (resolvedStartIcon as React.ReactNode)
             )
           }
-          endIcon={!loading ? endIcon : undefined}
+          endIcon={!loading ? (endIcon as React.ReactNode) : undefined}
           {...filteredRest}
         >
           {/* Show centered spinner only when loading and NO icons at all */}
@@ -253,7 +253,7 @@ const CustomizableButton = memo(
               transition: "opacity 0.2s ease",
             }}
           >
-            {buttonText}
+            {buttonText as React.ReactNode}
           </Box>
         </Button>
       );

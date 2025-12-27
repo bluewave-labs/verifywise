@@ -143,7 +143,7 @@ CREATE DATABASE verifywise;
 EvalServer is a Python-based service that handles LLM evaluations. If you want to use the evaluation features, follow these steps:
 
 ```
-cd EvalServer/src
+cd EvalServer
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt

@@ -63,10 +63,6 @@ export const routeMapping: Record<string, string> = {
   // File management
   "/file-manager": "Evidence",
 
-  // Integrations
-  "/integrations": "Integrations",
-  "/integrations/mlflow": "MLFlow",
-
   // Plugins
   "/plugins/marketplace": "Plugins",
   "/plugins/my-plugins": "Plugins",
@@ -158,9 +154,6 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // File management
   "/file-manager": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
 
-  // Integrations
-  "/integrations": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
-
   // Plugins
   "/plugins/marketplace": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
   "/plugins/my-plugins": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
@@ -184,9 +177,6 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Automations
   "/automations": () => React.createElement(Zap, { size: 14, strokeWidth: 1.5 }),
-
-  // MLFlow
-  "/integrations/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),
 
   // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
   "/framework/framework-risks": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),

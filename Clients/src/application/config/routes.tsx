@@ -1,9 +1,6 @@
 import { Route, Navigate } from "react-router-dom";
 import Dashboard from "../../presentation/containers/Dashboard";
 import Vendors from "../../presentation/pages/Vendors";
-import Integrations from "../../presentation/pages/Integrations";
-import SlackManagement from "../../presentation/pages/Integrations/SlackManagement";
-import MLFlowManagement from "../../presentation/pages/Integrations/MLFlowManagement";
 import Plugins from "../../presentation/pages/Plugins";
 import PluginManagement from "../../presentation/pages/Plugins/PluginManagement";
 import Setting from "../../presentation/pages/SettingsPage";
@@ -60,11 +57,8 @@ export const createRoutes = (
       <Route path="risks" element={<Vendors />} /> {/* Risks tab */}
     </Route>
 
-    <Route path="/integrations" element={<Integrations />} />
     <Route path="/settings" element={<Setting />} />
     <Route path="/settings/:tab" element={<Setting />} />
-    <Route path="/integrations/slack" element={<SlackManagement />} />
-    <Route path="/integrations/mlflow" element={<MLFlowManagement />} />
     <Route path="/plugins" element={<Plugins />} />
     <Route path="/plugins/marketplace" element={<Plugins />} />
     <Route path="/plugins/my-plugins" element={<Plugins />} />

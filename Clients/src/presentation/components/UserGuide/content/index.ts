@@ -26,9 +26,6 @@ import { organizationSettingsContent } from './settings/organization-settings';
 import { userManagementContent } from './settings/user-management';
 import { roleConfigurationContent } from './settings/role-configuration';
 import { notificationsContent } from './settings/notifications';
-import { integrationOverviewContent } from './integrations/integration-overview';
-import { slackIntegrationContent } from './integrations/slack-integration';
-import { apiAccessContent } from './integrations/api-access';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -68,10 +65,6 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'settings/user-management': userManagementContent,
   'settings/role-configuration': roleConfigurationContent,
   'settings/notifications': notificationsContent,
-  // Integrations
-  'integrations/integration-overview': integrationOverviewContent,
-  'integrations/slack-integration': slackIntegrationContent,
-  'integrations/api-access': apiAccessContent,
 };
 
 // Helper to get article content

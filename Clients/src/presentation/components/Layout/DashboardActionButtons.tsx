@@ -1,7 +1,7 @@
 import React, { useMemo, memo, useCallback } from 'react';
 import { Stack, IconButton } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Puzzle, Zap, Package } from 'lucide-react';
+import { Search, Zap, Package } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
@@ -51,13 +51,6 @@ const STYLE = {
     color: '#666',
     border: '1px solid #e5e5e5',
     '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: '#d0d5dd' },
-  },
-  integrations: {
-    backgroundColor: 'transparent',
-    color: '#8B5CF6',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(139, 92, 246, 0.08)', borderColor: '#8B5CF6' },
-    '&.Mui-disabled': { backgroundColor: 'transparent', color: '#8B5CF6', opacity: 0.5 },
   },
   plugins: {
     backgroundColor: 'transparent',
@@ -132,25 +125,6 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         <IconButton size="small" onClick={handleOpenCommandPalette} sx={{ ...baseStyles, ...STYLE.search }}>
           <Search size={16} />
         </IconButton>
-      </VWTooltip>
-
-      {/* Integrations */}
-      <VWTooltip
-        header="Integrations"
-        content={isAdmin ? "Connect external tools and services." : "Admin access required."}
-        placement="bottom"
-        maxWidth={200}
-      >
-        <span>
-          <IconButton
-            size="small"
-            onClick={isAdmin ? () => navigate('/integrations') : undefined}
-            disabled={!isAdmin}
-            sx={{ ...baseStyles, ...STYLE.integrations }}
-          >
-            <Puzzle size={16} />
-          </IconButton>
-        </span>
       </VWTooltip>
 
       {/* Plugins */}

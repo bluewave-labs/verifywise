@@ -88,8 +88,9 @@ The VerifyWise application has two components: a frontend built with React.js an
 Prerequisites:
 
 - npm and Docker
+- Python 3.12+ (for EvalServer)
 - A running PostgreSQL, preferably as a Docker image (eg. using `docker pull postgres:latest`)
-- Available ports: 5173 (frontend), 8080 (backend), 5432 (database)
+- Available ports: 5173 (frontend), 3000 (backend), 5432 (database), 6379 (Redis), 8000 (EvalServer)
 
 #### Step 1: Clone, install dependencies, and set up databases
 

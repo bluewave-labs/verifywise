@@ -153,7 +153,6 @@ pip install -r requirements.txt
 Set up the environment file. You can copy the minimal `.env.example` file in the EvalServer directory:
 
 ```
-cd ..
 cp .env.example .env
 ```
 

@@ -498,7 +498,7 @@ const RiskManagement = () => {
 
     setTimeout(() => {
       setCurrentRow(null);
-    }, 3500); // Extended flash duration
+    }, 3000); // Flash duration consistent with other tables
     setRefreshKey((prevKey) => prevKey + 1);
   };
 

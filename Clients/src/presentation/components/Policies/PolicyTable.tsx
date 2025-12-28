@@ -76,14 +76,14 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
             key={policy.id}
             tabIndex={0}
             aria-label={`Policy: ${policy.title}`}
-            sx={{ 
+            sx={{
               ...singleTheme.tableStyles.primary.body.row,
-              backgroundColor: flashRowId === policy.id 
-                ? "rgba(5, 150, 105, 0.1)"
+              backgroundColor: flashRowId === policy.id
+                ? singleTheme.flashColors.background
                 : "transparent",
               "&:hover": {
-                backgroundColor: flashRowId === policy.id 
-                  ? "rgba(5, 150, 105, 0.15)"
+                backgroundColor: flashRowId === policy.id
+                  ? singleTheme.flashColors.backgroundHover
                   : "rgba(0, 0, 0, 0.04)",
               }
             }}

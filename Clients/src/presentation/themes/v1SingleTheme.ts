@@ -65,6 +65,12 @@ const colors = {
   infoHover: "#2563EB",
 };
 
+// Flash indicator colors for table row updates
+const flashColors = {
+  background: "rgba(5, 150, 105, 0.1)",
+  backgroundHover: "rgba(5, 150, 105, 0.15)",
+};
+
 const buttons = {
   // Primary buttons - main actions
   primary: {
@@ -448,6 +454,7 @@ const singleTheme = {
   iconButtons,
   alertStyles,
   textColors,
+  flashColors,
 };
 
 export default singleTheme;

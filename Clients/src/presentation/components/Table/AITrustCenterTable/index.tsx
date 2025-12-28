@@ -261,8 +261,8 @@ const AITrustCenterTable = <T extends { id: number }>({
                 key={item.id}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  backgroundColor: flashRowId === item.id 
-                    ? "rgba(5, 150, 105, 0.1)"
+                  backgroundColor: flashRowId === item.id
+                    ? singleTheme.flashColors.background
                     : "transparent",
                   "& .MuiTableCell-root": {
                     padding: "8px 10px !important",
@@ -274,8 +274,8 @@ const AITrustCenterTable = <T extends { id: number }>({
                     !disabled && {
                       cursor: "pointer",
                       "&:hover": {
-                        backgroundColor: flashRowId === item.id 
-                          ? "rgba(5, 150, 105, 0.15)"
+                        backgroundColor: flashRowId === item.id
+                          ? singleTheme.flashColors.backgroundHover
                           : "#FBFBFB",
                       },
                     }),

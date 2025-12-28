@@ -218,7 +218,7 @@ export interface ITasksTableProps {
   isUpdateDisabled?: boolean;
   onRowClick?: (task: ITask) => void;
   hidePagination?: boolean;
-  flashRowId?: number | null;
+  flashRowId?: number | string | null;
   // Task archive/restore/hard delete props
   onRestore?: (taskId: number) => void;
   onHardDelete?: (taskId: number) => void;

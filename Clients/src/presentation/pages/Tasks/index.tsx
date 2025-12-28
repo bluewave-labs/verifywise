@@ -376,8 +376,6 @@ const Tasks: React.FC = () => {
   const handleTaskStatusChange =
     (taskId: number) =>
     async (newStatus: string): Promise<boolean> => {
-      console.log("🚀 handleTaskStatusChange called with taskId:", taskId, "newStatus:", newStatus);
-      console.log("📝 Current tasks:", tasks.map(t => ({ id: t.id, title: t.title, status: t.status })));
       try {
         const response = await updateTaskStatus({
           id: taskId,

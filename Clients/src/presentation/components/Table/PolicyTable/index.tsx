@@ -266,12 +266,12 @@ const CustomizablePolicyTable = ({
               key={row.id}
               onClick={(event) => onRowClickHandler(event, row)}
               sx={{
-                backgroundColor: flashRowId === row.id 
-                  ? "rgba(5, 150, 105, 0.1)"
+                backgroundColor: flashRowId === row.id
+                  ? singleTheme.flashColors.background
                   : "transparent",
                 "&:hover": {
-                  backgroundColor: flashRowId === row.id 
-                    ? "rgba(5, 150, 105, 0.15)"
+                  backgroundColor: flashRowId === row.id
+                    ? singleTheme.flashColors.backgroundHover
                     : "rgba(0, 0, 0, 0.04)",
                 }
               }}

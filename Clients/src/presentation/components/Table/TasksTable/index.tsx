@@ -314,16 +314,18 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     backgroundColor: (() => {
                       const isFlashing = flashRowId === task.id;
                       return isFlashing
-                        ? "rgba(5, 150, 105, 0.1)"
+                        ? singleTheme.flashColors.background
                         : isArchived
                         ? "rgba(0, 0, 0, 0.02)"
                         : "transparent";
                     })(),
                     opacity: isArchived ? 0.7 : 1,
                     "&:hover": {
-                      backgroundColor: isArchived
-                        ? "rgba(0, 0, 0, 0.04)"
-                        : "#f5f5f5",
+                      backgroundColor: (() => {
+                        if (isArchived) return "rgba(0, 0, 0, 0.04)";
+                        if (flashRowId === task.id) return singleTheme.flashColors.backgroundHover;
+                        return "#f5f5f5";
+                      })(),
                     },
                   }}
                   onClick={() => !isArchived && onRowClick?.(task)}
@@ -591,6 +593,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       onRestore,
       onHardDelete,
       sortConfig,
+      flashRowId,
     ]
   );
 

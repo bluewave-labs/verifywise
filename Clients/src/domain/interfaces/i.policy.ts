@@ -10,7 +10,7 @@ export interface PolicyTableProps {
   isLoading?: boolean;
   error?: Error | null;
   hidePagination?: boolean;
-  flashRowId?: number | null;
+  flashRowId?: number | string | null;
 }
 
 export interface PolicyInput {

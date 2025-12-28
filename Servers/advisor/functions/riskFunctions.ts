@@ -5,6 +5,7 @@ import {
   getRisksByFrameworkQuery,
 } from "../../utils/risk.utils";
 import { getTimeseriesForTimeframe } from "../../utils/history/riskHistory.utils";
+import logger from "../../utils/logger/fileLogger";
 
 export interface FetchRisksParams {
   projectId?: number;
@@ -97,7 +98,7 @@ const fetchRisks = async (
 
     return risks;
   } catch (error) {
-    console.error("Error fetching risks:", error);
+    logger.error("Error fetching risks:", error);
     throw new Error(
       `Failed to fetch risks: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
@@ -222,7 +223,7 @@ const getRiskAnalytics = async (
       totalRisks,
     };
   } catch (error) {
-    console.error("Error getting risk analytics:", error);
+    logger.error("Error getting risk analytics:", error);
     throw new Error(
       `Failed to get risk analytics: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
@@ -350,7 +351,7 @@ const getExecutiveSummary = async (
       urgentRisks,
     };
   } catch (error) {
-    console.error("Error getting executive summary:", error);
+    logger.error("Error getting executive summary:", error);
     throw new Error(
       `Failed to get executive summary: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
@@ -383,7 +384,7 @@ const getRiskHistoryTimeseries = async (
 
     return timeseriesData;
   } catch (error) {
-    console.error("Error getting risk history timeseries:", error);
+    logger.error("Error getting risk history timeseries:", error);
     throw new Error(
       `Failed to get risk history timeseries: ${error instanceof Error ? error.message : "Unknown error"}`,
     );

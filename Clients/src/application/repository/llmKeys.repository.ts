@@ -21,7 +21,7 @@ export async function getLLMKeys(): Promise<any> {
   return response;
 }
 
-export async function getLMKey(name: string): Promise<any> {
+export async function getLLMKey(name: string): Promise<any> {
   const response = await apiServices.get(`/llm-keys/${name}`);
   return response;
 }

@@ -5,6 +5,7 @@ import {
   getModelByProjectIdQuery,
   getModelByFrameworkIdQuery,
 } from "../../utils/modelInventory.utils";
+import logger from "../../utils/logger/fileLogger";
 
 export interface FetchModelInventoriesParams {
   projectId?: number;
@@ -78,7 +79,7 @@ const fetchModelInventories = async (
 
     return models;
   } catch (error) {
-    console.error("Error fetching model inventories:", error);
+    logger.error("Error fetching model inventories:", error);
     throw new Error(
       `Failed to fetch model inventories: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
@@ -215,7 +216,7 @@ const getModelInventoryAnalytics = async (
       totalModels,
     };
   } catch (error) {
-    console.error("Error getting model inventory analytics:", error);
+    logger.error("Error getting model inventory analytics:", error);
     throw new Error(
       `Failed to get model inventory analytics: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
@@ -366,7 +367,7 @@ const getModelInventoryExecutiveSummary = async (
       modelsByHostingProvider,
     };
   } catch (error) {
-    console.error("Error getting model inventory executive summary:", error);
+    logger.error("Error getting model inventory executive summary:", error);
     throw new Error(
       `Failed to get model inventory executive summary: ${error instanceof Error ? error.message : "Unknown error"}`,
     );

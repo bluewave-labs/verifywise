@@ -4,16 +4,26 @@ import { ValidationException } from "../domain.layer/exceptions/custom.exception
 import { ILLMKey, LLMProvider } from "../domain.layer/interfaces/i.llmKey";
 import { LLMKeyModel } from "../domain.layer/models/llmKey/llmKey.model";
 
+/**
+ * Masks an API key, showing only the last 4 characters
+ * @param key - The API key to mask
+ * @returns Masked key like "****...abcd"
+ */
+export const maskApiKey = (key: string): string => {
+  if (!key || key.length < 4) return "****";
+  return `****...${key.slice(-4)}`;
+};
+
 export const getLLMKeysQuery = async (tenant: string) => {
   const result = (await sequelize.query(
-    `SELECT * FROM "${tenant}".llm_keys ORDER BY created_at DESC;`,
+    `SELECT id, name, url, model, created_at FROM "${tenant}".llm_keys ORDER BY created_at DESC;`,
   )) as [LLMKeyModel[], number];
   return result[0];
 };
 
 export const getLLMKeyQuery = async (tenant: string, name: string) => {
   const result = (await sequelize.query(
-    `SELECT * FROM "${tenant}".llm_keys WHERE name = :name;`,
+    `SELECT id, name, url, model, created_at FROM "${tenant}".llm_keys WHERE name = :name;`,
     {
       replacements: { name },
     },

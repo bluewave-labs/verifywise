@@ -899,4 +899,93 @@ export class PluginService {
       throw error;
     }
   }
+
+  /**
+   * Get Excel template for risk import
+   */
+  static async getRiskImportTemplate(tenantId: string, organizationId: string): Promise<any> {
+    try {
+      // Check if Risk Import plugin is installed
+      const installation = await findByPlugin("risk-import", tenantId);
+
+      if (!installation) {
+        throw new Error("Risk Import plugin is not installed");
+      }
+
+      // Load plugin and execute getExcelTemplate method
+      const plugin = await this.getPluginByKey("risk-import");
+      if (!plugin) {
+        throw new Error("Risk Import plugin not found in marketplace");
+      }
+
+      const pluginCode = await this.loadPluginCode(plugin);
+      if (!pluginCode || typeof pluginCode.getExcelTemplate !== "function") {
+        throw new Error("Risk Import plugin does not support template generation");
+      }
+
+      // Create context with sequelize instance
+      const context = {
+        sequelize,
+      };
+
+      // Execute get template (returns a Promise)
+      const result = await pluginCode.getExcelTemplate(organizationId, context);
+
+      console.log(`[PluginService] Excel template generated for tenant ${tenantId}, organization ${organizationId}`);
+
+      return result;
+    } catch (error: any) {
+      console.error("[PluginService] Error getting risk import template:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Import risks from CSV data
+   */
+  static async importRisks(
+    csvData: any[],
+    tenantId: string
+  ): Promise<any> {
+    try {
+      // Check if Risk Import plugin is installed
+      const installation = await findByPlugin("risk-import", tenantId);
+
+      if (!installation) {
+        throw new Error("Risk Import plugin is not installed");
+      }
+
+      // Load plugin and execute importRisks method
+      const plugin = await this.getPluginByKey("risk-import");
+      if (!plugin) {
+        throw new Error("Risk Import plugin not found in marketplace");
+      }
+
+      const pluginCode = await this.loadPluginCode(plugin);
+      if (!pluginCode || typeof pluginCode.importRisks !== "function") {
+        throw new Error("Risk Import plugin does not support risk import");
+      }
+
+      const context = {
+        sequelize,
+      };
+
+      // Execute import
+      const result = await pluginCode.importRisks(
+        csvData,
+        tenantId,
+        context
+      );
+
+      console.log(
+        `[PluginService] Risks imported for tenant ${tenantId}:`,
+        `${result.imported} succeeded, ${result.failed} failed`
+      );
+
+      return result;
+    } catch (error: any) {
+      console.error("[PluginService] Error importing risks:", error);
+      throw error;
+    }
+  }
 }

@@ -21,6 +21,9 @@ import {
   MoreVertical as MoreVerticalIcon,
   Settings as SettingsIcon,
   Trash2 as TrashIcon,
+  Package as PackageIcon,
+  FileSpreadsheet as FileSpreadsheetIcon,
+  Database as DatabaseIcon,
 } from 'lucide-react';
 import { cardStyles } from '../../themes/components';
 import { Plugin, PluginInstallationStatus } from '../../../domain/types/plugins';
@@ -81,6 +84,18 @@ const PluginCard: React.FC<PluginCardProps> = ({
     }
   };
 
+  const getFallbackIcon = () => {
+    // Return different icons based on plugin key or category
+    if (plugin.key === 'risk-import') {
+      return { icon: FileSpreadsheetIcon, color: '#10b981', bgColor: 'rgba(16, 185, 129, 0.1)' };
+    }
+    if (plugin.category === 'data_management') {
+      return { icon: DatabaseIcon, color: '#8b5cf6', bgColor: 'rgba(139, 92, 246, 0.1)' };
+    }
+    // Default fallback
+    return { icon: PackageIcon, color: '#6366f1', bgColor: 'rgba(99, 102, 241, 0.1)' };
+  };
+
   const getStatusColor = (status?: PluginInstallationStatus) => {
     if (!status) return 'default';
 
@@ -110,38 +125,22 @@ const PluginCard: React.FC<PluginCardProps> = ({
   };
 
   const getActionText = () => {
-    if (!plugin.installationStatus || plugin.installationStatus === PluginInstallationStatus.UNINSTALLED) {
-      return 'Install';
-    }
     if (plugin.installationStatus === PluginInstallationStatus.INSTALLING) {
       return 'Installing...';
     }
-    if (plugin.installationStatus === PluginInstallationStatus.FAILED) {
-      return 'Retry';
-    }
-    return 'Manage';
+    // Always show "View Details" for consistency
+    return 'View Details';
   };
 
-  const handleActionClick = async () => {
+  const handleActionClick = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+
     if (loading) return;
 
-    try {
-      const status = plugin.installationStatus;
-
-      // If not installed, trigger installation
-      if (!status || status === PluginInstallationStatus.UNINSTALLED) {
-        if (onInstall) await onInstall(plugin.key);
-      }
-      // If installed, navigate to management
-      else if (status === PluginInstallationStatus.INSTALLED) {
-        if (onManage) onManage(plugin);
-      }
-      // If failed, retry installation
-      else if (status === PluginInstallationStatus.FAILED) {
-        if (onInstall) await onInstall(plugin.key);
-      }
-    } catch (error) {
-      console.error(`Failed to handle action for ${plugin.displayName}:`, error);
+    // Always navigate to plugin management page
+    // Installation will happen from there via explicit button
+    if (onManage) {
+      onManage(plugin);
     }
   };
 
@@ -184,17 +183,39 @@ const PluginCard: React.FC<PluginCardProps> = ({
         {/* Header Section */}
         <Box sx={{ p: 2, m: 3, backgroundColor: 'transparent' }}>
           {/* Plugin Icon */}
-          <Box
-            component="img"
-            src={plugin.iconUrl}
-            alt={`${plugin.displayName} logo`}
-            sx={{
-              width: 48,
-              height: 48,
-              mb: 3,
-              objectFit: 'contain',
-            }}
-          />
+          {plugin.iconUrl ? (
+            <Box
+              component="img"
+              src={plugin.iconUrl}
+              alt={`${plugin.displayName} logo`}
+              sx={{
+                width: 48,
+                height: 48,
+                mb: 3,
+                objectFit: 'contain',
+              }}
+            />
+          ) : (
+            (() => {
+              const { icon: FallbackIcon, color, bgColor } = getFallbackIcon();
+              return (
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    mb: 3,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: bgColor,
+                    borderRadius: '8px',
+                  }}
+                >
+                  <FallbackIcon size={28} color={color} />
+                </Box>
+              );
+            })()
+          )}
 
           {/* Plugin Name and Status */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -326,14 +347,16 @@ const PluginCard: React.FC<PluginCardProps> = ({
                   },
                 }}
               >
-                <MenuItem onClick={handleManageClick}>
-                  <ListItemIcon>
-                    <SettingsIcon size={16} />
-                  </ListItemIcon>
-                  <ListItemText primaryTypographyProps={{ fontSize: '13px' }}>
-                    Manage
-                  </ListItemText>
-                </MenuItem>
+                {plugin.requiresConfiguration !== false && (
+                  <MenuItem onClick={handleManageClick}>
+                    <ListItemIcon>
+                      <SettingsIcon size={16} />
+                    </ListItemIcon>
+                    <ListItemText primaryTypographyProps={{ fontSize: '13px' }}>
+                      Manage
+                    </ListItemText>
+                  </MenuItem>
+                )}
                 <MenuItem onClick={handleUninstallClick}>
                   <ListItemIcon>
                     <TrashIcon size={16} color="#dc2626" />

@@ -37,6 +37,9 @@ import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import HistorySidebar from "../../components/Common/HistorySidebar";
 import { useEntityChangeHistory } from "../../../application/hooks/useEntityChangeHistory";
+import { useIsPluginInstalled } from "../../../application/hooks/useIsPluginInstalled";
+import RiskImport from "../../components/RiskImport";
+import { FileText } from "lucide-react";
 
 /**
  * Set initial loading status for all CRUD process
@@ -102,10 +105,14 @@ const RiskManagement = () => {
   const [isAiRiskModalOpen, setIsAiRiskModalOpen] = useState(false);
   const [isSubmitting] = useState(false);
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+  const [isRiskImportModalOpen, setIsRiskImportModalOpen] = useState(false);
 
   // Refs for form submission
   const onSubmitRef = useRef<(() => void) | null>(null);
   const onAiRiskSubmitRef = useRef<(() => void) | null>(null);
+
+  // Check if risk-import plugin is installed
+  const { isInstalled: isRiskImportInstalled } = useIsPluginInstalled("risk-import");
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -806,7 +813,7 @@ const RiskManagement = () => {
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gridTemplateColumns: isRiskImportInstalled ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
                       gap: 2,
                     }}
                   >
@@ -944,6 +951,72 @@ const RiskManagement = () => {
                       Academic research-based risks covering AI safety, fairness, and societal impact
                     </Typography>
                   </Box>
+
+                  {/* Risk Import - only show if plugin is installed */}
+                  {isRiskImportInstalled && (
+                    <Box
+                      role="menuitem"
+                      tabIndex={0}
+                      aria-label="Import risks from CSV"
+                      onClick={() => {
+                        handleInsertFromMenuClose();
+                        setIsRiskImportModalOpen(true);
+                      }}
+                      onKeyDown={(e: React.KeyboardEvent) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleInsertFromMenuClose();
+                          setIsRiskImportModalOpen(true);
+                        }
+                      }}
+                      sx={{
+                        background: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
+                        borderRadius: "4px",
+                        padding: "20px 16px",
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "flex-start",
+                        gap: 1.5,
+                        border: "1px solid rgba(0, 0, 0, 0.04)",
+                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                        minHeight: "140px",
+                        "&:hover": {
+                          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
+                          border: "1px solid rgba(0, 0, 0, 0.08)",
+                          background: "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(250, 250, 250, 1) 100%)",
+                        },
+                        "&:active": {
+                          transform: "scale(0.98)",
+                        },
+                      }}
+                    >
+                      <FileText size={24} color="#6366f1" />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: "13px",
+                          color: "rgba(0, 0, 0, 0.85)",
+                          textAlign: "center",
+                        }}
+                      >
+                        Risk Import (CSV)
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: "11px",
+                          color: "rgba(0, 0, 0, 0.6)",
+                          textAlign: "center",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Import multiple risks at once from a CSV file
+                      </Typography>
+                    </Box>
+                  )}
                   </Box>
                 </Box>
               </Popover>
@@ -1080,6 +1153,23 @@ const RiskManagement = () => {
           users={users}
           usersLoading={usersLoading}
           onSubmitRef={onAiRiskSubmitRef}
+        />
+      </StandardModal>
+
+      {/* Risk Import Modal */}
+      <StandardModal
+        isOpen={isRiskImportModalOpen}
+        onClose={() => setIsRiskImportModalOpen(false)}
+        title="Import Risks from CSV"
+        description="Upload a CSV file to import multiple risks at once. Download the template first if you haven't already."
+        maxWidth="lg"
+        hideActions
+      >
+        <RiskImport
+          onImportComplete={() => {
+            setIsRiskImportModalOpen(false);
+            setRefreshKey((prev) => prev + 1);
+          }}
         />
       </StandardModal>
 

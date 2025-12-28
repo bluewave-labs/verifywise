@@ -746,3 +746,136 @@ export async function syncMLflowModels(
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
+
+/**
+ * Get Excel template for risk import
+ */
+export async function getRiskImportTemplate(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const pluginKey = req.params.key;
+  const tenantId = (req as any).tenantId;
+  const organizationId = (req as any).organizationId;
+
+  const functionName = "getRiskImportTemplate";
+  logStructured(
+    "processing",
+    `getting risk import template for plugin ${pluginKey}, tenantId: ${tenantId}, organizationId: ${organizationId}`,
+    functionName,
+    fileName
+  );
+
+  if (!tenantId) {
+    return res
+      .status(401)
+      .json(STATUS_CODE[401]("User not authenticated"));
+  }
+
+  if (!organizationId) {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Organization ID is required"));
+  }
+
+  if (pluginKey !== "risk-import") {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Invalid plugin key"));
+  }
+
+  try {
+    const result = await PluginService.getRiskImportTemplate(tenantId, organizationId);
+
+    logStructured(
+      "successful",
+      `risk import template generated`,
+      functionName,
+      fileName
+    );
+
+    // Set headers for Excel file download
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${result.filename}"`
+    );
+
+    // Send the buffer directly
+    return res.status(200).send(result.buffer);
+  } catch (error) {
+    // If error is about plugin not being installed
+    if (error instanceof Error && error.message.includes("not installed")) {
+      return res.status(400).json(STATUS_CODE[400]("Risk Import plugin is not installed"));
+    }
+
+    logStructured("error", "failed to get risk import template", functionName, fileName);
+    logger.error("❌ Error in getRiskImportTemplate:", error);
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Import risks from CSV
+ */
+export async function importRisks(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const pluginKey = req.params.key;
+  const { csvData } = req.body;
+  const tenantId = (req as any).tenantId;
+
+  const functionName = "importRisks";
+  logStructured(
+    "processing",
+    `importing risks for plugin ${pluginKey}`,
+    functionName,
+    fileName
+  );
+
+  if (!tenantId) {
+    return res
+      .status(401)
+      .json(STATUS_CODE[401]("User not authenticated"));
+  }
+
+  if (pluginKey !== "risk-import") {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Invalid plugin key"));
+  }
+
+  if (!csvData || !Array.isArray(csvData)) {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("CSV data is required and must be an array"));
+  }
+
+  try {
+    const result = await PluginService.importRisks(csvData, tenantId);
+
+    logStructured(
+      result.success ? "successful" : "error",
+      `imported ${result.imported} risks, ${result.failed} failed`,
+      functionName,
+      fileName
+    );
+
+    return res.status(200).json(STATUS_CODE[200](result));
+  } catch (error) {
+    // If error is about plugin not being installed
+    if (error instanceof Error && error.message.includes("not installed")) {
+      return res.status(400).json(STATUS_CODE[400]("Risk Import plugin is not installed"));
+    }
+
+    logStructured("error", "failed to import risks", functionName, fileName);
+    logger.error("❌ Error in importRisks:", error);
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}

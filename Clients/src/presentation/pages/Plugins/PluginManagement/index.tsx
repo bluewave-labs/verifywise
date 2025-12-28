@@ -38,6 +38,9 @@ import {
   ToggleLeft,
   ToggleRight,
   Send,
+  FileSpreadsheet as FileSpreadsheetIcon,
+  Package as PackageIcon,
+  Database as DatabaseIcon,
 } from "lucide-react";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../../components/Layout/PageHeader";
@@ -56,7 +59,7 @@ const PluginManagement: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { userRoleName } = useAuth();
-  const { uninstall, uninstalling } = usePluginInstallation();
+  const { install, uninstall, installing, uninstalling } = usePluginInstallation();
   const [plugin, setPlugin] = useState<Plugin | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -624,16 +627,43 @@ const PluginManagement: React.FC = () => {
               <Stack spacing={3}>
                 {/* Header with Icon */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Box
-                    component="img"
-                    src={plugin.iconUrl}
-                    alt={`${plugin.displayName} logo`}
-                    sx={{
-                      width: 64,
-                      height: 64,
-                      objectFit: "contain",
-                    }}
-                  />
+                  {plugin.iconUrl ? (
+                    <Box
+                      component="img"
+                      src={plugin.iconUrl}
+                      alt={`${plugin.displayName} logo`}
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        objectFit: "contain",
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor:
+                          plugin.key === "risk-import"
+                            ? "rgba(16, 185, 129, 0.1)"
+                            : plugin.category === "data_management"
+                            ? "rgba(139, 92, 246, 0.1)"
+                            : "rgba(99, 102, 241, 0.1)",
+                        borderRadius: "12px",
+                      }}
+                    >
+                      {plugin.key === "risk-import" ? (
+                        <FileSpreadsheetIcon size={36} color="#10b981" />
+                      ) : plugin.category === "data_management" ? (
+                        <DatabaseIcon size={36} color="#8b5cf6" />
+                      ) : (
+                        <PackageIcon size={36} color="#6366f1" />
+                      )}
+                    </Box>
+                  )}
                   <Box sx={{ flex: 1 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
                       <Typography variant="h5" fontWeight={600} fontSize={18}>
@@ -773,38 +803,84 @@ const PluginManagement: React.FC = () => {
                 */}
 
                 {/* Actions */}
+                <Divider />
+
+                {/* Install Button - Show when plugin is not installed */}
+                {(!plugin.installationStatus || plugin.installationStatus === PluginInstallationStatus.UNINSTALLED || plugin.installationStatus === PluginInstallationStatus.FAILED) && (
+                  <Box sx={{ display: "flex", gap: 2 }}>
+                    <Button
+                      variant="contained"
+                      onClick={async () => {
+                        try {
+                          if (plugin.key) {
+                            await install(plugin.key);
+                            // Refresh plugin data
+                            const updatedPlugin = await getPluginByKey({ key: plugin.key });
+                            setPlugin(updatedPlugin);
+                            setToast({
+                              variant: "success",
+                              body: "Plugin installed successfully!",
+                              visible: true,
+                            });
+                          }
+                        } catch (err: any) {
+                          setToast({
+                            variant: "error",
+                            body: err.message || "Failed to install plugin. Please try again.",
+                            visible: true,
+                          });
+                        }
+                      }}
+                      disabled={installing === plugin.key}
+                      sx={{
+                        backgroundColor: "#13715B",
+                        textTransform: "none",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        "&:hover": {
+                          backgroundColor: "#0f5a47",
+                        },
+                      }}
+                    >
+                      {installing === plugin.key
+                        ? "Installing..."
+                        : plugin.installationStatus === PluginInstallationStatus.FAILED
+                        ? "Retry Installation"
+                        : "Install Plugin"}
+                    </Button>
+                  </Box>
+                )}
+
+                {/* Uninstall Button - Show when plugin is installed */}
                 {plugin.installationStatus === PluginInstallationStatus.INSTALLED && (
-                  <>
-                    <Divider />
-                    <Box sx={{ display: "flex", gap: 2 }}>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={handleUninstallClick}
-                        disabled={uninstalling === plugin.installationId}
-                        sx={{
-                          textTransform: "none",
-                          fontSize: "13px",
-                          fontWeight: 500,
+                  <Box sx={{ display: "flex", gap: 2 }}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={handleUninstallClick}
+                      disabled={uninstalling === plugin.installationId}
+                      sx={{
+                        textTransform: "none",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        borderColor: "#dc2626",
+                        color: "#dc2626",
+                        "&:hover": {
+                          backgroundColor: "rgba(220, 38, 38, 0.04)",
                           borderColor: "#dc2626",
-                          color: "#dc2626",
-                          "&:hover": {
-                            backgroundColor: "rgba(220, 38, 38, 0.04)",
-                            borderColor: "#dc2626",
-                          },
-                        }}
-                      >
-                        {uninstalling === plugin.installationId ? "Uninstalling..." : "Uninstall Plugin"}
-                      </Button>
-                    </Box>
-                  </>
+                        },
+                      }}
+                    >
+                      {uninstalling === plugin.installationId ? "Uninstalling..." : "Uninstall Plugin"}
+                    </Button>
+                  </Box>
                 )}
               </Stack>
             </CardContent>
           </Card>
 
-          {/* Configuration Card - Only show for installed plugins */}
-          {plugin.installationStatus === PluginInstallationStatus.INSTALLED && (
+          {/* Configuration Card - Only show for installed plugins that require configuration */}
+          {plugin.installationStatus === PluginInstallationStatus.INSTALLED && plugin.requiresConfiguration !== false && (
             <Card sx={(theme) => ({ ...cardStyles.base(theme) as any })}>
               <CardContent sx={{ p: 3 }}>
                 <Stack spacing={3}>

@@ -26,7 +26,7 @@ const Plugins: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState(initialTab);
   const { plugins, loading, refetch } = usePlugins(selectedCategory);
-  const { install, uninstall, installing, uninstalling } = usePluginInstallation();
+  const { uninstall, uninstalling } = usePluginInstallation();
   const [toast, setToast] = useState<{
     variant: "success" | "info" | "warning" | "error";
     body: string;
@@ -85,29 +85,6 @@ const Plugins: React.FC = () => {
     { id: "security", name: "Security" },
   ];
 
-  // Handle plugin installation
-  const handleInstall = useCallback(
-    async (pluginKey: string) => {
-      try {
-        await install(pluginKey);
-        setToast({
-          variant: "success",
-          body: "Plugin installed successfully!",
-          visible: true,
-        });
-        // Refetch plugins to update installation status
-        refetch();
-      } catch (err: any) {
-        setToast({
-          variant: "error",
-          body: err.message || "Failed to install plugin. Please try again.",
-          visible: true,
-        });
-      }
-    },
-    [install, refetch]
-  );
-
   // Handle plugin uninstallation
   const handleUninstall = useCallback(
     async (installationId: number) => {
@@ -134,6 +111,15 @@ const Plugins: React.FC = () => {
   // Handle plugin management
   const handleManage = useCallback(
     (plugin: Plugin) => {
+      if (!plugin || !plugin.key) {
+        setToast({
+          variant: "error",
+          body: "Invalid plugin data. Please refresh the page.",
+          visible: true,
+        });
+        return;
+      }
+
       // Navigate to plugin management
       navigate(`/plugins/${plugin.key}/manage`);
     },
@@ -269,11 +255,9 @@ const Plugins: React.FC = () => {
                   >
                     <PluginCard
                       plugin={plugin}
-                      onInstall={handleInstall}
                       onUninstall={handleUninstall}
                       onManage={handleManage}
                       loading={
-                        installing === plugin.key ||
                         !!(plugin.installationId &&
                           uninstalling === plugin.installationId)
                       }

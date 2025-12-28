@@ -19,6 +19,8 @@ import {
   disconnectOAuthWorkspace,
   getMLflowModels,
   syncMLflowModels,
+  getRiskImportTemplate,
+  importRisks,
 } from "../controllers/plugin.ctrl";
 
 // Rate limiter for plugin installation (prevent abuse)
@@ -53,5 +55,9 @@ router.delete("/:key/oauth/workspaces/:webhookId", authenticateJWT, disconnectOA
 // MLflow plugin routes
 router.get("/:key/models", authenticateJWT, getMLflowModels);
 router.post("/:key/sync", authenticateJWT, syncMLflowModels);
+
+// Risk Import plugin routes
+router.get("/:key/template", authenticateJWT, getRiskImportTemplate);
+router.post("/:key/import", authenticateJWT, importRisks);
 
 export default router;

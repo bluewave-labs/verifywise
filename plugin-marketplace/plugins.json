@@ -95,6 +95,55 @@
       "dependencies": {
         "axios": "^1.6.0"
       }
+    },
+    {
+      "key": "risk-import",
+      "name": "Risk Import",
+      "displayName": "Risk Import",
+      "description": "Import risks from Excel files for bulk risk creation and management.",
+      "longDescription": "Risk Import plugin enables bulk import of risks from Excel files with dropdown data validation. Download a pre-formatted Excel template with dropdown menus for enum fields, fill it with your risk data using the convenient dropdowns, and upload to create multiple risks at once. Features comprehensive validation, detailed error reporting, and support for all risk fields including lifecycle phases, severity levels, and mitigation plans.",
+      "version": "1.0.0",
+      "author": "VerifyWise",
+      "category": "data_management",
+      "documentationUrl": "https://docs.verifywise.com/integrations/risk-import",
+      "supportUrl": "https://support.verifywise.com",
+      "isOfficial": true,
+      "isPublished": true,
+      "requiresConfiguration": false,
+      "installationType": "tenant_scoped",
+      "features": [
+        {
+          "name": "Excel Template Download",
+          "description": "Download pre-formatted Excel template with dropdown validation",
+          "displayOrder": 1
+        },
+        {
+          "name": "Dropdown Data Validation",
+          "description": "Built-in dropdown menus for enum fields in Excel",
+          "displayOrder": 2
+        },
+        {
+          "name": "Bulk Import",
+          "description": "Upload Excel to create multiple risks at once",
+          "displayOrder": 3
+        },
+        {
+          "name": "Field Validation",
+          "description": "Comprehensive validation before import",
+          "displayOrder": 4
+        },
+        {
+          "name": "Import Results",
+          "description": "Detailed feedback on successful and failed imports",
+          "displayOrder": 5
+        }
+      ],
+      "tags": ["risk", "import", "excel", "bulk-operations", "data-management"],
+      "pluginPath": "plugins/risk-import",
+      "entryPoint": "index.ts",
+      "dependencies": {
+        "exceljs": "^4.4.0"
+      }
     }
   ],
   "categories": [
@@ -122,6 +171,11 @@
       "id": "security",
       "name": "Security",
       "description": "Security and compliance tools"
+    },
+    {
+      "id": "data_management",
+      "name": "Data Management",
+      "description": "Tools for importing, exporting, and managing data"
     }
   ]
 }

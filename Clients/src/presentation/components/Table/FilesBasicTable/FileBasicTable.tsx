@@ -358,7 +358,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
                   height: "36px",
-                  "&:hover": { backgroundColor: "#FBFBFB" },
+                  "&:hover": { backgroundColor: "#f5f5f5" },
                 }}
               >
                 <TableCell

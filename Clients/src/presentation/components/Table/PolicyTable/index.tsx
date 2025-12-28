@@ -266,14 +266,15 @@ const CustomizablePolicyTable = ({
               key={row.id}
               onClick={(event) => onRowClickHandler(event, row)}
               sx={{
-                backgroundColor: flashRowId === row.id
-                  ? singleTheme.flashColors.background
-                  : "transparent",
-                "&:hover": {
-                  backgroundColor: flashRowId === row.id
-                    ? singleTheme.flashColors.backgroundHover
-                    : "rgba(0, 0, 0, 0.04)",
-                }
+                ...(flashRowId === row.id && {
+                  backgroundColor: singleTheme.flashColors.background,
+                  "& td": {
+                    backgroundColor: "transparent !important",
+                  },
+                  "&:hover": {
+                    backgroundColor: singleTheme.flashColors.backgroundHover,
+                  },
+                }),
               }}
             >
               {data.cols.map((col) => (

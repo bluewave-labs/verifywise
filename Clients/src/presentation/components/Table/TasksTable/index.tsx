@@ -311,22 +311,20 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.row,
                     cursor: isArchived ? "default" : "pointer",
-                    backgroundColor: (() => {
-                      const isFlashing = flashRowId === task.id;
-                      return isFlashing
-                        ? singleTheme.flashColors.background
-                        : isArchived
-                        ? "rgba(0, 0, 0, 0.02)"
-                        : "transparent";
-                    })(),
+                    backgroundColor: isArchived ? "rgba(0, 0, 0, 0.02)" : "transparent",
                     opacity: isArchived ? 0.7 : 1,
                     "&:hover": {
-                      backgroundColor: (() => {
-                        if (isArchived) return "rgba(0, 0, 0, 0.04)";
-                        if (flashRowId === task.id) return singleTheme.flashColors.backgroundHover;
-                        return "#f5f5f5";
-                      })(),
+                      backgroundColor: isArchived ? "rgba(0, 0, 0, 0.04)" : singleTheme.tableColors.rowHover,
                     },
+                    ...(flashRowId === task.id && {
+                      backgroundColor: singleTheme.flashColors.background,
+                      "& td": {
+                        backgroundColor: "transparent !important",
+                      },
+                      "&:hover": {
+                        backgroundColor: singleTheme.flashColors.backgroundHover,
+                      },
+                    }),
                   }}
                   onClick={() => !isArchived && onRowClick?.(task)}
                 >
@@ -334,8 +332,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
-                      backgroundColor:
-                        sortConfig.key === "title" ? "#e8e8e8" : "#fafafa",
+                      backgroundColor: sortConfig.key === "title" ? singleTheme.tableColors.sortedColumnFirst : undefined,
                     }}
                   >
                     <Box>
@@ -387,8 +384,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   <TableCell
                     sx={{
                       ...cellStyle,
-                      backgroundColor:
-                        sortConfig.key === "priority" ? "#f5f5f5" : "inherit",
+                      backgroundColor: sortConfig.key === "priority" ? singleTheme.tableColors.sortedColumn : undefined,
                     }}
                   >
                     <Chip label={task.priority} />
@@ -398,8 +394,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   <TableCell
                     sx={{
                       ...cellStyle,
-                      backgroundColor:
-                        sortConfig.key === "status" ? "#f5f5f5" : "inherit",
+                      backgroundColor: sortConfig.key === "status" ? singleTheme.tableColors.sortedColumn : undefined,
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -435,8 +430,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   <TableCell
                     sx={{
                       ...cellStyle,
-                      backgroundColor:
-                        sortConfig.key === "due_date" ? "#f5f5f5" : "inherit",
+                      backgroundColor: sortConfig.key === "due_date" ? singleTheme.tableColors.sortedColumn : undefined,
                     }}
                   >
                     {task.due_date ? (
@@ -478,8 +472,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   <TableCell
                     sx={{
                       ...cellStyle,
-                      backgroundColor:
-                        sortConfig.key === "assignees" ? "#f5f5f5" : "inherit",
+                      backgroundColor: sortConfig.key === "assignees" ? singleTheme.tableColors.sortedColumn : undefined,
                     }}
                   >
                     {task.assignees && task.assignees.length > 0 ? (
@@ -548,9 +541,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
 
                   {/* Actions */}
                   <TableCell
-                    sx={{
-                      ...singleTheme.tableStyles.primary.body.cell,
-                    }}
+                    sx={singleTheme.tableStyles.primary.body.cell}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <IconButtonComponent

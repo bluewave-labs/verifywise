@@ -71,6 +71,13 @@ const flashColors = {
   backgroundHover: "rgba(5, 150, 105, 0.15)",
 };
 
+// Table colors for consistent styling
+const tableColors = {
+  rowHover: "#f5f5f5",
+  sortedColumn: "#f5f5f5",
+  sortedColumnFirst: "#e8e8e8",
+};
+
 const buttons = {
   // Primary buttons - main actions
   primary: {
@@ -455,6 +462,7 @@ const singleTheme = {
   alertStyles,
   textColors,
   flashColors,
+  tableColors,
 };
 
 export default singleTheme;

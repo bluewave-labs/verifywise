@@ -261,9 +261,6 @@ const AITrustCenterTable = <T extends { id: number }>({
                 key={item.id}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  backgroundColor: flashRowId === item.id
-                    ? singleTheme.flashColors.background
-                    : "transparent",
                   "& .MuiTableCell-root": {
                     padding: "8px 10px !important",
                     // Remove width constraints to match original AI Trust Center behavior
@@ -274,11 +271,18 @@ const AITrustCenterTable = <T extends { id: number }>({
                     !disabled && {
                       cursor: "pointer",
                       "&:hover": {
-                        backgroundColor: flashRowId === item.id
-                          ? singleTheme.flashColors.backgroundHover
-                          : "#FBFBFB",
+                        backgroundColor: singleTheme.tableColors.rowHover,
                       },
                     }),
+                  ...(flashRowId === item.id && {
+                    backgroundColor: singleTheme.flashColors.background,
+                    "& td": {
+                      backgroundColor: "transparent !important",
+                    },
+                    "&:hover": {
+                      backgroundColor: singleTheme.flashColors.backgroundHover,
+                    },
+                  }),
                 }}
                 onClick={() => !disabled && onRowClick?.(item)}
               >

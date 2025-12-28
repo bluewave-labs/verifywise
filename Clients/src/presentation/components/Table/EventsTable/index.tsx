@@ -291,7 +291,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                 key={event.id}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
+                  "&:hover": { backgroundColor: "#f5f5f5", cursor: "pointer" },
                 }}
               >
                 <TableCell

@@ -56,6 +56,12 @@ const PageTour: React.FC<IPageTourProps> = ({
           ".__floater__arrow polygon": {
             fill: "#1f1f23 !important",
           },
+          ".react-joyride__beacon": {
+            zIndex: "900 !important",
+          },
+          ".react-joyride__spotlight": {
+            zIndex: "900 !important",
+          },
           ".react-joyride__tooltip": {
             filter: "drop-shadow(0 8px 32px rgba(0, 0, 0, 0.3))",
             animation: "fadeIn 0.3s ease-in-out",
@@ -94,8 +100,8 @@ const PageTour: React.FC<IPageTourProps> = ({
         showSkipButton={false}
         callback={handleCallback}
         disableOverlayClose
-        disableScrolling={false}
-        scrollToFirstStep={true}
+        disableScrolling={true}
+        scrollToFirstStep={false}
         spotlightClicks={false}
         tooltipComponent={tooltipRenderer}
         locale={{
@@ -107,7 +113,7 @@ const PageTour: React.FC<IPageTourProps> = ({
         styles={{
           options: {
             primaryColor: "#13715B",
-            zIndex: 1200,
+            zIndex: 900,
             beaconSize: 30,
           },
           overlay: {

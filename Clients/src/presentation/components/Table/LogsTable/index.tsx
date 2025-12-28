@@ -347,7 +347,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
                 key={`${log.id}-${index}`}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  "&:hover": { backgroundColor: "#FBFBFB" },
+                  "&:hover": { backgroundColor: "#f5f5f5" },
                 }}
               >
                 <TableCell

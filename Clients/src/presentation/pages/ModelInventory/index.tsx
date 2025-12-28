@@ -149,6 +149,7 @@ const ModelInventory: React.FC = () => {
   const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [flashRowId, setFlashRowId] = useState<number | string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -1285,6 +1286,8 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
+    let modelId: number | null = null;
+
     if (selectedModelInventory) {
       // Update existing model inventory
       // Check if projects or frameworks are being deleted
@@ -1305,19 +1308,27 @@ const ModelInventory: React.FC = () => {
           deleteFrameworks,
         },
       });
+      modelId = selectedModelInventory.id || null;
       setAlert({
         variant: "success",
         body: "Model inventory updated successfully!",
       });
     } else {
       // Create new model inventory
-      await createModelInventory("/modelInventory", formData);
+      const response = await createModelInventory("/modelInventory", formData);
+      modelId = response?.data?.id || null;
       setAlert({
         variant: "success",
         body: "New model inventory added successfully!",
       });
     }
     await fetchModelInventoryData();
+
+    // Flash the updated/created row
+    if (modelId) {
+      setFlashRowId(modelId);
+      setTimeout(() => setFlashRowId(null), 3000);
+    }
   };
 
   const handleModelInventoryError = (error: any) => {
@@ -2137,6 +2148,7 @@ const ModelInventory: React.FC = () => {
                   deletingId={deletingId}
                   hidePagination={options?.hidePagination}
                   modelRisks={modelRisksData}
+                  flashRowId={flashRowId}
                 />
               )}
             />

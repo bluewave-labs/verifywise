@@ -46,6 +46,7 @@ const CustomizablePolicyTable = ({
   setAnchorEl,
   renderRow,
   hidePagination = false,
+  flashRowId,
 }: ITableProps) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -264,6 +265,17 @@ const CustomizablePolicyTable = ({
             <TableRow
               key={row.id}
               onClick={(event) => onRowClickHandler(event, row)}
+              sx={{
+                ...(flashRowId === row.id && {
+                  backgroundColor: singleTheme.flashColors.background,
+                  "& td": {
+                    backgroundColor: "transparent !important",
+                  },
+                  "&:hover": {
+                    backgroundColor: singleTheme.flashColors.backgroundHover,
+                  },
+                }),
+              }}
             >
               {data.cols.map((col) => (
                 <TableCell

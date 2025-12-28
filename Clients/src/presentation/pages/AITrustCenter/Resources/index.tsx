@@ -76,7 +76,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
-          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("resource name") ? singleTheme.tableColors.sortedColumnFirst : undefined,
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("resource name") ? singleTheme.tableColors.sortedColumnFirst : "transparent",
         }}
       >
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
@@ -87,7 +87,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
-          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("type") && sortConfig.key.toLowerCase().includes("purpose") ? singleTheme.tableColors.sortedColumn : undefined,
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("type") && sortConfig.key.toLowerCase().includes("purpose") ? singleTheme.tableColors.sortedColumn : "transparent",
         }}
       >
         <Typography sx={styles.resourceType}>{resource.description}</Typography>
@@ -98,7 +98,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
-          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("visibility") ? singleTheme.tableColors.sortedColumn : undefined,
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("visibility") ? singleTheme.tableColors.sortedColumn : "transparent",
         }}
       >
         {resource.visible ? (
@@ -117,7 +117,7 @@ const ResourceTableRow: React.FC<{
       </TableCell>
       <TableCell
         sx={{
-          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("action") ? singleTheme.tableColors.sortedColumn : undefined,
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("action") ? singleTheme.tableColors.sortedColumn : "transparent",
         }}
       >
         <IconButtonComponent

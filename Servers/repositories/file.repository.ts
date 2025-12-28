@@ -50,10 +50,9 @@ export interface UploadedFile {
 export interface FileMetadata {
   id: number;
   filename: string;
-  size?: number;
-  mimetype?: string;
-  upload_date?: Date;
-  uploaded_by: number;
+  project_id?: number;
+  uploaded_time?: string;
+  source?: string;
   uploader_name?: string;
   uploader_surname?: string;
 }

@@ -26,6 +26,7 @@ export interface IAITrustCenterTableProps<T> {
   tableId?: string;
   disabled?: boolean;
   hidePagination?: boolean;
+  flashRowId?: number | string | null;
 }
 
 export interface IAuditRiskTableProps {
@@ -174,6 +175,7 @@ export interface ITableProps {
     sortConfig?: { key: string; direction: "asc" | "desc" | null }
   ) => React.ReactNode;
   hidePagination?: boolean;
+  flashRowId?: number | string | null;
 }
 
 export interface IReportTableProps {
@@ -216,6 +218,7 @@ export interface ITasksTableProps {
   isUpdateDisabled?: boolean;
   onRowClick?: (task: ITask) => void;
   hidePagination?: boolean;
+  flashRowId?: number | string | null;
   // Task archive/restore/hard delete props
   onRestore?: (taskId: number) => void;
   onHardDelete?: (taskId: number) => void;

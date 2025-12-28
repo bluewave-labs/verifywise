@@ -1,9 +1,18 @@
 /**
  * Vendor Change History Utilities
  *
- * Wrapper functions that use the generic change history system.
- * These functions maintain backward compatibility while leveraging
- * the new generic utilities.
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * Use the generic change history functions from `changeHistory.base.utils.ts` directly instead.
+ *
+ * Migration guide:
+ * - Replace `recordVendorChange()` with `recordEntityChange("vendor", ...)`
+ * - Replace `recordMultipleFieldChanges()` with `recordMultipleFieldChanges("vendor", ...)`
+ * - Replace `getVendorChangeHistory()` with `getEntityChangeHistory("vendor", ...)`
+ * - Replace `trackVendorChanges()` with `trackEntityChanges("vendor", ...)`
+ * - Replace `recordVendorCreation()` with `recordEntityCreation("vendor", ...)`
+ * - Replace `recordVendorDeletion()` with `recordEntityDeletion("vendor", ...)`
+ *
+ * These wrapper functions are maintained for backward compatibility only.
  */
 
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
@@ -19,6 +28,7 @@ import {
 
 /**
  * Record a change in vendor
+ * @deprecated Use `recordEntityChange("vendor", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordVendorChange = async (
   vendorId: number,
@@ -45,6 +55,7 @@ export const recordVendorChange = async (
 
 /**
  * Record multiple field changes for a vendor
+ * @deprecated Use `recordMultipleFieldChanges("vendor", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordMultipleFieldChanges = async (
   vendorId: number,
@@ -65,6 +76,7 @@ export const recordMultipleFieldChanges = async (
 
 /**
  * Get change history for a specific vendor with pagination support
+ * @deprecated Use `getEntityChangeHistory("vendor", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const getVendorChangeHistory = async (
   vendorId: number,
@@ -83,6 +95,7 @@ export const getVendorChangeHistory = async (
 
 /**
  * Track changes between old and new vendor data
+ * @deprecated Use `trackEntityChanges("vendor", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const trackVendorChanges = async (
   oldVendor: VendorModel,
@@ -93,6 +106,7 @@ export const trackVendorChanges = async (
 
 /**
  * Record creation of a vendor
+ * @deprecated Use `recordEntityCreation("vendor", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordVendorCreation = async (
   vendorId: number,
@@ -113,6 +127,7 @@ export const recordVendorCreation = async (
 
 /**
  * Record deletion of a vendor
+ * @deprecated Use `recordEntityDeletion("vendor", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordVendorDeletion = async (
   vendorId: number,

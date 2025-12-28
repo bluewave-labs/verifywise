@@ -5,6 +5,7 @@ import { Suspense, useContext, useEffect, useState } from "react";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import IconButton from "../../IconButton";
+import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useSearchParams } from "react-router-dom";
@@ -156,7 +157,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? singleTheme.flashColors.background
                       : sortConfig.key === "risk_name"
                       ? "#e8e8e8"
                       : "#fafafa",
@@ -172,7 +173,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? singleTheme.flashColors.background
                       : sortConfig.key === "risk_owner"
                       ? "#f5f5f5"
                       : "",
@@ -186,7 +187,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? singleTheme.flashColors.background
                       : sortConfig.key === "severity"
                       ? "#f5f5f5"
                       : "",
@@ -202,7 +203,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? singleTheme.flashColors.background
                       : sortConfig.key === "likelihood"
                       ? "#f5f5f5"
                       : "",
@@ -218,7 +219,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? singleTheme.flashColors.background
                       : sortConfig.key === "mitigation_status"
                       ? "#f5f5f5"
                       : "",
@@ -234,7 +235,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? singleTheme.flashColors.background
                       : sortConfig.key === "risk_level_autocalculated"
                       ? "#f5f5f5"
                       : "",
@@ -250,7 +251,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? singleTheme.flashColors.background
                       : sortConfig.key === "deadline"
                       ? "#f5f5f5"
                       : "",
@@ -262,7 +263,7 @@ const VWProjectRisksTableBody = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? singleTheme.flashColors.background
                       : sortConfig.key === "controls_mapping"
                       ? "#f5f5f5"
                       : "",
@@ -279,35 +280,42 @@ const VWProjectRisksTableBody = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    minWidth: "50px",
+                    minWidth: "80px",
                     backgroundColor: flashRow === row.id
-                      ? "#e3f5e6"
+                      ? singleTheme.flashColors.background
                       : sortConfig.key === "actions"
                       ? "#f5f5f5"
                       : "",
                   }}
                 >
-                  {isDeletingAllowed && (
-                    <IconButton
-                      id={row.id!}
-                      type="risk"
-                      onMouseEvent={(e) => handleEditRisk(row, e)}
-                      onDelete={() => handleDeleteRisk(row.id!)}
-                      onEdit={() => handleEditRisk(row)}
-                      openLinkedPolicies={() => handleViewLinkedPolicies(row.id!)}
-                      warningTitle="Delete this project risk?"
-                      warningMessage={
-                        <Stack gap={2}>
-                          <Typography fontSize={13} color="#344054">
-                            Are you sure you want to delete this project risk?
-                          </Typography>
-                          <Typography fontSize={13} color="#344054">
-                            This action is non-recoverable.
-                          </Typography>
-                        </Stack>
-                      }
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <ViewRelationshipsButton
+                      entityId={(row.id || 0) + 100000}
+                      entityType="risk"
+                      entityLabel={row.risk_name?.substring(0, 30) || undefined}
                     />
-                  )}
+                    {isDeletingAllowed && (
+                      <IconButton
+                        id={row.id!}
+                        type="risk"
+                        onMouseEvent={(e) => handleEditRisk(row, e)}
+                        onDelete={() => handleDeleteRisk(row.id!)}
+                        onEdit={() => handleEditRisk(row)}
+                        openLinkedPolicies={() => handleViewLinkedPolicies(row.id!)}
+                        warningTitle="Delete this project risk?"
+                        warningMessage={
+                          <Stack gap={2}>
+                            <Typography fontSize={13} color="#344054">
+                              Are you sure you want to delete this project risk?
+                            </Typography>
+                            <Typography fontSize={13} color="#344054">
+                              This action is non-recoverable.
+                            </Typography>
+                          </Stack>
+                        }
+                      />
+                    )}
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}

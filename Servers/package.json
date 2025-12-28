@@ -21,6 +21,7 @@
   "dependencies": {
     "@awaismirza/bypass-cors": "^1.1.2",
     "@aws-sdk/client-ses": "^3.901.0",
+    "@azure/communication-email": "^1.1.0",
     "@slack/web-api": "^7.10.0",
     "@smithy/node-http-handler": "^4.3.0",
     "@types/passport-jwt": "^4.0.1",

@@ -11,11 +11,13 @@ import {
   Box,
   Tooltip,
   TableFooter,
+  Stack,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import EmptyState from "../../EmptyState";
 import IconButton from "../../IconButton";
+import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import TablePaginationActions from "../../TablePagination";
 import Chip from "../../Chip";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
@@ -580,20 +582,28 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    minWidth: "50px",
+                    minWidth: "80px",
                   }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {isDeletingAllowed && (
-                    <IconButton
-                      id={row.risk_id!}
-                      onDelete={() => onDelete(row.risk_id!)}
-                      onEdit={() => onEdit(row.risk_id!)}
-                      onMouseEvent={() => {}}
-                      warningTitle="Delete this risk?"
-                      warningMessage="This action is non-recoverable."
-                      type="Risk"
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <ViewRelationshipsButton
+                      entityId={(row.risk_id || 0) + 200000}
+                      entityType="risk"
+                      entityLabel={row.risk_description?.substring(0, 30) || undefined}
                     />
-                  )}
+                    {isDeletingAllowed && (
+                      <IconButton
+                        id={row.risk_id!}
+                        onDelete={() => onDelete(row.risk_id!)}
+                        onEdit={() => onEdit(row.risk_id!)}
+                        onMouseEvent={() => {}}
+                        warningTitle="Delete this risk?"
+                        warningMessage="This action is non-recoverable."
+                        type="Risk"
+                      />
+                    )}
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}

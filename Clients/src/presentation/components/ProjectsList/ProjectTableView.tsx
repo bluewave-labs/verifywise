@@ -17,6 +17,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
 import EmptyState from "../EmptyState";
 import Chip from "../Chip";
+import ViewRelationshipsButton from "../ViewRelationshipsButton";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { IProjectTableViewProps } from "../../../domain/interfaces/i.project";
 import { Project } from "../../../domain/types/Project";
@@ -41,6 +42,7 @@ const columns = [
   { id: "role", label: "Role", minWidth: 150, sortable: true },
   { id: "startDate", label: "Start Date", minWidth: 120, sortable: true },
   { id: "lastUpdated", label: "Last Updated", minWidth: 120, sortable: true },
+  { id: "actions", label: "", minWidth: 50, sortable: false },
 ];
 
 // Sortable Table Header Component
@@ -402,6 +404,18 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
                 }}
               >
                 {formatDate(project.last_updated)}
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ViewRelationshipsButton
+                  entityId={project.id}
+                  entityType="useCase"
+                  entityLabel={project.project_title}
+                />
               </TableCell>
             </TableRow>
           ))}

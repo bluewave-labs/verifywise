@@ -40,7 +40,7 @@ export const tableStyles = {
         backgroundColor: "white",
         transition: "background-color 0.3s ease-in-out",
         "&:hover td": {
-          backgroundColor: " #fafafa",
+          backgroundColor: "#f5f5f5", // Also defined in singleTheme.tableColors.rowHover
         },
         "&:hover": {
           cursor: "pointer",
@@ -50,7 +50,6 @@ export const tableStyles = {
         fontSize: fontSizes.medium,
         padding: "12px 10px",
         whiteSpace: "nowrap",
-        backgroundColor: "white",
         "&:not(:lastChild)": {
           minWidth: "120px",
           width: "120px",

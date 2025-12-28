@@ -1,13 +1,17 @@
 import { User } from "../types/User";
 
-/**
- * Domain-layer policy interfaces
- * Contains pure data types without React or UI dependencies
- */
+export interface PolicyTableProps {
+  data: PolicyManagerModel[];
+  onOpen: (id: number) => void;
+  onDelete: (id: number) => void;
+  onLinkedObjects: (id: number) => void;
+  onRefresh?: () => void;
+  isLoading?: boolean;
+  error?: Error | null;
+  hidePagination?: boolean;
+  flashRowId?: number | string | null;
+}
 
-/**
- * Input structure for creating/updating policies
- */
 export interface PolicyInput {
   title: string;
   status: string;

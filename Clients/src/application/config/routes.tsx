@@ -101,6 +101,7 @@ export const createRoutes = (
     <Route path="/ai-detection/history" element={<AIDetectionPage />} />
     <Route path="/ai-detection/settings" element={<AIDetectionPage />} />
     <Route path="/ai-detection/scans/:scanId" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/scans/:scanId/:tab" element={<AIDetectionPage />} />
   </Route>,
   <Route
     key="admin-reg"

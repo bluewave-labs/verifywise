@@ -4,9 +4,13 @@
  * Contains UI-specific dashboard interfaces with React dependencies
  */
 import React from 'react';
-import { Layouts } from 'react-grid-layout';
+import { LayoutItem } from 'react-grid-layout';
 import { WidgetType } from '../../../domain/enums/dashboard.enum';
 import type { IStatusData } from '../../../domain/interfaces/i.statusData';
+
+// Type definitions for react-grid-layout v2
+type Layout = readonly LayoutItem[];
+export type Layouts = Partial<Record<string, Layout>>;
 
 // Re-export domain types for convenience
 export type {

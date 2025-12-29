@@ -67,7 +67,7 @@
     "axios": "^1.13.2",
     "canvas-confetti": "^1.9.4",
     "cmdk": "^1.1.1",
-    "dayjs": "^1.11.13",
+    "dayjs": "^1.11.19",
     "dompurify": "3.3.0",
     "dotenv": "^17.2.3",
     "emoji-picker-react": "^4.16.1",

@@ -46,6 +46,16 @@ import {
   type Experiment,
   type MonitorDashboard,
 } from "../../infrastructure/api/evaluationLogsService";
+import {
+  deepEvalArenaService,
+  type ArenaTestCase,
+  type ArenaContestant,
+  type ArenaMetricConfig,
+  type CreateArenaComparisonRequest,
+  type ArenaComparisonResult,
+  type ArenaComparison,
+  type ArenaComparisonSummary,
+} from "../../infrastructure/api/deepEvalArenaService";
 
 // Re-export types for presentation layer
 export type {
@@ -69,6 +79,14 @@ export type {
   EvaluationMetric,
   Experiment,
   MonitorDashboard,
+  // Arena types
+  ArenaTestCase,
+  ArenaContestant,
+  ArenaMetricConfig,
+  CreateArenaComparisonRequest,
+  ArenaComparisonResult,
+  ArenaComparison,
+  ArenaComparisonSummary,
 };
 
 // Re-export utility functions for presentation layer
@@ -240,3 +258,21 @@ export const getMonitorDashboard = (
   projectId: string,
   params?: Parameters<typeof monitoringService.getDashboard>[1]
 ) => monitoringService.getDashboard(projectId, params);
+
+// ==================== ARENA ====================
+
+export const createArenaComparison = (
+  data: CreateArenaComparisonRequest
+) => deepEvalArenaService.createComparison(data);
+
+export const listArenaComparisons = (params?: { org_id?: string }) =>
+  deepEvalArenaService.listComparisons(params);
+
+export const getArenaComparisonStatus = (comparisonId: string) =>
+  deepEvalArenaService.getComparisonStatus(comparisonId);
+
+export const getArenaComparisonResults = (comparisonId: string) =>
+  deepEvalArenaService.getComparisonResults(comparisonId);
+
+export const deleteArenaComparison = (comparisonId: string) =>
+  deepEvalArenaService.deleteComparison(comparisonId);

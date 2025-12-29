@@ -5,6 +5,7 @@ import {
   Award,
   Settings,
   KeyRound,
+  Swords,
 } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
@@ -91,6 +92,13 @@ export default function EvalsSidebar({
       value: "scorers",
       icon: <Award size={16} strokeWidth={1.5} />,
       count: scorersCount,
+      disabled: false, // Always enabled - org-scoped
+    },
+    {
+      id: "arena",
+      label: "Arena",
+      value: "arena",
+      icon: <Swords size={16} strokeWidth={1.5} />,
       disabled: false, // Always enabled - org-scoped
     },
     {

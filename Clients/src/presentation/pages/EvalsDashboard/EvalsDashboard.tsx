@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid } from "@mui/material";
 import { Check } from "lucide-react";
-import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound } from "lucide-react";
+import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound, Swords } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useEvalsSidebarContext } from "../../../application/contexts/EvalsSidebar.context";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -58,6 +58,7 @@ import ProjectExperiments from "./ProjectExperiments";
 import { ProjectDatasets } from "./ProjectDatasets";
 import ProjectScorers from "./ProjectScorers";
 import ExperimentDetailContent from "./ExperimentDetailContent";
+import ArenaPage from "./ArenaPage";
 import type { DeepEvalProject } from "./types";
 
 const LLM_PROVIDERS = [
@@ -901,6 +902,7 @@ export default function EvalsDashboard() {
       experiments: { label: "Experiments", icon: <FlaskConical size={14} strokeWidth={1.5} /> },
       datasets: { label: "Datasets", icon: <Database size={14} strokeWidth={1.5} /> },
       scorers: { label: "Scorers", icon: <Award size={14} strokeWidth={1.5} /> },
+      arena: { label: "Arena", icon: <Swords size={14} strokeWidth={1.5} /> },
       configuration: { label: "Configuration", icon: <Settings size={14} strokeWidth={1.5} /> },
       settings: { label: "Settings", icon: <KeyRound size={14} strokeWidth={1.5} /> },
     };
@@ -1667,6 +1669,10 @@ export default function EvalsDashboard() {
 
               {tab === "scorers" && projectId && (
                 <ProjectScorers projectId={projectId} orgId={orgId} />
+              )}
+
+              {tab === "arena" && (
+                <ArenaPage orgId={orgId} />
               )}
 
               {tab === "configuration" && (

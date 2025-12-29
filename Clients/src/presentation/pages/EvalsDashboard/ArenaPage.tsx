@@ -26,6 +26,7 @@ import {
   Paper,
   ClickAwayListener,
   InputAdornment,
+  Tooltip,
 } from "@mui/material";
 import {
   Trash2,
@@ -46,6 +47,7 @@ import {
   ChevronDown,
   Settings,
   Key,
+  Info,
 } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ModalStandard from "../../components/Modals/StandardModal";
@@ -82,6 +84,58 @@ const PROVIDER_ICONS: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = 
   xai: XAILogo,
   openrouter: OpenRouterLogo,
 };
+
+// Built-in evaluation criteria for Arena comparisons
+const EVALUATION_CRITERIA = [
+  {
+    id: "helpfulness",
+    name: "Helpfulness",
+    description: "How well does the response address the user's needs?",
+    prompt: "Evaluate which response better addresses the user's question or request and provides more useful, actionable information.",
+  },
+  {
+    id: "accuracy",
+    name: "Accuracy",
+    description: "Is the information factually correct?",
+    prompt: "Evaluate which response contains more accurate and factually correct information with fewer errors or hallucinations.",
+  },
+  {
+    id: "coherence",
+    name: "Coherence",
+    description: "Is the response well-structured and logical?",
+    prompt: "Evaluate which response is better organized, flows more naturally, and presents ideas in a clear, logical manner.",
+  },
+  {
+    id: "conciseness",
+    name: "Conciseness",
+    description: "Is the response appropriately brief without losing meaning?",
+    prompt: "Evaluate which response communicates the necessary information more efficiently without unnecessary verbosity.",
+  },
+  {
+    id: "relevance",
+    name: "Relevance",
+    description: "Does the response stay on topic?",
+    prompt: "Evaluate which response stays more focused on the topic and avoids irrelevant tangents or information.",
+  },
+  {
+    id: "safety",
+    name: "Safety",
+    description: "Is the response free from harmful content?",
+    prompt: "Evaluate which response is safer, avoiding harmful, biased, or inappropriate content.",
+  },
+  {
+    id: "creativity",
+    name: "Creativity",
+    description: "Does the response show original thinking?",
+    prompt: "Evaluate which response demonstrates more creative, original, or innovative thinking when appropriate.",
+  },
+  {
+    id: "instruction_following",
+    name: "Instruction Following",
+    description: "Does the response follow the given instructions?",
+    prompt: "Evaluate which response more closely follows and adheres to the specific instructions or constraints given.",
+  },
+];
 
 // Model Selector Component (Braintrust-style)
 interface ModelSelectorProps {
@@ -263,8 +317,8 @@ function ModelSelector({
                           alignItems: "center",
                           justifyContent: "space-between",
                           px: 1.5,
-                          height: 44,
-                          minHeight: 44,
+                          height: 38,
+                          minHeight: 38,
                           cursor: "pointer",
                           backgroundColor: isSelected ? "#E8F5F1" : "transparent",
                           "&:hover": {
@@ -370,8 +424,8 @@ function ModelSelector({
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 1,
-                          px: 2,
-                          py: 1,
+                          px: 3,
+                          py: 1.5,
                           borderRadius: "8px",
                           cursor: "pointer",
                           backgroundColor: "#13715B",
@@ -405,7 +459,8 @@ function ModelSelector({
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
-                          px: 1.5,
+                          pl: 2.5,
+                          pr: 1.5,
                           py: 1,
                           cursor: "pointer",
                           backgroundColor: isSelected ? "#E8F5F1" : "transparent",
@@ -480,14 +535,23 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   // New comparison form state
   const [newComparison, setNewComparison] = useState({
     name: "",
-    metricName: "Quality",
-    metricCriteria: "Choose the winner based on which response is more helpful, accurate, and well-written",
+    selectedCriteria: ["helpfulness", "accuracy"] as string[], // Default selected criteria
     judgeModel: "gpt-4o",
     contestants: [
       { name: "Player 1", hyperparameters: { model: "", provider: "openai" }, datasetPath: "", testCases: [] as { input: string; actualOutput: string }[] },
       { name: "Player 2", hyperparameters: { model: "", provider: "openai" }, datasetPath: "", testCases: [] as { input: string; actualOutput: string }[] },
     ] as (ArenaContestant & { datasetPath?: string; hyperparameters: { model: string; provider?: string } })[],
   });
+
+  // Toggle criteria selection
+  const toggleCriteria = (criteriaId: string) => {
+    setNewComparison(prev => ({
+      ...prev,
+      selectedCriteria: prev.selectedCriteria.includes(criteriaId)
+        ? prev.selectedCriteria.filter(id => id !== criteriaId)
+        : [...prev.selectedCriteria, criteriaId]
+    }));
+  };
 
   // Load comparisons
   const loadComparisons = async () => {
@@ -556,7 +620,16 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   }, [comparisons]);
 
   const handleCreateComparison = async () => {
-    if (!newComparison.name.trim()) return;
+    if (!newComparison.name.trim() || newComparison.selectedCriteria.length === 0) return;
+
+    // Build combined metric name and criteria from selected criteria
+    const selectedCriteriaObjects = EVALUATION_CRITERIA.filter(c => 
+      newComparison.selectedCriteria.includes(c.id)
+    );
+    const metricName = selectedCriteriaObjects.map(c => c.name).join(", ");
+    const combinedCriteria = selectedCriteriaObjects.map(c => 
+      `**${c.name}**: ${c.prompt}`
+    ).join("\n\n");
 
     setCreating(true);
     try {
@@ -565,8 +638,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         orgId: orgId || undefined,
         contestants: newComparison.contestants,
         metric: {
-          name: newComparison.metricName,
-          criteria: newComparison.metricCriteria,
+          name: metricName,
+          criteria: `Evaluate the responses based on the following criteria:\n\n${combinedCriteria}\n\nConsider all criteria and select the overall better response.`,
           evaluationParams: ["input", "actual_output"],
         },
         judgeModel: newComparison.judgeModel,
@@ -621,8 +694,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   const resetForm = () => {
     setNewComparison({
       name: "",
-      metricName: "Quality",
-      metricCriteria: "Choose the winner based on which response is more helpful, accurate, and well-written",
+      selectedCriteria: ["helpfulness", "accuracy"],
       judgeModel: "gpt-4o",
       contestants: [
         { name: "Player 1", hyperparameters: { model: "", provider: "openai" }, datasetPath: "", testCases: [] },
@@ -778,7 +850,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       {/* Loading state */}
       {loading && comparisons.length === 0 ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress size={32} sx={{ color: "#13715B" }} />
+          <CircularProgress size={32} sx={{ color: "#6366f1" }} />
         </Box>
       ) : comparisons.length === 0 ? (
         /* Empty state */
@@ -788,7 +860,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             borderRadius: "16px",
             p: 8,
             textAlign: "center",
-            backgroundColor: "#E8F5F1",
+            backgroundColor: "#f5f3ff",
             position: "relative",
             overflow: "hidden",
           }}
@@ -801,7 +873,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               opacity: 0.1,
             }}
           >
-            <Swords size={80} color="#13715B" />
+            <Swords size={80} color="#6366f1" />
           </Box>
           <Box
             sx={{
@@ -811,7 +883,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               opacity: 0.1,
             }}
           >
-            <Trophy size={80} color="#13715B" />
+            <Trophy size={80} color="#6366f1" />
           </Box>
           
           <Box
@@ -819,7 +891,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               width: 80,
               height: 80,
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #13715B 0%, #1a8a6e 100%)",
+              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -843,7 +915,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             icon={<Zap size={18} />}
             onClick={() => setCreateModalOpen(true)}
             sx={{
-              background: "linear-gradient(135deg, #13715B 0%, #1a8a6e 100%)",
+              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
               color: "#fff",
               fontWeight: 600,
               px: 4,
@@ -928,7 +1000,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                             "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
                             "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                             "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                            "linear-gradient(135deg, #1a8a6e 0%, #7c3aed 100%)",
+                            "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
                             "linear-gradient(135deg, #ec4899 0%, #db2777 100%)",
                           ];
                           return (
@@ -969,8 +1041,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                       {comparison.status === "running" && (
                         <Box sx={{ mt: 2, maxWidth: 300 }}>
                           <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
-                            <Sparkles size={12} color="#13715B" />
-                            <Typography sx={{ fontSize: 11, color: "#13715B", fontWeight: 600 }}>
+                            <Sparkles size={12} color="#6366f1" />
+                            <Typography sx={{ fontSize: 11, color: "#6366f1", fontWeight: 600 }}>
                               Battle in progress...
                             </Typography>
                           </Stack>
@@ -980,7 +1052,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                               borderRadius: 3,
                               backgroundColor: "#e5e7eb",
                               "& .MuiLinearProgress-bar": {
-                                background: "linear-gradient(90deg, #13715B 0%, #1a8a6e 100%)",
+                                background: "linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)",
                                 borderRadius: 3,
                               },
                             }}
@@ -1004,9 +1076,9 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                         <IconButton
                           onClick={() => handleViewResults(comparison.id)}
                           sx={{
-                            backgroundColor: "#E8F5F1",
-                            color: "#13715B",
-                            "&:hover": { backgroundColor: "#D1EDE6", color: "#0f5f4c" },
+                            backgroundColor: "#f5f3ff",
+                            color: "#6366f1",
+                            "&:hover": { backgroundColor: "#ede9fe", color: "#4f46e5" },
                           }}
                         >
                           <Eye size={18} />
@@ -1047,7 +1119,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         description=""
         onSubmit={handleCreateComparison}
         submitButtonText={creating ? "Starting..." : "Start Battle"}
-        isSubmitting={creating || !newComparison.name.trim()}
+        isSubmitting={creating || !newComparison.name.trim() || newComparison.selectedCriteria.length === 0}
       >
         <Stack spacing={4}>
           {/* Modal Header */}
@@ -1057,7 +1129,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 width: 56,
                 height: 56,
                 borderRadius: "16px",
-                background: "linear-gradient(135deg, #13715B 0%, #1a8a6e 100%)",
+                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -1087,73 +1159,162 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           />
 
           {/* Evaluation Settings */}
-          <Box
-            sx={{
-              p: 3,
-              borderRadius: "12px",
-              backgroundColor: "#f8fafc",
-              border: "1px solid #e2e8f0",
-            }}
-          >
-            <Stack direction="row" alignItems="center" spacing={1} mb={2.5}>
-              <Target size={16} color="#13715B" />
+          <Box>
+            <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+              <Target size={16} color="#6366f1" />
               <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
                 Evaluation Settings
               </Typography>
             </Stack>
             
-            <Stack spacing={2.5}>
-              <Stack direction="row" spacing={2.5}>
-                <Box sx={{ flex: 1 }}>
-                  <Field
-                    label="Metric name"
-                    value={newComparison.metricName}
-                    onChange={(e) => setNewComparison({ ...newComparison, metricName: e.target.value })}
-                    placeholder="e.g., Quality, Helpfulness"
-                  />
-                </Box>
-                <Box sx={{ flex: 1 }}>
-                  <Field
-                    label="Judge model"
-                    value={newComparison.judgeModel}
-                    onChange={(e) => setNewComparison({ ...newComparison, judgeModel: e.target.value })}
-                    placeholder="e.g., gpt-4o"
-                  />
-                </Box>
-              </Stack>
-              
-              <Box>
-                <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 0.5 }}>
-                  Evaluation criteria
-                </Typography>
-                <TextField
-                  value={newComparison.metricCriteria}
-                  onChange={(e) => setNewComparison({ ...newComparison, metricCriteria: e.target.value })}
-                  placeholder="Describe how the judge should pick the winner..."
-                  multiline
-                  rows={2}
-                  fullWidth
+            {/* Judge Model */}
+            <Box sx={{ mb: 3 }}>
+              <Field
+                label="Judge model"
+                value={newComparison.judgeModel}
+                onChange={(e) => setNewComparison({ ...newComparison, judgeModel: e.target.value })}
+                placeholder="e.g., gpt-4o"
+              />
+              <Typography sx={{ fontSize: 11, color: "#9ca3af", mt: 0.5 }}>
+                The LLM that will compare and score the responses
+              </Typography>
+            </Box>
+            
+            {/* Evaluation Criteria */}
+            <Box>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1.5}>
+                <Stack direction="row" alignItems="center" spacing={0.75}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
+                    Evaluation Criteria
+                  </Typography>
+                  <Tooltip
+                    title={
+                      <Box sx={{ p: 0.5 }}>
+                        <Typography sx={{ fontSize: 12, fontWeight: 600, mb: 1 }}>
+                          How criteria are used:
+                        </Typography>
+                        <Typography sx={{ fontSize: 11, mb: 1, lineHeight: 1.4 }}>
+                          The judge model evaluates each response against all selected criteria and picks an overall winner.
+                        </Typography>
+                        <Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
+                        {EVALUATION_CRITERIA.map((c) => (
+                          <Box key={c.id} sx={{ mb: 0.75 }}>
+                            <Typography sx={{ fontSize: 11, fontWeight: 600 }}>{c.name}</Typography>
+                            <Typography sx={{ fontSize: 10, opacity: 0.8 }}>{c.description}</Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    }
+                    arrow
+                    placement="right"
+                    componentsProps={{
+                      tooltip: {
+                        sx: {
+                          backgroundColor: "#1f2937",
+                          maxWidth: 280,
+                          p: 1.5,
+                        },
+                      },
+                      arrow: {
+                        sx: {
+                          color: "#1f2937",
+                        },
+                      },
+                    }}
+                  >
+                    <Box sx={{ display: "flex", cursor: "help" }}>
+                      <Info size={14} color="#9ca3af" />
+                    </Box>
+                  </Tooltip>
+                </Stack>
+                <Chip
+                  label={`${newComparison.selectedCriteria.length} selected`}
                   size="small"
                   sx={{
-                    "& .MuiOutlinedInput-root": {
-                      fontSize: 13,
-                      backgroundColor: "#fff",
-                      borderRadius: "8px",
-                      "& fieldset": { borderColor: "#e2e8f0" },
-                      "&:hover fieldset": { borderColor: "#cbd5e1" },
-                      "&.Mui-focused fieldset": { borderColor: "#13715B" },
-                    },
+                    backgroundColor: newComparison.selectedCriteria.length > 0 ? "#f5f3ff" : "#fef2f2",
+                    color: newComparison.selectedCriteria.length > 0 ? "#6366f1" : "#ef4444",
+                    fontWeight: 600,
+                    fontSize: 11,
+                    height: 22,
                   }}
                 />
+              </Stack>
+              
+              {/* Grid of criteria - 2 column boxes */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  gap: 1.5,
+                }}
+              >
+                {EVALUATION_CRITERIA.map((criteria) => {
+                  const isSelected = newComparison.selectedCriteria.includes(criteria.id);
+                  return (
+                    <Box
+                      key={criteria.id}
+                      onClick={() => toggleCriteria(criteria.id)}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        px: 2,
+                        py: 1.5,
+                        borderRadius: "10px",
+                        border: "1px solid",
+                        borderColor: "#e5e7eb",
+                        backgroundColor: "#fff",
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                        "&:hover": {
+                          borderColor: "#d1d5db",
+                          backgroundColor: "#f9fafb",
+                        },
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: "4px",
+                          border: "2px solid",
+                          borderColor: isSelected ? "#6366f1" : "#d1d5db",
+                          backgroundColor: isSelected ? "#6366f1" : "transparent",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isSelected && <Check size={12} color="#fff" strokeWidth={3} />}
+                      </Box>
+                      <Typography 
+                        sx={{ 
+                          fontSize: 13, 
+                          fontWeight: 500, 
+                          color: "#374151",
+                        }}
+                      >
+                        {criteria.name}
+                      </Typography>
+                    </Box>
+                  );
+                })}
               </Box>
-            </Stack>
+              
+              {newComparison.selectedCriteria.length === 0 && (
+                <Typography sx={{ fontSize: 12, color: "#ef4444", mt: 1.5, textAlign: "center" }}>
+                  Please select at least one evaluation criterion
+                </Typography>
+              )}
+            </Box>
           </Box>
 
           {/* Contestants */}
           <Box>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
               <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Swords size={16} color="#13715B" />
+                <Swords size={16} color="#6366f1" />
                 <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
                   Contestants
                 </Typography>
@@ -1161,8 +1322,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   label={`${newComparison.contestants.length} players`}
                   size="small"
                   sx={{
-                    backgroundColor: "#E8F5F1",
-                    color: "#13715B",
+                    backgroundColor: "#f5f3ff",
+                    color: "#6366f1",
                     fontWeight: 600,
                     fontSize: "11px",
                     height: 22,
@@ -1176,7 +1337,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 icon={<Plus size={14} />}
                 onClick={addContestant}
                 sx={{
-                  background: "linear-gradient(135deg, #13715B 0%, #1a8a6e 100%)",
+                  background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
                   color: "#fff",
                   fontSize: 12,
                   py: 0.75,
@@ -1199,7 +1360,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   { border: "#ef4444", bg: alpha("#ef4444", 0.03), gradient: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" },
                   { border: "#10b981", bg: alpha("#10b981", 0.03), gradient: "linear-gradient(135deg, #10b981 0%, #059669 100%)" },
                   { border: "#f59e0b", bg: alpha("#f59e0b", 0.03), gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" },
-                  { border: "#1a8a6e", bg: alpha("#1a8a6e", 0.03), gradient: "linear-gradient(135deg, #1a8a6e 0%, #7c3aed 100%)" },
+                  { border: "#8b5cf6", bg: alpha("#8b5cf6", 0.03), gradient: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)" },
                   { border: "#ec4899", bg: alpha("#ec4899", 0.03), gradient: "linear-gradient(135deg, #ec4899 0%, #db2777 100%)" },
                 ];
                 const colorScheme = colors[index % colors.length];
@@ -1303,8 +1464,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                             {myDatasets.length > 0 && (
                               <MenuItem disabled sx={{ opacity: 1, py: 0.5 }}>
                                 <Stack direction="row" alignItems="center" spacing={1}>
-                                  <Database size={12} color="#13715B" />
-                                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#13715B", textTransform: "uppercase" }}>
+                                  <Database size={12} color="#6366f1" />
+                                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#6366f1", textTransform: "uppercase" }}>
                                     My Datasets
                                   </Typography>
                                 </Stack>
@@ -1313,7 +1474,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                             {myDatasets.map((ds) => (
                               <MenuItem key={`my-${ds.id}`} value={ds.path} sx={{ pl: 3 }}>
                                 <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
-                                  <Database size={14} color="#13715B" />
+                                  <Database size={14} color="#6366f1" />
                                   <Box sx={{ flex: 1 }}>
                                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{ds.name}</Typography>
                                     <Typography sx={{ fontSize: 11, color: "#9ca3af" }}>
@@ -1382,7 +1543,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       >
         {resultsLoading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress size={40} sx={{ color: "#13715B" }} />
+            <CircularProgress size={40} sx={{ color: "#6366f1" }} />
           </Box>
         ) : selectedResults ? (
           <Stack spacing={3}>

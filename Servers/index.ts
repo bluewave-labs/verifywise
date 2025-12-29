@@ -60,6 +60,8 @@ import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
 import policyLinkedObjects from "./routes/policyLinkedObjects.route";
+import aiDetectionRoutes from "./routes/aiDetection.route";
+import githubIntegrationRoutes from "./routes/githubIntegration.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -177,6 +179,7 @@ try {
   app.use("/api/file-manager", fileManagerRoutes);
   app.use("/api/automations", automation);
   app.use("/api/integrations/mlflow", integrationsRoutes);
+  app.use("/api/integrations/github", githubIntegrationRoutes);
   app.use("/api/user-preferences", userPreferenceRouter);
   app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
   app.use("/api/evidenceHub", evidenceHubRouter);
@@ -198,6 +201,7 @@ try {
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
   app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
   app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
+  app.use("/api/ai-detection", aiDetectionRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

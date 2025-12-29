@@ -4,6 +4,7 @@ import { Outlet, useLocation } from "react-router";
 import { useContext, useEffect, FC, useState } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { EvalsSidebarProvider } from "../../../application/contexts/EvalsSidebar.context";
+import { AIDetectionSidebarProvider, useAIDetectionSidebarContextSafe } from "../../../application/contexts/AIDetectionSidebar.context";
 import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 import { getAllProjects } from "../../../application/repository/project.repository";
 import {
@@ -20,6 +21,51 @@ import { useDashboard } from "../../../application/hooks/useDashboard";
 import { useActiveModule } from "../../../application/hooks/useActiveModule";
 import AppSwitcher from "../../components/AppSwitcher";
 import ContextSidebar from "../../components/ContextSidebar";
+
+// Component to display global AI Detection scan notifications
+const ScanNotificationAlert: FC = () => {
+  const context = useAIDetectionSidebarContextSafe();
+  const [autoHideTimeout, setAutoHideTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!context?.scanNotification) {
+      return;
+    }
+
+    // Auto-hide after 5 seconds
+    const timeout = setTimeout(() => {
+      context.clearScanNotification();
+    }, 5000);
+    setAutoHideTimeout(timeout);
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [context?.scanNotification, context]);
+
+  // Clear timeout on manual dismiss
+  const handleDismiss = () => {
+    if (autoHideTimeout) {
+      clearTimeout(autoHideTimeout);
+      setAutoHideTimeout(null);
+    }
+    context?.clearScanNotification();
+  };
+
+  if (!context?.scanNotification) return null;
+
+  const { status, message } = context.scanNotification;
+  const variant = status === "completed" ? "success" : status === "failed" ? "error" : "warning";
+
+  return (
+    <Alert
+      variant={variant}
+      body={message}
+      isToast={true}
+      onClick={handleDismiss}
+    />
+  );
+};
 
 interface DashboardProps {
   reloadTrigger: boolean;
@@ -274,16 +320,17 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
 
   return (
     <EvalsSidebarProvider>
-      <Stack
-        maxWidth="100%"
-        className="home-layout"
-        flexDirection="row"
-        gap={0}
-        sx={{ backgroundColor: "#FCFCFD" }}
-      >
-        <AppSwitcher
-          activeModule={activeModule}
-          onModuleChange={setActiveModule}
+      <AIDetectionSidebarProvider>
+        <Stack
+          maxWidth="100%"
+          className="home-layout"
+          flexDirection="row"
+          gap={0}
+          sx={{ backgroundColor: "#FCFCFD" }}
+        >
+          <AppSwitcher
+            activeModule={activeModule}
+            onModuleChange={setActiveModule}
         />
         <ContextSidebar
           activeModule={activeModule}
@@ -302,6 +349,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
               onClick={() => setAlertState(undefined)}
             />
           )}
+          <ScanNotificationAlert />
           {showToastNotification && <CustomizableToast title={toastMessage} />}
           <Outlet />
         </Stack>
@@ -448,7 +496,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
           </Typography>
         </Stack>
       </StandardModal>
-      </Stack>
+        </Stack>
+      </AIDetectionSidebarProvider>
     </EvalsSidebarProvider>
   );
 };

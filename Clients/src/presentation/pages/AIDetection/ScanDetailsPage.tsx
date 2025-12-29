@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Typography, Collapse, IconButton, Tooltip } from "@mui/material";
 import { TabContext } from "@mui/lab";
 import {
@@ -70,6 +71,7 @@ import { formatDistanceToNow } from "date-fns";
 interface ScanDetailsPageProps {
   scanId: number;
   onBack: () => void;
+  initialTab?: "libraries" | "security";
 }
 
 // ============================================================================
@@ -146,7 +148,7 @@ const PROVIDER_SVG_LOGOS: Record<string, string> = {
 };
 
 function getProviderIcon(provider?: string, size: number = 16): React.ReactNode {
-  if (!provider) return <Package size={size} color="#667085" />;
+  if (!provider) return <Package size={size} color="#667085" strokeWidth={1.5} />;
 
   // Check for lobehub icon component first
   const IconComponent = PROVIDER_ICON_COMPONENTS[provider];
@@ -158,7 +160,7 @@ function getProviderIcon(provider?: string, size: number = 16): React.ReactNode 
     return <img src={svgLogo} alt={provider} width={size} height={size} style={{ objectFit: "contain" }} />;
   }
 
-  return <Package size={size} color="#667085" />;
+  return <Package size={size} color="#667085" strokeWidth={1.5} />;
 }
 
 // ============================================================================
@@ -223,16 +225,18 @@ function FindingRow({ finding, repositoryOwner, repositoryName }: FindingRowProp
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Tooltip title={CONFIDENCE_TOOLTIPS[finding.confidence]} arrow placement="top">
-            <span>
-              <Chip
-                label={finding.confidence.charAt(0).toUpperCase() + finding.confidence.slice(1)}
-                variant={CONFIDENCE_CHIP_VARIANT[finding.confidence]}
-                size="small"
-              />
-            </span>
-          </Tooltip>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Box sx={{ minWidth: 75, display: "flex", justifyContent: "center" }}>
+            <Tooltip title={CONFIDENCE_TOOLTIPS[finding.confidence]} arrow placement="top">
+              <span>
+                <Chip
+                  label={finding.confidence.charAt(0).toUpperCase() + finding.confidence.slice(1)}
+                  variant={CONFIDENCE_CHIP_VARIANT[finding.confidence]}
+                  size="small"
+                />
+              </span>
+            </Tooltip>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 85, justifyContent: "flex-end" }}>
             <FileCode size={14} color="#667085" />
             <Typography variant="body2" sx={{ color: "#667085" }}>
               {finding.file_count} {finding.file_count === 1 ? "file" : "files"}
@@ -324,9 +328,21 @@ function FindingRow({ finding, repositoryOwner, repositoryName }: FindingRowProp
 // Security Finding Row Component
 // ============================================================================
 
-function SecurityFindingRow({ finding }: { finding: SecurityFinding }) {
+interface SecurityFindingRowProps {
+  finding: SecurityFinding;
+  repositoryOwner: string;
+  repositoryName: string;
+}
+
+function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: SecurityFindingRowProps) {
   const [expanded, setExpanded] = useState(false);
   const borderColor = SEVERITY_BORDER_COLORS[finding.severity];
+
+  const getFileUrl = (filePath: string, lineNumber: number | null): string | null => {
+    if (!repositoryOwner || !repositoryName) return null;
+    const baseUrl = `https://github.com/${repositoryOwner}/${repositoryName}/blob/main/${filePath}`;
+    return lineNumber ? `${baseUrl}#L${lineNumber}` : baseUrl;
+  };
 
   return (
     <Box
@@ -342,7 +358,7 @@ function SecurityFindingRow({ finding }: { finding: SecurityFinding }) {
         sx={{
           display: "flex",
           alignItems: "center",
-          p: 2,
+          p: "8px",
           cursor: "pointer",
           "&:hover": {
             backgroundColor: "#f9fafb",
@@ -356,36 +372,38 @@ function SecurityFindingRow({ finding }: { finding: SecurityFinding }) {
 
         <Box sx={{ flex: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+            <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
               {finding.name}
             </Typography>
-            <Typography variant="body2" sx={{ color: "#667085" }}>
+            <Typography sx={{ fontSize: "13px", color: "#667085" }}>
               in {finding.module_name}
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 0.5 }}>
-            <Typography variant="body2" sx={{ color: "#667085" }}>
+            <Typography sx={{ fontSize: "13px", color: "#667085" }}>
               {finding.cwe_id}
             </Typography>
-            <Typography variant="body2" sx={{ color: "#667085" }}>
+            <Typography sx={{ fontSize: "13px", color: "#667085" }}>
               {finding.owasp_ml_id}
             </Typography>
           </Box>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Tooltip title={SEVERITY_TOOLTIPS[finding.severity]} arrow placement="top">
-            <span>
-              <Chip
-                label={finding.severity.charAt(0).toUpperCase() + finding.severity.slice(1)}
-                variant={SEVERITY_CHIP_VARIANT[finding.severity]}
-                size="small"
-              />
-            </span>
-          </Tooltip>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Box sx={{ minWidth: 75, display: "flex", justifyContent: "center" }}>
+            <Tooltip title={SEVERITY_TOOLTIPS[finding.severity]} arrow placement="top">
+              <span>
+                <Chip
+                  label={finding.severity.charAt(0).toUpperCase() + finding.severity.slice(1)}
+                  variant={SEVERITY_CHIP_VARIANT[finding.severity]}
+                  size="small"
+                />
+              </span>
+            </Tooltip>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 85, justifyContent: "flex-end" }}>
             <FileCode size={14} color="#667085" />
-            <Typography variant="body2" sx={{ color: "#667085" }}>
+            <Typography sx={{ fontSize: "13px", color: "#667085" }}>
               {finding.file_count} {finding.file_count === 1 ? "file" : "files"}
             </Typography>
           </Box>
@@ -394,10 +412,10 @@ function SecurityFindingRow({ finding }: { finding: SecurityFinding }) {
 
       {/* Expanded Content */}
       <Collapse in={expanded}>
-        <Box sx={{ px: 2, pb: 2, pt: 1, borderTop: "1px solid #e4e7ec" }}>
+        <Box sx={{ p: "8px", borderTop: "1px solid #e4e7ec" }}>
           {/* Description */}
           {finding.description && (
-            <Typography variant="body2" sx={{ color: "#344054", mb: 2 }}>
+            <Typography variant="body2" sx={{ color: "#344054", mb: "8px" }}>
               {finding.description}
             </Typography>
           )}
@@ -407,8 +425,8 @@ function SecurityFindingRow({ finding }: { finding: SecurityFinding }) {
             sx={{
               display: "grid",
               gridTemplateColumns: "repeat(2, 1fr)",
-              gap: 2,
-              mb: 2,
+              gap: "8px",
+              mb: "8px",
             }}
           >
             <Box>
@@ -418,9 +436,12 @@ function SecurityFindingRow({ finding }: { finding: SecurityFinding }) {
               >
                 CWE
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <VWLink
+                url={`https://cwe.mitre.org/data/definitions/${finding.cwe_id.replace("CWE-", "")}.html`}
+                openInNewTab
+              >
                 {finding.cwe_id}: {finding.cwe_name}
-              </Typography>
+              </VWLink>
             </Box>
             <Box>
               <Typography
@@ -429,9 +450,12 @@ function SecurityFindingRow({ finding }: { finding: SecurityFinding }) {
               >
                 OWASP ML
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <VWLink
+                url="https://owasp.org/www-project-machine-learning-security-top-10/"
+                openInNewTab
+              >
                 {finding.owasp_ml_id}: {finding.owasp_ml_name}
-              </Typography>
+              </VWLink>
             </Box>
             <Box>
               <Typography
@@ -457,14 +481,6 @@ function SecurityFindingRow({ finding }: { finding: SecurityFinding }) {
             </Box>
           </Box>
 
-          {finding.documentation_url && (
-            <Box sx={{ mb: 2 }}>
-              <VWLink url={finding.documentation_url} openInNewTab>
-                View documentation
-              </VWLink>
-            </Box>
-          )}
-
           <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
             Found in:
           </Typography>
@@ -477,39 +493,55 @@ function SecurityFindingRow({ finding }: { finding: SecurityFinding }) {
               p: 1,
             }}
           >
-            {finding.file_paths.slice(0, 20).map((fp, idx) => (
-              <Box
-                key={idx}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  py: 0.5,
-                  px: 1,
-                  fontFamily: "monospace",
-                  fontSize: 13,
-                }}
-              >
-                <Typography
-                  variant="body2"
+            {finding.file_paths.slice(0, 20).map((fp, idx) => {
+              const fileUrl = getFileUrl(fp.path, fp.line_number);
+              return (
+                <Box
+                  key={idx}
                   sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    py: 0.5,
+                    px: 1,
                     fontFamily: "monospace",
-                    color: "#101828",
-                    wordBreak: "break-all",
+                    fontSize: 13,
                   }}
                 >
-                  {fp.path}
-                  {fp.line_number && (
-                    <Typography
-                      component="span"
-                      sx={{ color: "#667085", ml: 0.5 }}
+                  {fileUrl ? (
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontFamily: "monospace",
+                        color: "#101828",
+                        wordBreak: "break-all",
+                        textDecoration: "none",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                      onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
                     >
-                      :{fp.line_number}
-                    </Typography>
+                      {fp.path}
+                      {fp.line_number && (
+                        <span style={{ color: "#667085", marginLeft: "4px" }}>
+                          :{fp.line_number}
+                        </span>
+                      )}
+                    </a>
+                  ) : (
+                    <span style={{ fontFamily: "monospace", color: "#101828", wordBreak: "break-all" }}>
+                      {fp.path}
+                      {fp.line_number && (
+                        <span style={{ color: "#667085", marginLeft: "4px" }}>
+                          :{fp.line_number}
+                        </span>
+                      )}
+                    </span>
                   )}
-                </Typography>
-              </Box>
-            ))}
+                </Box>
+              );
+            })}
             {finding.file_paths.length > 20 && (
               <Typography
                 variant="body2"
@@ -532,7 +564,9 @@ function SecurityFindingRow({ finding }: { finding: SecurityFinding }) {
 export default function ScanDetailsPage({
   scanId,
   onBack,
+  initialTab = "libraries",
 }: ScanDetailsPageProps) {
+  const navigate = useNavigate();
   const [scan, setScan] = useState<ScanResponse | null>(null);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [securityFindings, setSecurityFindings] = useState<SecurityFinding[]>(
@@ -542,7 +576,23 @@ export default function ScanDetailsPage({
     null
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("libraries");
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Handle tab change with URL navigation
+  const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
+    setActiveTab(newValue);
+    if (newValue === "libraries") {
+      navigate(`/ai-detection/scans/${scanId}/libraries`, { replace: true });
+    } else if (newValue === "security") {
+      navigate(`/ai-detection/scans/${scanId}/security`, { replace: true });
+    }
+  };
+
+  // Sync activeTab when initialTab changes (URL navigation)
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
   const [page, setPage] = useState(1);
   const [securityPage, setSecurityPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -685,7 +735,7 @@ export default function ScanDetailsPage({
             <Chip label="Failed" size="small" />
           )}
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3, ml: "28px" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <Clock size={14} color="#667085" />
             <Typography variant="body2" sx={{ color: "#667085" }}>
@@ -735,30 +785,35 @@ export default function ScanDetailsPage({
         <TabBar
           tabs={[
             {
-              label: `Libraries (${scan.summary.total})`,
+              label: "Libraries",
               value: "libraries",
               icon: "Library",
+              count: scan.summary.total,
             },
             {
-              label: `Security (${securitySummary?.total || 0})`,
+              label: "Security",
               value: "security",
               icon: "Shield",
+              count: securitySummary?.total || 0,
             },
           ]}
           activeTab={activeTab}
-          onChange={(_, newValue) => setActiveTab(newValue)}
+          onChange={handleTabChange}
         />
 
         {/* Libraries Tab */}
         {activeTab === "libraries" && (
-          <Box sx={{ mt: 3 }}>
+          <Box sx={{ mt: "8px" }}>
+            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+              AI and machine learning libraries detected in the repository. Click on a finding to see file locations.
+            </Typography>
             {/* Summary Cards */}
             <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: "repeat(4, 1fr)",
                 gap: "8px",
-                mb: 4,
+                mb: "8px",
               }}
             >
               <Box
@@ -768,9 +823,17 @@ export default function ScanDetailsPage({
                   borderRadius: "4px",
                   p: 2,
                   textAlign: "center",
+                  cursor: "pointer",
                 }}
+                onClick={() => setConfidenceFilter(null)}
               >
-                <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 600,
+                    color: confidenceFilter === null ? "#13715B" : "#101828",
+                  }}
+                >
                   {scan.summary.total}
                 </Typography>
                 <Typography variant="body2" sx={{ color: "#667085" }}>
@@ -849,26 +912,9 @@ export default function ScanDetailsPage({
 
             {/* Findings List */}
             <Box sx={{ mb: 2 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 2,
-                }}
-              >
-                <Typography sx={{ fontSize: "15px", fontWeight: 500 }}>
-                  Detected libraries
-                </Typography>
-                {confidenceFilter && (
-                  <CustomizableButton
-                    text="Clear filter"
-                    onClick={() => setConfidenceFilter(null)}
-                    variant="text"
-                    sx={{ height: 28 }}
-                  />
-                )}
-              </Box>
+              <Typography sx={{ fontSize: "15px", fontWeight: 500, mt: "8px", mb: 2 }}>
+                Detected libraries
+              </Typography>
 
               {findings.length === 0 ? (
                 <Box
@@ -940,14 +986,17 @@ export default function ScanDetailsPage({
 
         {/* Security Tab */}
         {activeTab === "security" && (
-          <Box sx={{ mt: 3 }}>
+          <Box sx={{ mt: "8px" }}>
+            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+              Security vulnerabilities found in model files. Serialized models can contain malicious code that executes when loaded.
+            </Typography>
             {/* Security Summary Cards */}
             <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: "repeat(5, 1fr)",
                 gap: "8px",
-                mb: 4,
+                mb: "8px",
               }}
             >
               <Box
@@ -1078,26 +1127,9 @@ export default function ScanDetailsPage({
 
             {/* Security Findings List */}
             <Box sx={{ mb: 2 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 2,
-                }}
-              >
-                <Typography sx={{ fontSize: "15px", fontWeight: 500 }}>
-                  Security findings
-                </Typography>
-                {severityFilter && (
-                  <CustomizableButton
-                    text="Clear filter"
-                    onClick={() => setSeverityFilter(null)}
-                    variant="text"
-                    sx={{ height: 28 }}
-                  />
-                )}
-              </Box>
+              <Typography sx={{ fontSize: "15px", fontWeight: 500, mt: "8px", mb: 2 }}>
+                Security findings
+              </Typography>
 
               {securityFindings.length === 0 ? (
                 <Box
@@ -1147,7 +1179,12 @@ export default function ScanDetailsPage({
               ) : (
                 <Box>
                   {securityFindings.map((finding) => (
-                    <SecurityFindingRow key={finding.id} finding={finding} />
+                    <SecurityFindingRow
+                      key={finding.id}
+                      finding={finding}
+                      repositoryOwner={scan.scan.repository_owner}
+                      repositoryName={scan.scan.repository_name}
+                    />
                   ))}
 
                   {/* Pagination */}

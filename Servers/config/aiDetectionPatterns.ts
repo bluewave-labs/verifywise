@@ -489,67 +489,6 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
         },
       },
       {
-        name: "numpy",
-        provider: "NumPy",
-        description: "Fundamental package for scientific computing with Python",
-        documentationUrl: "https://numpy.org/doc/stable/",
-        confidence: "high",
-        patterns: {
-          imports: [
-            /^import\s+numpy/m,
-            /^from\s+numpy\s+import/m,
-            /import\s+numpy\s+as\s+np/m,
-          ],
-          dependencies: [/^numpy[=<>~!\s]/m],
-        },
-      },
-      {
-        name: "pandas",
-        provider: "Pandas",
-        description: "Data analysis and manipulation library for Python",
-        documentationUrl: "https://pandas.pydata.org/docs/",
-        confidence: "high",
-        patterns: {
-          imports: [
-            /^import\s+pandas/m,
-            /^from\s+pandas\s+import/m,
-            /import\s+pandas\s+as\s+pd/m,
-          ],
-          dependencies: [/^pandas[=<>~!\s]/m],
-        },
-      },
-      {
-        name: "matplotlib",
-        provider: "Matplotlib",
-        description: "Comprehensive library for creating visualizations in Python",
-        documentationUrl: "https://matplotlib.org/stable/",
-        confidence: "high",
-        patterns: {
-          imports: [
-            /^import\s+matplotlib/m,
-            /^from\s+matplotlib\s+import/m,
-            /^from\s+matplotlib\.pyplot\s+import/m,
-            /import\s+matplotlib\.pyplot\s+as\s+plt/m,
-          ],
-          dependencies: [/^matplotlib[=<>~!\s]/m],
-        },
-      },
-      {
-        name: "scipy",
-        provider: "SciPy",
-        description: "Library for scientific and technical computing",
-        documentationUrl: "https://docs.scipy.org/doc/scipy/",
-        confidence: "high",
-        patterns: {
-          imports: [
-            /^import\s+scipy/m,
-            /^from\s+scipy\s+import/m,
-            /^from\s+scipy\./m,
-          ],
-          dependencies: [/^scipy[=<>~!\s]/m],
-        },
-      },
-      {
         name: "mxnet",
         provider: "MXNet",
         description: "Flexible and efficient deep learning framework",
@@ -737,38 +676,6 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+wandb\s+import/m,
           ],
           dependencies: [/^wandb[=<>~!\s]/m],
-        },
-      },
-
-      // ========================
-      // Distributed Computing (Medium Confidence)
-      // ========================
-      {
-        name: "ray",
-        provider: "Anyscale",
-        description: "Distributed computing framework often used for ML",
-        documentationUrl: "https://docs.ray.io",
-        confidence: "medium",
-        patterns: {
-          imports: [
-            /^import\s+ray/m,
-            /^from\s+ray\s+import/m,
-          ],
-          dependencies: [/^ray[=<>~!\s]/m],
-        },
-      },
-      {
-        name: "dask",
-        provider: "Dask",
-        description: "Parallel computing library for analytics",
-        documentationUrl: "https://docs.dask.org",
-        confidence: "medium",
-        patterns: {
-          imports: [
-            /^import\s+dask/m,
-            /^from\s+dask\s+import/m,
-          ],
-          dependencies: [/^dask[=<>~!\s]/m],
         },
       },
 
@@ -1051,6 +958,264 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+writer\s+import/m,
           ],
           dependencies: [/^writer-sdk[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "litellm",
+        provider: "LiteLLM",
+        description: "Unified API for 100+ LLM providers",
+        documentationUrl: "https://docs.litellm.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+litellm/m,
+            /^from\s+litellm\s+import/m,
+          ],
+          dependencies: [/^litellm[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "deepseek",
+        provider: "DeepSeek",
+        description: "DeepSeek AI API client",
+        documentationUrl: "https://platform.deepseek.com/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+deepseek/m,
+            /^from\s+deepseek\s+import/m,
+          ],
+          dependencies: [/^deepseek[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "perplexity",
+        provider: "Perplexity AI",
+        description: "Perplexity AI API client",
+        documentationUrl: "https://docs.perplexity.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+perplexity/m,
+            /^from\s+perplexity\s+import/m,
+          ],
+          dependencies: [/^perplexity[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "cerebras",
+        provider: "Cerebras",
+        description: "Cerebras fast inference API",
+        documentationUrl: "https://docs.cerebras.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+cerebras/m,
+            /^from\s+cerebras\s+import/m,
+          ],
+          dependencies: [/^cerebras-cloud-sdk[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "lepton",
+        provider: "Lepton AI",
+        description: "Lepton AI deployment platform",
+        documentationUrl: "https://www.lepton.ai/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+leptonai/m,
+            /^from\s+leptonai\s+import/m,
+          ],
+          dependencies: [/^leptonai[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "modal",
+        provider: "Modal",
+        description: "Serverless ML compute platform",
+        documentationUrl: "https://modal.com/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+modal/m,
+            /^from\s+modal\s+import/m,
+          ],
+          dependencies: [/^modal[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "baseten",
+        provider: "Baseten",
+        description: "Model deployment platform",
+        documentationUrl: "https://docs.baseten.co",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+baseten/m,
+            /^from\s+baseten\s+import/m,
+            /^import\s+truss/m,
+            /^from\s+truss\s+import/m,
+          ],
+          dependencies: [/^baseten[=<>~!\s]/m, /^truss[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "runpod",
+        provider: "RunPod",
+        description: "GPU cloud platform",
+        documentationUrl: "https://docs.runpod.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+runpod/m,
+            /^from\s+runpod\s+import/m,
+          ],
+          dependencies: [/^runpod[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "assemblyai",
+        provider: "AssemblyAI",
+        description: "Speech-to-text API",
+        documentationUrl: "https://www.assemblyai.com/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+assemblyai/m,
+            /^from\s+assemblyai\s+import/m,
+          ],
+          dependencies: [/^assemblyai[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "elevenlabs",
+        provider: "ElevenLabs",
+        description: "Text-to-speech API",
+        documentationUrl: "https://elevenlabs.io/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+elevenlabs/m,
+            /^from\s+elevenlabs\s+import/m,
+          ],
+          dependencies: [/^elevenlabs[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "reka",
+        provider: "Reka AI",
+        description: "Multimodal AI API",
+        documentationUrl: "https://docs.reka.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+reka/m,
+            /^from\s+reka\s+import/m,
+          ],
+          dependencies: [/^reka-api[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "voyage",
+        provider: "Voyage AI",
+        description: "Embedding models API",
+        documentationUrl: "https://docs.voyageai.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+voyageai/m,
+            /^from\s+voyageai\s+import/m,
+          ],
+          dependencies: [/^voyageai[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "jina",
+        provider: "Jina AI",
+        description: "Neural search and embeddings",
+        documentationUrl: "https://docs.jina.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+jina/m,
+            /^from\s+jina\s+import/m,
+          ],
+          dependencies: [/^jina[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "nomic",
+        provider: "Nomic AI",
+        description: "Open-source embeddings",
+        documentationUrl: "https://docs.nomic.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+nomic/m,
+            /^from\s+nomic\s+import/m,
+          ],
+          dependencies: [/^nomic[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "octoai",
+        provider: "OctoAI",
+        description: "AI inference platform",
+        documentationUrl: "https://docs.octoai.cloud",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+octoai/m,
+            /^from\s+octoai\s+import/m,
+          ],
+          dependencies: [/^octoai-sdk[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "deepinfra",
+        provider: "DeepInfra",
+        description: "ML model inference API",
+        documentationUrl: "https://deepinfra.com/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+deepinfra/m,
+            /^from\s+deepinfra\s+import/m,
+          ],
+          dependencies: [/^deepinfra[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "vertexai",
+        provider: "Google",
+        description: "Google Vertex AI platform",
+        documentationUrl: "https://cloud.google.com/vertex-ai/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+vertexai/m,
+            /^from\s+vertexai\s+import/m,
+            /^from\s+google\.cloud\s+import\s+aiplatform/m,
+          ],
+          dependencies: [
+            /^google-cloud-aiplatform[=<>~!\s]/m,
+            /^vertexai[=<>~!\s]/m,
+          ],
+        },
+      },
+      {
+        name: "sagemaker",
+        provider: "AWS",
+        description: "AWS SageMaker ML platform",
+        documentationUrl: "https://docs.aws.amazon.com/sagemaker",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+sagemaker/m,
+            /^from\s+sagemaker\s+import/m,
+          ],
+          dependencies: [/^sagemaker[=<>~!\s]/m],
         },
       },
 
@@ -1343,22 +1508,515 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
       },
 
       // ========================
-      // Computer Vision (expanded)
+      // Local LLM & Quantization
       // ========================
       {
-        name: "pillow",
-        provider: "Pillow",
-        description: "Python Imaging Library fork",
-        documentationUrl: "https://pillow.readthedocs.io",
-        confidence: "medium",
+        name: "mlx",
+        provider: "Apple",
+        description: "Apple Silicon ML framework",
+        documentationUrl: "https://ml-explore.github.io/mlx",
+        confidence: "high",
         patterns: {
           imports: [
-            /^import\s+PIL/m,
-            /^from\s+PIL\s+import/m,
+            /^import\s+mlx/m,
+            /^from\s+mlx\s+import/m,
           ],
-          dependencies: [/^[Pp]illow[=<>~!\s]/m],
+          dependencies: [/^mlx[=<>~!\s]/m],
         },
       },
+      {
+        name: "mlx-lm",
+        provider: "Apple",
+        description: "LLM inference on Apple Silicon",
+        documentationUrl: "https://github.com/ml-explore/mlx-examples",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+mlx_lm/m,
+            /^from\s+mlx_lm\s+import/m,
+          ],
+          dependencies: [/^mlx-lm[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "exllamav2",
+        provider: "ExLlama",
+        description: "Fast GPTQ/EXL2 inference",
+        documentationUrl: "https://github.com/turboderp/exllamav2",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+exllamav2/m,
+            /^from\s+exllamav2\s+import/m,
+          ],
+          dependencies: [/^exllamav2[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "auto-gptq",
+        provider: "AutoGPTQ",
+        description: "GPTQ quantization library",
+        documentationUrl: "https://github.com/AutoGPTQ/AutoGPTQ",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+auto_gptq/m,
+            /^from\s+auto_gptq\s+import/m,
+          ],
+          dependencies: [/^auto-gptq[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "autoawq",
+        provider: "AutoAWQ",
+        description: "AWQ quantization library",
+        documentationUrl: "https://github.com/casper-hansen/AutoAWQ",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+awq/m,
+            /^from\s+awq\s+import/m,
+          ],
+          dependencies: [/^autoawq[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "bitsandbytes",
+        provider: "bitsandbytes",
+        description: "8-bit and 4-bit quantization",
+        documentationUrl: "https://github.com/TimDettmers/bitsandbytes",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+bitsandbytes/m,
+            /^from\s+bitsandbytes\s+import/m,
+          ],
+          dependencies: [/^bitsandbytes[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "unsloth",
+        provider: "Unsloth",
+        description: "Fast LLM fine-tuning (2x speed)",
+        documentationUrl: "https://github.com/unslothai/unsloth",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+unsloth/m,
+            /^from\s+unsloth\s+import/m,
+          ],
+          dependencies: [/^unsloth[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "gpt4all",
+        provider: "Nomic AI",
+        description: "Local LLM runtime",
+        documentationUrl: "https://docs.gpt4all.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+gpt4all/m,
+            /^from\s+gpt4all\s+import/m,
+          ],
+          dependencies: [/^gpt4all[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "lmdeploy",
+        provider: "InternLM",
+        description: "LLM deployment toolkit",
+        documentationUrl: "https://lmdeploy.readthedocs.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+lmdeploy/m,
+            /^from\s+lmdeploy\s+import/m,
+          ],
+          dependencies: [/^lmdeploy[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "aphrodite-engine",
+        provider: "Aphrodite",
+        description: "High-throughput LLM inference",
+        documentationUrl: "https://github.com/PygmalionAI/aphrodite-engine",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+aphrodite/m,
+            /^from\s+aphrodite\s+import/m,
+          ],
+          dependencies: [/^aphrodite-engine[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "lorax",
+        provider: "Predibase",
+        description: "Multi-LoRA serving",
+        documentationUrl: "https://github.com/predibase/lorax",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+lorax/m,
+            /^from\s+lorax\s+import/m,
+          ],
+          dependencies: [/^lorax-client[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "xinference",
+        provider: "Xorbits",
+        description: "Distributed model inference",
+        documentationUrl: "https://inference.readthedocs.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+xinference/m,
+            /^from\s+xinference\s+import/m,
+          ],
+          dependencies: [/^xinference[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Fine-tuning & Training
+      // ========================
+      {
+        name: "peft",
+        provider: "HuggingFace",
+        description: "Parameter-efficient fine-tuning (LoRA, QLoRA)",
+        documentationUrl: "https://huggingface.co/docs/peft",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+peft/m,
+            /^from\s+peft\s+import/m,
+          ],
+          dependencies: [/^peft[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "trl",
+        provider: "HuggingFace",
+        description: "Transformer Reinforcement Learning (RLHF)",
+        documentationUrl: "https://huggingface.co/docs/trl",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+trl/m,
+            /^from\s+trl\s+import/m,
+          ],
+          dependencies: [/^trl[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "accelerate",
+        provider: "HuggingFace",
+        description: "Distributed training utility",
+        documentationUrl: "https://huggingface.co/docs/accelerate",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+accelerate/m,
+            /^from\s+accelerate\s+import/m,
+          ],
+          dependencies: [/^accelerate[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "deepspeed",
+        provider: "Microsoft",
+        description: "Large model training optimization",
+        documentationUrl: "https://www.deepspeed.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+deepspeed/m,
+            /^from\s+deepspeed\s+import/m,
+          ],
+          dependencies: [/^deepspeed[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "lightning",
+        provider: "Lightning AI",
+        description: "PyTorch training framework",
+        documentationUrl: "https://lightning.ai/docs/pytorch",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+lightning/m,
+            /^from\s+lightning\s+import/m,
+            /^import\s+pytorch_lightning/m,
+            /^from\s+pytorch_lightning\s+import/m,
+          ],
+          dependencies: [
+            /^lightning[=<>~!\s]/m,
+            /^pytorch-lightning[=<>~!\s]/m,
+          ],
+        },
+      },
+      {
+        name: "colossalai",
+        provider: "ColossalAI",
+        description: "Distributed training system",
+        documentationUrl: "https://colossalai.org",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+colossalai/m,
+            /^from\s+colossalai\s+import/m,
+          ],
+          dependencies: [/^colossalai[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "axolotl",
+        provider: "Axolotl",
+        description: "LLM fine-tuning framework",
+        documentationUrl: "https://github.com/OpenAccess-AI-Collective/axolotl",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+axolotl/m,
+            /^from\s+axolotl\s+import/m,
+          ],
+          dependencies: [/^axolotl[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "fairscale",
+        provider: "Meta",
+        description: "PyTorch distributed training",
+        documentationUrl: "https://fairscale.readthedocs.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+fairscale/m,
+            /^from\s+fairscale\s+import/m,
+          ],
+          dependencies: [/^fairscale[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "flash-attn",
+        provider: "Flash Attention",
+        description: "Fast and memory-efficient attention",
+        documentationUrl: "https://github.com/Dao-AILab/flash-attention",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+flash_attn/m,
+            /^from\s+flash_attn\s+import/m,
+          ],
+          dependencies: [/^flash-attn[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "xformers",
+        provider: "Meta",
+        description: "Memory-efficient transformers",
+        documentationUrl: "https://facebookresearch.github.io/xformers",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+xformers/m,
+            /^from\s+xformers\s+import/m,
+          ],
+          dependencies: [/^xformers[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "apex",
+        provider: "NVIDIA",
+        description: "PyTorch extension for mixed precision",
+        documentationUrl: "https://github.com/NVIDIA/apex",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+apex/m,
+            /^from\s+apex\s+import/m,
+          ],
+          dependencies: [/^apex[=<>~!\s]/m, /^nvidia-apex[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "liger-kernel",
+        provider: "LinkedIn",
+        description: "Efficient training kernels",
+        documentationUrl: "https://github.com/linkedin/Liger-Kernel",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+liger_kernel/m,
+            /^from\s+liger_kernel\s+import/m,
+          ],
+          dependencies: [/^liger-kernel[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // RAG & Document Processing
+      // ========================
+      {
+        name: "langgraph",
+        provider: "LangChain",
+        description: "Agent state graphs and workflows",
+        documentationUrl: "https://langchain-ai.github.io/langgraph",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+langgraph/m,
+            /^from\s+langgraph\s+import/m,
+          ],
+          dependencies: [/^langgraph[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "unstructured",
+        provider: "Unstructured",
+        description: "Document parsing and extraction",
+        documentationUrl: "https://docs.unstructured.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+unstructured/m,
+            /^from\s+unstructured\s+import/m,
+          ],
+          dependencies: [/^unstructured[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "docling",
+        provider: "IBM",
+        description: "Document understanding toolkit",
+        documentationUrl: "https://ds4sd.github.io/docling",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+docling/m,
+            /^from\s+docling\s+import/m,
+          ],
+          dependencies: [/^docling[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "embedchain",
+        provider: "Embedchain",
+        description: "RAG framework for LLM apps",
+        documentationUrl: "https://docs.embedchain.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+embedchain/m,
+            /^from\s+embedchain\s+import/m,
+          ],
+          dependencies: [/^embedchain[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "docarray",
+        provider: "Jina",
+        description: "Multi-modal data structures",
+        documentationUrl: "https://docs.docarray.org",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+docarray/m,
+            /^from\s+docarray\s+import/m,
+          ],
+          dependencies: [/^docarray[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "llama-parse",
+        provider: "LlamaIndex",
+        description: "Document parsing for RAG",
+        documentationUrl: "https://docs.llamaindex.ai/en/stable/llama_cloud/llama_parse",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+llama_parse/m,
+            /^from\s+llama_parse\s+import/m,
+          ],
+          dependencies: [/^llama-parse[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "marker",
+        provider: "Marker",
+        description: "PDF to markdown conversion",
+        documentationUrl: "https://github.com/VikParuchuri/marker",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+marker/m,
+            /^from\s+marker\s+import/m,
+          ],
+          dependencies: [/^marker-pdf[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "surya",
+        provider: "Surya",
+        description: "Document OCR toolkit",
+        documentationUrl: "https://github.com/VikParuchuri/surya",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+surya/m,
+            /^from\s+surya\s+import/m,
+          ],
+          dependencies: [/^surya-ocr[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "ragatouille",
+        provider: "RAGatouille",
+        description: "ColBERT-based RAG",
+        documentationUrl: "https://github.com/bclavie/RAGatouille",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+ragatouille/m,
+            /^from\s+ragatouille\s+import/m,
+          ],
+          dependencies: [/^ragatouille[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "flashrank",
+        provider: "FlashRank",
+        description: "Fast reranking for RAG",
+        documentationUrl: "https://github.com/PrithivirajDamodaran/FlashRank",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+flashrank/m,
+            /^from\s+flashrank\s+import/m,
+          ],
+          dependencies: [/^flashrank[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "txtai",
+        provider: "txtai",
+        description: "Semantic search and RAG",
+        documentationUrl: "https://neuml.github.io/txtai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+txtai/m,
+            /^from\s+txtai\s+import/m,
+          ],
+          dependencies: [/^txtai[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Computer Vision (expanded)
+      // ========================
       {
         name: "torchvision",
         provider: "Meta",
@@ -1722,20 +2380,6 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
         },
       },
       {
-        name: "statsmodels",
-        provider: "statsmodels",
-        description: "Statistical models and tests",
-        documentationUrl: "https://www.statsmodels.org",
-        confidence: "medium",
-        patterns: {
-          imports: [
-            /^import\s+statsmodels/m,
-            /^from\s+statsmodels\s+import/m,
-          ],
-          dependencies: [/^statsmodels[=<>~!\s]/m],
-        },
-      },
-      {
         name: "darts",
         provider: "Unit8",
         description: "Time series forecasting library",
@@ -1809,67 +2453,6 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
           dependencies: [/^dgl[=<>~!\s]/m],
         },
       },
-      {
-        name: "networkx",
-        provider: "NetworkX",
-        description: "Network analysis library",
-        documentationUrl: "https://networkx.org",
-        confidence: "medium",
-        patterns: {
-          imports: [
-            /^import\s+networkx/m,
-            /^from\s+networkx\s+import/m,
-          ],
-          dependencies: [/^networkx[=<>~!\s]/m],
-        },
-      },
-
-      // ========================
-      // Data Validation & Quality
-      // ========================
-      {
-        name: "great-expectations",
-        provider: "Great Expectations",
-        description: "Data validation and documentation",
-        documentationUrl: "https://docs.greatexpectations.io",
-        confidence: "medium",
-        patterns: {
-          imports: [
-            /^import\s+great_expectations/m,
-            /^from\s+great_expectations\s+import/m,
-          ],
-          dependencies: [/^great-expectations[=<>~!\s]/m],
-        },
-      },
-      {
-        name: "pandera",
-        provider: "Pandera",
-        description: "Data validation for pandas",
-        documentationUrl: "https://pandera.readthedocs.io",
-        confidence: "medium",
-        patterns: {
-          imports: [
-            /^import\s+pandera/m,
-            /^from\s+pandera\s+import/m,
-          ],
-          dependencies: [/^pandera[=<>~!\s]/m],
-        },
-      },
-      {
-        name: "pydantic",
-        provider: "Pydantic",
-        description: "Data validation using Python type hints",
-        documentationUrl: "https://docs.pydantic.dev",
-        confidence: "low",
-        patterns: {
-          imports: [
-            /^import\s+pydantic/m,
-            /^from\s+pydantic\s+import/m,
-          ],
-          dependencies: [/^pydantic[=<>~!\s]/m],
-        },
-      },
-
       // ========================
       // Feature Engineering
       // ========================
@@ -1899,52 +2482,6 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+category_encoders\s+import/m,
           ],
           dependencies: [/^category-encoders[=<>~!\s]/m],
-        },
-      },
-
-      // ========================
-      // Visualization for ML
-      // ========================
-      {
-        name: "seaborn",
-        provider: "Seaborn",
-        description: "Statistical data visualization",
-        documentationUrl: "https://seaborn.pydata.org",
-        confidence: "medium",
-        patterns: {
-          imports: [
-            /^import\s+seaborn/m,
-            /^from\s+seaborn\s+import/m,
-          ],
-          dependencies: [/^seaborn[=<>~!\s]/m],
-        },
-      },
-      {
-        name: "plotly",
-        provider: "Plotly",
-        description: "Interactive visualization library",
-        documentationUrl: "https://plotly.com/python",
-        confidence: "medium",
-        patterns: {
-          imports: [
-            /^import\s+plotly/m,
-            /^from\s+plotly\s+import/m,
-          ],
-          dependencies: [/^plotly[=<>~!\s]/m],
-        },
-      },
-      {
-        name: "yellowbrick",
-        provider: "Yellowbrick",
-        description: "ML visualization",
-        documentationUrl: "https://www.scikit-yb.org",
-        confidence: "high",
-        patterns: {
-          imports: [
-            /^import\s+yellowbrick/m,
-            /^from\s+yellowbrick\s+import/m,
-          ],
-          dependencies: [/^yellowbrick[=<>~!\s]/m],
         },
       },
 
@@ -2120,6 +2657,1189 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+evidently\s+import/m,
           ],
           dependencies: [/^evidently[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Agent Frameworks (extended)
+      // ========================
+      {
+        name: "letta",
+        provider: "Letta",
+        description: "Persistent memory agents (formerly MemGPT)",
+        documentationUrl: "https://docs.letta.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+letta/m,
+            /^from\s+letta\s+import/m,
+            /^import\s+memgpt/m,
+            /^from\s+memgpt\s+import/m,
+          ],
+          dependencies: [/^letta[=<>~!\s]/m, /^memgpt[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "agentops",
+        provider: "AgentOps",
+        description: "Agent observability and analytics",
+        documentationUrl: "https://docs.agentops.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+agentops/m,
+            /^from\s+agentops\s+import/m,
+          ],
+          dependencies: [/^agentops[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "composio",
+        provider: "Composio",
+        description: "AI agent tool integrations",
+        documentationUrl: "https://docs.composio.dev",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+composio/m,
+            /^from\s+composio\s+import/m,
+          ],
+          dependencies: [/^composio[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "e2b",
+        provider: "E2B",
+        description: "Code interpreter and sandbox for AI",
+        documentationUrl: "https://e2b.dev/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+e2b/m,
+            /^from\s+e2b\s+import/m,
+          ],
+          dependencies: [/^e2b[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "browser-use",
+        provider: "Browser Use",
+        description: "Browser automation for AI agents",
+        documentationUrl: "https://github.com/browser-use/browser-use",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+browser_use/m,
+            /^from\s+browser_use\s+import/m,
+          ],
+          dependencies: [/^browser-use[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "superagi",
+        provider: "SuperAGI",
+        description: "Open-source autonomous AI agent framework",
+        documentationUrl: "https://superagi.com/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+superagi/m,
+            /^from\s+superagi\s+import/m,
+          ],
+          dependencies: [/^superagi[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "swarm",
+        provider: "OpenAI",
+        description: "Multi-agent orchestration framework",
+        documentationUrl: "https://github.com/openai/swarm",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+swarm/m,
+            /^from\s+swarm\s+import/m,
+          ],
+          dependencies: [/^openai-swarm[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "agency-swarm",
+        provider: "Agency Swarm",
+        description: "AI agent swarm framework",
+        documentationUrl: "https://github.com/VRSEN/agency-swarm",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+agency_swarm/m,
+            /^from\s+agency_swarm\s+import/m,
+          ],
+          dependencies: [/^agency-swarm[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "camel",
+        provider: "CAMEL-AI",
+        description: "Multi-agent role-playing framework",
+        documentationUrl: "https://www.camel-ai.org",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+camel/m,
+            /^from\s+camel\s+import/m,
+          ],
+          dependencies: [/^camel-ai[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Vision & Multimodal (extended)
+      // ========================
+      {
+        name: "segment-anything",
+        provider: "Meta",
+        description: "Segment Anything Model (SAM)",
+        documentationUrl: "https://segment-anything.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+segment_anything/m,
+            /^from\s+segment_anything\s+import/m,
+          ],
+          dependencies: [/^segment-anything[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "clip",
+        provider: "OpenAI",
+        description: "Contrastive Language-Image Pre-training",
+        documentationUrl: "https://github.com/openai/CLIP",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+clip/m,
+            /^from\s+clip\s+import/m,
+          ],
+          dependencies: [/^openai-clip[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "open-clip",
+        provider: "LAION",
+        description: "Open-source CLIP implementations",
+        documentationUrl: "https://github.com/mlfoundations/open_clip",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+open_clip/m,
+            /^from\s+open_clip\s+import/m,
+          ],
+          dependencies: [/^open-clip-torch[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "groundingdino",
+        provider: "IDEA-Research",
+        description: "Open-set object detection with text",
+        documentationUrl: "https://github.com/IDEA-Research/GroundingDINO",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+groundingdino/m,
+            /^from\s+groundingdino\s+import/m,
+          ],
+          dependencies: [/^groundingdino[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "roboflow",
+        provider: "Roboflow",
+        description: "Computer vision data and model platform",
+        documentationUrl: "https://docs.roboflow.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+roboflow/m,
+            /^from\s+roboflow\s+import/m,
+          ],
+          dependencies: [/^roboflow[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "llava",
+        provider: "LLaVA",
+        description: "Large Language and Vision Assistant",
+        documentationUrl: "https://llava-vl.github.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+llava/m,
+            /^from\s+llava\s+import/m,
+          ],
+          dependencies: [/^llava[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "qwen-vl",
+        provider: "Alibaba",
+        description: "Qwen Vision-Language models",
+        documentationUrl: "https://github.com/QwenLM/Qwen-VL",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+transformers\s+import\s+.*Qwen.*VL/m,
+          ],
+          dependencies: [/^qwen-vl[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "detr",
+        provider: "Meta",
+        description: "Detection Transformer",
+        documentationUrl: "https://github.com/facebookresearch/detr",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+transformers\s+import\s+.*Detr/m,
+          ],
+          dependencies: [/^detr[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "sam2",
+        provider: "Meta",
+        description: "Segment Anything Model 2 (video)",
+        documentationUrl: "https://github.com/facebookresearch/sam2",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+sam2/m,
+            /^from\s+sam2\s+import/m,
+          ],
+          dependencies: [/^sam2[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Speech & Audio (extended)
+      // ========================
+      {
+        name: "faster-whisper",
+        provider: "SYSTRAN",
+        description: "Fast Whisper transcription with CTranslate2",
+        documentationUrl: "https://github.com/SYSTRAN/faster-whisper",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+faster_whisper/m,
+            /^from\s+faster_whisper\s+import/m,
+          ],
+          dependencies: [/^faster-whisper[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "whisperx",
+        provider: "WhisperX",
+        description: "Whisper with word-level timestamps",
+        documentationUrl: "https://github.com/m-bain/whisperX",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+whisperx/m,
+            /^from\s+whisperx\s+import/m,
+          ],
+          dependencies: [/^whisperx[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "bark",
+        provider: "Suno",
+        description: "Text-to-audio generation model",
+        documentationUrl: "https://github.com/suno-ai/bark",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+bark/m,
+            /^from\s+bark\s+import/m,
+          ],
+          dependencies: [/^suno-bark[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "parler-tts",
+        provider: "Parler",
+        description: "High-quality text-to-speech",
+        documentationUrl: "https://github.com/huggingface/parler-tts",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+parler_tts/m,
+            /^from\s+parler_tts\s+import/m,
+          ],
+          dependencies: [/^parler-tts[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "nemo-toolkit",
+        provider: "NVIDIA",
+        description: "Neural Modules toolkit for ASR/NLP/TTS",
+        documentationUrl: "https://docs.nvidia.com/nemo-framework",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+nemo/m,
+            /^from\s+nemo\s+import/m,
+            /^import\s+nemo_toolkit/m,
+          ],
+          dependencies: [/^nemo-toolkit[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "vosk",
+        provider: "Alpha Cephei",
+        description: "Offline speech recognition toolkit",
+        documentationUrl: "https://alphacephei.com/vosk",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+vosk/m,
+            /^from\s+vosk\s+import/m,
+          ],
+          dependencies: [/^vosk[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "pyttsx3",
+        provider: "pyttsx3",
+        description: "Text-to-speech conversion library",
+        documentationUrl: "https://pyttsx3.readthedocs.io",
+        confidence: "medium",
+        patterns: {
+          imports: [
+            /^import\s+pyttsx3/m,
+            /^from\s+pyttsx3\s+import/m,
+          ],
+          dependencies: [/^pyttsx3[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "fish-speech",
+        provider: "Fish Speech",
+        description: "Zero-shot voice cloning TTS",
+        documentationUrl: "https://github.com/fishaudio/fish-speech",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+fish_speech/m,
+            /^from\s+fish_speech\s+import/m,
+          ],
+          dependencies: [/^fish-speech[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Image & Video Generation
+      // ========================
+      {
+        name: "controlnet",
+        provider: "lllyasviel",
+        description: "Conditional control for diffusion models",
+        documentationUrl: "https://github.com/lllyasviel/ControlNet",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+controlnet/m,
+            /^from\s+controlnet\s+import/m,
+            /^from\s+diffusers\s+import\s+.*ControlNet/m,
+          ],
+          dependencies: [/^controlnet[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "ip-adapter",
+        provider: "Tencent",
+        description: "Image prompt adapter for diffusion",
+        documentationUrl: "https://github.com/tencent-ailab/IP-Adapter",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+ip_adapter/m,
+            /^from\s+ip_adapter\s+import/m,
+          ],
+          dependencies: [/^ip-adapter[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "instantid",
+        provider: "InstantX",
+        description: "Identity-preserving image generation",
+        documentationUrl: "https://github.com/InstantID/InstantID",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+instantid/m,
+            /^from\s+instantid\s+import/m,
+          ],
+          dependencies: [/^instantid[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "animatediff",
+        provider: "AnimateDiff",
+        description: "Animation generation with diffusion",
+        documentationUrl: "https://github.com/guoyww/AnimateDiff",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+animatediff/m,
+            /^from\s+animatediff\s+import/m,
+          ],
+          dependencies: [/^animatediff[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "comfyui",
+        provider: "ComfyUI",
+        description: "Node-based Stable Diffusion GUI",
+        documentationUrl: "https://github.com/comfyanonymous/ComfyUI",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+comfy/m,
+            /^from\s+comfy\s+import/m,
+          ],
+          dependencies: [/^comfyui[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "sdxl-turbo",
+        provider: "Stability AI",
+        description: "Fast SDXL inference",
+        documentationUrl: "https://stability.ai/news/stability-ai-sdxl-turbo",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /stabilityai\/sdxl-turbo/m,
+          ],
+          dependencies: [],
+        },
+      },
+      {
+        name: "flux",
+        provider: "Black Forest Labs",
+        description: "Text-to-image generation model",
+        documentationUrl: "https://blackforestlabs.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /black-forest-labs\/FLUX/m,
+            /^import\s+flux/m,
+          ],
+          dependencies: [/^flux[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Safety & Guardrails
+      // ========================
+      {
+        name: "nemoguardrails",
+        provider: "NVIDIA",
+        description: "LLM safety guardrails",
+        documentationUrl: "https://github.com/NVIDIA/NeMo-Guardrails",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+nemoguardrails/m,
+            /^from\s+nemoguardrails\s+import/m,
+          ],
+          dependencies: [/^nemoguardrails[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "guardrails-ai",
+        provider: "Guardrails AI",
+        description: "Output validation for LLMs",
+        documentationUrl: "https://docs.guardrailsai.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+guardrails/m,
+            /^from\s+guardrails\s+import/m,
+          ],
+          dependencies: [/^guardrails-ai[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "llm-guard",
+        provider: "Protect AI",
+        description: "Security toolkit for LLMs",
+        documentationUrl: "https://llm-guard.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+llm_guard/m,
+            /^from\s+llm_guard\s+import/m,
+          ],
+          dependencies: [/^llm-guard[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "rebuff",
+        provider: "Rebuff",
+        description: "Prompt injection detection",
+        documentationUrl: "https://github.com/protectai/rebuff",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+rebuff/m,
+            /^from\s+rebuff\s+import/m,
+          ],
+          dependencies: [/^rebuff[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "lakera",
+        provider: "Lakera",
+        description: "AI security platform",
+        documentationUrl: "https://platform.lakera.ai/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+lakera/m,
+            /^from\s+lakera\s+import/m,
+          ],
+          dependencies: [/^lakera[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "detoxify",
+        provider: "Unitary",
+        description: "Toxic content detection",
+        documentationUrl: "https://github.com/unitaryai/detoxify",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+detoxify/m,
+            /^from\s+detoxify\s+import/m,
+          ],
+          dependencies: [/^detoxify[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "perspective",
+        provider: "Google Jigsaw",
+        description: "Toxic comment detection API",
+        documentationUrl: "https://perspectiveapi.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /from\s+['"]@google-cloud\/perspective['"]/,
+          ],
+          dependencies: [/^perspective-api[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Observability & MLOps (extended)
+      // ========================
+      {
+        name: "helicone",
+        provider: "Helicone",
+        description: "LLM observability platform",
+        documentationUrl: "https://docs.helicone.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+helicone/m,
+            /^from\s+helicone\s+import/m,
+          ],
+          dependencies: [/^helicone[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "portkey",
+        provider: "Portkey AI",
+        description: "LLM gateway and observability",
+        documentationUrl: "https://docs.portkey.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+portkey/m,
+            /^from\s+portkey\s+import/m,
+          ],
+          dependencies: [/^portkey-ai[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "promptlayer",
+        provider: "PromptLayer",
+        description: "Prompt management and observability",
+        documentationUrl: "https://docs.promptlayer.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+promptlayer/m,
+            /^from\s+promptlayer\s+import/m,
+          ],
+          dependencies: [/^promptlayer[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "lunary",
+        provider: "Lunary",
+        description: "LLM production monitoring",
+        documentationUrl: "https://lunary.ai/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+lunary/m,
+            /^from\s+lunary\s+import/m,
+          ],
+          dependencies: [/^lunary[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "bentoml",
+        provider: "BentoML",
+        description: "ML model serving framework",
+        documentationUrl: "https://docs.bentoml.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+bentoml/m,
+            /^from\s+bentoml\s+import/m,
+          ],
+          dependencies: [/^bentoml[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "clearml",
+        provider: "ClearML",
+        description: "ML experiment management",
+        documentationUrl: "https://clear.ml/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+clearml/m,
+            /^from\s+clearml\s+import/m,
+          ],
+          dependencies: [/^clearml[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "comet-ml",
+        provider: "Comet",
+        description: "ML experiment tracking",
+        documentationUrl: "https://www.comet.com/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+comet_ml/m,
+            /^from\s+comet_ml\s+import/m,
+          ],
+          dependencies: [/^comet-ml[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "neptune",
+        provider: "Neptune.ai",
+        description: "ML metadata store",
+        documentationUrl: "https://docs.neptune.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+neptune/m,
+            /^from\s+neptune\s+import/m,
+          ],
+          dependencies: [/^neptune[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "dvclive",
+        provider: "DVC",
+        description: "Experiment tracking for ML",
+        documentationUrl: "https://dvc.org/doc/dvclive",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+dvclive/m,
+            /^from\s+dvclive\s+import/m,
+            /^import\s+dvc/m,
+          ],
+          dependencies: [/^dvclive[=<>~!\s]/m, /^dvc[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "aim",
+        provider: "Aim",
+        description: "ML experiment tracking",
+        documentationUrl: "https://aimstack.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+aim/m,
+            /^from\s+aim\s+import/m,
+          ],
+          dependencies: [/^aim[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Specialized ML (AutoML, Anomaly Detection, etc.)
+      // ========================
+      {
+        name: "catboost",
+        provider: "Yandex",
+        description: "Gradient boosting on decision trees",
+        documentationUrl: "https://catboost.ai/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+catboost/m,
+            /^from\s+catboost\s+import/m,
+          ],
+          dependencies: [/^catboost[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "autogluon",
+        provider: "AWS",
+        description: "AutoML for text, image, and tabular",
+        documentationUrl: "https://auto.gluon.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+autogluon/m,
+            /^from\s+autogluon\s+import/m,
+          ],
+          dependencies: [/^autogluon[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "pycaret",
+        provider: "PyCaret",
+        description: "Low-code machine learning",
+        documentationUrl: "https://pycaret.gitbook.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+pycaret/m,
+            /^from\s+pycaret\s+import/m,
+          ],
+          dependencies: [/^pycaret[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "h2o",
+        provider: "H2O.ai",
+        description: "Distributed ML platform",
+        documentationUrl: "https://docs.h2o.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+h2o/m,
+            /^from\s+h2o\s+import/m,
+          ],
+          dependencies: [/^h2o[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "flaml",
+        provider: "Microsoft",
+        description: "Fast and lightweight AutoML",
+        documentationUrl: "https://microsoft.github.io/FLAML",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+flaml/m,
+            /^from\s+flaml\s+import/m,
+          ],
+          dependencies: [/^flaml[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "monai",
+        provider: "NVIDIA",
+        description: "Medical imaging AI",
+        documentationUrl: "https://monai.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+monai/m,
+            /^from\s+monai\s+import/m,
+          ],
+          dependencies: [/^monai[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "deepchem",
+        provider: "DeepChem",
+        description: "Deep learning for chemistry",
+        documentationUrl: "https://deepchem.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+deepchem/m,
+            /^from\s+deepchem\s+import/m,
+          ],
+          dependencies: [/^deepchem[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "pyod",
+        provider: "PyOD",
+        description: "Outlier and anomaly detection",
+        documentationUrl: "https://pyod.readthedocs.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+pyod/m,
+            /^from\s+pyod\s+import/m,
+          ],
+          dependencies: [/^pyod[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "dowhy",
+        provider: "Microsoft",
+        description: "Causal inference library",
+        documentationUrl: "https://www.pywhy.org/dowhy",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+dowhy/m,
+            /^from\s+dowhy\s+import/m,
+          ],
+          dependencies: [/^dowhy[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "fairlearn",
+        provider: "Microsoft",
+        description: "ML fairness assessment",
+        documentationUrl: "https://fairlearn.org",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+fairlearn/m,
+            /^from\s+fairlearn\s+import/m,
+          ],
+          dependencies: [/^fairlearn[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "cleanlab",
+        provider: "Cleanlab",
+        description: "Data-centric AI and label errors",
+        documentationUrl: "https://docs.cleanlab.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+cleanlab/m,
+            /^from\s+cleanlab\s+import/m,
+          ],
+          dependencies: [/^cleanlab[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "argilla",
+        provider: "Argilla",
+        description: "Data labeling for NLP/LLMs",
+        documentationUrl: "https://docs.argilla.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+argilla/m,
+            /^from\s+argilla\s+import/m,
+          ],
+          dependencies: [/^argilla[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "label-studio",
+        provider: "Label Studio",
+        description: "Data labeling platform",
+        documentationUrl: "https://labelstud.io/guide",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+label_studio/m,
+            /^from\s+label_studio\s+import/m,
+          ],
+          dependencies: [/^label-studio[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "snorkel",
+        provider: "Snorkel AI",
+        description: "Programmatic data labeling",
+        documentationUrl: "https://www.snorkel.org",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+snorkel/m,
+            /^from\s+snorkel\s+import/m,
+          ],
+          dependencies: [/^snorkel[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "great-ai",
+        provider: "Great AI",
+        description: "Production-ready AI toolkit",
+        documentationUrl: "https://github.com/scaleapi/great_ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+great_ai/m,
+            /^from\s+great_ai\s+import/m,
+          ],
+          dependencies: [/^great-ai[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "alibi-detect",
+        provider: "Seldon",
+        description: "Drift and outlier detection",
+        documentationUrl: "https://docs.seldon.io/projects/alibi-detect",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+alibi_detect/m,
+            /^from\s+alibi_detect\s+import/m,
+          ],
+          dependencies: [/^alibi-detect[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "river",
+        provider: "River",
+        description: "Online/streaming machine learning",
+        documentationUrl: "https://riverml.xyz",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+river/m,
+            /^from\s+river\s+import/m,
+          ],
+          dependencies: [/^river[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "imbalanced-learn",
+        provider: "Imbalanced-learn",
+        description: "Tools for imbalanced datasets",
+        documentationUrl: "https://imbalanced-learn.org",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+imblearn/m,
+            /^from\s+imblearn\s+import/m,
+          ],
+          dependencies: [/^imbalanced-learn[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Knowledge Graphs & Reasoning
+      // ========================
+      {
+        name: "neo4j",
+        provider: "Neo4j",
+        description: "Graph database Python driver",
+        documentationUrl: "https://neo4j.com/docs/python-manual",
+        confidence: "medium",
+        patterns: {
+          imports: [
+            /^import\s+neo4j/m,
+            /^from\s+neo4j\s+import/m,
+          ],
+          dependencies: [/^neo4j[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "rdflib",
+        provider: "RDFLib",
+        description: "RDF and knowledge graph library",
+        documentationUrl: "https://rdflib.readthedocs.io",
+        confidence: "medium",
+        patterns: {
+          imports: [
+            /^import\s+rdflib/m,
+            /^from\s+rdflib\s+import/m,
+          ],
+          dependencies: [/^rdflib[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Distributed Computing for ML
+      // ========================
+      {
+        name: "horovod",
+        provider: "Horovod",
+        description: "Distributed training framework",
+        documentationUrl: "https://horovod.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+horovod/m,
+            /^from\s+horovod\s+import/m,
+          ],
+          dependencies: [/^horovod[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "petals",
+        provider: "BigScience",
+        description: "Distributed inference for LLMs",
+        documentationUrl: "https://petals.dev",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+petals/m,
+            /^from\s+petals\s+import/m,
+          ],
+          dependencies: [/^petals[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // AI Code Generation
+      // ========================
+      {
+        name: "codegeex",
+        provider: "THUDM",
+        description: "Multilingual code generation",
+        documentationUrl: "https://codegeex.cn",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+codegeex/m,
+            /^from\s+codegeex\s+import/m,
+          ],
+          dependencies: [/^codegeex[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "tabby",
+        provider: "Tabby",
+        description: "Self-hosted AI coding assistant",
+        documentationUrl: "https://tabby.tabbyml.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+tabby/m,
+            /^from\s+tabby\s+import/m,
+          ],
+          dependencies: [/^tabby-client[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "continue",
+        provider: "Continue",
+        description: "Open-source AI code assistant",
+        documentationUrl: "https://continue.dev/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+continuedev/m,
+            /^from\s+continuedev\s+import/m,
+          ],
+          dependencies: [/^continuedev[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Recommender Systems
+      // ========================
+      {
+        name: "surprise",
+        provider: "Surprise",
+        description: "Recommender systems library",
+        documentationUrl: "https://surprise.readthedocs.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+surprise/m,
+            /^from\s+surprise\s+import/m,
+          ],
+          dependencies: [/^scikit-surprise[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "lightfm",
+        provider: "LightFM",
+        description: "Hybrid recommendation algorithms",
+        documentationUrl: "https://making.lyst.com/lightfm/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+lightfm/m,
+            /^from\s+lightfm\s+import/m,
+          ],
+          dependencies: [/^lightfm[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "recbole",
+        provider: "RecBole",
+        description: "Unified recommendation library",
+        documentationUrl: "https://recbole.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+recbole/m,
+            /^from\s+recbole\s+import/m,
+          ],
+          dependencies: [/^recbole[=<>~!\s]/m],
+        },
+      },
+
+      // ========================
+      // Simulation & Robotics
+      // ========================
+      {
+        name: "isaac-gym",
+        provider: "NVIDIA",
+        description: "GPU-accelerated robotics simulation",
+        documentationUrl: "https://developer.nvidia.com/isaac-gym",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+isaacgym/m,
+            /^from\s+isaacgym\s+import/m,
+          ],
+          dependencies: [/^isaacgym[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "mujoco",
+        provider: "DeepMind",
+        description: "Physics simulator for robotics",
+        documentationUrl: "https://mujoco.org",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+mujoco/m,
+            /^from\s+mujoco\s+import/m,
+          ],
+          dependencies: [/^mujoco[=<>~!\s]/m],
+        },
+      },
+      {
+        name: "pybullet",
+        provider: "PyBullet",
+        description: "Physics simulation for robotics/ML",
+        documentationUrl: "https://pybullet.org",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+pybullet/m,
+            /^from\s+pybullet\s+import/m,
+          ],
+          dependencies: [/^pybullet[=<>~!\s]/m],
         },
       },
     ],

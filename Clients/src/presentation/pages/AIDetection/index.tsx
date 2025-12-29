@@ -23,6 +23,7 @@ import { ScansResponse } from "../../../domain/ai-detection/types";
 import { useAIDetectionSidebarContext } from "../../../application/contexts/AIDetectionSidebar.context";
 
 type ActiveTab = "scan" | "history" | "scan-details" | "settings";
+type ScanDetailsTab = "libraries" | "security";
 
 export default function AIDetectionPage() {
   const navigate = useNavigate();
@@ -44,7 +45,14 @@ export default function AIDetectionPage() {
     return "scan";
   };
 
+  // Determine scan details tab from URL
+  const getScanDetailsTab = (): ScanDetailsTab => {
+    if (location.pathname.endsWith("/security")) return "security";
+    return "libraries";
+  };
+
   const activeTab = getActiveTab();
+  const scanDetailsTab = getScanDetailsTab();
 
   // Handle scan click from recent scans - navigate to scan details
   const handleScanClick = useCallback((id: number) => {
@@ -146,6 +154,7 @@ export default function AIDetectionPage() {
           <ScanDetailsPage
             scanId={parseInt(scanId, 10)}
             onBack={handleBackToHistory}
+            initialTab={scanDetailsTab}
           />
         ) : (
           <ScanPage

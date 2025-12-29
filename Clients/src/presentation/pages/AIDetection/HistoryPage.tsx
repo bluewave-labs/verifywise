@@ -21,6 +21,7 @@ import {
   TableRow,
   TableFooter,
   TablePagination,
+  useTheme,
 } from "@mui/material";
 import Chip from "../../components/Chip";
 import Alert from "../../components/Alert";
@@ -58,6 +59,7 @@ const STATUS_CONFIG: Record<ScanStatus, string> = {
 };
 
 export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageProps) {
+  const theme = useTheme();
   const [scans, setScans] = useState<Scan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -416,13 +418,19 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
               ))}
             </TableBody>
             <TableFooter>
-              <TableRow sx={{ borderTop: "none" }}>
+              <TableRow
+                sx={{
+                  "& .MuiTableCell-root.MuiTableCell-footer": {
+                    paddingX: theme.spacing(8),
+                    paddingY: theme.spacing(4),
+                  },
+                }}
+              >
                 <TableCell
                   sx={{
-                    px: 2,
+                    paddingX: theme.spacing(2),
                     fontSize: 12,
                     opacity: 0.7,
-                    borderBottom: "none",
                   }}
                 >
                   Showing {getRange()} of {total} scan(s)
@@ -452,7 +460,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
                           className: "pagination-dropdown",
                           sx: {
                             mt: 0,
-                            mb: 2,
+                            mb: theme.spacing(2),
                           },
                         },
                         transformOrigin: {
@@ -463,29 +471,33 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
                           vertical: "top",
                           horizontal: "left",
                         },
+                        sx: { mt: theme.spacing(-2) },
                       },
                       inputProps: { id: "pagination-dropdown" },
                       IconComponent: SelectorVertical,
                       sx: {
-                        ml: 4,
-                        mr: 12,
-                        minWidth: 20,
+                        ml: theme.spacing(4),
+                        mr: theme.spacing(12),
+                        minWidth: theme.spacing(20),
                         textAlign: "left",
+                        "&.Mui-focused > div": {
+                          backgroundColor: theme.palette.background.main,
+                        },
                       },
                     },
                   }}
                   sx={{
-                    mt: 6,
-                    color: "text.secondary",
+                    mt: theme.spacing(6),
+                    color: theme.palette.text.secondary,
                     "& .MuiSelect-icon": {
                       width: "24px",
                       height: "fit-content",
                     },
                     "& .MuiSelect-select": {
-                      width: 10,
-                      borderRadius: "4px",
-                      border: "1px solid #d0d5dd",
-                      padding: 4,
+                      width: theme.spacing(10),
+                      borderRadius: theme.shape.borderRadius,
+                      border: `1px solid ${theme.palette.border.light}`,
+                      padding: theme.spacing(4),
                     },
                   }}
                 />

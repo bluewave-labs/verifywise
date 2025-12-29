@@ -248,9 +248,35 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
         >
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
             <Box sx={{ flex: 1 }}>
+              <Typography sx={{ fontSize: "13px", fontWeight: 600, mb: 0.5 }}>
+                Repository URL
+              </Typography>
+              <Typography sx={{ fontSize: "13px", color: "#667085", mb: "8px" }}>
+                Configure a GitHub token in Settings to scan private repositories.{" "}
+                Try these examples:{" "}
+                {[
+                  "coldwaterq/MaliciousPickles",
+                  "hoangvvo/llm-sdk",
+                  "verifai/multiLLM",
+                  "scikit-learn/scikit-learn",
+                ].map((repo, idx, arr) => (
+                  <span key={repo}>
+                    <span
+                      onClick={() => setRepositoryUrl(repo)}
+                      style={{
+                        color: "#13715B",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      {repo}
+                    </span>
+                    {idx < arr.length - 1 && ", "}
+                  </span>
+                ))}
+              </Typography>
               <Field
                 id="repository-url"
-                label="Repository URL"
                 placeholder="e.g., https://github.com/owner/repo or owner/repo"
                 value={repositoryUrl}
                 onChange={(e) => setRepositoryUrl(e.target.value)}
@@ -261,13 +287,10 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
                     </InputAdornment>
                   ),
                 }}
-                sx={{ mb: 0, "& .MuiTypography-root": { fontWeight: 600 } }}
+                sx={{ mb: 0 }}
               />
-              <Typography variant="caption" sx={{ color: "#667085", mt: 0.5, display: "block" }}>
-                Configure a GitHub token in Settings to scan private repositories
-              </Typography>
             </Box>
-            <Box sx={{ pt: "24px" }}>
+            <Box sx={{ alignSelf: "flex-end" }}>
               <CustomizableButton
                 text="Scan"
                 onClick={handleStartScan}
@@ -440,7 +463,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
           </Box>
 
           {/* Actions */}
-          <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+          <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: "16px" }}>
             <CustomizableButton
               text="Scan another"
               onClick={handleReset}

@@ -32,6 +32,12 @@ export const scanningContent: ArticleContent = {
       text: 'By default, only public repositories can be scanned. To scan private repositories, configure a GitHub Personal Access Token in **AI Detection → Settings**.',
     },
     {
+      type: 'image',
+      src: '/images/user-guide/ai-detection-scan-page.png',
+      alt: 'AI Detection scan page with repository URL input field',
+      caption: 'Enter a GitHub repository URL to start scanning',
+    },
+    {
       type: 'heading',
       id: 'scan-progress',
       level: 2,
@@ -52,6 +58,12 @@ export const scanningContent: ArticleContent = {
     {
       type: 'paragraph',
       text: 'You can cancel an in-progress scan at any time by clicking **Cancel**. The partial results are discarded and the scan is marked as cancelled in the history.',
+    },
+    {
+      type: 'image',
+      src: '/images/user-guide/ai-detection-scan-progress.png',
+      alt: 'Scan progress indicator showing files being analyzed',
+      caption: 'Real-time progress shows current file, total processed, and findings discovered',
     },
     {
       type: 'heading',
@@ -86,6 +98,12 @@ export const scanningContent: ArticleContent = {
       ],
     },
     {
+      type: 'image',
+      src: '/images/user-guide/ai-detection-libraries-tab.png',
+      alt: 'Libraries tab showing detected AI/ML frameworks with confidence levels',
+      caption: 'Detected AI/ML libraries with provider, confidence, and file locations',
+    },
+    {
       type: 'heading',
       id: 'security-tab',
       level: 3,
@@ -113,6 +131,12 @@ export const scanningContent: ArticleContent = {
       variant: 'warning',
       title: 'Security risk',
       text: 'Model files flagged with Critical severity should not be loaded until verified. Malicious models can execute arbitrary code on your system when loaded with standard ML frameworks.',
+    },
+    {
+      type: 'image',
+      src: '/images/user-guide/ai-detection-security-tab.png',
+      alt: 'Security tab showing model file vulnerabilities with severity levels',
+      caption: 'Security findings with severity, CWE references, and OWASP ML Top 10 mappings',
     },
     {
       type: 'heading',
@@ -144,6 +168,12 @@ export const scanningContent: ArticleContent = {
     {
       type: 'paragraph',
       text: 'For instructions on creating a GitHub PAT, see the official GitHub documentation at `https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token`.',
+    },
+    {
+      type: 'image',
+      src: '/images/user-guide/ai-detection-settings.png',
+      alt: 'AI Detection settings page with GitHub token configuration',
+      caption: 'Configure GitHub Personal Access Token for private repository scanning',
     },
     {
       type: 'article-links',

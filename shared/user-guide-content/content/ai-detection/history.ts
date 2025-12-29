@@ -38,6 +38,12 @@ export const historyContent: ArticleContent = {
       text: 'Click any completed scan row to view its full results, including library findings and security vulnerabilities.',
     },
     {
+      type: 'image',
+      src: '/images/user-guide/ai-detection-history.png',
+      alt: 'Scan history table showing past repository scans with status and findings',
+      caption: 'Complete scan history with repository, status, findings, and duration',
+    },
+    {
       type: 'heading',
       id: 'scan-status',
       level: 2,

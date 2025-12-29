@@ -99,7 +99,7 @@
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
     "styled-components": "^6.1.13",
-    "validator": "^13.15.22",
+    "validator": "^13.15.26",
     "xlsx": "^0.18.5",
     "zustand": "4.5.5"
   },

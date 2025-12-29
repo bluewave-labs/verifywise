@@ -6,7 +6,7 @@ import {
   DashboardContextValue,
   WidgetConfig,
   LayoutPersistence,
-} from '../../../../domain/interfaces/i.dashboard';
+} from '../../../types/interfaces/i.dashboard';
 
 // Local storage keys
 const STORAGE_KEYS = {

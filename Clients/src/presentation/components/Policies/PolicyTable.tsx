@@ -4,7 +4,7 @@ import { TableRow, TableCell } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import useUsers from "../../../application/hooks/useUsers";
-import { PolicyTableProps } from "../../../domain/interfaces/i.policy";
+import { PolicyTableProps } from "../../types/interfaces/i.policy";
 import Chip from "../Chip";
 
 const tableHeaders = [

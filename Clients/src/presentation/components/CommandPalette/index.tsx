@@ -30,7 +30,7 @@ import commandRegistry from '../../../application/commands/registry'
 import CommandActionHandler, { CommandActionHandlers } from '../../../application/commands/actionHandler'
 import { Command as CommandType, CommandContext } from '../../../application/commands/types'
 import { useWiseSearch, getEntityDisplayName } from '../../../application/hooks/useWiseSearch'
-import { SearchResult } from '../../../infrastructure/api/searchService'
+import { SearchResult } from '../../../application/types/search.types'
 import './styles.css'
 
 interface CommandPaletteProps {

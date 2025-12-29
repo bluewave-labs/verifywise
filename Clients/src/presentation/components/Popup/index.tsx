@@ -3,7 +3,7 @@ import { X as ClearIcon } from "lucide-react";
 import { FC } from "react";
 import { Unstable_Popup as BasePopup } from "@mui/base/Unstable_Popup";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
-import { IPopupProps } from "../../../domain/interfaces/i.widget";
+import { IPopupProps } from "../../types/widget.types";
 
 const Popup: FC<IPopupProps> = ({
   popupId,

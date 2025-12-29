@@ -1,4 +1,4 @@
-import { IStatusData } from "../../domain/interfaces/i.chart";
+import { IStatusData } from "../types/interfaces/i.chart";
 
 // Generate distribution summary text
 export const getDistributionSummary = (statusData: IStatusData[]): string => {

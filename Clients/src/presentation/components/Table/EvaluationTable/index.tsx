@@ -28,7 +28,7 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
-import { IEvaluationTableProps, IEvaluationRow } from "../../../../domain/interfaces/i.table";
+import { IEvaluationTableProps, IEvaluationRow } from "../../../types/interfaces/i.table";
 
 const EvaluationTableBody = lazy(() => import("./TableBody"));
 

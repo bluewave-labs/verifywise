@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Box, Typography, Tooltip, Stack, useTheme } from "@mui/material";
-import { IRiskHeatMapProps } from "../../../domain/interfaces/i.risk";
+import { IRiskHeatMapProps } from "../../types/interfaces/i.risk";
 import { IHeatMapCell } from "../../../domain/interfaces/i.widget";
 
 const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({

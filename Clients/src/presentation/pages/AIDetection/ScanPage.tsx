@@ -21,10 +21,7 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
-  Shield,
 } from "lucide-react";
-import SelectableCard from "../../components/SelectableCard";
-import Chip from "../../components/Chip";
 import Field from "../../components/Inputs/Field";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import {
@@ -53,8 +50,6 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
   const [result, setResult] = useState<ScanResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCheckingActive, setIsCheckingActive] = useState(true);
-  // TODO: Wire up to API when backend supports per-scan configuration
-  const [modelSecurityEnabled, setModelSecurityEnabled] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentScanIdRef = useRef<number | null>(null);
 
@@ -303,32 +298,6 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
               </Typography>
             </Box>
           )}
-
-          {/* Scan Settings */}
-          <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: "#344054", mb: 2 }}>
-              Scan settings
-            </Typography>
-
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <SelectableCard
-                isSelected={modelSecurityEnabled}
-                onClick={() => setModelSecurityEnabled(!modelSecurityEnabled)}
-                icon={<Shield size={14} color={modelSecurityEnabled ? "#13715B" : "#9CA3AF"} />}
-                title="Model security scanning"
-                description="Scan model files for malicious code patterns"
-              />
-              <SelectableCard
-                isSelected={false}
-                onClick={() => {}}
-                icon={<Search size={14} color="#9CA3AF" />}
-                title="Thorough mode"
-                description="Deep analysis of serialized model contents"
-                disabled
-                chip={<Chip label="Coming soon" variant="low" />}
-              />
-            </Box>
-          </Box>
         </Box>
       )}
 

@@ -29,6 +29,8 @@ import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import EmptyState from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
+import PageHeader from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
 import { getScans, deleteScan, getScanStatus } from "../../../application/repository/aiDetection.repository";
 import { Scan, ScansResponse, ScanStatus } from "../../../domain/ai-detection/types";
 
@@ -320,14 +322,11 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
   if (!isLoading && scans.length === 0 && total === 0) {
     return (
       <>
-        <Box sx={{ mb: 4 }}>
-          <Typography sx={{ fontSize: "15px", fontWeight: 600, mb: 1 }}>
-            Scan history
-          </Typography>
-          <Typography variant="body2" sx={{ color: "#667085" }}>
-            View past repository scans and their results.
-          </Typography>
-        </Box>
+        <PageHeader
+          title="Scan history"
+          description="View past repository scans and their results."
+          rightContent={<HelperIcon articlePath="ai-detection/history" size="small" />}
+        />
 
         <EmptyState
           message="No scans yet. Start your first scan to detect AI/ML libraries in a repository."
@@ -358,14 +357,11 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
       )}
 
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography sx={{ fontSize: "15px", fontWeight: 600, mb: 1 }}>
-          Scan history
-        </Typography>
-        <Typography variant="body2" sx={{ color: "#667085" }}>
-          View past repository scans and their results.
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Scan history"
+        description="View past repository scans and their results."
+        rightContent={<HelperIcon articlePath="ai-detection/history" size="small" />}
+      />
 
       {/* Table */}
       <TableContainer

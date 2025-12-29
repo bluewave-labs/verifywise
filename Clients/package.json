@@ -79,7 +79,7 @@
     "js-yaml": "^4.1.1",
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
-    "libphonenumber-js": "^1.11.9",
+    "libphonenumber-js": "^1.12.33",
     "lowlight": "^3.3.0",
     "lucide-react": "^0.544.0",
     "material-ui-popup-state": "^5.3.1",

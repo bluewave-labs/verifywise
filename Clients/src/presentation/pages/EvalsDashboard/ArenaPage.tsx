@@ -217,6 +217,7 @@ function ModelSelector({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
+                autoComplete="off"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -231,7 +232,7 @@ function ModelSelector({
                     backgroundColor: "#f9fafb",
                     "& fieldset": { borderColor: "#e5e7eb" },
                     "&:hover fieldset": { borderColor: "#d1d5db" },
-                    "&.Mui-focused fieldset": { borderColor: "#6366f1" },
+                    "&.Mui-focused fieldset": { borderColor: "#13715B" },
                   },
                 }}
               />
@@ -265,16 +266,16 @@ function ModelSelector({
                           height: 44,
                           minHeight: 44,
                           cursor: "pointer",
-                          backgroundColor: isSelected ? "#f5f3ff" : "transparent",
+                          backgroundColor: isSelected ? "#E8F5F1" : "transparent",
                           "&:hover": {
-                            backgroundColor: isSelected ? "#f5f3ff" : "#f9fafb",
+                            backgroundColor: isSelected ? "#E8F5F1" : "#f9fafb",
                           },
                         }}
                       >
                         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
                           {renderProviderIcon(p.provider, 20)}
                           <Stack spacing={0} sx={{ minWidth: 0 }}>
-                            <Typography sx={{ fontSize: 13, fontWeight: isSelected ? 600 : 400, color: isSelected ? "#6366f1" : "#374151", lineHeight: 1.2 }}>
+                            <Typography sx={{ fontSize: 13, fontWeight: isSelected ? 600 : 400, color: isSelected ? "#13715B" : "#374151", lineHeight: 1.2 }}>
                               {p.displayName}
                             </Typography>
                             {!providerHasKey && (
@@ -285,7 +286,7 @@ function ModelSelector({
                           </Stack>
                         </Stack>
                         {isSelected ? (
-                          <Check size={14} color="#6366f1" />
+                          <Check size={14} color="#13715B" />
                         ) : (
                           <ChevronRight size={14} color="#9ca3af" />
                         )}
@@ -310,14 +311,14 @@ function ModelSelector({
                       py: 1,
                       borderRadius: "8px",
                       cursor: "pointer",
-                      backgroundColor: "#f5f3ff",
+                      backgroundColor: "#E8F5F1",
                       "&:hover": {
-                        backgroundColor: "#ede9fe",
+                        backgroundColor: "#D1EDE6",
                       },
                     }}
                   >
-                    <Plus size={16} color="#6366f1" />
-                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#6366f1" }}>
+                    <Plus size={16} color="#13715B" />
+                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#13715B" }}>
                       Add API key
                     </Typography>
                   </Box>
@@ -330,57 +331,61 @@ function ModelSelector({
                   flex: 1,
                   overflowY: "auto",
                   py: 0.5,
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
                 {!currentProviderHasKey ? (
-                  /* No API key message */
-                  <Box sx={{ p: 4, textAlign: "center" }}>
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: "12px",
-                        backgroundColor: "#fef3c7",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        margin: "0 auto",
-                        mb: 2,
-                      }}
-                    >
-                      <Key size={24} color="#f59e0b" />
-                    </Box>
-                    <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827", mb: 0.5 }}>
-                      API key required
-                    </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>
-                      Add an API key for {PROVIDERS[provider]?.displayName || provider} to use its models
-                    </Typography>
-                    <Box
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpen(false);
-                        onNavigateToSettings();
-                      }}
-                      sx={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 1,
-                        px: 2,
-                        py: 1,
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        backgroundColor: "#6366f1",
-                        color: "#fff",
-                        fontSize: 13,
-                        fontWeight: 500,
-                        "&:hover": {
-                          backgroundColor: "#4f46e5",
-                        },
-                      }}
-                    >
-                      <Settings size={14} />
-                      Go to Settings
+                  /* No API key message - centered vertically */
+                  <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", p: 4 }}>
+                    <Box sx={{ textAlign: "center" }}>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "12px",
+                          backgroundColor: "#fef3c7",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          margin: "0 auto",
+                          mb: 2,
+                        }}
+                      >
+                        <Key size={24} color="#f59e0b" />
+                      </Box>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827", mb: 0.5 }}>
+                        API key required
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>
+                        Add an API key for {PROVIDERS[provider]?.displayName || provider} to use its models
+                      </Typography>
+                      <Box
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpen(false);
+                          onNavigateToSettings();
+                        }}
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 1,
+                          px: 2,
+                          py: 1,
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          backgroundColor: "#13715B",
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          "&:hover": {
+                            backgroundColor: "#0f5f4c",
+                          },
+                        }}
+                      >
+                        <Settings size={14} />
+                        Go to Settings
+                      </Box>
                     </Box>
                   </Box>
                 ) : filteredModels.length === 0 ? (
@@ -403,16 +408,16 @@ function ModelSelector({
                           px: 1.5,
                           py: 1,
                           cursor: "pointer",
-                          backgroundColor: isSelected ? "#f5f3ff" : "transparent",
+                          backgroundColor: isSelected ? "#E8F5F1" : "transparent",
                           "&:hover": {
-                            backgroundColor: isSelected ? "#f5f3ff" : "#f9fafb",
+                            backgroundColor: isSelected ? "#E8F5F1" : "#f9fafb",
                           },
                         }}
                       >
                         <Stack direction="row" alignItems="center" spacing={1.5}>
-                          {isSelected && <Check size={16} color="#6366f1" />}
+                          {isSelected && <Check size={16} color="#13715B" />}
                           {renderProviderIcon(provider, 18)}
-                          <Typography sx={{ fontSize: 13, fontWeight: isSelected ? 600 : 400, color: isSelected ? "#6366f1" : "#374151" }}>
+                          <Typography sx={{ fontSize: 13, fontWeight: isSelected ? 600 : 400, color: isSelected ? "#13715B" : "#374151" }}>
                             {m.name}
                           </Typography>
                         </Stack>
@@ -773,7 +778,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       {/* Loading state */}
       {loading && comparisons.length === 0 ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress size={32} sx={{ color: "#6366f1" }} />
+          <CircularProgress size={32} sx={{ color: "#13715B" }} />
         </Box>
       ) : comparisons.length === 0 ? (
         /* Empty state */
@@ -783,7 +788,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             borderRadius: "16px",
             p: 8,
             textAlign: "center",
-            backgroundColor: "#f5f3ff",
+            backgroundColor: "#E8F5F1",
             position: "relative",
             overflow: "hidden",
           }}
@@ -796,7 +801,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               opacity: 0.1,
             }}
           >
-            <Swords size={80} color="#6366f1" />
+            <Swords size={80} color="#13715B" />
           </Box>
           <Box
             sx={{
@@ -806,7 +811,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               opacity: 0.1,
             }}
           >
-            <Trophy size={80} color="#6366f1" />
+            <Trophy size={80} color="#13715B" />
           </Box>
           
           <Box
@@ -814,7 +819,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               width: 80,
               height: 80,
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+              background: "linear-gradient(135deg, #13715B 0%, #1a8a6e 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -838,7 +843,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             icon={<Zap size={18} />}
             onClick={() => setCreateModalOpen(true)}
             sx={{
-              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+              background: "linear-gradient(135deg, #13715B 0%, #1a8a6e 100%)",
               color: "#fff",
               fontWeight: 600,
               px: 4,
@@ -923,7 +928,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                             "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
                             "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                             "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                            "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                            "linear-gradient(135deg, #1a8a6e 0%, #7c3aed 100%)",
                             "linear-gradient(135deg, #ec4899 0%, #db2777 100%)",
                           ];
                           return (
@@ -964,8 +969,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                       {comparison.status === "running" && (
                         <Box sx={{ mt: 2, maxWidth: 300 }}>
                           <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
-                            <Sparkles size={12} color="#6366f1" />
-                            <Typography sx={{ fontSize: 11, color: "#6366f1", fontWeight: 600 }}>
+                            <Sparkles size={12} color="#13715B" />
+                            <Typography sx={{ fontSize: 11, color: "#13715B", fontWeight: 600 }}>
                               Battle in progress...
                             </Typography>
                           </Stack>
@@ -975,7 +980,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                               borderRadius: 3,
                               backgroundColor: "#e5e7eb",
                               "& .MuiLinearProgress-bar": {
-                                background: "linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)",
+                                background: "linear-gradient(90deg, #13715B 0%, #1a8a6e 100%)",
                                 borderRadius: 3,
                               },
                             }}
@@ -999,9 +1004,9 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                         <IconButton
                           onClick={() => handleViewResults(comparison.id)}
                           sx={{
-                            backgroundColor: "#f5f3ff",
-                            color: "#6366f1",
-                            "&:hover": { backgroundColor: "#ede9fe", color: "#4f46e5" },
+                            backgroundColor: "#E8F5F1",
+                            color: "#13715B",
+                            "&:hover": { backgroundColor: "#D1EDE6", color: "#0f5f4c" },
                           }}
                         >
                           <Eye size={18} />
@@ -1052,7 +1057,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 width: 56,
                 height: 56,
                 borderRadius: "16px",
-                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                background: "linear-gradient(135deg, #13715B 0%, #1a8a6e 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -1091,7 +1096,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             }}
           >
             <Stack direction="row" alignItems="center" spacing={1} mb={2.5}>
-              <Target size={16} color="#6366f1" />
+              <Target size={16} color="#13715B" />
               <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
                 Evaluation Settings
               </Typography>
@@ -1136,7 +1141,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                       borderRadius: "8px",
                       "& fieldset": { borderColor: "#e2e8f0" },
                       "&:hover fieldset": { borderColor: "#cbd5e1" },
-                      "&.Mui-focused fieldset": { borderColor: "#6366f1" },
+                      "&.Mui-focused fieldset": { borderColor: "#13715B" },
                     },
                   }}
                 />
@@ -1148,7 +1153,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           <Box>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
               <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Swords size={16} color="#6366f1" />
+                <Swords size={16} color="#13715B" />
                 <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
                   Contestants
                 </Typography>
@@ -1156,8 +1161,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   label={`${newComparison.contestants.length} players`}
                   size="small"
                   sx={{
-                    backgroundColor: "#f5f3ff",
-                    color: "#6366f1",
+                    backgroundColor: "#E8F5F1",
+                    color: "#13715B",
                     fontWeight: 600,
                     fontSize: "11px",
                     height: 22,
@@ -1171,7 +1176,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 icon={<Plus size={14} />}
                 onClick={addContestant}
                 sx={{
-                  background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                  background: "linear-gradient(135deg, #13715B 0%, #1a8a6e 100%)",
                   color: "#fff",
                   fontSize: 12,
                   py: 0.75,
@@ -1194,7 +1199,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   { border: "#ef4444", bg: alpha("#ef4444", 0.03), gradient: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" },
                   { border: "#10b981", bg: alpha("#10b981", 0.03), gradient: "linear-gradient(135deg, #10b981 0%, #059669 100%)" },
                   { border: "#f59e0b", bg: alpha("#f59e0b", 0.03), gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" },
-                  { border: "#8b5cf6", bg: alpha("#8b5cf6", 0.03), gradient: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)" },
+                  { border: "#1a8a6e", bg: alpha("#1a8a6e", 0.03), gradient: "linear-gradient(135deg, #1a8a6e 0%, #7c3aed 100%)" },
                   { border: "#ec4899", bg: alpha("#ec4899", 0.03), gradient: "linear-gradient(135deg, #ec4899 0%, #db2777 100%)" },
                 ];
                 const colorScheme = colors[index % colors.length];
@@ -1298,8 +1303,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                             {myDatasets.length > 0 && (
                               <MenuItem disabled sx={{ opacity: 1, py: 0.5 }}>
                                 <Stack direction="row" alignItems="center" spacing={1}>
-                                  <Database size={12} color="#6366f1" />
-                                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#6366f1", textTransform: "uppercase" }}>
+                                  <Database size={12} color="#13715B" />
+                                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#13715B", textTransform: "uppercase" }}>
                                     My Datasets
                                   </Typography>
                                 </Stack>
@@ -1308,7 +1313,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                             {myDatasets.map((ds) => (
                               <MenuItem key={`my-${ds.id}`} value={ds.path} sx={{ pl: 3 }}>
                                 <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
-                                  <Database size={14} color="#6366f1" />
+                                  <Database size={14} color="#13715B" />
                                   <Box sx={{ flex: 1 }}>
                                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{ds.name}</Typography>
                                     <Typography sx={{ fontSize: 11, color: "#9ca3af" }}>
@@ -1377,7 +1382,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       >
         {resultsLoading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress size={40} sx={{ color: "#6366f1" }} />
+            <CircularProgress size={40} sx={{ color: "#13715B" }} />
           </Box>
         ) : selectedResults ? (
           <Stack spacing={3}>

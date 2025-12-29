@@ -15,14 +15,31 @@ import {
   Popper,
   Paper,
   ClickAwayListener,
+  InputAdornment,
 } from "@mui/material";
-import { Plus, Trash2, Settings } from "lucide-react";
+import { Plus, Trash2, Settings, Search, Check, ChevronRight, ChevronDown, Key } from "lucide-react";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
-import Select from "../../components/Inputs/Select";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { PROVIDERS, getModelsForProvider } from "../../utils/providers";
 import { getAllLlmApiKeys, type LLMApiKey } from "../../../application/repository/deepEval.repository";
+
+// Provider icons
+import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
+import { ReactComponent as AnthropicLogo } from "../../assets/icons/anthropic_logo.svg";
+import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg";
+import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
+import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
+import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
+
+const PROVIDER_ICONS: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
+  openai: OpenAILogo,
+  anthropic: AnthropicLogo,
+  google: GeminiLogo,
+  mistral: MistralLogo,
+  xai: XAILogo,
+  openrouter: OpenRouterLogo,
+};
 
 interface ChoiceScore {
   label: string;
@@ -123,6 +140,373 @@ const DEFAULT_INPUT_SCHEMA = `{
   "expected": "",
   "metadata": {}
 }`;
+
+// Braintrust-style Model Selector Component
+interface ModelSelectorProps {
+  provider: string;
+  model: string;
+  onProviderChange: (provider: string) => void;
+  onModelChange: (model: string) => void;
+  configuredProviders: LLMApiKey[];
+  onNavigateToSettings: () => void;
+}
+
+function ModelSelector({
+  provider,
+  model,
+  onProviderChange,
+  onModelChange,
+  configuredProviders,
+  onNavigateToSettings,
+}: ModelSelectorProps) {
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  const providerList = Object.values(PROVIDERS);
+  const models = getModelsForProvider(provider);
+  const selectedModel = models.find((m) => m.id === model);
+
+  // Check if provider has API key configured
+  const hasApiKey = (providerId: string) =>
+    configuredProviders.some((cp) => cp.provider === providerId);
+  const currentProviderHasKey = hasApiKey(provider);
+
+  const filteredModels = models.filter(
+    (m) =>
+      m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleProviderSelect = (newProvider: string) => {
+    onProviderChange(newProvider);
+    onModelChange(""); // Reset model when provider changes
+    setSearchQuery("");
+  };
+
+  const handleModelSelect = (modelId: string) => {
+    onModelChange(modelId);
+    setOpen(false);
+    setSearchQuery("");
+  };
+
+  // Render provider icon
+  const renderProviderIcon = (providerId: string, size: number = 20) => {
+    const Icon = PROVIDER_ICONS[providerId];
+    if (!Icon) return null;
+    return (
+      <Box
+        sx={{
+          width: size,
+          height: size,
+          minWidth: size,
+          minHeight: size,
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          "& svg": {
+            width: "100%",
+            height: "100%",
+          },
+        }}
+      >
+        <Icon />
+      </Box>
+    );
+  };
+
+  return (
+    <Box>
+      <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054", mb: 0.75 }}>
+        Model
+      </Typography>
+      <Box
+        ref={anchorRef}
+        onClick={() => setOpen(!open)}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 1.5,
+          py: 1.25,
+          border: "1px solid",
+          borderColor: open ? "#13715B" : "#e5e7eb",
+          borderRadius: "8px",
+          backgroundColor: "#fff",
+          cursor: "pointer",
+          transition: "all 0.15s ease",
+          "&:hover": {
+            borderColor: "#d1d5db",
+          },
+        }}
+      >
+        <Stack direction="row" alignItems="center" spacing={1.5}>
+          {renderProviderIcon(provider, 20)}
+          <Typography sx={{ fontSize: 13, color: selectedModel ? "#111827" : "#9ca3af" }}>
+            {selectedModel?.name || "Select a model"}
+          </Typography>
+        </Stack>
+        <ChevronDown
+          size={16}
+          color="#6b7280"
+          style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
+        />
+      </Box>
+
+      <Popper
+        open={open}
+        anchorEl={anchorRef.current}
+        placement="bottom-start"
+        style={{
+          zIndex: 1400,
+          width: anchorRef.current?.offsetWidth ? Math.max(anchorRef.current.offsetWidth, 520) : 520,
+        }}
+      >
+        <ClickAwayListener onClickAway={() => { setOpen(false); setSearchQuery(""); }}>
+          <Paper
+            elevation={8}
+            sx={{
+              mt: 0.5,
+              borderRadius: "12px",
+              border: "1px solid #e5e7eb",
+              overflow: "hidden",
+            }}
+          >
+            {/* Search */}
+            <Box sx={{ p: 1.5, borderBottom: "1px solid #f3f4f6" }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Find a model"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+                autoComplete="off"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search size={16} color="#9ca3af" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    fontSize: 13,
+                    borderRadius: "8px",
+                    backgroundColor: "#f9fafb",
+                    "& fieldset": { borderColor: "#e5e7eb" },
+                    "&:hover fieldset": { borderColor: "#d1d5db" },
+                    "&.Mui-focused fieldset": { borderColor: "#13715B" },
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Split view */}
+            <Stack direction="row" sx={{ height: 320 }}>
+              {/* Providers list */}
+              <Box
+                sx={{
+                  width: 200,
+                  borderRight: "1px solid #f3f4f6",
+                  overflowY: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Box sx={{ flex: 1, overflowY: "auto", py: 0.5 }}>
+                  {providerList.map((p) => {
+                    const isSelected = p.provider === provider;
+                    const providerHasKey = hasApiKey(p.provider);
+                    return (
+                      <Box
+                        key={p.provider}
+                        onClick={() => handleProviderSelect(p.provider)}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          px: 1.5,
+                          height: 38,
+                          minHeight: 38,
+                          cursor: "pointer",
+                          backgroundColor: isSelected ? "#E8F5F1" : "transparent",
+                          "&:hover": {
+                            backgroundColor: isSelected ? "#E8F5F1" : "#f9fafb",
+                          },
+                        }}
+                      >
+                        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
+                          {renderProviderIcon(p.provider, 20)}
+                          <Stack spacing={0} sx={{ minWidth: 0 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 13,
+                                fontWeight: isSelected ? 600 : 400,
+                                color: isSelected ? "#13715B" : "#374151",
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {p.displayName}
+                            </Typography>
+                            {!providerHasKey && (
+                              <Typography sx={{ fontSize: 10, color: "#f59e0b", lineHeight: 1.2 }}>
+                                No API key
+                              </Typography>
+                            )}
+                          </Stack>
+                        </Stack>
+                        {isSelected ? (
+                          <Check size={14} color="#13715B" />
+                        ) : (
+                          <ChevronRight size={14} color="#9ca3af" />
+                        )}
+                      </Box>
+                    );
+                  })}
+                </Box>
+
+                {/* Add provider button */}
+                <Box sx={{ p: 1.5, borderTop: "1px solid #f3f4f6" }}>
+                  <Box
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpen(false);
+                      onNavigateToSettings();
+                    }}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      px: 1.5,
+                      py: 1,
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      backgroundColor: "#E8F5F1",
+                      "&:hover": {
+                        backgroundColor: "#D1EDE6",
+                      },
+                    }}
+                  >
+                    <Plus size={16} color="#13715B" />
+                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#13715B" }}>
+                      Add API key
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Models list */}
+              <Box
+                sx={{
+                  flex: 1,
+                  overflowY: "auto",
+                  py: 0.5,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                {!currentProviderHasKey ? (
+                  /* No API key message - centered vertically */
+                  <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", p: 4 }}>
+                    <Box sx={{ textAlign: "center" }}>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "12px",
+                          backgroundColor: "#fef3c7",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          margin: "0 auto",
+                          mb: 2,
+                        }}
+                      >
+                        <Key size={24} color="#f59e0b" />
+                      </Box>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827", mb: 0.5 }}>
+                        API key required
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>
+                        Add an API key for {PROVIDERS[provider]?.displayName || provider} to use its models
+                      </Typography>
+                      <Box
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpen(false);
+                          onNavigateToSettings();
+                        }}
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 1,
+                          px: 2,
+                          py: 1,
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          backgroundColor: "#13715B",
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          "&:hover": {
+                            backgroundColor: "#0f5f4c",
+                          },
+                        }}
+                      >
+                        <Settings size={14} />
+                        Go to Settings
+                      </Box>
+                    </Box>
+                  </Box>
+                ) : filteredModels.length === 0 ? (
+                  <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", p: 3 }}>
+                    <Typography sx={{ fontSize: 13, color: "#9ca3af" }}>No models found</Typography>
+                  </Box>
+                ) : (
+                  filteredModels.map((m) => {
+                    const isSelected = m.id === model;
+                    return (
+                      <Box
+                        key={m.id}
+                        onClick={() => handleModelSelect(m.id)}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1.5,
+                          px: 1.5,
+                          py: 1,
+                          cursor: "pointer",
+                          backgroundColor: isSelected ? "#E8F5F1" : "transparent",
+                          "&:hover": {
+                            backgroundColor: isSelected ? "#E8F5F1" : "#f9fafb",
+                          },
+                        }}
+                      >
+                        {isSelected && <Check size={16} color="#13715B" />}
+                        {renderProviderIcon(provider, 20)}
+                        <Typography
+                          sx={{
+                            fontSize: 13,
+                            fontWeight: isSelected ? 600 : 400,
+                            color: isSelected ? "#13715B" : "#374151",
+                          }}
+                        >
+                          {m.name}
+                        </Typography>
+                      </Box>
+                    );
+                  })
+                )}
+              </Box>
+            </Stack>
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
+    </Box>
+  );
+}
 
 export default function CreateScorerModal({
   isOpen,
@@ -242,14 +626,6 @@ export default function CreateScorerModal({
         });
     }
   }, [isOpen, initialConfig]);
-
-  // Get current provider's models
-  const availableModels = getModelsForProvider(config.provider);
-
-  // Filter PROVIDERS to only show configured ones
-  const availableProviders = Object.values(PROVIDERS).filter((p) =>
-    configuredProviders.some((cp) => cp.provider === p.provider)
-  );
 
   // Auto-generate slug from name
   const handleNameChange = useCallback((name: string) => {
@@ -397,65 +773,21 @@ export default function CreateScorerModal({
                   Loading providers...
                 </Typography>
               </Box>
-            ) : availableProviders.length === 0 ? (
-              <Box
-                sx={{
-                  p: 2,
-                  backgroundColor: "#FEF3C7",
-                  borderRadius: "4px",
-                  border: "1px solid #F59E0B",
-                }}
-              >
-                <Typography sx={{ fontSize: "13px", color: "#92400E", mb: 1 }}>
-                  No API keys configured
-                </Typography>
-                <CustomizableButton
-                  variant="text"
-                  text="Add API key in Settings"
-                  icon={<Settings size={14} />}
-                  onClick={() => {
-                    onClose();
-                    navigate(`/evals/${projectId}#settings`)
-                  }}
-                  sx={{
-                    color: "#92400E",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    textTransform: "none",
-                    p: 0,
-                    "&:hover": { backgroundColor: "transparent", textDecoration: "underline" },
-                  }}
-                />
-              </Box>
             ) : (
               <>
-                {/* Provider and Model Selects with Params Button */}
+                {/* Model Selector with Params Button */}
                 <Stack direction="row" spacing={2} alignItems="flex-end">
                   <Box sx={{ flex: 1 }}>
-                    <Select
-                      id="scorer-provider-select"
-                      label="Provider"
-                      placeholder="Select provider"
-                      value={config.provider}
-                      onChange={(e) => handleProviderChange(e.target.value as string)}
-                      items={availableProviders.map((p) => ({
-                        _id: p.provider,
-                        name: p.displayName,
-                      }))}
-                    />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Select
-                      id="scorer-model-select"
-                      label="Model"
-                      placeholder="Select model"
-                      value={config.model}
-                      onChange={(e) => handleModelChange(e.target.value as string)}
-                      items={availableModels.map((m) => ({
-                        _id: m.id,
-                        name: m.name,
-                      }))}
-                      disabled={!config.provider}
+                    <ModelSelector
+                      provider={config.provider}
+                      model={config.model}
+                      onProviderChange={handleProviderChange}
+                      onModelChange={handleModelChange}
+                      configuredProviders={configuredProviders}
+                      onNavigateToSettings={() => {
+                        onClose();
+                        navigate(`/evals/${projectId}#settings`);
+                      }}
                     />
                   </Box>
                   <Box
@@ -467,9 +799,9 @@ export default function CreateScorerModal({
                       alignItems: "center",
                       gap: 0.75,
                       px: 1.5,
-                      height: 34,
+                      height: 38,
                       border: "1px solid #d0d5dd",
-                      borderRadius: "4px",
+                      borderRadius: "8px",
                       cursor: "pointer",
                       backgroundColor: paramsPopoverOpen ? "#F3F4F6" : "#fff",
                       transition: "all 0.15s ease",

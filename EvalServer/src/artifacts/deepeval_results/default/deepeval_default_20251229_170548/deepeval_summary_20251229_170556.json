@@ -1,0 +1,9 @@
+{
+  "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "dataset": "evaluation_dataset",
+  "total_samples": 1,
+  "timestamp": "2025-12-29T17:05:56.538163",
+  "metric_summaries": {},
+  "avg_word_count": 79.0,
+  "avg_response_length": 499.0
+}

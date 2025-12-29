@@ -580,7 +580,7 @@ export default function ScanDetailsPage({
 
   // Handle tab change with URL navigation
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
-    setActiveTab(newValue);
+    setActiveTab(newValue as "libraries" | "security");
     if (newValue === "libraries") {
       navigate(`/ai-detection/scans/${scanId}/libraries`, { replace: true });
     } else if (newValue === "security") {

@@ -28,17 +28,19 @@ const ScanNotificationAlert: FC = () => {
   const [autoHideTimeout, setAutoHideTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (context?.scanNotification) {
-      // Auto-hide after 5 seconds
-      const timeout = setTimeout(() => {
-        context.clearScanNotification();
-      }, 5000);
-      setAutoHideTimeout(timeout);
-
-      return () => {
-        if (timeout) clearTimeout(timeout);
-      };
+    if (!context?.scanNotification) {
+      return;
     }
+
+    // Auto-hide after 5 seconds
+    const timeout = setTimeout(() => {
+      context.clearScanNotification();
+    }, 5000);
+    setAutoHideTimeout(timeout);
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
   }, [context?.scanNotification, context]);
 
   // Clear timeout on manual dismiss

@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
-import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw, AlertTriangle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -982,36 +982,40 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
             {/* Left: Samples List */}
             <Box sx={{ display: "flex", flexDirection: "column", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
               <Box sx={{ overflowY: "auto", overflowX: "auto", maxHeight: "calc(100vh - 360px)" }}>
-                <TableContainer>
-              <Table stickyHeader size="small">
+                <TableContainer sx={{ overflowX: "auto" }}>
+              <Table stickyHeader size="small" sx={{ minWidth: 500 + metricColumns.length * 60 }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 40, width: 40 }}>#</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 200 }}>Input</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 200 }}>Output</TableCell>
-                    {metricColumns.map(metric => (
-                      <TableCell 
-                        key={metric} 
-                        sx={{ 
-                          fontWeight: 600, 
-                          fontSize: "11px", 
-                          minWidth: 80,
-                          textAlign: "center",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        <Tooltip title={metric} arrow>
-                          <span>{metric.length > 12 ? metric.slice(0, 10) + "..." : metric}</span>
-                        </Tooltip>
-                      </TableCell>
-                    ))}
-                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 70, width: 70 }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 40, textAlign: "center" }}>#</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 180, maxWidth: 220, textAlign: "center" }}>Input</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 180, maxWidth: 220, textAlign: "center" }}>Output</TableCell>
+                    {metricColumns.map(metric => {
+                      // Capitalize first letter of each word
+                      const capitalizedMetric = metric
+                        .split(" ")
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                        .join(" ");
+                      return (
+                        <TableCell 
+                          key={metric} 
+                          sx={{ 
+                            fontWeight: 600, 
+                            fontSize: "11px", 
+                            textAlign: "center",
+                            padding: "8px 12px",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {capitalizedMetric}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {logs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4 + metricColumns.length} align="center">
+                      <TableCell colSpan={3 + metricColumns.length} align="center">
                         <Box py={4}>
                           <Typography variant="body2" color="text.secondary">
                             No samples found
@@ -1034,43 +1038,51 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                           },
                         }}
                       >
-                        <TableCell sx={{ fontSize: "12px", color: "#6B7280" }}>
+                        <TableCell sx={{ fontSize: "12px", color: "#6B7280", textAlign: "center" }}>
                           {index + 1}
                         </TableCell>
-                        <TableCell sx={{ fontSize: "12px" }}>
+                        <TableCell sx={{ fontSize: "12px", textAlign: "center", minWidth: 180, maxWidth: 220 }}>
                           <Typography
                             variant="body2"
                             sx={{
                               fontSize: "12px",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
-                              display: "-webkit-box",
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: "vertical",
+                              whiteSpace: "nowrap",
+                              display: "block",
                             }}
                           >
                             {log.input_text || "-"}
                           </Typography>
                         </TableCell>
-                        <TableCell sx={{ fontSize: "12px" }}>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontSize: "12px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              display: "-webkit-box",
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: "vertical",
-                            }}
-                          >
-                            {log.output_text || "-"}
-                          </Typography>
+                        <TableCell sx={{ fontSize: "12px", textAlign: "center", minWidth: 180, maxWidth: 220 }}>
+                          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                            {log.status && log.status !== "success" && (
+                              <Tooltip title={`Status: ${log.status}`} arrow>
+                                <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+                                  <AlertTriangle size={14} color="#dc2626" />
+                                </Box>
+                              </Tooltip>
+                            )}
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontSize: "12px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {log.output_text || "-"}
+                            </Typography>
+                          </Box>
                         </TableCell>
                         {/* Metric score columns */}
                         {metricColumns.map(metric => {
                           const score = getMetricScore(log, metric);
-                          const passed = score !== null && score >= 0.5;
+                          // For bias and toxicity, lower is better (0 = good, 1 = bad)
+                          const isInverseMetric = metric.toLowerCase() === "bias" || metric.toLowerCase() === "toxicity";
+                          const passed = score !== null && (isInverseMetric ? score < 0.5 : score >= 0.5);
                           return (
                             <TableCell key={metric} sx={{ textAlign: "center", p: 0.5 }}>
                               {score !== null ? (
@@ -1102,24 +1114,6 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                             </TableCell>
                           );
                         })}
-                        <TableCell>
-                          <Chip
-                            label={log.status || "success"}
-                            size="small"
-                            sx={{
-                              backgroundColor: log.status === "success" || !log.status ? "#c8e6c9" : "#ffebee",
-                              color: log.status === "success" || !log.status ? "#388e3c" : "#c62828",
-                              fontWeight: 500,
-                              fontSize: "11px",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.5px",
-                              borderRadius: "4px",
-                              "& .MuiChip-label": {
-                                padding: "4px 8px",
-                              },
-                            }}
-                          />
-                        </TableCell>
                       </TableRow>
                     ))
                   )}

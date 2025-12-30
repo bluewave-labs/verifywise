@@ -645,10 +645,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterConditions, setFilterConditions] = useState<FilterCondition[]>([]);
   const [filterLogic, setFilterLogic] = useState<"and" | "or">("and");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [groupBy, setGroupBy] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [groupSortOrder, setGroupSortOrder] = useState<"asc" | "desc">("asc");
+  const [_groupBy, setGroupBy] = useState<string | null>(null);
+  const [_groupSortOrder, setGroupSortOrder] = useState<"asc" | "desc">("asc");
 
   // Filter columns for arena battles
   const filterColumns: FilterColumn[] = [

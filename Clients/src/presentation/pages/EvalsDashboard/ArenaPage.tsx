@@ -752,7 +752,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   useEffect(() => {
     const runningComparisons = comparisons.filter(c => c.status === "running" || c.status === "pending");
     if (runningComparisons.length > 0) {
-      const interval = setInterval(() => loadComparisons(false), 5000);
+      // Poll every 3 seconds for faster updates
+      const interval = setInterval(() => loadComparisons(false), 3000);
       return () => clearInterval(interval);
     }
     return undefined;
@@ -789,7 +790,10 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       setTimeout(() => setAlert(null), 3000);
       setCreateModalOpen(false);
       resetForm();
-      await loadComparisons(false); // Silent refresh, no loading spinner
+      // Immediately refresh and start polling
+      await loadComparisons(false);
+      // Poll again after 1 second to catch the running state
+      setTimeout(() => loadComparisons(false), 1000);
     } catch (err) {
       console.error("Failed to create arena comparison:", err);
       setAlert({ variant: "error", body: "Failed to create arena comparison" });

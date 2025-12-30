@@ -139,7 +139,7 @@ export const CustomThread = ({ pageContext }: CustomThreadProps) => {
       </Box>
 
       {/* Input Area */}
-      <CustomComposer />
+      <CustomComposer pageContext={pageContext} />
     </ThreadPrimitive.Root>
   );
 };

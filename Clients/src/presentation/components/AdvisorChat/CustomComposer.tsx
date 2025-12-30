@@ -2,6 +2,7 @@ import { FC, forwardRef } from 'react';
 import { Stack, IconButton, useTheme } from '@mui/material';
 import { ComposerPrimitive } from '@assistant-ui/react';
 import { Send } from 'lucide-react';
+import { AdvisorDomain, getPlaceholder } from './advisorConfig';
 
 const CustomTextField = forwardRef<
   HTMLTextAreaElement,
@@ -36,8 +37,13 @@ const CustomTextField = forwardRef<
   );
 });
 
-export const CustomComposer: FC = () => {
+interface CustomComposerProps {
+  pageContext?: AdvisorDomain;
+}
+
+export const CustomComposer: FC<CustomComposerProps> = ({ pageContext }) => {
   const theme = useTheme();
+  const placeholder = getPlaceholder(pageContext);
 
   return (
     <ComposerPrimitive.Root
@@ -51,7 +57,7 @@ export const CustomComposer: FC = () => {
         <ComposerPrimitive.Input
           asChild
           autoFocus
-          placeholder="Ask me about AI risks, and models..."
+          placeholder={placeholder}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();

@@ -1562,9 +1562,9 @@ export const createNewTenant = async (
       { transaction }
     );
 
-      // Create change history table
-      await sequelize.query(
-        `CREATE TABLE IF NOT EXISTS "${tenantHash}".project_risk_change_history (
+    // Create change history table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".project_risk_change_history (
           id SERIAL PRIMARY KEY,
           project_risk_id INTEGER NOT NULL
             REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE,
@@ -1578,27 +1578,27 @@ export const createNewTenant = async (
           changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
           created_at TIMESTAMP NOT NULL DEFAULT NOW()
         );`,
-        { transaction }
-      );
+      { transaction }
+    );
 
-      // Indexes
-      await sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_project_risk_change_history_risk_id
+    // Indexes
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_project_risk_change_history_risk_id
         ON "${tenantHash}".project_risk_change_history(project_risk_id);`,
-        { transaction }
-      );
+      { transaction }
+    );
 
-      await sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_project_risk_change_history_changed_at
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_project_risk_change_history_changed_at
         ON "${tenantHash}".project_risk_change_history(changed_at DESC);`,
-        { transaction }
-      );
+      { transaction }
+    );
 
-      await sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_project_risk_change_history_risk_changed
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_project_risk_change_history_risk_changed
         ON "${tenantHash}".project_risk_change_history(project_risk_id, changed_at DESC);`,
-        { transaction }
-      );
+      { transaction }
+    );
     await sequelize.query(`
       CREATE TABLE IF NOT EXISTS "${tenantHash}".vendor_change_history (
         id SERIAL PRIMARY KEY,
@@ -1933,6 +1933,18 @@ export const createNewTenant = async (
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );`,
       { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".advisor_conversations (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        domain VARCHAR(100) NOT NULL,
+        messages JSONB NOT NULL DEFAULT '[]',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(user_id, domain)
+      );`, { transaction }
     );
   } catch (error) {
     throw error;

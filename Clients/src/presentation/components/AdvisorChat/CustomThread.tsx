@@ -9,17 +9,17 @@ interface CustomThreadProps {
 }
 
 const RISK_SUGGESTIONS = [
-  { prompt: 'What is the current risk status?', label: 'Current status' },
-  { prompt: 'Show me the risk distribution by severity', label: 'Risk distribution' },
-  { prompt: 'What are the critical risks that need attention?', label: 'Critical risks' },
-  { prompt: 'How has the risk landscape changed over time?', label: 'Risk trends' },
+  { prompt: 'Give me an executive summary of our risk landscape', label: 'Executive summary' },
+  { prompt: 'Show me the risk distribution by severity and likelihood', label: 'Risk matrix' },
+  { prompt: 'What risks have mitigations that are not started or in progress?', label: 'Pending mitigations' },
+  { prompt: 'How has the risk level changed over the past month?', label: 'Risk trends' },
 ];
 
 const MODEL_INVENTORY_SUGGESTIONS = [
-  { prompt: 'What is the current model inventory status?', label: 'Current status' },
-  { prompt: 'Show me models by deployment stage', label: 'Deployment stages' },
-  { prompt: 'Which models have the highest risk ratings?', label: 'High-risk models' },
-  { prompt: 'Give me an executive summary of our AI models', label: 'Executive summary' },
+  { prompt: 'Give me an executive summary of our AI model inventory', label: 'Executive summary' },
+  { prompt: 'Which models are pending approval or blocked?', label: 'Pending models' },
+  { prompt: 'How many models have completed security assessments?', label: 'Security status' },
+  { prompt: 'Show me the breakdown of models by provider', label: 'By provider' },
 ];
 
 export const CustomThread = ({ pageContext }: CustomThreadProps) => {

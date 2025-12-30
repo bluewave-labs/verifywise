@@ -33,7 +33,6 @@ import {
 import IncidentTable from "./IncidentTable";
 import NewIncident from "../../components/Modals/NewIncident";
 import {
-  AIIncidentManagementApprovalStatus,
   IncidentManagementStatus,
   Severity,
 } from "../../../domain/enums/aiIncidentManagement.enum";

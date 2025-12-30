@@ -1067,9 +1067,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                         <Box
                           sx={{
                             p: 3,
-                            backgroundColor: "#eff6ff",
+                            backgroundColor: "#dbeafe",
                             borderRadius: "12px",
-                            border: "1px solid #bfdbfe",
+                            border: "1px solid #93c5fd",
                           }}
                         >
                           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
@@ -1078,7 +1078,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                 width: 24,
                                 height: 24,
                                 borderRadius: "6px",
-                                backgroundColor: "#1e3a5f",
+                                backgroundColor: "#1e40af",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -1086,11 +1086,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                             >
                               <Scale size={12} color="#fff" />
                             </Box>
-                            <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                            <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                               Judge's Reasoning
                             </Typography>
                           </Stack>
-                          <Typography sx={{ fontSize: 13, color: "#1e3a5f", lineHeight: 1.7 }}>
+                          <Typography sx={{ fontSize: 13, color: "#1e3a8a", lineHeight: 1.7 }}>
                             {round.reason}
                           </Typography>
                         </Box>

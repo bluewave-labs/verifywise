@@ -278,7 +278,10 @@ interface DetailedResult {
     name: string;
     output: string;
     model?: string;
+    provider?: string;
+    scores?: Record<string, number>;
   }[];
+  criteria?: string[];
 }
 
 interface ContestantInfo {
@@ -737,6 +740,128 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
         </TableContainer>
       </Box>
 
+      {/* Average Scores by Criterion */}
+      {(() => {
+        // Calculate average scores per contestant per criterion
+        const detailedResults = results.results?.detailedResults || [];
+        const allCriteria = new Set<string>();
+        const scoresByContestant: Record<string, Record<string, number[]>> = {};
+        
+        detailedResults.forEach((round) => {
+          round.criteria?.forEach((c) => allCriteria.add(c));
+          round.contestants?.forEach((contestant) => {
+            if (contestant.scores) {
+              if (!scoresByContestant[contestant.name]) {
+                scoresByContestant[contestant.name] = {};
+              }
+              Object.entries(contestant.scores).forEach(([criterion, score]) => {
+                allCriteria.add(criterion);
+                if (!scoresByContestant[contestant.name][criterion]) {
+                  scoresByContestant[contestant.name][criterion] = [];
+                }
+                scoresByContestant[contestant.name][criterion].push(score);
+              });
+            }
+          });
+        });
+        
+        const criteriaList = Array.from(allCriteria);
+        
+        if (criteriaList.length === 0) return null;
+        
+        return (
+          <Box sx={{ mb: 4 }}>
+            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 3 }}>
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <BarChart3 size={18} color="#fff" />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#1e293b" }}>
+                  Average Scores by Criterion
+                </Typography>
+                <Typography sx={{ fontSize: 12, color: "#64748b" }}>
+                  Performance breakdown across {criteriaList.length} evaluation criteria
+                </Typography>
+              </Box>
+            </Stack>
+            
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${Math.min(criteriaList.length, 4)}, 1fr)`,
+                gap: 2,
+              }}
+            >
+              {criteriaList.map((criterion) => (
+                <Box
+                  key={criterion}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: "12px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                  }}
+                >
+                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#6366f1", mb: 2, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    {criterion}
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {contestants.map((name, idx) => {
+                      const scores = scoresByContestant[name]?.[criterion] || [];
+                      const avgScore = scores.length > 0 
+                        ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)
+                        : "-";
+                      const numericScore = parseFloat(avgScore) || 0;
+                      const color = getColor(idx);
+                      
+                      return (
+                        <Box key={name}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                            <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#475569" }}>
+                              {name}
+                            </Typography>
+                            <Typography 
+                              sx={{ 
+                                fontSize: 13, 
+                                fontWeight: 700, 
+                                color: numericScore >= 8 ? "#059669" : numericScore >= 6 ? "#d97706" : numericScore > 0 ? "#dc2626" : "#9ca3af",
+                              }}
+                            >
+                              {avgScore}
+                            </Typography>
+                          </Stack>
+                          <Box sx={{ height: 6, backgroundColor: "#e2e8f0", borderRadius: 3, overflow: "hidden" }}>
+                            <Box
+                              sx={{
+                                height: "100%",
+                                width: `${(numericScore / 10) * 100}%`,
+                                backgroundColor: color.main,
+                                borderRadius: 3,
+                                transition: "width 0.3s ease",
+                              }}
+                            />
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        );
+      })()}
+
       {/* Round Results */}
       {results.results?.detailedResults?.length > 0 && (
         <Box>
@@ -1018,6 +1143,43 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                     </Box>
                                   )}
                                 </Stack>
+                                
+                                {/* Scores per criterion */}
+                                {c.scores && Object.keys(c.scores).length > 0 && (
+                                  <Box sx={{ mb: 2, mt: 1 }}>
+                                    <Stack direction="row" flexWrap="wrap" gap={1}>
+                                      {Object.entries(c.scores).map(([criterion, score]) => (
+                                        <Box
+                                          key={criterion}
+                                          sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 0.75,
+                                            px: 1.5,
+                                            py: 0.5,
+                                            borderRadius: "6px",
+                                            backgroundColor: score >= 8 ? "#ecfdf5" : score >= 6 ? "#fefce8" : "#fef2f2",
+                                            border: `1px solid ${score >= 8 ? "#a7f3d0" : score >= 6 ? "#fde68a" : "#fecaca"}`,
+                                          }}
+                                        >
+                                          <Typography sx={{ fontSize: 10, color: "#6b7280", fontWeight: 500 }}>
+                                            {criterion}
+                                          </Typography>
+                                          <Typography 
+                                            sx={{ 
+                                              fontSize: 12, 
+                                              fontWeight: 700, 
+                                              color: score >= 8 ? "#059669" : score >= 6 ? "#d97706" : "#dc2626",
+                                            }}
+                                          >
+                                            {score}/10
+                                          </Typography>
+                                        </Box>
+                                      ))}
+                                    </Stack>
+                                  </Box>
+                                )}
+                                
                                 <Box
                                   sx={{
                                     maxHeight: 350,

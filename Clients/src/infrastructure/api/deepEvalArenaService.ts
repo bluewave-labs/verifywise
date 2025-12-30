@@ -49,7 +49,9 @@ export interface ArenaComparisonResult {
     output: string;
     model?: string;
     provider?: string;
+    scores?: Record<string, number>;
   }[];
+  criteria?: string[];
 }
 
 export interface ArenaComparison {

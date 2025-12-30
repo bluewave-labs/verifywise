@@ -319,30 +319,17 @@ async def run_arena_comparison_task(
                         "output": f"Error: {str(e)}",
                     })
             
-            # Use GEval to judge the responses
+            # Use GEval to judge the responses with per-criterion scores
             try:
-                # Create a comparison prompt for the judge
-                comparison_prompt = f"""You are a judge comparing responses from different AI assistants.
-
-**User Question/Prompt:**
-{input_text}
-
-**Responses:**
-"""
-                for i, cr in enumerate(contestant_responses):
-                    comparison_prompt += f"\n--- {cr['name']} ---\n{cr['output']}\n"
+                # Get individual criteria from metric config
+                criteria_text = metric_config.get("criteria", "Evaluate based on accuracy, helpfulness, and clarity.")
+                criteria_name = metric_config.get("name", "Overall")
                 
-                comparison_prompt += f"""
-**Evaluation Criteria:**
-{metric_config.get("criteria", "Evaluate based on accuracy, helpfulness, and clarity.")}
-
-**Task:**
-Based on the criteria above, which response is better? 
-Respond with ONLY the name of the winning contestant (exactly as written above).
-If it's a tie, respond with "TIE".
-"""
+                # Parse individual criteria (comma-separated in the name field)
+                individual_criteria = [c.strip() for c in criteria_name.split(",") if c.strip()]
+                if not individual_criteria:
+                    individual_criteria = ["Overall"]
                 
-                # Use the judge model to pick a winner
                 # Determine judge provider from model name
                 judge_provider = "openai"
                 if "claude" in judge_model.lower():
@@ -354,12 +341,72 @@ If it's a tie, respond with "TIE".
                 elif "grok" in judge_model.lower():
                     judge_provider = "xai"
                 
-                winner_response = await call_llm_model(judge_provider, judge_model, comparison_prompt, api_keys)
-                winner_name = winner_response.strip()
+                # Build contestant names for the prompt
+                contestant_names = [cr["name"] for cr in contestant_responses]
+                
+                # Create a scoring prompt that asks for scores per criterion per contestant
+                scoring_prompt = f"""You are an expert judge evaluating AI assistant responses.
+
+**User Question/Prompt:**
+{input_text}
+
+**Responses to evaluate:**
+"""
+                for cr in contestant_responses:
+                    scoring_prompt += f"\n--- {cr['name']} ---\n{cr['output']}\n"
+                
+                scoring_prompt += f"""
+**Evaluation Criteria:** {', '.join(individual_criteria)}
+
+**Task:**
+Score each response on each criterion from 1-10 (10 being best).
+Then determine the overall winner.
+
+Respond in EXACTLY this JSON format:
+{{
+  "scores": {{
+"""
+                # Add expected format for each contestant
+                for i, name in enumerate(contestant_names):
+                    scoring_prompt += f'    "{name}": {{"' + '": 0, "'.join(individual_criteria) + '": 0}'
+                    if i < len(contestant_names) - 1:
+                        scoring_prompt += ","
+                    scoring_prompt += "\n"
+                
+                scoring_prompt += f"""  }},
+  "winner": "<name of best response or TIE>",
+  "reasoning": "<brief explanation>"
+}}
+
+IMPORTANT: Respond with ONLY the JSON, no other text."""
+                
+                judge_response = await call_llm_model(judge_provider, judge_model, scoring_prompt, api_keys)
+                
+                # Parse the JSON response
+                import re
+                # Try to extract JSON from the response
+                json_match = re.search(r'\{[\s\S]*\}', judge_response)
+                scores_data = {}
+                winner_name = None
+                reasoning = ""
+                
+                if json_match:
+                    try:
+                        parsed = json.loads(json_match.group())
+                        scores_data = parsed.get("scores", {})
+                        winner_name = parsed.get("winner", "").strip()
+                        reasoning = parsed.get("reasoning", "")
+                    except json.JSONDecodeError:
+                        log(f"Failed to parse judge JSON response: {judge_response[:200]}")
+                        # Fallback: try to determine winner from text
+                        for name in contestant_names:
+                            if name.lower() in judge_response.lower():
+                                winner_name = name
+                                break
                 
                 # Validate winner name
                 valid_names = [c["name"] for c in contestants_config]
-                if winner_name not in valid_names and winner_name != "TIE":
+                if winner_name and winner_name not in valid_names and winner_name != "TIE":
                     # Try to find a match
                     for name in valid_names:
                         if name.lower() in winner_name.lower():
@@ -371,12 +418,17 @@ If it's a tie, respond with "TIE".
                 if winner_name and winner_name != "TIE":
                     win_counts[winner_name] = win_counts.get(winner_name, 0) + 1
                 
+                # Add scores to each contestant response
+                for cr in contestant_responses:
+                    cr["scores"] = scores_data.get(cr["name"], {})
+                
                 all_results.append({
                     "testCaseIndex": idx,
                     "input": input_text,
                     "winner": winner_name if winner_name != "TIE" else None,
-                    "reason": f"Judge selected: {winner_response.strip()}",
+                    "reason": reasoning or f"Judge selected: {winner_name}",
                     "contestants": contestant_responses,
+                    "criteria": individual_criteria,
                 })
                 
             except Exception as e:

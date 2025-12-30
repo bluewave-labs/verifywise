@@ -9,7 +9,6 @@ import {
   Box,
   Stack,
   Typography,
-  Chip,
   CircularProgress,
   IconButton,
   Table,
@@ -440,6 +439,10 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
               ? "linear-gradient(135deg, #fef9c3 0%, #fde047 100%)"
               : "#f9fafb",
             border: isCompleted ? "1px solid #facc15" : "1px solid #e5e7eb",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
           }}
         >
           <Typography sx={{ fontSize: 11, fontWeight: 600, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5, mb: 1 }}>
@@ -462,12 +465,16 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
             borderRadius: "12px",
             backgroundColor: "#f8fafc",
             border: "1px solid #e2e8f0",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
           }}
         >
           <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: 0.5, mb: 2 }}>
             Battle Info
           </Typography>
-          <Stack direction="row" spacing={4}>
+          <Stack direction="row" spacing={4} justifyContent="center">
             <Box>
               <Typography sx={{ fontSize: 10, color: "#9ca3af", textTransform: "uppercase", mb: 0.5 }}>
                 Judge
@@ -496,21 +503,22 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
             </Box>
           </Stack>
           {results.metric?.name && (
-            <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 2 }}>
+            <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 2, justifyContent: "center" }}>
               {results.metric.name.split(", ").map((criterion, idx) => (
-                <Chip
+                <Box
                   key={idx}
-                  label={criterion}
-                  size="small"
                   sx={{
-                    height: 22,
-                    fontSize: 11,
-                    fontWeight: 500,
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: "6px",
                     backgroundColor: "#fff",
-                    color: "#6366f1",
                     border: "1px solid #e0e7ff",
                   }}
-                />
+                >
+                  <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#6366f1" }}>
+                    {criterion}
+                  </Typography>
+                </Box>
               ))}
             </Stack>
           )}
@@ -628,17 +636,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                       </Typography>
                     </TableCell>
                     <TableCell align="center">
-                      <Chip
-                        label={`${winRate}%`}
-                        size="small"
-                        sx={{
-                          height: 26,
-                          fontSize: 12,
-                          fontWeight: 700,
-                          backgroundColor: "#f1f5f9",
-                          color: "#374151",
-                        }}
-                      />
+                      <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#374151" }}>
+                        {winRate}%
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 );
@@ -853,32 +853,27 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                     </Stack>
                     {round.winner ? (
                       <Stack direction="row" alignItems="center" spacing={1}>
-                        <Trophy size={16} color="#f59e0b" />
-                        <Chip
-                          label={round.winner}
-                          size="small"
+                        <Trophy size={14} color="#f59e0b" />
+                        <Typography
                           sx={{
-                            height: 28,
-                            fontSize: 12,
-                            fontWeight: 600,
-                            backgroundColor: winnerColor?.light || "#f3f4f6",
+                            fontSize: 13,
+                            fontWeight: 700,
                             color: winnerColor?.text || "#374151",
-                            border: `1px solid ${winnerColor?.main || "#e2e8f0"}`,
                           }}
-                        />
+                        >
+                          {round.winner}
+                        </Typography>
                       </Stack>
                     ) : (
-                      <Chip
-                        label="Tie"
-                        size="small"
+                      <Typography
                         sx={{
-                          height: 28,
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: 600,
-                          backgroundColor: "#f1f5f9",
                           color: "#64748b",
                         }}
-                      />
+                      >
+                        Tie
+                      </Typography>
                     )}
                   </Box>
 

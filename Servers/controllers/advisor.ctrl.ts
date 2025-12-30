@@ -97,7 +97,21 @@ export async function runAdvisor(req: Request, res: Response) {
       // Try to parse JSON response from LLM
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        parsedResponse = JSON.parse(jsonMatch[0]);
+        // Fix unescaped control characters in JSON string values
+        // This handles newlines inside the markdown field that break JSON parsing
+        let jsonStr = jsonMatch[0];
+        // Replace unescaped newlines within string values
+        jsonStr = jsonStr.replace(/"markdown"\s*:\s*"([\s\S]*?)(?<!\\)"\s*,\s*"chartData"/,
+          (_match: string, content: string) => {
+            const escaped = content
+              .replace(/\\/g, '\\\\')
+              .replace(/\n/g, '\\n')
+              .replace(/\r/g, '\\r')
+              .replace(/\t/g, '\\t');
+            return `"markdown": "${escaped}", "chartData"`;
+          }
+        );
+        parsedResponse = JSON.parse(jsonStr);
       } else {
         // Fallback: if LLM didn't return JSON, wrap the response
         parsedResponse = {
@@ -109,10 +123,19 @@ export async function runAdvisor(req: Request, res: Response) {
       logger.warn(
         `Failed to parse structured response, using raw response: ${error}`,
       );
-      parsedResponse = {
-        markdown: response,
-        chartData: null,
-      };
+      // Try to extract just the markdown content if JSON parsing fails
+      const markdownMatch = response.match(/"markdown"\s*:\s*"([\s\S]*?)"\s*,\s*"chartData"/);
+      if (markdownMatch) {
+        parsedResponse = {
+          markdown: markdownMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
+          chartData: null,
+        };
+      } else {
+        parsedResponse = {
+          markdown: response,
+          chartData: null,
+        };
+      }
     }
 
     return res.status(200).json({ prompt, response: parsedResponse });

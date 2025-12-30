@@ -28,18 +28,12 @@ const convertToolsToAnthropicFormat = (openAITools: any[]): Anthropic.Tool[] => 
 /**
  * Run agent using Anthropic's native API
  */
-const runAnthropicAgent = async ({
-  apiKey,
-  model,
-  userPrompt,
-  tenant,
-  availableTools,
-  toolsDefinition,
-}: Omit<AdvisorParams, "baseURL" | "provider">) => {
+const runAnthropicAgent = async (params: Omit<AdvisorParams, "baseURL" | "provider">) => {
+  const { model, userPrompt, tenant, availableTools, toolsDefinition } = params;
   const agentStartTime = Date.now();
   logger.info(`[TIMER] runAgent (Anthropic) started for advisor with model ${model}`);
 
-  const client = new Anthropic({ apiKey });
+  const client = new Anthropic({ apiKey: params.apiKey });
   const systemPrompt = getAdvisorPrompt();
   const anthropicTools = convertToolsToAnthropicFormat(toolsDefinition);
 
@@ -149,20 +143,13 @@ const runAnthropicAgent = async ({
 /**
  * Run agent using OpenAI-compatible API (OpenAI, OpenRouter)
  */
-const runOpenAICompatibleAgent = async ({
-  apiKey,
-  baseURL,
-  model,
-  userPrompt,
-  tenant,
-  availableTools,
-  toolsDefinition,
-}: Omit<AdvisorParams, "provider">) => {
+const runOpenAICompatibleAgent = async (params: Omit<AdvisorParams, "provider">) => {
+  const { baseURL, model, userPrompt, tenant, availableTools, toolsDefinition } = params;
   const agentStartTime = Date.now();
   logger.info(`[TIMER] runAgent (OpenAI-compatible) started for advisor with model ${model}`);
 
   const client = new OpenAI({
-    apiKey: apiKey,
+    apiKey: params.apiKey,
     baseURL: baseURL,
   });
 

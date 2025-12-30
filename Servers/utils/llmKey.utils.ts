@@ -47,18 +47,18 @@ export const createLLMKeyQuery = async (
   tenant: string,
   transaction: Transaction,
 ) => {
-  // Check if a LLM key with this name already exists
+  // Check if a LLM key with same provider AND model already exists
   const llmKey = (await sequelize.query(
-    `SELECT id FROM "${tenant}".llm_keys WHERE name = :name;`,
+    `SELECT id FROM "${tenant}".llm_keys WHERE name = :name AND model = :model;`,
     {
-      replacements: { name: data.name },
+      replacements: { name: data.name, model: data.model },
       transaction,
     },
   )) as [{ id: number }[], number];
 
   if (llmKey[0].length > 0) {
     throw new ValidationException(
-      "A key with this name already exists. Please use a different name.",
+      "A key for this provider and model already exists.",
     );
   }
 

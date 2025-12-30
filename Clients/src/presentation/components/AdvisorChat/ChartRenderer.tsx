@@ -18,30 +18,74 @@ interface ChartRendererProps {
   chartData: ChartData;
 }
 
+// Common tooltip styles for all charts - targets the tooltip container
+const tooltipSlotProps = {
+  tooltip: {
+    sx: {
+      '& .MuiChartsTooltip-table': {
+        fontSize: '13px',
+      },
+      '& .MuiChartsTooltip-cell': {
+        fontSize: '13px',
+      },
+      '& .MuiChartsTooltip-labelCell': {
+        fontSize: '13px',
+      },
+      '& .MuiChartsTooltip-valueCell': {
+        fontSize: '13px',
+      },
+      '& .MuiChartsTooltip-mark': {
+        width: '10px',
+        height: '10px',
+      },
+    },
+  },
+};
+
 export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
   const theme = useTheme();
   const size = 200;
 
-  if (!chartData || (chartData.type !== 'line' && (!chartData.data || chartData.data.length === 0))) {
+  // Return null if no chart data at all
+  if (!chartData) {
     return null;
   }
 
   const { type, data, title, series, xAxisLabels } = chartData;
 
+  // For line charts with series, we don't need data array
+  // For all other charts, we need data array
+  const hasValidData = data && Array.isArray(data) && data.length > 0;
+  const hasValidSeries = series && Array.isArray(series) && series.length > 0 && xAxisLabels;
+
+  if (type === 'line') {
+    // Line chart can use either series or data
+    if (!hasValidSeries && !hasValidData) {
+      return null;
+    }
+  } else {
+    // All other chart types require data
+    if (!hasValidData) {
+      return null;
+    }
+  }
+
   const renderChart = () => {
-    const labels = data.map(item => item.label);
-    const dataValues = data.map(item => item.value);
+    // Only compute labels/values if data exists
+    const labels = hasValidData ? data.map(item => item.label) : [];
+    const dataValues = hasValidData ? data.map(item => item.value) : [];
+
     switch (type) {
       case 'line':
-        // Line chart for timeseries data
-        if (series && xAxisLabels) {
+        // Line chart for timeseries data with series
+        if (hasValidSeries) {
           return (
             <LineChart
               xAxis={[{
                 scaleType: 'point',
                 data: xAxisLabels,
               }]}
-              series={series.map(s => ({
+              series={series!.map(s => ({
                 data: s.data,
                 label: s.label,
                 curve: 'linear',
@@ -49,10 +93,12 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
               height={250}
               width={300}
               margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
+              slotProps={tooltipSlotProps}
             />
           );
         }
-        // Fallback for simple line chart
+        // Fallback for simple line chart using data array
+        if (!hasValidData) return null;
         return (
           <LineChart
             xAxis={[{ scaleType: 'point', data: labels }]}
@@ -60,6 +106,7 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
             height={250}
             width={320}
             margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
+            slotProps={tooltipSlotProps}
           />
         );
 
@@ -71,6 +118,7 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
             height={size}
             width={300}
             margin={{ left: 0, right: 20, top: 20 }}
+            slotProps={tooltipSlotProps}
           />
         );
 
@@ -90,6 +138,7 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
             ]}
             width={size}
             height={size}
+            slotProps={tooltipSlotProps}
           />
         );
 
@@ -112,6 +161,7 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
             ]}
             width={size}
             height={size}
+            slotProps={tooltipSlotProps}
           />
         );
 

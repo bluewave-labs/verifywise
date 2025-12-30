@@ -2,10 +2,11 @@ import { Box, useTheme, Typography, Paper } from '@mui/material';
 import { AssistantRuntime, AssistantRuntimeProvider } from '@assistant-ui/react';
 import { useAdvisorRuntime } from './useAdvisorRuntime';
 import { CustomThread } from './CustomThread';
+import { AdvisorDomain } from './advisorConfig';
 
 interface AdvisorChatProps {
   selectedLLMKeyId?: number;
-  pageContext?: 'risk-management' | 'model-inventory';
+  pageContext?: AdvisorDomain;
 }
 
 const AdvisorChat = ({ selectedLLMKeyId, pageContext }: AdvisorChatProps) => {

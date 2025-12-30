@@ -1,8 +1,11 @@
-export type LLMProvider = "Anthropic" | "OpenAI" | "OpenRouter";
+export type LLMProviderId = "anthropic" | "openai" | "openrouter";
+
+// Display names for providers (used in forms and UI)
+export type LLMProviderName = "Anthropic" | "OpenAI" | "OpenRouter";
 
 interface LLMKeysData {
   id: number;
-  name: LLMProvider;
+  name: LLMProviderName;
   key: string;
   url?: string | null;
   model: string;
@@ -10,14 +13,22 @@ interface LLMKeysData {
 }
 
 export interface LLMKeysFormData {
-  name: LLMProvider;
+  name: LLMProviderName;
   key: string;
   model: string;
 }
 
+export interface LLMProviderConfig {
+  id: LLMProviderId;
+  name: LLMProviderName;
+  keyPrefix: string;
+  keyPlaceholder: string;
+  apiKeyUrl: string;
+}
+
 export class LLMKeysModel {
   id!: number;
-  name!: LLMProvider;
+  name!: LLMProviderName;
   key!: string;
   url?: string | null;
   model!: string;
@@ -44,7 +55,42 @@ export class LLMKeysModel {
     });
   }
 
-  static getAvailableProviders(): LLMProvider[] {
-    return ["Anthropic", "OpenAI", "OpenRouter"];
+  /**
+   * Provider configurations with API key info
+   */
+  static readonly PROVIDER_CONFIGS: LLMProviderConfig[] = [
+    {
+      id: "anthropic",
+      name: "Anthropic",
+      keyPrefix: "sk-ant-",
+      keyPlaceholder: "sk-ant-api03-...",
+      apiKeyUrl: "https://console.anthropic.com/settings/keys",
+    },
+    {
+      id: "openai",
+      name: "OpenAI",
+      keyPrefix: "sk-",
+      keyPlaceholder: "sk-proj-...",
+      apiKeyUrl: "https://platform.openai.com/api-keys",
+    },
+    {
+      id: "openrouter",
+      name: "OpenRouter",
+      keyPrefix: "sk-or-",
+      keyPlaceholder: "sk-or-v1-...",
+      apiKeyUrl: "https://openrouter.ai/keys",
+    },
+  ];
+
+  static getAvailableProviders(): LLMProviderName[] {
+    return this.PROVIDER_CONFIGS.map(p => p.name);
+  }
+
+  static getProviderConfig(name: LLMProviderName): LLMProviderConfig | undefined {
+    return this.PROVIDER_CONFIGS.find(p => p.name === name);
+  }
+
+  static getProviderIdByName(name: LLMProviderName): LLMProviderId | undefined {
+    return this.PROVIDER_CONFIGS.find(p => p.name === name)?.id;
   }
 }

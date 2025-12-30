@@ -2,25 +2,9 @@ import { useMemo } from 'react';
 import { useLocalRuntime } from '@assistant-ui/react';
 import type { ChatModelAdapter, ChatModelRunOptions, ChatModelRunResult } from '@assistant-ui/react';
 import { runAdvisorAPI } from '../../../application/repository/advisor.repository';
+import { AdvisorDomain, getWelcomeMessage } from './advisorConfig';
 
-export const getAdvisorType = (pathname: string): string => {
-  switch(pathname) {
-    case "/risk-management":
-      return "risk";
-    case "/model-inventory":
-      return "model";
-    default:
-      return "";
-  }
-}
-
-const WELCOME_MESSAGES = {
-  'risk-management': "Hello! I'm your AI Risk Management Advisor. I can help you analyze risk distributions, track mitigation progress, identify high-priority risks, and understand trends over time. What would you like to know about your risks?",
-  'model-inventory': "Hello! I'm your AI Model Inventory Advisor. I can help you understand your model landscape, check approval statuses, review security assessments, and analyze provider distributions. What would you like to know about your models?",
-  'default': "Hello! I'm your VerifyWise AI Advisor. I can help you with both AI Risk Management and Model Inventory. What would you like to know?",
-};
-
-export const useAdvisorRuntime = (selectedLLMKeyId?: number, pageContext?: 'risk-management' | 'model-inventory') => {
+export const useAdvisorRuntime = (selectedLLMKeyId?: number, pageContext?: AdvisorDomain) => {
   // Memoize the chat adapter to prevent recreation on every render
   const chatModelAdapter: ChatModelAdapter = useMemo(() => ({
     async run({ messages = [] }: ChatModelRunOptions): Promise<ChatModelRunResult> {
@@ -96,7 +80,7 @@ export const useAdvisorRuntime = (selectedLLMKeyId?: number, pageContext?: 'risk
           status: { type: 'complete' as const, reason: 'stop' as const },
         };
       } catch (error: any) {
-        console.error('[RiskAdvisorRuntime] Error calling advisor API:', error);
+        console.error('[AdvisorRuntime] Error calling advisor API:', error);
         const errorMessage = error?.data?.message || error?.message || 'Failed to get response from advisor. Please try again.';
 
         // Return an error message
@@ -122,7 +106,7 @@ export const useAdvisorRuntime = (selectedLLMKeyId?: number, pageContext?: 'risk
       content: [
         {
           type: 'text' as const,
-          text: WELCOME_MESSAGES[pageContext || 'default'],
+          text: getWelcomeMessage(pageContext),
         },
       ],
     },

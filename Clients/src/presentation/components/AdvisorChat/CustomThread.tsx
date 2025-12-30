@@ -3,39 +3,18 @@ import { Stack, Box, useTheme, Typography, Chip } from '@mui/material';
 import { ThreadPrimitive, useThread } from '@assistant-ui/react';
 import { CustomMessage } from './CustomMessage';
 import { CustomComposer } from './CustomComposer';
+import { AdvisorDomain, AdvisorSuggestion, getSuggestions, ADVISOR_DOMAINS } from './advisorConfig';
 
 interface CustomThreadProps {
-  pageContext?: 'risk-management' | 'model-inventory';
+  pageContext?: AdvisorDomain;
 }
 
-const RISK_SUGGESTIONS = [
-  { prompt: 'Give me an executive summary of our risk landscape', label: 'Executive summary' },
-  { prompt: 'Show me the risk distribution by severity and likelihood', label: 'Risk matrix' },
-  { prompt: 'What risks have mitigations that are not started or in progress?', label: 'Pending mitigations' },
-  { prompt: 'How has the risk level changed over the past month?', label: 'Risk trends' },
-  { prompt: 'What are the high and very high risk items?', label: 'High risks' },
-  { prompt: 'Show risks by AI lifecycle phase', label: 'By lifecycle phase' },
-  { prompt: 'Which risks are categorized under data privacy or security?', label: 'Privacy & security' },
-];
+interface SuggestionChipsProps {
+  pageContext?: AdvisorDomain;
+  suggestions: AdvisorSuggestion[];
+}
 
-const MODEL_INVENTORY_SUGGESTIONS = [
-  { prompt: 'Give me an executive summary of our AI model inventory', label: 'Executive summary' },
-  { prompt: 'Which models are pending approval or blocked?', label: 'Pending models' },
-  { prompt: 'How many models have completed security assessments?', label: 'Security status' },
-  { prompt: 'Show me the breakdown of models by provider', label: 'By provider' },
-  { prompt: 'Which models are hosted on-premises vs cloud?', label: 'Hosting breakdown' },
-  { prompt: 'List all approved models ready for use', label: 'Approved models' },
-  { prompt: 'Which models have not undergone security assessment?', label: 'Unassessed models' },
-];
-
-// Separate component to access thread context
-const SuggestionChips = ({
-  pageContext,
-  suggestions
-}: {
-  pageContext?: 'risk-management' | 'model-inventory';
-  suggestions: typeof RISK_SUGGESTIONS;
-}) => {
+const SuggestionChips = ({ pageContext, suggestions }: SuggestionChipsProps) => {
   const theme = useTheme();
   const thread = useThread();
 
@@ -67,9 +46,7 @@ const SuggestionChips = ({
           marginBottom: '12px',
         }}
       >
-        {pageContext === 'model-inventory'
-          ? 'Try asking about your AI model inventory'
-          : 'Try asking about your AI risks'}
+        {pageContext ? `Try asking about your ${ADVISOR_DOMAINS[pageContext]?.path.replace('/', '').replace('-', ' ')}` : 'Try asking a question'}
       </Typography>
       <Box
         sx={{
@@ -114,9 +91,7 @@ export const CustomThread = ({ pageContext }: CustomThreadProps) => {
   const theme = useTheme();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const suggestions = pageContext === 'model-inventory'
-    ? MODEL_INVENTORY_SUGGESTIONS
-    : RISK_SUGGESTIONS;
+  const suggestions = getSuggestions(pageContext);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -126,7 +101,6 @@ export const CustomThread = ({ pageContext }: CustomThreadProps) => {
     const timer = setTimeout(scrollToBottom, 100);
     return () => clearTimeout(timer);
   }, []);
-
 
   return (
     <ThreadPrimitive.Root

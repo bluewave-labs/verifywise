@@ -13,6 +13,7 @@ import { getArticleContent } from '@user-guide-content/content';
 import { extractToc } from '@user-guide-content/contentTypes';
 import { useUserGuideSidebarContext, DEFAULT_CONTENT_WIDTH } from './UserGuideSidebarContext';
 import AdvisorChat from '../AdvisorChat';
+import { AdvisorDomain, isAdvisorEligiblePath, getDomainByPath } from '../AdvisorChat/advisorConfig';
 import AdvisorHeader from './AdvisorHeader';
 import './SidebarWrapper.css';
 
@@ -70,15 +71,12 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   const isNavigatingRef = useRef(false);
 
 
-  // To display adivsor in the sidebar, add a path to that particular page here
-  const advisorEligiblePaths = ['/risk-management', '/model-inventory'];
-  const displayAdvisor: boolean = advisorEligiblePaths.includes(location.pathname);
+  // Check if advisor should be displayed for current path (configured in advisorConfig.ts)
+  const displayAdvisor: boolean = isAdvisorEligiblePath(location.pathname);
 
-  // Determine page context for advisor suggestions
-  const getAdvisorPageContext = (): 'risk-management' | 'model-inventory' | undefined => {
-    if (location.pathname === '/model-inventory') return 'model-inventory';
-    if (location.pathname === '/risk-management') return 'risk-management';
-    return undefined;
+  // Get the advisor domain context for current path
+  const getAdvisorPageContext = (): AdvisorDomain | undefined => {
+    return getDomainByPath(location.pathname);
   };
 
   // Parse initial path on mount

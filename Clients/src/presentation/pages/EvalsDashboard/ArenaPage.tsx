@@ -155,11 +155,15 @@ function ModelSelector({
 }: ModelSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [customModel, setCustomModel] = useState(model || "");
   const anchorRef = useRef<HTMLDivElement>(null);
   
   const providerList = Object.values(PROVIDERS);
   const models = getModelsForProvider(provider);
   const selectedModel = models.find(m => m.id === model);
+  
+  // OpenRouter allows custom model names
+  const isOpenRouter = provider === "openrouter";
   
   // Check if provider has API key configured
   const hasApiKey = (providerId: string) => configuredProviders.some(cp => cp.provider === providerId);
@@ -173,6 +177,7 @@ function ModelSelector({
   const handleProviderSelect = (newProvider: string) => {
     onProviderChange(newProvider);
     onModelChange(""); // Reset model when provider changes
+    setCustomModel(""); // Reset custom model too
     setSearchQuery("");
   };
 

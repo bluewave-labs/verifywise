@@ -8,12 +8,14 @@ interface AdvisorHeaderProps {
   onClose: () => void;
   selectedLLMKeyId?: number;
   onLLMKeyChange?: (keyId: number) => void;
+  onLLMKeysLoaded?: (hasKeys: boolean, isLoading: boolean) => void;
 }
 
 const AdvisorHeader: FC<AdvisorHeaderProps> = ({
   onClose,
   selectedLLMKeyId,
   onLLMKeyChange,
+  onLLMKeysLoaded,
 }) => {
   const [llmKeys, setLLMKeys] = useState<LLMKeysModel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,22 +25,30 @@ const AdvisorHeader: FC<AdvisorHeaderProps> = ({
       try {
         const response = await getLLMKeys();
         const keys =
-          response.data.data?.map((key: any) => new LLMKeysModel(key)) || [];
+          response.data.data?.map((key: LLMKeysModel) => new LLMKeysModel(key)) || [];
         setLLMKeys(keys);
 
-        // Auto-select first key if none selected
-        if (keys.length > 0 && !selectedLLMKeyId && onLLMKeyChange) {
-          onLLMKeyChange(keys[0].id);
+        // Notify parent about keys status
+        onLLMKeysLoaded?.(keys.length > 0, false);
+
+        // Auto-select first key if none selected or if saved key is not in the list
+        if (keys.length > 0 && onLLMKeyChange) {
+          const savedKeyExists = selectedLLMKeyId && keys.some((k: LLMKeysModel) => k.id === selectedLLMKeyId);
+          if (!savedKeyExists) {
+            onLLMKeyChange(keys[0].id);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch LLM keys:", error);
+        onLLMKeysLoaded?.(false, false);
       } finally {
         setLoading(false);
       }
     };
 
+    onLLMKeysLoaded?.(false, true);
     fetchLLMKeys();
-  }, [selectedLLMKeyId, onLLMKeyChange]);
+  }, [selectedLLMKeyId, onLLMKeyChange, onLLMKeysLoaded]);
 
   const handleKeyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const keyId = parseInt(event.target.value);
@@ -103,7 +113,7 @@ const AdvisorHeader: FC<AdvisorHeaderProps> = ({
                 cursor: "pointer",
                 outline: "none",
               }}
-              title="Select AI Model"
+              title="Select AI model"
             >
               {llmKeys.map((key) => (
                 <option key={key.id} value={key.id}>

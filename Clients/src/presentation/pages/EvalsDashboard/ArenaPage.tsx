@@ -672,7 +672,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         judgeModel: newComparison.judgeModel,
       });
 
-      setAlert({ variant: "success", body: "Arena battle started! ⚔️" });
+      setAlert({ variant: "success", body: "Arena battle started!" });
       setTimeout(() => setAlert(null), 3000);
       setCreateModalOpen(false);
       resetForm();

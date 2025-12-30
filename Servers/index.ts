@@ -46,9 +46,11 @@ import YAML from "yamljs";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
+import llmKeyRouter from "./routes/llmKey.route";
 import nistAiRmfRoutes from "./routes/nist_ai_rmf.route";
 import evidenceHubRouter from "./routes/evidenceHub.route";
 import ceMarkingRoutes from "./routes/ceMarking.route";
+import advisorRouter from "./routes/advisor.route";
 import searchRoutes from "./routes/search.route";
 import deepEvalRoutes from "./routes/deepEvalRoutes.route";
 import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
@@ -178,8 +180,10 @@ try {
   app.use("/api/automations", automation);
   app.use("/api/integrations/mlflow", integrationsRoutes);
   app.use("/api/user-preferences", userPreferenceRouter);
+  app.use("/api/llm-keys", llmKeyRouter);
   app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
   app.use("/api/evidenceHub", evidenceHubRouter);
+  app.use("/api/advisor", advisorRouter);
   app.use("/api/policy-linked", policyLinkedObjects);
 
   // Adding background jobs in the Queue

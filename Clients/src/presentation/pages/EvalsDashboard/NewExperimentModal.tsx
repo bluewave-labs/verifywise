@@ -16,6 +16,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   FormHelperText,
+  Chip as MuiChip,
 } from "@mui/material";
 import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
@@ -882,8 +883,63 @@ export default function NewExperimentModal({
             {config.model.accessMethod && (
               <Box ref={formFieldsRef}>
                 <Stack spacing={3}>
-                  {/* Model Selection - Dropdown for cloud providers, text input for local */}
-                  {PROVIDERS[config.model.accessMethod] ? (
+                  {/* Model Selection - Dropdown for cloud providers, text input for local/OpenRouter */}
+                  {config.model.accessMethod === "openrouter" ? (
+                    /* OpenRouter - Custom model input with suggestions */
+                    <Box>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                        Model
+                      </Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                        OpenRouter supports any model. Enter the model ID or select from popular options.
+                      </Typography>
+                      <Field
+                        label=""
+                        value={config.model.name}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            model: { ...prev.model, name: e.target.value },
+                          }))
+                        }
+                        placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
+                      />
+                      <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                        Popular Models
+                      </Typography>
+                      <Stack direction="row" flexWrap="wrap" gap={1}>
+                        {[
+                          { id: "openai/gpt-4o", name: "GPT-4o" },
+                          { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+                          { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
+                          { id: "meta-llama/llama-3.1-70b-instruct", name: "Llama 3.1 70B" },
+                          { id: "mistralai/mistral-large", name: "Mistral Large" },
+                        ].map((m) => (
+                          <MuiChip
+                            key={m.id}
+                            label={m.name}
+                            variant={config.model.name === m.id ? "filled" : "outlined"}
+                            onClick={() =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                model: { ...prev.model, name: m.id },
+                              }))
+                            }
+                            sx={{
+                              cursor: "pointer",
+                              backgroundColor: config.model.name === m.id ? "#E8F5F1" : "transparent",
+                              borderColor: config.model.name === m.id ? "#13715B" : "#E5E7EB",
+                              color: config.model.name === m.id ? "#13715B" : "#374151",
+                              "&:hover": {
+                                backgroundColor: config.model.name === m.id ? "#E8F5F1" : "#f9fafb",
+                                borderColor: "#13715B",
+                              },
+                            }}
+                          />
+                        ))}
+                      </Stack>
+                    </Box>
+                  ) : PROVIDERS[config.model.accessMethod] ? (
                     <Box>
                       <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
                         Model
@@ -1514,8 +1570,63 @@ export default function NewExperimentModal({
                 {config.judgeLlm.provider && (
                   <Box ref={formFieldsRef}>
                     <Stack spacing={3}>
-                      {/* Model Selection - Dropdown for cloud providers, text input for local */}
-                      {PROVIDERS[config.judgeLlm.provider] ? (
+                      {/* Model Selection - Dropdown for cloud providers, text input for local/OpenRouter */}
+                      {config.judgeLlm.provider === "openrouter" ? (
+                        /* OpenRouter - Custom model input with suggestions */
+                        <Box>
+                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                            Model
+                          </Typography>
+                          <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                            OpenRouter supports any model. Enter the model ID or select from popular options.
+                          </Typography>
+                          <Field
+                            label=""
+                            value={config.judgeLlm.model}
+                            onChange={(e) =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                judgeLlm: { ...prev.judgeLlm, model: e.target.value },
+                              }))
+                            }
+                            placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
+                          />
+                          <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                            Popular Models
+                          </Typography>
+                          <Stack direction="row" flexWrap="wrap" gap={1}>
+                            {[
+                              { id: "openai/gpt-4o", name: "GPT-4o" },
+                              { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+                              { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
+                              { id: "meta-llama/llama-3.1-70b-instruct", name: "Llama 3.1 70B" },
+                              { id: "mistralai/mistral-large", name: "Mistral Large" },
+                            ].map((m) => (
+                              <MuiChip
+                                key={m.id}
+                                label={m.name}
+                                variant={config.judgeLlm.model === m.id ? "filled" : "outlined"}
+                                onClick={() =>
+                                  setConfig((prev) => ({
+                                    ...prev,
+                                    judgeLlm: { ...prev.judgeLlm, model: m.id },
+                                  }))
+                                }
+                                sx={{
+                                  cursor: "pointer",
+                                  backgroundColor: config.judgeLlm.model === m.id ? "#E8F5F1" : "transparent",
+                                  borderColor: config.judgeLlm.model === m.id ? "#13715B" : "#E5E7EB",
+                                  color: config.judgeLlm.model === m.id ? "#13715B" : "#374151",
+                                  "&:hover": {
+                                    backgroundColor: config.judgeLlm.model === m.id ? "#E8F5F1" : "#f9fafb",
+                                    borderColor: "#13715B",
+                                  },
+                                }}
+                              />
+                            ))}
+                          </Stack>
+                        </Box>
+                      ) : PROVIDERS[config.judgeLlm.provider] ? (
                         <Box>
                           <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
                             Model

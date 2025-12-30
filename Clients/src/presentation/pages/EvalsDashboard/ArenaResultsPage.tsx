@@ -10,7 +10,6 @@ import {
   Stack,
   Typography,
   CircularProgress,
-  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -22,7 +21,6 @@ import {
 } from "@mui/material";
 import {
   Trophy,
-  ArrowLeft,
   AlertCircle,
   ChevronDown,
   ChevronRight,
@@ -384,22 +382,31 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto" }}>
-      {/* Header */}
-      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
-        <IconButton
+      {/* Back button */}
+      <Box sx={{ mb: 2 }}>
+        <Typography
+          component="span"
           onClick={onBack}
-          size="small"
           sx={{
-            border: "1px solid #e5e7eb",
-            "&:hover": { backgroundColor: "#f9fafb" },
+            fontSize: "13px",
+            color: "#13715B",
+            cursor: "pointer",
+            textDecoration: "underline",
+            textDecorationStyle: "dashed",
+            textUnderlineOffset: "3px",
+            "&:hover": {
+              color: "#0f5a47",
+            },
           }}
         >
-          <ArrowLeft size={18} />
-        </IconButton>
-        <Typography sx={{ fontSize: 22, fontWeight: 700, color: "#111827" }}>
-          {results.name}
+          ← Back to arena
         </Typography>
-      </Stack>
+      </Box>
+
+      {/* Header */}
+      <Typography sx={{ fontSize: 22, fontWeight: 700, color: "#111827", mb: 4 }}>
+        {results.name}
+      </Typography>
 
       {/* Error State */}
       {isFailed && results.errorMessage && (

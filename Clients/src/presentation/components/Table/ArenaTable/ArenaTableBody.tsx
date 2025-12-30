@@ -214,11 +214,11 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
                         px: 1.25,
                         py: 0.5,
                         borderRadius: "6px",
-                        backgroundColor: `${contestantColors[idx % contestantColors.length]}10`,
-                        border: `1px solid ${contestantColors[idx % contestantColors.length]}30`,
+                        backgroundColor: `${contestantColors[idx % contestantColors.length]}20`,
+                        border: `1px solid ${contestantColors[idx % contestantColors.length]}50`,
                       }}
                     >
-                      <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#374151" }}>
+                      <Typography sx={{ fontSize: 11, fontWeight: 600, color: contestantColors[idx % contestantColors.length] }}>
                         {name}
                       </Typography>
                     </Box>

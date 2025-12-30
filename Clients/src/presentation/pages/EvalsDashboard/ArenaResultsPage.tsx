@@ -31,10 +31,40 @@ import {
   BarChart3,
   MessageSquare,
   Zap,
-  Cpu,
+  Bot,
 } from "lucide-react";
 import { getArenaComparisonResults } from "../../../application/repository/deepEval.repository";
 import CustomizableButton from "../../components/Button/CustomizableButton";
+
+// Provider icons
+import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
+import { ReactComponent as AnthropicLogo } from "../../assets/icons/anthropic_logo.svg";
+import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg";
+import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
+import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
+import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
+
+const PROVIDER_ICONS: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
+  openai: OpenAILogo,
+  anthropic: AnthropicLogo,
+  google: GeminiLogo,
+  mistral: MistralLogo,
+  xai: XAILogo,
+  openrouter: OpenRouterLogo,
+};
+
+// Helper to get provider display name
+const getProviderDisplayName = (provider: string): string => {
+  const names: Record<string, string> = {
+    openai: "OpenAI",
+    anthropic: "Anthropic",
+    google: "Google",
+    mistral: "Mistral",
+    xai: "xAI",
+    openrouter: "OpenRouter",
+  };
+  return names[provider?.toLowerCase()] || provider || "Custom";
+};
 
 // Simple markdown renderer for LLM outputs
 const renderMarkdown = (text: string): React.ReactNode => {
@@ -583,18 +613,18 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {contestants.map((name, idx) => {
+              {contestants.map((name) => {
                 const wins = winCounts[name] || 0;
                 const contestantTies = results.results?.detailedResults?.filter(
                   (r) => !r.winner && r.contestants?.some((c) => c.name === name)
                 ).length || 0;
                 const losses = totalRounds - wins - contestantTies;
                 const winRate = totalRounds > 0 ? ((wins / totalRounds) * 100).toFixed(1) : "0.0";
-                const color = getColor(idx);
                 const isWinner = name === results.results?.winner;
                 // Get model info for this contestant
                 const contestantInfo = results.contestantInfo?.find((c) => c.name === name);
-                const modelDisplay = contestantInfo?.model || "Unknown model";
+                const providerName = contestantInfo?.provider?.toLowerCase() || "";
+                const ProviderIcon = PROVIDER_ICONS[providerName];
 
                 return (
                   <TableRow key={name} sx={{ backgroundColor: "transparent" }}>
@@ -605,16 +635,18 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                             width: 32,
                             height: 32,
                             borderRadius: "8px",
-                            backgroundColor: color.main,
+                            backgroundColor: "#f8fafc",
+                            border: "1px solid #e2e8f0",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            color: "#fff",
-                            fontWeight: 600,
-                            fontSize: 13,
                           }}
                         >
-                          {name.charAt(0)}
+                          {ProviderIcon ? (
+                            <ProviderIcon style={{ width: 18, height: 18 }} />
+                          ) : (
+                            <Bot size={18} color="#64748b" />
+                          )}
                         </Box>
                         <Box>
                           <Stack direction="row" alignItems="center" spacing={1}>
@@ -639,12 +671,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                               </Box>
                             )}
                           </Stack>
-                          <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <Cpu size={10} color="#9ca3af" />
-                            <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
-                              {modelDisplay}
-                            </Typography>
-                          </Stack>
+                          <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+                            {getProviderDisplayName(contestantInfo?.provider || "")}
+                          </Typography>
                         </Box>
                       </Stack>
                     </TableCell>
@@ -902,11 +931,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                           }}
                         >
                           {round.contestants?.map((c, cIdx) => {
-                            const color = getColor(contestants.indexOf(c.name));
                             const isRoundWinner = c.name === round.winner;
                             const contestantInfo = results.contestantInfo?.find((ci) => ci.name === c.name);
-                            // Use model from round contestant data or fall back to contestantInfo
-                            const modelDisplay = c.model || contestantInfo?.model;
+                            // Get provider info - use from round data or fall back to contestantInfo
+                            const providerKey = (c as { provider?: string }).provider || contestantInfo?.provider || "";
+                            const RoundProviderIcon = PROVIDER_ICONS[providerKey.toLowerCase()];
                             return (
                               <Box
                                 key={cIdx}
@@ -925,29 +954,26 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                         width: 28,
                                         height: 28,
                                         borderRadius: "8px",
-                                        backgroundColor: color.main,
+                                        backgroundColor: "#f8fafc",
+                                        border: "1px solid #e2e8f0",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
-                                        color: "#fff",
-                                        fontWeight: 700,
-                                        fontSize: 12,
                                       }}
                                     >
-                                      {c.name.charAt(0)}
+                                      {RoundProviderIcon ? (
+                                        <RoundProviderIcon style={{ width: 16, height: 16 }} />
+                                      ) : (
+                                        <Bot size={16} color="#64748b" />
+                                      )}
                                     </Box>
                                     <Box>
                                       <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>
                                         {c.name}
                                       </Typography>
-                                      {modelDisplay && (
-                                        <Stack direction="row" alignItems="center" spacing={0.5}>
-                                          <Cpu size={10} color="#64748b" />
-                                          <Typography sx={{ fontSize: 11, color: "#64748b" }}>
-                                            {modelDisplay}
-                                          </Typography>
-                                        </Stack>
-                                      )}
+                                      <Typography sx={{ fontSize: 11, color: "#64748b" }}>
+                                        {getProviderDisplayName(providerKey)}
+                                      </Typography>
                                     </Box>
                                   </Stack>
                                   {isRoundWinner && (

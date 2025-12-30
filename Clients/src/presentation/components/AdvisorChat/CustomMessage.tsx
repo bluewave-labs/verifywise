@@ -42,11 +42,30 @@ const MessageText: FC = () => {
   );
 };
 
+interface ChartData {
+  type: 'bar' | 'pie' | 'table' | 'donut' | 'line';
+  data: { label: string; value: number; color?: string }[];
+  title: string;
+  series?: Array<{ label: string; data: number[] }>;
+  xAxisLabels?: string[];
+}
+
 interface DataMessagePart {
   type: 'data';
   name: string;
   data: unknown;
 }
+
+const isValidChartData = (data: unknown): data is ChartData => {
+  if (!data || typeof data !== 'object') return false;
+  const obj = data as Record<string, unknown>;
+  return (
+    typeof obj.type === 'string' &&
+    ['bar', 'pie', 'table', 'donut', 'line'].includes(obj.type) &&
+    Array.isArray(obj.data) &&
+    typeof obj.title === 'string'
+  );
+};
 
 const MessageChart: FC = () => {
   const message = useAssistantState(({ message }) => message);
@@ -57,7 +76,7 @@ const MessageChart: FC = () => {
       typeof part === 'object' && part !== null && 'type' in part && part.type === 'data' && 'name' in part && part.name === 'chartData'
   );
 
-  if (!chartContent || !chartContent.data) {
+  if (!chartContent || !chartContent.data || !isValidChartData(chartContent.data)) {
     return null;
   }
 

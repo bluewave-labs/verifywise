@@ -28,6 +28,7 @@ interface SidebarWrapperProps {
 }
 
 const STORAGE_KEY = 'verifywise-sidebar-state';
+const LLM_KEY_STORAGE_KEY = 'verifywise-advisor-llm-key';
 const MIN_CONTENT_WIDTH = DEFAULT_CONTENT_WIDTH;
 const MAX_CONTENT_WIDTH = DEFAULT_CONTENT_WIDTH * 2; // 100% wider
 
@@ -48,7 +49,13 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   const [isResizing, setIsResizing] = useState(false);
   const [isHoveringHandle, setIsHoveringHandle] = useState(false);
   const [mouseY, setMouseY] = useState(0);
-  const [selectedLLMKeyId, setSelectedLLMKeyId] = useState<number | undefined>(undefined);
+  const [selectedLLMKeyId, setSelectedLLMKeyId] = useState<number | undefined>(() => {
+    // Initialize from localStorage to persist model selection across domains
+    const savedKeyId = localStorage.getItem(LLM_KEY_STORAGE_KEY);
+    return savedKeyId ? parseInt(savedKeyId, 10) : undefined;
+  });
+  const [hasLLMKeys, setHasLLMKeys] = useState<boolean | null>(null);
+  const [isLoadingLLMKeys, setIsLoadingLLMKeys] = useState(true);
   const resizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const handleRef = useRef<HTMLDivElement>(null);
 
@@ -57,6 +64,18 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
     setContentWidthLocal(width);
     setContextContentWidth(width);
   }, [setContextContentWidth]);
+
+  // Handle LLM key change and persist to localStorage
+  const handleLLMKeyChange = useCallback((keyId: number) => {
+    setSelectedLLMKeyId(keyId);
+    localStorage.setItem(LLM_KEY_STORAGE_KEY, keyId.toString());
+  }, []);
+
+  // Handle LLM keys loaded callback from AdvisorHeader
+  const handleLLMKeysLoaded = useCallback((keysExist: boolean, loading: boolean) => {
+    setHasLLMKeys(keysExist);
+    setIsLoadingLLMKeys(loading);
+  }, []);
 
   // Initialize context with current width on mount
   useEffect(() => {
@@ -309,7 +328,15 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   // Render Advisor content
   const renderAdvisorContent = () => {
     const context = getAdvisorPageContext();
-    return <AdvisorChat key={context} selectedLLMKeyId={selectedLLMKeyId} pageContext={context} />
+    return (
+      <AdvisorChat
+        key={context}
+        selectedLLMKeyId={selectedLLMKeyId}
+        pageContext={context}
+        hasLLMKeys={hasLLMKeys}
+        isLoadingLLMKeys={isLoadingLLMKeys}
+      />
+    );
   }
 
   const contentArea = (tabValue: Tab) => {
@@ -466,7 +493,8 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
               <AdvisorHeader
                 onClose={onClose}
                 selectedLLMKeyId={selectedLLMKeyId}
-                onLLMKeyChange={setSelectedLLMKeyId}
+                onLLMKeyChange={handleLLMKeyChange}
+                onLLMKeysLoaded={handleLLMKeysLoaded}
               />
             ): (
               <SidebarHeader

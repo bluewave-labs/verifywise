@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { UniqueConstraintError } from "sequelize";
 import { sequelize } from "../database/db";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
@@ -146,6 +147,19 @@ export const createLLMKey = async (req: Request, res: Response) => {
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
+    if (error instanceof UniqueConstraintError) {
+      logStructured(
+        "error",
+        `duplicate API key value`,
+        functionName,
+        fileName,
+      );
+      await logEvent(
+        "Error",
+        `Duplicate API key value during LLM Key creation`,
+      );
+      return res.status(400).json(STATUS_CODE[400](`This API key is already configured. Please use a different API key or edit the existing entry.`));
+    }
     logStructured("error", `unexpected error: ${name}`, functionName, fileName);
     await logEvent(
       "Error",
@@ -235,6 +249,19 @@ export const updateLLMKey = async (req: Request, res: Response) => {
         `Validation error during LLM Key update: ${error.message}`,
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    if (error instanceof UniqueConstraintError) {
+      logStructured(
+        "error",
+        `duplicate API key value`,
+        functionName,
+        fileName,
+      );
+      await logEvent(
+        "Error",
+        `Duplicate API key value during LLM Key update`,
+      );
+      return res.status(400).json(STATUS_CODE[400](`This API key is already configured. Please use a different API key.`));
     }
     logStructured("error", `unexpected error: ${name}`, functionName, fileName);
     await logEvent(

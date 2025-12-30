@@ -96,7 +96,7 @@ export const useAdvisorRuntime = (
           return createErrorResult('Invalid message format.');
         }
 
-        const userMessage = extractUserMessageText(lastMessage.content);
+        const userMessage = extractUserMessageText(lastMessage.content as MessagePart[]);
         if (!userMessage) {
           return createErrorResult('Please provide a message.');
         }
@@ -113,9 +113,17 @@ export const useAdvisorRuntime = (
 
         const response = await runAdvisorAPI({ prompt: userMessage }, llmKeyId);
         const assistantContent = response.data?.response || 'I received your message but could not generate a response.';
-        const assistantText = assistantContent?.markdown ?? assistantContent;
 
-        const chartData = assistantContent?.chartData ?? null;
+        // Handle both string and object response formats
+        let assistantText: string;
+        let chartData: unknown = null;
+
+        if (typeof assistantContent === 'string') {
+          assistantText = assistantContent;
+        } else {
+          assistantText = assistantContent.markdown ?? JSON.stringify(assistantContent);
+          chartData = assistantContent.chartData ?? null;
+        }
 
         // Save assistant response to context (including chart data)
         if (context && domain) {
@@ -162,8 +170,10 @@ export const useAdvisorRuntime = (
   const hasResetRef = useRef(false);
   useEffect(() => {
     if (runtime && !hasResetRef.current && initialMessages.length > 0) {
-      const messageCount = runtime.thread?.messages?.length ?? 0;
-      if (messageCount === 0) {
+      // Access thread state safely through the runtime
+      const threadState = runtime.thread?.getState?.();
+      const messageCount = threadState?.messages?.length ?? 0;
+      if (messageCount === 0 && typeof runtime.reset === 'function') {
         runtime.reset({ initialMessages });
       }
       hasResetRef.current = true;

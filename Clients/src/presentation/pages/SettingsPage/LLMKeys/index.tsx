@@ -17,6 +17,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Alert from "../../../components/Alert";
+import StandardModal from "../../../components/Modals/StandardModal";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Field from "../../../components/Inputs/Field";
 import Select from "../../../components/Inputs/Select";
@@ -273,7 +274,7 @@ const LLMKeys = () => {
   };
 
   return (
-    <Stack sx={{ mt: 3, maxWidth: 1000 }}>
+    <Stack sx={{ mt: 3, width: "100%" }}>
       {alert && (
         <Alert
           variant={alert.variant}
@@ -484,169 +485,155 @@ const LLMKeys = () => {
       </Stack>
 
       {/* Create Key Modal */}
-      {(isCreateModalOpen || isEditModalOpen) && (
-        <ConfirmationModal
-          title={isCreateModalOpen ? "Add API key" : "Edit API key"}
-          body={
-            <Stack spacing={3}>
-              <Typography sx={{ fontSize: 13, color: "#666666", mb: 1 }}>
-                {isCreateModalOpen
-                  ? "Connect your LLM provider to enable VerifyWise Advisor."
-                  : "Update your API key details below."}
-              </Typography>
-
-              {/* Provider Selection with Logo */}
-              <Box>
-                <Typography
-                  component="label"
-                  sx={{ fontSize: 13, fontWeight: 500, color: "#344054", mb: 0.5, display: "block" }}
-                >
-                  Provider <span style={{ color: "#f04438" }}>*</span>
-                </Typography>
+      <StandardModal
+        isOpen={isCreateModalOpen || isEditModalOpen}
+        onClose={handleCloseCreateModal}
+        title={isCreateModalOpen ? "Add API key" : "Edit API key"}
+        description={
+          isCreateModalOpen
+            ? "Connect your LLM provider to enable VerifyWise Advisor."
+            : "Update your API key details below."
+        }
+        onSubmit={isCreateModalOpen ? handleCreateKey : handleEditKey}
+        submitButtonText={
+          isLoading ? "Saving..." : isCreateModalOpen ? "Add key" : "Save changes"
+        }
+        isSubmitting={isCreateButtonDisabled}
+        maxWidth="600px"
+      >
+        <Stack spacing={6}>
+          {/* Provider Selection with Logo */}
+          <Box>
+            <Typography
+              component="label"
+              sx={{ fontSize: 13, fontWeight: 500, color: "#344054", mb: 0.5, display: "block" }}
+            >
+              Provider <span style={{ color: "#f04438" }}>*</span>
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1.5,
+                mt: 1,
+              }}
+            >
+              {LLMKeysModel.PROVIDER_CONFIGS.map((provider) => (
                 <Box
+                  key={provider.id}
+                  onClick={() => handleProviderChange(provider.name)}
                   sx={{
+                    flex: 1,
                     display: "flex",
-                    gap: 1.5,
-                    mt: 1,
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 1,
+                    padding: "12px 8px",
+                    borderRadius: "4px",
+                    border: "1px solid",
+                    borderColor: formData.name === provider.name
+                      ? "#13715B"
+                      : "#d0d5dd",
+                    backgroundColor: formData.name === provider.name
+                      ? "#f0fdf4"
+                      : "#ffffff",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      borderColor: "#13715B",
+                      backgroundColor: "#f8fffe",
+                    },
                   }}
                 >
-                  {LLMKeysModel.PROVIDER_CONFIGS.map((provider) => (
-                    <Box
-                      key={provider.id}
-                      onClick={() => handleProviderChange(provider.name)}
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 1,
-                        padding: "12px 8px",
-                        borderRadius: "4px",
-                        border: "1px solid",
-                        borderColor: formData.name === provider.name
-                          ? "#13715B"
-                          : "#d0d5dd",
-                        backgroundColor: formData.name === provider.name
-                          ? "#f0fdf4"
-                          : "#ffffff",
-                        cursor: "pointer",
-                        transition: "all 0.15s ease",
-                        "&:hover": {
-                          borderColor: "#13715B",
-                          backgroundColor: "#f8fffe",
-                        },
-                      }}
-                    >
-                      <img
-                        src={PROVIDER_LOGOS[provider.name]}
-                        alt={provider.name}
-                        style={{ width: 24, height: 24 }}
-                      />
-                      <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#344054" }}>
-                        {provider.name}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-
-              {/* Model Selection Dropdown */}
-              <Box>
-                <Select
-                  id="llm-form-model"
-                  label="Model"
-                  value={isCustomModel ? "__custom__" : formData.model}
-                  items={modelOptions}
-                  onChange={(e) => handleModelChange(e.target.value as string)}
-                  placeholder="Select a model"
-                  isRequired
-                />
-                {modelOptions.length === 0 && (
-                  <Typography sx={{ fontSize: 11, color: "#666666", mt: 0.5 }}>
-                    Select a provider first to see available models
-                  </Typography>
-                )}
-              </Box>
-
-              {/* Custom Model Input (shown when "Other" is selected) */}
-              {isCustomModel && (
-                <Box>
-                  <Field
-                    id="llm-form-custom-model"
-                    label="Model name"
-                    value={customModelName}
-                    onChange={(e) => handleCustomModelChange(e.target.value)}
-                    placeholder="e.g., claude-3-5-sonnet-20241022"
-                    isRequired
+                  <img
+                    src={PROVIDER_LOGOS[provider.name]}
+                    alt={provider.name}
+                    style={{ width: 24, height: 24 }}
                   />
-                  <Typography sx={{ fontSize: 11, color: "#666666", mt: 0.5 }}>
-                    Enter the exact model ID from your provider's documentation
+                  <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#344054" }}>
+                    {provider.name}
                   </Typography>
                 </Box>
-              )}
+              ))}
+            </Box>
+          </Box>
 
-              {/* API Key Field with Helper */}
-              <Box>
-                <Field
-                  id="llm-form-key"
-                  label="API key"
-                  value={formData.key}
-                  onChange={(e) => handleFormChange("key", e.target.value)}
-                  placeholder={currentProviderConfig?.keyPlaceholder || "Enter your API key"}
-                  isRequired
-                />
-                {currentProviderConfig && (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
-                    <Typography sx={{ fontSize: 11, color: "#666666" }}>
-                      Get your API key from
-                    </Typography>
-                    <Link
-                      href={currentProviderConfig.apiKeyUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{
-                        fontSize: 11,
-                        color: "#13715B",
-                        textDecoration: "none",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 0.25,
-                        "&:hover": { textDecoration: "underline" },
-                      }}
-                    >
-                      {currentProviderConfig.name} Console
-                      <ExternalLink size={10} />
-                    </Link>
-                  </Box>
-                )}
+          {/* Model Selection Dropdown */}
+          <Box>
+            <Select
+              id="llm-form-model"
+              label="Model"
+              value={isCustomModel ? "__custom__" : formData.model}
+              items={modelOptions}
+              onChange={(e) => handleModelChange(e.target.value as string)}
+              placeholder="Select a model"
+              isRequired
+            />
+            {modelOptions.length === 0 && (
+              <Typography sx={{ fontSize: 11, color: "#666666", mt: 0.5 }}>
+                Select a provider first to see available models
+              </Typography>
+            )}
+          </Box>
+
+          {/* Custom Model Input (shown when "Other" is selected) */}
+          {isCustomModel && (
+            <Box>
+              <Field
+                id="llm-form-custom-model"
+                label="Model name"
+                value={customModelName}
+                onChange={(e) => handleCustomModelChange(e.target.value)}
+                placeholder="e.g., claude-3-5-sonnet-20241022"
+                isRequired
+              />
+              <Typography sx={{ fontSize: 11, color: "#666666", mt: 0.5 }}>
+                Enter the exact model ID from your provider's documentation
+              </Typography>
+            </Box>
+          )}
+
+          {/* API Key Field with Helper */}
+          <Box>
+            <Field
+              id="llm-form-key"
+              label="API key"
+              value={formData.key}
+              onChange={(e) => handleFormChange("key", e.target.value)}
+              placeholder={currentProviderConfig?.keyPlaceholder || "Enter your API key"}
+              isRequired
+            />
+            {currentProviderConfig && (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+                <Typography sx={{ fontSize: 11, color: "#666666" }}>
+                  Get your API key from
+                </Typography>
+                <Link
+                  href={currentProviderConfig.apiKeyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    fontSize: 11,
+                    color: "#13715B",
+                    textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 0.25,
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                >
+                  {currentProviderConfig.name} Console
+                  <ExternalLink size={10} />
+                </Link>
               </Box>
-            </Stack>
-          }
-          cancelText="Cancel"
-          proceedText={
-            isLoading ? "Saving..." : isCreateModalOpen ? "Add key" : "Save changes"
-          }
-          onCancel={handleCloseCreateModal}
-          onProceed={isCreateModalOpen ? handleCreateKey : handleEditKey}
-          proceedButtonColor="primary"
-          proceedButtonVariant="contained"
-          TitleFontSize={0}
-          confirmBtnSx={{
-            backgroundColor: isCreateButtonDisabled ? "#ccc" : "#13715B",
-            color: isCreateButtonDisabled ? "#666" : "#fff",
-            cursor: isCreateButtonDisabled ? "not-allowed" : "pointer",
-            opacity: isCreateButtonDisabled ? 0.6 : 1,
-            "&:hover": {
-              backgroundColor: isCreateButtonDisabled ? "#ccc" : "#0e5c47",
-            },
-          }}
-        />
-      )}
+            )}
+          </Box>
+        </Stack>
+      </StandardModal>
 
       {/* Delete Key Modal */}
       {isDeleteModalOpen && keyToDelete && (
         <ConfirmationModal
-          title="Delete API Key"
+          title="Delete API key"
           body={
             <Typography fontSize={13}>
               Are you sure you want to delete the API key "{keyToDelete.name}"?

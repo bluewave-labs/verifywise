@@ -30,7 +30,7 @@ export const runAdvisorAPI = async (
       url += `?llmKeyId=${llmKeyId}`;
     }
     const response = await apiServices.post(url, data);
-    return response;
+    return response as ApiResponse<{ response: string | { markdown?: string; chartData?: unknown } }>;
   } catch (error: unknown) {
     // Re-throw the error with the response data intact
     const axiosError = error as { response?: { status: number; data: unknown } };
@@ -53,7 +53,7 @@ export const getConversationAPI = async (
 ): Promise<ApiResponse<ConversationResponse>> => {
   try {
     const response = await apiServices.get(`/advisor/conversations/${domain}`);
-    return response;
+    return response as ApiResponse<ConversationResponse>;
   } catch (error: unknown) {
     const axiosError = error as { response?: { status: number; data: unknown } };
     if (axiosError.response) {
@@ -78,7 +78,7 @@ export const saveConversationAPI = async (
     const response = await apiServices.post(`/advisor/conversations/${domain}`, {
       messages,
     });
-    return response;
+    return response as ApiResponse<ConversationResponse>;
   } catch (error: unknown) {
     const axiosError = error as { response?: { status: number; data: unknown } };
     if (axiosError.response) {

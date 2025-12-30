@@ -228,7 +228,7 @@ const ApiKeys = () => {
   }, []);
 
   return (
-    <Stack sx={{ mt: 3 }}>
+    <Stack sx={{ mt: 3, width: "100%" }}>
       {alert && (
         <Alert
           variant={alert.variant}

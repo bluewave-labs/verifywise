@@ -1,6 +1,5 @@
 import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
-import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import { ILLMKey, LLMProvider } from "../domain.layer/interfaces/i.llmKey";
 import { LLMKeyModel } from "../domain.layer/models/llmKey/llmKey.model";
 
@@ -47,21 +46,6 @@ export const createLLMKeyQuery = async (
   tenant: string,
   transaction: Transaction,
 ) => {
-  // Check if a LLM key with same provider AND model already exists
-  const llmKey = (await sequelize.query(
-    `SELECT id FROM "${tenant}".llm_keys WHERE name = :name AND model = :model;`,
-    {
-      replacements: { name: data.name, model: data.model },
-      transaction,
-    },
-  )) as [{ id: number }[], number];
-
-  if (llmKey[0].length > 0) {
-    throw new ValidationException(
-      "A key for this provider and model already exists.",
-    );
-  }
-
   const result = (await sequelize.query(
     `INSERT INTO "${tenant}".llm_keys (key, name, url, model) VALUES (:key, :name, :url, :model) RETURNING *;`,
     {

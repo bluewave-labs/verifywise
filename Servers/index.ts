@@ -121,9 +121,9 @@ try {
       // Let the proxy handle the raw body for bias/fairness
       return next();
     }
-    // For deepeval experiment creation, we need to parse body to inject API keys
+    // For deepeval experiment creation and arena comparisons, we need to parse body to inject API keys
     // For other deepeval routes, let proxy handle raw body
-    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments")) {
+    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments") && !req.url.includes("/arena/compare")) {
       return next();
     }
     express.json()(req, res, next);

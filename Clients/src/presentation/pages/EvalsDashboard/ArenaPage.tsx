@@ -546,19 +546,22 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     }));
   };
 
-  // Load comparisons
-  const loadComparisons = async () => {
-    setLoading(true);
+  // Load comparisons (initialLoad=true shows loading spinner, false is for polling)
+  const loadComparisons = useCallback(async (initialLoad = false) => {
+    if (initialLoad) setLoading(true);
     try {
       const data = await listArenaComparisons(orgId ? { org_id: orgId } : undefined);
       setComparisons(data.comparisons || []);
     } catch (err) {
       console.error("Failed to load arena comparisons:", err);
-      setAlert({ variant: "error", body: "Failed to load arena comparisons" });
+      // Only show alert on initial load, not on polling
+      if (initialLoad) {
+        setAlert({ variant: "error", body: "Failed to load arena comparisons" });
+      }
     } finally {
-      setLoading(false);
+      if (initialLoad) setLoading(false);
     }
-  };
+  }, [orgId]);
 
   // Load datasets (both user and template)
   const loadDatasets = useCallback(async () => {
@@ -595,22 +598,20 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   }, []);
 
   useEffect(() => {
-    loadComparisons();
+    loadComparisons(true); // Initial load with spinner
     loadDatasets();
     loadConfiguredProviders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orgId]);
+  }, [orgId, loadComparisons, loadDatasets, loadConfiguredProviders]);
 
-  // Auto-refresh running comparisons
+  // Auto-refresh running comparisons (polling without loading state)
   useEffect(() => {
     const runningComparisons = comparisons.filter(c => c.status === "running" || c.status === "pending");
     if (runningComparisons.length > 0) {
-      const interval = setInterval(loadComparisons, 5000);
+      const interval = setInterval(() => loadComparisons(false), 5000);
       return () => clearInterval(interval);
     }
     return undefined;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [comparisons]);
+  }, [comparisons, loadComparisons]);
 
   const handleCreateComparison = async () => {
     if (!newComparison.name.trim() || newComparison.selectedCriteria.length === 0) return;
@@ -643,7 +644,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       setTimeout(() => setAlert(null), 3000);
       setCreateModalOpen(false);
       resetForm();
-      await loadComparisons();
+      await loadComparisons(true);
     } catch (err) {
       console.error("Failed to create arena comparison:", err);
       setAlert({ variant: "error", body: "Failed to create arena comparison" });
@@ -663,7 +664,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       await deleteArenaComparison(comparisonId);
       setAlert({ variant: "success", body: "Arena comparison deleted" });
       setTimeout(() => setAlert(null), 3000);
-      await loadComparisons();
+      await loadComparisons(true);
     } catch (err) {
       console.error("Failed to delete comparison:", err);
       setAlert({ variant: "error", body: "Failed to delete comparison" });
@@ -723,7 +724,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         comparisonId={viewingResultsId}
         onBack={() => {
           setViewingResultsId(null);
-          loadComparisons(); // Refresh the list when coming back
+          loadComparisons(true); // Refresh the list when coming back
         }}
       />
     );

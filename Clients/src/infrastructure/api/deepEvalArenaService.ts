@@ -36,6 +36,7 @@ export interface CreateArenaComparisonRequest {
   datasetPath?: string;
   metric: ArenaMetricConfig;
   judgeModel?: string;
+  apiKeys?: Record<string, string>;  // Provider -> API key mapping
 }
 
 export interface ArenaComparisonResult {

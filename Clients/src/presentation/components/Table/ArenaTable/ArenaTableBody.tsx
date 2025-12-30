@@ -40,26 +40,52 @@ const formatDate = (dateStr?: string | null): string => {
   });
 };
 
-const getStatusChip = (status: string) => {
-  const statusConfig: Record<string, { bg: string; color: string; label: string }> = {
-    completed: { bg: "#dcfce7", color: "#166534", label: "Completed" },
-    running: { bg: "#dbeafe", color: "#1e40af", label: "Running" },
-    pending: { bg: "#fef3c7", color: "#92400e", label: "Pending" },
-    failed: { bg: "#fee2e2", color: "#991b1b", label: "Failed" },
+// Status chip matching EvaluationTable style
+const StatusChip: React.FC<{ status: string }> = ({ status }) => {
+  const getStatusStyles = () => {
+    const normalizedStatus = status.toLowerCase();
+    switch (normalizedStatus) {
+      case "running":
+      case "pending":
+        return {
+          backgroundColor: "#fff3e0",
+          color: "#ef6c00",
+          label: normalizedStatus === "running" ? "Running" : "Pending",
+        };
+      case "completed":
+        return {
+          backgroundColor: "#c8e6c9",
+          color: "#388e3c",
+          label: "Completed",
+        };
+      case "failed":
+        return {
+          backgroundColor: "#ffebee",
+          color: "#c62828",
+          label: "Failed",
+        };
+      default:
+        return {
+          backgroundColor: "#e0e0e0",
+          color: "#616161",
+          label: status,
+        };
+    }
   };
 
-  const config = statusConfig[status] || statusConfig.pending;
+  const style = getStatusStyles();
 
   return (
     <Chip
-      label={config.label}
+      label={style.label}
       size="small"
       sx={{
-        backgroundColor: config.bg,
-        color: config.color,
-        fontWeight: 600,
-        fontSize: 11,
-        height: 24,
+        backgroundColor: style.backgroundColor,
+        color: style.color,
+        fontWeight: 500,
+        fontSize: "11px",
+        height: "22px",
+        borderRadius: "4px",
       }}
     />
   );
@@ -231,7 +257,7 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
                 textTransform: "none",
               }}
             >
-              {getStatusChip(row.status)}
+              <StatusChip status={row.status} />
             </TableCell>
 
             {/* WINNER - center aligned */}
@@ -243,34 +269,18 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
               }}
             >
               {row.status === "completed" && row.winner ? (
-                <Chip
-                  label={row.winner}
-                  size="small"
-                  sx={{
-                    backgroundColor: "#fef3c7",
-                    color: "#92400e",
-                    fontWeight: 600,
-                    fontSize: 11,
-                    height: 24,
-                  }}
-                  icon={
-                    <Box
-                      component="span"
-                      sx={{
-                        fontSize: 12,
-                        ml: 0.5,
-                      }}
-                    >
-                      🏆
-                    </Box>
-                  }
-                />
-              ) : row.status === "running" ? (
-                <Typography sx={{ fontSize: 12, color: "#6B7280", fontStyle: "italic" }}>
+                <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
+                  <Box component="span" sx={{ fontSize: 14 }}>🏆</Box>
+                  <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>
+                    {row.winner}
+                  </Typography>
+                </Stack>
+              ) : row.status === "running" || row.status === "pending" ? (
+                <Typography sx={{ fontSize: 12, color: "#ef6c00", fontStyle: "italic" }}>
                   In progress...
                 </Typography>
               ) : row.status === "failed" ? (
-                <Typography sx={{ fontSize: 12, color: "#991b1b" }}>
+                <Typography sx={{ fontSize: 12, color: "#c62828" }}>
                   —
                 </Typography>
               ) : (

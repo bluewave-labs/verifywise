@@ -630,6 +630,9 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   
+  // Polling ref (same pattern as experiments)
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
   // Datasets
   const [myDatasets, setMyDatasets] = useState<UserDataset[]>([]);
   const [templateDatasets, setTemplateDatasets] = useState<TemplateDataset[]>([]);
@@ -691,22 +694,19 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     }));
   };
 
-  // Load comparisons (initialLoad=true shows loading spinner, false is for polling)
-  const loadComparisons = useCallback(async (initialLoad = false) => {
-    if (initialLoad) setLoading(true);
+  // Load comparisons (same pattern as experiments)
+  const loadComparisons = async () => {
     try {
+      setLoading(true);
       const data = await listArenaComparisons(orgId ? { org_id: orgId } : undefined);
       setComparisons(data.comparisons || []);
     } catch (err) {
       console.error("Failed to load arena comparisons:", err);
-      // Only show alert on initial load, not on polling
-      if (initialLoad) {
-        setAlert({ variant: "error", body: "Failed to load arena comparisons" });
-      }
+      // Silent fail on polling - don't show error alerts
     } finally {
-      if (initialLoad) setLoading(false);
+      setLoading(false);
     }
-  }, [orgId]);
+  };
 
   // Load datasets (both user and template)
   const loadDatasets = useCallback(async () => {
@@ -742,22 +742,40 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     }
   }, []);
 
+  // Initial load (same pattern as experiments)
   useEffect(() => {
-    loadComparisons(true); // Initial load with spinner
+    loadComparisons();
     loadDatasets();
     loadConfiguredProviders();
-  }, [orgId, loadComparisons, loadDatasets, loadConfiguredProviders]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orgId]);
 
-  // Auto-refresh running comparisons (polling without loading state)
+  // Auto-poll when there are running comparisons (same pattern as experiments)
   useEffect(() => {
-    const runningComparisons = comparisons.filter(c => c.status === "running" || c.status === "pending");
-    if (runningComparisons.length > 0) {
-      // Poll every 3 seconds for faster updates
-      const interval = setInterval(() => loadComparisons(false), 3000);
-      return () => clearInterval(interval);
+    const hasRunningComparisons = comparisons.some(
+      (c) => c.status === "running" || c.status === "pending"
+    );
+
+    // Clear existing interval
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
     }
-    return undefined;
-  }, [comparisons, loadComparisons]);
+
+    // Start polling if there are running comparisons
+    if (hasRunningComparisons) {
+      pollIntervalRef.current = setInterval(() => {
+        loadComparisons();
+      }, 5000); // Poll every 5 seconds
+    }
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comparisons]);
 
   const handleCreateComparison = async () => {
     if (!newComparison.name.trim() || newComparison.selectedCriteria.length === 0) return;
@@ -791,9 +809,9 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       setCreateModalOpen(false);
       resetForm();
       // Immediately refresh and start polling
-      await loadComparisons(false);
+      await loadComparisons();
       // Poll again after 1 second to catch the running state
-      setTimeout(() => loadComparisons(false), 1000);
+      setTimeout(() => loadComparisons(), 1000);
     } catch (err) {
       console.error("Failed to create arena comparison:", err);
       setAlert({ variant: "error", body: "Failed to create arena comparison" });
@@ -813,7 +831,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       await deleteArenaComparison(comparisonId);
       setAlert({ variant: "success", body: "Arena comparison deleted" });
       setTimeout(() => setAlert(null), 3000);
-      await loadComparisons(false); // Silent refresh, no loading spinner
+      await loadComparisons();
     } catch (err) {
       console.error("Failed to delete comparison:", err);
       setAlert({ variant: "error", body: "Failed to delete comparison" });
@@ -943,7 +961,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         comparisonId={viewingResultsId}
         onBack={() => {
           setViewingResultsId(null);
-          loadComparisons(true); // Refresh the list when coming back
+          loadComparisons();
         }}
       />
     );

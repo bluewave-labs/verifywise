@@ -109,7 +109,8 @@ class DeepEvalArenaService {
   async listComparisons(params?: { org_id?: string }): Promise<{
     comparisons: ArenaComparisonSummary[];
   }> {
-    const response = await CustomAxios.get(`${BASE_URL}/arena/comparisons`, { params, timeout: 15000 });
+    // Match experiments timeout (60s)
+    const response = await CustomAxios.get(`${BASE_URL}/arena/comparisons`, { params, timeout: 60000 });
     return response.data;
   }
 
@@ -125,6 +126,7 @@ class DeepEvalArenaService {
     createdAt: string;
     updatedAt?: string;
   }> {
+    // Match experiments timeout (60s)
     const response = await CustomAxios.get(`${BASE_URL}/arena/comparisons/${comparisonId}`, { timeout: 60000 });
     return response.data;
   }
@@ -154,6 +156,7 @@ class DeepEvalArenaService {
     completedAt?: string;
     errorMessage?: string;
   }> {
+    // Match experiments timeout (60s)
     const response = await CustomAxios.get(`${BASE_URL}/arena/comparisons/${comparisonId}/results`, { timeout: 60000 });
     return response.data;
   }
@@ -165,7 +168,8 @@ class DeepEvalArenaService {
     message: string;
     id: string;
   }> {
-    const response = await CustomAxios.delete(`${BASE_URL}/arena/comparisons/${comparisonId}`, { timeout: 10000 });
+    // Delete operations should also have reasonable timeout
+    const response = await CustomAxios.delete(`${BASE_URL}/arena/comparisons/${comparisonId}`, { timeout: 60000 });
     return response.data;
   }
 }

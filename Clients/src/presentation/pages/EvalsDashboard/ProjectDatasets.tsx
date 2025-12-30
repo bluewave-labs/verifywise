@@ -21,10 +21,20 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check } from "lucide-react";
+import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check, MessageSquare, GitBranch } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
-import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset, type DatasetType, type SingleTurnPrompt, type MultiTurnConversation, isSingleTurnPrompt, isMultiTurnConversation } from "../../../infrastructure/api/deepEvalDatasetsService";
+import {
+  listMyDatasets,
+  listDatasets,
+  readDataset,
+  uploadDataset,
+  deleteDatasets,
+  type DatasetPromptRecord,
+  type ListedDataset,
+  type DatasetType,
+} from "../../../application/repository/deepEval.repository";
+import { isSingleTurnPrompt, isMultiTurnConversation, type SingleTurnPrompt, type MultiTurnConversation } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import Chip from "../../components/Chip";
 import ModalStandard from "../../components/Modals/StandardModal";
@@ -44,7 +54,7 @@ import SelectableCard from "../../components/SelectableCard";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 
-type ProjectDatasetsProps = { projectId: string };
+type ProjectDatasetsProps = { projectId: string; orgId?: string | null };
 
 type BuiltInDataset = ListedDataset & {
   promptCount?: number;
@@ -61,7 +71,7 @@ type BuiltInDataset = ListedDataset & {
   tags?: string[];
 };
 
-export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
+export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   void projectId; // Used for future project-scoped features
   const theme = useTheme();
 
@@ -134,6 +144,11 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
   // Create dataset modal state
   const [createDatasetModalOpen, setCreateDatasetModalOpen] = useState(false);
+  
+  // Create from scratch type selection modal
+  const [createTypeSelectionOpen, setCreateTypeSelectionOpen] = useState(false);
+  const [newDatasetUseCase, setNewDatasetUseCase] = useState<"chatbot" | "rag">("chatbot");
+  const [newDatasetTurnType, setNewDatasetTurnType] = useState<"single-turn" | "multi-turn">("single-turn");
 
   // State for dataset metadata (prompt counts, difficulty)
   const [datasetMetadata, setDatasetMetadata] = useState<Record<string, { promptCount: number; avgDifficulty: string; loading: boolean }>>({});
@@ -172,7 +187,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     }));
     
     try {
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       const prompts = res.prompts || [];
       // Count only prompts with actual content
       const validPromptCount = prompts.filter((p) => {
@@ -203,7 +218,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const loadMyDatasets = useCallback(async () => {
     try {
       setLoading(true);
-      const userRes = await deepEvalDatasetsService.listMy().catch(() => ({ datasets: [] }));
+      const userRes = await listMyDatasets().catch(() => ({ datasets: [] }));
       const userDatasets = userRes.datasets || [];
       const allDatasets: BuiltInDataset[] = userDatasets.map((ud) => ({
         key: `user_${ud.id}`,
@@ -233,7 +248,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const loadTemplateDatasets = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await deepEvalDatasetsService.list();
+      const res = await listDatasets();
       setTemplateGroups(res as Record<"chatbot" | "rag" | "agent", BuiltInDataset[]>);
     } catch (err) {
       console.error("Failed to load template datasets", err);
@@ -350,7 +365,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     (async () => {
       try {
         setLoadingTemplatePrompts(true);
-        const res = await deepEvalDatasetsService.read(selectedTemplate.path);
+        const res = await readDataset(selectedTemplate.path);
         setTemplatePrompts(res.prompts || []);
       } catch (err) {
         console.error("Failed to load template prompts", err);
@@ -366,7 +381,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     try {
       setCopyingTemplate(true);
       // Load the template content
-      const res = await deepEvalDatasetsService.read(template.path);
+      const res = await readDataset(template.path);
       const prompts = res.prompts || [];
 
       // Create a new file and upload it
@@ -375,7 +390,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       const fileName = `${template.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}.json`;
       const file = new File([blob], fileName, { type: "application/json" });
 
-      await deepEvalDatasetsService.uploadDataset(file);
+      await uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
       setAlert({ variant: "success", body: `"${template.name}" copied to your datasets` });
       setTimeout(() => setAlert(null), 3000);
 
@@ -472,7 +487,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     setDrawerOpen(true);
     try {
       setLoadingPrompts(true);
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       setDatasetPrompts(res.prompts || []);
     } catch (err) {
       console.error("Failed to load dataset prompts", err);
@@ -486,7 +501,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     handleActionMenuClose();
     try {
       setLoadingEditor(true);
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       setEditablePrompts(res.prompts || []);
       // Use the dataset name directly (already cleaned by backend)
       setEditDatasetName(dataset.name);
@@ -517,7 +532,18 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       const finalName = slug ? `${slug}.json` : "dataset.json";
       const file = new File([blob], finalName, { type: "application/json" });
       const datasetType = editingDataset?.datasetType || "chatbot";
-      await deepEvalDatasetsService.uploadDataset(file, datasetType);
+      
+      // If editing an existing user dataset, delete the old one first
+      if (editingDataset?.isUserDataset && editingDataset?.path) {
+        try {
+          await deleteDatasets([editingDataset.path]);
+        } catch (deleteErr) {
+          console.warn("Could not delete old dataset, proceeding with save:", deleteErr);
+        }
+      }
+      
+      const turnType = editablePrompts.length > 0 && !isSingleTurnPrompt(editablePrompts[0]) ? "multi-turn" : "single-turn";
+      await uploadDataset(file, datasetType, turnType, orgId || undefined);
       setAlert({ variant: "success", body: `Dataset "${editDatasetName}" saved successfully!` });
       setTimeout(() => setAlert(null), 3000);
       handleCloseEditor();
@@ -584,7 +610,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const handleConfirmDelete = async () => {
     if (!datasetToDelete) return;
     try {
-      await deepEvalDatasetsService.deleteDatasets([datasetToDelete.path]);
+      await deleteDatasets([datasetToDelete.path]);
       setAlert({ variant: "success", body: "Dataset removed" });
       setTimeout(() => setAlert(null), 3000);
       void loadMyDatasets();
@@ -606,7 +632,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const handleDownloadDataset = async (dataset: BuiltInDataset) => {
     handleActionMenuClose();
     try {
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       const json = JSON.stringify(res.prompts || [], null, 2);
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -833,7 +859,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     try {
       setUploading(true);
       setUploadModalOpen(false);
-      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType, datasetTurnType);
+      const resp = await uploadDataset(file, exampleDatasetType, datasetTurnType, orgId || undefined);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
       void loadMyDatasets();
@@ -933,7 +959,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               startIcon={<SaveIcon size={16} />}
               onClick={handleSaveDataset}
             >
-              {savingDataset ? "Saving..." : "Save copy"}
+              {savingDataset ? "Saving..." : "Save"}
             </Button>
           </Stack>
         </Stack>
@@ -948,7 +974,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             isRequired
           />
           <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
-            Edit the prompts below, then click Save to add a copy to your datasets.
+            Edit the prompts below, then click Save to update your dataset.
           </Typography>
         </Stack>
 
@@ -2627,19 +2653,11 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             isSelected={false}
             onClick={() => {
               setCreateDatasetModalOpen(false);
-              setEditablePrompts([{
-                id: "prompt_1",
-                category: "general",
-                prompt: "",
-                expected_output: "",
-              }]);
-              setEditDatasetName("");
-              setEditingDataset({ key: "new", name: "New Dataset", path: "", use_case: exampleDatasetType, datasetType: exampleDatasetType });
-              setEditorOpen(true);
+              setCreateTypeSelectionOpen(true);
             }}
             icon={<Edit3 size={14} color="#9CA3AF" />}
             title="Create from scratch"
-            description="Use the editor to manually add prompts"
+            description="Choose format and manually add prompts"
           />
 
           {/* Upload JSON option */}
@@ -2665,6 +2683,159 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             title="Start from template"
             description="Browse pre-built evaluation templates"
           />
+        </Stack>
+      </ModalStandard>
+
+      {/* Create from scratch - Type Selection Modal */}
+      <ModalStandard
+        isOpen={createTypeSelectionOpen}
+        onClose={() => setCreateTypeSelectionOpen(false)}
+        title="Choose dataset format"
+        description="Select the type and format for your new dataset"
+        maxWidth="520px"
+      >
+        <Stack spacing="20px">
+          {/* Use Case Selection */}
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: "#374151", mb: 1.5 }}>
+              Use Case
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <Box 
+                onClick={() => setNewDatasetUseCase("chatbot")} 
+                sx={{ cursor: "pointer", flex: 1 }}
+              >
+                <SelectableCard
+                  isSelected={newDatasetUseCase === "chatbot"}
+                  onClick={() => setNewDatasetUseCase("chatbot")}
+                  icon={<MessageSquare size={14} color={newDatasetUseCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                  title="Chatbot"
+                  description="Standard Q&A evaluation"
+                />
+              </Box>
+              <Box 
+                onClick={() => setNewDatasetUseCase("rag")} 
+                sx={{ cursor: "pointer", flex: 1 }}
+              >
+                <SelectableCard
+                  isSelected={newDatasetUseCase === "rag"}
+                  onClick={() => setNewDatasetUseCase("rag")}
+                  icon={<Database size={14} color={newDatasetUseCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                  title="RAG"
+                  description="With retrieval context"
+                />
+              </Box>
+            </Stack>
+          </Box>
+
+          {/* Turn Type Selection */}
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: "#374151", mb: 1.5 }}>
+              Conversation Format
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <Box 
+                onClick={() => setNewDatasetTurnType("single-turn")} 
+                sx={{ cursor: "pointer", flex: 1 }}
+              >
+                <SelectableCard
+                  isSelected={newDatasetTurnType === "single-turn"}
+                  onClick={() => setNewDatasetTurnType("single-turn")}
+                  icon={<MessageSquare size={14} color={newDatasetTurnType === "single-turn" ? "#13715B" : "#9CA3AF"} />}
+                  title="Single-turn"
+                  description="One prompt, one response"
+                />
+              </Box>
+              <Box 
+                onClick={() => setNewDatasetTurnType("multi-turn")} 
+                sx={{ cursor: "pointer", flex: 1 }}
+              >
+                <SelectableCard
+                  isSelected={newDatasetTurnType === "multi-turn"}
+                  onClick={() => setNewDatasetTurnType("multi-turn")}
+                  icon={<GitBranch size={14} color={newDatasetTurnType === "multi-turn" ? "#13715B" : "#9CA3AF"} />}
+                  title="Multi-turn"
+                  description="Conversation with multiple exchanges"
+                />
+              </Box>
+            </Stack>
+          </Box>
+
+          {/* Format Preview */}
+          <Box sx={{ backgroundColor: "#F9FAFB", borderRadius: "8px", p: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: "#374151", mb: 1 }}>
+              Format Preview
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "12px" }}>
+              {newDatasetTurnType === "single-turn" ? (
+                newDatasetUseCase === "rag" 
+                  ? "Prompts with expected output, category, difficulty, and retrieval_context fields"
+                  : "Prompts with expected output, category, and difficulty fields"
+              ) : (
+                newDatasetUseCase === "rag"
+                  ? "Conversations with scenario, multiple turns (user/assistant), expected outcome, and context"
+                  : "Conversations with scenario, multiple turns (user/assistant), and expected outcome"
+              )}
+            </Typography>
+          </Box>
+
+          {/* Action Buttons */}
+          <Stack direction="row" spacing={2} justifyContent="flex-end">
+            <Button
+              variant="text"
+              onClick={() => setCreateTypeSelectionOpen(false)}
+              sx={{ color: "#6B7280" }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                setCreateTypeSelectionOpen(false);
+                
+                // Initialize with appropriate format based on selection
+                if (newDatasetTurnType === "single-turn") {
+                  const singleTurnPrompt: SingleTurnPrompt = {
+                    id: "prompt_1",
+                    category: "general",
+                    prompt: "",
+                    expected_output: "",
+                    difficulty: "medium",
+                    ...(newDatasetUseCase === "rag" ? { retrieval_context: [] } : {}),
+                  };
+                  setEditablePrompts([singleTurnPrompt]);
+                } else {
+                  const multiTurnConversation: MultiTurnConversation = {
+                    id: "conversation_1",
+                    scenario: "",
+                    expected_outcome: "",
+                    turns: [
+                      { role: "user", content: "" },
+                    ],
+                    ...(newDatasetUseCase === "rag" ? { context: [] } : {}),
+                  };
+                  setEditablePrompts([multiTurnConversation]);
+                }
+                
+                setEditDatasetName("");
+                setEditingDataset({ 
+                  key: "new", 
+                  name: "New Dataset", 
+                  path: "", 
+                  use_case: newDatasetUseCase, 
+                  datasetType: newDatasetUseCase,
+                  turnType: newDatasetTurnType,
+                });
+                setEditorOpen(true);
+              }}
+              sx={{
+                backgroundColor: "#13715B",
+                "&:hover": { backgroundColor: "#0f5a47" },
+              }}
+            >
+              Create Dataset
+            </Button>
+          </Stack>
         </Stack>
       </ModalStandard>
     </Box>

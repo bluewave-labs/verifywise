@@ -815,8 +815,9 @@ async def run_evaluation(
         
         if evaluation_mode in ("scorer", "both"):
             try:
-                # Load enabled custom scorers for this project
-                all_scorers = await list_scorers(tenant=tenant, db=db, project_id=project_id)
+                # Load enabled custom scorers for this tenant
+                # Note: Scorers are org-scoped, tenant isolation is sufficient here
+                all_scorers = await list_scorers(tenant=tenant, db=db)
                 enabled_scorers = [s for s in all_scorers if s.get("enabled") and s.get("type") == "llm"]
 
                 # Filter by selected scorers if specified in experiment config

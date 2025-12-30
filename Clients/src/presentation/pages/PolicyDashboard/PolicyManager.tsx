@@ -10,9 +10,9 @@ import EmptyState from "../../components/EmptyState";
 import { SearchBox } from "../../components/Search";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
-import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../types/alert.types";
 import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyManager.model";
-import { PolicyManagerProps } from "../../../domain/interfaces/i.policy";
+import { PolicyManagerProps } from "../../types/interfaces/i.policy";
 import PolicyStatusCard from "./PolicyStatusCard";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import useUsers from "../../../application/hooks/useUsers";
@@ -33,6 +33,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const hasProcessedUrlParam = useRef(false);
   const [policies, setPolicies] = useState<PolicyManagerModel[]>([]);
+  const [flashRowId, setFlashRowId] = useState<number | null>(null);
 
   const [showLinkedObjectModal, setLinkedObjectsModalOpen] =  useState(false);
   const [policyId, setSelectedPolicyId] = useState<number | null>(null);
@@ -94,8 +95,18 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   };
 
   const handleSaved = (successMessage?: string) => {
-    fetchAll();
+    // Flash the updated policy row if we have a selected policy
+    if (selectedPolicy?.id) {
+      setFlashRowId(selectedPolicy.id);
+    }
+    
     handleClose();
+
+    // Delay fetchAll to allow flash to be visible, then clear flash after data loads
+    setTimeout(() => {
+      fetchAll();
+      setTimeout(() => setFlashRowId(null), 3000);
+    }, 100);
 
     // Show success alert if message is provided
     if (successMessage) {
@@ -393,6 +404,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
                 onDelete={handleDelete}
                 onLinkedObjects={handleLinkedObject}
                 hidePagination={options?.hidePagination}
+                flashRowId={flashRowId}
               />
             )}
           />

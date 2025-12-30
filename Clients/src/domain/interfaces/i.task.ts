@@ -55,20 +55,4 @@ export interface ICreateTaskFormValues {
   categories: string[];
 }
 
-export interface ICreateTaskProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: (data: ICreateTaskFormValues) => void;
-  initialData?: ITask;
-  mode?: "create" | "edit";
-}
-
-export interface ICreateTaskFormErrors {
-  title?: string;
-  description?: string;
-  priority?: string;
-  status?: string;
-  due_date?: string;
-  assignees?: string;
-  categories?: string;
-}
+// Note: ICreateTaskProps and ICreateTaskFormErrors have been moved to: presentation/types/interfaces/i.task.ts

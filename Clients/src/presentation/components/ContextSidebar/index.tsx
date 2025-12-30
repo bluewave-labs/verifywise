@@ -34,8 +34,17 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
   const activeTab = location.hash.replace("#", "") || "overview";
 
   // Handle tab change by navigating to the new hash
+  // If we have a selected project but aren't on a project-specific URL, navigate to the project
   const handleTabChange = (newTab: string) => {
-    navigate(`${location.pathname}#${newTab}`, { replace: true });
+    const pathParts = location.pathname.split("/");
+    const hasProjectInUrl = pathParts.length > 2 && pathParts[2]; // /evals/:projectId
+    
+    // If there's no project in URL but we have a selected project, navigate to that project
+    if (!hasProjectInUrl && evalsSidebarContext?.currentProject) {
+      navigate(`/evals/${evalsSidebarContext.currentProject.id}#${newTab}`, { replace: true });
+    } else {
+      navigate(`${location.pathname}#${newTab}`, { replace: true });
+    }
   };
 
   switch (activeModule) {

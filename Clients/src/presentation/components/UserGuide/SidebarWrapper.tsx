@@ -383,7 +383,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
         right: 0,
         height: '100vh',
         display: 'flex',
-        zIndex: 1000,
+        zIndex: 1100,
       }}
     >
       {/* Resize Handle - positioned absolutely on the left edge */}

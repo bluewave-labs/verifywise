@@ -15,18 +15,18 @@ router = APIRouter()
 
 @router.get("/orgs")
 async def list_orgs(request: Request):
-    return await get_all_orgs_controller(tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")))
+    return await get_all_orgs_controller(tenant=request.headers["x-tenant-id"])
 
 
 @router.post("/orgs")
 async def create_org(request: Request, body: dict = Body(...)):
     name = body.get("name", "").strip()
-    return await create_org_controller(name=name, tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")))
+    return await create_org_controller(name=name, tenant=request.headers["x-tenant-id"])
 
 
 @router.get("/orgs/{org_id}/projects")
 async def org_projects(org_id: str, request: Request):
-    return await get_projects_for_org_controller(org_id=org_id, tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")))
+    return await get_projects_for_org_controller(org_id=org_id, tenant=request.headers["x-tenant-id"])
 
 
 @router.put("/orgs/{org_id}")
@@ -40,7 +40,7 @@ async def update_org(org_id: str, request: Request, body: dict = Body(...)):
         org_id=org_id,
         name=name,
         member_ids=member_ids,
-        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        tenant=request.headers["x-tenant-id"]
     )
 
 
@@ -49,6 +49,6 @@ async def delete_org(org_id: str, request: Request):
     """
     Delete an organization.
     """
-    return await delete_org_controller(org_id=org_id, tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")))
+    return await delete_org_controller(org_id=org_id, tenant=request.headers["x-tenant-id"])
 
 

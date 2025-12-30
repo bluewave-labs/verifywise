@@ -8,7 +8,7 @@
 
 <img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
 
-[VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses use the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security. 
+[VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses use the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
 We are democratizing AI best practices with a solution that can be hosted on-premises, giving you complete control over your AI governance.
 
@@ -18,38 +18,35 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
 - [Need to talk to someone](https://verifywise.ai/contact)? Get with us to see the latest demo, or [click here](https://app.verifywise.ai) to experience the demo yourself.
 
 ## Screenshots
-| The main dashboard | LLM Evals |
-| --- | --- |
-| <img width="1598" height="861" alt="image" src="https://github.com/user-attachments/assets/649d030a-6e13-4cb5-96c3-707ae7d448f6" /> | <img width="1600" height="923" alt="image" src="https://github.com/user-attachments/assets/dc598a33-486f-4424-988d-4cca5e9420c2" />
- |
 
-| EU AI Act project view | AI Use case risks |
-| --- | --- |
+| The main dashboard                                                                                                                  | LLM Evals                                                                                                                           |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| <img width="1598" height="861" alt="image" src="https://github.com/user-attachments/assets/649d030a-6e13-4cb5-96c3-707ae7d448f6" /> | <img width="1600" height="923" alt="image" src="https://github.com/user-attachments/assets/dc598a33-486f-4424-988d-4cca5e9420c2" /> |
+|                                                                                                                                     |
+
+| EU AI Act project view                                                                                                              | AI Use case risks                                                                                                                   |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | <img width="1647" height="860" alt="image" src="https://github.com/user-attachments/assets/07b8f0e8-6358-4094-b17e-69cb347d622f" /> | <img width="1653" height="914" alt="image" src="https://github.com/user-attachments/assets/f399b206-f928-454a-a432-e7e5e343d7ce" /> |
 
-| AI Risk management | AI Model inventory |
-| --- | --- |
+| AI Risk management                                                                                                                  | AI Model inventory                                                                                                                  |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | <img width="1637" height="864" alt="image" src="https://github.com/user-attachments/assets/45c16d83-0e3b-4a71-814e-d7bdeaa492fd" /> | <img width="1637" height="861" alt="image" src="https://github.com/user-attachments/assets/225e10d1-845a-4437-b90f-ce97106c3688" /> |
 
-| AI Model risks | AI Policy manager and policy templates |
-| --- | --- |
+| AI Model risks                                                                                                                      | AI Policy manager and policy templates                                                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | <img width="1647" height="860" alt="image" src="https://github.com/user-attachments/assets/cf67a9ae-c9f6-4eff-a0c3-5fc1dbe4b994" /> | <img width="1633" height="861" alt="image" src="https://github.com/user-attachments/assets/2ef1bcc8-e6e6-47de-9291-2157ff1ed35c" /> |
 
-| AI vendors and vendor risks | AI Incident management (with filter example) |
-| --- | --- |
+| AI vendors and vendor risks                                                                                                         | AI Incident management (with filter example)                                                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | <img width="1662" height="914" alt="image" src="https://github.com/user-attachments/assets/26e8d3d3-6e79-4c5a-8058-f63e49a9e239" /> | <img width="1727" height="900" alt="image" src="https://github.com/user-attachments/assets/4b0929f5-d7f1-4998-b8b5-acf62c4051a0" /> |
 
-| AI Trust Center | Automations |
-| --- | --- |
+| AI Trust Center                                                                                                                     | Automations                                                                                                                         |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | <img width="1726" height="895" alt="image" src="https://github.com/user-attachments/assets/0359f312-c61c-4c01-b66b-97ec035e74c5" /> | <img width="1740" height="897" alt="image" src="https://github.com/user-attachments/assets/3d9c6d75-d1ff-41c3-aa81-1213c363d64a" /> |
 
-| Reporting |  |
-| --- | --- |
-| <img width="1735" height="898" alt="image" src="https://github.com/user-attachments/assets/5849beee-1639-45f5-94e8-4b5f156b455d" /> |  |
-
-
-
-
+| Reporting                                                                                                                           |     |
+| ----------------------------------------------------------------------------------------------------------------------------------- | --- |
+| <img width="1735" height="898" alt="image" src="https://github.com/user-attachments/assets/5849beee-1639-45f5-94e8-4b5f156b455d" /> |     |
 
 ## Features
 
@@ -91,10 +88,11 @@ The VerifyWise application has two components: a frontend built with React.js an
 Prerequisites:
 
 - npm and Docker
+- Python 3.12+ (for EvalServer)
 - A running PostgreSQL, preferably as a Docker image (eg. using `docker pull postgres:latest`)
-- Available ports: 5173 (frontend), 8080 (backend), 5432 (database)
+- Available ports: 5173 (frontend), 3000 (backend), 5432 (database), 6379 (Redis), 8000 (EvalServer)
 
-#### Step 1: Clone and install dependencies
+#### Step 1: Clone, install dependencies, and set up databases
 
 First, clone the repository to your local machine and go to verifywise directory. Then, navigate to the Clients directory and install the dependencies:
 
@@ -129,6 +127,7 @@ docker run -d --name mypostgres -p 5432:5432 -e POSTGRES_PASSWORD={env variable 
 ```
 
 Run redis with following command:
+
 ```
 docker run -d --name myredis -p 6379:6379 redis
 ```
@@ -138,6 +137,32 @@ Access the PostgreSQL container and create the verifywise database:
 ```
 docker exec -it mypostgres psql -U postgres
 CREATE DATABASE verifywise;
+```
+
+#### Step 2: Set up EvalServer (for LLM evaluations)
+
+EvalServer is a Python-based service that handles LLM evaluations. If you want to use the evaluation features, follow these steps:
+
+```
+cd EvalServer
+python3.12 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Set up the environment file. You can copy the minimal `.env.example` file in the EvalServer directory:
+
+```
+cp .env.example .env
+```
+
+#### Step 3: Start the application
+
+Navigate to the EvalServer/src directory and start the server:
+
+```
+cd EvalServer/src
+uvicorn app:app --reload --port 8000
 ```
 
 Navigate to the Servers directory and start the server in watch mode:
@@ -321,7 +346,6 @@ Below is a list of supported email providers. You can use [this documentation](h
 - **Resend** - Developer-focused email API
 - **Generic SMTP** - SMTP support for any provider
 
-
 ### Ports
 
 You’ll need to open ports 80 and 443 so VerifyWise can be accessed from the internet.
@@ -330,12 +354,9 @@ You’ll need to open ports 80 and 443 so VerifyWise can be accessed from the in
 
 If you find a vulnerability, please report it [here](https://github.com/bluewave-labs/verifywise/security/advisories/new).
 
-
 ## VerifyWise product line
 
 VerifyWise also has additional products for end-to-end AI governance and management:
 
 - [MaskWise](https://github.com/bluewave-labs/maskwise), which helps you detect, redact, mask, and anonymize sensitive data across text, images, and structured data in training datasets for LLM systems.
 - [EvalWise](https://github.com/bluewave-labs/evalwise), a developer-friendly platform for LLM evaluation and red teaming that helps test AI models for safety, compliance, and performance issues
-
-

@@ -9,7 +9,7 @@ import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
-import CustomAxios from "../../../infrastructure/api/customAxios";
+import { getAllLlmApiKeys, addLlmApiKey, deleteLlmApiKey } from "../../../application/repository/deepEval.repository";
 
 interface SavedKey {
   provider: string;
@@ -21,7 +21,7 @@ const LLM_PROVIDERS = [
   { _id: "openrouter", name: "OpenRouter" },
   { _id: "openai", name: "OpenAI" },
   { _id: "anthropic", name: "Anthropic" },
-  { _id: "google", name: "Google (Gemini)" },
+  { _id: "google", name: "Gemini" },
   { _id: "xai", name: "xAI" },
   { _id: "mistral", name: "Mistral" },
   { _id: "huggingface", name: "Hugging Face" },
@@ -117,15 +117,12 @@ export default function OrgSettings() {
 
   const fetchSavedKeys = async () => {
     try {
-      const response = await CustomAxios.get('/evaluation-llm-keys');
-
-      if (response.data.success && response.data.data) {
-        setSavedKeys(response.data.data.map((key: { provider: string; maskedKey: string }) => ({
-          provider: key.provider,
-          apiKey: '', // Never sent to frontend
-          maskedKey: key.maskedKey,
-        })));
-      }
+      const keys = await getAllLlmApiKeys();
+      setSavedKeys(keys.map((key: { provider: string; maskedKey: string }) => ({
+        provider: key.provider,
+        apiKey: '', // Never sent to frontend
+        maskedKey: key.maskedKey,
+      })));
     } catch (err) {
       console.error("Failed to fetch keys:", err);
       setAlert({
@@ -200,14 +197,10 @@ export default function OrgSettings() {
 
     setSaving(true);
     try {
-      const response = await CustomAxios.post('/evaluation-llm-keys', {
-        provider: selectedProvider,
+      await addLlmApiKey({
+        provider: selectedProvider as Parameters<typeof addLlmApiKey>[0]["provider"],
         apiKey: newApiKey,
       });
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to add API key');
-      }
 
       // Refresh the list
       await fetchSavedKeys();
@@ -240,11 +233,7 @@ export default function OrgSettings() {
 
     setSaving(true);
     try {
-      const response = await CustomAxios.delete(`/evaluation-llm-keys/${confirmDelete.provider}`);
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to remove API key');
-      }
+      await deleteLlmApiKey(confirmDelete.provider as Parameters<typeof deleteLlmApiKey>[0]);
 
       // Refresh the list
       await fetchSavedKeys();

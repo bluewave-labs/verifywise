@@ -13,8 +13,15 @@ import { Play, Beaker, ChevronRight, Activity, CheckCircle, Clock, Star, Coins, 
 import { cardStyles } from "../../themes";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import VWLink from "../../components/Link/VWLink";
-import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import { experimentsService, monitoringService, evaluationLogsService, type Experiment, type MonitorDashboard, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
+import {
+  getProject,
+  getExperiments,
+  getMonitorDashboard,
+  getLogs,
+  type Experiment,
+  type MonitorDashboard,
+  type EvaluationLog,
+} from "../../../application/repository/deepEval.repository";
 import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +31,7 @@ import allowedRoles from "../../../application/constants/permissions";
 
 interface ProjectOverviewProps {
   projectId: string;
+  orgId?: string | null;
   project: DeepEvalProject | null;
   onProjectUpdate: (project: DeepEvalProject) => void;
   onViewExperiment?: (experimentId: string) => void;
@@ -114,7 +122,6 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
               fontWeight: 600,
               color: "#111827",
               lineHeight: 1.3,
-              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             }}
           >
             {value}
@@ -139,6 +146,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
 
 export default function ProjectOverview({
   projectId,
+  orgId,
   project,
   onProjectUpdate,
   onViewExperiment,
@@ -160,15 +168,15 @@ export default function ProjectOverview({
 
       // Load project if not provided
       if (!project) {
-        const projectData = await deepEvalProjectsService.getProject(projectId);
+        const projectData = await getProject(projectId);
         onProjectUpdate(projectData.project);
       }
 
       // Load experiments, logs, and dashboard data in parallel
       const [experimentsData, logsData, dashboardResponse] = await Promise.all([
-        experimentsService.getExperiments({ project_id: projectId, limit: 100 }),
-        evaluationLogsService.getLogs({ project_id: projectId, limit: 1000 }).catch(() => ({ logs: [] })),
-        monitoringService.getDashboard(projectId).catch(() => ({ data: null })),
+        getExperiments({ project_id: projectId, limit: 100 }),
+        getLogs({ project_id: projectId, limit: 1000 }).catch(() => ({ logs: [] })),
+        getMonitorDashboard(projectId).catch(() => ({ data: null })),
       ]);
 
       setExperiments(experimentsData.experiments || []);
@@ -355,12 +363,8 @@ export default function ProjectOverview({
 
           {/* Recent experiments list */}
           <Box sx={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: hasExperiments ? "flex-start" : "center",
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
-            overflow: "hidden",
             backgroundColor: "#FFFFFF",
             // Fixed height to match two stat cards (90px each) + gap between them
             minHeight: "214px",
@@ -403,7 +407,8 @@ export default function ProjectOverview({
                 />
               </Box>
             ) : (
-              [...experiments]
+              <Box sx={{ padding: "8px" }}>
+              {[...experiments]
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .slice(0, 4)
                 .map((exp, index, arr) => {
@@ -440,12 +445,12 @@ export default function ProjectOverview({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        px: 2,
+                        py: 1.5,
                         cursor: "pointer",
-                        borderBottom: index < arr.length - 1 ? "1px solid #d0d5dd" : "none",
-                        flex: 1,
+                        borderBottom: index < arr.length - 1 ? "1px solid #E5E7EB" : "none",
                         "&:hover": {
                           backgroundColor: "#F9FAFB",
+                          borderRadius: "4px",
                         },
                       }}
                     >
@@ -485,7 +490,8 @@ export default function ProjectOverview({
                       </Box>
                     </Box>
                   );
-                })
+                })}
+              </Box>
             )}
           </Box>
         </Box>
@@ -513,6 +519,7 @@ export default function ProjectOverview({
         isOpen={newExperimentModalOpen}
         onClose={() => setNewExperimentModalOpen(false)}
         projectId={projectId}
+        orgId={orgId}
         onSuccess={handleExperimentSuccess}
       />
     </Box>

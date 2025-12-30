@@ -130,6 +130,7 @@ const RiskSection: FC<RiskSectionProps> = ({
     (prop: keyof RiskFormValues) =>
       (
         _event: React.SyntheticEvent,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         newValue: any[]
       ) => {
         setRiskValues((prevValues) => ({
@@ -453,8 +454,8 @@ const RiskSection: FC<RiskSectionProps> = ({
                     name: `${user.name} ${user.surname}`,
                   })) || []
                 }
-                isRequired
-                error={riskErrors.actionOwner}
+                // isRequired
+                // error={riskErrors.actionOwner}
                 sx={{
                   width: fieldWidth,
                 }}

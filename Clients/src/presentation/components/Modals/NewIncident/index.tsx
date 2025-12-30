@@ -857,7 +857,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                             : "Save incident"
                                     }
                                     icon={<SaveIconSVGWhite />}
-                                    onClick={handleSubmit}
+                                    onClick={handleSubmit as (event: unknown) => void}
                                     sx={{
                                         backgroundColor: "#13715B",
                                         border: "1px solid #13715B",

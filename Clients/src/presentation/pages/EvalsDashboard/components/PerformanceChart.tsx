@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Box, Typography, Select, MenuItem, FormControl } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../../infrastructure/api/evaluationLogsService";
+import { getAllExperiments, getLogs, type Experiment, type EvaluationLog } from "../../../../application/repository/deepEval.repository";
 
 interface PerformanceChartProps {
   projectId: string;
@@ -103,6 +103,7 @@ type ChartPoint = {
   name: string;
   date: string;
   uniqueId: string; // Unique identifier for each experiment (date + time)
+  index: number; // Sequential index for even spacing on X-axis
   _calculatedMetrics: string[]; // Track which metrics were actually calculated for this point
   [key: string]: number | string | string[] | null;
 };
@@ -125,7 +126,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
   const loadPerformanceData = useCallback(async () => {
     try {
       setLoading(true);
-      const expsResp = await experimentsService.getAllExperiments({ project_id: projectId });
+      const expsResp = await getAllExperiments({ project_id: projectId });
       const experiments: Experiment[] = expsResp.experiments || [];
 
       // Get cutoff date for filtering
@@ -155,7 +156,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
       for (let i = 0; i < completedExps.length; i++) {
         const exp = completedExps[i];
         try {
-          const logsResp = await evaluationLogsService.getLogs({
+          const logsResp = await getLogs({
             experiment_id: exp.id,
             limit: 1000,
           });
@@ -189,6 +190,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
             // Use unique identifier combining date and time to avoid confusion with same-day experiments
             date: `${dateStr}`,
             uniqueId: `${dateStr} ${timeStr}`,
+            index: i, // Sequential index for even spacing
             _calculatedMetrics: calculatedMetrics,
           };
 
@@ -255,6 +257,12 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
   const baseChartHeight = 200; // Base height for chart area
   const legendHeight = legendLines * legendLineHeight + 12; // +12 for padding
   const dynamicHeight = baseChartHeight + legendHeight;
+
+  // Custom tick formatter to show date/time label for each index
+  const formatXAxisTick = (index: number) => {
+    const point = data[index];
+    return point?.uniqueId || "";
+  };
 
   // Create a color map for metrics (used by custom tooltip)
   const metricColorMap: Record<string, string> = {};
@@ -398,13 +406,21 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
         <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
           <XAxis 
-            dataKey="uniqueId" 
+            dataKey="index"
+            type="number"
+            domain={data.length > 4 
+              ? [0, data.length - 1]  // No padding for 5+ experiments
+              : [-0.5, Math.max(data.length - 0.5, 1.5)]  // Padding for ≤4 experiments
+            }
+            ticks={data.map((_, i) => i)}
+            tickFormatter={formatXAxisTick}
             tick={{ fontSize: 10, fill: "#6B7280" }}
             axisLine={{ stroke: "#E5E7EB" }}
             interval={0}
             angle={-20}
             textAnchor="end"
             height={40}
+            allowDataOverflow={false}
           />
           <YAxis 
             domain={[0, 1]} 

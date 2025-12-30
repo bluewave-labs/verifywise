@@ -38,6 +38,7 @@ import { Resource } from "../../../../domain/interfaces/i.aiTrustCenter";
 import { GroupBy } from "../../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../../components/Table/GroupedTableView";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 // Helper component for Resource Table Row
 const ResourceTableRow: React.FC<{
@@ -75,7 +76,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
-          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("resource name") ? "#e8e8e8" : "#fafafa",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("resource name") ? singleTheme.tableColors.sortedColumnFirst : "transparent",
         }}
       >
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
@@ -86,7 +87,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
-          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("type") && sortConfig.key.toLowerCase().includes("purpose") ? "#f5f5f5" : "inherit",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("type") && sortConfig.key.toLowerCase().includes("purpose") ? singleTheme.tableColors.sortedColumn : "transparent",
         }}
       >
         <Typography sx={styles.resourceType}>{resource.description}</Typography>
@@ -97,7 +98,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
-          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("visibility") ? "#f5f5f5" : "inherit",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("visibility") ? singleTheme.tableColors.sortedColumn : "transparent",
         }}
       >
         {resource.visible ? (
@@ -116,7 +117,7 @@ const ResourceTableRow: React.FC<{
       </TableCell>
       <TableCell
         sx={{
-          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("action") ? "#f5f5f5" : "inherit",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("action") ? singleTheme.tableColors.sortedColumn : "transparent",
         }}
       >
         <IconButtonComponent
@@ -171,6 +172,7 @@ const TrustCenterResources: React.FC = () => {
 
   // State management
   const [formData, setFormData] = useState<FormData | null>(null);
+  const [flashRowId, setFlashRowId] = useState<number | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [newResource, setNewResource] = useState<{
@@ -416,6 +418,10 @@ const TrustCenterResources: React.FC = () => {
         oldFileId: oldFileId,
       });
 
+      // Flash the updated resource row
+      setFlashRowId(editResource.id);
+      setTimeout(() => setFlashRowId(null), 3000);
+
       handleAlert({
         variant: "success",
         body: "Resource updated successfully",
@@ -655,6 +661,7 @@ const TrustCenterResources: React.FC = () => {
                 )}
                 tableId="resources-table"
                 hidePagination={options?.hidePagination}
+                flashRowId={flashRowId}
               />
             )}
           />

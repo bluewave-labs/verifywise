@@ -33,8 +33,12 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
+import { Responsive, LayoutItem, verticalCompactor, useContainerWidth } from "react-grid-layout";
 import { useDashboard } from "../../../application/hooks/useDashboard";
+
+// Type definitions for react-grid-layout v2
+type Layout = readonly LayoutItem[];
+type Layouts = Partial<Record<string, Layout>>;
 import { useDashboardMetrics } from "../../../application/hooks/useDashboardMetrics";
 import { cardStyles } from "../../themes";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -57,12 +61,11 @@ import PageTour from "../../components/PageTour";
 import DashboardSteps from "./DashboardSteps";
 import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown";
 import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
-import { MetricCardProps } from "../../../domain/interfaces/i.dashboard";
+import { MetricCardProps } from "../../types/interfaces/i.dashboard";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import ChangeOrganizationNameModal from "../../components/Modals/ChangeOrganizationName";
 
 const Alert = lazy(() => import("../../components/Alert"));
-const ResponsiveGridLayout = WidthProvider(Responsive);
 
 // Time-based greeting function with special occasions
 const getTimeBasedGreeting = (userName?: string, userToken?: any): { icon: React.ReactNode; text: string; greetingText: string } => {
@@ -465,7 +468,7 @@ const defaultLayouts: Layouts = {
       y: 0,
       w: 3,
       h: 4,
-      minW: 3,
+      minW: 2,
       maxW: 6,
       minH: 2,
       maxH: 4,
@@ -476,7 +479,7 @@ const defaultLayouts: Layouts = {
       y: 0,
       w: 3,
       h: 4,
-      minW: 3,
+      minW: 2,
       maxW: 6,
       minH: 2,
       maxH: 4,
@@ -487,7 +490,7 @@ const defaultLayouts: Layouts = {
       y: 0,
       w: 3,
       h: 4,
-      minW: 3,
+      minW: 2,
       maxW: 6,
       minH: 2,
       maxH: 4,
@@ -499,7 +502,7 @@ const defaultLayouts: Layouts = {
       y: 2,
       w: 3,
       h: 4,
-      minW: 3,
+      minW: 2,
       maxW: 6,
       minH: 2,
       maxH: 4,
@@ -510,7 +513,7 @@ const defaultLayouts: Layouts = {
       y: 4,
       w: 3,
       h: 4,
-      minW: 3,
+      minW: 2,
       maxW: 6,
       minH: 2,
       maxH: 4,
@@ -522,8 +525,8 @@ const defaultLayouts: Layouts = {
       y: 4,
       w: 3,
       h: 2,
-      minW: 3,
-      maxW: 3,
+      minW: 2,
+      maxW: 6,
       minH: 2,
       maxH: 2,
     },
@@ -533,8 +536,8 @@ const defaultLayouts: Layouts = {
       y: 4,
       w: 3,
       h: 2,
-      minW: 3,
-      maxW: 3,
+      minW: 2,
+      maxW: 6,
       minH: 2,
       maxH: 2,
     },
@@ -544,8 +547,8 @@ const defaultLayouts: Layouts = {
       y: 6,
       w: 3,
       h: 2,
-      minW: 3,
-      maxW: 3,
+      minW: 2,
+      maxW: 6,
       minH: 2,
       maxH: 2,
     },
@@ -555,7 +558,7 @@ const defaultLayouts: Layouts = {
       y: 6,
       w: 3,
       h: 4,
-      minW: 3,
+      minW: 2,
       maxW: 6,
       minH: 2,
       maxH: 4,
@@ -569,8 +572,8 @@ const defaultLayouts: Layouts = {
       y: 0,
       w: 2.5,
       h: 2,
-      minW: 2.5,
-      maxW: 2.5,
+      minW: 2,
+      maxW: 5,
       minH: 2,
       maxH: 2,
     },
@@ -580,7 +583,7 @@ const defaultLayouts: Layouts = {
       y: 0,
       w: 2.5,
       h: 4,
-      minW: 2.5,
+      minW: 2,
       maxW: 5,
       minH: 2,
       maxH: 4,
@@ -591,7 +594,7 @@ const defaultLayouts: Layouts = {
       y: 0,
       w: 2.5,
       h: 4,
-      minW: 2.5,
+      minW: 2,
       maxW: 5,
       minH: 2,
       maxH: 4,
@@ -602,7 +605,7 @@ const defaultLayouts: Layouts = {
       y: 0,
       w: 2.5,
       h: 4,
-      minW: 2.5,
+      minW: 2,
       maxW: 5,
       minH: 2,
       maxH: 4,
@@ -614,7 +617,7 @@ const defaultLayouts: Layouts = {
       y: 2,
       w: 2.5,
       h: 4,
-      minW: 2.5,
+      minW: 2,
       maxW: 5,
       minH: 2,
       maxH: 4,
@@ -625,7 +628,7 @@ const defaultLayouts: Layouts = {
       y: 4,
       w: 2.5,
       h: 4,
-      minW: 2.5,
+      minW: 2,
       maxW: 5,
       minH: 2,
       maxH: 4,
@@ -637,8 +640,8 @@ const defaultLayouts: Layouts = {
       y: 4,
       w: 2.5,
       h: 2,
-      minW: 2.5,
-      maxW: 2.5,
+      minW: 2,
+      maxW: 5,
       minH: 2,
       maxH: 2,
     },
@@ -648,8 +651,8 @@ const defaultLayouts: Layouts = {
       y: 4,
       w: 2.5,
       h: 2,
-      minW: 2.5,
-      maxW: 2.5,
+      minW: 2,
+      maxW: 5,
       minH: 2,
       maxH: 2,
     },
@@ -659,8 +662,8 @@ const defaultLayouts: Layouts = {
       y: 6,
       w: 2.5,
       h: 2,
-      minW: 2.5,
-      maxW: 2.5,
+      minW: 2,
+      maxW: 5,
       minH: 2,
       maxH: 2,
     },
@@ -670,7 +673,7 @@ const defaultLayouts: Layouts = {
       y: 6,
       w: 2.5,
       h: 4,
-      minW: 2.5,
+      minW: 2,
       maxW: 5,
       minH: 2,
       maxH: 4,
@@ -686,7 +689,7 @@ const defaultLayouts: Layouts = {
       w: 3,
       h: 2,
       minW: 3,
-      maxW: 3,
+      maxW: 6,
       minH: 2,
       maxH: 2,
     },
@@ -698,7 +701,7 @@ const defaultLayouts: Layouts = {
       w: 3,
       h: 4,
       minW: 3,
-      maxW: 3,
+      maxW: 6,
       minH: 2,
       maxH: 4,
     },
@@ -709,7 +712,7 @@ const defaultLayouts: Layouts = {
       w: 3,
       h: 4,
       minW: 3,
-      maxW: 3,
+      maxW: 6,
       minH: 2,
       maxH: 4,
     },
@@ -721,7 +724,7 @@ const defaultLayouts: Layouts = {
       w: 3,
       h: 4,
       minW: 3,
-      maxW: 3,
+      maxW: 6,
       minH: 2,
       maxH: 4,
     },
@@ -732,7 +735,7 @@ const defaultLayouts: Layouts = {
       w: 3,
       h: 4,
       minW: 3,
-      maxW: 3,
+      maxW: 6,
       minH: 2,
       maxH: 4,
     },
@@ -744,7 +747,7 @@ const defaultLayouts: Layouts = {
       w: 3,
       h: 4,
       minW: 3,
-      maxW: 3,
+      maxW: 6,
       minH: 2,
       maxH: 4,
     },
@@ -756,7 +759,7 @@ const defaultLayouts: Layouts = {
       w: 3,
       h: 2,
       minW: 3,
-      maxW: 3,
+      maxW: 6,
       minH: 2,
       maxH: 2,
     },
@@ -767,7 +770,7 @@ const defaultLayouts: Layouts = {
       w: 3,
       h: 2,
       minW: 3,
-      maxW: 3,
+      maxW: 6,
       minH: 2,
       maxH: 2,
     },
@@ -778,7 +781,7 @@ const defaultLayouts: Layouts = {
       w: 3,
       h: 2,
       minW: 3,
-      maxW: 3,
+      maxW: 6,
       minH: 2,
       maxH: 2,
     },
@@ -789,7 +792,7 @@ const defaultLayouts: Layouts = {
       w: 3,
       h: 4,
       minW: 3,
-      maxW: 3,
+      maxW: 6,
       minH: 2,
       maxH: 4,
     },
@@ -1118,7 +1121,6 @@ const IntegratedDashboard: React.FC = () => {
 
   // Edit mode state
   const [editMode, setEditMode] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   // Password notification state
   const [showPasswordNotification, setShowPasswordNotification] =
@@ -1168,25 +1170,93 @@ const IntegratedDashboard: React.FC = () => {
   }, [userName, userToken]);
 
   const [layouts, setLayouts] = useState<Layouts>(defaultLayouts);
+  
+  // Get container width for responsive grid (react-grid-layout v2 requirement)
+  const { width: hookWidth, containerRef } = useContainerWidth();
+  
+  // State to track actual container width for proper responsive behavior
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
+  
+  // Measure container width directly to ensure accurate calculation
+  // This ensures we use the actual visible width, not including overflow
+  useEffect(() => {
+    const updateContainerWidth = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        // Use actual container width (clientWidth accounts for padding)
+        const actualWidth = containerRef.current.clientWidth || rect.width;
+        // Ensure width doesn't exceed viewport
+        const maxWidth = typeof window !== 'undefined' ? window.innerWidth : actualWidth;
+        setContainerWidth(Math.min(actualWidth, maxWidth));
+      }
+    };
+    
+    // Use requestAnimationFrame to ensure DOM is ready
+    const rafId = requestAnimationFrame(() => {
+      updateContainerWidth();
+    });
+    
+    // Update on resize with debounce
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(updateContainerWidth, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Also use ResizeObserver for more accurate measurements
+    const resizeObserver = new ResizeObserver(() => {
+      updateContainerWidth();
+    });
+    
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(resizeTimeout);
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [containerRef]);
+  
+  // Use measured container width, fallback to hook width, then window width
+  // Ensure we never use a width larger than the viewport
+  const getSafeWidth = () => {
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+    if (containerWidth && containerWidth > 0) {
+      return Math.min(containerWidth, viewportWidth);
+    }
+    if (hookWidth && hookWidth > 0) {
+      return Math.min(hookWidth, viewportWidth);
+    }
+    return viewportWidth;
+  };
+  
+  const gridWidth = getSafeWidth();
 
   // Ensure widgets that are added back get their default layout
   useEffect(() => {
-    setLayouts((currentLayouts) => {
-      const updatedLayouts = { ...currentLayouts };
+    setLayouts((currentLayouts: Layouts) => {
+      const updatedLayouts: Layouts = { ...currentLayouts };
       let layoutsChanged = false;
 
       Object.keys(defaultLayouts).forEach((breakpoint) => {
         const currentBreakpointLayout = currentLayouts[breakpoint] || [];
         const defaultBreakpointLayout = defaultLayouts[breakpoint];
+        
+        if (!defaultBreakpointLayout) return;
 
         // Find widgets that are visible
         const visibleWidgetIds = Array.from(visibleCards);
 
         // Process each visible widget
-        const processedLayout = currentBreakpointLayout.map((item) => {
+        const processedLayout = currentBreakpointLayout.map((item: LayoutItem) => {
           // If this widget is visible, check if it needs to be reset to default
           if (visibleWidgetIds.includes(item.i)) {
-            const defaultItem = defaultBreakpointLayout.find((d) => d.i === item.i);
+            const defaultItem = defaultBreakpointLayout.find((d: LayoutItem) => d.i === item.i);
             if (defaultItem && item.h !== defaultItem.h) {
               // Widget has wrong height, restore to default
               layoutsChanged = true;
@@ -1198,16 +1268,16 @@ const IntegratedDashboard: React.FC = () => {
 
         // Find widgets that are missing from layout entirely
         const missingWidgets = visibleWidgetIds.filter(
-          (widgetId) => !currentBreakpointLayout.some((item) => item.i === widgetId)
+          (widgetId) => !currentBreakpointLayout.some((item: LayoutItem) => item.i === widgetId)
         );
 
         if (missingWidgets.length > 0) {
           layoutsChanged = true;
           const newItems = missingWidgets
             .map((widgetId) =>
-              defaultBreakpointLayout.find((item) => item.i === widgetId)
+              defaultBreakpointLayout.find((item: LayoutItem) => item.i === widgetId)
             )
-            .filter((item): item is Layout => item !== undefined);
+            .filter((item): item is LayoutItem => item !== undefined);
 
           updatedLayouts[breakpoint] = [...processedLayout, ...newItems];
         } else {
@@ -1240,23 +1310,24 @@ const IntegratedDashboard: React.FC = () => {
   }, []);
 
   // Constraint utility functions to eliminate code duplication
+  // Reduced min widths to allow cards to shrink and wrap properly
   const getWidthConstraints = useCallback(
     (breakpoint: string) =>
       ({
-        lg: { min: 3, max: 6 }, // 1/4 to 1/2 of 12 columns
-        md: { min: 2.5, max: 5 }, // 1/4 to 1/2 of 10 columns
-        sm: { min: 3, max: 3 }, // Fixed at 1/2 of 6 columns
-      }[breakpoint] || { min: 3, max: 6 }),
+        lg: { min: 2, max: 6 }, // Allow cards to shrink to 2 columns (1/6 of width)
+        md: { min: 2, max: 5 }, // Allow cards to shrink to 2 columns
+        sm: { min: 3, max: 6 }, // Allow cards to take full width (6 columns) on small screens
+      }[breakpoint] || { min: 2, max: 6 }),
     []
   );
 
   const getFixedWidths = useCallback(
     (breakpoint: string) =>
       ({
-        lg: 3, // 1/4 of 12 columns
-        md: 2.5, // 1/4 of 10 columns
-        sm: 3, // 1/2 of 6 columns
-      }[breakpoint] || 3),
+        lg: 2, // Minimum 2 columns for restricted widgets
+        md: 2, // Minimum 2 columns
+        sm: 3, // Minimum 3 columns (half width) on small screens
+      }[breakpoint] || 2),
     []
   );
 
@@ -1280,7 +1351,7 @@ const IntegratedDashboard: React.FC = () => {
   );
 
   const enforceLayoutItemConstraints = useCallback(
-    (item: Layout, breakpoint: string): Layout => {
+    (item: LayoutItem, breakpoint: string): LayoutItem => {
       const isRestricted = isRestrictedToSmallHeight(item.i);
       return {
         ...item,
@@ -1294,6 +1365,7 @@ const IntegratedDashboard: React.FC = () => {
   useEffect(() => {
     // Run initial data fetch once on mount
     fetchDashboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once on mount
 
   // Fetch user name
@@ -1357,17 +1429,19 @@ const IntegratedDashboard: React.FC = () => {
         console.error("Failed to parse stored layouts:", error);
       }
     }
-    setMounted(true);
   }, []);
 
   const handleLayoutChange = useCallback(
-    (_: Layout[], allLayouts: Layouts) => {
+    (_layout: Layout, allLayouts: Layouts) => {
       // Ensure all heights are exactly 2 or 4 and width constraints are enforced before saving
-      const enforcedLayouts = { ...allLayouts };
-      Object.keys(enforcedLayouts).forEach((breakpoint) => {
-        enforcedLayouts[breakpoint] = enforcedLayouts[breakpoint].map((item) =>
-          enforceLayoutItemConstraints(item, breakpoint)
-        );
+      const enforcedLayouts: Layouts = {};
+      Object.keys(allLayouts).forEach((breakpoint) => {
+        const layoutArray = allLayouts[breakpoint];
+        if (layoutArray) {
+          enforcedLayouts[breakpoint] = layoutArray.map((item) =>
+            enforceLayoutItemConstraints(item, breakpoint)
+          );
+        }
       });
 
       setLayouts(enforcedLayouts);
@@ -1404,13 +1478,15 @@ const IntegratedDashboard: React.FC = () => {
   // Handle resize to enforce constraints: height 2 or 4, width constraints
   const handleResize = useCallback(
     (
-      _: Layout[],
-      __: Layout,
-      newItem: Layout,
-      placeholder: Layout,
-      ___: MouseEvent,
-      ____: HTMLElement
+      _layout: Layout,
+      _oldItem: LayoutItem | null,
+      newItem: LayoutItem | null,
+      placeholder: LayoutItem | null,
+      _e: Event,
+      _element: HTMLElement | undefined
     ) => {
+      if (!newItem || !placeholder) return;
+      
       const isRestricted = isRestrictedToSmallHeight(newItem.i);
 
       // Enforce height constraints
@@ -1440,36 +1516,41 @@ const IntegratedDashboard: React.FC = () => {
   // Ensure final constraints when resize stops
   const handleResizeStop = useCallback(
     (
-      _: Layout[],
-      __: Layout,
-      newItem: Layout,
-      ___: Layout,
-      ____: MouseEvent,
-      _____: HTMLElement
+      _layout: Layout,
+      _oldItem: LayoutItem | null,
+      newItem: LayoutItem | null,
+      _placeholder: LayoutItem | null,
+      _e: Event,
+      _element: HTMLElement | undefined
     ) => {
+      if (!newItem) return;
+      
       const isUnlimited = false;
 
       // Update all responsive layouts to ensure consistency across breakpoints
-      setLayouts((prevLayouts) => {
-        const updatedLayouts = { ...prevLayouts };
+      setLayouts((prevLayouts: Layouts) => {
+        const updatedLayouts: Layouts = { ...prevLayouts };
         Object.keys(updatedLayouts).forEach((breakpoint) => {
-          updatedLayouts[breakpoint] = updatedLayouts[breakpoint].map(
-            (item) => {
-              if (item.i === newItem.i) {
-                if (isUnlimited) {
-                  // For unlimited widgets, just update with new dimensions
-                  return { ...item, h: newItem.h, w: newItem.w };
-                } else {
-                  // Apply constraints using the current item dimensions from the resize
-                  return enforceLayoutItemConstraints(
-                    { ...item, h: newItem.h, w: newItem.w },
-                    breakpoint
-                  );
+          const layoutArray = updatedLayouts[breakpoint];
+          if (layoutArray) {
+            updatedLayouts[breakpoint] = layoutArray.map(
+              (item: LayoutItem) => {
+                if (item.i === newItem.i) {
+                  if (isUnlimited) {
+                    // For unlimited widgets, just update with new dimensions
+                    return { ...item, h: newItem.h, w: newItem.w };
+                  } else {
+                    // Apply constraints using the current item dimensions from the resize
+                    return enforceLayoutItemConstraints(
+                      { ...item, h: newItem.h, w: newItem.w },
+                      breakpoint
+                    );
+                  }
                 }
+                return item;
               }
-              return item;
-            }
-          );
+            );
+          }
         });
 
         // Safe localStorage save with error handling
@@ -1520,8 +1601,6 @@ const IntegratedDashboard: React.FC = () => {
       </Box>
     );
   }
-
-  if (!mounted) return null;
 
   // Widget definitions with your actual dashboard data
   const widgets = [
@@ -1688,7 +1767,7 @@ const IntegratedDashboard: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ pb: 3 }}>
+    <Box sx={{ pb: 3, width: '100%', overflowX: 'hidden', maxWidth: '100%', boxSizing: 'border-box' }}>
       <PageBreadcrumbs />
 
       {/* Organization Name Modal */}
@@ -1828,6 +1907,12 @@ const IntegratedDashboard: React.FC = () => {
         .react-grid-layout {
           position: relative;
           margin-top: 20px;
+          width: 100% !important;
+          max-width: 100% !important;
+          overflow: hidden;
+          box-sizing: border-box;
+          /* Ensure grid doesn't exceed container */
+          contain: layout;
           ${
             editMode
               ? `
@@ -1849,6 +1934,15 @@ const IntegratedDashboard: React.FC = () => {
 
         .react-grid-item {
           transition: all 200ms ease;
+          box-sizing: border-box;
+          max-width: 100%;
+          /* Prevent items from overflowing container */
+          overflow: hidden;
+        }
+        
+        /* Ensure grid items wrap and don't create empty spaces */
+        .react-grid-layout > .react-grid-item {
+          will-change: transform;
         }
 
         .react-grid-item.cssTransforms {
@@ -2051,27 +2145,41 @@ const IntegratedDashboard: React.FC = () => {
             </Typography>
           </Stack>
         ) : (
-          <ResponsiveGridLayout
-            className="layout"
-            layouts={layouts}
-            onLayoutChange={handleLayoutChange}
-            onResize={handleResize}
-            onResizeStop={handleResizeStop}
-            breakpoints={{ lg: 1200, md: 996, sm: 768 }}
-            cols={{ lg: 12, md: 10, sm: 6 }}
-            rowHeight={42.5}
-            isDraggable={editMode}
-            isResizable={editMode}
-            draggableHandle=".widget-card-header"
-            resizeHandles={["se", "sw", "ne", "nw", "s", "e", "n", "w"]}
-            margin={[16, 16]}
-            containerPadding={[0, 0]}
-            useCSSTransforms={true}
-            compactType="vertical"
-            preventCollision={false}
-            autoSize={true}
-            isBounded={true}
+          <Box 
+            ref={containerRef}
+            sx={{ 
+              width: '100%', 
+              minHeight: 400,
+              position: 'relative',
+              overflow: 'hidden', // Prevent horizontal scrollbar
+              maxWidth: '100%', // Ensure container doesn't exceed parent width
+              boxSizing: 'border-box' // Include padding in width calculation
+            }}
           >
+            <Responsive
+              className="layout"
+              width={Math.floor(gridWidth)} // Ensure integer width
+              layouts={layouts}
+              onLayoutChange={handleLayoutChange}
+              onResize={handleResize}
+              onResizeStop={handleResizeStop}
+              breakpoints={{ lg: 1200, md: 996, sm: 768 }}
+              cols={{ lg: 12, md: 10, sm: 6 }}
+              rowHeight={42.5}
+              dragConfig={{
+                enabled: editMode,
+                handle: ".widget-card-header",
+                bounded: true,
+              }}
+              resizeConfig={{
+                enabled: editMode,
+                handles: ["se", "sw", "ne", "nw", "s", "e", "n", "w"],
+              }}
+              margin={[16, 16]}
+              containerPadding={[0, 0]}
+              compactor={verticalCompactor}
+              autoSize={true}
+            >
             {widgets
               .filter((widget) => visibleCards.has(widget.id))
               .map((widget) => (
@@ -2123,7 +2231,8 @@ const IntegratedDashboard: React.FC = () => {
                   </Box>
                 </Card>
               ))}
-          </ResponsiveGridLayout>
+            </Responsive>
+          </Box>
         )}
       </Box>
 

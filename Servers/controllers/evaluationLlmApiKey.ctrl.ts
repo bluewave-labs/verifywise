@@ -10,16 +10,15 @@
  */
 
 import { Request, Response } from 'express';
-import { EvaluationLlmApiKeyModel, LLMProvider } from '../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model';
+import { LLMProvider } from '../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model';
 import { ValidationException } from '../domain.layer/exceptions/custom.exception';
-
-// Extend Request type to include auth properties
-interface AuthenticatedRequest extends Request {
-  userId?: number;
-  role?: string;
-  tenantId?: string;
-  organizationId?: number;
-}
+import {
+  getAllKeysForOrganizationQuery,
+  createKeyQuery,
+  getDecryptedKeysForOrganizationQuery,
+  deleteKeyQuery,
+} from '../utils/evaluationLlmApiKey.utils';
+import { sequelize } from '../database/db';
 
 /**
  * Get all LLM API keys for the authenticated user's organization
@@ -28,17 +27,7 @@ interface AuthenticatedRequest extends Request {
  */
 export const getAllKeys = async (req: Request, res: Response) => {
   try {
-    const authReq = req as AuthenticatedRequest;
-    const organizationId = authReq.organizationId;
-
-    if (!organizationId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Organization ID not found in authentication context',
-      });
-    }
-
-    const keys = await EvaluationLlmApiKeyModel.getKeysForOrganization(organizationId);
+    const keys = await getAllKeysForOrganizationQuery(req.tenantId!);
 
     return res.status(200).json({
       success: true,
@@ -63,17 +52,9 @@ export const getAllKeys = async (req: Request, res: Response) => {
  * - apiKey: string (plain text - will be encrypted)
  */
 export const addKey = async (req: Request, res: Response) => {
+  const transaction = await sequelize.transaction();
   try {
-    const authReq = req as AuthenticatedRequest;
-    const organizationId = authReq.organizationId;
     const { provider, apiKey } = req.body;
-
-    if (!organizationId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Organization ID not found in authentication context',
-      });
-    }
 
     // Validate inputs
     if (!provider) {
@@ -85,22 +66,24 @@ export const addKey = async (req: Request, res: Response) => {
     }
 
     // Create key
-    const keyModel = await EvaluationLlmApiKeyModel.createKey(
-      organizationId,
+    const keyData = await createKeyQuery(
+      req.tenantId!,
       provider as LLMProvider,
-      apiKey
+      apiKey,
+      transaction
     );
 
-    console.log(`LLM API key added for provider: ${provider} by user: ${authReq.userId}`);
+    console.log(`LLM API key added for provider: ${provider} by user: ${req.userId}`);
 
+    await transaction.commit();
     return res.status(201).json({
       success: true,
       message: 'API key added successfully',
-      data: keyModel.toJSON(),
+      data: keyData,
     });
   } catch (error: any) {
     console.error('Error adding LLM API key:', error);
-
+    await transaction.rollback();
     if (error instanceof ValidationException) {
       return res.status(400).json({
         success: false,
@@ -119,38 +102,17 @@ export const addKey = async (req: Request, res: Response) => {
 
 /**
  * Get all decrypted LLM API keys for evaluations (internal endpoint)
- * 
+ *
  * This endpoint returns the actual decrypted API keys for use by the evaluation server.
  * Should only be accessible from internal services (localhost).
- * 
+ *
  * Query params:
- * - organizationId: number (required)
+ * - tenantId: string (required)
  */
 export const getDecryptedKeys = async (req: Request, res: Response) => {
   try {
-    const organizationId = parseInt(req.query.organizationId as string);
-
-    if (!organizationId || isNaN(organizationId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Organization ID is required',
-      });
-    }
-
-    // Get all keys for the organization
-    const keys = await EvaluationLlmApiKeyModel.findAll({
-      where: { organization_id: organizationId },
-    });
-
-    // Build map of provider -> decrypted key
-    const decryptedKeys: Record<string, string> = {};
-    for (const key of keys) {
-      try {
-        decryptedKeys[key.provider] = key.getApiKey();
-      } catch (err) {
-        console.warn(`Failed to decrypt key for provider ${key.provider}:`, err);
-      }
-    }
+    // Get all decrypted keys for the tenant
+    const decryptedKeys = await getDecryptedKeysForOrganizationQuery(req.tenantId!);
 
     return res.status(200).json({
       success: true,
@@ -175,23 +137,14 @@ export const getDecryptedKeys = async (req: Request, res: Response) => {
  */
 export const deleteKey = async (req: Request, res: Response) => {
   try {
-    const authReq = req as AuthenticatedRequest;
-    const organizationId = authReq.organizationId;
     const { provider } = req.params;
-
-    if (!organizationId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Organization ID not found in authentication context',
-      });
-    }
 
     if (!provider) {
       throw new ValidationException('Provider is required', 'provider', provider);
     }
 
-    const deleted = await EvaluationLlmApiKeyModel.deleteKey(
-      organizationId,
+    const deleted = await deleteKeyQuery(
+      req.tenantId!,
       provider as LLMProvider
     );
 
@@ -202,7 +155,7 @@ export const deleteKey = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`LLM API key deleted for provider: ${provider} by user: ${authReq.userId}`);
+    console.log(`LLM API key deleted for provider: ${provider} by user: ${req.userId}`);
 
     return res.status(200).json({
       success: true,

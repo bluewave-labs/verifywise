@@ -40,7 +40,7 @@ def summarize_results(results_path: str = 'artifacts/evaluation_results.json') -
     dp_sex = results['fairness']['demographic_parity_sex']
     dp_race = results['fairness']['demographic_parity_race']
     
-    print(f"   Demographic Parity (Sex): {dp_sex:.3f}")
+    print("   Demographic Parity (Sex): [value redacted]")
     if abs(dp_sex) < 0.1:
         print("     ✅ Good: Low disparity between male and female groups")
     elif abs(dp_sex) < 0.2:
@@ -80,7 +80,7 @@ def summarize_results(results_path: str = 'artifacts/evaluation_results.json') -
     pp_sex = results['fairness']['predictive_parity_sex']
     pp_race = results['fairness']['predictive_parity_race']
     
-    print(f"   Predictive Parity (Sex): {pp_sex:.3f}")
+    print("   Predictive Parity (Sex): [value redacted]")
     if abs(pp_sex) < 0.1:
         print("     ✅ Good: Similar positive predictive values")
     elif abs(pp_sex) < 0.2:

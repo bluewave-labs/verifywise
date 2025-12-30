@@ -9,38 +9,30 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 
 
-def _get_schema_name(tenant: str) -> str:
-  """
-  Resolve the underlying Postgres schema for a given tenant.
-  Mirrors the logic used for deepeval_projects.
-  """
-  return "a4ayc80OGd" if tenant == "default" else tenant
-
-
 async def list_scorers(
   tenant: str,
   db: AsyncSession,
-  project_id: Optional[str] = None,
+  org_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
   """
-  List scorers for a tenant (optionally filtered by project_id).
+  List scorers for a tenant (optionally filtered by org_id).
+  Multi-tenancy is handled by the schema name, not a tenant column.
   """
-  schema_name = _get_schema_name(tenant)
 
-  conditions = ['tenant = :tenant']
-  params: Dict[str, Any] = {"tenant": tenant}
+  params: Dict[str, Any] = {}
 
-  if project_id:
-    conditions.append("project_id = :project_id")
-    params["project_id"] = project_id
-
-  where_clause = " AND ".join(conditions)
+  # Build WHERE clause - org_id filter is optional
+  if org_id:
+    where_clause = "WHERE org_id = :org_id"
+    params["org_id"] = org_id
+  else:
+    where_clause = ""
 
   result = await db.execute(
     text(
       f'''
       SELECT id,
-             project_id,
+             org_id,
              name,
              description,
              type,
@@ -49,16 +41,15 @@ async def list_scorers(
              enabled,
              default_threshold,
              weight,
-             tenant,
              created_at,
              updated_at,
              created_by
-      FROM "{schema_name}".deepeval_scorers
-      WHERE {where_clause}
+      FROM "{tenant}".deepeval_scorers
+      {where_clause}
       ORDER BY created_at DESC
       '''
     ),
-    params,
+    params if params else {},
   )
 
   rows = result.mappings().all()
@@ -67,7 +58,7 @@ async def list_scorers(
     scorers.append(
       {
         "id": row["id"],
-        "projectId": row["project_id"],
+        "orgId": row["org_id"],
         "name": row["name"],
         "description": row["description"],
         "type": row["type"],
@@ -76,7 +67,6 @@ async def list_scorers(
         "enabled": row["enabled"],
         "defaultThreshold": float(row["default_threshold"]) if row["default_threshold"] is not None else None,
         "weight": float(row["weight"]) if row["weight"] is not None else None,
-        "tenant": row["tenant"],
         "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
         "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
         "createdBy": row["created_by"],
@@ -88,7 +78,7 @@ async def list_scorers(
 async def create_scorer(
   scorer_id: str,
   *,
-  project_id: Optional[str],
+  org_id: Optional[str],
   name: str,
   description: Optional[str],
   scorer_type: str,
@@ -104,24 +94,23 @@ async def create_scorer(
   """
   Create a new scorer definition.
   """
-  schema_name = _get_schema_name(tenant)
 
   result = await db.execute(
     text(
       f'''
-      INSERT INTO "{schema_name}".deepeval_scorers
-      (id, project_id, name, description, type, metric_key, config, enabled,
-       default_threshold, weight, tenant, created_by)
+      INSERT INTO "{tenant}".deepeval_scorers
+      (id, org_id, name, description, type, metric_key, config, enabled,
+       default_threshold, weight, created_by)
       VALUES
-      (:id, :project_id, :name, :description, :type, :metric_key, :config, :enabled,
-       :default_threshold, :weight, :tenant, :created_by)
-      RETURNING id, project_id, name, description, type, metric_key, config, enabled,
-                default_threshold, weight, tenant, created_at, updated_at, created_by
+      (:id, :org_id, :name, :description, :type, :metric_key, :config, :enabled,
+       :default_threshold, :weight, :created_by)
+      RETURNING id, org_id, name, description, type, metric_key, config, enabled,
+                default_threshold, weight, created_at, updated_at, created_by
       '''
     ),
     {
       "id": scorer_id,
-      "project_id": project_id,
+      "org_id": org_id,
       "name": name,
       "description": description,
       "type": scorer_type,
@@ -130,7 +119,6 @@ async def create_scorer(
       "enabled": enabled,
       "default_threshold": default_threshold,
       "weight": weight,
-      "tenant": tenant,
       "created_by": created_by,
     },
   )
@@ -141,7 +129,7 @@ async def create_scorer(
 
   return {
     "id": row["id"],
-    "projectId": row["project_id"],
+    "orgId": row["org_id"],
     "name": row["name"],
     "description": row["description"],
     "type": row["type"],
@@ -150,7 +138,6 @@ async def create_scorer(
     "enabled": row["enabled"],
     "defaultThreshold": float(row["default_threshold"]) if row["default_threshold"] is not None else None,
     "weight": float(row["weight"]) if row["weight"] is not None else None,
-    "tenant": row["tenant"],
     "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
     "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
     "createdBy": row["created_by"],
@@ -174,10 +161,9 @@ async def update_scorer(
   """
   Update an existing scorer.
   """
-  schema_name = _get_schema_name(tenant)
 
   updates = []
-  params: Dict[str, Any] = {"id": scorer_id, "tenant": tenant}
+  params: Dict[str, Any] = {"id": scorer_id}
 
   if name is not None:
     updates.append("name = :name")
@@ -209,10 +195,10 @@ async def update_scorer(
     result = await db.execute(
       text(
         f'''
-        SELECT id, project_id, name, description, type, metric_key, config, enabled,
-               default_threshold, weight, tenant, created_at, updated_at, created_by
-        FROM "{schema_name}".deepeval_scorers
-        WHERE id = :id AND tenant = :tenant
+        SELECT id, org_id, name, description, type, metric_key, config, enabled,
+               default_threshold, weight, created_at, updated_at, created_by
+        FROM "{tenant}".deepeval_scorers
+        WHERE id = :id
         '''
       ),
       params,
@@ -222,11 +208,11 @@ async def update_scorer(
     result = await db.execute(
       text(
         f'''
-        UPDATE "{schema_name}".deepeval_scorers
+        UPDATE "{tenant}".deepeval_scorers
         SET {", ".join(updates)}
-        WHERE id = :id AND tenant = :tenant
-        RETURNING id, project_id, name, description, type, metric_key, config, enabled,
-                  default_threshold, weight, tenant, created_at, updated_at, created_by
+        WHERE id = :id
+        RETURNING id, org_id, name, description, type, metric_key, config, enabled,
+                  default_threshold, weight, created_at, updated_at, created_by
         '''
       ),
       params,
@@ -238,7 +224,7 @@ async def update_scorer(
 
   return {
     "id": row["id"],
-    "projectId": row["project_id"],
+    "orgId": row["org_id"],
     "name": row["name"],
     "description": row["description"],
     "type": row["type"],
@@ -247,7 +233,6 @@ async def update_scorer(
     "enabled": row["enabled"],
     "defaultThreshold": float(row["default_threshold"]) if row["default_threshold"] is not None else None,
     "weight": float(row["weight"]) if row["weight"] is not None else None,
-    "tenant": row["tenant"],
     "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
     "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
     "createdBy": row["created_by"],
@@ -263,13 +248,12 @@ async def get_scorer_by_id(
   """
   Get a single scorer by ID.
   """
-  schema_name = _get_schema_name(tenant)
 
   result = await db.execute(
     text(
       f'''
       SELECT id,
-             project_id,
+             org_id,
              name,
              description,
              type,
@@ -278,15 +262,14 @@ async def get_scorer_by_id(
              enabled,
              default_threshold,
              weight,
-             tenant,
              created_at,
              updated_at,
              created_by
-      FROM "{schema_name}".deepeval_scorers
-      WHERE id = :id AND tenant = :tenant
+      FROM "{tenant}".deepeval_scorers
+      WHERE id = :id
       '''
     ),
-    {"id": scorer_id, "tenant": tenant},
+    {"id": scorer_id},
   )
 
   row = result.mappings().first()
@@ -295,7 +278,7 @@ async def get_scorer_by_id(
 
   return {
     "id": row["id"],
-    "projectId": row["project_id"],
+    "orgId": row["org_id"],
     "name": row["name"],
     "description": row["description"],
     "type": row["type"],
@@ -304,7 +287,6 @@ async def get_scorer_by_id(
     "enabled": row["enabled"],
     "defaultThreshold": float(row["default_threshold"]) if row["default_threshold"] is not None else None,
     "weight": float(row["weight"]) if row["weight"] is not None else None,
-    "tenant": row["tenant"],
     "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
     "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
     "createdBy": row["created_by"],
@@ -320,17 +302,16 @@ async def delete_scorer(
   """
   Delete a scorer by ID.
   """
-  schema_name = _get_schema_name(tenant)
 
   result = await db.execute(
     text(
       f'''
-      DELETE FROM "{schema_name}".deepeval_scorers
-      WHERE id = :id AND tenant = :tenant
+      DELETE FROM "{tenant}".deepeval_scorers
+      WHERE id = :id
       RETURNING id
       '''
     ),
-    {"id": scorer_id, "tenant": tenant},
+    {"id": scorer_id},
   )
 
   row = result.fetchone()

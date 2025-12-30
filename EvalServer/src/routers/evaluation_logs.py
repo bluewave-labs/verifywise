@@ -64,7 +64,7 @@ async def create_log(
 ):
     """Create a new evaluation log entry"""
     return await controller.create_log_controller(
-        tenant=request.headers.get("x-tenant-id", "default"),
+        tenant=request.headers["x-tenant-id"],
         user_id=int(request.headers.get("x-user-id", 0)),
         data=log_data.dict(),
     )
@@ -81,7 +81,7 @@ async def get_logs(
 ):
     """Get logs with optional filtering"""
     return await controller.get_logs_controller(
-        tenant=request.headers.get("x-tenant-id", "default"),
+        tenant=request.headers["x-tenant-id"],
         project_id=project_id,
         experiment_id=experiment_id,
         status=status,
@@ -119,7 +119,7 @@ async def create_metric(
 ):
     """Create a new metric entry"""
     return await controller.create_metric_controller(
-        tenant=request.headers.get("x-tenant-id", "default"),
+        tenant=request.headers["x-tenant-id"],
         data=metric_data.dict(),
     )
 
@@ -143,7 +143,7 @@ async def get_metric_aggregates(
 ):
     """Get aggregated statistics for a metric"""
     return await controller.get_metric_aggregates_controller(
-        tenant=request.headers.get("x-tenant-id", "default"),
+        tenant=request.headers["x-tenant-id"],
         project_id=project_id,
         metric_name=metric_name,
         start_date=start_date,
@@ -168,7 +168,7 @@ async def create_experiment(
     
     try:
         result = await controller.create_experiment_controller(
-            tenant=request.headers.get("x-tenant-id", "default"),
+            tenant=request.headers["x-tenant-id"],
             user_id=int(request.headers.get("x-user-id", 0)),
             data=experiment_data.dict(),
         )
@@ -188,7 +188,7 @@ async def create_experiment(
             asyncio.create_task(run_evaluation_task(
                 experiment_id=experiment_id,
                 config=experiment_data.config,
-                tenant=request.headers.get("x-tenant-id", "default"),
+                tenant=request.headers["x-tenant-id"],
             ))
         
         return result
@@ -292,7 +292,7 @@ async def get_experiments(
 ):
     """Get experiments with optional filtering"""
     return await controller.get_experiments_controller(
-        tenant=request.headers.get("x-tenant-id", "default"),
+        tenant=request.headers["x-tenant-id"],
         project_id=project_id,
         status=status,
         limit=limit,
@@ -309,7 +309,7 @@ async def get_all_experiments(
     """Get all experiments (no pagination) for optional project/status filters"""
     # Use a high limit to return all in one response
     return await controller.get_experiments_controller(
-        tenant=request.headers.get("x-tenant-id", "default"),
+        tenant=request.headers["x-tenant-id"],
         project_id=project_id,
         status=status,
         limit=10000,
@@ -325,7 +325,7 @@ async def get_experiment(
     """Get a specific experiment by ID"""
     return await controller.get_experiment_by_id_controller(
         experiment_id=experiment_id,
-        tenant=request.headers.get("x-tenant-id", "default"),
+        tenant=request.headers["x-tenant-id"],
     )
 
 
@@ -410,7 +410,7 @@ async def get_monitor_dashboard(
         from crud import evaluation_logs as crud
         from database.db import get_db
         
-        tenant = request.headers.get("x-tenant-id", "default")
+        tenant = request.headers["x-tenant-id"]
         
         # Default to last 24 hours if no dates provided
         if not end_date:

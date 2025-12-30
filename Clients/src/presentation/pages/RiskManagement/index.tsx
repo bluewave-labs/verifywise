@@ -486,17 +486,20 @@ const RiskManagement = () => {
   };
 
   const handleUpdate = () => {
+    // Set flash immediately to ensure visibility
+    setCurrentRow(selectedRow[0].id!); // set current row to trigger flash-feedback
+    
     setTimeout(() => {
       setIsLoading(initialLoadingState);
-      setCurrentRow(selectedRow[0].id!); // set current row to trigger flash-feedback
       handleToast("success", "Risk updated successfully");
-    }, 1000);
+      // Fetch fresh data after flash is set
+      fetchProjectRisks();
+    }, 500);
 
     setTimeout(() => {
       setCurrentRow(null);
-    }, 2000);
-    fetchProjectRisks();
-    setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
+    }, 3000); // Flash duration consistent with other tables
+    setRefreshKey((prevKey) => prevKey + 1);
   };
 
   const handleError = (errorMessage: string) => {
@@ -696,7 +699,7 @@ const RiskManagement = () => {
                   border: "1px solid #13715B",
                   gap: 2,
                 }}
-                onClick={handleInsertFromMenuOpen}
+                onClick={handleInsertFromMenuOpen as (event: unknown) => void}
                 icon={<ChevronDown size={16} />}
                 isDisabled={
                   !allowedRoles.projectRisks.create.includes(userRoleName)
@@ -951,6 +954,28 @@ const RiskManagement = () => {
           </Stack>
         </Stack>
 
+        {/* Table Section */}
+        {showCustomizableSkeleton ? (
+          <CustomizableSkeleton />
+        ) : (
+          <GroupedTableView
+            groupedData={groupedRisks}
+            ungroupedData={filteredRisks}
+            renderTable={(data, options) => (
+              <VWProjectRisksTable
+                rows={data}
+                setPage={setCurrentPagingation}
+                page={currentPage}
+                setSelectedRow={(row: RiskModel) => setSelectedRow([row])}
+                setAnchor={() => setIsRiskModalOpen(true)}
+                onDeleteRisk={handleDelete}
+                flashRow={currentRow}
+                hidePagination={options?.hidePagination}
+              />
+            )}
+          />
+        )}
+
         {/* Add/Edit Risk Modal */}
         <StandardModal
           isOpen={isRiskModalOpen}
@@ -1024,30 +1049,6 @@ const RiskManagement = () => {
             )}
           </Stack>
         </StandardModal>
-        {showCustomizableSkeleton ? (
-          <CustomizableSkeleton
-            variant="rectangular"
-            width="100%"
-            height={200}
-          />
-        ) : (
-          <GroupedTableView
-            groupedData={groupedRisks}
-            ungroupedData={filteredRisks}
-            renderTable={(data, options) => (
-              <VWProjectRisksTable
-                rows={data}
-                setPage={setCurrentPagingation}
-                page={currentPage}
-                setSelectedRow={(row: RiskModel) => setSelectedRow([row])}
-                setAnchor={() => setIsRiskModalOpen(true)}
-                onDeleteRisk={handleDelete}
-                flashRow={currentRow}
-                hidePagination={options?.hidePagination}
-              />
-            )}
-          />
-        )}
       </Stack>
       <AddNewRiskMITModal
         isOpen={isAIModalOpen}

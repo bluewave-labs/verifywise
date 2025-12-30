@@ -9,13 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 
 
-def _get_schema_name(tenant: str) -> str:
-    """
-    Resolve the underlying Postgres schema for a given tenant.
-    """
-    return "a4ayc80OGd" if tenant == "default" else tenant
-
-
 async def create_project(
     project_id: str,
     name: str,
@@ -39,14 +32,13 @@ async def create_project(
     Returns:
         Created project as dictionary, or None if failed
     """
-    schema_name = _get_schema_name(tenant)
 
     if org_id:
         result = await db.execute(
             text(f'''
-                INSERT INTO "{schema_name}".deepeval_projects
-                (id, name, description, org_id, tenant, created_by)
-                VALUES (:id, :name, :description, :org_id, :tenant, :created_by)
+                INSERT INTO "{tenant}".deepeval_projects
+                (id, name, description, org_id, created_by)
+                VALUES (:id, :name, :description, :org_id, :created_by)
                 RETURNING id, name, description, org_id, created_at, updated_at, created_by
             '''),
             {
@@ -54,23 +46,21 @@ async def create_project(
                 "name": name,
                 "description": description,
                 "org_id": org_id,
-                "tenant": tenant,
                 "created_by": created_by
             }
         )
     else:
         result = await db.execute(
             text(f'''
-                INSERT INTO "{schema_name}".deepeval_projects
-                (id, name, description, tenant, created_by)
-                VALUES (:id, :name, :description, :tenant, :created_by)
+                INSERT INTO "{tenant}".deepeval_projects
+                (id, name, description, created_by)
+                VALUES (:id, :name, :description, :created_by)
                 RETURNING id, name, description, NULL::varchar as org_id, created_at, updated_at, created_by
             '''),
             {
                 "id": project_id,
                 "name": name,
                 "description": description,
-                "tenant": tenant,
                 "created_by": created_by
             }
         )
@@ -100,16 +90,13 @@ async def get_all_projects(tenant: str, db: AsyncSession) -> List[Dict[str, Any]
     Returns:
         List of projects
     """
-    schema_name = _get_schema_name(tenant)
 
     result = await db.execute(
         text(f'''
-            SELECT id, name, description, org_id, tenant, created_at, updated_at, created_by
-            FROM "{schema_name}".deepeval_projects
-            WHERE tenant = :tenant
+            SELECT id, name, description, org_id, created_at, updated_at, created_by
+            FROM "{tenant}".deepeval_projects
             ORDER BY created_at DESC
-        '''),
-        {"tenant": tenant}
+        ''')
     )
 
     rows = result.mappings().all()
@@ -120,7 +107,6 @@ async def get_all_projects(tenant: str, db: AsyncSession) -> List[Dict[str, Any]
             "name": row["name"],
             "description": row["description"],
             "orgId": row["org_id"],
-            "tenant": row["tenant"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
             "createdBy": row["created_by"]
@@ -144,15 +130,14 @@ async def get_project_by_id(
     Returns:
         Project as dictionary, or None if not found
     """
-    schema_name = _get_schema_name(tenant)
 
     result = await db.execute(
         text(f'''
-            SELECT id, name, description, tenant, created_at, updated_at, created_by
-            FROM "{schema_name}".deepeval_projects
-            WHERE id = :id AND tenant = :tenant
+            SELECT id, name, description, created_at, updated_at, created_by
+            FROM "{tenant}".deepeval_projects
+            WHERE id = :id
         '''),
-        {"id": project_id, "tenant": tenant}
+        {"id": project_id}
     )
 
     row = result.mappings().first()
@@ -161,7 +146,6 @@ async def get_project_by_id(
             "id": row["id"],
             "name": row["name"],
             "description": row["description"],
-            "tenant": row["tenant"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
             "createdBy": row["created_by"]
@@ -189,11 +173,10 @@ async def update_project(
     Returns:
         Updated project as dictionary, or None if not found
     """
-    schema_name = _get_schema_name(tenant)
 
     # Build update query dynamically based on provided fields
     updates = []
-    params = {"id": project_id, "tenant": tenant}
+    params = {"id": project_id}
 
     if name is not None:
         updates.append("name = :name")
@@ -211,10 +194,10 @@ async def update_project(
 
     result = await db.execute(
         text(f'''
-            UPDATE "{schema_name}".deepeval_projects
+            UPDATE "{tenant}".deepeval_projects
             SET {", ".join(updates)}
-            WHERE id = :id AND tenant = :tenant
-            RETURNING id, name, description, tenant, created_at, updated_at, created_by
+            WHERE id = :id
+            RETURNING id, name, description, created_at, updated_at, created_by
         '''),
         params
     )
@@ -225,7 +208,6 @@ async def update_project(
             "id": row["id"],
             "name": row["name"],
             "description": row["description"],
-            "tenant": row["tenant"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
             "createdBy": row["created_by"]
@@ -249,15 +231,14 @@ async def delete_project(
     Returns:
         True if deleted, False if not found
     """
-    schema_name = _get_schema_name(tenant)
 
     result = await db.execute(
         text(f'''
-            DELETE FROM "{schema_name}".deepeval_projects
-            WHERE id = :id AND tenant = :tenant
+            DELETE FROM "{tenant}".deepeval_projects
+            WHERE id = :id
             RETURNING id
         '''),
-        {"id": project_id, "tenant": tenant}
+        {"id": project_id}
     )
 
     row = result.fetchone()

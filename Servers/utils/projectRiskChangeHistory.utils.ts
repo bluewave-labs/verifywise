@@ -1,9 +1,18 @@
 /**
  * Project Risk Change History Utilities
  *
- * Wrapper functions that use the generic change history system.
- * These functions maintain backward compatibility while leveraging
- * the new generic utilities.
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * Use the generic change history functions from `changeHistory.base.utils.ts` directly instead.
+ *
+ * Migration guide:
+ * - Replace `recordProjectRiskChange()` with `recordEntityChange("risk", ...)`
+ * - Replace `recordMultipleFieldChanges()` with `recordMultipleFieldChanges("risk", ...)`
+ * - Replace `getProjectRiskChangeHistory()` with `getEntityChangeHistory("risk", ...)`
+ * - Replace `trackProjectRiskChanges()` with `trackEntityChanges("risk", ...)`
+ * - Replace `recordProjectRiskCreation()` with `recordEntityCreation("risk", ...)`
+ * - Replace `recordProjectRiskDeletion()` with `recordEntityDeletion("risk", ...)`
+ *
+ * These wrapper functions are maintained for backward compatibility only.
  */
 
 import { RiskModel } from "../domain.layer/models/risks/risk.model";
@@ -19,6 +28,7 @@ import {
 
 /**
  * Record a change in project risk
+ * @deprecated Use `recordEntityChange("risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordProjectRiskChange = async (
   projectRiskId: number,
@@ -45,6 +55,7 @@ export const recordProjectRiskChange = async (
 
 /**
  * Record multiple field changes for a project risk
+ * @deprecated Use `recordMultipleFieldChanges("risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordMultipleFieldChanges = async (
   projectRiskId: number,
@@ -65,6 +76,7 @@ export const recordMultipleFieldChanges = async (
 
 /**
  * Get change history for a specific project risk with pagination support
+ * @deprecated Use `getEntityChangeHistory("risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const getProjectRiskChangeHistory = async (
   projectRiskId: number,
@@ -83,6 +95,7 @@ export const getProjectRiskChangeHistory = async (
 
 /**
  * Track changes between old and new project risk data
+ * @deprecated Use `trackEntityChanges("risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const trackProjectRiskChanges = async (
   oldProjectRisk: RiskModel,
@@ -93,6 +106,7 @@ export const trackProjectRiskChanges = async (
 
 /**
  * Record creation of a project risk
+ * @deprecated Use `recordEntityCreation("risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordProjectRiskCreation = async (
   projectRiskId: number,
@@ -113,6 +127,7 @@ export const recordProjectRiskCreation = async (
 
 /**
  * Record deletion of a project risk
+ * @deprecated Use `recordEntityDeletion("risk", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordProjectRiskDeletion = async (
   projectRiskId: number,

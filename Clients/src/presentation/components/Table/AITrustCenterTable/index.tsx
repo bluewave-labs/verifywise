@@ -17,7 +17,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
-import { IAITrustCenterTableProps } from "../../../../domain/interfaces/i.table";
+import { IAITrustCenterTableProps } from "../../../types/interfaces/i.table";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -43,6 +43,7 @@ const AITrustCenterTable = <T extends { id: number }>({
   tableId = "ai-trust-center-table",
   disabled = false,
   hidePagination = false,
+  flashRowId,
 }: IAITrustCenterTableProps<T>) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -270,9 +271,18 @@ const AITrustCenterTable = <T extends { id: number }>({
                     !disabled && {
                       cursor: "pointer",
                       "&:hover": {
-                        backgroundColor: "#FBFBFB",
+                        backgroundColor: singleTheme.tableColors.rowHover,
                       },
                     }),
+                  ...(flashRowId === item.id && {
+                    backgroundColor: singleTheme.flashColors.background,
+                    "& td": {
+                      backgroundColor: "transparent !important",
+                    },
+                    "&:hover": {
+                      backgroundColor: singleTheme.flashColors.backgroundHover,
+                    },
+                  }),
                 }}
                 onClick={() => !disabled && onRowClick?.(item)}
               >
@@ -281,7 +291,7 @@ const AITrustCenterTable = <T extends { id: number }>({
             ))}
       </TableBody>
     ),
-    [sortedData, page, rowsPerPage, renderRow, onRowClick, disabled, hidePagination]
+    [sortedData, page, rowsPerPage, renderRow, onRowClick, disabled, hidePagination, flashRowId, sortConfig]
   );
 
   const emptyState = useMemo(

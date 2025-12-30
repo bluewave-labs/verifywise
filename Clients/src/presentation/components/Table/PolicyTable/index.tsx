@@ -22,7 +22,7 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
-import { ITableProps } from "../../../../domain/interfaces/i.table";
+import { ITableProps } from "../../../types/interfaces/i.table";
 
 const POLICY_TABLE_SORTING_KEY = "verifywise_policy_table_sorting";
 
@@ -46,6 +46,7 @@ const CustomizablePolicyTable = ({
   setAnchorEl,
   renderRow,
   hidePagination = false,
+  flashRowId,
 }: ITableProps) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -264,6 +265,17 @@ const CustomizablePolicyTable = ({
             <TableRow
               key={row.id}
               onClick={(event) => onRowClickHandler(event, row)}
+              sx={{
+                ...(flashRowId === row.id && {
+                  backgroundColor: singleTheme.flashColors.background,
+                  "& td": {
+                    backgroundColor: "transparent !important",
+                  },
+                  "&:hover": {
+                    backgroundColor: singleTheme.flashColors.backgroundHover,
+                  },
+                }),
+              }}
             >
               {data.cols.map((col) => (
                 <TableCell

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, {
   FC,
   useState,
@@ -30,11 +31,11 @@ import {
   likelihoodItems,
   riskSeverityItems,
 } from "./projectRiskValue";
-import { AddNewRiskFormProps } from "../../../domain/interfaces/i.riskForm";
+import { AddNewRiskFormProps } from "../../types/riskForm.types";
 import { ApiResponse } from "../../../domain/interfaces/i.response";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
-import { apiServices } from "../../../infrastructure/api/networkServices";
+import { createProjectRisk, updateProjectRisk } from "../../../application/repository/projectRisk.repository";
 import useUsers from "../../../application/hooks/useUsers";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -306,11 +307,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         }
       }
 
-      const actionOwner = selectValidation("Action owner", values.actionOwner);
-      if (!actionOwner.accepted) {
-        errors.actionOwner = actionOwner.message;
-      }
-
       const aiLifecyclePhase = selectValidation(
         "AI lifecycle phase",
         values.aiLifecyclePhase
@@ -571,7 +567,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
         Object.keys(changedFields).forEach(frontendField => {
           const backendField = fieldMapping[frontendField];
-          if (backendField && fullData.hasOwnProperty(backendField)) {
+          if (backendField && Object.prototype.hasOwnProperty.call(fullData, backendField)) {
             updateData[backendField] = fullData[backendField as keyof typeof fullData];
           }
         });
@@ -667,13 +663,13 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         );
 
         // Add boolean flags for deleted/emptied linked projects and frameworks
-        if (changedFields.hasOwnProperty('risk_applicableProjects')) {
+        if (Object.prototype.hasOwnProperty.call(changedFields, 'risk_applicableProjects')) {
           const originalProjects = originalRiskValues?.applicableProjects || [];
           const currentProjects = riskValues.applicableProjects || [];
           formData.deletedLinkedProject = originalProjects.length > 0 && currentProjects.length === 0;
         }
 
-        if (changedFields.hasOwnProperty('risk_applicableFrameworks')) {
+        if (Object.prototype.hasOwnProperty.call(changedFields, 'risk_applicableFrameworks')) {
           const originalFrameworks = originalRiskValues?.applicableFrameworks || [];
           const currentFrameworks = riskValues.applicableFrameworks || [];
           formData.deletedLinkedFrameworks = originalFrameworks.length > 0 && currentFrameworks.length === 0;
@@ -690,8 +686,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       try {
         const response =
           popupStatus !== "new"
-            ? await apiServices.put("/projectRisks/" + inputValues.id, formData)
-            : await apiServices.post("/projectRisks", formData);
+            ? await updateProjectRisk({ id: Number(inputValues.id), body: formData })
+            : await createProjectRisk({ body: formData });
 
         if (response && response.status === 201) {
           // risk create success

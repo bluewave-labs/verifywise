@@ -67,7 +67,7 @@ export default function EvalsSidebar({
       label: "Overview",
       value: "overview",
       icon: <LayoutDashboard size={16} strokeWidth={1.5} />,
-      disabled: disabled,
+      disabled: false, // Always enabled - shows projects list
     },
     {
       id: "experiments",
@@ -83,7 +83,7 @@ export default function EvalsSidebar({
       value: "datasets",
       icon: <Database size={16} strokeWidth={1.5} />,
       count: datasetsCount,
-      disabled: disabled,
+      disabled: false, // Always enabled - org-scoped
     },
     {
       id: "scorers",
@@ -91,7 +91,7 @@ export default function EvalsSidebar({
       value: "scorers",
       icon: <Award size={16} strokeWidth={1.5} />,
       count: scorersCount,
-      disabled: disabled,
+      disabled: false, // Always enabled - org-scoped
     },
     {
       id: "configuration",

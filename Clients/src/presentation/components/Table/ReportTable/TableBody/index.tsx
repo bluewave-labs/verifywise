@@ -5,7 +5,7 @@ import { displayFormattedDate } from "../../../../tools/isoDateToString";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import { styles } from "./styles";
 import { handleDownload } from "../../../../../application/tools/fileDownload";
-import { IReportTableProps } from "../../../../../domain/interfaces/i.table";
+import { IReportTableProps } from "../../../../types/interfaces/i.table";
 
 const ReportTableBody: React.FC<IReportTableProps> = ({
   rows,

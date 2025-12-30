@@ -11,9 +11,12 @@ import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import {
-  deepEvalScorersService,
+  listScorers,
+  createScorer,
+  updateScorer,
+  deleteScorer,
   type DeepEvalScorer,
-} from "../../../infrastructure/api/deepEvalScorersService";
+} from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import StandardModal from "../../components/Modals/StandardModal";
 import CreateScorerModal, { type ScorerConfig } from "./CreateScorerModal";
@@ -24,6 +27,7 @@ import allowedRoles from "../../../application/constants/permissions";
 
 export interface ProjectScorersProps {
   projectId: string;
+  orgId?: string | null;
 }
 
 interface AlertState {
@@ -31,7 +35,7 @@ interface AlertState {
   body: string;
 }
 
-export default function ProjectScorers({ projectId }: ProjectScorersProps) {
+export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps) {
   const [scorers, setScorers] = useState<DeepEvalScorer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,7 +63,7 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
   const loadScorers = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await deepEvalScorersService.list({ project_id: projectId });
+      const res = await listScorers({ org_id: orgId || undefined });
       setScorers(res.scorers || []);
     } catch (err) {
       console.error("Failed to load scorers", err);
@@ -68,12 +72,12 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [orgId]);
 
   useEffect(() => {
-    if (!projectId) return;
+    if (!projectId && !orgId) return;
     void loadScorers();
-  }, [projectId, loadScorers]);
+  }, [projectId, orgId, loadScorers]);
 
   const filterColumns: FilterColumn[] = useMemo(
     () => [
@@ -214,7 +218,7 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
     if (!scorerToDelete) return;
     setIsDeleting(true);
     try {
-      await deepEvalScorersService.delete(scorerToDelete.id);
+      await deleteScorer(scorerToDelete.id);
       setAlert({ variant: "success", body: "Scorer deleted" });
       setTimeout(() => setAlert(null), 3000);
       setDeleteModalOpen(false);
@@ -233,7 +237,7 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
   const handleEditScorerSubmit = async (config: ScorerConfig) => {
     if (!editingScorer) return;
     try {
-      await deepEvalScorersService.update(editingScorer.id, {
+      await updateScorer(editingScorer.id, {
         name: config.name,
         description: `LLM scorer using ${config.provider}/${config.model}`,
         metricKey: config.slug,
@@ -281,8 +285,8 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
   // Handle submit from the new comprehensive scorer modal
   const handleNewScorerSubmit = async (config: ScorerConfig) => {
     try {
-      await deepEvalScorersService.create({
-        projectId,
+      await createScorer({
+        orgId: orgId || undefined,
         name: config.name,
         description: `LLM scorer using ${config.provider}/${config.model}`,
         metricKey: config.slug,

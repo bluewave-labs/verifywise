@@ -74,7 +74,7 @@ spec:
               value: smtp.gmail.com
             - name: SMTP_PORT
               value: "587"
-            - name: FAIRNESS_AND_BIAS_URL
+            - name: LLM_EVALS_URL
               value: http://localhost:8000
 
         - name: verifywise-worker
@@ -144,12 +144,12 @@ spec:
             allowPrivilegeEscalation: false
             capabilities:
               drop:
-              - NET_RAW
+                - NET_RAW
             privileged: false
             readOnlyRootFilesystem: false
             seccompProfile:
               type: RuntimeDefault
-        
+
         - name: verifywise-biasandfairness-backend
           image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
           imagePullPolicy: Always

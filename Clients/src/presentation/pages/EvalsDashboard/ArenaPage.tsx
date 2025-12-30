@@ -10,14 +10,11 @@ import {
   Box,
   Stack,
   Typography,
-  Card,
-  CardContent,
   Chip,
   IconButton,
   CircularProgress,
   TextField,
   Divider,
-  LinearProgress,
   alpha,
   Select,
   MenuItem,
@@ -29,14 +26,11 @@ import {
   Tooltip,
 } from "@mui/material";
 import {
-  Trash2,
   Trophy,
-  Eye,
   Swords,
   Zap,
   Crown,
   Target,
-  Sparkles,
   Plus,
   X,
   Database,
@@ -53,6 +47,7 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
+import ArenaTable from "../../components/Table/ArenaTable";
 import {
   createArenaComparison,
   listArenaComparisons,
@@ -536,11 +531,13 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   const [newComparison, setNewComparison] = useState({
     name: "",
     selectedCriteria: ["helpfulness", "accuracy"] as string[], // Default selected criteria
+    judgeProvider: "openai",
     judgeModel: "gpt-4o",
+    datasetPath: "", // Single dataset for all contestants
     contestants: [
-      { name: "Player 1", hyperparameters: { model: "", provider: "openai" }, datasetPath: "", testCases: [] as { input: string; actualOutput: string }[] },
-      { name: "Player 2", hyperparameters: { model: "", provider: "openai" }, datasetPath: "", testCases: [] as { input: string; actualOutput: string }[] },
-    ] as (ArenaContestant & { datasetPath?: string; hyperparameters: { model: string; provider?: string } })[],
+      { name: "Player 1", hyperparameters: { model: "", provider: "openai" }, testCases: [] as { input: string; actualOutput: string }[] },
+      { name: "Player 2", hyperparameters: { model: "", provider: "openai" }, testCases: [] as { input: string; actualOutput: string }[] },
+    ] as (ArenaContestant & { hyperparameters: { model: string; provider?: string } })[],
   });
 
   // Toggle criteria selection
@@ -695,10 +692,12 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     setNewComparison({
       name: "",
       selectedCriteria: ["helpfulness", "accuracy"],
+      judgeProvider: "openai",
       judgeModel: "gpt-4o",
+      datasetPath: "",
       contestants: [
-        { name: "Player 1", hyperparameters: { model: "", provider: "openai" }, datasetPath: "", testCases: [] },
-        { name: "Player 2", hyperparameters: { model: "", provider: "openai" }, datasetPath: "", testCases: [] },
+        { name: "Player 1", hyperparameters: { model: "", provider: "openai" }, testCases: [] },
+        { name: "Player 2", hyperparameters: { model: "", provider: "openai" }, testCases: [] },
       ],
     });
   };
@@ -709,7 +708,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       ...newComparison,
       contestants: [
         ...newComparison.contestants,
-        { name: `Player ${newIndex}`, hyperparameters: { model: "", provider: "openai" }, datasetPath: "", testCases: [] },
+        { name: `Player ${newIndex}`, hyperparameters: { model: "", provider: "openai" }, testCases: [] },
       ],
     });
   };
@@ -728,25 +727,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       updated[index].hyperparameters = { ...updated[index].hyperparameters, provider: value, model: "" };
     } else if (field === "model") {
       updated[index].hyperparameters = { ...updated[index].hyperparameters, model: value };
-    } else if (field === "dataset") {
-      updated[index].datasetPath = value;
     }
     setNewComparison({ ...newComparison, contestants: updated });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return { bg: "#dcfce7", color: "#166534", gradient: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)" };
-      case "running":
-        return { bg: "#dbeafe", color: "#1e40af", gradient: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" };
-      case "pending":
-        return { bg: "#fef3c7", color: "#92400e", gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" };
-      case "failed":
-        return { bg: "#fee2e2", color: "#991b1b", gradient: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" };
-      default:
-        return { bg: "#f3f4f6", color: "#374151", gradient: "linear-gradient(135deg, #6b7280 0%, #4b5563 100%)" };
-    }
   };
 
   return (
@@ -929,183 +911,15 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           />
         </Box>
       ) : (
-        /* Comparisons list */
-        <Stack spacing={2}>
-          {comparisons.map((comparison) => {
-            const statusColors = getStatusColor(comparison.status);
-            const isWinner = comparison.winner;
-            
-            return (
-              <Card
-                key={comparison.id}
-                sx={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "16px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                  overflow: "hidden",
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-                    transform: "translateY(-2px)",
-                  },
-                }}
-              >
-                {/* Status bar */}
-                <Box
-                  sx={{
-                    height: 4,
-                    background: statusColors.gradient,
-                  }}
-                />
-                
-                <CardContent sx={{ p: 3, "&:last-child": { pb: 3 } }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                    <Box sx={{ flex: 1 }}>
-                      <Stack direction="row" alignItems="center" spacing={2} mb={1.5}>
-                        <Typography sx={{ fontSize: 17, fontWeight: 600, color: "#111827" }}>
-                          {comparison.name}
-                        </Typography>
-                        <Chip
-                          label={comparison.status.toUpperCase()}
-                          size="small"
-                          sx={{
-                            backgroundColor: statusColors.bg,
-                            color: statusColors.color,
-                            fontWeight: 700,
-                            fontSize: "10px",
-                            height: 22,
-                            letterSpacing: "0.5px",
-                          }}
-                        />
-                        {isWinner && (
-                          <Stack direction="row" alignItems="center" spacing={0.5} sx={{
-                            background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
-                            px: 1.5,
-                            py: 0.5,
-                            borderRadius: "20px",
-                          }}>
-                            <Crown size={14} color="#b45309" />
-                            <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#b45309" }}>
-                              {comparison.winner}
-                            </Typography>
-                          </Stack>
-                        )}
-                      </Stack>
-
-                      {/* Contestants visual */}
-                      <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" gap={1}>
-                        {comparison.contestants?.map((name, idx) => {
-                          const gradients = [
-                            "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-                            "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
-                            "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                            "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                            "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                            "linear-gradient(135deg, #ec4899 0%, #db2777 100%)",
-                          ];
-                          return (
-                            <Stack key={name} direction="row" alignItems="center" spacing={1}>
-                              <Box
-                                sx={{
-                                  width: 28,
-                                  height: 28,
-                                  borderRadius: "6px",
-                                  background: gradients[idx % gradients.length],
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  color: "#fff",
-                                }}
-                              >
-                                {name.charAt(0)}
-                              </Box>
-                              <Typography sx={{ 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: "#374151",
-                              }}>
-                                {name}
-                              </Typography>
-                              {idx < (comparison.contestants?.length || 0) - 1 && (
-                                <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#d1d5db", ml: 0.5 }}>
-                                  •
-                                </Typography>
-                              )}
-                            </Stack>
-                          );
-                        })}
-                      </Stack>
-
-                      {comparison.status === "running" && (
-                        <Box sx={{ mt: 2, maxWidth: 300 }}>
-                          <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
-                            <Sparkles size={12} color="#6366f1" />
-                            <Typography sx={{ fontSize: 11, color: "#6366f1", fontWeight: 600 }}>
-                              Battle in progress...
-                            </Typography>
-                          </Stack>
-                          <LinearProgress
-                            sx={{
-                              height: 6,
-                              borderRadius: 3,
-                              backgroundColor: "#e5e7eb",
-                              "& .MuiLinearProgress-bar": {
-                                background: "linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)",
-                                borderRadius: 3,
-                              },
-                            }}
-                          />
-                        </Box>
-                      )}
-
-                      <Typography sx={{ fontSize: 11, color: "#9ca3af", mt: 2 }}>
-                        {new Date(comparison.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </Typography>
-                    </Box>
-
-                    <Stack direction="row" spacing={1}>
-                      {comparison.status === "completed" && (
-                        <IconButton
-                          onClick={() => handleViewResults(comparison.id)}
-                          sx={{
-                            backgroundColor: "#f5f3ff",
-                            color: "#6366f1",
-                            "&:hover": { backgroundColor: "#ede9fe", color: "#4f46e5" },
-                          }}
-                        >
-                          <Eye size={18} />
-                        </IconButton>
-                      )}
-                      <IconButton
-                        onClick={() => handleDeleteComparison(comparison.id)}
-                        disabled={deleting === comparison.id}
-                        sx={{
-                          backgroundColor: "#fef2f2",
-                          color: "#dc2626",
-                          "&:hover": { backgroundColor: "#fee2e2", color: "#b91c1c" },
-                        }}
-                      >
-                        {deleting === comparison.id ? (
-                          <CircularProgress size={18} color="inherit" />
-                        ) : (
-                          <Trash2 size={18} />
-                        )}
-                      </IconButton>
-                    </Stack>
-                  </Stack>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </Stack>
+        /* Comparisons table */
+        <ArenaTable
+          rows={comparisons}
+          loading={loading}
+          deleting={deleting}
+          onRowClick={(row) => row.status === "completed" && handleViewResults(row.id)}
+          onViewResults={(row) => handleViewResults(row.id)}
+          onDelete={(row) => handleDeleteComparison(row.id)}
+        />
       )}
 
       {/* Create Comparison Modal */}
@@ -1159,8 +973,15 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           />
 
           {/* Evaluation Settings */}
-          <Box>
-            <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+          <Box
+            sx={{
+              p: 4,
+              borderRadius: "12px",
+              backgroundColor: "#f8fafc",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={1} mb={2.5}>
               <Target size={16} color="#6366f1" />
               <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
                 Evaluation Settings
@@ -1168,14 +989,17 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             </Stack>
             
             {/* Judge Model */}
-            <Box sx={{ mb: 3 }}>
-              <Field
-                label="Judge model"
-                value={newComparison.judgeModel}
-                onChange={(e) => setNewComparison({ ...newComparison, judgeModel: e.target.value })}
-                placeholder="e.g., gpt-4o"
+            <Box sx={{ mb: 2.5 }}>
+              <ModelSelector
+                provider={newComparison.judgeProvider}
+                model={newComparison.judgeModel}
+                onProviderChange={(provider) => setNewComparison({ ...newComparison, judgeProvider: provider, judgeModel: "" })}
+                onModelChange={(model) => setNewComparison({ ...newComparison, judgeModel: model })}
+                borderColor="#6366f1"
+                configuredProviders={configuredProviders}
+                onNavigateToSettings={() => navigate("/evals#settings")}
               />
-              <Typography sx={{ fontSize: 11, color: "#9ca3af", mt: 0.5 }}>
+              <Typography sx={{ fontSize: 11, color: "#9ca3af", mt: 1 }}>
                 The LLM that will compare and score the responses
               </Typography>
             </Box>
@@ -1257,7 +1081,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 1.5,
+                        gap: 4,
                         px: 2,
                         py: 1.5,
                         borderRadius: "10px",
@@ -1308,7 +1132,110 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 </Typography>
               )}
             </Box>
+            
+            {/* Dataset selector - shared across all contestants */}
+            <Box sx={{ mt: 3 }}>
+              <Stack direction="row" alignItems="center" spacing={1} mb={0.75}>
+                <Database size={14} color="#6366f1" />
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054" }}>
+                  Dataset
+                </Typography>
+              </Stack>
+              <Typography sx={{ fontSize: 11, color: "#9ca3af", mb: 1 }}>
+                All contestants will be evaluated using this dataset
+              </Typography>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={newComparison.datasetPath || ""}
+                  onChange={(e) => setNewComparison({ ...newComparison, datasetPath: e.target.value })}
+                  displayEmpty
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: 280,
+                        overflowY: "auto",
+                      },
+                    },
+                  }}
+                  sx={{
+                    fontSize: 13,
+                    backgroundColor: "#fff",
+                    borderRadius: "8px",
+                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#e5e7eb" },
+                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#d1d5db" },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#6366f1" },
+                  }}
+                >
+                  <MenuItem value="" disabled>
+                    <Typography sx={{ color: "#9ca3af", fontSize: 13 }}>
+                      {datasetsLoading ? "Loading datasets..." : "Select a dataset"}
+                    </Typography>
+                  </MenuItem>
+                  
+                  {/* My Datasets section */}
+                  {myDatasets.length > 0 && (
+                    <MenuItem disabled sx={{ opacity: 1, py: 0.5 }}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Database size={12} color="#6366f1" />
+                        <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#6366f1", textTransform: "uppercase" }}>
+                          My Datasets
+                        </Typography>
+                      </Stack>
+                    </MenuItem>
+                  )}
+                  {myDatasets.map((ds) => (
+                    <MenuItem key={`my-${ds.id}`} value={ds.path} sx={{ pl: 3 }}>
+                      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
+                        <Database size={14} color="#6366f1" />
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{ds.name}</Typography>
+                          <Typography sx={{ fontSize: 11, color: "#9ca3af" }}>
+                            {ds.promptCount} prompts • {ds.datasetType || "chatbot"}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </MenuItem>
+                  ))}
+                  
+                  {/* Template Datasets section */}
+                  {templateDatasets.length > 0 && (
+                    <MenuItem disabled sx={{ opacity: 1, py: 0.5, mt: myDatasets.length > 0 ? 1 : 0 }}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Folder size={12} color="#10b981" />
+                        <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase" }}>
+                          Template Datasets
+                        </Typography>
+                      </Stack>
+                    </MenuItem>
+                  )}
+                  {templateDatasets.map((ds) => (
+                    <MenuItem key={`template-${ds.key}`} value={ds.path} sx={{ pl: 3 }}>
+                      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
+                        <Folder size={14} color="#10b981" />
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{ds.name}</Typography>
+                          <Typography sx={{ fontSize: 11, color: "#9ca3af" }}>
+                            {ds.use_case}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </MenuItem>
+                  ))}
+                  
+                  {myDatasets.length === 0 && templateDatasets.length === 0 && !datasetsLoading && (
+                    <MenuItem disabled>
+                      <Typography sx={{ fontSize: 13, color: "#9ca3af", fontStyle: "italic" }}>
+                        No datasets found. Upload one in the Datasets tab.
+                      </Typography>
+                    </MenuItem>
+                  )}
+                </Select>
+              </FormControl>
+            </Box>
           </Box>
+
+          {/* Spacer between Evaluation Settings and Contestants */}
+          <Box sx={{ height: 6 }} />
 
           {/* Contestants */}
           <Box>
@@ -1334,16 +1261,21 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               <CustomizableButton
                 variant="contained"
                 text="Add Player"
-                icon={<Plus size={14} />}
+                icon={<Box sx={{ display: "flex" }}><Plus size={14} /></Box>}
                 onClick={addContestant}
                 sx={{
                   background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
                   color: "#fff",
                   fontSize: 12,
                   py: 0.75,
-                  px: 2.5,
+                  pl: 2,
+                  pr: 2.5,
                   ml: 2,
                   boxShadow: "0 2px 8px rgba(99,102,241,0.3)",
+                  "& .MuiButton-startIcon": {
+                    marginLeft: 0,
+                    marginRight: "6px",
+                  },
                   "&:hover": {
                     background: "linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)",
                     boxShadow: "0 4px 12px rgba(99,102,241,0.4)",
@@ -1412,7 +1344,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                       )}
                     </Stack>
 
-                    <Stack spacing={2.5}>
+                    <Stack spacing={2.5} sx={{ pb: 2 }}>
                       {/* Name field */}
                       <Field
                         label="Name"
@@ -1422,103 +1354,16 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                       />
 
                       {/* Model selector (Braintrust-style) */}
-                      <ModelSelector
-                        provider={contestant.hyperparameters?.provider || "openai"}
-                        model={contestant.hyperparameters?.model || ""}
-                        onProviderChange={(newProvider) => updateContestant(index, "provider", newProvider)}
-                        onModelChange={(newModel) => updateContestant(index, "model", newModel)}
-                        borderColor={colorScheme.border}
-                        configuredProviders={configuredProviders}
-                        onNavigateToSettings={() => navigate("/evals#settings")}
-                      />
-
-                      {/* Dataset selector */}
-                      <Box>
-                        <Stack direction="row" alignItems="center" spacing={1} mb={0.75}>
-                          <Database size={12} color="#6b7280" />
-                          <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054" }}>
-                            Dataset
-                          </Typography>
-                        </Stack>
-                        <FormControl fullWidth size="small">
-                          <Select
-                            value={contestant.datasetPath || ""}
-                            onChange={(e) => updateContestant(index, "dataset", e.target.value)}
-                            displayEmpty
-                            sx={{
-                              fontSize: 13,
-                              backgroundColor: "#fff",
-                              borderRadius: "8px",
-                              "& .MuiOutlinedInput-notchedOutline": { borderColor: "#e5e7eb" },
-                              "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#d1d5db" },
-                              "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: colorScheme.border },
-                            }}
-                          >
-                            <MenuItem value="" disabled>
-                              <Typography sx={{ color: "#9ca3af", fontSize: 13 }}>
-                                {datasetsLoading ? "Loading datasets..." : "Select a dataset"}
-                              </Typography>
-                            </MenuItem>
-                            
-                            {/* My Datasets section */}
-                            {myDatasets.length > 0 && (
-                              <MenuItem disabled sx={{ opacity: 1, py: 0.5 }}>
-                                <Stack direction="row" alignItems="center" spacing={1}>
-                                  <Database size={12} color="#6366f1" />
-                                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#6366f1", textTransform: "uppercase" }}>
-                                    My Datasets
-                                  </Typography>
-                                </Stack>
-                              </MenuItem>
-                            )}
-                            {myDatasets.map((ds) => (
-                              <MenuItem key={`my-${ds.id}`} value={ds.path} sx={{ pl: 3 }}>
-                                <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
-                                  <Database size={14} color="#6366f1" />
-                                  <Box sx={{ flex: 1 }}>
-                                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{ds.name}</Typography>
-                                    <Typography sx={{ fontSize: 11, color: "#9ca3af" }}>
-                                      {ds.promptCount} prompts • {ds.datasetType || "chatbot"}
-                                    </Typography>
-                                  </Box>
-                                </Stack>
-                              </MenuItem>
-                            ))}
-                            
-                            {/* Template Datasets section */}
-                            {templateDatasets.length > 0 && (
-                              <MenuItem disabled sx={{ opacity: 1, py: 0.5, mt: myDatasets.length > 0 ? 1 : 0 }}>
-                                <Stack direction="row" alignItems="center" spacing={1}>
-                                  <Folder size={12} color="#10b981" />
-                                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase" }}>
-                                    Template Datasets
-                                  </Typography>
-                                </Stack>
-                              </MenuItem>
-                            )}
-                            {templateDatasets.map((ds) => (
-                              <MenuItem key={`template-${ds.key}`} value={ds.path} sx={{ pl: 3 }}>
-                                <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
-                                  <Folder size={14} color="#10b981" />
-                                  <Box sx={{ flex: 1 }}>
-                                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{ds.name}</Typography>
-                                    <Typography sx={{ fontSize: 11, color: "#9ca3af" }}>
-                                      {ds.use_case}
-                                    </Typography>
-                                  </Box>
-                                </Stack>
-                              </MenuItem>
-                            ))}
-                            
-                            {myDatasets.length === 0 && templateDatasets.length === 0 && !datasetsLoading && (
-                              <MenuItem disabled>
-                                <Typography sx={{ fontSize: 13, color: "#9ca3af", fontStyle: "italic" }}>
-                                  No datasets found. Upload one in the Datasets tab.
-                                </Typography>
-                              </MenuItem>
-                            )}
-                          </Select>
-                        </FormControl>
+                      <Box sx={{ pb: 1 }}>
+                        <ModelSelector
+                          provider={contestant.hyperparameters?.provider || "openai"}
+                          model={contestant.hyperparameters?.model || ""}
+                          onProviderChange={(newProvider) => updateContestant(index, "provider", newProvider)}
+                          onModelChange={(newModel) => updateContestant(index, "model", newModel)}
+                          borderColor={colorScheme.border}
+                          configuredProviders={configuredProviders}
+                          onNavigateToSettings={() => navigate("/evals#settings")}
+                        />
                       </Box>
                     </Stack>
                   </Box>

@@ -844,15 +844,12 @@ export default function NewExperimentModal({
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                width: "100%",
-                                height: provider.id === "huggingface" || provider.id === "xai" ? 56 : 48,
+                                width: 40,
+                                height: 40,
                                 mb: 1.5,
                                 "& svg": {
-                                  maxWidth: provider.id === "huggingface" || provider.id === "xai" ? "100%" : "90%",
-                                  maxHeight: "100%",
-                                  width: "auto",
-                                  height: "auto",
-                                  objectFit: "contain",
+                                  width: 32,
+                                  height: 32,
                                 },
                               }}
                             >
@@ -1532,15 +1529,12 @@ export default function NewExperimentModal({
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
-                                  width: "100%",
-                                  height: provider.id === "huggingface" || provider.id === "xai" ? 56 : 48,
+                                  width: 40,
+                                  height: 40,
                                   mb: 1.5,
                                   "& svg": {
-                                    maxWidth: provider.id === "huggingface" || provider.id === "xai" ? "100%" : "90%",
-                                    maxHeight: "100%",
-                                    width: "auto",
-                                    height: "auto",
-                                    objectFit: "contain",
+                                    width: 32,
+                                    height: 32,
                                   },
                                 }}
                               >

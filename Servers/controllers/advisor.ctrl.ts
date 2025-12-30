@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { runAgent } from "../advisor/agent";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import { getLLMKeysQuery, getLLMProviderUrl } from "../utils/llmKey.utils";
+import { getLLMKeysWithKeyQuery, getLLMProviderUrl } from "../utils/llmKey.utils";
 import { LLMProvider } from "../domain.layer/interfaces/i.llmKey";
 import { availableRiskTools } from "../advisor/functions/riskFunctions";
 import { availableModelInventoryTools } from "../advisor/functions/modelInventoryFunctions";
@@ -50,7 +50,7 @@ export async function runAdvisor(req: Request, res: Response) {
       `Running advisor for tenant: ${tenantId}, user: ${userId}, llmKeyId: ${llmKeyId}, prompt: ${prompt.substring(0, 100)}...`,
     );
 
-    const clients = await getLLMKeysQuery(tenantId);
+    const clients = await getLLMKeysWithKeyQuery(tenantId);
 
     if (clients.length === 0) {
       logger.debug(`No LLM keys found for tenant: ${tenantId}`);
@@ -81,6 +81,7 @@ export async function runAdvisor(req: Request, res: Response) {
       tenant: tenantId,
       availableTools,
       toolsDefinition,
+      provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter",
     });
 
     logStructured(

@@ -19,6 +19,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@awaismirza/bypass-cors": "^1.1.2",
     "@aws-sdk/client-ses": "^3.901.0",
     "@slack/web-api": "^7.10.0",

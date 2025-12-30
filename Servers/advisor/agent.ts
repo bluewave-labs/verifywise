@@ -1,4 +1,5 @@
 import { OpenAI } from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import { getAdvisorPrompt } from "./prompts";
 import logger from "../utils/logger/fileLogger";
 
@@ -10,9 +11,145 @@ interface AdvisorParams {
   tenant: string;
   availableTools: any;
   toolsDefinition: any[];
+  provider: "Anthropic" | "OpenAI" | "OpenRouter";
 }
 
-export const runAgent = async ({
+/**
+ * Convert OpenAI-style tool definitions to Anthropic format
+ */
+const convertToolsToAnthropicFormat = (openAITools: any[]): Anthropic.Tool[] => {
+  return openAITools.map((tool) => ({
+    name: tool.function.name,
+    description: tool.function.description,
+    input_schema: tool.function.parameters,
+  }));
+};
+
+/**
+ * Run agent using Anthropic's native API
+ */
+const runAnthropicAgent = async ({
+  apiKey,
+  model,
+  userPrompt,
+  tenant,
+  availableTools,
+  toolsDefinition,
+}: Omit<AdvisorParams, "baseURL" | "provider">) => {
+  const agentStartTime = Date.now();
+  logger.info(`[TIMER] runAgent (Anthropic) started for advisor with model ${model}`);
+
+  const client = new Anthropic({ apiKey });
+  const systemPrompt = getAdvisorPrompt();
+  const anthropicTools = convertToolsToAnthropicFormat(toolsDefinition);
+
+  // Anthropic messages format
+  const messages: Anthropic.MessageParam[] = [
+    { role: "user", content: userPrompt },
+  ];
+
+  let iterationCount = 0;
+
+  while (true) {
+    iterationCount++;
+    const iterationStartTime = Date.now();
+
+    const llmCallStartTime = Date.now();
+    const response = await client.messages.create({
+      model: model,
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: messages,
+      tools: anthropicTools,
+    });
+    const llmCallEndTime = Date.now();
+    logger.info(
+      `[TIMER] Anthropic API call in iteration ${iterationCount} took ${llmCallEndTime - llmCallStartTime}ms`
+    );
+
+    // Check if the model wants to use tools
+    const toolUseBlocks = response.content.filter(
+      (block): block is Anthropic.ToolUseBlock => block.type === "tool_use"
+    );
+    const textBlocks = response.content.filter(
+      (block): block is Anthropic.TextBlock => block.type === "text"
+    );
+
+    if (toolUseBlocks.length > 0) {
+      logger.info(
+        `[TIMER] Iteration ${iterationCount}: Processing ${toolUseBlocks.length} tool call(s)`
+      );
+
+      // Add assistant message with tool use to history
+      messages.push({
+        role: "assistant",
+        content: response.content,
+      });
+
+      // Process each tool call
+      const toolResults: Anthropic.ToolResultBlockParam[] = [];
+      for (const toolUse of toolUseBlocks) {
+        const functionName = toolUse.name;
+        const functionArgs = toolUse.input as Record<string, unknown>;
+
+        const functionToCall = availableTools[functionName];
+
+        if (!functionToCall) {
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: toolUse.id,
+            content: JSON.stringify({ error: `Tool ${functionName} not found` }),
+            is_error: true,
+          });
+          continue;
+        }
+
+        try {
+          const functionResponse = await functionToCall(functionArgs, tenant);
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: toolUse.id,
+            content: JSON.stringify(functionResponse),
+          });
+        } catch (error) {
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: toolUse.id,
+            content: JSON.stringify({
+              error: error instanceof Error ? error.message : "Unknown error occurred",
+            }),
+            is_error: true,
+          });
+        }
+      }
+
+      // Add tool results to messages
+      messages.push({
+        role: "user",
+        content: toolResults,
+      });
+
+      const iterationEndTime = Date.now();
+      logger.info(
+        `[TIMER] Iteration ${iterationCount} completed in ${iterationEndTime - iterationStartTime}ms`
+      );
+    } else {
+      // No tool calls - return the text response
+      const agentEndTime = Date.now();
+      const totalAgentTime = agentEndTime - agentStartTime;
+      logger.info(
+        `[TIMER] Agentic AI (Anthropic) with ${model} completed after ${iterationCount} iterations in ${totalAgentTime}ms (${(totalAgentTime / 1000).toFixed(2)}s)`
+      );
+
+      return textBlocks.map((block) => block.text).join("\n") || "";
+    }
+  }
+};
+
+/**
+ * Run agent using OpenAI-compatible API (OpenAI, OpenRouter)
+ */
+const runOpenAICompatibleAgent = async ({
   apiKey,
   baseURL,
   model,
@@ -20,19 +157,15 @@ export const runAgent = async ({
   tenant,
   availableTools,
   toolsDefinition,
-}: AdvisorParams) => {
+}: Omit<AdvisorParams, "provider">) => {
   const agentStartTime = Date.now();
-  logger.info(
-    `[TIMER] runAgent internal started for advisor with model ${model}`,
-  );
+  logger.info(`[TIMER] runAgent (OpenAI-compatible) started for advisor with model ${model}`);
 
-  // 1. SETUP: Configure client
   const client = new OpenAI({
     apiKey: apiKey,
     baseURL: baseURL,
   });
 
-  // Initialize conversation history with system context
   const systemMessage = {
     role: "system",
     content: getAdvisorPrompt(),
@@ -44,44 +177,42 @@ export const runAgent = async ({
   ];
 
   let iterationCount = 0;
-  // Start the Agentic Loop
-  // We loop until the model decides to stop calling tools and gives a text answer
+
   while (true) {
     iterationCount++;
     const iterationStartTime = Date.now();
 
-    // Step A: Send history + tool definitions to LLM
     const llmCallStartTime = Date.now();
     const response = await client.chat.completions.create({
       model: model,
       messages: messages,
       tools: toolsDefinition,
-      tool_choice: "auto", // Let LLM decide whether to use a tool or not
+      tool_choice: "auto",
     });
     const llmCallEndTime = Date.now();
     logger.info(
-      `[TIMER] LLM API call in iteration ${iterationCount} took ${llmCallEndTime - llmCallStartTime}ms`,
+      `[TIMER] LLM API call in iteration ${iterationCount} took ${llmCallEndTime - llmCallStartTime}ms`
     );
 
-    // Step B: Analyze the LLM's "Thought"
     const responseMessage: any = response.choices[0].message;
-
-    // Add the LLM's response (which might be a tool call) to history
-    // This is crucial for maintaining context
     messages.push(responseMessage);
 
-    // Step C: Check if LLM wants to run a tool
     if (responseMessage.tool_calls) {
-      // The LLM wants to run one (or more) tools
       logger.info(
-        `[TIMER] Iteration ${iterationCount}: Processing ${responseMessage.tool_calls.length} tool call(s)`,
+        `[TIMER] Iteration ${iterationCount}: Processing ${responseMessage.tool_calls.length} tool call(s)`
       );
 
       for (const toolCall of responseMessage.tool_calls) {
         const functionName = toolCall.function.name;
-        const functionArgs = JSON.parse(toolCall.function.arguments);
+        let functionArgs = {};
+        try {
+          functionArgs = toolCall.function.arguments
+            ? JSON.parse(toolCall.function.arguments)
+            : {};
+        } catch (parseError) {
+          logger.warn(`Failed to parse tool arguments for ${functionName}: ${toolCall.function.arguments}`);
+        }
 
-        // 1. Look up the function in our registry
         const functionToCall = availableTools[functionName];
 
         if (!functionToCall) {
@@ -97,11 +228,7 @@ export const runAgent = async ({
         }
 
         try {
-          // 2. Execute the actual code with tenant context
           const functionResponse = await functionToCall(functionArgs, tenant);
-
-          // 3. Add the "Tool Output" back to the message history
-          // We must include the 'tool_call_id' so the LLM knows which request this answers
           messages.push({
             role: "tool",
             tool_call_id: toolCall.id,
@@ -114,29 +241,37 @@ export const runAgent = async ({
             tool_call_id: toolCall.id,
             name: functionName,
             content: JSON.stringify({
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "Unknown error occurred",
+              error: error instanceof Error ? error.message : "Unknown error occurred",
             }),
           });
         }
       }
       const iterationEndTime = Date.now();
       logger.info(
-        `[TIMER] Iteration ${iterationCount} completed in ${iterationEndTime - iterationStartTime}ms`,
+        `[TIMER] Iteration ${iterationCount} completed in ${iterationEndTime - iterationStartTime}ms`
       );
-      // The loop continues... the next iteration sends the tool output back to the LLM
     } else {
-      // Step D: STOPPING CONDITION
-      // If there are no tool_calls, the LLM has generated a final natural language response
       const agentEndTime = Date.now();
       const totalAgentTime = agentEndTime - agentStartTime;
       logger.info(
-        `[TIMER] Agentic AI with ${model} completed after ${iterationCount} iterations in ${totalAgentTime}ms (${(totalAgentTime / 1000).toFixed(2)}s)`,
+        `[TIMER] Agentic AI (OpenAI-compatible) with ${model} completed after ${iterationCount} iterations in ${totalAgentTime}ms (${(totalAgentTime / 1000).toFixed(2)}s)`
       );
 
       return responseMessage.content;
     }
+  }
+};
+
+/**
+ * Main entry point - routes to appropriate provider
+ */
+export const runAgent = async (params: AdvisorParams) => {
+  const { provider } = params;
+
+  if (provider === "Anthropic") {
+    return runAnthropicAgent(params);
+  } else {
+    // OpenAI and OpenRouter use OpenAI-compatible API
+    return runOpenAICompatibleAgent(params);
   }
 };

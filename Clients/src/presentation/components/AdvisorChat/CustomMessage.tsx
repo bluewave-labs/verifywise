@@ -19,11 +19,15 @@ const MessageText: FC = () => {
       p: 'div',
       h1(props) {
         const {node, ...rest} = props
-        return <h1 style={{marginTop: 0}} {...rest} />
+        return <h1 style={{marginTop: 0, fontSize: '15px', fontWeight: 600}} {...rest} />
       },
       h2(props) {
         const {node, ...rest} = props
-        return <h2 style={{marginTop: 0}} {...rest} />
+        return <h2 style={{marginTop: 0, fontSize: '15px', fontWeight: 700}} {...rest} />
+      },
+      h3(props) {
+        const {node, ...rest} = props
+        return <h3 style={{marginTop: 0, fontSize: '13px', fontWeight: 600}} {...rest} />
       }
     }}>{data.text}</Markdown>
   );

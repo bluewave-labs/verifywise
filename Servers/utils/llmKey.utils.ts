@@ -21,6 +21,17 @@ export const getLLMKeysQuery = async (tenant: string) => {
   return result[0];
 };
 
+/**
+ * Gets LLM keys including the actual API key (for internal use only, e.g., advisor)
+ * WARNING: This returns sensitive data - do not expose to API responses
+ */
+export const getLLMKeysWithKeyQuery = async (tenant: string) => {
+  const result = (await sequelize.query(
+    `SELECT id, name, url, model, key, created_at FROM "${tenant}".llm_keys ORDER BY created_at DESC;`,
+  )) as [LLMKeyModel[], number];
+  return result[0];
+};
+
 export const getLLMKeyQuery = async (tenant: string, name: string) => {
   const result = (await sequelize.query(
     `SELECT id, name, url, model, created_at FROM "${tenant}".llm_keys WHERE name = :name;`,

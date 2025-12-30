@@ -10,7 +10,7 @@ interface AdvisorChatProps {
 
 const AdvisorChat = ({ selectedLLMKeyId, pageContext }: AdvisorChatProps) => {
   const theme = useTheme();
-  const runtime: AssistantRuntime = useAdvisorRuntime(selectedLLMKeyId);
+  const runtime: AssistantRuntime = useAdvisorRuntime(selectedLLMKeyId, pageContext);
 
   return (
     <Paper

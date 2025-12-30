@@ -14,7 +14,13 @@ export const getAdvisorType = (pathname: string): string => {
   }
 }
 
-export const useAdvisorRuntime = (selectedLLMKeyId?: number) => {
+const WELCOME_MESSAGES = {
+  'risk-management': "Hello! I'm your AI Risk Management Advisor. I can help you analyze risk distributions, track mitigation progress, identify high-priority risks, and understand trends over time. What would you like to know about your risks?",
+  'model-inventory': "Hello! I'm your AI Model Inventory Advisor. I can help you understand your model landscape, check approval statuses, review security assessments, and analyze provider distributions. What would you like to know about your models?",
+  'default': "Hello! I'm your VerifyWise AI Advisor. I can help you with both AI Risk Management and Model Inventory. What would you like to know?",
+};
+
+export const useAdvisorRuntime = (selectedLLMKeyId?: number, pageContext?: 'risk-management' | 'model-inventory') => {
   // Memoize the chat adapter to prevent recreation on every render
   const chatModelAdapter: ChatModelAdapter = useMemo(() => ({
     async run({ messages = [] }: ChatModelRunOptions): Promise<ChatModelRunResult> {
@@ -107,7 +113,7 @@ export const useAdvisorRuntime = (selectedLLMKeyId?: number) => {
     },
   }), [selectedLLMKeyId]); // Re-create adapter when LLM key changes
 
-  // Memoize initial messages to prevent recreation
+  // Memoize initial messages based on page context
   const initialMessages = useMemo(() => [
     {
       role: 'assistant' as const,
@@ -116,11 +122,11 @@ export const useAdvisorRuntime = (selectedLLMKeyId?: number) => {
       content: [
         {
           type: 'text' as const,
-          text: 'Hello! I\'m your Verifywise AI Advisor. I can help you with both AI Risk Management and Model Inventory. What would you like to know?',
+          text: WELCOME_MESSAGES[pageContext || 'default'],
         },
       ],
     },
-  ], []);
+  ], [pageContext]);
 
   const runtime = useLocalRuntime(chatModelAdapter, {
     initialMessages,

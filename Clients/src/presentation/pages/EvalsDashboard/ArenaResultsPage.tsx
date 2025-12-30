@@ -66,9 +66,20 @@ const getProviderDisplayName = (provider: string): string => {
   return names[provider?.toLowerCase()] || provider || "Custom";
 };
 
+// Preprocess LaTeX delimiters to work with remark-math
+const preprocessLatex = (text: string): string => {
+  // Convert \[ \] to $$ $$ (display math)
+  let processed = text.replace(/\\\[/g, '$$').replace(/\\\]/g, '$$');
+  // Convert \( \) to $ $ (inline math)
+  processed = processed.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+  return processed;
+};
+
 // Markdown renderer with LaTeX support
 const MarkdownRenderer = ({ content }: { content: string }) => {
   if (!content) return null;
+  
+  const processedContent = preprocessLatex(content);
   
   return (
     <Box
@@ -144,7 +155,7 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
         remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeKatex]}
       >
-        {content}
+        {processedContent}
       </ReactMarkdown>
     </Box>
   );

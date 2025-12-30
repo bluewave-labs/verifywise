@@ -81,6 +81,12 @@ const PROVIDER_ICONS: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = 
   openrouter: OpenRouterLogo,
 };
 
+// Timing constants (in milliseconds)
+const POLLING_INTERVAL_MS = 5000;
+const ALERT_SUCCESS_DURATION_MS = 3000;
+const ALERT_ERROR_DURATION_MS = 5000;
+const RELOAD_DELAY_MS = 1000;
+
 // Built-in evaluation criteria for Arena comparisons
 const EVALUATION_CRITERIA = [
   {
@@ -645,7 +651,10 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterConditions, setFilterConditions] = useState<FilterCondition[]>([]);
   const [filterLogic, setFilterLogic] = useState<"and" | "or">("and");
+  // Group state - values reserved for future grouping feature
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_groupBy, setGroupBy] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_groupSortOrder, setGroupSortOrder] = useState<"asc" | "desc">("asc");
 
   // Filter columns for arena battles
@@ -774,7 +783,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     if (hasRunningComparisons) {
       pollIntervalRef.current = setInterval(() => {
         loadComparisons();
-      }, 5000); // Poll every 5 seconds
+      }, POLLING_INTERVAL_MS);
     }
 
     return () => {
@@ -813,17 +822,17 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       });
 
       setAlert({ variant: "success", body: "Arena battle started!" });
-      setTimeout(() => setAlert(null), 3000);
+      setTimeout(() => setAlert(null), ALERT_SUCCESS_DURATION_MS);
       setCreateModalOpen(false);
       resetForm();
       // Immediately refresh (silent - no loading state)
       await reloadComparisons();
-      // Poll again after 1 second to catch the running state
-      setTimeout(() => reloadComparisons(), 1000);
+      // Poll again after delay to catch the running state
+      setTimeout(() => reloadComparisons(), RELOAD_DELAY_MS);
     } catch (err) {
       console.error("Failed to create arena comparison:", err);
       setAlert({ variant: "error", body: "Failed to create arena comparison" });
-      setTimeout(() => setAlert(null), 5000);
+      setTimeout(() => setAlert(null), ALERT_ERROR_DURATION_MS);
     } finally {
       setCreating(false);
     }
@@ -838,12 +847,12 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     try {
       await deleteArenaComparison(comparisonId);
       setAlert({ variant: "success", body: "Arena comparison deleted" });
-      setTimeout(() => setAlert(null), 3000);
+      setTimeout(() => setAlert(null), ALERT_SUCCESS_DURATION_MS);
       await reloadComparisons();
     } catch (err) {
       console.error("Failed to delete comparison:", err);
       setAlert({ variant: "error", body: "Failed to delete comparison" });
-      setTimeout(() => setAlert(null), 5000);
+      setTimeout(() => setAlert(null), ALERT_ERROR_DURATION_MS);
     } finally {
       setDeleting(null);
     }

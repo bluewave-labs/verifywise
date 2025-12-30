@@ -28,7 +28,6 @@ import {
   ChevronDown,
   ChevronRight,
   Scale,
-  BarChart3,
   MessageSquare,
   Zap,
   Bot,
@@ -383,12 +382,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
   const isFailed = results.status === "failed";
   const winCounts = results.results?.winCounts || {};
   const contestants = results.contestants || [];
-  const ties = results.results?.detailedResults?.filter((r) => !r.winner).length || 0;
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto" }}>
       {/* Header */}
-      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 5 }}>
+      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
         <IconButton
           onClick={onBack}
           size="small"
@@ -399,20 +397,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
         >
           <ArrowLeft size={18} />
         </IconButton>
-        <Typography sx={{ fontSize: 20, fontWeight: 600, color: "#111827" }}>
+        <Typography sx={{ fontSize: 22, fontWeight: 700, color: "#111827" }}>
           {results.name}
         </Typography>
-        <Chip
-          label={results.status.charAt(0).toUpperCase() + results.status.slice(1)}
-          size="small"
-          sx={{
-            height: 22,
-            fontSize: 11,
-            fontWeight: 600,
-            backgroundColor: isCompleted ? "#dcfce7" : isFailed ? "#fee2e2" : "#fef3c7",
-            color: isCompleted ? "#166534" : isFailed ? "#991b1b" : "#92400e",
-          }}
-        />
       </Stack>
 
       {/* Error State */}
@@ -435,13 +422,13 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
         </Box>
       )}
 
-      {/* Summary Section */}
+      {/* Summary Section - Winner and Battle Info */}
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr 320px",
-          gap: 4,
-          mb: 5,
+          gridTemplateColumns: "1fr 1fr",
+          gap: 3,
+          mb: 4,
         }}
       >
         {/* Winner Card */}
@@ -455,73 +442,17 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
             border: isCompleted ? "1px solid #facc15" : "1px solid #e5e7eb",
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-            <Trophy size={16} color={isCompleted ? "#a16207" : "#9ca3af"} />
-            <Typography sx={{ fontSize: 11, fontWeight: 600, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Winner
-            </Typography>
-          </Stack>
-          <Typography sx={{ fontSize: 24, fontWeight: 700, color: isCompleted ? "#713f12" : "#6b7280", mb: 0.5 }}>
+          <Typography sx={{ fontSize: 11, fontWeight: 600, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5, mb: 1 }}>
+            Winner
+          </Typography>
+          <Typography sx={{ fontSize: 28, fontWeight: 700, color: isCompleted ? "#713f12" : "#6b7280", mb: 0.5 }}>
             {results.results?.winner || "—"}
           </Typography>
-          <Typography sx={{ fontSize: 12, color: isCompleted ? "#a16207" : "#9ca3af" }}>
+          <Typography sx={{ fontSize: 13, color: isCompleted ? "#a16207" : "#9ca3af" }}>
             {isCompleted && results.results?.winner
               ? `${winCounts[results.results.winner] || 0} of ${totalRounds} rounds won`
               : "No winner determined"}
           </Typography>
-        </Box>
-
-        {/* Score Distribution */}
-        <Box
-          sx={{
-            p: 3,
-            borderRadius: "12px",
-            background: "linear-gradient(135deg, #fff 0%, #f8fafc 100%)",
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-          }}
-        >
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-            <BarChart3 size={16} color="#6366f1" />
-            <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Score Distribution
-            </Typography>
-          </Stack>
-          <Stack spacing={1.5}>
-            {contestants.map((name, idx) => {
-              const wins = winCounts[name] || 0;
-              const pct = totalRounds > 0 ? (wins / totalRounds) * 100 : 0;
-              const color = getColor(idx);
-              return (
-                <Box key={name}>
-                  <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>
-                      {name}
-                    </Typography>
-                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: color.text }}>
-                      {wins} wins ({pct.toFixed(0)}%)
-                    </Typography>
-                  </Stack>
-                  <Box sx={{ height: 6, backgroundColor: "#f3f4f6", borderRadius: 3, overflow: "hidden" }}>
-                    <Box
-                      sx={{
-                        height: "100%",
-                        width: `${pct}%`,
-                        backgroundColor: color.main,
-                        borderRadius: 3,
-                        transition: "width 0.3s ease",
-                      }}
-                    />
-                  </Box>
-                </Box>
-              );
-            })}
-            {ties > 0 && (
-              <Typography sx={{ fontSize: 11, color: "#9ca3af", mt: 0.5 }}>
-                {ties} tie{ties > 1 ? "s" : ""}
-              </Typography>
-            )}
-          </Stack>
         </Box>
 
         {/* Battle Info */}
@@ -529,91 +460,68 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
           sx={{
             p: 3,
             borderRadius: "12px",
-            background: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)",
-            border: "1px solid #cbd5e1",
+            backgroundColor: "#f8fafc",
+            border: "1px solid #e2e8f0",
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-            <Scale size={16} color="#6b7280" />
-            <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Battle Info
-            </Typography>
-          </Stack>
-          <Stack spacing={1.5}>
+          <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: 0.5, mb: 2 }}>
+            Battle Info
+          </Typography>
+          <Stack direction="row" spacing={4}>
             <Box>
-              <Typography sx={{ fontSize: 10, color: "#9ca3af", textTransform: "uppercase" }}>
-                Judge Model
+              <Typography sx={{ fontSize: 10, color: "#9ca3af", textTransform: "uppercase", mb: 0.5 }}>
+                Judge
               </Typography>
-              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>
                 {results.judgeModel || "gpt-4o"}
               </Typography>
             </Box>
             <Box>
-              <Typography sx={{ fontSize: 10, color: "#9ca3af", textTransform: "uppercase" }}>
-                Total Rounds
+              <Typography sx={{ fontSize: 10, color: "#9ca3af", textTransform: "uppercase", mb: 0.5 }}>
+                Rounds
               </Typography>
-              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>
                 {totalRounds}
               </Typography>
             </Box>
-            {results.metric?.name && (
-              <Box>
-                <Typography sx={{ fontSize: 10, color: "#9ca3af", textTransform: "uppercase" }}>
-                  Evaluation Criteria
-                </Typography>
-                <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 0.5 }}>
-                  {results.metric.name.split(", ").map((criterion, idx) => (
-                    <Chip
-                      key={idx}
-                      label={criterion}
-                      size="small"
-                      sx={{
-                        height: 20,
-                        fontSize: 10,
-                        fontWeight: 500,
-                        backgroundColor: "#f5f3ff",
-                        color: "#6366f1",
-                        border: "1px solid #e0e7ff",
-                      }}
-                    />
-                  ))}
-                </Stack>
-              </Box>
-            )}
             <Box>
-              <Typography sx={{ fontSize: 10, color: "#9ca3af", textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: 10, color: "#9ca3af", textTransform: "uppercase", mb: 0.5 }}>
                 Duration
               </Typography>
-              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>
                 {results.createdAt && results.completedAt
                   ? `${Math.round((new Date(results.completedAt).getTime() - new Date(results.createdAt).getTime()) / 1000)}s`
                   : "—"}
               </Typography>
             </Box>
           </Stack>
+          {results.metric?.name && (
+            <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 2 }}>
+              {results.metric.name.split(", ").map((criterion, idx) => (
+                <Chip
+                  key={idx}
+                  label={criterion}
+                  size="small"
+                  sx={{
+                    height: 22,
+                    fontSize: 11,
+                    fontWeight: 500,
+                    backgroundColor: "#fff",
+                    color: "#6366f1",
+                    border: "1px solid #e0e7ff",
+                  }}
+                />
+              ))}
+            </Stack>
+          )}
         </Box>
       </Box>
 
-      {/* Contestant Scores Table */}
-      <Box sx={{ mb: 5 }}>
-        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: "10px",
-              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <BarChart3 size={18} color="#fff" />
-          </Box>
-          <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#1e293b" }}>
-            Contestant Performance
-          </Typography>
-        </Stack>
+      {/* Contestant Performance Table */}
+      <Box sx={{ mb: 4 }}>
+        <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#1e293b", mb: 2 }}>
+          Contestant Performance
+        </Typography>
         <TableContainer
           component={Paper}
           elevation={0}
@@ -771,29 +679,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
         
         return (
           <Box sx={{ mb: 4 }}>
-            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 3 }}>
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <BarChart3 size={18} color="#fff" />
-              </Box>
-              <Box>
-                <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#1e293b" }}>
-                  Average Scores by Criterion
-                </Typography>
-                <Typography sx={{ fontSize: 12, color: "#64748b" }}>
-                  Performance breakdown across {criteriaList.length} evaluation criteria
-                </Typography>
-              </Box>
-            </Stack>
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#1e293b", mb: 2 }}>
+              Average Scores by Criterion
+            </Typography>
             
             <Box
               sx={{
@@ -865,30 +753,10 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
       {/* Round Results */}
       {results.results?.detailedResults?.length > 0 && (
         <Box>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <MessageSquare size={18} color="#fff" />
-              </Box>
-              <Box>
-                <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#1e293b" }}>
-                  Round Details
-                </Typography>
-                <Typography sx={{ fontSize: 12, color: "#64748b" }}>
-                  {totalRounds} rounds evaluated
-                </Typography>
-              </Box>
-            </Stack>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#1e293b" }}>
+              Round Details ({totalRounds} rounds)
+            </Typography>
             <CustomizableButton
               variant="outlined"
               text={expandedRounds.size === totalRounds ? "Collapse All" : "Expand All"}

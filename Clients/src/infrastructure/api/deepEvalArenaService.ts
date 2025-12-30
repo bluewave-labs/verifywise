@@ -89,6 +89,9 @@ export interface ArenaComparisonSummary {
 
 const BASE_URL = '/deepeval';
 
+// API timeout for arena operations (matches experiments)
+const API_TIMEOUT_MS = 60000;
+
 class DeepEvalArenaService {
   /**
    * Create and start a new arena comparison
@@ -110,7 +113,7 @@ class DeepEvalArenaService {
     comparisons: ArenaComparisonSummary[];
   }> {
     // Match experiments timeout (60s)
-    const response = await CustomAxios.get(`${BASE_URL}/arena/comparisons`, { params, timeout: 60000 });
+    const response = await CustomAxios.get(`${BASE_URL}/arena/comparisons`, { params, timeout: API_TIMEOUT_MS });
     return response.data;
   }
 
@@ -127,7 +130,7 @@ class DeepEvalArenaService {
     updatedAt?: string;
   }> {
     // Match experiments timeout (60s)
-    const response = await CustomAxios.get(`${BASE_URL}/arena/comparisons/${comparisonId}`, { timeout: 60000 });
+    const response = await CustomAxios.get(`${BASE_URL}/arena/comparisons/${comparisonId}`, { timeout: API_TIMEOUT_MS });
     return response.data;
   }
 
@@ -157,7 +160,7 @@ class DeepEvalArenaService {
     errorMessage?: string;
   }> {
     // Match experiments timeout (60s)
-    const response = await CustomAxios.get(`${BASE_URL}/arena/comparisons/${comparisonId}/results`, { timeout: 60000 });
+    const response = await CustomAxios.get(`${BASE_URL}/arena/comparisons/${comparisonId}/results`, { timeout: API_TIMEOUT_MS });
     return response.data;
   }
 
@@ -169,7 +172,7 @@ class DeepEvalArenaService {
     id: string;
   }> {
     // Delete operations should also have reasonable timeout
-    const response = await CustomAxios.delete(`${BASE_URL}/arena/comparisons/${comparisonId}`, { timeout: 60000 });
+    const response = await CustomAxios.delete(`${BASE_URL}/arena/comparisons/${comparisonId}`, { timeout: API_TIMEOUT_MS });
     return response.data;
   }
 }

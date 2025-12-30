@@ -27,6 +27,9 @@ from database.redis import get_redis
 import logging
 logger = logging.getLogger('uvicorn')
 
+# Constants
+MAX_PROMPTS_PER_COMPARISON = 10  # Limit to avoid long-running tasks
+
 
 async def load_dataset_prompts(dataset_path: str, tenant: str) -> List[Dict[str, Any]]:
     """
@@ -240,10 +243,9 @@ async def run_arena_comparison_task(
         logger.info(f"[ARENA] {comparison_id}: Loaded {len(prompts)} prompts")
         
         # Limit prompts to avoid long-running tasks
-        max_prompts = 10
-        if len(prompts) > max_prompts:
-            logger.info(f"[ARENA] {comparison_id}: Limiting to {max_prompts} prompts")
-            prompts = prompts[:max_prompts]
+        if len(prompts) > MAX_PROMPTS_PER_COMPARISON:
+            logger.info(f"[ARENA] {comparison_id}: Limiting to {MAX_PROMPTS_PER_COMPARISON} prompts")
+            prompts = prompts[:MAX_PROMPTS_PER_COMPARISON]
         
         # Update progress
         async with get_db() as db:

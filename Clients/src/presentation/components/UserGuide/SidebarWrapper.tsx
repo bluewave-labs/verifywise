@@ -310,7 +310,8 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
 
   // Render Advisor content
   const renderAdvisorContent = () => {
-    return <AdvisorChat selectedLLMKeyId={selectedLLMKeyId} pageContext={getAdvisorPageContext()} />
+    const context = getAdvisorPageContext();
+    return <AdvisorChat key={context} selectedLLMKeyId={selectedLLMKeyId} pageContext={context} />
   }
 
   const contentArea = (tabValue: Tab) => {

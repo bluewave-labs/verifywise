@@ -708,6 +708,16 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     }
   };
 
+  // Silent reload (no loading state change) - used after create/delete
+  const reloadComparisons = async () => {
+    try {
+      const data = await listArenaComparisons(orgId ? { org_id: orgId } : undefined);
+      setComparisons(data.comparisons || []);
+    } catch (err) {
+      console.error("Failed to reload arena comparisons:", err);
+    }
+  };
+
   // Load datasets (both user and template)
   const loadDatasets = useCallback(async () => {
     setDatasetsLoading(true);
@@ -808,10 +818,10 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       setTimeout(() => setAlert(null), 3000);
       setCreateModalOpen(false);
       resetForm();
-      // Immediately refresh and start polling
-      await loadComparisons();
+      // Immediately refresh (silent - no loading state)
+      await reloadComparisons();
       // Poll again after 1 second to catch the running state
-      setTimeout(() => loadComparisons(), 1000);
+      setTimeout(() => reloadComparisons(), 1000);
     } catch (err) {
       console.error("Failed to create arena comparison:", err);
       setAlert({ variant: "error", body: "Failed to create arena comparison" });
@@ -831,7 +841,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       await deleteArenaComparison(comparisonId);
       setAlert({ variant: "success", body: "Arena comparison deleted" });
       setTimeout(() => setAlert(null), 3000);
-      await loadComparisons();
+      await reloadComparisons();
     } catch (err) {
       console.error("Failed to delete comparison:", err);
       setAlert({ variant: "error", body: "Failed to delete comparison" });

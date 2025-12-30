@@ -32,29 +32,30 @@ const MessageText: FC = () => {
   return (
     <Markdown components={{
       p: 'div',
-      h1(props) {
-        const {node, ...rest} = props
-        return <h1 style={{marginTop: 0, fontSize: '15px', fontWeight: 600}} {...rest} />
-      },
-      h2(props) {
-        const {node, ...rest} = props
-        return <h2 style={{marginTop: 0, fontSize: '15px', fontWeight: 700}} {...rest} />
-      },
-      h3(props) {
-        const {node, ...rest} = props
-        return <h3 style={{marginTop: 0, fontSize: '13px', fontWeight: 600}} {...rest} />
-      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      h1: ({ node, ...rest }) => <h1 style={{marginTop: 0, fontSize: '15px', fontWeight: 600}} {...rest} />,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      h2: ({ node, ...rest }) => <h2 style={{marginTop: 0, fontSize: '15px', fontWeight: 700}} {...rest} />,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      h3: ({ node, ...rest }) => <h3 style={{marginTop: 0, fontSize: '13px', fontWeight: 600}} {...rest} />,
     }}>{data.text}</Markdown>
   );
 };
+
+interface DataMessagePart {
+  type: 'data';
+  name: string;
+  data: unknown;
+}
 
 const MessageChart: FC = () => {
   const message = useAssistantState(({ message }) => message);
 
   // Find the chart data in the message content
   const chartContent = message.content.find(
-    (part: any) => part.type === 'data' && part.name === 'chartData'
-  ) as { type: 'data'; name: string; data: any } | undefined;
+    (part): part is DataMessagePart =>
+      typeof part === 'object' && part !== null && 'type' in part && part.type === 'data' && 'name' in part && part.name === 'chartData'
+  );
 
   if (!chartContent || !chartContent.data) {
     return null;

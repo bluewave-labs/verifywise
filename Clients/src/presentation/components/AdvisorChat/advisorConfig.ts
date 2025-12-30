@@ -133,7 +133,7 @@ export const DEFAULT_WELCOME_MESSAGE = "Hello! I'm your VerifyWise AI Advisor. I
  * Get domain key by path
  */
 export const getDomainByPath = (path: string): AdvisorDomain | undefined => {
-  const entry = Object.entries(ADVISOR_DOMAINS).find(([_, config]) => config.path === path);
+  const entry = Object.entries(ADVISOR_DOMAINS).find(([, config]) => config.path === path);
   return entry?.[0] as AdvisorDomain | undefined;
 };
 

@@ -21,9 +21,9 @@ export interface ConversationResponse {
 }
 
 export const runAdvisorAPI = async (
-  data: any,
+  data: { prompt: string },
   llmKeyId?: number
-): Promise<ApiResponse<any>> => {
+): Promise<ApiResponse<{ response: string | { markdown?: string; chartData?: unknown } }>> => {
   try {
     let url = `/advisor`;
     if (llmKeyId !== undefined) {
@@ -31,13 +31,14 @@ export const runAdvisorAPI = async (
     }
     const response = await apiServices.post(url, data);
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Re-throw the error with the response data intact
-    if (error.response) {
+    const axiosError = error as { response?: { status: number; data: unknown } };
+    if (axiosError.response) {
       throw {
-        ...error,
-        status: error.response.status,
-        data: error.response.data,
+        ...axiosError,
+        status: axiosError.response.status,
+        data: axiosError.response.data,
       };
     }
     throw error;
@@ -53,12 +54,13 @@ export const getConversationAPI = async (
   try {
     const response = await apiServices.get(`/advisor/conversations/${domain}`);
     return response;
-  } catch (error: any) {
-    if (error.response) {
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status: number; data: unknown } };
+    if (axiosError.response) {
       throw {
-        ...error,
-        status: error.response.status,
-        data: error.response.data,
+        ...axiosError,
+        status: axiosError.response.status,
+        data: axiosError.response.data,
       };
     }
     throw error;
@@ -77,12 +79,13 @@ export const saveConversationAPI = async (
       messages,
     });
     return response;
-  } catch (error: any) {
-    if (error.response) {
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status: number; data: unknown } };
+    if (axiosError.response) {
       throw {
-        ...error,
-        status: error.response.status,
-        data: error.response.data,
+        ...axiosError,
+        status: axiosError.response.status,
+        data: axiosError.response.data,
       };
     }
     throw error;

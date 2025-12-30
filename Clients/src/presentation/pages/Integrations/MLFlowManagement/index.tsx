@@ -22,7 +22,7 @@ import Select from '../../../components/Inputs/Select';
 import PageBreadcrumbs from '../../../components/Breadcrumbs/PageBreadcrumbs';
 import HeaderCard from '../../../components/Cards/DashboardHeaderCard';
 import Chip from '@mui/material/Chip';
-import useTheme from '@mui/material/styles/useTheme';
+import { useTheme } from '@mui/material/styles';
 import { getMlflowConfig, getMlflowSyncStatus, configureMlflow, testMlflowConnection, getMlflowModels } from '../../../../application/repository/integration.repository';
 
 type AuthMethod = 'none' | 'basic' | 'token';
@@ -35,6 +35,26 @@ interface MLFlowFormState {
   apiToken: string;
   timeout: number;
   verifySsl: boolean;
+}
+
+interface MlflowTestData {
+  trackingServerUrl?: string;
+  authMethod?: string;
+  username?: string;
+  password?: string;
+  apiToken?: string;
+  timeout?: number;
+  verifySsl?: boolean;
+}
+
+interface MlflowConfigureData {
+  tracking_uri: string;
+  authMethod?: string;
+  username?: string;
+  password?: string;
+  apiToken?: string;
+  timeout?: number;
+  verifySsl?: boolean;
 }
 
 const initialFormState: MLFlowFormState = {
@@ -267,7 +287,17 @@ const MLFlowManagement: React.FC = () => {
   const handleSaveConfiguration = useCallback(async () => {
     setIsConfiguring(true);
     try {
-      const data = await configureMlflow(buildPayload() as any);
+      const payload = buildPayload();
+      const configurePayload: MlflowConfigureData = {
+        tracking_uri: payload.trackingServerUrl as string,
+        authMethod: payload.authMethod as string,
+        username: payload.username as string | undefined,
+        password: payload.password as string | undefined,
+        apiToken: payload.apiToken as string | undefined,
+        timeout: payload.timeout as number | undefined,
+        verifySsl: payload.verifySsl as boolean | undefined,
+      };
+      const data = await configureMlflow(configurePayload);
       handleToast('success', data?.message || 'MLFlow configuration saved successfully!', 'Configuration saved');
       await loadConfiguration();
     } catch (error) {
@@ -290,7 +320,17 @@ const MLFlowManagement: React.FC = () => {
     setTestStatus('testing');
 
     try {
-      const data = await testMlflowConnection(buildPayload() as any);
+      const payload = buildPayload();
+      const testPayload: MlflowTestData = {
+        trackingServerUrl: payload.trackingServerUrl as string,
+        authMethod: payload.authMethod as string,
+        username: payload.username as string | undefined,
+        password: payload.password as string | undefined,
+        apiToken: payload.apiToken as string | undefined,
+        timeout: payload.timeout as number | undefined,
+        verifySsl: payload.verifySsl as boolean | undefined,
+      };
+      const data = await testMlflowConnection(testPayload);
 
       if (data?.success) {
         setTestStatus('success');

@@ -511,11 +511,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                     px: 1.5,
                     py: 0.5,
                     borderRadius: "6px",
-                    backgroundColor: "#fff",
-                    border: "1px solid #e0e7ff",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
                   }}
                 >
-                  <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#6366f1" }}>
+                  <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#475569" }}>
                     {criterion}
                   </Typography>
                 </Box>
@@ -702,7 +702,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                     border: "1px solid #e2e8f0",
                   }}
                 >
-                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#6366f1", mb: 2, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#475569", mb: 2, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                     {criterion}
                   </Typography>
                   <Stack spacing={1.5}>
@@ -724,7 +724,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                               sx={{ 
                                 fontSize: 13, 
                                 fontWeight: 700, 
-                                color: numericScore >= 8 ? "#059669" : numericScore >= 6 ? "#d97706" : numericScore > 0 ? "#dc2626" : "#9ca3af",
+                                color: "#111827",
                               }}
                             >
                               {avgScore}
@@ -771,11 +771,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
               }}
               sx={{
                 fontSize: 12,
-                color: "#6366f1",
-                borderColor: "#e0e7ff",
+                color: "#13715B",
+                borderColor: "#d1fae5",
                 "&:hover": {
-                  backgroundColor: "#eef2ff",
-                  borderColor: "#6366f1",
+                  backgroundColor: "#ecfdf5",
+                  borderColor: "#13715B",
                 },
               }}
             />
@@ -792,11 +792,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                 <Box
                   key={idx}
                   sx={{
-                    border: isExpanded ? "2px solid #c7d2fe" : "1px solid #e2e8f0",
+                    border: isExpanded ? "2px solid #a7f3d0" : "1px solid #e2e8f0",
                     borderRadius: "12px",
                     overflow: "hidden",
                     backgroundColor: "#fff",
-                    boxShadow: isExpanded ? "0 4px 12px rgba(99,102,241,0.1)" : "0 1px 3px rgba(0,0,0,0.05)",
+                    boxShadow: isExpanded ? "0 4px 12px rgba(19,113,91,0.1)" : "0 1px 3px rgba(0,0,0,0.05)",
                     transition: "all 0.2s ease",
                   }}
                 >
@@ -822,7 +822,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                           width: 32,
                           height: 32,
                           borderRadius: "8px",
-                          backgroundColor: isExpanded ? "#6366f1" : "#e2e8f0",
+                          backgroundColor: isExpanded ? "#13715B" : "#e2e8f0",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -890,15 +890,15 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                               width: 24,
                               height: 24,
                               borderRadius: "6px",
-                              backgroundColor: "#e0e7ff",
+                              backgroundColor: "#e2e8f0",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
                             }}
                           >
-                            <MessageSquare size={12} color="#6366f1" />
+                            <MessageSquare size={12} color="#64748b" />
                           </Box>
-                          <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#4f46e5", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                             Prompt
                           </Typography>
                         </Stack>

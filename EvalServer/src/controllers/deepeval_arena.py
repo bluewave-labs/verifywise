@@ -25,13 +25,7 @@ from crud.deepeval_arena import (
 from database.redis import get_redis
 
 import logging
-import sys
 logger = logging.getLogger('uvicorn')
-
-def log(msg):
-    """Print directly to stdout for visibility"""
-    print(f"[ARENA] {msg}", flush=True)
-    sys.stdout.flush()
 
 
 async def load_dataset_prompts(dataset_path: str, tenant: str) -> List[Dict[str, Any]]:
@@ -42,7 +36,7 @@ async def load_dataset_prompts(dataset_path: str, tenant: str) -> List[Dict[str,
     import os
     from pathlib import Path
     
-    log(f"Loading dataset: path={dataset_path}, tenant={tenant}")
+    logger.info(f"[ARENA] Loading dataset: path={dataset_path}, tenant={tenant}")
     
     # Handle different dataset path formats
     if not dataset_path:
@@ -55,8 +49,8 @@ async def load_dataset_prompts(dataset_path: str, tenant: str) -> List[Dict[str,
     datasets_base = evaluation_module_path / "data" / "datasets"
     uploads_base = evaluation_module_path / "data"
     
-    log(f"Datasets base: {datasets_base}")
-    log(f"Uploads base: {uploads_base}")
+    logger.debug(f"[ARENA] Datasets base: {datasets_base}")
+    logger.debug(f"[ARENA] Uploads base: {uploads_base}")
     
     file_path = None
     
@@ -67,7 +61,7 @@ async def load_dataset_prompts(dataset_path: str, tenant: str) -> List[Dict[str,
         # Built-in dataset path (e.g., "chatbot/chatbot_basic.json")
         file_path = datasets_base / dataset_path
     
-    log(f"Trying file path: {file_path}")
+    logger.debug(f"[ARENA] Trying file path: {file_path}")
     
     if not file_path.exists():
         # Try alternate paths
@@ -77,22 +71,22 @@ async def load_dataset_prompts(dataset_path: str, tenant: str) -> List[Dict[str,
             uploads_base / dataset_path,
         ]
         for alt in alt_paths:
-            log(f"Trying alternate: {alt}")
+            logger.debug(f"[ARENA] Trying alternate: {alt}")
             if alt.exists():
                 file_path = alt
                 break
     
     if not file_path or not file_path.exists():
-        log(f"ERROR: Dataset file not found: {file_path}")
+        logger.error(f"[ARENA] Dataset file not found: {file_path}")
         return []
     
-    log(f"Loading dataset from: {file_path}")
+    logger.info(f"[ARENA] Loading dataset from: {file_path}")
     
     try:
         with open(file_path, 'r') as f:
             data = json.load(f)
         
-        log(f"Dataset loaded, type: {type(data)}, keys: {data.keys() if isinstance(data, dict) else 'N/A'}")
+        logger.debug(f"[ARENA] Dataset loaded, type: {type(data)}")
         
         # Handle different dataset formats
         prompts = []
@@ -110,10 +104,10 @@ async def load_dataset_prompts(dataset_path: str, tenant: str) -> List[Dict[str,
                 # Try to use the whole dict as a single item
                 prompts = [data]
         
-        log(f"Extracted {len(prompts)} prompts from dataset")
+        logger.info(f"[ARENA] Extracted {len(prompts)} prompts from dataset")
         return prompts
     except Exception as e:
-        log(f"ERROR: Error loading dataset: {e}")
+        logger.error(f"[ARENA] Error loading dataset: {e}")
         print(traceback.format_exc(), flush=True)
         return []
 
@@ -204,12 +198,12 @@ async def run_arena_comparison_task(
     """
     Background task to run the arena comparison using DeepEval's ArenaGEval.
     """
-    log(f"Background task STARTING for {comparison_id}")
+    logger.info(f"[ARENA] Background task STARTING for {comparison_id}")
     try:
         from deepeval.test_case import LLMTestCase, LLMTestCaseParams
         from deepeval.metrics import GEval
         
-        log(f"{comparison_id}: Imports successful")
+        logger.debug(f"[ARENA] {comparison_id}: Imports successful")
         
         # Update status to running
         async with get_db() as db:
@@ -228,9 +222,9 @@ async def run_arena_comparison_task(
         dataset_path = config_data.get("datasetPath", "")
         api_keys = config_data.get("apiKeys", {})
         
-        log(f"{comparison_id}: API keys provided for providers: {list(api_keys.keys())}")
+        logger.info(f"[ARENA] {comparison_id}: API keys provided for {len(api_keys)} providers")
         
-        log(f"{comparison_id}: Loading dataset from {dataset_path}")
+        logger.info(f"[ARENA] {comparison_id}: Loading dataset")
         
         # Load prompts from dataset
         prompts = await load_dataset_prompts(dataset_path, tenant)
@@ -243,12 +237,12 @@ async def run_arena_comparison_task(
         if not prompts:
             raise ValueError("No prompts found. Please select a dataset or provide test cases.")
         
-        log(f"{comparison_id}: Loaded {len(prompts)} prompts")
+        logger.info(f"[ARENA] {comparison_id}: Loaded {len(prompts)} prompts")
         
         # Limit prompts to avoid long-running tasks
         max_prompts = 10
         if len(prompts) > max_prompts:
-            log(f"{comparison_id}: Limiting to {max_prompts} prompts")
+            logger.info(f"[ARENA] {comparison_id}: Limiting to {max_prompts} prompts")
             prompts = prompts[:max_prompts]
         
         # Update progress
@@ -277,7 +271,7 @@ async def run_arena_comparison_task(
             if not input_text:
                 continue
             
-            log(f"{comparison_id}: Processing prompt {idx + 1}/{total_prompts}")
+            logger.info(f"[ARENA] {comparison_id}: Processing prompt {idx + 1}/{total_prompts}")
             
             # Update progress
             async with get_db() as db:
@@ -398,7 +392,7 @@ IMPORTANT: Respond with ONLY the JSON, no other text."""
                         winner_name = parsed.get("winner", "").strip()
                         reasoning = parsed.get("reasoning", "")
                     except json.JSONDecodeError:
-                        log(f"Failed to parse judge JSON response: {judge_response[:200]}")
+                        logger.warning(f"[ARENA] Failed to parse judge JSON response")
                         # Fallback: try to determine winner from text
                         for name in contestant_names:
                             if name.lower() in judge_response.lower():
@@ -468,10 +462,10 @@ IMPORTANT: Respond with ONLY the JSON, no other text."""
             )
             await db.commit()
         
-        log(f"Arena comparison {comparison_id} COMPLETED. Winner: {overall_winner}")
+        logger.info(f"[ARENA] Comparison {comparison_id} COMPLETED. Winner: {overall_winner}")
         
     except Exception as e:
-        log(f"Arena comparison {comparison_id} FAILED: {e}")
+        logger.error(f"[ARENA] Comparison {comparison_id} FAILED: {e}")
         print(traceback.format_exc(), flush=True)
         
         async with get_db() as db:
@@ -495,11 +489,11 @@ async def create_arena_comparison_controller(
     Create a new arena comparison.
     """
     try:
-        log("========== CREATE ARENA COMPARISON ==========")
-        log(f"Tenant: {tenant}, User: {user_id}")
-        log(f"Config data keys: {list(config_data.keys())}")
-        log(f"Dataset path: {config_data.get('datasetPath')}")
-        log(f"Contestants: {len(config_data.get('contestants', []))}")
+        logger.info("[ARENA] ========== CREATE ARENA COMPARISON ==========")
+        logger.info(f"[ARENA] Tenant: {tenant}, User: {user_id}")
+        logger.debug(f"[ARENA] Config data keys: {list(config_data.keys())}")
+        logger.debug("[ARENA] Dataset path configured")
+        logger.info(f"[ARENA] Contestants: {len(config_data.get('contestants', []))}")
         
         comparison_id = f"arena_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
         
@@ -527,14 +521,14 @@ async def create_arena_comparison_controller(
             await db.commit()
         
         # Start background task
-        log(f"Scheduling background task for {comparison_id}")
+        logger.info(f"[ARENA] Scheduling background task for {comparison_id}")
         background_tasks.add_task(
             run_arena_comparison_task,
             comparison_id,
             config_data,
             tenant,
         )
-        log(f"Background task scheduled for {comparison_id}")
+        logger.info(f"[ARENA] Background task scheduled for {comparison_id}")
         
         return JSONResponse(
             status_code=202,

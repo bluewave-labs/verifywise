@@ -556,7 +556,15 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {contestants.map((name) => {
+              {[...contestants]
+                .sort((a, b) => {
+                  const winsA = winCounts[a] || 0;
+                  const winsB = winCounts[b] || 0;
+                  const rateA = totalRounds > 0 ? (winsA / totalRounds) * 100 : 0;
+                  const rateB = totalRounds > 0 ? (winsB / totalRounds) * 100 : 0;
+                  return rateB - rateA; // Descending order
+                })
+                .map((name) => {
                 const wins = winCounts[name] || 0;
                 const contestantTies = results.results?.detailedResults?.filter(
                   (r) => !r.winner && r.contestants?.some((c) => c.name === name)

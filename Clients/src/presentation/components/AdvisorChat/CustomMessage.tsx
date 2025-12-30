@@ -99,10 +99,7 @@ export const CustomMessage: FC = () => {
           gap="12px"
           sx={{
             alignSelf: 'flex-start',
-            maxWidth: {
-              xs: '90%',
-              sm: '75%',
-            },
+            width: '100%',
           }}
         >
           <Avatar
@@ -157,7 +154,7 @@ export const CustomMessage: FC = () => {
           </MessagePrimitive.If>
           
           <MessagePrimitive.If hasContent>
-            <Stack gap="6px" sx={{ flex: 1 }}>
+            <Stack gap="6px" sx={{ flex: 1, minWidth: 0 }}>
               <Box
                 sx={{
                   backgroundColor: theme.palette.background.fill,
@@ -168,7 +165,6 @@ export const CustomMessage: FC = () => {
                   fontSize: '13px',
                   lineHeight: 1.5,
                   wordBreak: 'break-word',
-                  width: 'fit-content',
                 }}
               >
                 <MessagePrimitive.Content components={{ Text: MessageText }} />

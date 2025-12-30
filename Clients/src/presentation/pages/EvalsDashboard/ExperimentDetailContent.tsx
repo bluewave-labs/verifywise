@@ -647,8 +647,21 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         };
 
         // Get score color based on value thresholds
-        const getScoreColor = (score: number | undefined) => {
+        // For inverse metrics (bias, toxicity), lower is better
+        const getScoreColor = (score: number | undefined, metricKey?: string) => {
           if (score === undefined) return { bg: "#F3F4F6", text: "#6B7280", icon: "#6B7280" };
+          
+          // Check if this is an inverse metric (lower is better)
+          const isInverse = metricKey && (metricKey.toLowerCase() === "bias" || metricKey.toLowerCase() === "toxicity");
+          
+          if (isInverse) {
+            // For inverse metrics: low = good (green), high = bad (red)
+            if (score <= 0.3) return { bg: "#D1FAE5", text: "#065F46", icon: "#10B981" };
+            if (score <= 0.6) return { bg: "#FEF3C7", text: "#92400E", icon: "#F59E0B" };
+            return { bg: "#FEE2E2", text: "#991B1B", icon: "#EF4444" };
+          }
+          
+          // Normal metrics: high = good (green), low = bad (red)
           if (score >= 0.7) return { bg: "#D1FAE5", text: "#065F46", icon: "#10B981" };
           if (score >= 0.4) return { bg: "#FEF3C7", text: "#92400E", icon: "#F59E0B" };
           return { bg: "#FEE2E2", text: "#991B1B", icon: "#EF4444" };
@@ -766,7 +779,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
           const count = entry ? entry.count : 0;
           const scores = entry?.scores || [];
-          const colors = getScoreColor(avgValue);
+          const colors = getScoreColor(avgValue, metric.label);
           const delta = getDeltaIndicator(scores);
           const BackgroundIcon = getMetricIcon(metric.key);
 
@@ -983,12 +996,12 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
             <Box sx={{ display: "flex", flexDirection: "column", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
               <Box sx={{ overflowY: "auto", overflowX: "auto", maxHeight: "calc(100vh - 360px)" }}>
                 <TableContainer sx={{ overflowX: "auto" }}>
-              <Table stickyHeader size="small" sx={{ minWidth: 500 + metricColumns.length * 60 }}>
+              <Table stickyHeader size="small" sx={{ minWidth: 800, tableLayout: "auto" }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 40, textAlign: "center" }}>#</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 180, maxWidth: 220, textAlign: "center" }}>Input</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 180, maxWidth: 220, textAlign: "center" }}>Output</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", width: 40, textAlign: "center", padding: "8px 6px" }}>#</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 200, textAlign: "left", padding: "8px 12px" }}>Input</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 200, textAlign: "left", padding: "8px 12px" }}>Output</TableCell>
                     {metricColumns.map(metric => {
                       // Capitalize first letter of each word
                       const capitalizedMetric = metric
@@ -1002,7 +1015,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                             fontWeight: 600, 
                             fontSize: "11px", 
                             textAlign: "center",
-                            padding: "8px 12px",
+                            padding: "8px 8px",
                             whiteSpace: "nowrap",
                           }}
                         >
@@ -1038,10 +1051,10 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                           },
                         }}
                       >
-                        <TableCell sx={{ fontSize: "12px", color: "#6B7280", textAlign: "center" }}>
+                        <TableCell sx={{ fontSize: "12px", color: "#6B7280", textAlign: "center", padding: "8px 6px" }}>
                           {index + 1}
                         </TableCell>
-                        <TableCell sx={{ fontSize: "12px", textAlign: "center", minWidth: 180, maxWidth: 220 }}>
+                        <TableCell sx={{ fontSize: "12px", textAlign: "left", padding: "8px 12px", maxWidth: 200 }}>
                           <Typography
                             variant="body2"
                             sx={{
@@ -1055,8 +1068,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                             {log.input_text || "-"}
                           </Typography>
                         </TableCell>
-                        <TableCell sx={{ fontSize: "12px", textAlign: "center", minWidth: 180, maxWidth: 220 }}>
-                          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                        <TableCell sx={{ fontSize: "12px", textAlign: "left", padding: "8px 12px", maxWidth: 200 }}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, overflow: "hidden" }}>
                             {log.status && log.status !== "success" && (
                               <Tooltip title={`Status: ${log.status}`} arrow>
                                 <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
@@ -1084,7 +1097,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                           const isInverseMetric = metric.toLowerCase() === "bias" || metric.toLowerCase() === "toxicity";
                           const passed = score !== null && (isInverseMetric ? score < 0.5 : score >= 0.5);
                           return (
-                            <TableCell key={metric} sx={{ textAlign: "center", p: 0.5 }}>
+                            <TableCell key={metric} sx={{ textAlign: "center", padding: "8px 8px" }}>
                               {score !== null ? (
                                 <Box
                                   sx={{

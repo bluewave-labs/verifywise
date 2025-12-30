@@ -792,11 +792,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                 <Box
                   key={idx}
                   sx={{
-                    border: isExpanded ? "2px solid #a7f3d0" : "1px solid #e2e8f0",
+                    border: "1px solid #e2e8f0",
                     borderRadius: "12px",
                     overflow: "hidden",
                     backgroundColor: "#fff",
-                    boxShadow: isExpanded ? "0 4px 12px rgba(19,113,91,0.1)" : "0 1px 3px rgba(0,0,0,0.05)",
+                    boxShadow: isExpanded ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.05)",
                     transition: "all 0.2s ease",
                   }}
                 >
@@ -1067,9 +1067,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                         <Box
                           sx={{
                             p: 3,
-                            background: "linear-gradient(135deg, #fefce8 0%, #fef9c3 100%)",
+                            backgroundColor: "#f8fafc",
                             borderRadius: "12px",
-                            border: "1px solid #fde047",
+                            border: "1px solid #e2e8f0",
                           }}
                         >
                           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
@@ -1078,19 +1078,19 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                 width: 24,
                                 height: 24,
                                 borderRadius: "6px",
-                                backgroundColor: "#fbbf24",
+                                backgroundColor: "#e2e8f0",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                               }}
                             >
-                              <Scale size={12} color="#78350f" />
+                              <Scale size={12} color="#64748b" />
                             </Box>
-                            <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                            <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                               Judge's Reasoning
                             </Typography>
                           </Stack>
-                          <Typography sx={{ fontSize: 13, color: "#78350f", lineHeight: 1.7 }}>
+                          <Typography sx={{ fontSize: 13, color: "#374151", lineHeight: 1.7 }}>
                             {round.reason}
                           </Typography>
                         </Box>

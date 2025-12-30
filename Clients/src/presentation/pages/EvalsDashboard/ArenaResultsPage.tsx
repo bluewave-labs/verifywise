@@ -558,7 +558,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
           <Table size="small">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f8fafc" }}>
-                <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "#64748b", textTransform: "uppercase", py: 1, px: 1 }}>
+                <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "#64748b", textTransform: "uppercase", py: 1, pl: 2, pr: 1 }}>
                   Contestant
                 </TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600, fontSize: 11, color: "#64748b", textTransform: "uppercase", py: 1, px: 1 }}>
@@ -599,7 +599,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
 
                 return (
                   <TableRow key={name} sx={{ backgroundColor: "transparent" }}>
-                    <TableCell sx={{ py: 1, px: 1 }}>
+                    <TableCell sx={{ py: 1, pl: 2, pr: 1 }}>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <Box
                           sx={{
@@ -716,7 +716,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                 <Box
                   key={criterion}
                   sx={{
-                    p: 1,
+                    pl: 1,
+                    pr: 2,
+                    py: 1,
                     borderRadius: "4px",
                     backgroundColor: "#f8fafc",
                     border: "1px solid #e2e8f0",
@@ -774,7 +776,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
 
       {/* Round Results */}
       {results.results?.detailedResults?.length > 0 && (
-        <Box>
+        <Box sx={{ mt: 3 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
             <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b" }}>
               Round Details ({totalRounds} rounds)
@@ -826,9 +828,10 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                     onClick={() => toggleRound(idx)}
                     sx={{
                       display: "flex",
-                      alignItems: "center",
+                      alignItems: "flex-start",
                       justifyContent: "space-between",
-                      px: 1,
+                      pl: 1,
+                      pr: 2,
                       py: 1,
                       cursor: "pointer",
                       background: isExpanded
@@ -837,45 +840,47 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                       "&:hover": { backgroundColor: "#f8fafc" },
                     }}
                   >
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <Box
-                        sx={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "4px",
-                          backgroundColor: isExpanded ? "#13715B" : "#e2e8f0",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        {isExpanded ? (
-                          <ChevronDown size={14} color="#fff" />
-                        ) : (
-                          <ChevronRight size={14} color="#64748b" />
-                        )}
-                      </Box>
-                      <Box>
+                    <Box>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Box
+                          sx={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: "4px",
+                            backgroundColor: isExpanded ? "#13715B" : "#e2e8f0",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          {isExpanded ? (
+                            <ChevronDown size={14} color="#fff" />
+                          ) : (
+                            <ChevronRight size={14} color="#64748b" />
+                          )}
+                        </Box>
                         <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
                           Round {idx + 1}
                         </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: 11,
-                            color: "#64748b",
-                            maxWidth: 500,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {round.input?.slice(0, 80)}...
-                        </Typography>
-                      </Box>
-                    </Stack>
+                      </Stack>
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "#64748b",
+                          maxWidth: 500,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          mt: 0.5,
+                          ml: 4,
+                        }}
+                      >
+                        {round.input?.slice(0, 80)}...
+                      </Typography>
+                    </Box>
                     {round.winner ? (
-                      <Stack direction="row" alignItems="center" spacing={1}>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.25 }}>
                         <Trophy size={14} color="#f59e0b" />
                         <Typography
                           sx={{
@@ -893,6 +898,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                           fontSize: 13,
                           fontWeight: 600,
                           color: "#64748b",
+                          mt: 0.25,
                         }}
                       >
                         Tie
@@ -902,7 +908,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
 
                   {/* Round Details */}
                   <Collapse in={isExpanded}>
-                    <Box sx={{ px: 1, py: 1, backgroundColor: "#fafbfc" }}>
+                    <Box sx={{ pl: 1, pr: 2, py: 1, backgroundColor: "#fafbfc" }}>
                       {/* Prompt */}
                       <Box sx={{ mb: 2 }}>
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>

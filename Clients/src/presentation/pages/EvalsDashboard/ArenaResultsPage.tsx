@@ -702,7 +702,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                     border: "1px solid #e2e8f0",
                   }}
                 >
-                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#475569", mb: 2, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#13715B", mb: 2, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                     {criterion}
                   </Typography>
                   <Stack spacing={1.5}>
@@ -755,7 +755,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
       {/* Round Results */}
       {results.results?.detailedResults?.length > 0 && (
         <Box>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
             <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#1e293b" }}>
               Round Details ({totalRounds} rounds)
             </Typography>

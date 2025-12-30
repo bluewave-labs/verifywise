@@ -1202,7 +1202,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           {/* Comparisons table */}
           <ArenaTable
             rows={filteredComparisons}
-            loading={loading}
+            loading={loading && comparisons.length === 0}
             deleting={deleting}
             onRowClick={(row) => row.status === "completed" && handleViewResults(row.id)}
             onViewResults={(row) => handleViewResults(row.id)}

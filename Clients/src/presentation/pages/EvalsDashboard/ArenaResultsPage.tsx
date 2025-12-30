@@ -1069,6 +1069,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                   </Box>
                                 )}
                                 
+                                {/* Separator line */}
+                                <Box sx={{ borderTop: "1px solid #e2e8f0", my: 1 }} />
+                                
                                 <Box
                                   sx={{
                                     maxHeight: 250,

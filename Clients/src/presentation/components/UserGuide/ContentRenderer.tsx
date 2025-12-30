@@ -79,10 +79,15 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ content, onNavigate }
     const parts: React.ReactNode[] = [];
     let key = 0;
 
-    // Supports: **bold**, `code`, `https://url` (clickable), [[link text]](collection/article)
+    // Supports: **bold**, `code`, [[link text]](collection/article)
     const combinedRegex = /\*\*([^*]+)\*\*|`([^`]+)`|\[\[([^\]]+)\]\]\(([^)]+)\)/g;
     let lastIndex = 0;
     let match;
+
+    const getChipStyle = (content: string) => {
+      const isUrl = /^https?:\/\//.test(content);
+      return isUrl ? chipStyles.url : chipStyles.code;
+    };
 
     while ((match = combinedRegex.exec(text)) !== null) {
       if (match.index > lastIndex) {
@@ -93,35 +98,13 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ content, onNavigate }
         // Bold: **text**
         parts.push(<strong key={key++}>{match[1]}</strong>);
       } else if (match[2]) {
-        // Code: `text` or URL: `https://...`
-        const content = match[2];
-        const isUrl = /^https?:\/\//.test(content);
-        const style = isUrl ? chipStyles.url : chipStyles.code;
-
-        if (isUrl) {
-          // Make URLs clickable
-          parts.push(
-            <a
-              key={key++}
-              href={content}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                ...style,
-                textDecoration: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {content}
-            </a>
-          );
-        } else {
-          parts.push(
-            <span key={key++} style={style}>
-              {content}
-            </span>
-          );
-        }
+        // Code: `text`
+        const style = getChipStyle(match[2]);
+        parts.push(
+          <span key={key++} style={style}>
+            {match[2]}
+          </span>
+        );
       } else if (match[3] && match[4]) {
         // Article link: [[text]](collection/article)
         const linkText = match[3];

@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Stack, Tooltip, Box, Typography } from "@mui/material";
-import { Shield, FlaskConical, Network, ScanSearch } from "lucide-react";
+import { Shield, FlaskConical, Network } from "lucide-react";
 import { AppModule } from "../../../application/redux/ui/uiSlice";
 import "./index.css";
 
@@ -29,12 +29,6 @@ const modules: ModuleItem[] = [
     icon: <FlaskConical size={16} strokeWidth={1.5} />,
     label: "LLM Evals",
     description: "Evaluate LLM quality, performance and reliability over time",
-  },
-  {
-    id: "ai-detection",
-    icon: <ScanSearch size={16} strokeWidth={1.5} />,
-    label: "AI Detection",
-    description: "Scan repositories to detect AI/ML libraries and frameworks",
   },
   {
     id: "gateway",

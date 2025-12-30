@@ -30,8 +30,6 @@ import { notificationsContent } from './settings/notifications';
 import { integrationOverviewContent } from './integrations/integration-overview';
 import { slackIntegrationContent } from './integrations/slack-integration';
 import { apiAccessContent } from './integrations/api-access';
-import { scanningContent } from '@user-guide-content/content/ai-detection/scanning';
-import { historyContent } from '@user-guide-content/content/ai-detection/history';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -76,9 +74,6 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'integrations/integration-overview': integrationOverviewContent,
   'integrations/slack-integration': slackIntegrationContent,
   'integrations/api-access': apiAccessContent,
-  // AI Detection
-  'ai-detection/scanning': scanningContent,
-  'ai-detection/history': historyContent,
 };
 
 // Helper to get article content

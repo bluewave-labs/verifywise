@@ -9,8 +9,7 @@ export type IconName =
   | 'FileText'
   | 'GraduationCap'
   | 'BarChart3'
-  | 'FlaskConical'
-  | 'FileSearch';
+  | 'FlaskConical';
 
 export interface Article {
   id: string;
@@ -319,27 +318,6 @@ export const collections: Collection[] = [
         title: 'API access',
         description: 'Create and manage API keys for programmatic access.',
         keywords: ['api', 'access', 'keys', 'token', 'developer', 'integration', 'programmatic'],
-      },
-    ],
-  },
-  {
-    id: 'ai-detection',
-    title: 'AI Detection',
-    description: 'Scan repositories to detect AI/ML libraries and identify security vulnerabilities in model files.',
-    icon: 'FileSearch',
-    articleCount: 2,
-    articles: [
-      {
-        id: 'scanning',
-        title: 'Scanning repositories',
-        description: 'How to scan GitHub repositories for AI/ML library usage and model security.',
-        keywords: ['scan', 'repository', 'github', 'detection', 'ai', 'ml', 'library', 'security', 'model'],
-      },
-      {
-        id: 'history',
-        title: 'Scan history',
-        description: 'View and manage past repository scans and their results.',
-        keywords: ['history', 'scan', 'results', 'past', 'audit', 'findings'],
       },
     ],
   },

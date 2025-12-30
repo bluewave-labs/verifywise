@@ -51,7 +51,6 @@
     "passport-jwt": "^4.0.1",
     "pg": "^8.13.0",
     "pg-pool": "^3.7.0",
-    "pickleparser": "^0.2.1",
     "playwright": "^1.57.0",
     "redis": "^5.8.2",
     "resend": "^4.6.0",

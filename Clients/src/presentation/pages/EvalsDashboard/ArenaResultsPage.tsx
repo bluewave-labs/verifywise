@@ -29,6 +29,10 @@ import {
   Zap,
   Bot,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import { getArenaComparisonResults } from "../../../application/repository/deepEval.repository";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 
@@ -62,159 +66,24 @@ const getProviderDisplayName = (provider: string): string => {
   return names[provider?.toLowerCase()] || provider || "Custom";
 };
 
-// Simple markdown renderer for LLM outputs
-const renderMarkdown = (text: string): React.ReactNode => {
-  if (!text) return null;
+// Markdown renderer with LaTeX support
+const MarkdownRenderer = ({ content }: { content: string }) => {
+  if (!content) return null;
   
-  const lines = text.split('\n');
-  const elements: React.ReactNode[] = [];
-  let key = 0;
-  let inCodeBlock = false;
-  let codeBlockContent: string[] = [];
-  let codeBlockLang = "";
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-
-    // Handle code blocks
-    if (line.startsWith('```')) {
-      if (!inCodeBlock) {
-        inCodeBlock = true;
-        codeBlockLang = line.slice(3).trim();
-        codeBlockContent = [];
-        continue;
-      } else {
-        // End of code block
-        elements.push(
-          <Box
-            key={key++}
-            sx={{
-              backgroundColor: "#1e293b",
-              borderRadius: "6px",
-              p: 2,
-              my: 1.5,
-              overflow: "auto",
-            }}
-          >
-            {codeBlockLang && (
-              <Typography sx={{ fontSize: 10, color: "#94a3b8", mb: 1, fontWeight: 600 }}>
-                {codeBlockLang}
-              </Typography>
-            )}
-            <Typography
-              component="pre"
-              sx={{
-                fontFamily: "'Fira Code', 'Monaco', monospace",
-                fontSize: 12,
-                color: "#e2e8f0",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-                m: 0,
-              }}
-            >
-              {codeBlockContent.join('\n')}
-            </Typography>
-          </Box>
-        );
-        inCodeBlock = false;
-        codeBlockContent = [];
-        codeBlockLang = "";
-        continue;
-      }
-    }
-
-    if (inCodeBlock) {
-      codeBlockContent.push(line);
-      continue;
-    }
-
-    // Handle headers
-    if (line.startsWith('### ')) {
-      elements.push(
-        <Typography key={key++} sx={{ fontSize: 14, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 }}>
-          {line.slice(4)}
-        </Typography>
-      );
-      continue;
-    }
-    if (line.startsWith('## ')) {
-      elements.push(
-        <Typography key={key++} sx={{ fontSize: 15, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 }}>
-          {line.slice(3)}
-        </Typography>
-      );
-      continue;
-    }
-    if (line.startsWith('# ')) {
-      elements.push(
-        <Typography key={key++} sx={{ fontSize: 16, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 }}>
-          {line.slice(2)}
-        </Typography>
-      );
-      continue;
-    }
-
-    // Handle horizontal rules
-    if (line.match(/^[-*_]{3,}$/)) {
-      elements.push(<Box key={key++} sx={{ borderBottom: "1px solid #e2e8f0", my: 2 }} />);
-      continue;
-    }
-
-    // Handle list items
-    if (line.match(/^[-*•]\s/)) {
-      const content = line.slice(2);
-      elements.push(
-        <Typography key={key++} sx={{ fontSize: 13, color: "#374151", pl: 2, mb: 0.5, display: "flex" }}>
-          <Box component="span" sx={{ mr: 1, color: "#6b7280" }}>•</Box>
-          {renderInlineMarkdown(content)}
-        </Typography>
-      );
-      continue;
-    }
-
-    // Handle numbered list items
-    const numberedMatch = line.match(/^(\d+)\.\s(.+)/);
-    if (numberedMatch) {
-      elements.push(
-        <Typography key={key++} sx={{ fontSize: 13, color: "#374151", pl: 2, mb: 0.5, display: "flex" }}>
-          <Box component="span" sx={{ mr: 1, color: "#6b7280", minWidth: 16 }}>{numberedMatch[1]}.</Box>
-          {renderInlineMarkdown(numberedMatch[2])}
-        </Typography>
-      );
-      continue;
-    }
-
-    // Regular paragraphs
-    if (line.trim()) {
-      elements.push(
-        <Typography key={key++} sx={{ fontSize: 13, color: "#374151", lineHeight: 1.7, mb: 1 }}>
-          {renderInlineMarkdown(line)}
-        </Typography>
-      );
-    } else {
-      // Empty line - add spacing
-      elements.push(<Box key={key++} sx={{ height: 8 }} />);
-    }
-  }
-
-  return <>{elements}</>;
-};
-
-// Render inline markdown (bold, italic, code, links)
-const renderInlineMarkdown = (text: string): React.ReactNode => {
-  const parts: React.ReactNode[] = [];
-  let remaining = text;
-  let key = 0;
-
-  // Pattern for bold, italic, code, and links
-  const patterns = [
-    { regex: /\*\*([^*]+)\*\*/, render: (match: string) => <strong key={key++}>{match}</strong> },
-    { regex: /\*([^*]+)\*/, render: (match: string) => <em key={key++}>{match}</em> },
-    { regex: /`([^`]+)`/, render: (match: string) => (
-      <Box
-        component="code"
-        key={key++}
-        sx={{
+  return (
+    <Box
+      sx={{
+        fontSize: 13,
+        color: "#374151",
+        lineHeight: 1.7,
+        "& p": { mb: 1, mt: 0 },
+        "& h1": { fontSize: 16, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h2": { fontSize: 15, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h3": { fontSize: 14, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h4": { fontSize: 13, fontWeight: 700, color: "#1e293b", mt: 1.5, mb: 0.5 },
+        "& ul, & ol": { pl: 2.5, mb: 1 },
+        "& li": { mb: 0.5 },
+        "& code": {
           backgroundColor: "#f1f5f9",
           px: 0.75,
           py: 0.25,
@@ -222,42 +91,63 @@ const renderInlineMarkdown = (text: string): React.ReactNode => {
           fontFamily: "'Fira Code', monospace",
           fontSize: 12,
           color: "#0f766e",
-        }}
+        },
+        "& pre": {
+          backgroundColor: "#1e293b",
+          borderRadius: "6px",
+          p: 2,
+          my: 1.5,
+          overflow: "auto",
+          "& code": {
+            backgroundColor: "transparent",
+            color: "#e2e8f0",
+            p: 0,
+          },
+        },
+        "& strong": { fontWeight: 600 },
+        "& em": { fontStyle: "italic" },
+        "& hr": { border: "none", borderTop: "1px solid #e2e8f0", my: 2 },
+        "& blockquote": {
+          borderLeft: "3px solid #e2e8f0",
+          pl: 2,
+          ml: 0,
+          color: "#6b7280",
+          fontStyle: "italic",
+        },
+        "& table": {
+          borderCollapse: "collapse",
+          width: "100%",
+          my: 1,
+          fontSize: 12,
+        },
+        "& th, & td": {
+          border: "1px solid #e2e8f0",
+          px: 1,
+          py: 0.5,
+          textAlign: "left",
+        },
+        "& th": {
+          backgroundColor: "#f8fafc",
+          fontWeight: 600,
+        },
+        // KaTeX math styling
+        "& .katex": {
+          fontSize: "1em",
+        },
+        "& .katex-display": {
+          my: 1,
+          overflow: "auto",
+        },
+      }}
+    >
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeKatex]}
       >
-        {match}
-      </Box>
-    )},
-  ];
-
-  while (remaining.length > 0) {
-    let earliestMatch: { index: number; length: number; rendered: React.ReactNode } | null = null;
-
-    for (const { regex, render } of patterns) {
-      const match = remaining.match(regex);
-      if (match && match.index !== undefined) {
-        if (!earliestMatch || match.index < earliestMatch.index) {
-          earliestMatch = {
-            index: match.index,
-            length: match[0].length,
-            rendered: render(match[1]),
-          };
-        }
-      }
-    }
-
-    if (earliestMatch) {
-      if (earliestMatch.index > 0) {
-        parts.push(remaining.slice(0, earliestMatch.index));
-      }
-      parts.push(earliestMatch.rendered);
-      remaining = remaining.slice(earliestMatch.index + earliestMatch.length);
-    } else {
-      parts.push(remaining);
-      break;
-    }
-  }
-
-  return <>{parts}</>;
+        {content}
+      </ReactMarkdown>
+    </Box>
+  );
 };
 
 interface ArenaResultsPageProps {
@@ -1070,7 +960,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                 )}
                                 
                                 {/* Separator line */}
-                                <Box sx={{ borderTop: "1px solid #e2e8f0", my: 1 }} />
+                                <Box sx={{ borderTop: "1px solid #e2e8f0", mt: 2, mb: 1 }} />
                                 
                                 <Box
                                   sx={{
@@ -1081,7 +971,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                     "&::-webkit-scrollbar-thumb": { backgroundColor: "#e2e8f0", borderRadius: 2 },
                                   }}
                                 >
-                                  {renderMarkdown(c.output || "No output")}
+                                  <MarkdownRenderer content={c.output || "No output"} />
                                 </Box>
                               </Box>
                             );

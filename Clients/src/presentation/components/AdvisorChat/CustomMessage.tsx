@@ -1,10 +1,14 @@
-import { FC } from 'react';
+import { FC, useContext, useEffect, useState } from 'react';
 import { Stack, Box, useTheme, Avatar } from '@mui/material';
 import { MessagePrimitive, useMessagePartText, useAssistantState } from '@assistant-ui/react';
 import Markdown from 'react-markdown';
 
-import { Bot, User } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { ChartRenderer } from './ChartRenderer';
+import VWAvatar from '../Avatar/VWAvatar';
+import { VerifyWiseContext } from '../../../application/contexts/VerifyWise.context';
+import { useProfilePhotoFetch } from '../../../application/hooks/useProfilePhotoFetch';
+import { User } from '../../../domain/types/User';
 
 const MessageText: FC = () => {
   const data = useMessagePartText();
@@ -48,8 +52,51 @@ const MessageChart: FC = () => {
   return <ChartRenderer chartData={chartContent.data} />;
 };
 
+const DEFAULT_USER: User = {
+  id: 1,
+  name: "",
+  surname: "",
+  email: "",
+  roleId: 1,
+};
+
 export const CustomMessage: FC = () => {
   const theme = useTheme();
+  const { userId, users, photoRefreshFlag } = useContext(VerifyWiseContext);
+  const { fetchProfilePhotoAsBlobUrl } = useProfilePhotoFetch();
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
+
+  const user: User = users
+    ? users.find((u: User) => u.id === userId) || DEFAULT_USER
+    : DEFAULT_USER;
+
+  useEffect(() => {
+    let cancel = false;
+    let previousUrl: string | null = null;
+    (async () => {
+      const url = await fetchProfilePhotoAsBlobUrl(userId || 0);
+      if (cancel) {
+        if (url) URL.revokeObjectURL(url);
+        return;
+      }
+      if (previousUrl && previousUrl !== url) {
+        URL.revokeObjectURL(previousUrl);
+      }
+      previousUrl = url ?? null;
+      setAvatarUrl(url ?? "");
+    })();
+
+    return () => {
+      cancel = true;
+      if (previousUrl) URL.revokeObjectURL(previousUrl);
+    };
+  }, [userId, fetchProfilePhotoAsBlobUrl, photoRefreshFlag]);
+
+  const userAvatar = {
+    firstname: user.name,
+    lastname: user.surname,
+    pathToImage: avatarUrl,
+  };
 
   return (
     <MessagePrimitive.Root>
@@ -70,8 +117,7 @@ export const CustomMessage: FC = () => {
               backgroundColor: theme.palette.primary.main,
               color: '#fff',
               padding: '10px 14px',
-              borderRadius: '12px',
-              borderTopRightRadius: '4px',
+              borderRadius: '4px',
               fontSize: '13px',
               lineHeight: 1.5,
               wordBreak: 'break-word',
@@ -80,16 +126,12 @@ export const CustomMessage: FC = () => {
           >
             <MessagePrimitive.Content components={{ Text: MessageText }} />
           </Box>
-          <Avatar
-            sx={{
-              width: 28,
-              height: 28,
-              backgroundColor: theme.palette.primary.main,
-              fontSize: '12px',
-            }}
-          >
-            <User size={14} />
-          </Avatar>
+          <VWAvatar
+            user={userAvatar}
+            size="small"
+            showBorder={false}
+            sx={{ width: 28, height: 28, fontSize: 11 }}
+          />
         </Stack>
       </MessagePrimitive.If>
 
@@ -126,8 +168,7 @@ export const CustomMessage: FC = () => {
                   sx={{
                     backgroundColor: theme.palette.background.fill,
                     padding: '12px 16px',
-                    borderRadius: '12px',
-                    borderTopLeftRadius: '4px',
+                    borderRadius: '4px',
                   }}
                 >
                   <Stack direction="row" gap="6px">
@@ -160,8 +201,7 @@ export const CustomMessage: FC = () => {
                   backgroundColor: theme.palette.background.fill,
                   color: theme.palette.text.primary,
                   padding: '10px 14px',
-                  borderRadius: '12px',
-                  borderTopLeftRadius: '4px',
+                  borderRadius: '4px',
                   fontSize: '13px',
                   lineHeight: 1.5,
                   wordBreak: 'break-word',

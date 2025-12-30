@@ -355,7 +355,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto" }}>
       {/* Header */}
-      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
+      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 5 }}>
         <IconButton
           onClick={onBack}
           size="small"
@@ -407,8 +407,8 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
         sx={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr 320px",
-          gap: 3,
-          mb: 4,
+          gap: 4,
+          mb: 5,
         }}
       >
         {/* Winner Card */}
@@ -538,7 +538,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
       </Box>
 
       {/* Contestant Scores Table */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: 5 }}>
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
           <Box
             sx={{
@@ -597,7 +597,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                 const modelDisplay = contestantInfo?.model || "Unknown model";
 
                 return (
-                  <TableRow key={name} sx={{ backgroundColor: isWinner ? "#fffbeb" : "transparent" }}>
+                  <TableRow key={name} sx={{ backgroundColor: "transparent" }}>
                     <TableCell>
                       <Stack direction="row" alignItems="center" spacing={1.5}>
                         <Box
@@ -617,11 +617,27 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                           {name.charAt(0)}
                         </Box>
                         <Box>
-                          <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
+                          <Stack direction="row" alignItems="center" spacing={1}>
+                            <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>
                               {name}
                             </Typography>
-                            {isWinner && <Trophy size={14} color="#f59e0b" />}
+                            {isWinner && (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 0.5,
+                                  px: 1.5,
+                                  py: 0.5,
+                                  borderRadius: "6px",
+                                  background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
+                                  boxShadow: "0 2px 6px rgba(245,158,11,0.25)",
+                                }}
+                              >
+                                <Trophy size={12} color="#fff" />
+                                <Typography sx={{ fontSize: 10, fontWeight: 700, color: "#fff" }}>WINNER</Typography>
+                              </Box>
+                            )}
                           </Stack>
                           <Stack direction="row" alignItems="center" spacing={0.5}>
                             <Cpu size={10} color="#9ca3af" />
@@ -652,11 +668,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                         label={`${winRate}%`}
                         size="small"
                         sx={{
-                          height: 24,
+                          height: 26,
                           fontSize: 12,
                           fontWeight: 700,
-                          backgroundColor: isWinner ? "#fef3c7" : "#f1f5f9",
-                          color: isWinner ? "#92400e" : "#374151",
+                          backgroundColor: "#f1f5f9",
+                          color: "#374151",
                         }}
                       />
                     </TableCell>
@@ -717,7 +733,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
             />
           </Stack>
 
-          <Stack spacing={2}>
+          <Stack spacing={3}>
             {results.results.detailedResults.map((round, idx) => {
               const isExpanded = expandedRounds.has(idx);
               const winnerColor = round.winner
@@ -895,9 +911,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                 sx={{
                                   p: 3,
                                   borderRadius: "12px",
-                                  border: isRoundWinner ? `2px solid ${color.main}` : "1px solid #e2e8f0",
-                                  backgroundColor: isRoundWinner ? color.light : "#fff",
-                                  boxShadow: isRoundWinner ? `0 4px 12px ${color.main}20` : "0 1px 3px rgba(0,0,0,0.04)",
+                                  border: isRoundWinner ? `2px solid #f59e0b` : "1px solid #e2e8f0",
+                                  backgroundColor: "#fff",
+                                  boxShadow: isRoundWinner ? "0 4px 12px rgba(245,158,11,0.15)" : "0 1px 3px rgba(0,0,0,0.04)",
                                 }}
                               >
                                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
@@ -938,14 +954,15 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                         display: "flex",
                                         alignItems: "center",
                                         gap: 0.5,
-                                        px: 1.5,
-                                        py: 0.5,
-                                        borderRadius: "16px",
-                                        backgroundColor: "#fef3c7",
+                                        px: 2,
+                                        py: 0.75,
+                                        borderRadius: "8px",
+                                        background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
+                                        boxShadow: "0 2px 8px rgba(245,158,11,0.3)",
                                       }}
                                     >
-                                      <Trophy size={12} color="#f59e0b" />
-                                      <Typography sx={{ fontSize: 10, fontWeight: 700, color: "#92400e" }}>WINNER</Typography>
+                                      <Trophy size={14} color="#fff" />
+                                      <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>WINNER</Typography>
                                     </Box>
                                   )}
                                 </Stack>

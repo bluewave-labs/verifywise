@@ -563,8 +563,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     judgeModel: "gpt-4o",
     datasetPath: "", // Single dataset for all contestants
     contestants: [
-      { name: "Player 1", hyperparameters: { model: "", provider: "openai" }, testCases: [] as { input: string; actualOutput: string }[] },
-      { name: "Player 2", hyperparameters: { model: "", provider: "openai" }, testCases: [] as { input: string; actualOutput: string }[] },
+      { name: "Select Model", hyperparameters: { model: "", provider: "openai" }, testCases: [] as { input: string; actualOutput: string }[] },
+      { name: "Select Model", hyperparameters: { model: "", provider: "openai" }, testCases: [] as { input: string; actualOutput: string }[] },
     ] as (ArenaContestant & { hyperparameters: { model: string; provider?: string } })[],
   });
 
@@ -714,19 +714,34 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       judgeModel: "gpt-4o",
       datasetPath: "",
       contestants: [
-        { name: "Player 1", hyperparameters: { model: "", provider: "openai" }, testCases: [] },
-        { name: "Player 2", hyperparameters: { model: "", provider: "openai" }, testCases: [] },
+        { name: "Select Model", hyperparameters: { model: "", provider: "openai" }, testCases: [] },
+        { name: "Select Model", hyperparameters: { model: "", provider: "openai" }, testCases: [] },
       ],
     });
   };
 
+  // Format model name for display (proper capitalization)
+  const formatModelName = (model: string): string => {
+    if (!model) return "Select Model";
+    // Keep common model names properly formatted
+    return model
+      .split("-")
+      .map((part) => {
+        // Keep version numbers and common abbreviations as-is
+        if (/^\d/.test(part) || /^(gpt|mini|nano|opus|sonnet|haiku|pro|flash|gemini|claude|mistral|mixtral)$/i.test(part)) {
+          return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+        }
+        return part.charAt(0).toUpperCase() + part.slice(1);
+      })
+      .join("-");
+  };
+
   const addContestant = () => {
-    const newIndex = newComparison.contestants.length + 1;
     setNewComparison({
       ...newComparison,
       contestants: [
         ...newComparison.contestants,
-        { name: `Player ${newIndex}`, hyperparameters: { model: "", provider: "openai" }, testCases: [] },
+        { name: "Select Model", hyperparameters: { model: "", provider: "openai" }, testCases: [] },
       ],
     });
   };
@@ -743,8 +758,11 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       updated[index].name = value;
     } else if (field === "provider") {
       updated[index].hyperparameters = { ...updated[index].hyperparameters, provider: value, model: "" };
+      updated[index].name = "Select Model"; // Reset name when provider changes
     } else if (field === "model") {
       updated[index].hyperparameters = { ...updated[index].hyperparameters, model: value };
+      // Auto-set contestant name to formatted model name
+      updated[index].name = formatModelName(value);
     }
     setNewComparison({ ...newComparison, contestants: updated });
   };
@@ -1001,7 +1019,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             direction="row"
             spacing={2}
             alignItems="center"
-            sx={{ mb: 3 }}
+            sx={{ mt: 8, mb: 3 }}
           >
             <FilterBy
               columns={filterColumns}
@@ -1451,17 +1469,23 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                     <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2.5}>
                       <Box
                         sx={{
-                          px: 1.5,
-                          py: 0.5,
-                          borderRadius: "6px",
+                          px: 2,
+                          py: 0.75,
+                          borderRadius: "8px",
                           background: colorScheme.gradient,
                           color: "#fff",
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: 700,
-                          letterSpacing: "0.5px",
+                          letterSpacing: "0.3px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
                         }}
                       >
-                        PLAYER {index + 1}
+                        <Target size={14} />
+                        {contestant.hyperparameters?.model 
+                          ? contestant.name 
+                          : `Contestant ${index + 1}`}
                       </Box>
                       {hasRemoveButton && (
                         <IconButton
@@ -1481,14 +1505,6 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                     </Stack>
 
                     <Stack spacing={2.5} sx={{ pb: 2 }}>
-                      {/* Name field */}
-                      <Field
-                        label="Name"
-                        value={contestant.name}
-                        onChange={(e) => updateContestant(index, "name", e.target.value)}
-                        placeholder={`Player ${index + 1}`}
-                      />
-
                       {/* Model selector (Braintrust-style) */}
                       <Box sx={{ pb: 1 }}>
                         <ModelSelector

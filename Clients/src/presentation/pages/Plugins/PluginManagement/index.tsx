@@ -813,10 +813,26 @@ const PluginManagement: React.FC = () => {
                       onClick={async () => {
                         try {
                           if (plugin.key) {
-                            await install(plugin.key);
-                            // Refresh plugin data
-                            const updatedPlugin = await getPluginByKey({ key: plugin.key });
-                            setPlugin(updatedPlugin);
+                            const installation = await install(plugin.key);
+
+                            // Refresh plugin data with installation status
+                            const [updatedPlugin, installedPlugins] = await Promise.all([
+                              getPluginByKey({ key: plugin.key }),
+                              getInstalledPlugins()
+                            ]);
+
+                            // Find the installation for this plugin
+                            const pluginInstallation = installedPlugins.find(
+                              (p) => p.pluginKey === plugin.key || p.plugin?.key === plugin.key
+                            );
+
+                            // Merge plugin metadata with installation status
+                            setPlugin({
+                              ...updatedPlugin,
+                              installationStatus: pluginInstallation?.status,
+                              installationId: pluginInstallation?.id,
+                            });
+
                             setToast({
                               variant: "success",
                               body: "Plugin installed successfully!",

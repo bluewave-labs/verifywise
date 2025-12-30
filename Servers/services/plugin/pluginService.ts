@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
-// import axios from "axios"; // Uncomment for production (remote Git repo)
+import { execSync } from "child_process";
+import axios from "axios";
 import { createInstallation, findByIdWithValidation, getInstalledPlugins, toJSON, updateConfiguration, deleteInstallation, findByPlugin } from "../../utils/pluginInstallation.utils";
 import { PluginInstallationStatus } from "../../domain.layer/enums/plugin.enum";
 import { QueryTypes } from "sequelize";
@@ -11,12 +12,7 @@ import {
 import { sequelize } from "../../database/db";
 
 // Environment configuration
-const PLUGIN_MARKETPLACE_PATH = path.join(
-  __dirname,
-  "../../../../plugin-marketplace/plugins.json"
-);
-// const PLUGIN_MARKETPLACE_URL = process.env.PLUGIN_MARKETPLACE_URL ||
-//   "https://raw.githubusercontent.com/verifywise/plugin-marketplace/main/plugins.json";
+const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/main/plugins.json";
 
 interface Plugin {
   key: string;
@@ -63,16 +59,11 @@ interface PluginMarketplace {
 export class PluginService {
   /**
    * Get all available plugins from marketplace
-   * Development: Reads from local plugins.json
-   * Production: Fetches from remote Git repository
+   * Fetches from remote Git repository
    */
   static async getAllPlugins(category?: string): Promise<Plugin[]> {
     try {
-      // DEVELOPMENT: Read from local file
-      const marketplaceData = await this.readLocalMarketplace();
-
-      // PRODUCTION: Uncomment below and comment out above for remote Git repo
-      // const marketplaceData = await this.fetchRemoteMarketplace();
+      const marketplaceData = await this.fetchRemoteMarketplace();
 
       let plugins = marketplaceData.plugins.filter((p) => p.isPublished);
 
@@ -93,8 +84,7 @@ export class PluginService {
    */
   static async getPluginByKey(pluginKey: string): Promise<Plugin | null> {
     try {
-      const marketplaceData = await this.readLocalMarketplace();
-      // const marketplaceData = await this.fetchRemoteMarketplace(); // Production
+      const marketplaceData = await this.fetchRemoteMarketplace();
 
       const plugin = marketplaceData.plugins.find(
         (p) => p.key === pluginKey && p.isPublished
@@ -115,8 +105,7 @@ export class PluginService {
    */
   static async searchPlugins(query: string): Promise<Plugin[]> {
     try {
-      const marketplaceData = await this.readLocalMarketplace();
-      // const marketplaceData = await this.fetchRemoteMarketplace(); // Production
+      const marketplaceData = await this.fetchRemoteMarketplace();
 
       const lowerQuery = query.toLowerCase();
 
@@ -267,8 +256,7 @@ export class PluginService {
    */
   static async getCategories(): Promise<any[]> {
     try {
-      const marketplaceData = await this.readLocalMarketplace();
-      // const marketplaceData = await this.fetchRemoteMarketplace(); // Production
+      const marketplaceData = await this.fetchRemoteMarketplace();
 
       return marketplaceData.categories || [];
     } catch (error: any) {
@@ -722,72 +710,101 @@ export class PluginService {
   // ========== PRIVATE METHODS ==========
 
   /**
-   * Read marketplace data from local file (Development)
+   * Download plugin's package.json from repository
    */
-  private static async readLocalMarketplace(): Promise<PluginMarketplace> {
+  private static async downloadPluginPackageJson(plugin: Plugin, tempPath: string): Promise<any> {
     try {
-      const data = fs.readFileSync(PLUGIN_MARKETPLACE_PATH, "utf-8");
-      return JSON.parse(data);
+      const baseUrl = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
+      const packageJsonUrl = `${baseUrl}/${plugin.pluginPath}/package.json`;
+
+      console.log(`[PluginService] Downloading package.json for ${plugin.key} from ${packageJsonUrl}`);
+
+      const response = await axios.get(packageJsonUrl, {
+        timeout: 10000,
+        responseType: 'json',
+      });
+
+      // Save package.json to temp directory
+      const packageJsonPath = path.join(tempPath, "package.json");
+      fs.writeFileSync(packageJsonPath, JSON.stringify(response.data, null, 2));
+
+      return response.data;
     } catch (error: any) {
-      console.error("[PluginService] Error reading local marketplace:", error);
-      throw new Error(`Failed to read local marketplace: ${error.message}`);
+      console.error(`[PluginService] Error downloading package.json for ${plugin.key}:`, error);
+      throw new Error(`Failed to download package.json: ${error.message}`);
     }
   }
 
   /**
-   * Fetch marketplace data from remote Git repository (Production)
-   * Uncomment for production use
+   * Install plugin dependencies using npm
    */
-  // private static async fetchRemoteMarketplace(): Promise<PluginMarketplace> {
-  //   try {
-  //     const response = await axios.get(PLUGIN_MARKETPLACE_URL, {
-  //       timeout: 10000,
-  //       headers: {
-  //         "Accept": "application/json",
-  //       },
-  //     });
-  //
-  //     return response.data;
-  //   } catch (error: any) {
-  //     console.error("[PluginService] Error fetching remote marketplace:", error);
-  //     throw new Error(`Failed to fetch remote marketplace: ${error.message}`);
-  //   }
-  // }
+  private static async installPluginDependencies(plugin: Plugin, tempPath: string, packageJson: any): Promise<void> {
+    try {
+      if (!packageJson.dependencies || Object.keys(packageJson.dependencies).length === 0) {
+        console.log(`[PluginService] No dependencies to install for plugin ${plugin.key}`);
+        return;
+      }
+
+      const dependenciesCount = Object.keys(packageJson.dependencies).length;
+      console.log(`[PluginService] Installing ${dependenciesCount} dependencies for plugin ${plugin.key}...`);
+
+      // Check if node_modules already exists and dependencies are installed
+      const nodeModulesPath = path.join(tempPath, "node_modules");
+      const packageLockPath = path.join(tempPath, "package-lock.json");
+
+      // If dependencies are already installed and package-lock exists, skip installation
+      if (fs.existsSync(nodeModulesPath) && fs.existsSync(packageLockPath)) {
+        console.log(`[PluginService] Dependencies already installed for plugin ${plugin.key}`);
+        return;
+      }
+
+      // Install dependencies using npm
+      // Use --prefer-offline to speed up if packages are in npm cache
+      // Use --no-audit --no-fund to skip unnecessary checks
+      const npmCommand = `npm install --prefer-offline --no-audit --no-fund --production`;
+
+      console.log(`[PluginService] Running: ${npmCommand} in ${tempPath}`);
+
+      execSync(npmCommand, {
+        cwd: tempPath,
+        stdio: 'pipe', // Suppress output unless there's an error
+        timeout: 60000, // 60 second timeout
+      });
+
+      console.log(`[PluginService] Successfully installed dependencies for plugin ${plugin.key}`);
+    } catch (error: any) {
+      console.error(`[PluginService] Error installing dependencies for ${plugin.key}:`, error);
+      throw new Error(`Failed to install plugin dependencies: ${error.message}`);
+    }
+  }
 
   /**
-   * Load plugin code from local file system
-   * In production, this would download the plugin from the Git repository
+   * Fetch marketplace data from remote Git repository
+   */
+  private static async fetchRemoteMarketplace(): Promise<PluginMarketplace> {
+    try {
+      const response = await axios.get(PLUGIN_MARKETPLACE_URL, {
+        timeout: 10000,
+        headers: {
+          "Accept": "application/json",
+        },
+      });
+
+      return response.data;
+    } catch (error: any) {
+      console.error("[PluginService] Error fetching remote marketplace:", error);
+      throw new Error(`Failed to fetch remote marketplace: ${error.message}`);
+    }
+  }
+
+  /**
+   * Load plugin code from remote Git repository
+   * Downloads and executes plugin code from the marketplace
    */
   private static async loadPluginCode(plugin: Plugin): Promise<any> {
     try {
-      // Register ts-node for TypeScript support if entry point is .ts
-      if (plugin.entryPoint.endsWith(".ts")) {
-        try {
-          require("ts-node/register");
-        } catch (error) {
-          console.warn(
-            "[PluginService] ts-node not available, attempting to load TypeScript file directly"
-          );
-        }
-      }
-
-      // DEVELOPMENT: Load from local file system
-      const pluginPath = path.join(
-        __dirname,
-        "../../../../plugin-marketplace",
-        plugin.pluginPath,
-        plugin.entryPoint
-      );
-
-      // Clear require cache to ensure fresh load
-      delete require.cache[require.resolve(pluginPath)];
-
-      const pluginCode = require(pluginPath);
+      const pluginCode = await this.downloadAndLoadPlugin(plugin);
       return pluginCode;
-
-      // PRODUCTION: Uncomment below for downloading from Git repository
-      // const pluginCode = await this.downloadAndLoadPlugin(plugin);
-      // return pluginCode;
     } catch (error: any) {
       console.error(
         `[PluginService] Error loading plugin ${plugin.key}:`,
@@ -798,31 +815,97 @@ export class PluginService {
   }
 
   /**
-   * Download plugin code from Git repository and load it (Production)
-   * Uncomment for production use
+   * Download plugin code from Git repository and load it
+   * Caches the downloaded code and dependencies for 5 days to avoid unnecessary re-downloads
    */
-  // private static async downloadAndLoadPlugin(plugin: Plugin): Promise<any> {
-  //   try {
-  //     // 1. Download plugin folder from Git repository
-  //     const pluginUrl = `${PLUGIN_MARKETPLACE_URL.replace("plugins.json", "")}${plugin.pluginPath}/${plugin.entryPoint}`;
-  //     const response = await axios.get(pluginUrl, {
-  //       timeout: 10000,
-  //     });
-  //
-  //     // 2. Save to temporary location
-  //     const tempPath = path.join(__dirname, "../../../temp/plugins", plugin.key);
-  //     fs.mkdirSync(tempPath, { recursive: true });
-  //     const entryPointPath = path.join(tempPath, plugin.entryPoint);
-  //     fs.writeFileSync(entryPointPath, response.data);
-  //
-  //     // 3. Load the plugin code
-  //     const pluginCode = require(entryPointPath);
-  //     return pluginCode;
-  //   } catch (error: any) {
-  //     console.error(`[PluginService] Error downloading plugin ${plugin.key}:`, error);
-  //     throw new Error(`Failed to download plugin: ${error.message}`);
-  //   }
-  // }
+  private static async downloadAndLoadPlugin(plugin: Plugin): Promise<any> {
+    try {
+      // 1. Setup paths
+      const tempPath = path.join(__dirname, "../../../temp/plugins", plugin.key);
+      const entryPointPath = path.join(tempPath, plugin.entryPoint);
+      const packageJsonPath = path.join(tempPath, "package.json");
+
+      // 2. Check if cached version exists and is less than 5 days old
+      const CACHE_DURATION_MS = 5 * 24 * 60 * 60 * 1000; // 5 days in milliseconds
+      let shouldDownload = true;
+
+      if (fs.existsSync(entryPointPath) && fs.existsSync(packageJsonPath)) {
+        const stats = fs.statSync(entryPointPath);
+        const fileAge = Date.now() - stats.mtimeMs;
+
+        if (fileAge < CACHE_DURATION_MS) {
+          shouldDownload = false;
+          console.log(`[PluginService] Using cached plugin ${plugin.key} (age: ${Math.round(fileAge / (1000 * 60 * 60))} hours)`);
+        } else {
+          console.log(`[PluginService] Cache expired for plugin ${plugin.key} (age: ${Math.round(fileAge / (1000 * 60 * 60 * 24))} days)`);
+        }
+      }
+
+      // 3. Download and setup if needed
+      if (shouldDownload) {
+        // Create temp directory
+        fs.mkdirSync(tempPath, { recursive: true });
+
+        // 3a. Download package.json
+        const packageJson = await this.downloadPluginPackageJson(plugin, tempPath);
+
+        // 3b. Download plugin entry point
+        const baseUrl = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
+        const pluginUrl = `${baseUrl}/${plugin.pluginPath}/${plugin.entryPoint}`;
+
+        console.log(`[PluginService] Downloading plugin ${plugin.key} from ${pluginUrl}`);
+
+        const response = await axios.get(pluginUrl, {
+          timeout: 10000,
+          responseType: 'text',
+        });
+
+        fs.writeFileSync(entryPointPath, response.data);
+
+        console.log(`[PluginService] Plugin ${plugin.key} downloaded and cached`);
+
+        // 3c. Install dependencies
+        await this.installPluginDependencies(plugin, tempPath, packageJson);
+      }
+
+      // 4. Register ts-node for TypeScript support if entry point is .ts
+      if (plugin.entryPoint.endsWith(".ts")) {
+        try {
+          require("ts-node/register");
+        } catch (error) {
+          console.warn(
+            "[PluginService] ts-node not available, attempting to load TypeScript file directly"
+          );
+        }
+      }
+
+      // 5. Add plugin's node_modules to require paths so dependencies can be resolved
+      const pluginNodeModulesPath = path.join(tempPath, "node_modules");
+      if (fs.existsSync(pluginNodeModulesPath)) {
+        // Add to module paths for this specific require
+        const Module = require('module');
+        const originalResolveLookupPaths = Module._resolveLookupPaths;
+
+        Module._resolveLookupPaths = function(request: string, parent: any) {
+          const paths = originalResolveLookupPaths.call(this, request, parent);
+          if (paths && !paths.includes(pluginNodeModulesPath)) {
+            paths.push(pluginNodeModulesPath);
+          }
+          return paths;
+        };
+      }
+
+      // 6. Clear require cache to ensure fresh load
+      delete require.cache[require.resolve(entryPointPath)];
+
+      // 7. Load the plugin code
+      const pluginCode = require(entryPointPath);
+      return pluginCode;
+    } catch (error: any) {
+      console.error(`[PluginService] Error downloading plugin ${plugin.key}:`, error);
+      throw new Error(`Failed to download plugin: ${error.message}`);
+    }
+  }
 
   /**
    * Get MLflow models from mlflow_model_records table

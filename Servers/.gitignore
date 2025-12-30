@@ -32,3 +32,5 @@ README-Email-Notifications.md
 .rate-limit-state.json
 
 uploads
+
+temp/**

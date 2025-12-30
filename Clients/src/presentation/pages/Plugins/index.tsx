@@ -35,6 +35,14 @@ const Plugins: React.FC = () => {
 
   const isAdmin = userRoleName === "Admin";
 
+  // Refetch plugins when navigating back to this page
+  React.useEffect(() => {
+    // Refetch plugins whenever the location changes to the plugins page
+    if (location.pathname.includes('/plugins') && !location.pathname.includes('/manage')) {
+      refetch();
+    }
+  }, [location.pathname, refetch]);
+
   // Custom breadcrumb items
   const breadcrumbItems: IBreadcrumbItem[] = useMemo(() => [
     {

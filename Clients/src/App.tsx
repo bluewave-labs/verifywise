@@ -15,7 +15,7 @@ import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
 import { DashboardState, UIValues, AuthValues, InputValues } from "./application/interfaces/appStates";
 import { ComponentVisible } from "./application/interfaces/ComponentVisible";
-import { AlertProps } from "./domain/interfaces/i.alert";
+import { AlertProps } from "./presentation/types/alert.types";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
@@ -28,6 +28,7 @@ import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
 import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
+import { AdvisorConversationProvider } from './application/contexts/AdvisorConversation.context';
 
 // Auth routes where the helper sidebar should not be shown
 const AUTH_ROUTES = [
@@ -274,8 +275,10 @@ function App() {
                   {createRoutes(triggerSidebar, triggerSidebarReload)}
                 </Routes>
 
-                {/* User Guide Sidebar */}
-                <UserGuideSidebarContainer />
+                {/* User Guide Sidebar with Advisor Conversation persistence */}
+                <AdvisorConversationProvider>
+                  <UserGuideSidebarContainer />
+                </AdvisorConversationProvider>
               </ConditionalThemeWrapper>
             </UserGuideSidebarProvider>
           </VerifyWiseContext.Provider>

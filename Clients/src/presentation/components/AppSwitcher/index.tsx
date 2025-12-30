@@ -34,12 +34,16 @@ const modules: ModuleItem[] = [
     id: "gateway",
     icon: <Network size={16} strokeWidth={1.5} />,
     label: "Gateway",
-    description: "Control, monitor, and govern all LLM traffic across your organization.",
+    description:
+      "Control, monitor, and govern all LLM traffic across your organization.",
     disabled: true,
   },
 ];
 
-const AppSwitcher: FC<AppSwitcherProps> = ({ activeModule, onModuleChange }) => {
+const AppSwitcher: FC<AppSwitcherProps> = ({
+  activeModule,
+  onModuleChange,
+}) => {
   return (
     <Stack className="app-switcher">
       <Stack className="app-switcher-modules">
@@ -74,14 +78,31 @@ const AppSwitcher: FC<AppSwitcherProps> = ({ activeModule, onModuleChange }) => 
               },
             }}
           >
-            <button
-              className={`app-switcher-icon ${activeModule === module.id ? "active" : ""} ${module.disabled ? "disabled" : ""}`}
-              onClick={() => !module.disabled && onModuleChange(module.id)}
-              disabled={module.disabled}
-              aria-label={module.label}
-            >
-              {module.icon}
-            </button>
+            {module.disabled ? (
+              <span style={{ display: "inline-block" }}>
+                <button
+                  className={`app-switcher-icon ${
+                    activeModule === module.id ? "active" : ""
+                  } ${module.disabled ? "disabled" : ""}`}
+                  onClick={() => !module.disabled && onModuleChange(module.id)}
+                  disabled={module.disabled}
+                  aria-label={module.label}
+                >
+                  {module.icon}
+                </button>
+              </span>
+            ) : (
+              <button
+                className={`app-switcher-icon ${
+                  activeModule === module.id ? "active" : ""
+                } ${module.disabled ? "disabled" : ""}`}
+                onClick={() => !module.disabled && onModuleChange(module.id)}
+                disabled={module.disabled}
+                aria-label={module.label}
+              >
+                {module.icon}
+              </button>
+            )}
           </Tooltip>
         ))}
       </Stack>

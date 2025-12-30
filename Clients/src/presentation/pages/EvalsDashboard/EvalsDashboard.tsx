@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid } from "@mui/material";
+import type { GridProps } from "@mui/material";
 import { Check } from "lucide-react";
 import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -11,12 +12,28 @@ import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import CustomAxios from "../../../infrastructure/api/customAxios";
-import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
-import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
-import { deepEvalScorersService } from "../../../infrastructure/api/deepEvalScorersService";
-import { evaluationLlmApiKeysService, type LLMApiKey } from "../../../infrastructure/api/evaluationLlmApiKeysService";
+import {
+  getAllProjects,
+  getProject,
+  createProject,
+  updateProject,
+  deleteProject,
+  getAllExperiments,
+  getExperiment,
+  listMyDatasets,
+  listScorers,
+  getAllOrgs,
+  createOrg,
+  setCurrentOrg,
+  getCurrentOrg,
+  getProjectsForOrg,
+  addProjectToOrg,
+  getAllLlmApiKeys,
+  deleteLlmApiKey,
+  addLlmApiKey,
+  type LLMApiKey,
+} from "../../../application/repository/deepEval.repository";
+import type { LLMProvider } from "../../../infrastructure/api/evaluationLlmApiKeysService";
 import { Plus as PlusIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { Chip, Collapse, IconButton, CircularProgress } from "@mui/material";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
@@ -43,7 +60,6 @@ import { ProjectDatasets } from "./ProjectDatasets";
 import ProjectScorers from "./ProjectScorers";
 import ExperimentDetailContent from "./ExperimentDetailContent";
 import type { DeepEvalProject } from "./types";
-import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 
 const LLM_PROVIDERS = [
   { _id: "openrouter", name: "OpenRouter", Logo: OpenRouterLogo },
@@ -295,7 +311,7 @@ export default function EvalsDashboard() {
   useEffect(() => {
     if (selectedExperimentId && projectId) {
       // Fetch the experiment to get its name
-      experimentsService.getExperiment(selectedExperimentId).then((data) => {
+      getExperiment(selectedExperimentId).then((data) => {
         if (data.experiment && data.experiment.name) {
           addRecentExperiment({
             id: selectedExperimentId,
@@ -320,7 +336,7 @@ export default function EvalsDashboard() {
         // Check if name looks like an experiment ID (starts with "exp_")
         if (exp.name.startsWith("exp_")) {
           try {
-            const data = await experimentsService.getExperiment(exp.id);
+            const data = await getExperiment(exp.id);
             if (data.experiment && data.experiment.name && !data.experiment.name.startsWith("exp_")) {
               needsUpdate.push({
                 id: exp.id,
@@ -358,7 +374,7 @@ export default function EvalsDashboard() {
   const fetchLlmApiKeys = async () => {
     setLlmApiKeysLoading(true);
     try {
-      const keys = await evaluationLlmApiKeysService.getAllKeys();
+      const keys = await getAllLlmApiKeys();
       setLlmApiKeys(keys);
     } catch (err) {
       console.error("Failed to fetch Provider API keys:", err);
@@ -381,7 +397,7 @@ export default function EvalsDashboard() {
     setDeleteKeyModalOpen(false);
 
     try {
-      await evaluationLlmApiKeysService.deleteKey(keyToDelete.provider);
+      await deleteLlmApiKey(keyToDelete.provider);
 
       // Wait for animation then refresh
       setTimeout(async () => {
@@ -468,13 +484,13 @@ export default function EvalsDashboard() {
     const loadAndCheckOnboarding = async () => {
       try {
         // Check if there are any organizations
-        let { orgs } = await deepEvalOrgsService.getAllOrgs();
+        let { orgs } = await getAllOrgs();
 
         if (!orgs || orgs.length === 0) {
           // No organizations - auto-create a default one
           try {
-            const { org: newOrg } = await deepEvalOrgsService.createOrg("Default Organization");
-            await deepEvalOrgsService.setCurrentOrg(newOrg.id);
+            const { org: newOrg } = await createOrg("Default Organization");
+            await setCurrentOrg(newOrg.id);
             setOrgId(newOrg.id);
             orgs = [newOrg];
           } catch (createErr) {
@@ -486,12 +502,12 @@ export default function EvalsDashboard() {
         }
 
         // Has organizations - check for current org
-        const { org } = await deepEvalOrgsService.getCurrentOrg();
+        const { org } = await getCurrentOrg();
         if (org) {
           setOrgId(org.id);
         } else {
           // Has orgs but none selected - select first one
-          await deepEvalOrgsService.setCurrentOrg(orgs[0].id);
+          await setCurrentOrg(orgs[0].id);
           setOrgId(orgs[0].id);
         }
 
@@ -507,7 +523,7 @@ export default function EvalsDashboard() {
         if (lastProjectId) {
           // Verify the project still exists
           try {
-            const projectData = await deepEvalProjectsService.getProject(lastProjectId);
+            const projectData = await getProject(lastProjectId);
             if (projectData?.project) {
               navigate(`/evals/${lastProjectId}#overview`, { replace: true });
               return;
@@ -520,7 +536,7 @@ export default function EvalsDashboard() {
 
         // No last project - check current org's projects for onboarding
         const currentOrgId = org?.id || orgs[0].id;
-        const projectIds = await deepEvalOrgsService.getProjectsForOrg(currentOrgId);
+        const projectIds = await getProjectsForOrg(currentOrgId);
         if (!projectIds || projectIds.length === 0) {
           // Org exists but no projects - go to project step
           setOnboardingStep("project");
@@ -552,7 +568,7 @@ export default function EvalsDashboard() {
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        const data = await deepEvalProjectsService.getAllProjects();
+        const data = await getAllProjects();
         // In future, filter by orgId if backend supports it or project.orgId is set.
         setAllProjects(data.projects);
 
@@ -597,7 +613,7 @@ export default function EvalsDashboard() {
     
     setSavingConfig(true);
     try {
-      await deepEvalProjectsService.updateProject(projectId, {
+      await updateProject(projectId, {
         useCase: currentProject.useCase,
       });
       
@@ -631,17 +647,17 @@ export default function EvalsDashboard() {
 
       try {
         // Load experiments count
-        const experimentsData = await experimentsService.getAllExperiments({
+        const experimentsData = await getAllExperiments({
           project_id: projectId
         });
         setExperimentsCount(experimentsData.experiments?.length || 0);
 
         // Load datasets count - count user's custom datasets ("My datasets")
-        const userDatasetsData = await deepEvalDatasetsService.listMy();
+        const userDatasetsData = await listMyDatasets();
         setDatasetsCount(userDatasetsData.datasets?.length || 0);
 
         // Load scorers count
-        const scorersData = await deepEvalScorersService.list({ org_id: orgId || undefined });
+        const scorersData = await listScorers({ org_id: orgId || undefined });
         setScorersCount(scorersData.scorers?.length || 0);
       } catch (err) {
         console.error("Failed to load counts:", err);
@@ -701,9 +717,9 @@ export default function EvalsDashboard() {
     if (!renameProjectId || !renameProjectName.trim()) return;
     setRenaming(true);
     try {
-      await deepEvalProjectsService.updateProject(renameProjectId, { name: renameProjectName.trim() });
+      await updateProject(renameProjectId, { name: renameProjectName.trim() });
       // Reload projects list
-      const data = await deepEvalProjectsService.getAllProjects();
+      const data = await getAllProjects();
       setAllProjects(data.projects);
       // Update current project if it was renamed
       if (projectId === renameProjectId) {
@@ -727,9 +743,9 @@ export default function EvalsDashboard() {
     if (!deleteProjectId) return;
     setDeleting(true);
     try {
-      await deepEvalProjectsService.deleteProject(deleteProjectId);
+      await deleteProject(deleteProjectId);
       // Reload projects list
-      const data = await deepEvalProjectsService.getAllProjects();
+      const data = await getAllProjects();
       setAllProjects(data.projects);
 
       // Remove deleted project from recent projects
@@ -770,12 +786,12 @@ export default function EvalsDashboard() {
     setServerConnectionError(false);
     setInitialLoading(true);
     try {
-      let { orgs } = await deepEvalOrgsService.getAllOrgs();
+      let { orgs } = await getAllOrgs();
       if (!orgs || orgs.length === 0) {
         // Auto-create default org
         try {
-          const { org: newOrg } = await deepEvalOrgsService.createOrg("Default Organization");
-          await deepEvalOrgsService.setCurrentOrg(newOrg.id);
+          const { org: newOrg } = await createOrg("Default Organization");
+          await setCurrentOrg(newOrg.id);
           setOrgId(newOrg.id);
           orgs = [newOrg];
         } catch {
@@ -784,11 +800,11 @@ export default function EvalsDashboard() {
         }
       }
       
-      const { org } = await deepEvalOrgsService.getCurrentOrg();
+      const { org } = await getCurrentOrg();
       if (org) {
         setOrgId(org.id);
       } else {
-        await deepEvalOrgsService.setCurrentOrg(orgs[0].id);
+        await setCurrentOrg(orgs[0].id);
         setOrgId(orgs[0].id);
       }
       setOnboardingStep(null);
@@ -804,7 +820,7 @@ export default function EvalsDashboard() {
     if (!onboardingProjectName.trim() || !orgId) return;
     setOnboardingSubmitting(true);
     try {
-      await deepEvalProjectsService.createProject({
+      await createProject({
         name: onboardingProjectName.trim(),
         description: onboardingProjectDesc,
         useCase: onboardingProjectUseCase,
@@ -813,14 +829,14 @@ export default function EvalsDashboard() {
       });
 
       // Reload projects
-      const data = await deepEvalProjectsService.getAllProjects();
+      const data = await getAllProjects();
       setAllProjects(data.projects);
 
       // Link project to org and navigate
       const createdProject = data.projects.find((p) => p.name === onboardingProjectName.trim());
       if (createdProject) {
         try {
-          await deepEvalOrgsService.addProjectToOrg(orgId, createdProject.id);
+          await addProjectToOrg(orgId, createdProject.id);
         } catch (e) {
           console.warn("Failed to link project to org:", e);
         }
@@ -844,7 +860,7 @@ export default function EvalsDashboard() {
   const handleCreateProject = async () => {
     setLoading(true);
     try {
-      await deepEvalProjectsService.createProject({
+      await createProject({
         name: newProject.name,
         description: newProject.description,
         useCase: newProject.useCase,
@@ -853,7 +869,7 @@ export default function EvalsDashboard() {
       });
 
       // Reload projects
-      const data = await deepEvalProjectsService.getAllProjects();
+      const data = await getAllProjects();
       setAllProjects(data.projects);
       
       // Navigate to the newly created project
@@ -861,7 +877,7 @@ export default function EvalsDashboard() {
       if (createdProject) {
         if (orgId) {
           try {
-            await deepEvalOrgsService.addProjectToOrg(orgId, createdProject.id);
+            await addProjectToOrg(orgId, createdProject.id);
           } catch (e) {
             console.warn("Failed to link project to org:", e);
           }
@@ -1051,14 +1067,10 @@ export default function EvalsDashboard() {
     setApiKeySaving(true);
 
     try {
-      const response = await CustomAxios.post('/evaluation-llm-keys', {
-        provider: selectedProvider,
+      await addLlmApiKey({
+        provider: selectedProvider as LLMProvider,
         apiKey: newApiKey,
       });
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to add API key');
-      }
 
       setApiKeyAlert({
         variant: "success",
@@ -1097,11 +1109,11 @@ export default function EvalsDashboard() {
             onClick: async () => {
               // When in Organizations view with no org selected, choose first org so ProjectsList can render
               try {
-                const { org } = await deepEvalOrgsService.getCurrentOrg();
+                const { org } = await getCurrentOrg();
                 if (!org) {
-                  const { orgs } = await deepEvalOrgsService.getAllOrgs();
+                  const { orgs } = await getAllOrgs();
                   if (orgs && orgs.length > 0) {
-                    await deepEvalOrgsService.setCurrentOrg(orgs[0].id);
+                    await setCurrentOrg(orgs[0].id);
                     setOrgId(orgs[0].id);
                   }
                 }
@@ -1904,7 +1916,7 @@ export default function EvalsDashboard() {
                 const hasKey = llmApiKeys.some(k => k.provider === provider._id);
                 
                 return (
-                  <Grid item xs={4} sm={4} key={provider._id}>
+                  <Grid {...({ item: true, xs: 4, sm: 4 } as GridProps & { item: boolean; xs: number; sm: number })} key={provider._id}>
                     <Card
                       onClick={() => handleProviderSelect(provider._id)}
                       sx={{
@@ -2149,7 +2161,7 @@ export default function EvalsDashboard() {
             </Typography>
             <Grid container spacing={1.5}>
               {/* Ollama */}
-              <Grid item xs={6}>
+              <Grid {...({ item: true, xs: 6 } as GridProps & { item: boolean; xs: number })}>
                 <Card
                   onClick={() => {
                     setSelectedLocalProviderType("ollama");
@@ -2200,7 +2212,7 @@ export default function EvalsDashboard() {
               </Grid>
 
               {/* Local Endpoint */}
-              <Grid item xs={6}>
+              <Grid {...({ item: true, xs: 6 } as GridProps & { item: boolean; xs: number })}>
                 <Card
                   onClick={() => {
                     setSelectedLocalProviderType("local");

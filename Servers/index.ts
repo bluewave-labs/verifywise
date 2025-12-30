@@ -46,13 +46,16 @@ import YAML from "yamljs";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
+import llmKeyRouter from "./routes/llmKey.route";
 import nistAiRmfRoutes from "./routes/nist_ai_rmf.route";
 import evidenceHubRouter from "./routes/evidenceHub.route";
 import ceMarkingRoutes from "./routes/ceMarking.route";
+import advisorRouter from "./routes/advisor.route";
 import searchRoutes from "./routes/search.route";
 import deepEvalRoutes from "./routes/deepEvalRoutes.route";
 import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
 import notesRoutes from "./routes/notes.route";
+import entityGraphRoutes from "./routes/entityGraph.route";
 import vendorRiskChangeHistoryRoutes from "./routes/vendorRiskChangeHistory.route";
 import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
 import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
@@ -177,8 +180,10 @@ try {
   app.use("/api/file-manager", fileManagerRoutes);
   app.use("/api/automations", automation);
   app.use("/api/user-preferences", userPreferenceRouter);
+  app.use("/api/llm-keys", llmKeyRouter);
   app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
   app.use("/api/evidenceHub", evidenceHubRouter);
+  app.use("/api/advisor", advisorRouter);
   app.use("/api/policy-linked", policyLinkedObjects);
 
   // Adding background jobs in the Queue
@@ -191,6 +196,7 @@ try {
   app.use("/api/deepeval", deepEvalRoutes());
   app.use("/api/evaluation-llm-keys", evaluationLlmApiKeyRoutes);
   app.use("/api/notes", notesRoutes);
+  app.use("/api/entity-graph", entityGraphRoutes);
   app.use("/api/vendor-risk-change-history", vendorRiskChangeHistoryRoutes);
   app.use("/api/policy-change-history", policyChangeHistoryRoutes);
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);

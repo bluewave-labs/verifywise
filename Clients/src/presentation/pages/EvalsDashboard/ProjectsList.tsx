@@ -33,8 +33,14 @@ import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
-import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
+import {
+  getAllProjects,
+  getProjectStats,
+  createProject,
+  updateProject,
+  deleteProject,
+  getAllExperiments,
+} from "../../../application/repository/deepEval.repository";
 import singleTheme from "../../themes/v1SingleTheme";
 import type { DeepEvalProject } from "./types";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -169,7 +175,7 @@ export default function ProjectsList() {
 
   const loadProjects = useCallback(async () => {
     try {
-      const data = await deepEvalProjectsService.getAllProjects();
+      const data = await getAllProjects();
       const list = data.projects || [];
       setProjects(list);
 
@@ -177,12 +183,12 @@ export default function ProjectsList() {
       const statsArray = await Promise.all(
         (list || []).map(async (p) => {
           try {
-            const res = await experimentsService.getAllExperiments({ project_id: p.id });
+            const res = await getAllExperiments({ project_id: p.id });
             const total = Array.isArray(res?.experiments) ? res.experiments.length : (res?.length ?? 0);
             return { id: p.id, total };
           } catch {
             try {
-              const res = await deepEvalProjectsService.getProjectStats(p.id);
+              const res = await getProjectStats(p.id);
               return { id: p.id, total: res.stats.totalExperiments ?? 0 };
             } catch {
               return { id: p.id, total: 0 };
@@ -286,7 +292,7 @@ export default function ProjectsList() {
         defaultDataset: newProject.useCase,
       };
 
-      await deepEvalProjectsService.createProject(projectConfig);
+      await createProject(projectConfig);
 
       setAlert({
         variant: "success",
@@ -317,7 +323,7 @@ export default function ProjectsList() {
     if (!editingProject) return;
     setLoading(true);
     try {
-      await deepEvalProjectsService.updateProject(editingProject.id, editProjectData);
+      await updateProject(editingProject.id, editProjectData);
       setAlert({
         variant: "success",
         body: `Project "${editProjectData.name}" updated successfully!`,
@@ -341,7 +347,7 @@ export default function ProjectsList() {
     if (!projectToDelete) return;
     setLoading(true);
     try {
-      await deepEvalProjectsService.deleteProject(projectToDelete.id);
+      await deleteProject(projectToDelete.id);
       setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
       setRunsByProject((prev) => {
         const next = { ...prev };

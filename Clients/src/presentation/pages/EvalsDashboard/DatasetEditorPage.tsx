@@ -14,8 +14,13 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { deepEvalDatasetsService, DatasetPromptRecord, SingleTurnPrompt, isSingleTurnPrompt } from "../../../infrastructure/api/deepEvalDatasetsService";
-import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
+import {
+  readDataset,
+  getCurrentOrg,
+  uploadDataset,
+  type DatasetPromptRecord,
+} from "../../../application/repository/deepEval.repository";
+import { isSingleTurnPrompt, type SingleTurnPrompt } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import { ArrowLeft, ChevronDown, Save as SaveIcon, Plus, Trash2, Download, Copy, Check } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -37,7 +42,7 @@ export default function DatasetEditorPage() {
   useEffect(() => {
     (async () => {
       try {
-        const { org } = await deepEvalOrgsService.getCurrentOrg();
+        const { org } = await getCurrentOrg();
         if (org) setOrgId(org.id);
       } catch {
         // Ignore - org might not be set
@@ -50,7 +55,7 @@ export default function DatasetEditorPage() {
       if (!path) return;
       try {
         setLoading(true);
-        const data = await deepEvalDatasetsService.read(path);
+        const data = await readDataset(path);
         setPrompts(data.prompts || []);
 
         // Derive name from path
@@ -77,7 +82,7 @@ export default function DatasetEditorPage() {
       const slug = datasetName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
       const finalName = slug ? `${slug}.json` : "dataset.json";
       const file = new File([blob], finalName, { type: "application/json" });
-      await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
+      await uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
       setAlert({ variant: "success", body: `Dataset "${datasetName}" saved successfully!` });
       setTimeout(() => {
         setAlert(null);

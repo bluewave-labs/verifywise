@@ -21,8 +21,8 @@ import {
   Chip,
   useTheme,
 } from "@mui/material";
+import type { GridProps } from "@mui/material";
 import { RefreshCw, XCircle, Eye, ChevronsUpDown } from "lucide-react";
-import { apiServices } from "../../../infrastructure/api/networkServices";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import VWChip from "../../components/Chip";
 import EmptyState from "../../components/EmptyState";
@@ -40,8 +40,14 @@ import {
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { apiServices } from "../../../infrastructure/api/networkServices";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+interface SelectorVerticalProps {
+  className?: string;
+  [key: string]: unknown;
+}
+
+const SelectorVertical = (props: SelectorVerticalProps) => <ChevronsUpDown size={16} {...props} />;
 
 const MLFlowDataTable: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -122,7 +128,7 @@ const MLFlowDataTable: React.FC = () => {
       } else {
         setMlflowData([]);
       }
-    } catch (err: any) {
+    } catch {
       // Only show warning for actual errors - backend should return 200 for most cases now
       setWarning("Unable to reach the MLFlow backend.");
       setMlflowData([]);
@@ -400,7 +406,7 @@ const MLFlowDataTable: React.FC = () => {
               </Box>
 
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid {...({ item: true, xs: 12, sm: 6 } as GridProps & { item: boolean; xs: number; sm: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Basic Information
                   </Typography>
@@ -419,7 +425,7 @@ const MLFlowDataTable: React.FC = () => {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid {...({ item: true, xs: 12, sm: 6 } as GridProps & { item: boolean; xs: number; sm: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Description
                   </Typography>
@@ -427,7 +433,7 @@ const MLFlowDataTable: React.FC = () => {
                     {selectedModel.description || "No description available"}
                   </Typography>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid {...({ item: true, xs: 12 } as GridProps & { item: boolean; xs: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Tags
                   </Typography>
@@ -446,7 +452,7 @@ const MLFlowDataTable: React.FC = () => {
                     ))}
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid {...({ item: true, xs: 12, sm: 6 } as GridProps & { item: boolean; xs: number; sm: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Metrics
                   </Typography>
@@ -458,7 +464,7 @@ const MLFlowDataTable: React.FC = () => {
                     ))}
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid {...({ item: true, xs: 12, sm: 6 } as GridProps & { item: boolean; xs: number; sm: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Parameters
                   </Typography>
@@ -470,7 +476,7 @@ const MLFlowDataTable: React.FC = () => {
                     ))}
                   </Box>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid {...({ item: true, xs: 12 } as GridProps & { item: boolean; xs: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Experiment Information
                   </Typography>

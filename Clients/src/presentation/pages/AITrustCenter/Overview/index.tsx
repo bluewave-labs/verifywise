@@ -254,7 +254,7 @@ const AITrustCenterOverview: React.FC = () => {
             handleFieldChange("info", "intro_visible", checked)
           }
         />
-        <Box display="flex" gap={8} mt={2}>
+        <Box display="flex" flexWrap="wrap" gap={8} mt={2}>
           <ToggleCard
             label="Purpose of our trust center"
             checked={localFormData.intro?.purpose_visible || false}
@@ -462,7 +462,7 @@ const AITrustCenterOverview: React.FC = () => {
             handleFieldChange("info", "company_description_visible", checked)
           }
         />
-        <Box display="flex" gap={8} mt={2}>
+        <Box display="flex" flexWrap="wrap" gap={8} mt={2}>
           <ToggleCard
             label="Background"
             checked={

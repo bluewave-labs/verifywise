@@ -74,7 +74,7 @@ export const collections: Collection[] = [
     title: 'AI governance',
     description: 'Manage your AI models, track their lifecycle, and maintain comprehensive documentation.',
     icon: 'Brain',
-    articleCount: 7,
+    articleCount: 8,
     articles: [
       {
         id: 'model-inventory',
@@ -105,6 +105,12 @@ export const collections: Collection[] = [
         title: 'Evidence collection',
         description: 'Gather and organize evidence for compliance and audits.',
         keywords: ['evidence', 'documentation', 'proof', 'audit', 'collection', 'file', 'manager'],
+      },
+      {
+        id: 'entity-graph',
+        title: 'Entity Graph',
+        description: 'Visualize relationships between models, vendors, risks, and use cases.',
+        keywords: ['entity', 'graph', 'visualization', 'relationships', 'connections', 'network', 'diagram'],
       },
       {
         id: 'watchtower',

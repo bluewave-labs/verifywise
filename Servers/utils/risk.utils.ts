@@ -384,13 +384,17 @@ export const getRiskByIdQuery = async (
   }
   (projectRisk as any).owner_name = ownerFullName;
 
-  const approver_name = (await sequelize.query(
-    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
-    {
-      replacements: { approver_id: projectRisk.risk_approval },
-    }
-  )) as [{ full_name: string }[], number];
-  (projectRisk as any).approver_name = approver_name[0][0].full_name;
+  let approverFullName = "";
+  if (projectRisk.risk_approval) {
+    const approver_name = (await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+      {
+        replacements: { approver_id: projectRisk.risk_approval },
+      }
+    )) as [{ full_name: string }[], number];
+    approverFullName = approver_name?.[0]?.[0]?.full_name ?? "";
+  }
+  (projectRisk as any).approver_name = approverFullName;
 
   (projectRisk as any).projects = [];
   (projectRisk as any).frameworks = [];
@@ -990,13 +994,16 @@ export const updateRiskByIdQuery = async (
           ownerFullName = ownerResult?.[0]?.[0]?.full_name ?? "";
         }
 
-        const approver_name = await sequelize.query(
-          `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
-          {
-            replacements: { approver_id: updatedRisk.dataValues.risk_approval }, transaction
-          }
-        ) as [{ full_name: string }[], number];
-  
+        let approverFullName = "";
+        if (updatedRisk.dataValues.risk_approval) {
+          const approver_name = await sequelize.query(
+            `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+            {
+              replacements: { approver_id: updatedRisk.dataValues.risk_approval }, transaction
+            }
+          ) as [{ full_name: string }[], number];
+          approverFullName = approver_name?.[0]?.[0]?.full_name ?? "";
+        }
 
       const params = automation.params!;
 
@@ -1004,7 +1011,7 @@ export const updateRiskByIdQuery = async (
       const replacements = buildRiskUpdateReplacements(existingRisk, {
         ...updatedRisk.dataValues,
         owner_name: ownerFullName,
-        approver_name: approver_name[0][0].full_name
+        approver_name: approverFullName
       });
 
       // Replace variables in subject and body

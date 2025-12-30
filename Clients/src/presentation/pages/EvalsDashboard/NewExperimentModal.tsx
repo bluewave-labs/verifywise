@@ -17,6 +17,7 @@ import {
   AccordionDetails,
   FormHelperText,
 } from "@mui/material";
+import type { GridProps } from "@mui/material";
 import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import SelectableCard from "../../components/SelectableCard";
@@ -36,10 +37,19 @@ import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
 import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
-import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
-import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
-import { deepEvalScorersService, type DeepEvalScorer } from "../../../infrastructure/api/deepEvalScorersService";
-import { evaluationLlmApiKeysService, type LLMApiKey, type LLMProvider } from "../../../infrastructure/api/evaluationLlmApiKeysService";
+import {
+  createExperiment,
+  listDatasets,
+  listMyDatasets,
+  readDataset,
+  uploadDataset,
+  listScorers,
+  getAllLlmApiKeys,
+  addLlmApiKey,
+  type DeepEvalScorer,
+  type LLMApiKey,
+  type LLMProvider,
+} from "../../../application/repository/deepEval.repository";
 import { PROVIDERS, type ModelInfo } from "../../utils/providers";
 
 interface NewExperimentModalProps {
@@ -289,7 +299,7 @@ export default function NewExperimentModal({
     (async () => {
       try {
         setLoadingApiKeys(true);
-        const keys = await evaluationLlmApiKeysService.getAllKeys();
+        const keys = await getAllLlmApiKeys();
         setConfiguredApiKeys(keys);
       } catch {
         /* ignore */
@@ -306,7 +316,7 @@ export default function NewExperimentModal({
     (async () => {
       try {
         setLoadingUserDatasets(true);
-        const res = await deepEvalDatasetsService.listMy();
+        const res = await listMyDatasets();
         const datasets = (res.datasets || []).map((d) => ({
           id: String(d.id),
           name: d.name,
@@ -328,7 +338,7 @@ export default function NewExperimentModal({
     (async () => {
       try {
         setLoadingScorers(true);
-        const res = await deepEvalScorersService.list({ org_id: orgId || undefined });
+        const res = await listScorers({ org_id: orgId || undefined });
         const enabledScorers = (res.scorers || []).filter((s) => s.enabled);
         setUserScorers(enabledScorers);
         // If user has scorers, default to scorer mode
@@ -361,7 +371,7 @@ export default function NewExperimentModal({
     try {
       // If we already have a selected preset path, load it; otherwise select first by use case
       if (!selectedPresetPath) {
-        const list = await deepEvalDatasetsService.list();
+        const list = await listDatasets();
         const options = list[config.taskType] || [];
         if (options.length > 0) {
           setSelectedPresetPath(options[0].path);
@@ -369,7 +379,7 @@ export default function NewExperimentModal({
       }
       const pathToLoad = selectedPresetPath;
       if (pathToLoad) {
-        const { prompts } = await deepEvalDatasetsService.read(pathToLoad);
+        const { prompts } = await readDataset(pathToLoad);
         // Apply category filters and limits if provided
         let filtered = prompts as DatasetPrompt[];
         if (config.dataset.categories && config.dataset.categories.length > 0) {
@@ -396,7 +406,7 @@ export default function NewExperimentModal({
       const modelProvider = config.model.accessMethod;
       if (config.model.apiKey && modelProvider && PROVIDERS[modelProvider] && !hasApiKey(modelProvider)) {
         saveApiKeyPromises.push(
-          evaluationLlmApiKeysService.addKey({
+          addLlmApiKey({
             provider: modelProvider as LLMProvider,
             apiKey: config.model.apiKey,
           }).then((newKey) => {
@@ -412,7 +422,7 @@ export default function NewExperimentModal({
       const judgeProvider = config.judgeLlm.provider;
       if (config.judgeLlm.apiKey && judgeProvider && PROVIDERS[judgeProvider] && !hasApiKey(judgeProvider)) {
         saveApiKeyPromises.push(
-          evaluationLlmApiKeysService.addKey({
+          addLlmApiKey({
             provider: judgeProvider as LLMProvider,
             apiKey: config.judgeLlm.apiKey,
           }).then((newKey) => {
@@ -530,7 +540,7 @@ export default function NewExperimentModal({
       console.log("Creating experiment:", experimentConfig);
 
       // Create experiment via API
-      const response = await experimentsService.createExperiment(experimentConfig);
+      const response = await createExperiment(experimentConfig);
       console.log("Experiment created:", response);
 
       // Optimistically notify parent so the table shows a pending row immediately
@@ -769,7 +779,7 @@ export default function NewExperimentModal({
                     const isSelected = config.model.accessMethod === provider.id;
                     
                     return (
-                      <Grid item xs={4} sm={3} key={provider.id}>
+                      <Grid {...({ item: true, xs: 4, sm: 3 } as GridProps & { item: boolean; xs: number; sm: number })} key={provider.id}>
                         <Card
                           onClick={() =>
                             setConfig((prev) => ({
@@ -1090,13 +1100,13 @@ export default function NewExperimentModal({
                             setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with prompts that have actual content." });
                             return;
                           }
-                          const resp = await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
+                          const resp = await uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
                     const newDataset = { id: resp.path, name: file.name.replace(/\.json$/i, ""), path: resp.path, promptCount: validPromptCount };
                     setUserDatasets((prev) => [newDataset, ...prev]);
                     setSelectedUserDataset(newDataset);
                     setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
                           try {
-                            const { prompts } = await deepEvalDatasetsService.read(resp.path);
+                            const { prompts } = await readDataset(resp.path);
                             setDatasetPrompts((prompts || []) as DatasetPrompt[]);
                             setDatasetLoaded(true);
                           } catch {
@@ -1161,7 +1171,7 @@ export default function NewExperimentModal({
                           setSelectedUserDataset(dataset);
                           setSelectedPresetPath("");
                           try {
-                            const { prompts } = await deepEvalDatasetsService.read(dataset.path);
+                            const { prompts } = await readDataset(dataset.path);
                             setDatasetPrompts((prompts || []) as DatasetPrompt[]);
                             setDatasetLoaded(true);
                           } catch {
@@ -1224,7 +1234,7 @@ export default function NewExperimentModal({
                         setSelectedUserDataset(null);
                         setSelectedPresetPath(template.path);
                         try {
-                          const { prompts } = await deepEvalDatasetsService.read(template.path);
+                          const { prompts } = await readDataset(template.path);
                           setDatasetPrompts((prompts || []) as DatasetPrompt[]);
                           setDatasetLoaded(true);
                         } catch {
@@ -1402,7 +1412,7 @@ export default function NewExperimentModal({
                       const isSelected = config.judgeLlm.provider === provider.id;
                       
                       return (
-                        <Grid item xs={4} sm={3} key={provider.id}>
+                        <Grid {...({ item: true, xs: 4, sm: 3 } as GridProps & { item: boolean; xs: number; sm: number })} key={provider.id}>
                           <Card
                             onClick={() =>
                               setConfig((prev) => ({

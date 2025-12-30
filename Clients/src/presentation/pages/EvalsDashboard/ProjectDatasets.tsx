@@ -24,7 +24,17 @@ import {
 import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check, MessageSquare, GitBranch } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
-import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset, type DatasetType, type SingleTurnPrompt, type MultiTurnConversation, isSingleTurnPrompt, isMultiTurnConversation } from "../../../infrastructure/api/deepEvalDatasetsService";
+import {
+  listMyDatasets,
+  listDatasets,
+  readDataset,
+  uploadDataset,
+  deleteDatasets,
+  type DatasetPromptRecord,
+  type ListedDataset,
+  type DatasetType,
+} from "../../../application/repository/deepEval.repository";
+import { isSingleTurnPrompt, isMultiTurnConversation, type SingleTurnPrompt, type MultiTurnConversation } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import Chip from "../../components/Chip";
 import ModalStandard from "../../components/Modals/StandardModal";
@@ -40,6 +50,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import DatasetsTable, { type DatasetRow } from "../../components/Table/DatasetsTable";
 import TemplatesTable from "../../components/Table/TemplatesTable";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import SelectableCard from "../../components/SelectableCard";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
@@ -177,7 +188,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     }));
     
     try {
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       const prompts = res.prompts || [];
       // Count only prompts with actual content
       const validPromptCount = prompts.filter((p) => {
@@ -208,7 +219,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   const loadMyDatasets = useCallback(async () => {
     try {
       setLoading(true);
-      const userRes = await deepEvalDatasetsService.listMy().catch(() => ({ datasets: [] }));
+      const userRes = await listMyDatasets().catch(() => ({ datasets: [] }));
       const userDatasets = userRes.datasets || [];
       const allDatasets: BuiltInDataset[] = userDatasets.map((ud) => ({
         key: `user_${ud.id}`,
@@ -238,7 +249,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   const loadTemplateDatasets = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await deepEvalDatasetsService.list();
+      const res = await listDatasets();
       setTemplateGroups(res as Record<"chatbot" | "rag" | "agent", BuiltInDataset[]>);
     } catch (err) {
       console.error("Failed to load template datasets", err);
@@ -355,7 +366,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     (async () => {
       try {
         setLoadingTemplatePrompts(true);
-        const res = await deepEvalDatasetsService.read(selectedTemplate.path);
+        const res = await readDataset(selectedTemplate.path);
         setTemplatePrompts(res.prompts || []);
       } catch (err) {
         console.error("Failed to load template prompts", err);
@@ -371,7 +382,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     try {
       setCopyingTemplate(true);
       // Load the template content
-      const res = await deepEvalDatasetsService.read(template.path);
+      const res = await readDataset(template.path);
       const prompts = res.prompts || [];
 
       // Create a new file and upload it
@@ -380,7 +391,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
       const fileName = `${template.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}.json`;
       const file = new File([blob], fileName, { type: "application/json" });
 
-      await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
+      await uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
       setAlert({ variant: "success", body: `"${template.name}" copied to your datasets` });
       setTimeout(() => setAlert(null), 3000);
 
@@ -477,7 +488,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     setDrawerOpen(true);
     try {
       setLoadingPrompts(true);
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       setDatasetPrompts(res.prompts || []);
     } catch (err) {
       console.error("Failed to load dataset prompts", err);
@@ -491,7 +502,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     handleActionMenuClose();
     try {
       setLoadingEditor(true);
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       setEditablePrompts(res.prompts || []);
       // Use the dataset name directly (already cleaned by backend)
       setEditDatasetName(dataset.name);
@@ -526,14 +537,14 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
       // If editing an existing user dataset, delete the old one first
       if (editingDataset?.isUserDataset && editingDataset?.path) {
         try {
-          await deepEvalDatasetsService.deleteDatasets([editingDataset.path]);
+          await deleteDatasets([editingDataset.path]);
         } catch (deleteErr) {
           console.warn("Could not delete old dataset, proceeding with save:", deleteErr);
         }
       }
       
       const turnType = editablePrompts.length > 0 && !isSingleTurnPrompt(editablePrompts[0]) ? "multi-turn" : "single-turn";
-      await deepEvalDatasetsService.uploadDataset(file, datasetType, turnType, orgId || undefined);
+      await uploadDataset(file, datasetType, turnType, orgId || undefined);
       setAlert({ variant: "success", body: `Dataset "${editDatasetName}" saved successfully!` });
       setTimeout(() => setAlert(null), 3000);
       handleCloseEditor();
@@ -600,7 +611,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   const handleConfirmDelete = async () => {
     if (!datasetToDelete) return;
     try {
-      await deepEvalDatasetsService.deleteDatasets([datasetToDelete.path]);
+      await deleteDatasets([datasetToDelete.path]);
       setAlert({ variant: "success", body: "Dataset removed" });
       setTimeout(() => setAlert(null), 3000);
       void loadMyDatasets();
@@ -622,7 +633,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   const handleDownloadDataset = async (dataset: BuiltInDataset) => {
     handleActionMenuClose();
     try {
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       const json = JSON.stringify(res.prompts || [], null, 2);
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -849,7 +860,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     try {
       setUploading(true);
       setUploadModalOpen(false);
-      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType, datasetTurnType, orgId || undefined);
+      const resp = await uploadDataset(file, exampleDatasetType, datasetTurnType, orgId || undefined);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
       void loadMyDatasets();
@@ -1516,6 +1527,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Datasets contain the prompts or conversations used to evaluate your models. Create custom datasets or use templates to get started quickly.
         </Typography>
+        <TipBox entityName="evals-datasets" />
       </Stack>
 
       {/* Hidden file input for uploads */}

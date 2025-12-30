@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import EmptyState from "../../EmptyState";
 import { FileModel } from "../../../../domain/models/Common/file/file.model";
-import { IFileTableProps } from "../../../../domain/interfaces/i.table";
+import { IFileTableProps } from "../../../types/interfaces/i.table";
 
 type SortDirection = "asc" | "desc" | null;
 

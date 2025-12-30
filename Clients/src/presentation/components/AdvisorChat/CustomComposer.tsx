@@ -24,6 +24,7 @@ const CustomTextField = forwardRef<
         border: `1px solid ${theme.palette.border?.light}`,
         borderRadius: '10px',
         padding: '8px 12px',
+        fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         fontSize: '13px',
         lineHeight: 1.5,
         backgroundColor: theme.palette.background.main,

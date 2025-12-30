@@ -5,9 +5,10 @@ import { CustomThread } from './CustomThread';
 
 interface AdvisorChatProps {
   selectedLLMKeyId?: number;
+  pageContext?: 'risk-management' | 'model-inventory';
 }
 
-const AdvisorChat = ({ selectedLLMKeyId }: AdvisorChatProps) => {
+const AdvisorChat = ({ selectedLLMKeyId, pageContext }: AdvisorChatProps) => {
   const theme = useTheme();
   const runtime: AssistantRuntime = useAdvisorRuntime(selectedLLMKeyId);
 
@@ -33,7 +34,7 @@ const AdvisorChat = ({ selectedLLMKeyId }: AdvisorChatProps) => {
       >
         {runtime ? (
           <AssistantRuntimeProvider runtime={runtime}>
-            <CustomThread />
+            <CustomThread pageContext={pageContext} />
           </AssistantRuntimeProvider>
           ) : (
           <Box

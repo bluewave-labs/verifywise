@@ -74,6 +74,13 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   const advisorEligiblePaths = ['/risk-management', '/model-inventory'];
   const displayAdvisor: boolean = advisorEligiblePaths.includes(location.pathname);
 
+  // Determine page context for advisor suggestions
+  const getAdvisorPageContext = (): 'risk-management' | 'model-inventory' | undefined => {
+    if (location.pathname === '/model-inventory') return 'model-inventory';
+    if (location.pathname === '/risk-management') return 'risk-management';
+    return undefined;
+  };
+
   // Parse initial path on mount
   useEffect(() => {
     if (initialPath) {
@@ -303,7 +310,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
 
   // Render Advisor content
   const renderAdvisorContent = () => {
-    return <AdvisorChat selectedLLMKeyId={selectedLLMKeyId} />
+    return <AdvisorChat selectedLLMKeyId={selectedLLMKeyId} pageContext={getAdvisorPageContext()} />
   }
 
   const contentArea = (tabValue: Tab) => {

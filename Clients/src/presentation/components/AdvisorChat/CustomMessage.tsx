@@ -117,7 +117,8 @@ export const CustomMessage: FC = () => {
               backgroundColor: theme.palette.primary.main,
               color: '#fff',
               padding: '10px 14px',
-              borderRadius: '4px',
+              borderRadius: '12px',
+              borderTopRightRadius: '4px',
               fontSize: '13px',
               lineHeight: 1.5,
               wordBreak: 'break-word',
@@ -168,7 +169,8 @@ export const CustomMessage: FC = () => {
                   sx={{
                     backgroundColor: theme.palette.background.fill,
                     padding: '12px 16px',
-                    borderRadius: '4px',
+                    borderRadius: '12px',
+                    borderTopLeftRadius: '4px',
                   }}
                 >
                   <Stack direction="row" gap="6px">
@@ -201,7 +203,8 @@ export const CustomMessage: FC = () => {
                   backgroundColor: theme.palette.background.fill,
                   color: theme.palette.text.primary,
                   padding: '10px 14px',
-                  borderRadius: '4px',
+                  borderRadius: '12px',
+                  borderTopLeftRadius: '4px',
                   fontSize: '13px',
                   lineHeight: 1.5,
                   wordBreak: 'break-word',

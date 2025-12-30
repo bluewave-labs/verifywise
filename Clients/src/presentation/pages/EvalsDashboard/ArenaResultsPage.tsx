@@ -553,6 +553,30 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                 {totalRounds}
               </Typography>
             </Box>
+            {results.metric?.name && (
+              <Box>
+                <Typography sx={{ fontSize: 10, color: "#9ca3af", textTransform: "uppercase" }}>
+                  Evaluation Criteria
+                </Typography>
+                <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 0.5 }}>
+                  {results.metric.name.split(", ").map((criterion, idx) => (
+                    <Chip
+                      key={idx}
+                      label={criterion}
+                      size="small"
+                      sx={{
+                        height: 20,
+                        fontSize: 10,
+                        fontWeight: 500,
+                        backgroundColor: "#f5f3ff",
+                        color: "#6366f1",
+                        border: "1px solid #e0e7ff",
+                      }}
+                    />
+                  ))}
+                </Stack>
+              </Box>
+            )}
             <Box>
               <Typography sx={{ fontSize: 10, color: "#9ca3af", textTransform: "uppercase" }}>
                 Duration

@@ -78,6 +78,7 @@ export interface ArenaComparisonSummary {
   status: 'pending' | 'running' | 'completed' | 'failed';
   contestants: string[];
   winner?: string;
+  dataset?: string;
   createdAt: string;
   completedAt?: string;
 }

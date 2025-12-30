@@ -41,6 +41,7 @@ export interface ArenaRow {
   status: "pending" | "running" | "completed" | "failed";
   contestants: string[] | { name?: string }[];
   winner?: string;
+  dataset?: string;
   createdAt: string;
   completedAt?: string;
 }
@@ -57,6 +58,7 @@ export interface ArenaTableProps {
 const columns = [
   { id: "name", label: "BATTLE NAME", sortable: true },
   { id: "contestants", label: "CONTESTANTS", sortable: false },
+  { id: "dataset", label: "DATASET", sortable: true },
   { id: "status", label: "STATUS", sortable: true },
   { id: "winner", label: "WINNER", sortable: true },
   { id: "createdAt", label: "DATE", sortable: true },

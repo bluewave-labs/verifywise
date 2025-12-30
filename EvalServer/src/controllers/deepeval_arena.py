@@ -434,6 +434,10 @@ async def create_arena_comparison_controller(
         contestants_config = config_data.get("contestants", [])
         contestant_names = [c.get("name", f"Contestant {i+1}") for i, c in enumerate(contestants_config)]
         
+        # Include datasetPath in metric_config for storage
+        metric_config = config_data.get("metric", {})
+        metric_config["datasetPath"] = config_data.get("datasetPath", "")
+        
         async with get_db() as db:
             comparison = await create_arena_comparison(
                 comparison_id=comparison_id,
@@ -442,7 +446,7 @@ async def create_arena_comparison_controller(
                 org_id=config_data.get("orgId"),
                 contestants=contestants_config,
                 contestant_names=contestant_names,
-                metric_config=config_data.get("metric", {}),
+                metric_config=metric_config,
                 judge_model=config_data.get("judgeModel", "gpt-4o"),
                 tenant=tenant,
                 created_by=user_id,

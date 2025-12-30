@@ -222,6 +222,8 @@ def _row_to_dict(row) -> Dict[str, Any]:
     """
     Convert a database row to a dictionary.
     """
+    metric_config = row["metric_config"] if isinstance(row["metric_config"], dict) else json.loads(row["metric_config"] or "{}")
+    
     return {
         "id": row["id"],
         "name": row["name"],
@@ -229,7 +231,7 @@ def _row_to_dict(row) -> Dict[str, Any]:
         "orgId": row["org_id"],
         "contestants": row["contestants"] if isinstance(row["contestants"], list) else json.loads(row["contestants"] or "[]"),
         "contestantNames": row["contestant_names"] if isinstance(row["contestant_names"], list) else json.loads(row["contestant_names"] or "[]"),
-        "metricConfig": row["metric_config"] if isinstance(row["metric_config"], dict) else json.loads(row["metric_config"] or "{}"),
+        "metricConfig": metric_config,
         "judgeModel": row["judge_model"],
         "status": row["status"],
         "progress": row["progress"],
@@ -241,5 +243,6 @@ def _row_to_dict(row) -> Dict[str, Any]:
         "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
         "completedAt": row["completed_at"].isoformat() if row["completed_at"] else None,
         "createdBy": row["created_by"],
+        "dataset": metric_config.get("datasetPath", ""),
     }
 

@@ -232,6 +232,19 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
               </Stack>
             </TableCell>
 
+            {/* DATASET - center aligned */}
+            <TableCell
+              sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                textAlign: "center",
+                textTransform: "none",
+              }}
+            >
+              <Typography sx={{ fontSize: 12, color: "#475569" }}>
+                {row.dataset ? row.dataset.split('/').pop()?.replace('.json', '') || row.dataset : '-'}
+              </Typography>
+            </TableCell>
+
             {/* STATUS - center aligned */}
             <TableCell
               sx={{

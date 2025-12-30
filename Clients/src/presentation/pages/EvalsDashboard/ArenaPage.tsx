@@ -676,7 +676,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       setTimeout(() => setAlert(null), 3000);
       setCreateModalOpen(false);
       resetForm();
-      await loadComparisons(true);
+      await loadComparisons(false); // Silent refresh, no loading spinner
     } catch (err) {
       console.error("Failed to create arena comparison:", err);
       setAlert({ variant: "error", body: "Failed to create arena comparison" });
@@ -696,7 +696,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       await deleteArenaComparison(comparisonId);
       setAlert({ variant: "success", body: "Arena comparison deleted" });
       setTimeout(() => setAlert(null), 3000);
-      await loadComparisons(true);
+      await loadComparisons(false); // Silent refresh, no loading spinner
     } catch (err) {
       console.error("Failed to delete comparison:", err);
       setAlert({ variant: "error", body: "Failed to delete comparison" });

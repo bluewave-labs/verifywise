@@ -17,11 +17,110 @@ import {
   Divider,
   IconButton,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
 import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw } from "lucide-react";
-import DOMPurify from "dompurify";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
+
+// Preprocess LaTeX delimiters to work with remark-math
+const preprocessLatex = (text: string): string => {
+  // Convert \[ \] to $$ $$ (display math)
+  let processed = text.replace(/\\\[/g, '$$').replace(/\\\]/g, '$$');
+  // Convert \( \) to $ $ (inline math)
+  processed = processed.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+  return processed;
+};
+
+// Markdown renderer with LaTeX support
+const MarkdownRenderer = ({ content }: { content: string }) => {
+  if (!content) return null;
+  
+  const processedContent = preprocessLatex(content);
+  
+  return (
+    <Box
+      sx={{
+        fontSize: 12,
+        color: "#374151",
+        lineHeight: 1.7,
+        "& p": { mb: 1, mt: 0 },
+        "& h1": { fontSize: 14, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h2": { fontSize: 13, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h3": { fontSize: 12, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h4": { fontSize: 12, fontWeight: 600, color: "#1e293b", mt: 1.5, mb: 0.5 },
+        "& ul, & ol": { pl: 2.5, mb: 1 },
+        "& li": { mb: 0.5 },
+        "& code": {
+          backgroundColor: "#f1f5f9",
+          px: 0.75,
+          py: 0.25,
+          borderRadius: "4px",
+          fontFamily: "'Fira Code', monospace",
+          fontSize: 11,
+          color: "#0f766e",
+        },
+        "& pre": {
+          backgroundColor: "#1e293b",
+          borderRadius: "6px",
+          p: 2,
+          my: 1.5,
+          overflow: "auto",
+          "& code": {
+            backgroundColor: "transparent",
+            color: "#e2e8f0",
+            p: 0,
+          },
+        },
+        "& strong": { fontWeight: 600 },
+        "& em": { fontStyle: "italic" },
+        "& hr": { border: "none", borderTop: "1px solid #e2e8f0", my: 2 },
+        "& blockquote": {
+          borderLeft: "3px solid #e2e8f0",
+          pl: 2,
+          ml: 0,
+          color: "#6b7280",
+          fontStyle: "italic",
+        },
+        "& table": {
+          borderCollapse: "collapse",
+          width: "100%",
+          my: 1,
+          fontSize: 11,
+        },
+        "& th, & td": {
+          border: "1px solid #e2e8f0",
+          px: 1,
+          py: 0.5,
+          textAlign: "left",
+        },
+        "& th": {
+          backgroundColor: "#f8fafc",
+          fontWeight: 600,
+        },
+        // KaTeX math styling
+        "& .katex": {
+          fontSize: "1em",
+        },
+        "& .katex-display": {
+          my: 1,
+          overflow: "auto",
+        },
+      }}
+    >
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+      >
+        {processedContent}
+      </ReactMarkdown>
+    </Box>
+  );
+};
 import {
   getExperiment,
   getLogs,
@@ -210,37 +309,6 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
       </Box>
     );
   }
-
-  // Lightweight Markdown -> HTML converter for common syntax
-  // Uses DOMPurify to sanitize output and prevent XSS attacks
-  const markdownToHtml = (md: string): string => {
-    if (!md) return "";
-    let html = md;
-    // Code blocks
-    html = html.replace(/```([\s\S]*?)```/g, (_m, code) => `<pre style="background:#0F172A;color:#E5E7EB;padding:12px;border-radius:6px;overflow:auto;font-size:12px"><code>${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>`);
-    // Inline code
-    html = html.replace(/`([^`]+)`/g, (_m, code) => `<code style="background:#F3F4F6;padding:2px 4px;border-radius:4px;font-family:monospace;font-size:12px">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code>`);
-    // Headings
-    html = html.replace(/^######\s?(.*)$/gm, '<h6 style="margin:8px 0 4px;font-size:12px;font-weight:600">$1</h6>');
-    html = html.replace(/^#####\s?(.*)$/gm, '<h5 style="margin:8px 0 4px;font-size:12px;font-weight:600">$1</h5>');
-    html = html.replace(/^####\s?(.*)$/gm, '<h4 style="margin:10px 0 6px;font-size:12px;font-weight:600">$1</h4>');
-    html = html.replace(/^###\s?(.*)$/gm, '<h3 style="margin:12px 0 6px;font-size:12px;font-weight:700">$1</h3>');
-    html = html.replace(/^##\s?(.*)$/gm, '<h2 style="margin:14px 0 6px;font-size:13px;font-weight:700">$1</h2>');
-    html = html.replace(/^#\s?(.*)$/gm, '<h1 style="margin:16px 0 8px;font-size:14px;font-weight:700">$1</h1>');
-    // Bold / Italic
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    // Unordered and ordered list items
-    html = html.replace(/^(?:- |\* )(.*)$/gm, '<li>$1</li>');
-    html = html.replace(/^(\d+)\. (.*)$/gm, '<li>$2</li>');
-    // Wrap consecutive li into ul (basic pass)
-    html = html.replace(/(?:<li>.*<\/li>\n?)+/g, (m) => `<ul style="margin:6px 0 6px 18px">${m}</ul>`);
-    // Paragraph breaks
-    html = html.replace(/\n{2,}/g, '</p><p>');
-    html = `<p style="margin:0;line-height:1.6;font-size:12px">${html}</p>`;
-    // Sanitize HTML to prevent XSS attacks
-    return DOMPurify.sanitize(html);
-  };
 
   return (
     <Box>
@@ -860,6 +928,48 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
       <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
         All samples
       </Typography>
+      {/* Extract unique metric names from all logs */}
+      {(() => {
+        const allMetricNames = new Set<string>();
+        logs.forEach(log => {
+          if (log.metadata?.metric_scores) {
+            Object.keys(log.metadata.metric_scores).forEach(name => {
+              // Clean up metric name for display
+              const cleanName = name.replace(/^G-Eval\s*\((.+)\)$/i, "$1");
+              allMetricNames.add(cleanName);
+            });
+          }
+        });
+        const metricColumns = Array.from(allMetricNames);
+        
+        // Helper to get metric score from log
+        const getMetricScore = (log: EvaluationLog, metricName: string): number | null => {
+          if (!log.metadata?.metric_scores) return null;
+          // Try exact match first
+          const scores = log.metadata.metric_scores as Record<string, number | { score?: number }>;
+          if (scores[metricName] !== undefined) {
+            const data = scores[metricName];
+            return typeof data === "number" ? data : data?.score ?? null;
+          }
+          // Try G-Eval format
+          const gevalKey = `G-Eval (${metricName})`;
+          if (scores[gevalKey] !== undefined) {
+            const data = scores[gevalKey];
+            return typeof data === "number" ? data : data?.score ?? null;
+          }
+          // Try case-insensitive match
+          const key = Object.keys(scores).find(k => 
+            k.toLowerCase() === metricName.toLowerCase() ||
+            k.replace(/^G-Eval\s*\((.+)\)$/i, "$1").toLowerCase() === metricName.toLowerCase()
+          );
+          if (key) {
+            const data = scores[key];
+            return typeof data === "number" ? data : data?.score ?? null;
+          }
+          return null;
+        };
+
+        return (
       <Card sx={{ overflow: "hidden", border: "1px solid #d0d5dd", borderRadius: "4px" }} elevation={0}>
         <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
           <Box sx={{
@@ -871,21 +981,37 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           }}>
             {/* Left: Samples List */}
             <Box sx={{ display: "flex", flexDirection: "column", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
-              <Box sx={{ overflowY: "auto", overflowX: "hidden", maxHeight: "calc(100vh - 360px)" }}>
+              <Box sx={{ overflowY: "auto", overflowX: "auto", maxHeight: "calc(100vh - 360px)" }}>
                 <TableContainer>
               <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "12px", width: "5%" }}>#</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "12px", width: "45%" }}>Input</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "12px", width: "45%" }}>Output</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "12px", width: "5%" }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 40, width: 40 }}>#</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 200 }}>Input</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 200 }}>Output</TableCell>
+                    {metricColumns.map(metric => (
+                      <TableCell 
+                        key={metric} 
+                        sx={{ 
+                          fontWeight: 600, 
+                          fontSize: "11px", 
+                          minWidth: 80,
+                          textAlign: "center",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        <Tooltip title={metric} arrow>
+                          <span>{metric.length > 12 ? metric.slice(0, 10) + "..." : metric}</span>
+                        </Tooltip>
+                      </TableCell>
+                    ))}
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 70, width: 70 }}>Status</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {logs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center">
+                      <TableCell colSpan={4 + metricColumns.length} align="center">
                         <Box py={4}>
                           <Typography variant="body2" color="text.secondary">
                             No samples found
@@ -941,6 +1067,41 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                             {log.output_text || "-"}
                           </Typography>
                         </TableCell>
+                        {/* Metric score columns */}
+                        {metricColumns.map(metric => {
+                          const score = getMetricScore(log, metric);
+                          const passed = score !== null && score >= 0.5;
+                          return (
+                            <TableCell key={metric} sx={{ textAlign: "center", p: 0.5 }}>
+                              {score !== null ? (
+                                <Box
+                                  sx={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    px: 1,
+                                    py: 0.25,
+                                    borderRadius: "4px",
+                                    backgroundColor: passed ? "#ecfdf5" : "#fef2f2",
+                                    border: `1px solid ${passed ? "#a7f3d0" : "#fecaca"}`,
+                                  }}
+                                >
+                                  <Typography
+                                    sx={{
+                                      fontSize: "11px",
+                                      fontWeight: 600,
+                                      color: passed ? "#059669" : "#dc2626",
+                                    }}
+                                  >
+                                    {(score * 100).toFixed(0)}%
+                                  </Typography>
+                                </Box>
+                              ) : (
+                                <Typography sx={{ fontSize: "11px", color: "#9ca3af" }}>-</Typography>
+                              )}
+                            </TableCell>
+                          );
+                        })}
                         <TableCell>
                           <Chip
                             label={log.status || "success"}
@@ -1122,10 +1283,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                                 >
                                   {isUser ? "User" : "Assistant"}
                                 </Typography>
-                                <Box
-                                  sx={{ fontSize: "12px", color: "#374151" }}
-                                  dangerouslySetInnerHTML={{ __html: markdownToHtml(turn.content || "") }}
-                                />
+                                <MarkdownRenderer content={turn.content || ""} />
                               </Box>
                             </Box>
                           );
@@ -1151,10 +1309,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                         Input
                       </Typography>
                       <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
-                        <Box
-                          sx={{ fontSize: "12px" }}
-                          dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedLog.input_text || "No input") }}
-                        />
+                        <MarkdownRenderer content={selectedLog.input_text || "No input"} />
                       </Paper>
                     </Box>
 
@@ -1164,10 +1319,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                         Output
                       </Typography>
                       <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
-                        <Box
-                          sx={{ fontSize: "12px" }}
-                          dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedLog.output_text || "No output") }}
-                        />
+                        <MarkdownRenderer content={selectedLog.output_text || "No output"} />
                       </Paper>
                     </Box>
                   </>
@@ -1266,6 +1418,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           </Box>
         </CardContent>
       </Card>
+        );
+      })()}
     </Box>
   );
 }

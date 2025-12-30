@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Stack, Box, useTheme, Typography, Chip } from '@mui/material';
-import { ThreadPrimitive } from '@assistant-ui/react';
+import { ThreadPrimitive, useThread } from '@assistant-ui/react';
 import { CustomMessage } from './CustomMessage';
 import { CustomComposer } from './CustomComposer';
 
@@ -21,6 +21,88 @@ const MODEL_INVENTORY_SUGGESTIONS = [
   { prompt: 'How many models have completed security assessments?', label: 'Security status' },
   { prompt: 'Show me the breakdown of models by provider', label: 'By provider' },
 ];
+
+// Separate component to access thread context
+const SuggestionChips = ({
+  pageContext,
+  suggestions
+}: {
+  pageContext?: 'risk-management' | 'model-inventory';
+  suggestions: typeof RISK_SUGGESTIONS;
+}) => {
+  const theme = useTheme();
+  const thread = useThread();
+
+  // Only show suggestions if there's just the welcome message (1 message, no user messages)
+  const messages = thread.messages;
+  const hasUserMessages = messages.some(m => m.role === 'user');
+
+  if (hasUserMessages) {
+    return null;
+  }
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        padding: '16px',
+        marginTop: '8px',
+      }}
+    >
+      <Typography
+        variant="body2"
+        sx={{
+          fontSize: '13px',
+          color: theme.palette.text.secondary,
+          marginBottom: '12px',
+        }}
+      >
+        {pageContext === 'model-inventory'
+          ? 'Try asking about your AI model inventory'
+          : 'Try asking about your AI risks'}
+      </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px',
+          justifyContent: 'center',
+          maxWidth: '400px',
+        }}
+      >
+        {suggestions.map((suggestion) => (
+          <ThreadPrimitive.Suggestion
+            key={suggestion.label}
+            prompt={suggestion.prompt}
+            method="replace"
+            autoSend
+            asChild
+          >
+            <Chip
+              label={suggestion.label}
+              variant="outlined"
+              clickable
+              sx={{
+                fontSize: '12px',
+                height: '28px',
+                borderColor: theme.palette.border?.light,
+                color: theme.palette.text.primary,
+                '&:hover': {
+                  backgroundColor: theme.palette.background.fill,
+                  borderColor: theme.palette.primary.main,
+                },
+              }}
+            />
+          </ThreadPrimitive.Suggestion>
+        ))}
+      </Box>
+    </Box>
+  );
+};
 
 export const CustomThread = ({ pageContext }: CustomThreadProps) => {
   const theme = useTheme();
@@ -76,75 +158,15 @@ export const CustomThread = ({ pageContext }: CustomThreadProps) => {
           }}
         >
           <Stack gap="12px">
-            {/* Show suggestions when thread is empty */}
-            <ThreadPrimitive.If empty>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: '200px',
-                  textAlign: 'center',
-                  padding: '24px',
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: '13px',
-                    color: theme.palette.text.secondary,
-                    marginBottom: '16px',
-                  }}
-                >
-                  {pageContext === 'model-inventory'
-                    ? 'Ask me about your AI model inventory'
-                    : 'Ask me about your AI risks'}
-                </Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '8px',
-                    justifyContent: 'center',
-                    maxWidth: '400px',
-                  }}
-                >
-                  {suggestions.map((suggestion) => (
-                    <ThreadPrimitive.Suggestion
-                      key={suggestion.label}
-                      prompt={suggestion.prompt}
-                      method="replace"
-                      autoSend
-                      asChild
-                    >
-                      <Chip
-                        label={suggestion.label}
-                        variant="outlined"
-                        clickable
-                        sx={{
-                          fontSize: '12px',
-                          height: '28px',
-                          borderColor: theme.palette.border?.light,
-                          color: theme.palette.text.primary,
-                          '&:hover': {
-                            backgroundColor: theme.palette.background.fill,
-                            borderColor: theme.palette.primary.main,
-                          },
-                        }}
-                      />
-                    </ThreadPrimitive.Suggestion>
-                  ))}
-                </Box>
-              </Box>
-            </ThreadPrimitive.If>
-
             <ThreadPrimitive.Messages
               components={{
                 UserMessage: CustomMessage,
                 AssistantMessage: CustomMessage,
               }}
             />
+
+            {/* Show suggestion chips after welcome message */}
+            <SuggestionChips pageContext={pageContext} suggestions={suggestions} />
 
             <div ref={messagesEndRef} />
           </Stack>

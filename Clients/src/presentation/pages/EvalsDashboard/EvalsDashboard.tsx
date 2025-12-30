@@ -1996,15 +1996,12 @@ export default function EvalsDashboard() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            width: "100%",
-                            height: provider._id === "huggingface" || provider._id === "xai" ? 56 : 48,
+                            width: 40,
+                            height: 40,
                             mb: 1.5,
                             "& svg": {
-                              maxWidth: provider._id === "huggingface" || provider._id === "xai" ? "100%" : "90%",
-                              maxHeight: "100%",
-                              width: "auto",
-                              height: "auto",
-                              objectFit: "contain",
+                              width: 32,
+                              height: 32,
                             },
                           }}
                         >
@@ -2257,7 +2254,7 @@ export default function EvalsDashboard() {
                         <Check size={12} color="#FFFFFF" strokeWidth={3} />
                       </Box>
                     )}
-                    <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5, "& svg": { width: 32, height: 32 } }}>
+                    <Box sx={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5, "& svg": { width: 32, height: 32 } }}>
                       <FolderFilledIcon />
                     </Box>
                     <Typography sx={{ fontSize: "12px", fontWeight: selectedLocalProviderType === "local" ? 600 : 500, color: selectedLocalProviderType === "local" ? "#13715B" : "#374151" }}>

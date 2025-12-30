@@ -905,6 +905,8 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                             const color = getColor(contestants.indexOf(c.name));
                             const isRoundWinner = c.name === round.winner;
                             const contestantInfo = results.contestantInfo?.find((ci) => ci.name === c.name);
+                            // Use model from round contestant data or fall back to contestantInfo
+                            const modelDisplay = c.model || contestantInfo?.model;
                             return (
                               <Box
                                 key={cIdx}
@@ -938,11 +940,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                       <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>
                                         {c.name}
                                       </Typography>
-                                      {contestantInfo?.model && (
+                                      {modelDisplay && (
                                         <Stack direction="row" alignItems="center" spacing={0.5}>
                                           <Cpu size={10} color="#64748b" />
                                           <Typography sx={{ fontSize: 11, color: "#64748b" }}>
-                                            {contestantInfo.model}
+                                            {modelDisplay}
                                           </Typography>
                                         </Stack>
                                       )}

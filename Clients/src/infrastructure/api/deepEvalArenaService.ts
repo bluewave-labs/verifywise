@@ -47,6 +47,8 @@ export interface ArenaComparisonResult {
   contestants: {
     name: string;
     output: string;
+    model?: string;
+    provider?: string;
   }[];
 }
 
@@ -141,6 +143,11 @@ class DeepEvalArenaService {
       detailedResults: ArenaComparisonResult[];
     };
     contestants: string[];
+    contestantInfo?: Array<{
+      name: string;
+      model: string;
+      provider: string;
+    }>;
     createdAt: string;
     completedAt?: string;
     errorMessage?: string;

@@ -143,11 +143,24 @@ async def call_llm_model(
     try:
         if provider == "openai":
             client = openai.OpenAI(api_key=api_key)
-            response = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=1024,
-            )
+            
+            # Newer OpenAI models (o1, o3, gpt-4o, etc.) use max_completion_tokens
+            # Older models use max_tokens
+            newer_models = ["o1", "o3", "gpt-4o", "gpt-4.5", "gpt-5"]
+            use_completion_tokens = any(model.startswith(prefix) for prefix in newer_models)
+            
+            if use_completion_tokens:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[{"role": "user", "content": prompt}],
+                    max_completion_tokens=1024,
+                )
+            else:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=1024,
+                )
             return response.choices[0].message.content or ""
         
         elif provider == "anthropic":
@@ -283,6 +296,8 @@ async def run_arena_comparison_task(
                 if not model:
                     contestant_responses.append({
                         "name": contestant["name"],
+                        "model": model,
+                        "provider": provider,
                         "output": "Error: No model specified",
                     })
                     continue
@@ -291,12 +306,16 @@ async def run_arena_comparison_task(
                     response = await call_llm_model(provider, model, input_text, api_keys)
                     contestant_responses.append({
                         "name": contestant["name"],
+                        "model": model,
+                        "provider": provider,
                         "output": response,
                     })
                 except Exception as e:
                     logger.error(f"Error getting response from {contestant['name']}: {e}")
                     contestant_responses.append({
                         "name": contestant["name"],
+                        "model": model,
+                        "provider": provider,
                         "output": f"Error: {str(e)}",
                     })
             
@@ -527,6 +546,16 @@ async def get_arena_comparison_results_controller(
         if not comparison:
             raise HTTPException(status_code=404, detail="Arena comparison not found")
         
+        # Build contestantInfo from the stored contestants config
+        contestants_config = comparison.get("contestants", [])
+        contestant_info = []
+        for c in contestants_config:
+            contestant_info.append({
+                "name": c.get("name", ""),
+                "model": c.get("hyperparameters", {}).get("model", ""),
+                "provider": c.get("hyperparameters", {}).get("provider", ""),
+            })
+        
         return JSONResponse(
             status_code=200,
             content={
@@ -542,6 +571,7 @@ async def get_arena_comparison_results_controller(
                     "detailedResults": comparison.get("detailedResults", []),
                 },
                 "contestants": comparison.get("contestantNames", []),
+                "contestantInfo": contestant_info,
                 "createdAt": comparison.get("createdAt"),
                 "completedAt": comparison.get("completedAt"),
                 "errorMessage": comparison.get("errorMessage"),

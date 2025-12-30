@@ -1047,14 +1047,20 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                             px: 1,
                                             py: 0.25,
                                             borderRadius: "4px",
-                                            backgroundColor: "#f8fafc",
-                                            border: "1px solid #e2e8f0",
+                                            backgroundColor: score >= 8 ? "#ecfdf5" : score >= 6 ? "#fefce8" : "#fef2f2",
+                                            border: `1px solid ${score >= 8 ? "#a7f3d0" : score >= 6 ? "#fde68a" : "#fecaca"}`,
                                           }}
                                         >
                                           <Typography sx={{ fontSize: 9, color: "#6b7280", fontWeight: 500 }}>
                                             {criterion}
                                           </Typography>
-                                          <Typography sx={{ fontSize: 10, fontWeight: 700, color: "#111827" }}>
+                                          <Typography 
+                                            sx={{ 
+                                              fontSize: 10, 
+                                              fontWeight: 700, 
+                                              color: score >= 8 ? "#059669" : score >= 6 ? "#d97706" : "#dc2626",
+                                            }}
+                                          >
                                             {score}/10
                                           </Typography>
                                         </Box>

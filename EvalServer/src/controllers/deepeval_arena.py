@@ -11,6 +11,8 @@ from datetime import datetime
 import uuid
 import asyncio
 import traceback
+import json
+import re
 
 from database.db import get_db
 from crud.deepeval_arena import (
@@ -383,7 +385,6 @@ IMPORTANT: Respond with ONLY the JSON, no other text."""
                 judge_response = await call_llm_model(judge_provider, judge_model, scoring_prompt, api_keys)
                 
                 # Parse the JSON response
-                import re
                 # Try to extract JSON from the response
                 json_match = re.search(r'\{[\s\S]*\}', judge_response)
                 scores_data = {}

@@ -26,6 +26,121 @@ import logging
 logger = logging.getLogger('uvicorn')
 
 
+async def load_dataset_prompts(dataset_path: str, tenant: str) -> List[Dict[str, Any]]:
+    """
+    Load prompts from a dataset file.
+    """
+    import json
+    import os
+    
+    # Handle different dataset path formats
+    if not dataset_path:
+        return []
+    
+    # Try to load from the artifacts directory
+    base_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "artifacts", "datasets")
+    
+    # Check if it's a template dataset or user dataset
+    if dataset_path.startswith("templates/"):
+        file_path = os.path.join(base_path, dataset_path)
+    else:
+        # User uploaded dataset - stored in tenant directory
+        file_path = os.path.join(base_path, tenant, dataset_path)
+    
+    if not os.path.exists(file_path):
+        # Try alternate path
+        file_path = dataset_path
+    
+    if not os.path.exists(file_path):
+        logger.warning(f"Dataset file not found: {file_path}")
+        return []
+    
+    try:
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+        
+        # Handle different dataset formats
+        if isinstance(data, list):
+            return data
+        elif isinstance(data, dict):
+            # Check for common keys
+            if "prompts" in data:
+                return data["prompts"]
+            elif "test_cases" in data:
+                return data["test_cases"]
+            elif "data" in data:
+                return data["data"]
+        
+        return []
+    except Exception as e:
+        logger.error(f"Error loading dataset: {e}")
+        return []
+
+
+async def call_llm_model(
+    provider: str,
+    model: str,
+    prompt: str,
+    tenant: str,
+) -> str:
+    """
+    Call an LLM model to get a response.
+    """
+    import openai
+    import anthropic
+    
+    # Get API keys from database
+    from crud.deepeval_llm_keys import get_llm_api_key
+    
+    async with get_db() as db:
+        api_key_record = await get_llm_api_key(provider, tenant=tenant, db=db)
+    
+    if not api_key_record:
+        raise ValueError(f"No API key configured for provider: {provider}")
+    
+    api_key = api_key_record.get("apiKey") or api_key_record.get("api_key")
+    
+    try:
+        if provider == "openai":
+            client = openai.OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1024,
+            )
+            return response.choices[0].message.content or ""
+        
+        elif provider == "anthropic":
+            client = anthropic.Anthropic(api_key=api_key)
+            response = client.messages.create(
+                model=model,
+                max_tokens=1024,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text if response.content else ""
+        
+        elif provider == "google":
+            import google.generativeai as genai
+            genai.configure(api_key=api_key)
+            gen_model = genai.GenerativeModel(model)
+            response = gen_model.generate_content(prompt)
+            return response.text or ""
+        
+        else:
+            # For other providers, try OpenAI-compatible API
+            client = openai.OpenAI(api_key=api_key, base_url=f"https://api.{provider}.com/v1")
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1024,
+            )
+            return response.choices[0].message.content or ""
+            
+    except Exception as e:
+        logger.error(f"Error calling {provider}/{model}: {e}")
+        raise
+
+
 async def run_arena_comparison_task(
     comparison_id: str,
     config_data: Dict[str, Any],
@@ -35,9 +150,8 @@ async def run_arena_comparison_task(
     Background task to run the arena comparison using DeepEval's ArenaGEval.
     """
     try:
-        from deepeval.test_case import ArenaTestCase, LLMTestCase, Contestant, LLMTestCaseParams
-        from deepeval.metrics import ArenaGEval
-        from deepeval import compare
+        from deepeval.test_case import LLMTestCase, LLMTestCaseParams
+        from deepeval.metrics import GEval
         
         # Update status to running
         async with get_db() as db:
@@ -53,112 +167,162 @@ async def run_arena_comparison_task(
         contestants_config = config_data.get("contestants", [])
         metric_config = config_data.get("metric", {})
         judge_model = config_data.get("judgeModel", "gpt-4o")
+        dataset_path = config_data.get("datasetPath", "")
         
-        # Create ArenaGEval metric
-        evaluation_params = []
-        for param in metric_config.get("evaluationParams", ["input", "actual_output"]):
-            if param == "input":
-                evaluation_params.append(LLMTestCaseParams.INPUT)
-            elif param == "actual_output":
-                evaluation_params.append(LLMTestCaseParams.ACTUAL_OUTPUT)
-            elif param == "expected_output":
-                evaluation_params.append(LLMTestCaseParams.EXPECTED_OUTPUT)
-            elif param == "context":
-                evaluation_params.append(LLMTestCaseParams.CONTEXT)
-            elif param == "retrieval_context":
-                evaluation_params.append(LLMTestCaseParams.RETRIEVAL_CONTEXT)
+        logger.info(f"Arena {comparison_id}: Loading dataset from {dataset_path}")
         
-        arena_metric = ArenaGEval(
-            name=metric_config.get("name", "Arena Comparison"),
-            criteria=metric_config.get("criteria", "Choose the winner based on overall quality"),
-            evaluation_params=evaluation_params,
-            model=judge_model,
-        )
+        # Load prompts from dataset
+        prompts = await load_dataset_prompts(dataset_path, tenant)
         
-        # Process test cases - each test case becomes an arena
-        # For simplicity, we'll assume each contestant has the same test cases
-        # and we compare them pairwise
+        if not prompts:
+            # If no dataset, check if testCases are provided directly
+            if contestants_config and contestants_config[0].get("testCases"):
+                prompts = [{"input": tc.get("input", "")} for tc in contestants_config[0]["testCases"]]
         
+        if not prompts:
+            raise ValueError("No prompts found. Please select a dataset or provide test cases.")
+        
+        logger.info(f"Arena {comparison_id}: Loaded {len(prompts)} prompts")
+        
+        # Limit prompts to avoid long-running tasks
+        max_prompts = 10
+        if len(prompts) > max_prompts:
+            logger.info(f"Arena {comparison_id}: Limiting to {max_prompts} prompts")
+            prompts = prompts[:max_prompts]
+        
+        # Update progress
+        async with get_db() as db:
+            await update_arena_comparison(
+                comparison_id,
+                tenant=tenant,
+                progress=f"Generating responses for {len(prompts)} prompts...",
+                db=db,
+            )
+            await db.commit()
+        
+        # Generate responses from each contestant's model
         all_results = []
         win_counts = {c["name"]: 0 for c in contestants_config}
-        total_comparisons = len(contestants_config[0].get("testCases", [])) if contestants_config else 0
+        total_prompts = len(prompts)
         
-        for idx, test_case_data in enumerate(contestants_config[0].get("testCases", [])):
+        for idx, prompt_data in enumerate(prompts):
+            # Get the input prompt
+            input_text = ""
+            if isinstance(prompt_data, str):
+                input_text = prompt_data
+            elif isinstance(prompt_data, dict):
+                input_text = prompt_data.get("input") or prompt_data.get("prompt") or prompt_data.get("question") or str(prompt_data)
+            
+            if not input_text:
+                continue
+            
+            logger.info(f"Arena {comparison_id}: Processing prompt {idx + 1}/{total_prompts}")
+            
             # Update progress
             async with get_db() as db:
                 await update_arena_comparison(
                     comparison_id,
                     tenant=tenant,
-                    progress=f"Evaluating test case {idx + 1}/{total_comparisons}",
+                    progress=f"Processing prompt {idx + 1}/{total_prompts}",
                     db=db,
                 )
                 await db.commit()
             
-            # Create contestants for this test case
-            contestants = []
-            for contestant_config in contestants_config:
-                test_cases = contestant_config.get("testCases", [])
-                if idx < len(test_cases):
-                    tc = test_cases[idx]
-                    contestant = Contestant(
-                        name=contestant_config["name"],
-                        hyperparameters=contestant_config.get("hyperparameters", {}),
-                        test_case=LLMTestCase(
-                            input=tc.get("input", ""),
-                            actual_output=tc.get("actualOutput", ""),
-                            expected_output=tc.get("expectedOutput"),
-                            context=tc.get("context"),
-                            retrieval_context=tc.get("retrievalContext"),
-                        ),
-                    )
-                    contestants.append(contestant)
+            # Get responses from each contestant
+            contestant_responses = []
+            for contestant in contestants_config:
+                provider = contestant.get("hyperparameters", {}).get("provider", "openai")
+                model = contestant.get("hyperparameters", {}).get("model", "")
+                
+                if not model:
+                    contestant_responses.append({
+                        "name": contestant["name"],
+                        "output": "Error: No model specified",
+                    })
+                    continue
+                
+                try:
+                    response = await call_llm_model(provider, model, input_text, tenant)
+                    contestant_responses.append({
+                        "name": contestant["name"],
+                        "output": response,
+                    })
+                except Exception as e:
+                    logger.error(f"Error getting response from {contestant['name']}: {e}")
+                    contestant_responses.append({
+                        "name": contestant["name"],
+                        "output": f"Error: {str(e)}",
+                    })
             
-            if len(contestants) < 2:
-                continue
-            
-            # Create arena test case
-            arena_test_case = ArenaTestCase(contestants=contestants)
-            
-            # Run comparison
+            # Use GEval to judge the responses
             try:
-                results = compare(test_cases=[arena_test_case], metric=arena_metric)
+                # Create a comparison prompt for the judge
+                comparison_prompt = f"""You are a judge comparing responses from different AI assistants.
+
+**User Question/Prompt:**
+{input_text}
+
+**Responses:**
+"""
+                for i, cr in enumerate(contestant_responses):
+                    comparison_prompt += f"\n--- {cr['name']} ---\n{cr['output']}\n"
                 
-                # Parse results - results is a Counter object
-                winner_name = None
-                reason = "Comparison completed"
+                comparison_prompt += f"""
+**Evaluation Criteria:**
+{metric_config.get("criteria", "Evaluate based on accuracy, helpfulness, and clarity.")}
+
+**Task:**
+Based on the criteria above, which response is better? 
+Respond with ONLY the name of the winning contestant (exactly as written above).
+If it's a tie, respond with "TIE".
+"""
                 
-                if results:
-                    # Get the winner (highest count)
-                    winner_name = results.most_common(1)[0][0] if results.most_common(1) else None
-                    if winner_name:
-                        win_counts[winner_name] = win_counts.get(winner_name, 0) + 1
+                # Use the judge model to pick a winner
+                winner_response = await call_llm_model("openai", judge_model, comparison_prompt, tenant)
+                winner_name = winner_response.strip()
+                
+                # Validate winner name
+                valid_names = [c["name"] for c in contestants_config]
+                if winner_name not in valid_names and winner_name != "TIE":
+                    # Try to find a match
+                    for name in valid_names:
+                        if name.lower() in winner_name.lower():
+                            winner_name = name
+                            break
+                    else:
+                        winner_name = None
+                
+                if winner_name and winner_name != "TIE":
+                    win_counts[winner_name] = win_counts.get(winner_name, 0) + 1
                 
                 all_results.append({
                     "testCaseIndex": idx,
-                    "input": test_case_data.get("input", ""),
-                    "winner": winner_name,
-                    "reason": reason,
-                    "contestants": [
-                        {
-                            "name": c["name"],
-                            "output": c.get("testCases", [{}])[idx].get("actualOutput", "") if idx < len(c.get("testCases", [])) else ""
-                        }
-                        for c in contestants_config
-                    ]
+                    "input": input_text,
+                    "winner": winner_name if winner_name != "TIE" else None,
+                    "reason": f"Judge selected: {winner_response.strip()}",
+                    "contestants": contestant_responses,
                 })
                 
             except Exception as e:
-                logger.error(f"Error in arena comparison for test case {idx}: {e}")
+                logger.error(f"Error in arena judging for prompt {idx}: {e}")
                 all_results.append({
                     "testCaseIndex": idx,
-                    "input": test_case_data.get("input", ""),
+                    "input": input_text,
                     "winner": None,
                     "reason": f"Error: {str(e)}",
-                    "contestants": []
+                    "contestants": contestant_responses,
                 })
         
         # Determine overall winner
-        overall_winner = max(win_counts, key=win_counts.get) if win_counts else None
+        if win_counts:
+            overall_winner = max(win_counts, key=win_counts.get)
+            # Check for tie
+            max_wins = win_counts[overall_winner]
+            winners_with_max = [name for name, wins in win_counts.items() if wins == max_wins]
+            if len(winners_with_max) > 1:
+                overall_winner = f"Tie: {', '.join(winners_with_max)}"
+        else:
+            overall_winner = None
         
         # Update with final results
         async with get_db() as db:
@@ -166,7 +330,7 @@ async def run_arena_comparison_task(
                 comparison_id,
                 tenant=tenant,
                 status="completed",
-                progress=f"Completed {total_comparisons}/{total_comparisons} test cases",
+                progress=f"Completed {total_prompts}/{total_prompts} prompts",
                 winner=overall_winner,
                 win_counts=win_counts,
                 detailed_results=all_results,

@@ -29,7 +29,6 @@ import {
   Trophy,
   Swords,
   Zap,
-  Crown,
   Target,
   Plus,
   X,
@@ -48,10 +47,10 @@ import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
 import ArenaTable from "../../components/Table/ArenaTable";
+import ArenaResultsPage from "./ArenaResultsPage";
 import {
   createArenaComparison,
   listArenaComparisons,
-  getArenaComparisonResults,
   deleteArenaComparison,
   listMyDatasets,
   listDatasets,
@@ -511,10 +510,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   const [comparisons, setComparisons] = useState<ArenaComparisonSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [resultsModalOpen, setResultsModalOpen] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedResults, setSelectedResults] = useState<any>(null);
-  const [resultsLoading, setResultsLoading] = useState(false);
+  const [viewingResultsId, setViewingResultsId] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -634,6 +630,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         name: newComparison.name,
         orgId: orgId || undefined,
         contestants: newComparison.contestants,
+        datasetPath: newComparison.datasetPath,
         metric: {
           name: metricName,
           criteria: `Evaluate the responses based on the following criteria:\n\n${combinedCriteria}\n\nConsider all criteria and select the overall better response.`,
@@ -656,20 +653,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     }
   };
 
-  const handleViewResults = async (comparisonId: string) => {
-    setResultsModalOpen(true);
-    setResultsLoading(true);
-
-    try {
-      const results = await getArenaComparisonResults(comparisonId);
-      setSelectedResults(results);
-    } catch (err) {
-      console.error("Failed to load results:", err);
-      setAlert({ variant: "error", body: "Failed to load results" });
-      setTimeout(() => setAlert(null), 5000);
-    } finally {
-      setResultsLoading(false);
-    }
+  const handleViewResults = (comparisonId: string) => {
+    setViewingResultsId(comparisonId);
   };
 
   const handleDeleteComparison = async (comparisonId: string) => {
@@ -730,6 +715,19 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     }
     setNewComparison({ ...newComparison, contestants: updated });
   };
+
+  // If viewing results, show the results page
+  if (viewingResultsId) {
+    return (
+      <ArenaResultsPage
+        comparisonId={viewingResultsId}
+        onBack={() => {
+          setViewingResultsId(null);
+          loadComparisons(); // Refresh the list when coming back
+        }}
+      />
+    );
+  }
 
   return (
     <Box>
@@ -1374,204 +1372,6 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         </Stack>
       </ModalStandard>
 
-      {/* Results Modal */}
-      <ModalStandard
-        isOpen={resultsModalOpen}
-        onClose={() => {
-          setResultsModalOpen(false);
-          setSelectedResults(null);
-        }}
-        title=""
-        description=""
-        onSubmit={() => setResultsModalOpen(false)}
-        submitButtonText="Close"
-      >
-        {resultsLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress size={40} sx={{ color: "#6366f1" }} />
-          </Box>
-        ) : selectedResults ? (
-          <Stack spacing={3}>
-            {/* Results Header */}
-            <Box sx={{ textAlign: "center" }}>
-              <Box
-                sx={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: "50%",
-                  background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto",
-                  mb: 2,
-                  boxShadow: "0 8px 24px rgba(251,191,36,0.4)",
-                }}
-              >
-                <Trophy size={32} color="#1e1b4b" />
-              </Box>
-              <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
-                Battle Results
-              </Typography>
-              <Typography sx={{ fontSize: 13, color: "#6b7280", mt: 0.5 }}>
-                {selectedResults.name}
-              </Typography>
-            </Box>
-
-            <Divider />
-
-            {/* Winner announcement */}
-            {selectedResults.results?.winner && (
-              <Box
-                sx={{
-                  p: 3,
-                  background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
-                  borderRadius: "16px",
-                  textAlign: "center",
-                  border: "2px solid #fbbf24",
-                }}
-              >
-                <Crown size={40} color="#b45309" style={{ marginBottom: 8 }} />
-                <Typography sx={{ fontSize: 24, fontWeight: 800, color: "#78350f" }}>
-                  {selectedResults.results.winner}
-                </Typography>
-                <Typography sx={{ fontSize: 14, color: "#92400e", mt: 0.5, fontWeight: 600 }}>
-                  🏆 Champion
-                </Typography>
-              </Box>
-            )}
-
-            {/* Win counts */}
-            {selectedResults.results?.winCounts && Object.keys(selectedResults.results.winCounts).length > 0 && (
-              <Box>
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 2 }}>
-                  Score Distribution
-                </Typography>
-                <Stack spacing={2}>
-                  {Object.entries(selectedResults.results.winCounts).map(([name, count], idx) => {
-                    const maxCount = Math.max(...Object.values(selectedResults.results.winCounts) as number[]);
-                    const isWinner = name === selectedResults.results.winner;
-                    return (
-                      <Box key={name}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
-                          <Stack direction="row" alignItems="center" spacing={1}>
-                            <Box
-                              sx={{
-                                width: 24,
-                                height: 24,
-                                borderRadius: "6px",
-                                background: idx === 0 
-                                  ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
-                                  : "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color: "#fff",
-                              }}
-                            >
-                              {name.charAt(0)}
-                            </Box>
-                            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
-                              {name}
-                            </Typography>
-                            {isWinner && <Crown size={14} color="#f59e0b" />}
-                          </Stack>
-                          <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>
-                            {count as number} wins
-                          </Typography>
-                        </Stack>
-                        <Box sx={{ height: 10, backgroundColor: "#e5e7eb", borderRadius: 5, overflow: "hidden" }}>
-                          <Box
-                            sx={{
-                              width: `${((count as number) / maxCount) * 100}%`,
-                              height: "100%",
-                              background: isWinner 
-                                ? "linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%)"
-                                : idx === 0 
-                                  ? "linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)"
-                                  : "linear-gradient(90deg, #ef4444 0%, #dc2626 100%)",
-                              borderRadius: 5,
-                              transition: "width 0.5s ease",
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                    );
-                  })}
-                </Stack>
-              </Box>
-            )}
-
-            {/* Detailed results */}
-            {selectedResults.results?.detailedResults?.length > 0 && (
-              <Box>
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 2 }}>
-                  Round-by-Round Results
-                </Typography>
-                <Stack spacing={1.5}>
-                  {selectedResults.results.detailedResults.map((result: { testCaseIndex: number; input: string; winner: string | null; reason?: string }, index: number) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        p: 2,
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "12px",
-                        backgroundColor: "#fafafa",
-                      }}
-                    >
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                        <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#6b7280" }}>
-                          Round {result.testCaseIndex + 1}
-                        </Typography>
-                        {result.winner && (
-                          <Chip
-                            icon={<Trophy size={12} />}
-                            label={result.winner}
-                            size="small"
-                            sx={{
-                              backgroundColor: "#fef3c7",
-                              color: "#92400e",
-                              fontWeight: 600,
-                              fontSize: "11px",
-                              "& .MuiChip-icon": { color: "#f59e0b" },
-                            }}
-                          />
-                        )}
-                      </Stack>
-                      <Typography sx={{ fontSize: 13, color: "#374151", mb: 1 }}>
-                        <strong>Prompt:</strong> {result.input || "N/A"}
-                      </Typography>
-                      {result.reason && (
-                        <Typography sx={{ fontSize: 12, color: "#6b7280", fontStyle: "italic" }}>
-                          💭 {result.reason}
-                        </Typography>
-                      )}
-                    </Box>
-                  ))}
-                </Stack>
-              </Box>
-            )}
-
-            {/* Metadata */}
-            <Box sx={{ pt: 2, borderTop: "1px solid #e5e7eb" }}>
-              <Stack direction="row" spacing={3} flexWrap="wrap">
-                <Typography sx={{ fontSize: 12, color: "#9ca3af" }}>
-                  <strong>Judge:</strong> {selectedResults.judgeModel}
-                </Typography>
-                <Typography sx={{ fontSize: 12, color: "#9ca3af" }}>
-                  <strong>Created:</strong> {new Date(selectedResults.createdAt).toLocaleString()}
-                </Typography>
-              </Stack>
-            </Box>
-          </Stack>
-        ) : (
-          <Typography sx={{ textAlign: "center", color: "#6b7280", py: 6 }}>
-            No results available
-          </Typography>
-        )}
-      </ModalStandard>
     </Box>
   );
 }

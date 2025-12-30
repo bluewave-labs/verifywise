@@ -33,6 +33,7 @@ export interface CreateArenaComparisonRequest {
   description?: string;
   orgId?: string;
   contestants: ArenaContestant[];
+  datasetPath?: string;
   metric: ArenaMetricConfig;
   judgeModel?: string;
 }

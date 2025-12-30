@@ -4,10 +4,7 @@ import {
   TableRow,
   TableCell,
   IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
+  Popover,
   Typography,
   Chip,
   Stack,
@@ -17,6 +14,8 @@ import {
 import { Eye, Trash2, MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ArenaRow } from "./index";
+import ConfirmationModal from "../../Dialogs/ConfirmationModal";
+import CustomizableButton from "../../Button/CustomizableButton";
 
 interface ArenaTableBodyProps {
   rows: ArenaRow[];
@@ -83,6 +82,8 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
 }) => {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [menuRow, setMenuRow] = useState<ArenaRow | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [rowToDelete, setRowToDelete] = useState<ArenaRow | null>(null);
 
   const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, row: ArenaRow) => {
     e.stopPropagation();
@@ -103,10 +104,24 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
   };
 
   const handleDeleteClick = () => {
-    if (menuRow && onDelete) {
-      onDelete(menuRow);
+    if (menuRow) {
+      setRowToDelete(menuRow);
+      setDeleteConfirmOpen(true);
     }
     handleMenuClose();
+  };
+
+  const handleConfirmDelete = () => {
+    if (rowToDelete && onDelete) {
+      onDelete(rowToDelete);
+    }
+    setDeleteConfirmOpen(false);
+    setRowToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmOpen(false);
+    setRowToDelete(null);
   };
 
   // Contestant colors for visual distinction
@@ -310,50 +325,90 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
         ))}
 
       {/* Action Menu */}
-      <Menu
-        anchorEl={menuAnchorEl}
+      <Popover
         open={Boolean(menuAnchorEl)}
+        anchorEl={menuAnchorEl}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        PaperProps={{
-          elevation: 2,
-          sx: {
-            minWidth: 160,
-            borderRadius: "8px",
-            border: "1px solid #E5E7EB",
-            "& .MuiMenuItem-root": {
-              fontSize: "13px",
-              py: 1,
-              px: 2,
-            },
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        sx={{
+          "& .MuiPopover-paper": {
+            minWidth: 120,
+            borderRadius: "4px",
+            border: "1px solid #d0d5dd",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            overflow: "hidden",
+            mt: 0.5,
+            p: 1,
           },
         }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        {onViewResults && menuRow?.status === "completed" && (
-          <MenuItem onClick={handleViewResultsClick}>
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <Eye size={16} color="#13715B" />
-            </ListItemIcon>
-            <ListItemText
-              primary="View Results"
-              primaryTypographyProps={{ fontSize: "13px" }}
-            />
-          </MenuItem>
-        )}
-        {onDelete && (
-          <MenuItem onClick={handleDeleteClick}>
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <Trash2 size={16} color="#DC2626" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Delete"
-              primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }}
-            />
-          </MenuItem>
-        )}
-      </Menu>
+        <Stack spacing={1}>
+          {onViewResults && menuRow?.status === "completed" && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleViewResultsClick}
+              startIcon={<Eye size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+              }}
+            >
+              View Results
+            </CustomizableButton>
+          )}
+          {onDelete && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleDeleteClick}
+              startIcon={<Trash2 size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#DC2626",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#FEF2F2",
+                  borderColor: "#DC2626",
+                },
+              }}
+            >
+              Delete
+            </CustomizableButton>
+          )}
+        </Stack>
+      </Popover>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirmOpen}
+        title="Delete Arena Battle"
+        body={
+          <Typography sx={{ fontSize: 14, color: "#667085" }}>
+            Are you sure you want to delete "{rowToDelete?.name}"? This action cannot be undone.
+          </Typography>
+        }
+        cancelText="Cancel"
+        proceedText="Delete"
+        onCancel={handleCancelDelete}
+        onProceed={handleConfirmDelete}
+        proceedButtonColor="error"
+        proceedButtonVariant="contained"
+      />
     </TableBody>
   );
 };

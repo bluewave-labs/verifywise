@@ -269,12 +269,21 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
               }}
             >
               {row.status === "completed" && row.winner ? (
-                <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
-                  <Box component="span" sx={{ fontSize: 14 }}>🏆</Box>
-                  <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: "6px",
+                    background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
+                    boxShadow: "0 2px 6px rgba(245,158,11,0.25)",
+                  }}
+                >
+                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>
                     {row.winner}
                   </Typography>
-                </Stack>
+                </Box>
               ) : row.status === "running" || row.status === "pending" ? (
                 <Typography sx={{ fontSize: 12, color: "#ef6c00", fontStyle: "italic" }}>
                   In progress...

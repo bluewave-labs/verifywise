@@ -170,7 +170,7 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
         backgroundColor: theme.palette.background.paper,
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: '8px',
-        width: 'fit-content',
+        width: type === 'table' ? '100%' : 'fit-content',
       }}
     >
       {title && (

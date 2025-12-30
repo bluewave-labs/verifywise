@@ -68,7 +68,7 @@ const TABLE_COLUMNS = [
   { id: "model", label: "MODEL", sortable: true },
   { id: "version", label: "VERSION", sortable: true },
   { id: "approver", label: "APPROVER", sortable: true },
-  { id: "security_assessment", label: "SECURITY ASSESSMENT", sortable: true },
+  { id: "security_assessment", label: "ASSESSMENT", sortable: true },
   { id: "risks", label: "RISKS", sortable: true },
   { id: "status", label: "STATUS", sortable: true },
   { id: "status_date", label: "STATUS DATE", sortable: true },

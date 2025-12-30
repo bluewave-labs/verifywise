@@ -37,11 +37,10 @@ const columns = [
   { id: "risk_name", label: "RISK NAME", sortable: true }, // value from risk tab
   { id: "risk_owner", label: "OWNER", sortable: true }, // value from risk tab
   { id: "severity", label: "SEVERITY", sortable: true }, // value from risk tab
-  { id: "likelihood", label: "LIKELIHOOD", sortable: true }, // value from risk tab
   { id: "mitigation_status", label: "MITIGATION STATUS", sortable: true }, // mitigation status
   { id: "risk_level_autocalculated", label: "RISK LEVEL", sortable: true }, // risk auto calculated value from risk tab
   { id: "deadline", label: "TARGET DATE", sortable: true }, // start date (deadline) value from mitigation tab
-  { id: "controls_mapping", label: "LINKED CONTROLS", sortable: true }, // controls mapping value from risk tab
+  { id: "controls_mapping", label: "CONTROLS", sortable: true }, // controls mapping value from risk tab
   { id: "actions", label: "", sortable: false },
 ];
 

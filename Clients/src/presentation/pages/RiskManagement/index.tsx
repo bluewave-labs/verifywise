@@ -158,18 +158,6 @@ const RiskManagement = () => {
       ],
     },
     {
-      id: 'likelihood',
-      label: 'Likelihood',
-      type: 'select' as const,
-      options: [
-        { value: 'Very High', label: 'Very High' },
-        { value: 'High', label: 'High' },
-        { value: 'Medium', label: 'Medium' },
-        { value: 'Low', label: 'Low' },
-        { value: 'Very Low', label: 'Very Low' },
-      ],
-    },
-    {
       id: 'risk_level',
       label: 'Risk level',
       type: 'select' as const,
@@ -223,8 +211,6 @@ const RiskManagement = () => {
         return risk.risk_description;
       case 'severity':
         return risk.severity;
-      case 'likelihood':
-        return risk.likelihood;
       case 'risk_level':
         return risk.current_risk_level || risk.risk_level_autocalculated;
       case 'mitigation_status':
@@ -578,8 +564,6 @@ const RiskManagement = () => {
         return 'Unassigned';
       case 'severity':
         return risk.severity || 'Unknown';
-      case 'likelihood':
-        return risk.likelihood || 'Unknown';
       default:
         return 'Other';
     }
@@ -652,7 +636,6 @@ const RiskManagement = () => {
                 { id: 'mitigation_status', label: 'Mitigation status' },
                 { id: 'owner', label: 'Owner' },
                 { id: 'severity', label: 'Severity' },
-                { id: 'likelihood', label: 'Likelihood' },
               ]}
               onGroupChange={handleGroupChange}
             />

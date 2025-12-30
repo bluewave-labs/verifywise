@@ -50,6 +50,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import DatasetsTable, { type DatasetRow } from "../../components/Table/DatasetsTable";
 import TemplatesTable from "../../components/Table/TemplatesTable";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import SelectableCard from "../../components/SelectableCard";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
@@ -1526,6 +1527,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Datasets contain the prompts or conversations used to evaluate your models. Create custom datasets or use templates to get started quickly.
         </Typography>
+        <TipBox entityName="evals-datasets" />
       </Stack>
 
       {/* Hidden file input for uploads */}

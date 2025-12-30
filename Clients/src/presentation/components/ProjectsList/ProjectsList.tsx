@@ -23,7 +23,7 @@ import {
   vwhomeBodyProjectsGrid,
 } from "./style";
 
-const ProjectList = ({ projects, newProjectButton }: IProjectListProps) => {
+const ProjectList = ({ projects, newProjectButton, onProjectDeleted }: IProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = usePersistedViewMode(
     "projects-view-mode",
@@ -223,6 +223,7 @@ const ProjectList = ({ projects, newProjectButton }: IProjectListProps) => {
             <ProjectTableView
               projects={data}
               hidePagination={options?.hidePagination}
+              onProjectDeleted={onProjectDeleted}
             />
           )}
         />

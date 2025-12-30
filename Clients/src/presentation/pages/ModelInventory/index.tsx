@@ -333,18 +333,6 @@ const ModelInventory: React.FC = () => {
         options: getUniqueRiskModels(),
       },
       {
-        id: "risk_category",
-        label: "Category",
-        type: "select" as const,
-        options: [
-          { value: "Performance", label: "Performance" },
-          { value: "Bias & Fairness", label: "Bias & Fairness" },
-          { value: "Security", label: "Security" },
-          { value: "Data Quality", label: "Data Quality" },
-          { value: "Compliance", label: "Compliance" },
-        ],
-      },
-      {
         id: "risk_level",
         label: "Risk level",
         type: "select" as const,
@@ -392,8 +380,6 @@ const ModelInventory: React.FC = () => {
           return item.risk_name;
         case "model_id":
           return item.model_id?.toString();
-        case "risk_category":
-          return item.risk_category;
         case "risk_level":
           return item.risk_level;
         case "status":
@@ -1539,8 +1525,6 @@ const ModelInventory: React.FC = () => {
     field: string
   ): string | string[] => {
     switch (field) {
-      case "risk_category":
-        return risk.risk_category || "Unknown";
       case "risk_level":
         return risk.risk_level || "Unknown";
       case "status":
@@ -2069,7 +2053,7 @@ const ModelInventory: React.FC = () => {
                   options={[
                     { id: "provider", label: "Provider" },
                     { id: "status", label: "Status" },
-                    { id: "security_assessment", label: "Security Assessment" },
+                    { id: "security_assessment", label: "Assessment" },
                     { id: "hosting_provider", label: "Hosting Provider" },
                     { id: "approver", label: "Approver" },
                   ]}
@@ -2189,7 +2173,6 @@ const ModelInventory: React.FC = () => {
                 />
                 <GroupBy
                   options={[
-                    { id: "risk_category", label: "Category" },
                     { id: "risk_level", label: "Risk level" },
                     { id: "status", label: "Status" },
                     { id: "model_name", label: "Model" },

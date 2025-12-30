@@ -211,30 +211,13 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 0.5,
-                        px: 1,
-                        py: 0.25,
-                        borderRadius: "4px",
+                        px: 1.25,
+                        py: 0.5,
+                        borderRadius: "6px",
                         backgroundColor: `${contestantColors[idx % contestantColors.length]}10`,
                         border: `1px solid ${contestantColors[idx % contestantColors.length]}30`,
                       }}
                     >
-                      <Box
-                        sx={{
-                          width: 16,
-                          height: 16,
-                          borderRadius: "4px",
-                          backgroundColor: contestantColors[idx % contestantColors.length],
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 9,
-                          fontWeight: 700,
-                          color: "#fff",
-                        }}
-                      >
-                        {name.charAt(0).toUpperCase()}
-                      </Box>
                       <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#374151" }}>
                         {name}
                       </Typography>

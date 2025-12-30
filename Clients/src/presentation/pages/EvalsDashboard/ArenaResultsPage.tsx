@@ -1067,9 +1067,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                         <Box
                           sx={{
                             p: 3,
-                            backgroundColor: "#f8fafc",
+                            backgroundColor: "#eff6ff",
                             borderRadius: "12px",
-                            border: "1px solid #e2e8f0",
+                            border: "1px solid #bfdbfe",
                           }}
                         >
                           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
@@ -1078,19 +1078,19 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                 width: 24,
                                 height: 24,
                                 borderRadius: "6px",
-                                backgroundColor: "#e2e8f0",
+                                backgroundColor: "#1e3a5f",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                               }}
                             >
-                              <Scale size={12} color="#64748b" />
+                              <Scale size={12} color="#fff" />
                             </Box>
-                            <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                            <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                               Judge's Reasoning
                             </Typography>
                           </Stack>
-                          <Typography sx={{ fontSize: 13, color: "#374151", lineHeight: 1.7 }}>
+                          <Typography sx={{ fontSize: 13, color: "#1e3a5f", lineHeight: 1.7 }}>
                             {round.reason}
                           </Typography>
                         </Box>

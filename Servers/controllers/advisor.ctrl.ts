@@ -91,51 +91,61 @@ export async function runAdvisor(req: Request, res: Response) {
       fileName,
     );
 
-    // Parse the structured response for risk advisor
-    let parsedResponse: any = response;
+    // Parse the response using the ---CHART_DATA--- separator format
+    let parsedResponse: any = { markdown: response, chartData: null };
+
     try {
-      // Try to parse JSON response from LLM
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        // Fix unescaped control characters in JSON string values
-        // This handles newlines inside the markdown field that break JSON parsing
-        let jsonStr = jsonMatch[0];
-        // Replace unescaped newlines within string values
-        jsonStr = jsonStr.replace(/"markdown"\s*:\s*"([\s\S]*?)(?<!\\)"\s*,\s*"chartData"/,
-          (_match: string, content: string) => {
-            const escaped = content
-              .replace(/\\/g, '\\\\')
-              .replace(/\n/g, '\\n')
-              .replace(/\r/g, '\\r')
-              .replace(/\t/g, '\\t');
-            return `"markdown": "${escaped}", "chartData"`;
+      // Convert escaped newlines to actual newlines
+      let content = response.replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      let markdown = content;
+      let chartData = null;
+
+      // Split by the ---CHART_DATA--- separator
+      const separator = '---CHART_DATA---';
+      const separatorIndex = content.indexOf(separator);
+
+      if (separatorIndex !== -1) {
+        // Extract markdown (before separator) and chart JSON (after separator)
+        markdown = content.substring(0, separatorIndex).trim();
+        const chartSection = content.substring(separatorIndex + separator.length).trim();
+
+        // Parse the chart JSON if it's not "null"
+        if (chartSection && chartSection !== 'null') {
+          try {
+            chartData = JSON.parse(chartSection);
+          } catch (e) {
+            logger.warn(`Failed to parse chart data from separator format: ${e}`);
           }
-        );
-        parsedResponse = JSON.parse(jsonStr);
+        }
       } else {
-        // Fallback: if LLM didn't return JSON, wrap the response
-        parsedResponse = {
-          markdown: response,
-          chartData: null,
-        };
+        // Fallback: try to find chart JSON in code blocks or inline
+        // First, try ```chart code blocks
+        const chartCodeBlockMatch = content.match(/```chart\s*([\s\S]*?)```/);
+        if (chartCodeBlockMatch) {
+          try {
+            chartData = JSON.parse(chartCodeBlockMatch[1].trim());
+            markdown = content.replace(/```chart\s*[\s\S]*?```/g, '').trim();
+          } catch (e) {
+            logger.warn(`Failed to parse chart code block: ${e}`);
+          }
+        }
       }
+
+      // Clean up any extra whitespace
+      markdown = markdown.replace(/\n{3,}/g, '\n\n').trim();
+
+      parsedResponse = {
+        markdown: markdown,
+        chartData: chartData,
+      };
     } catch (error) {
       logger.warn(
-        `Failed to parse structured response, using raw response: ${error}`,
+        `Failed to parse response, using raw response: ${error}`,
       );
-      // Try to extract just the markdown content if JSON parsing fails
-      const markdownMatch = response.match(/"markdown"\s*:\s*"([\s\S]*?)"\s*,\s*"chartData"/);
-      if (markdownMatch) {
-        parsedResponse = {
-          markdown: markdownMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
-          chartData: null,
-        };
-      } else {
-        parsedResponse = {
-          markdown: response,
-          chartData: null,
-        };
-      }
+      parsedResponse = {
+        markdown: response.replace(/\\n/g, '\n').replace(/\\"/g, '"'),
+        chartData: null,
+      };
     }
 
     return res.status(200).json({ prompt, response: parsedResponse });

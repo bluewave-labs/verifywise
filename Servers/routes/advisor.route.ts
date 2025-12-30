@@ -1,10 +1,17 @@
 import express from "express";
 const router = express.Router();
 import authenticateJWT from "../middleware/auth.middleware";
-import { runAdvisor } from "../controllers/advisor.ctrl";
+import {
+  runAdvisor,
+  getConversation,
+  saveConversation,
+} from "../controllers/advisor.ctrl";
 
-
+// Run advisor query
 router.post("/", authenticateJWT, runAdvisor);
 
+// Conversation persistence endpoints
+router.get("/conversations/:domain", authenticateJWT, getConversation);
+router.post("/conversations/:domain", authenticateJWT, saveConversation);
 
 export default router;

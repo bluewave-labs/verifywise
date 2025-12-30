@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { Stack, Box, useTheme, Typography, Chip } from '@mui/material';
-import { ThreadPrimitive, useThread } from '@assistant-ui/react';
+import { Stack, Box, useTheme, Chip } from '@mui/material';
+import { ThreadPrimitive } from '@assistant-ui/react';
 import { CustomMessage } from './CustomMessage';
 import { CustomComposer } from './CustomComposer';
-import { AdvisorDomain, AdvisorSuggestion, getSuggestions, ADVISOR_DOMAINS } from './advisorConfig';
+import { AdvisorDomain, AdvisorSuggestion, getSuggestions } from './advisorConfig';
 
 interface CustomThreadProps {
   pageContext?: AdvisorDomain;
@@ -14,15 +14,10 @@ interface SuggestionChipsProps {
   suggestions: AdvisorSuggestion[];
 }
 
-const SuggestionChips = ({ pageContext, suggestions }: SuggestionChipsProps) => {
+const SuggestionChips = ({ suggestions }: SuggestionChipsProps) => {
   const theme = useTheme();
-  const thread = useThread();
 
-  // Only show suggestions if there's just the welcome message (1 message, no user messages)
-  const messages = thread.messages;
-  const hasUserMessages = messages.some(m => m.role === 'user');
-
-  if (hasUserMessages) {
+  if (!suggestions || suggestions.length === 0) {
     return null;
   }
 
@@ -38,16 +33,6 @@ const SuggestionChips = ({ pageContext, suggestions }: SuggestionChipsProps) => 
         marginTop: '8px',
       }}
     >
-      <Typography
-        variant="body2"
-        sx={{
-          fontSize: '13px',
-          color: theme.palette.text.secondary,
-          marginBottom: '12px',
-        }}
-      >
-        {pageContext ? `Try asking about your ${ADVISOR_DOMAINS[pageContext]?.path.replace('/', '').replace('-', ' ')}` : 'Try asking a question'}
-      </Typography>
       <Box
         sx={{
           display: 'flex',
@@ -70,7 +55,7 @@ const SuggestionChips = ({ pageContext, suggestions }: SuggestionChipsProps) => 
               variant="outlined"
               clickable
               sx={{
-                fontSize: '12px',
+                fontSize: '11px',
                 height: '28px',
                 borderColor: theme.palette.border?.light,
                 color: theme.palette.text.primary,

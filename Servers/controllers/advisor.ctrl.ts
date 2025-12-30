@@ -4,21 +4,46 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { getLLMKeysWithKeyQuery, getLLMProviderUrl } from "../utils/llmKey.utils";
 import { LLMProvider } from "../domain.layer/interfaces/i.llmKey";
+import {
+  getConversationQuery,
+  upsertConversationQuery,
+} from "../utils/advisorConversation.utils";
+import { IAdvisorMessage } from "../domain.layer/interfaces/i.advisorConversation";
 import { availableRiskTools } from "../advisor/functions/riskFunctions";
 import { availableModelInventoryTools } from "../advisor/functions/modelInventoryFunctions";
+import { availableModelRiskTools } from "../advisor/functions/modelRiskFunctions";
+import { availableVendorTools } from "../advisor/functions/vendorFunctions";
+import { availableIncidentTools } from "../advisor/functions/incidentFunctions";
+import { availableTaskTools } from "../advisor/functions/taskFunctions";
+import { availablePolicyTools } from "../advisor/functions/policyFunctions";
 import { toolsDefinition as riskToolsDefinition } from "../advisor/tools/riskTools";
 import { toolsDefinition as modelInventoryToolsDefinition } from "../advisor/tools/modelInventoryTools";
+import { toolsDefinition as modelRiskToolsDefinition } from "../advisor/tools/modelRiskTools";
+import { toolsDefinition as vendorToolsDefinition } from "../advisor/tools/vendorTools";
+import { toolsDefinition as incidentToolsDefinition } from "../advisor/tools/incidentTools";
+import { toolsDefinition as taskToolsDefinition } from "../advisor/tools/taskTools";
+import { toolsDefinition as policyToolsDefinition } from "../advisor/tools/policyTools";
 
 const fileName = "advisor.ctrl.ts";
 
 const availableTools = {
   ...availableRiskTools,
   ...availableModelInventoryTools,
+  ...availableModelRiskTools,
+  ...availableVendorTools,
+  ...availableIncidentTools,
+  ...availableTaskTools,
+  ...availablePolicyTools,
 };
 
 const toolsDefinition = [
   ...riskToolsDefinition,
   ...modelInventoryToolsDefinition,
+  ...modelRiskToolsDefinition,
+  ...vendorToolsDefinition,
+  ...incidentToolsDefinition,
+  ...taskToolsDefinition,
+  ...policyToolsDefinition,
 ];
 
 export async function runAdvisor(req: Request, res: Response) {
@@ -157,6 +182,111 @@ export async function runAdvisor(req: Request, res: Response) {
       fileName,
     );
     logger.error("❌ Error in getting VerifyWise advisor response:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Get conversation history for a specific domain
+ */
+export async function getConversation(req: Request, res: Response) {
+  const functionName = "getConversation";
+
+  try {
+    const tenantId = req.tenantId!;
+    const userId = req.userId ? Number(req.userId) : undefined;
+    const domain = req.params.domain;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User context is required" });
+    }
+
+    if (!domain) {
+      return res.status(400).json({ error: "Domain is required" });
+    }
+
+    logger.debug(`Getting conversation for tenant: ${tenantId}, user: ${userId}, domain: ${domain}`);
+
+    const conversation = await getConversationQuery(tenantId, userId, domain);
+
+    if (!conversation) {
+      // Return empty messages array if no conversation exists
+      return res.status(200).json({
+        domain,
+        messages: [],
+      });
+    }
+
+    logStructured(
+      "successful",
+      `Retrieved conversation for domain: ${domain}`,
+      functionName,
+      fileName,
+    );
+
+    return res.status(200).json({
+      domain: conversation.domain,
+      messages: conversation.messages,
+    });
+  } catch (error) {
+    logStructured(
+      "error",
+      "Failed to get conversation",
+      functionName,
+      fileName,
+    );
+    logger.error("❌ Error getting conversation:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Save/update conversation messages for a specific domain
+ */
+export async function saveConversation(req: Request, res: Response) {
+  const functionName = "saveConversation";
+
+  try {
+    const tenantId = req.tenantId!;
+    const userId = req.userId ? Number(req.userId) : undefined;
+    const domain = req.params.domain;
+    const messages: IAdvisorMessage[] = req.body.messages;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User context is required" });
+    }
+
+    if (!domain) {
+      return res.status(400).json({ error: "Domain is required" });
+    }
+
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: "Messages array is required" });
+    }
+
+    logger.debug(`Saving conversation for tenant: ${tenantId}, user: ${userId}, domain: ${domain}, messages: ${messages.length}`);
+
+    const conversation = await upsertConversationQuery(tenantId, userId, domain, messages);
+
+    logStructured(
+      "successful",
+      `Saved conversation for domain: ${domain} with ${messages.length} messages`,
+      functionName,
+      fileName,
+    );
+
+    return res.status(200).json({
+      domain: conversation.domain,
+      messages: conversation.messages,
+    });
+  } catch (error) {
+    logStructured(
+      "error",
+      "Failed to save conversation",
+      functionName,
+      fileName,
+    );
+    logger.error("❌ Error saving conversation:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

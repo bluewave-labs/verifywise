@@ -1,120 +1,174 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { useLocalRuntime } from '@assistant-ui/react';
 import type { ChatModelAdapter, ChatModelRunOptions, ChatModelRunResult } from '@assistant-ui/react';
-import { runAdvisorAPI } from '../../../application/repository/advisor.repository';
+import { runAdvisorAPI, AdvisorMessage } from '../../../application/repository/advisor.repository';
 import { AdvisorDomain, getWelcomeMessage } from './advisorConfig';
+import { useAdvisorConversationSafe } from '../../../application/contexts/AdvisorConversation.context';
 
-export const useAdvisorRuntime = (selectedLLMKeyId?: number, pageContext?: AdvisorDomain) => {
-  // Memoize the chat adapter to prevent recreation on every render
+type RuntimeMessageContent =
+  | { type: 'text'; text: string }
+  | { type: 'data'; name: string; data: unknown };
+
+interface RuntimeMessage {
+  role: 'user' | 'assistant';
+  id: string;
+  createdAt: Date;
+  content: RuntimeMessageContent[];
+}
+
+const createWelcomeMessage = (domain?: AdvisorDomain): RuntimeMessage => ({
+  role: 'assistant',
+  id: 'welcome',
+  createdAt: new Date(),
+  content: [{ type: 'text', text: getWelcomeMessage(domain) }],
+});
+
+const convertToRuntimeMessages = (messages: AdvisorMessage[], domain?: AdvisorDomain): RuntimeMessage[] => {
+  if (!messages || messages.length === 0) {
+    return [createWelcomeMessage(domain)];
+  }
+
+  return messages.map(msg => {
+    const content: RuntimeMessageContent[] = [{ type: 'text' as const, text: msg.content }];
+
+    // Include chart data if present
+    if (msg.chartData) {
+      content.push({ type: 'data' as const, name: 'chartData', data: msg.chartData });
+    }
+
+    return {
+      role: msg.role,
+      id: msg.id,
+      createdAt: new Date(msg.createdAt),
+      content,
+    };
+  });
+};
+
+interface MessagePart {
+  type: string;
+  text?: string;
+}
+
+const extractUserMessageText = (content: MessagePart[]): string => {
+  return content
+    .filter((part) => part?.type === 'text')
+    .map((part) => part.text || '')
+    .join('\n')
+    .trim();
+};
+
+const createErrorResult = (text: string): ChatModelRunResult => ({
+  content: [{ type: 'text' as const, text }],
+  status: { type: 'complete' as const, reason: 'stop' as const },
+});
+
+export const useAdvisorRuntime = (
+  selectedLLMKeyId?: number,
+  pageContext?: AdvisorDomain
+) => {
+  const conversationContext = useAdvisorConversationSafe();
+
+  // Use refs to avoid stale closures in the adapter
+  const contextRef = useRef(conversationContext);
+  const pageContextRef = useRef(pageContext);
+  const llmKeyRef = useRef(selectedLLMKeyId);
+
+  useEffect(() => {
+    contextRef.current = conversationContext;
+    pageContextRef.current = pageContext;
+    llmKeyRef.current = selectedLLMKeyId;
+  }, [conversationContext, pageContext, selectedLLMKeyId]);
+
   const chatModelAdapter: ChatModelAdapter = useMemo(() => ({
     async run({ messages = [] }: ChatModelRunOptions): Promise<ChatModelRunResult> {
+      const context = contextRef.current;
+      const domain = pageContextRef.current;
+      const llmKeyId = llmKeyRef.current;
+
       try {
-        // Safety check for messages array
-        if (!messages || !Array.isArray(messages) || messages?.length === 0) {
-          return {
-            content: [
-              {
-                type: 'text' as const,
-                text: 'No message to process.',
-              },
-            ],
-            status: { type: 'complete' as const, reason: 'stop' as const },
-          };
+        if (!messages?.length) {
+          return createErrorResult('No message to process.');
         }
 
-        // Get the last user message
         const lastMessage = messages[messages.length - 1];
-
-        // Safety check for message content
-        if (!lastMessage || !lastMessage.content) {
-          return {
-            content: [
-              {
-                type: 'text' as const,
-                text: 'Invalid message format.',
-              },
-            ],
-            status: { type: 'complete' as const, reason: 'stop' as const },
-          };
+        if (!lastMessage?.content) {
+          return createErrorResult('Invalid message format.');
         }
 
-        const userMessage = lastMessage.content
-          .filter((part: any) => part && part.type === 'text')
-          .map((part: any) => part.text || '')
-          .join('\n')
-          .trim();
-
+        const userMessage = extractUserMessageText(lastMessage.content);
         if (!userMessage) {
-          return {
-            content: [
-              {
-                type: 'text' as const,
-                text: 'Please provide a message.',
-              },
-            ],
-            status: { type: 'complete' as const, reason: 'stop' as const },
-          };
+          return createErrorResult('Please provide a message.');
         }
 
-        // Call the advisor API with the user's message
-        const response = await runAdvisorAPI({
-          prompt: userMessage,
-        }, selectedLLMKeyId);
+        // Save user message to context
+        if (context && domain) {
+          context.addMessage(domain, {
+            id: lastMessage.id || `user-${Date.now()}`,
+            role: 'user',
+            content: userMessage,
+            createdAt: new Date().toISOString(),
+          });
+        }
 
-        // Extract the assistant's response
+        const response = await runAdvisorAPI({ prompt: userMessage }, llmKeyId);
         const assistantContent = response.data?.response || 'I received your message but could not generate a response.';
+        const assistantText = assistantContent?.markdown ?? assistantContent;
 
-        // Return the result in the expected format
+        const chartData = assistantContent?.chartData ?? null;
+
+        // Save assistant response to context (including chart data)
+        if (context && domain) {
+          context.addMessage(domain, {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            content: typeof assistantText === 'string' ? assistantText : JSON.stringify(assistantText),
+            createdAt: new Date().toISOString(),
+            chartData: chartData || undefined,
+          });
+        }
+
         return {
           content: [
-            {
-              type: 'text' as const,
-              text: assistantContent?.markdown ? assistantContent.markdown : assistantContent,
-            },
-            {
-              type: 'data' as const,
-              name: 'chartData',
-              data: assistantContent?.chartData ? assistantContent.chartData : null
-            }
+            { type: 'text' as const, text: assistantText },
+            { type: 'data' as const, name: 'chartData', data: chartData },
           ],
           status: { type: 'complete' as const, reason: 'stop' as const },
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('[AdvisorRuntime] Error calling advisor API:', error);
-        const errorMessage = error?.data?.message || error?.message || 'Failed to get response from advisor. Please try again.';
-
-        // Return an error message
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: `I'm sorry, I encountered an error: ${errorMessage}`,
-            },
-          ],
-          status: { type: 'complete' as const, reason: 'stop' as const },
-        };
+        const err = error as { data?: { message?: string }; message?: string };
+        const errorMessage = err?.data?.message || err?.message || 'Failed to get response from advisor. Please try again.';
+        return createErrorResult(`I'm sorry, I encountered an error: ${errorMessage}`);
       }
     },
-  }), [selectedLLMKeyId]); // Re-create adapter when LLM key changes
+  }), []); // Empty deps - uses refs for latest values
 
-  // Memoize initial messages based on page context
-  const initialMessages = useMemo(() => [
-    {
-      role: 'assistant' as const,
-      id: 'welcome',
-      createdAt: new Date(),
-      content: [
-        {
-          type: 'text' as const,
-          text: getWelcomeMessage(pageContext),
-        },
-      ],
-    },
-  ], [pageContext]);
+  const initialMessages = useMemo(() => {
+    if (conversationContext && pageContext) {
+      const persistedMessages = conversationContext.getMessages(pageContext);
+      if (persistedMessages.length > 0) {
+        return convertToRuntimeMessages(persistedMessages, pageContext);
+      }
+    }
 
-  const runtime = useLocalRuntime(chatModelAdapter, {
-    initialMessages,
-  });
+    return [createWelcomeMessage(pageContext)];
+  }, [pageContext, conversationContext]);
+
+  const runtime = useLocalRuntime(chatModelAdapter, { initialMessages });
+
+  // Reset the runtime with welcome message if it was created without messages
+  // This handles the timing issue where useLocalRuntime is created before initialMessages is ready
+  const hasResetRef = useRef(false);
+  useEffect(() => {
+    if (runtime && !hasResetRef.current && initialMessages.length > 0) {
+      const messageCount = runtime.thread?.messages?.length ?? 0;
+      if (messageCount === 0) {
+        runtime.reset({ initialMessages });
+      }
+      hasResetRef.current = true;
+    }
+  }, [runtime, initialMessages]);
 
   return runtime;
 };

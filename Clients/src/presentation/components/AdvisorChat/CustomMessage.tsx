@@ -1,5 +1,5 @@
 import { FC, useContext, useEffect, useState } from 'react';
-import { Stack, Box, useTheme, Avatar } from '@mui/material';
+import { Stack, Box, useTheme, Avatar, Typography } from '@mui/material';
 import { MessagePrimitive, useMessagePartText, useAssistantState } from '@assistant-ui/react';
 import Markdown from 'react-markdown';
 
@@ -9,6 +9,17 @@ import VWAvatar from '../Avatar/VWAvatar';
 import { VerifyWiseContext } from '../../../application/contexts/VerifyWise.context';
 import { useProfilePhotoFetch } from '../../../application/hooks/useProfilePhotoFetch';
 import { User } from '../../../domain/types/User';
+
+const formatTimestamp = (date: Date): string => {
+  return date.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
 
 const MessageText: FC = () => {
   const data = useMessagePartText();
@@ -50,6 +61,30 @@ const MessageChart: FC = () => {
   }
 
   return <ChartRenderer chartData={chartContent.data} />;
+};
+
+const MessageTimestamp: FC = () => {
+  const theme = useTheme();
+  const message = useAssistantState(({ message }) => message);
+
+  // Skip welcome message (id: 'welcome') which is generated client-side
+  if (!message?.createdAt || message.id === 'welcome') {
+    return null;
+  }
+
+  return (
+    <Typography
+      variant="caption"
+      sx={{
+        color: theme.palette.text.tertiary,
+        fontSize: '11px',
+        mt: '4px',
+        ml: '4px',
+      }}
+    >
+      Answered: {formatTimestamp(new Date(message.createdAt))}
+    </Typography>
+  );
 };
 
 const DEFAULT_USER: User = {
@@ -213,6 +248,7 @@ export const CustomMessage: FC = () => {
                 <MessagePrimitive.Content components={{ Text: MessageText }} />
               </Box>
               <MessageChart />
+              <MessageTimestamp />
             </Stack>
           </MessagePrimitive.If>
         </Stack>

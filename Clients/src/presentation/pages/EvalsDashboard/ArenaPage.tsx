@@ -48,6 +48,8 @@ import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
 import ArenaTable from "../../components/Table/ArenaTable";
 import ArenaResultsPage from "./ArenaResultsPage";
+import { FilterBy, FilterCondition, FilterColumn } from "../../components/Table/FilterBy";
+import { GroupBy, GroupByOption } from "../../components/Table/GroupBy";
 import {
   createArenaComparison,
   listArenaComparisons,
@@ -523,6 +525,36 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   // Configured providers (API keys)
   const [configuredProviders, setConfiguredProviders] = useState<LLMApiKey[]>([]);
 
+  // Filter, Search, Group state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterConditions, setFilterConditions] = useState<FilterCondition[]>([]);
+  const [filterLogic, setFilterLogic] = useState<"and" | "or">("and");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [groupBy, setGroupBy] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [groupSortOrder, setGroupSortOrder] = useState<"asc" | "desc">("asc");
+
+  // Filter columns for arena battles
+  const filterColumns: FilterColumn[] = [
+    {
+      id: "status",
+      label: "Status",
+      type: "select",
+      options: [
+        { value: "completed", label: "Completed" },
+        { value: "running", label: "Running" },
+        { value: "pending", label: "Pending" },
+        { value: "failed", label: "Failed" },
+      ],
+    },
+    { id: "name", label: "Battle Name", type: "text" },
+  ];
+
+  // Group by options
+  const groupByOptions: GroupByOption[] = [
+    { id: "status", label: "Status" },
+  ];
+
   // New comparison form state
   const [newComparison, setNewComparison] = useState({
     name: "",
@@ -717,6 +749,58 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     setNewComparison({ ...newComparison, contestants: updated });
   };
 
+  // Apply filters and search to comparisons
+  const filteredComparisons = comparisons.filter((comparison) => {
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const contestantNames = comparison.contestants || [];
+      const matchesSearch =
+        comparison.name?.toLowerCase().includes(query) ||
+        contestantNames.some((c: string) => c.toLowerCase().includes(query));
+      if (!matchesSearch) return false;
+    }
+
+    // Apply filter conditions
+    if (filterConditions.length > 0) {
+      const results = filterConditions.map((condition) => {
+        const { columnId, operator, value } = condition;
+        let fieldValue = "";
+
+        if (columnId === "status") {
+          fieldValue = comparison.status || "";
+        } else if (columnId === "name") {
+          fieldValue = comparison.name || "";
+        }
+
+        switch (operator) {
+          case "is":
+            return fieldValue.toLowerCase() === value.toLowerCase();
+          case "is_not":
+            return fieldValue.toLowerCase() !== value.toLowerCase();
+          case "contains":
+            return fieldValue.toLowerCase().includes(value.toLowerCase());
+          case "does_not_contain":
+            return !fieldValue.toLowerCase().includes(value.toLowerCase());
+          case "is_empty":
+            return !fieldValue;
+          case "is_not_empty":
+            return !!fieldValue;
+          default:
+            return true;
+        }
+      });
+
+      if (filterLogic === "and") {
+        if (!results.every((r) => r)) return false;
+      } else {
+        if (!results.some((r) => r)) return false;
+      }
+    }
+
+    return true;
+  });
+
   // If viewing results, show the results page
   if (viewingResultsId) {
     return (
@@ -834,7 +918,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           <CircularProgress size={32} sx={{ color: "#6366f1" }} />
         </Box>
       ) : comparisons.length === 0 ? (
-        /* Empty state */
+        /* Empty state when no battles at all */
         <Box
           sx={{
             border: "2px dashed #c7d2fe",
@@ -910,15 +994,68 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           />
         </Box>
       ) : (
-        /* Comparisons table */
-        <ArenaTable
-          rows={comparisons}
-          loading={loading}
-          deleting={deleting}
-          onRowClick={(row) => row.status === "completed" && handleViewResults(row.id)}
-          onViewResults={(row) => handleViewResults(row.id)}
-          onDelete={(row) => handleDeleteComparison(row.id)}
-        />
+        /* Comparisons with toolbar */
+        <>
+          {/* Filter/Group/Search Toolbar */}
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{ mb: 3 }}
+          >
+            <FilterBy
+              columns={filterColumns}
+              onFilterChange={(conditions, logic) => {
+                setFilterConditions(conditions);
+                setFilterLogic(logic);
+              }}
+            />
+            <GroupBy
+              options={groupByOptions}
+              onGroupChange={(group, order) => {
+                setGroupBy(group);
+                setGroupSortOrder(order);
+              }}
+            />
+            <TextField
+              placeholder="Search battles..."
+              size="small"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search size={16} color="#9ca3af" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                width: 220,
+                "& .MuiOutlinedInput-root": {
+                  height: 34,
+                  borderRadius: "6px",
+                  fontSize: 13,
+                  "& fieldset": {
+                    borderColor: "#d0d5dd",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#98a2b3",
+                  },
+                },
+              }}
+            />
+          </Stack>
+
+          {/* Comparisons table */}
+          <ArenaTable
+            rows={filteredComparisons}
+            loading={loading}
+            deleting={deleting}
+            onRowClick={(row) => row.status === "completed" && handleViewResults(row.id)}
+            onViewResults={(row) => handleViewResults(row.id)}
+            onDelete={(row) => handleDeleteComparison(row.id)}
+          />
+        </>
       )}
 
       {/* Create Comparison Modal */}

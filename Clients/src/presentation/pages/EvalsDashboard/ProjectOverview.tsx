@@ -26,6 +26,7 @@ import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 
@@ -295,6 +296,7 @@ export default function ProjectOverview({
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance.
         </Typography>
+        <TipBox entityName="evals-overview" />
       </Stack>
 
       {/* Header with New Experiment button */}

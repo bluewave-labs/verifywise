@@ -23,6 +23,7 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 
@@ -545,6 +546,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Experiments run evaluations on your models using datasets and scorers. Track performance metrics over time and compare different model configurations.
         </Typography>
+        <TipBox entityName="evals-experiments" />
       </Stack>
 
       {/* Performance Chart */}

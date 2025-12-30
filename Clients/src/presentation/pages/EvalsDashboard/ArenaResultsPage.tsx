@@ -508,14 +508,18 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                 <Box
                   key={idx}
                   sx={{
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: "6px",
-                    backgroundColor: "#ecfdf5",
-                    border: "1px solid #a7f3d0",
+                    px: 2,
+                    py: 0.75,
+                    borderRadius: "16px",
+                    backgroundColor: "rgba(19, 113, 91, 0.08)",
+                    border: "1px solid rgba(19, 113, 91, 0.3)",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      backgroundColor: "rgba(19, 113, 91, 0.12)",
+                    },
                   }}
                 >
-                  <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#13715B" }}>
+                  <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#13715B", letterSpacing: "0.02em" }}>
                     {criterion}
                   </Typography>
                 </Box>

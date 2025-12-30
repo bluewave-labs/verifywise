@@ -28,7 +28,7 @@ const RichTextEditor: React.FC<IRichTextEditorProps> = ({
     autofocus: false,
     immediatelyRender: true,
     editable: isEditable,
-    onUpdate: ({ editor }) => {
+    onUpdate: ({ editor }: { editor: NonNullable<ReturnType<typeof useEditor>> }) => {
       onContentChange?.(editor.getHTML());
     },
   });

@@ -13,6 +13,9 @@ const RISK_SUGGESTIONS = [
   { prompt: 'Show me the risk distribution by severity and likelihood', label: 'Risk matrix' },
   { prompt: 'What risks have mitigations that are not started or in progress?', label: 'Pending mitigations' },
   { prompt: 'How has the risk level changed over the past month?', label: 'Risk trends' },
+  { prompt: 'What are the high and very high risk items?', label: 'High risks' },
+  { prompt: 'Show risks by AI lifecycle phase', label: 'By lifecycle phase' },
+  { prompt: 'Which risks are categorized under data privacy or security?', label: 'Privacy & security' },
 ];
 
 const MODEL_INVENTORY_SUGGESTIONS = [
@@ -20,6 +23,9 @@ const MODEL_INVENTORY_SUGGESTIONS = [
   { prompt: 'Which models are pending approval or blocked?', label: 'Pending models' },
   { prompt: 'How many models have completed security assessments?', label: 'Security status' },
   { prompt: 'Show me the breakdown of models by provider', label: 'By provider' },
+  { prompt: 'Which models are hosted on-premises vs cloud?', label: 'Hosting breakdown' },
+  { prompt: 'List all approved models ready for use', label: 'Approved models' },
+  { prompt: 'Which models have not undergone security assessment?', label: 'Unassessed models' },
 ];
 
 // Separate component to access thread context

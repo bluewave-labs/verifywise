@@ -1,16 +1,5 @@
 import { FC } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  useTheme, 
-  TableContainer, 
-  Table, 
-  TableHead, 
-  TableRow, 
-  TableBody, 
-  TableCell 
-} from '@mui/material';
+import { Box, Typography, Paper, useTheme } from '@mui/material';
 import { BarChart, PieChart, LineChart } from '@mui/x-charts';
 
 interface ChartData {
@@ -128,55 +117,38 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
 
       case 'table':
         return (
-          <Box sx={{ overflowX: 'auto', mt: 3 }}>
-            <TableContainer>
-            <Table sx={{ minWidth: 300 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    key={"Label"}
-                    sx={{
-                      fontSize: 13,
-                      fontWeight: 400,
-                      color: theme.palette.text.secondary,
-                      bgcolor: theme.palette.grey[50],
-                      top: 0,
-                      zIndex: 1,
-                    }}
-                  >
-                    Label
-                  </TableCell>
-                  <TableCell
-                    key={"Value"}
-                    sx={{
-                      fontSize: 13,
-                      fontWeight: 400,
-                      color: theme.palette.text.secondary,
-                      bgcolor: theme.palette.grey[50],
-                      top: 0,
-                      zIndex: 1,
-                    }}
-                  >
-                    Value
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data.map((item, index)=> (
-                    <TableRow
-                      key={`row-${index}`}
-                      tabIndex={0}
-                      role="button"
-                    >
-                      
-                      <TableCell sx={{ fontWeight: 500 }}>{item.label}</TableCell>
-                      <TableCell>{item.value}</TableCell>
-                    </TableRow>
-                  ))
-                }
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <Box sx={{ width: '100%', minWidth: 200 }}>
+            {data.map((item, index) => (
+              <Box
+                key={`row-${index}`}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 3,
+                  padding: '5px 0',
+                  borderBottom: index < data.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '12px',
+                    color: theme.palette.text.secondary,
+                  }}
+                >
+                  {item.label}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  {item.value}
+                </Typography>
+              </Box>
+            ))}
           </Box>
         );
 
@@ -202,7 +174,7 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
       }}
     >
       {title && (
-        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, marginBottom: 2 }}>
+        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, marginBottom: type === 'table' ? 1 : 2, fontSize: '13px' }}>
           {title}
         </Typography>
       )}
@@ -211,7 +183,7 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: 200,
+          minHeight: type === 'table' ? 'auto' : 200,
         }}
       >
         {renderChart()}

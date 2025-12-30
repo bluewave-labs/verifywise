@@ -511,11 +511,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                     px: 1.5,
                     py: 0.5,
                     borderRadius: "6px",
-                    backgroundColor: "#f8fafc",
-                    border: "1px solid #e2e8f0",
+                    backgroundColor: "#ecfdf5",
+                    border: "1px solid #a7f3d0",
                   }}
                 >
-                  <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#475569" }}>
+                  <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#13715B" }}>
                     {criterion}
                   </Typography>
                 </Box>
@@ -772,9 +772,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
               sx={{
                 fontSize: 12,
                 color: "#13715B",
-                borderColor: "#d1fae5",
+                borderColor: "#13715B",
                 "&:hover": {
-                  backgroundColor: "#ecfdf5",
+                  backgroundColor: "transparent",
                   borderColor: "#13715B",
                 },
               }}

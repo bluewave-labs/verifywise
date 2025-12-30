@@ -165,6 +165,13 @@ function ModelSelector({
   // OpenRouter allows custom model names
   const isOpenRouter = provider === "openrouter";
   
+  // Sync customModel when model prop changes (for OpenRouter)
+  useEffect(() => {
+    if (isOpenRouter) {
+      setCustomModel(model);
+    }
+  }, [model, isOpenRouter]);
+  
   // Check if provider has API key configured
   const hasApiKey = (providerId: string) => configuredProviders.some(cp => cp.provider === providerId);
   const currentProviderHasKey = hasApiKey(provider);
@@ -240,8 +247,8 @@ function ModelSelector({
       >
         <Stack direction="row" alignItems="center" spacing={1.5}>
           {renderProviderIcon(provider, 20)}
-          <Typography sx={{ fontSize: 13, color: selectedModel ? "#111827" : "#9ca3af" }}>
-            {selectedModel?.name || "Select a model"}
+          <Typography sx={{ fontSize: 13, color: (selectedModel || (isOpenRouter && model)) ? "#111827" : "#9ca3af" }}>
+            {isOpenRouter && model ? model : (selectedModel?.name || "Select a model")}
           </Typography>
         </Stack>
         <ChevronDown size={16} color="#6b7280" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
@@ -442,6 +449,107 @@ function ModelSelector({
                         Go to Settings
                       </Box>
                     </Box>
+                  </Box>
+                ) : isOpenRouter ? (
+                  /* Custom model input for OpenRouter */
+                  <Box sx={{ p: 2 }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 1 }}>
+                      Enter Model Name
+                    </Typography>
+                    <Typography sx={{ fontSize: 11, color: "#6b7280", mb: 1.5 }}>
+                      OpenRouter supports any model. Enter the model ID (e.g., anthropic/claude-3-opus)
+                    </Typography>
+                    <TextField
+                      size="small"
+                      fullWidth
+                      placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
+                      value={customModel}
+                      onChange={(e) => setCustomModel(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && customModel.trim()) {
+                          onModelChange(customModel.trim());
+                          setOpen(false);
+                        }
+                        e.stopPropagation();
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      autoComplete="off"
+                      sx={{
+                        mb: 1.5,
+                        "& .MuiOutlinedInput-root": {
+                          fontSize: 13,
+                          borderRadius: "8px",
+                        },
+                      }}
+                    />
+                    <Box
+                      onClick={() => {
+                        if (customModel.trim()) {
+                          onModelChange(customModel.trim());
+                          setOpen(false);
+                        }
+                      }}
+                      sx={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 1,
+                        px: 2,
+                        py: 1,
+                        borderRadius: "6px",
+                        cursor: customModel.trim() ? "pointer" : "not-allowed",
+                        backgroundColor: customModel.trim() ? "#13715B" : "#e5e7eb",
+                        color: customModel.trim() ? "#fff" : "#9ca3af",
+                        fontSize: 12,
+                        fontWeight: 500,
+                        "&:hover": {
+                          backgroundColor: customModel.trim() ? "#0f5f4c" : "#e5e7eb",
+                        },
+                      }}
+                    >
+                      <Check size={14} />
+                      Use this model
+                    </Box>
+                    
+                    {/* Popular OpenRouter models */}
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                      Popular Models
+                    </Typography>
+                    {[
+                      { id: "openai/gpt-4o", name: "GPT-4o" },
+                      { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+                      { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
+                      { id: "meta-llama/llama-3.1-70b-instruct", name: "Llama 3.1 70B" },
+                      { id: "mistralai/mistral-large", name: "Mistral Large" },
+                    ].map((m) => (
+                      <Box
+                        key={m.id}
+                        onClick={() => {
+                          setCustomModel(m.id);
+                          onModelChange(m.id);
+                          setOpen(false);
+                        }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          px: 1.5,
+                          py: 0.75,
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          backgroundColor: model === m.id ? "#E8F5F1" : "transparent",
+                          "&:hover": {
+                            backgroundColor: model === m.id ? "#E8F5F1" : "#f9fafb",
+                          },
+                        }}
+                      >
+                        <Typography sx={{ fontSize: 12, fontWeight: model === m.id ? 600 : 400, color: model === m.id ? "#13715B" : "#374151" }}>
+                          {m.name}
+                        </Typography>
+                        <Typography sx={{ fontSize: 10, color: "#9ca3af" }}>
+                          {m.id}
+                        </Typography>
+                      </Box>
+                    ))}
                   </Box>
                 ) : filteredModels.length === 0 ? (
                   <Box sx={{ p: 3, textAlign: "center" }}>

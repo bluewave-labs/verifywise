@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { Grid, Box, Stack, useTheme } from "@mui/material";
+import type { GridProps } from "@mui/material";
 import { Settings } from "lucide-react";
 import AutomationList from "./components/AutomationList";
 import AutomationBuilder from "./components/AutomationBuilder";
@@ -1559,9 +1560,7 @@ This notification was sent on {{date_and_time}}.`,
           <Grid container spacing={0} sx={{ height: "100%" }}>
             {/* Left Sidebar - Automation List */}
             <Grid
-              item
-              xs={12}
-              md={3}
+              {...({ item: true, xs: 12, md: 3 } as GridProps & { item: boolean; xs: number; md: number })}
               sx={{
                 height: "100%",
                 borderRight: `1px solid ${theme.palette.border.dark}`,
@@ -1587,9 +1586,7 @@ This notification was sent on {{date_and_time}}.`,
 
             {/* Center Panel - Automation Builder */}
             <Grid
-              item
-              xs={12}
-              md={showConfigurationPanel ? 6 : 9}
+              {...({ item: true, xs: 12, md: showConfigurationPanel ? 6 : 9 } as GridProps & { item: boolean; xs: number; md: number })}
               sx={{
                 height: "100%",
                 ...(showConfigurationPanel
@@ -1648,9 +1645,7 @@ This notification was sent on {{date_and_time}}.`,
             {/* Right Panel - Configuration (conditional) */}
             {showConfigurationPanel && (
               <Grid
-                item
-                xs={12}
-                md={3}
+                {...({ item: true, xs: 12, md: 3 } as GridProps & { item: boolean; xs: number; md: number })}
                 sx={{
                   height: "100%",
                   background:

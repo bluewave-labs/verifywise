@@ -8,6 +8,7 @@ import {
   Grid,
   Collapse,
 } from "@mui/material";
+import type { GridProps } from "@mui/material";
 import {
   ChevronUp as ExpandLessIcon,
   ChevronDown as ExpandMoreIcon,
@@ -189,8 +190,15 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
           const criticalLevel = getMostCriticalLevel(category);
           const isExpanded = expandedCategory === category.name;
 
+          const gridItemProps = {
+            item: true,
+            xs: 12,
+            md: 6,
+            lg: 4,
+          } as GridProps & { item: boolean; xs: number; md: number; lg: number };
+          
           return (
-            <Grid item xs={12} md={6} lg={4} key={category.name}>
+            <Grid {...gridItemProps} key={category.name}>
               <Paper
                 elevation={0}
                 sx={{

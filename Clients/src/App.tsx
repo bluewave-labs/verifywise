@@ -28,6 +28,7 @@ import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
 import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
+import { AdvisorConversationProvider } from './application/contexts/AdvisorConversation.context';
 
 // Auth routes where the helper sidebar should not be shown
 const AUTH_ROUTES = [
@@ -274,8 +275,10 @@ function App() {
                   {createRoutes(triggerSidebar, triggerSidebarReload)}
                 </Routes>
 
-                {/* User Guide Sidebar */}
-                <UserGuideSidebarContainer />
+                {/* User Guide Sidebar with Advisor Conversation persistence */}
+                <AdvisorConversationProvider>
+                  <UserGuideSidebarContainer />
+                </AdvisorConversationProvider>
               </ConditionalThemeWrapper>
             </UserGuideSidebarProvider>
           </VerifyWiseContext.Provider>

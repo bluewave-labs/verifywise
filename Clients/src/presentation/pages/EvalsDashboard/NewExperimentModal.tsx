@@ -18,6 +18,7 @@ import {
   FormHelperText,
   Chip as MuiChip,
 } from "@mui/material";
+import type { GridProps } from "@mui/material";
 import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import SelectableCard from "../../components/SelectableCard";
@@ -779,7 +780,7 @@ export default function NewExperimentModal({
                     const isSelected = config.model.accessMethod === provider.id;
                     
                     return (
-                      <Grid item xs={4} sm={3} key={provider.id}>
+                      <Grid {...({ item: true, xs: 4, sm: 3 } as GridProps & { item: boolean; xs: number; sm: number })} key={provider.id}>
                         <Card
                           onClick={() =>
                             setConfig((prev) => ({
@@ -1464,7 +1465,7 @@ export default function NewExperimentModal({
                       const isSelected = config.judgeLlm.provider === provider.id;
                       
                       return (
-                        <Grid item xs={4} sm={3} key={provider.id}>
+                        <Grid {...({ item: true, xs: 4, sm: 3 } as GridProps & { item: boolean; xs: number; sm: number })} key={provider.id}>
                           <Card
                             onClick={() =>
                               setConfig((prev) => ({

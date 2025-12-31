@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid } from "@mui/material";
+import type { GridProps } from "@mui/material";
 import { Check } from "lucide-react";
 import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound, Swords } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -1921,7 +1922,7 @@ export default function EvalsDashboard() {
                 const hasKey = llmApiKeys.some(k => k.provider === provider._id);
                 
                 return (
-                  <Grid item xs={4} sm={4} key={provider._id}>
+                  <Grid {...({ item: true, xs: 4, sm: 4 } as GridProps & { item: boolean; xs: number; sm: number })} key={provider._id}>
                     <Card
                       onClick={() => handleProviderSelect(provider._id)}
                       sx={{
@@ -2163,7 +2164,7 @@ export default function EvalsDashboard() {
             </Typography>
             <Grid container spacing={1.5}>
               {/* Ollama */}
-              <Grid item xs={6}>
+              <Grid {...({ item: true, xs: 6 } as GridProps & { item: boolean; xs: number })}>
                 <Card
                   onClick={() => {
                     setSelectedLocalProviderType("ollama");
@@ -2214,7 +2215,7 @@ export default function EvalsDashboard() {
               </Grid>
 
               {/* Local Endpoint */}
-              <Grid item xs={6}>
+              <Grid {...({ item: true, xs: 6 } as GridProps & { item: boolean; xs: number })}>
                 <Card
                   onClick={() => {
                     setSelectedLocalProviderType("local");

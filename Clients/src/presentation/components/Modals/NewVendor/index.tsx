@@ -205,7 +205,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         reviewer: existingVendor.reviewer || null,
         reviewResult: existingVendor.review_result,
         assignee: existingVendor.assignee || null,
-        reviewDate: dayjs(existingVendor.review_date).toISOString(),
+        reviewDate: existingVendor.review_date && dayjs(existingVendor.review_date).isValid()
+          ? dayjs(existingVendor.review_date).toISOString()
+          : "",
         dataSensitivity: existingVendor.data_sensitivity || "",
         businessCriticality: existingVendor.business_criticality || "",
         pastIssues: existingVendor.past_issues || "",

@@ -16,11 +16,13 @@ export interface IProjectListProps {
   projects: Project[];
   newProjectButton?: unknown;
   onFilterChange?: (filteredProjects: Project[], filters: any) => void;
+  onProjectDeleted?: () => void;
 }
 
 export interface IProjectTableViewProps {
   projects: Project[];
   hidePagination?: boolean;
+  onProjectDeleted?: () => void;
 }
 
 export interface IProjectRiskMitigationProps {

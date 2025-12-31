@@ -242,4 +242,40 @@ export const ENTITY_TIPS: EntityTips = {
       content: "If your organization uses other systems for task management, documentation, or communication, integration settings can connect them to VerifyWise. These connections reduce duplicate data entry and keep information synchronized across platforms.",
     },
   ],
+  "evals-overview": [
+    {
+      header: "Monitor trends to track progress over time.",
+      content: "The overview highlights performance trends across your experiments. Watch for improvements after model updates or regressions that need investigation. Consistent monitoring catches issues before they impact production.",
+    },
+  ],
+  "evals-experiments": [
+    {
+      header: "Compare experiments to understand what changed.",
+      content: "When you update prompts, models, or configurations, run new experiments to measure the impact. Comparing results side-by-side reveals whether changes improved or degraded performance.",
+    },
+    {
+      header: "Use multiple scorers for comprehensive evaluation.",
+      content: "A single metric rarely tells the whole story. Combine scorers for accuracy, relevance, safety, and task-specific criteria to get a complete picture of model quality. Different use cases need different evaluation approaches.",
+    },
+  ],
+  "evals-datasets": [
+    {
+      header: "Start with templates to accelerate dataset creation.",
+      content: "Built-in dataset templates provide professionally designed test cases for common AI tasks. Use them as starting points, then customize with your own examples to match your specific use case.",
+    },
+    {
+      header: "Include both expected successes and known challenges.",
+      content: "Good evaluation datasets test both what models should handle well and where they might struggle. Include adversarial examples, edge cases, and boundary conditions to stress-test your models thoroughly.",
+    },
+  ],
+  "evals-scorers": [
+    {
+      header: "LLM-based scorers evaluate nuanced quality aspects.",
+      content: "Some qualities like helpfulness or tone are hard to measure with rules. LLM scorers use AI to judge these subjective aspects consistently. They work well for evaluating open-ended or creative outputs.",
+    },
+    {
+      header: "Calibrate scorers against human judgment.",
+      content: "Periodically compare scorer results to human evaluations. If scorers and humans disagree consistently, adjust thresholds or scorer configurations. Well-calibrated scorers save time while maintaining quality standards.",
+    },
+  ],
 };

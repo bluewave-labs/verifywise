@@ -5,7 +5,7 @@
  *
  * The custom Axios instance is configured with:
  * - A base URL that defaults to "http://localhost:3000" but can be overridden by the environment variable `REACT_APP_BASE_URL`.
- * - A timeout limit of 10,000 milliseconds for requests.
+ * - A timeout limit of 120,000 milliseconds for requests.
  * - Default headers for "Content-Type" and "Accept" set to "application/json".
  *
  * The request interceptor:
@@ -49,7 +49,7 @@ export const showAlert = (alert: AlertProps) => {
 // Create an instance of axios with default configurations
 const CustomAxios = axios.create({
   baseURL: `${ENV_VARs.URL}/api`,
-  timeout: 20000,
+  timeout: 120000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

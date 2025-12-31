@@ -75,7 +75,7 @@ const MLFlowDataTable: React.FC = () => {
 
     const experiments = new Set(
       mlflowData
-        .map((model) => model.experiment_info?.experiment_id)
+        .map((model) => model.experiment_id)
         .filter(Boolean),
     ).size;
 
@@ -482,13 +482,13 @@ const MLFlowDataTable: React.FC = () => {
                   </Typography>
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                     <Typography variant="body2">
-                      <strong>Experiment ID:</strong> {selectedModel.experiment_info?.experiment_id}
+                      <strong>Experiment ID:</strong> {selectedModel.experiment_id}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Experiment Name:</strong> {selectedModel.experiment_info?.experiment_name}
+                      <strong>Experiment Name:</strong> {selectedModel.experiment_name}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Artifact Location:</strong> {selectedModel.experiment_info?.artifact_location}
+                      <strong>Artifact Location:</strong> {selectedModel.artifact_location}
                     </Typography>
                   </Box>
                 </Grid>

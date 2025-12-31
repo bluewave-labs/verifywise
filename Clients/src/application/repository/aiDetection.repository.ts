@@ -23,6 +23,7 @@ import {
   GovernanceStatus,
   GovernanceSummary,
   UpdateGovernanceStatusResponse,
+  AIDetectionStats,
 } from "../../domain/ai-detection/types";
 
 const BASE_URL = "/ai-detection";
@@ -384,6 +385,31 @@ export async function getGovernanceSummary(
 ): Promise<GovernanceSummary> {
   const response = await apiServices.get<{ data: GovernanceSummary }>(
     `${BASE_URL}/scans/${scanId}/governance-summary`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      signal,
+    }
+  );
+  return response.data.data;
+}
+
+// ============================================================================
+// Statistics Operations
+// ============================================================================
+
+/**
+ * Get overall AI Detection statistics
+ *
+ * @param signal - Optional abort signal
+ * @param authToken - Optional auth token
+ * @returns AI Detection statistics
+ */
+export async function getAIDetectionStats(
+  signal?: AbortSignal,
+  authToken: string = getAuthToken()
+): Promise<AIDetectionStats> {
+  const response = await apiServices.get<{ data: AIDetectionStats }>(
+    `${BASE_URL}/stats`,
     {
       headers: { Authorization: `Bearer ${authToken}` },
       signal,

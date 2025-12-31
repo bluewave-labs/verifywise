@@ -30,6 +30,7 @@ import {
   getSecuritySummary,
   updateFindingGovernanceStatus,
   getGovernanceSummary,
+  getAIDetectionStats,
 } from "../services/aiDetection.service";
 import { IServiceContext, ScanStatus } from "../domain.layer/interfaces/i.aiDetection";
 
@@ -562,6 +563,31 @@ export async function getGovernanceSummaryController(
     const summary = await getGovernanceSummary(scanId, ctx);
 
     return res.status(200).json(STATUS_CODE[200](summary));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get overall AI Detection statistics
+ *
+ * GET /ai-detection/stats
+ */
+export async function getAIDetectionStatsController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting AI Detection statistics",
+    functionName: "getAIDetectionStatsController",
+    fileName: FILE_NAME,
+  });
+
+  try {
+    const ctx = buildServiceContext(req);
+    const stats = await getAIDetectionStats(ctx);
+
+    return res.status(200).json(STATUS_CODE[200](stats));
   } catch (error) {
     return handleException(res, error);
   }

@@ -14,6 +14,8 @@ import {
   LinearProgress,
   CircularProgress,
   InputAdornment,
+  Skeleton,
+  Tooltip,
 } from "@mui/material";
 import {
   Search,
@@ -21,6 +23,13 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
+  FileSearch,
+  FolderGit2,
+  Cpu,
+  Library,
+  Webhook,
+  ShieldAlert,
+  Info,
 } from "lucide-react";
 import Field from "../../components/Inputs/Field";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -32,10 +41,12 @@ import {
   getScan,
   cancelScan,
   getActiveScan,
+  getAIDetectionStats,
 } from "../../../application/repository/aiDetection.repository";
 import {
   ScanStatusResponse,
   ScanResponse,
+  AIDetectionStats,
 } from "../../../domain/ai-detection/types";
 
 interface ScanPageProps {
@@ -45,6 +56,105 @@ interface ScanPageProps {
 
 type ScanState = "idle" | "scanning" | "completed" | "failed";
 
+// Stat card component matching Evals ProjectOverview style
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  Icon: React.ComponentType<{ size?: number }>;
+  subtitle?: string;
+  tooltip?: string;
+}
+
+function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <Box
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      sx={{
+        background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
+        border: "1px solid #E5E7EB",
+        borderRadius: "8px",
+        p: "16px",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        overflow: "hidden",
+        minHeight: "80px",
+        transition: "all 0.2s ease",
+        boxSizing: "border-box",
+        "&:hover": {
+          background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
+          borderColor: "#D1D5DB",
+        },
+      }}
+    >
+      {/* Background Icon */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: "-20px",
+          right: "-20px",
+          opacity: isHovered ? 0.06 : 0.03,
+          transform: isHovered ? "translateY(-4px)" : "translateY(0px)",
+          zIndex: 0,
+          pointerEvents: "none",
+          transition: "opacity 0.2s ease, transform 0.3s ease",
+        }}
+      >
+        <Icon size={64} />
+      </Box>
+
+      {/* Content */}
+      <Box sx={{ position: "relative", zIndex: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "4px", mb: 0.5 }}>
+          <Typography
+            sx={{
+              color: "#6B7280",
+              fontSize: "11px",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+            }}
+          >
+            {title}
+          </Typography>
+          {tooltip && (
+            <Tooltip title={tooltip} arrow placement="top">
+              <Box sx={{ display: "flex", alignItems: "center", cursor: "help", ml: "2px" }}>
+                <Info size={14} color="#9CA3AF" />
+              </Box>
+            </Tooltip>
+          )}
+        </Box>
+        <Typography
+          sx={{
+            fontSize: "20px",
+            fontWeight: 600,
+            color: "#111827",
+            lineHeight: 1.3,
+          }}
+        >
+          {value}
+        </Typography>
+        {subtitle && (
+          <Typography
+            sx={{
+              fontSize: "10px",
+              color: "#9CA3AF",
+              mt: 0.25,
+              fontWeight: 400,
+            }}
+          >
+            {subtitle}
+          </Typography>
+        )}
+      </Box>
+    </Box>
+  );
+}
+
 export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProps) {
   const [repositoryUrl, setRepositoryUrl] = useState("");
   const [scanState, setScanState] = useState<ScanState>("idle");
@@ -52,8 +162,25 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
   const [result, setResult] = useState<ScanResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCheckingActive, setIsCheckingActive] = useState(true);
+  const [stats, setStats] = useState<AIDetectionStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentScanIdRef = useRef<number | null>(null);
+
+  // Fetch stats on mount
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await getAIDetectionStats();
+        setStats(data);
+      } catch (err) {
+        console.error("Failed to load stats:", err);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
   // Check for active scans on mount and resume polling if found
   useEffect(() => {
@@ -229,6 +356,82 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
         rightContent={<HelperIcon articlePath="ai-detection/scanning" size="small" />}
       />
 
+      {/* Statistics Cards - 6 cards in 3x2 grid (only show if there are scans) */}
+      {!isCheckingActive && scanState === "idle" && !statsLoading && stats && stats.total_scans > 0 && (
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "8px",
+            mb: "16px",
+          }}
+        >
+          <StatCard
+            title="Total scans"
+            value={stats.total_scans}
+            Icon={FileSearch}
+            subtitle={`${stats.completed_scans} completed`}
+            tooltip="Total number of repository scans performed, including completed, failed, and cancelled scans."
+          />
+          <StatCard
+            title="Repositories"
+            value={stats.unique_repositories}
+            Icon={FolderGit2}
+            subtitle="Unique repos scanned"
+            tooltip="Number of unique repositories that have been scanned. Multiple scans of the same repo count as one."
+          />
+          <StatCard
+            title="Total findings"
+            value={stats.total_findings}
+            Icon={Cpu}
+            subtitle="All detections"
+            tooltip="Combined count of all AI/ML detections across completed scans, including libraries, API calls, and secrets."
+          />
+          <StatCard
+            title="Libraries"
+            value={stats.findings_by_type.library}
+            Icon={Library}
+            subtitle="AI/ML imports"
+            tooltip="AI/ML library imports and framework dependencies detected in source code (e.g., TensorFlow, PyTorch, OpenAI SDK)."
+          />
+          <StatCard
+            title="API calls"
+            value={stats.findings_by_type.api_call}
+            Icon={Webhook}
+            subtitle="Provider integrations"
+            tooltip="Direct API calls to AI providers detected in code, including REST endpoints and SDK method invocations."
+          />
+          <StatCard
+            title="Security issues"
+            value={stats.security_findings}
+            Icon={ShieldAlert}
+            subtitle="Vulnerabilities found"
+            tooltip="Security concerns including hardcoded API keys/secrets and model file vulnerabilities that could pose risks."
+          />
+        </Box>
+      )}
+
+      {/* Skeleton loading state for stats */}
+      {!isCheckingActive && scanState === "idle" && statsLoading && (
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "8px",
+            mb: "16px",
+          }}
+        >
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton
+              key={i}
+              variant="rectangular"
+              height={90}
+              sx={{ borderRadius: "8px" }}
+            />
+          ))}
+        </Box>
+      )}
+
       {/* Loading state while checking for active scans */}
       {isCheckingActive && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -243,7 +446,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
             backgroundColor: "#fff",
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
-            p: "8px",
+            p: "16px",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
@@ -257,7 +460,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
                 {[
                   "Shubhamsaboo/awesome-llm-apps",
                   "langchain-ai/chat-langchain",
-                  "QuivrHQ/quivr",
+                  "GitGuardian/sample_secrets",
                   "nomic-ai/gpt4all",
                 ].map((repo, idx, arr) => (
                   <span key={repo}>

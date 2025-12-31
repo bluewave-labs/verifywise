@@ -27,7 +27,7 @@ export const historyContent: ArticleContent = {
       items: [
         { bold: 'Repository', text: 'Owner and name of the scanned repository' },
         { bold: 'Status', text: 'Current state — Completed, Failed, Cancelled, or Scanning' },
-        { bold: 'Findings', text: 'Number of AI/ML libraries detected' },
+        { bold: 'Findings', text: 'Total number of detections including libraries, API calls, secrets, and security issues' },
         { bold: 'Files scanned', text: 'Total source files analyzed' },
         { bold: 'Duration', text: 'Time taken to complete the scan' },
         { bold: 'Date', text: 'When the scan was performed' },
@@ -35,7 +35,7 @@ export const historyContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Click any completed scan row to view its full results, including library findings and security vulnerabilities.',
+      text: 'Click any completed scan row to view its full results, including library findings, API calls, detected secrets, and security vulnerabilities.',
     },
     {
       type: 'image',

@@ -53,6 +53,8 @@ import {
   getFindingsSummaryQuery,
   updateFindingGovernanceStatusQuery,
   getGovernanceSummaryQuery,
+  getAIDetectionStatsQuery,
+  IAIDetectionStats,
 } from "../utils/aiDetection.utils";
 import {
   AI_DETECTION_PATTERNS,
@@ -1772,4 +1774,20 @@ export async function getGovernanceSummary(
   }
 
   return getGovernanceSummaryQuery(scanId, ctx.tenantId);
+}
+
+// ============================================================================
+// Statistics Operations
+// ============================================================================
+
+/**
+ * Get overall AI Detection statistics
+ *
+ * @param ctx - Service context with tenant info
+ * @returns Aggregated statistics
+ */
+export async function getAIDetectionStats(
+  ctx: IServiceContext
+): Promise<IAIDetectionStats> {
+  return getAIDetectionStatsQuery(ctx.tenantId);
 }

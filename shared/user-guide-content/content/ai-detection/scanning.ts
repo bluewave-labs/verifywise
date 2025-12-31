@@ -67,13 +67,39 @@ export const scanningContent: ArticleContent = {
     },
     {
       type: 'heading',
+      id: 'statistics-dashboard',
+      level: 2,
+      text: 'Statistics dashboard',
+    },
+    {
+      type: 'paragraph',
+      text: 'The scan page displays key statistics about your AI Detection activity. These cards provide a quick overview of your scanning efforts and findings.',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Total scans', text: 'Number of scans performed, with a count of completed scans' },
+        { bold: 'Repositories', text: 'Unique repositories that have been scanned' },
+        { bold: 'Total findings', text: 'Combined count of all AI/ML detections across all scans' },
+        { bold: 'Libraries', text: 'AI/ML library imports and dependencies detected' },
+        { bold: 'API calls', text: 'Direct API calls to AI providers (OpenAI, Anthropic, etc.)' },
+        { bold: 'Security issues', text: 'Hardcoded secrets and model file vulnerabilities combined' },
+      ],
+    },
+    {
+      type: 'callout',
+      variant: 'info',
+      text: 'Statistics are only displayed after you have completed at least one scan. The dashboard automatically updates as new scans are completed.',
+    },
+    {
+      type: 'heading',
       id: 'understanding-results',
       level: 2,
       text: 'Understanding results',
     },
     {
       type: 'paragraph',
-      text: 'Scan results are organized into two tabs: **Libraries** for detected AI/ML frameworks, and **Security** for model file vulnerabilities.',
+      text: 'Scan results are organized into four tabs: **Libraries** for detected AI/ML frameworks, **API Calls** for direct provider integrations, **Secrets** for hardcoded credentials, and **Security** for model file vulnerabilities.',
     },
     {
       type: 'heading',
@@ -83,7 +109,19 @@ export const scanningContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The Libraries tab displays all detected AI/ML technologies. Each finding shows the library name, provider, confidence level, and number of files where it was found. Click any row to expand and view specific file paths and line numbers.',
+      text: 'The Libraries tab displays all detected AI/ML technologies. Each finding shows the library name, provider, risk level, confidence level, and number of files where it was found. Click any row to expand and view specific file paths and line numbers.',
+    },
+    {
+      type: 'paragraph',
+      text: 'Risk levels indicate the potential data exposure:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'High risk', text: 'Data sent to external cloud APIs. Risk of data leakage, vendor lock-in, and compliance violations.' },
+        { bold: 'Medium risk', text: 'Framework that can connect to cloud APIs depending on configuration. Review usage to assess actual risk.' },
+        { bold: 'Low risk', text: 'Local processing only. Data stays on your infrastructure with minimal external exposure.' },
+      ],
     },
     {
       type: 'paragraph',
@@ -98,10 +136,84 @@ export const scanningContent: ArticleContent = {
       ],
     },
     {
+      type: 'heading',
+      id: 'governance-status',
+      level: 4,
+      text: 'Governance status',
+    },
+    {
+      type: 'paragraph',
+      text: 'Each library finding can be assigned a governance status to track review progress. Click the status icon on any finding row to set or change its status:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Reviewed', text: 'Finding has been examined but no decision made yet' },
+        { bold: 'Approved', text: 'Usage is authorized and compliant with organization policies' },
+        { bold: 'Flagged', text: 'Requires attention or is not approved for use' },
+      ],
+    },
+    {
       type: 'image',
       src: '/images/user-guide/ai-detection-libraries-tab.png',
-      alt: 'Libraries tab showing detected AI/ML frameworks with confidence levels',
-      caption: 'Detected AI/ML libraries with provider, confidence, and file locations',
+      alt: 'Libraries tab showing detected AI/ML frameworks with risk and confidence levels',
+      caption: 'Detected AI/ML libraries with provider, risk level, confidence, and governance status',
+    },
+    {
+      type: 'heading',
+      id: 'api-calls-tab',
+      level: 3,
+      text: 'API Calls tab',
+    },
+    {
+      type: 'paragraph',
+      text: 'The API Calls tab shows direct integrations with AI provider APIs detected in your codebase. These represent active usage of AI models and services, such as calls to OpenAI, Anthropic, Google AI, and other providers.',
+    },
+    {
+      type: 'paragraph',
+      text: 'API call findings include:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'REST API endpoints', text: 'Direct HTTP calls to AI provider APIs (e.g., api.openai.com)' },
+        { bold: 'SDK method calls', text: 'Usage of official SDKs (e.g., openai.chat.completions.create())' },
+        { bold: 'Framework integrations', text: 'LangChain, LlamaIndex, and other framework API calls' },
+      ],
+    },
+    {
+      type: 'callout',
+      variant: 'info',
+      text: 'All API call findings are marked as high confidence since they indicate direct integration with AI services.',
+    },
+    {
+      type: 'heading',
+      id: 'secrets-tab',
+      level: 3,
+      text: 'Secrets tab',
+    },
+    {
+      type: 'paragraph',
+      text: 'The Secrets tab identifies hardcoded API keys and credentials in your codebase. These should be moved to environment variables or a secrets manager to prevent accidental exposure.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The scanner detects common AI provider API key patterns:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'OpenAI API keys', text: 'Keys starting with sk-...' },
+        { bold: 'Anthropic API keys', text: 'Keys starting with sk-ant-...' },
+        { bold: 'Google AI API keys', text: 'Keys starting with AIza...' },
+        { bold: 'Other provider keys', text: 'AWS, Azure, Cohere, and other AI service credentials' },
+      ],
+    },
+    {
+      type: 'callout',
+      variant: 'warning',
+      title: 'Security risk',
+      text: 'Hardcoded secrets in source code can be exposed if the repository is made public or accessed by unauthorized users. Rotate any exposed credentials immediately.',
     },
     {
       type: 'heading',

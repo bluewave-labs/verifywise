@@ -867,3 +867,149 @@ export async function getGovernanceSummaryQuery(
     unreviewed: parseInt(row.unreviewed, 10),
   };
 }
+
+// ============================================================================
+// Statistics Queries
+// ============================================================================
+
+/**
+ * Statistics response interface
+ */
+export interface IAIDetectionStats {
+  total_scans: number;
+  completed_scans: number;
+  total_findings: number;
+  unique_repositories: number;
+  top_providers: { provider: string; count: number }[];
+  findings_by_confidence: { high: number; medium: number; low: number };
+  findings_by_type: { library: number; api_call: number; dependency: number; secret: number };
+  security_findings: number;
+  recent_activity: { date: string; scans: number; findings: number }[];
+}
+
+/**
+ * Get overall AI Detection statistics
+ *
+ * @param tenantId - Tenant schema hash
+ * @returns Aggregated statistics
+ */
+export async function getAIDetectionStatsQuery(
+  tenantId: string
+): Promise<IAIDetectionStats> {
+  // Total and completed scans
+  const scansQuery = `
+    SELECT
+      COUNT(*) as total_scans,
+      COUNT(*) FILTER (WHERE status = 'completed') as completed_scans
+    FROM "${tenantId}".ai_detection_scans;
+  `;
+
+  // Unique repositories
+  const reposQuery = `
+    SELECT COUNT(DISTINCT repository_owner || '/' || repository_name) as unique_repos
+    FROM "${tenantId}".ai_detection_scans
+    WHERE status = 'completed';
+  `;
+
+  // Total findings, by confidence, and by type
+  const findingsQuery = `
+    SELECT
+      COUNT(*) as total_findings,
+      COUNT(*) FILTER (WHERE confidence = 'high') as high_confidence,
+      COUNT(*) FILTER (WHERE confidence = 'medium') as medium_confidence,
+      COUNT(*) FILTER (WHERE confidence = 'low') as low_confidence,
+      COUNT(*) FILTER (WHERE finding_type = 'library') as library_count,
+      COUNT(*) FILTER (WHERE finding_type = 'api_call') as api_call_count,
+      COUNT(*) FILTER (WHERE finding_type = 'dependency') as dependency_count,
+      COUNT(*) FILTER (WHERE finding_type = 'secret') as secret_count
+    FROM "${tenantId}".ai_detection_findings f
+    JOIN "${tenantId}".ai_detection_scans s ON f.scan_id = s.id
+    WHERE s.status = 'completed';
+  `;
+
+  // Security findings count (from model_security_findings table)
+  const securityQuery = `
+    SELECT COUNT(*) as security_count
+    FROM "${tenantId}".ai_detection_model_security_findings msf
+    JOIN "${tenantId}".ai_detection_scans s ON msf.scan_id = s.id
+    WHERE s.status = 'completed';
+  `;
+
+  // Top providers (top 5)
+  const providersQuery = `
+    SELECT provider, COUNT(*) as count
+    FROM "${tenantId}".ai_detection_findings f
+    JOIN "${tenantId}".ai_detection_scans s ON f.scan_id = s.id
+    WHERE s.status = 'completed' AND provider IS NOT NULL AND provider != ''
+    GROUP BY provider
+    ORDER BY count DESC
+    LIMIT 5;
+  `;
+
+  // Recent activity (last 7 days)
+  const activityQuery = `
+    SELECT
+      DATE(s.created_at) as date,
+      COUNT(DISTINCT s.id) as scans,
+      COALESCE(SUM(s.findings_count), 0) as findings
+    FROM "${tenantId}".ai_detection_scans s
+    WHERE s.created_at >= CURRENT_DATE - INTERVAL '7 days'
+      AND s.status = 'completed'
+    GROUP BY DATE(s.created_at)
+    ORDER BY date DESC;
+  `;
+
+  const [scansResults, reposResults, findingsResults, securityResults, providersResults, activityResults] =
+    await Promise.all([
+      sequelize.query(scansQuery, { type: QueryTypes.SELECT }),
+      sequelize.query(reposQuery, { type: QueryTypes.SELECT }),
+      sequelize.query(findingsQuery, { type: QueryTypes.SELECT }),
+      sequelize.query(securityQuery, { type: QueryTypes.SELECT }).catch(() => [{ security_count: "0" }]),
+      sequelize.query(providersQuery, { type: QueryTypes.SELECT }),
+      sequelize.query(activityQuery, { type: QueryTypes.SELECT }),
+    ]);
+
+  const scansRow = scansResults[0] as { total_scans: string; completed_scans: string };
+  const reposRow = reposResults[0] as { unique_repos: string };
+  const findingsRow = findingsResults[0] as {
+    total_findings: string;
+    high_confidence: string;
+    medium_confidence: string;
+    low_confidence: string;
+    library_count: string;
+    api_call_count: string;
+    dependency_count: string;
+    secret_count: string;
+  };
+  const securityRow = securityResults[0] as { security_count: string };
+
+  return {
+    total_scans: parseInt(scansRow?.total_scans || "0", 10),
+    completed_scans: parseInt(scansRow?.completed_scans || "0", 10),
+    total_findings: parseInt(findingsRow?.total_findings || "0", 10),
+    unique_repositories: parseInt(reposRow?.unique_repos || "0", 10),
+    top_providers: (providersResults as { provider: string; count: string }[]).map((r) => ({
+      provider: r.provider,
+      count: parseInt(r.count, 10),
+    })),
+    findings_by_confidence: {
+      high: parseInt(findingsRow?.high_confidence || "0", 10),
+      medium: parseInt(findingsRow?.medium_confidence || "0", 10),
+      low: parseInt(findingsRow?.low_confidence || "0", 10),
+    },
+    findings_by_type: {
+      library: parseInt(findingsRow?.library_count || "0", 10),
+      api_call: parseInt(findingsRow?.api_call_count || "0", 10),
+      dependency: parseInt(findingsRow?.dependency_count || "0", 10),
+      secret: parseInt(findingsRow?.secret_count || "0", 10),
+    },
+    security_findings: parseInt(securityRow?.security_count || "0", 10) + parseInt(findingsRow?.secret_count || "0", 10),
+    recent_activity: (activityResults as { date: string; scans: string; findings: string }[]).map(
+      (r) => ({
+        date: r.date,
+        scans: parseInt(r.scans, 10),
+        findings: parseInt(r.findings, 10),
+      })
+    ),
+  };
+}

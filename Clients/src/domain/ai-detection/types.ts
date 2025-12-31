@@ -265,3 +265,19 @@ export interface UpdateGovernanceStatusResponse {
   governance_updated_at: string;
   governance_updated_by: number;
 }
+
+// ============================================================================
+// Statistics Types
+// ============================================================================
+
+export interface AIDetectionStats {
+  total_scans: number;
+  completed_scans: number;
+  total_findings: number;
+  unique_repositories: number;
+  top_providers: { provider: string; count: number }[];
+  findings_by_confidence: { high: number; medium: number; low: number };
+  findings_by_type: { library: number; api_call: number; dependency: number; secret: number };
+  security_findings: number;
+  recent_activity: { date: string; scans: number; findings: number }[];
+}

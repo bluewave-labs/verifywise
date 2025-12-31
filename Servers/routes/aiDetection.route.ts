@@ -30,6 +30,7 @@ import {
   getSecuritySummaryController,
   updateGovernanceStatusController,
   getGovernanceSummaryController,
+  getAIDetectionStatsController,
 } from "../controllers/aiDetection.ctrl";
 
 const router = express.Router();
@@ -129,5 +130,12 @@ router.patch("/scans/:scanId/findings/:findingId/governance", authenticateJWT, a
  * @access  Private - All roles
  */
 router.get("/scans/:scanId/governance-summary", authenticateJWT, authorize(ALL_ROLES), getGovernanceSummaryController);
+
+/**
+ * @route   GET /ai-detection/stats
+ * @desc    Get overall AI Detection statistics
+ * @access  Private - All roles
+ */
+router.get("/stats", authenticateJWT, authorize(ALL_ROLES), getAIDetectionStatsController);
 
 export default router;

@@ -16,7 +16,7 @@ import { ClauseStructISO } from "../../../../domain/types/ClauseStructISO";
 import { SubClauseISO } from "../../../../domain/types/SubClauseISO";
 import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO";
 import Alert from "../../../components/Alert";
-import { AlertProps } from "../../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../../types/alert.types";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";

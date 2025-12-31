@@ -1,5 +1,5 @@
 import { FileText, Building2, Filter } from "lucide-react";
-import { IPageTourStep } from "../../../domain/interfaces/i.tour";
+import { IPageTourStep } from "../../types/interfaces/i.tour";
 
 const ReportingSteps: IPageTourStep[] = [
   {

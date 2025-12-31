@@ -12,7 +12,7 @@ import { useSearchParams } from "react-router-dom";
 import { ProjectRiskMitigation } from "../../ProjectRiskMitigation/ProjectRiskMitigation";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { IVWProjectRisksTableRow } from "../../../../domain/interfaces/i.risk";
+import { IVWProjectRisksTableRow } from "../../../types/interfaces/i.risk";
 import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 import { User } from "../../../../domain/types/User";
 import Chip from "../../Chip";
@@ -195,22 +195,6 @@ const VWProjectRisksTableBody = ({
                 >
                   {row.severity ? (
                     <Chip label={row.severity} />
-                  ) : (
-                    "-"
-                  )}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...getCellStyle(row),
-                    backgroundColor: flashRow === row.id
-                      ? singleTheme.flashColors.background
-                      : sortConfig.key === "likelihood"
-                      ? "#f5f5f5"
-                      : "",
-                  }}
-                >
-                  {row.likelihood ? (
-                    <Chip label={row.likelihood} />
                   ) : (
                     "-"
                   )}

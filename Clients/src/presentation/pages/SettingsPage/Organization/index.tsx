@@ -310,8 +310,8 @@ const Organization = () => {
         "The organization was created successfully."
       );
 
-      if (response && response.id) {
-        setOrganizationName(response.name || "");
+      if (response?.data && response.data.id) {
+        setOrganizationName(response.data.name || "");
         setOrganizationExists(true);
         setHasChanges(false);
       }

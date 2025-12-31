@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { apiServices } from "../../infrastructure/api/networkServices";
+import { getAITrustCentreLogo } from "../repository/aiTrustCentre.repository";
 
 /**
  * Custom hook for fetching and converting logo data to blob URL
@@ -11,14 +11,7 @@ export const useLogoFetch = () => {
   const fetchLogoAsBlobUrl = useCallback(
     async (tenantId: string): Promise<string | null> => {
       try {
-        const response = await apiServices.get(
-          `/aiTrustCentre/${tenantId}/logo`,
-          {
-            responseType: "json",
-          }
-        );
-
-        const responseData = response.data as any;
+        const responseData = await getAITrustCentreLogo(tenantId);
         if (responseData?.data?.logo?.content) {
           const logoData = responseData.data.logo;
           let bufferData: Uint8Array;

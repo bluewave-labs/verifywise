@@ -4,7 +4,7 @@ import { Trash2 as TrashIcon, RotateCcw, MoreVertical } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
 import CustomizableButton from "../../../Button/CustomizableButton";
-import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../../domain/interfaces/i.table";
+import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../types/interfaces/i.table";
 
 const StatusChip: React.FC<{
   status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" | "Available";

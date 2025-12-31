@@ -1,7 +1,7 @@
 import React, { memo, useState } from "react";
 import { Link, Box } from "@mui/material";
 import { ExternalLink } from "lucide-react";
-import { IVWLinkProps } from "../../../../domain/interfaces/i.link";
+import { IVWLinkProps } from "../../../types/link.types";
 
 /**
  * VWLink component

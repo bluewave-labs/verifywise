@@ -10,9 +10,9 @@ import { ReactComponent as Background } from "../../../assets/imgs/background-gr
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useLocation } from "react-router-dom";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { sendPasswordResetEmail } from "../../../../application/repository/auth.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../../types/alert.types";
 import Alert from "../../../components/Alert";
 
 // Define the shape of form values
@@ -51,7 +51,7 @@ const ForgotPassword: React.FC = () => {
         email: values.email,
         name: values.email,
       };
-      apiServices.post("/mail/reset-password", formData);
+      sendPasswordResetEmail(formData);
       navigate("/reset-password", { state: { email: values.email } });
     } catch (error) {
       handleAlert({

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { Grid, Box, Stack, useTheme } from "@mui/material";
+import type { GridProps } from "@mui/material";
 import { Settings } from "lucide-react";
 import AutomationList from "./components/AutomationList";
 import AutomationBuilder from "./components/AutomationBuilder";
@@ -10,10 +11,20 @@ import {
   Action,
   TriggerTemplate,
   ActionTemplate,
+  ActionType,
 } from "../../../domain/types/Automation";
 import { mockTriggerTemplates, mockActionTemplates } from "./data/mockData";
 import { generateId } from "../../../application/utils/generateId";
-import CustomAxios from "../../../infrastructure/api/customAxios";
+import {
+  getAllAutomations,
+  getAutomation,
+  createAutomation,
+  updateAutomation,
+  deleteAutomation,
+  getTriggers,
+  getActionsByTriggerId,
+} from "../../../application/repository/automations.repository";
+import { getAllUsers } from "../../../application/repository/user.repository";
 import Alert from "../../components/Alert";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useProjects } from "../../../application/hooks/useProjects";
@@ -72,39 +83,31 @@ const AutomationsPage: React.FC = () => {
       if (showLoading) setIsLoading(true);
       try {
         // Fetch all automations
-        const response = await CustomAxios.get("/automations");
-        const backendAutomations = response.data.data;
+        const backendAutomations = await getAllAutomations();
 
         // Fetch triggers and actions to map IDs to types
-        const triggersResponse = await CustomAxios.get("/automations/triggers");
-        const triggers = triggersResponse.data.data;
+        const triggers = await getTriggers();
 
         // Fetch users to map emails back to user IDs
-        const usersResponse = await CustomAxios.get("/users");
-        const users = usersResponse.data.data;
+        const usersResponse = await getAllUsers();
+        const users = usersResponse.data;
 
         // Map backend automations to frontend format
         const mappedAutomations: Automation[] = await Promise.all(
-          backendAutomations.map(async (backendAuto: any) => {
+          backendAutomations.map(async (backendAuto: { id: number; trigger_id: number; name: string; description?: string; is_active: boolean; created_at: string; updated_at?: string; params?: string }) => {
             // Find the trigger
             const trigger = triggers.find(
-              (t: any) => t.id === backendAuto.trigger_id
+              (t: { id: number; key: string; label: string; description?: string }) => t.id === backendAuto.trigger_id
             );
 
             // Fetch actions for this trigger to get action details
-            let actionsData: any[] = [];
+            let actionsData: Array<{ id: number; key: string; label: string; description?: string }> = [];
             if (trigger) {
-              const actionsResponse = await CustomAxios.get(
-                `/automations/actions/by-triggerId/${trigger.id}`
-              );
-              actionsData = actionsResponse.data.data;
+              actionsData = await getActionsByTriggerId(trigger.id);
             }
 
             // Fetch detailed automation data including actions
-            const detailResponse = await CustomAxios.get(
-              `/automations/${backendAuto.id}`
-            );
-            const detailData = detailResponse.data.data;
+            const detailData = await getAutomation(backendAuto.id);
 
             // Parse trigger params from the automation (check both backendAuto and detailData)
             const paramsSource = detailData.params || backendAuto.params;
@@ -145,7 +148,7 @@ const AutomationsPage: React.FC = () => {
             };
 
             const { type: frontendTriggerType, changeType } =
-              mapBackendTriggerToFrontend(trigger.key);
+              trigger ? mapBackendTriggerToFrontend(trigger.key) : { type: 'unknown', changeType: undefined };
 
             // Merge the changeType into trigger params if it exists
             const finalTriggerParams = changeType
@@ -165,26 +168,27 @@ const AutomationsPage: React.FC = () => {
 
             // Map actions to frontend format
             const frontendActions: Action[] = (detailData.actions || []).map(
-              (action: any) => {
+              (action: { id: number; action_type_id: number; params: string | Record<string, unknown>; order: number }) => {
                 const actionType = actionsData.find(
-                  (a: any) => a.id === action.action_type_id
+                  (a: { id: number; key: string; label: string; description?: string }) => a.id === action.action_type_id
                 );
 
                 // Parse params if string
-                let parsedParams =
+                let parsedParams: Record<string, unknown> =
                   typeof action.params === "string"
-                    ? JSON.parse(action.params)
-                    : action.params || {};
+                    ? JSON.parse(action.params) as Record<string, unknown>
+                    : (action.params as Record<string, unknown>) || {};
 
                 // Convert 'to' array of emails back to user IDs for the multi-select component
                 if (parsedParams.to && Array.isArray(parsedParams.to)) {
                   // Map email addresses back to user IDs
                   const userIds = parsedParams.to
-                    .map((email: string) => {
-                      const user = users.find((u: any) => u.email === email);
+                    .map((email: unknown) => {
+                      if (typeof email !== 'string') return null;
+                      const user = users.find((u: { id: string | number; email: string }) => u.email === email);
                       return user ? user.id : null;
                     })
-                    .filter((id: any) => id !== null);
+                    .filter((id: unknown): id is string | number => id !== null);
 
                   parsedParams = {
                     ...parsedParams,
@@ -194,7 +198,7 @@ const AutomationsPage: React.FC = () => {
 
                 return {
                   id: String(action.id),
-                  type: actionType?.key || "send_email",
+                  type: (actionType?.key || "send_email") as ActionType,
                   name: actionType?.label || "Send Email",
                   description: actionType?.description || "",
                   configuration: parsedParams,
@@ -285,7 +289,7 @@ const AutomationsPage: React.FC = () => {
   const handleDeleteAutomation = async (automationId: string) => {
     try {
       // Call the backend API to delete the automation
-      await CustomAxios.delete(`/automations/${automationId}`);
+      await deleteAutomation(automationId);
 
       // Remove from local state
       setAutomations((prev) => prev.filter((a) => a.id !== automationId));
@@ -296,7 +300,7 @@ const AutomationsPage: React.FC = () => {
         setSelectedItemId(null);
         setSelectedItemType(null);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting automation:", error);
     }
   };
@@ -365,7 +369,7 @@ const AutomationsPage: React.FC = () => {
 
     try {
       // Make PUT request to update is_active on the backend
-      await CustomAxios.put(`/automations/${automationId}`, {
+      await updateAutomation(automationId, {
         is_active: newIsActive,
       });
 
@@ -377,7 +381,7 @@ const AutomationsPage: React.FC = () => {
           : "This automation is disabled",
         visible: true,
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error toggling automation:", error);
 
       // Revert the optimistic update on error
@@ -804,7 +808,7 @@ Please complete the review by the scheduled date.
 
 This notification was sent on {{date_and_time}}.`;
           break;
-        case "scheduled_report":
+        case "scheduled_report": {
           // Get selected report types from trigger configuration
           const reportTypes =
             selectedAutomation?.trigger?.configuration?.reportType || [];
@@ -859,6 +863,7 @@ This is an automated report generated by VerifyWise. The complete report is atta
 
           configuration.body = bodyParts.join("\n");
           break;
+        }
         default:
           configuration.subject = "Notification";
           configuration.body = "This is an automated notification.";
@@ -932,7 +937,7 @@ This is an automated report generated by VerifyWise. The complete report is atta
     }
   };
 
-  const handleUpdateConfiguration = (configuration: Record<string, any>) => {
+  const handleUpdateConfiguration = (configuration: Record<string, unknown>) => {
     if (!selectedAutomationId || !selectedItemId || !selectedItemType) return;
 
     setAutomations((prev) =>
@@ -1378,12 +1383,11 @@ This notification was sent on {{date_and_time}}.`,
         : selectedAutomation.trigger.type;
 
       // First, get all triggers to find the trigger ID by type
-      const triggersResponse = await CustomAxios.get("/automations/triggers");
-      const triggers = triggersResponse.data.data;
+      const triggers = await getTriggers();
 
       // Find the trigger ID that matches our mapped backend trigger key
       const triggerData = triggers.find(
-        (t: any) => t.key === backendTriggerKey
+        (t: { id: number; key: string; label: string; description?: string }) => t.key === backendTriggerKey
       );
 
       if (!triggerData) {
@@ -1393,21 +1397,18 @@ This notification was sent on {{date_and_time}}.`,
       }
 
       // Get all actions to map action types to IDs
-      const actionsResponse = await CustomAxios.get(
-        `/automations/actions/by-triggerId/${triggerData.id}`
-      );
-      const availableActions = actionsResponse.data.data;
+      const availableActions = await getActionsByTriggerId(triggerData.id);
 
       // Fetch users to map user IDs to emails
-      const usersResponse = await CustomAxios.get("/users");
-      const users = usersResponse.data.data;
+      const usersResponse = await getAllUsers();
+      const users = usersResponse.data;
 
       // Prepare the actions data
       const processedActions = selectedAutomation.actions.map(
         (action, index) => {
           // Find the action type ID
           const actionData = availableActions.find(
-            (a: any) => a.key === action.type
+            (a: { id: number; key: string; label: string; description?: string }) => a.key === action.type
           );
 
           if (!actionData) {
@@ -1443,7 +1444,7 @@ This notification was sent on {{date_and_time}}.`,
                 // }
                 // Otherwise, it's a user ID - look up the email
                 const user = users.find(
-                  (u: any) => String(u.id) === String(id)
+                  (u: { id: string | number; email: string }) => String(u.id) === String(id)
                 );
                 return user ? user.email : id;
               })
@@ -1471,12 +1472,9 @@ This notification was sent on {{date_and_time}}.`,
           actions: processedActions,
         };
 
-        response = await CustomAxios.put(
-          `/automations/${selectedAutomation.id}`,
-          updateData
-        );
+        response = await updateAutomation(selectedAutomation.id, updateData);
 
-        if (response.status === 200) {
+        if (response) {
           // Show success notification
 
           // Refresh the automations list, preserving the current selection
@@ -1500,13 +1498,13 @@ This notification was sent on {{date_and_time}}.`,
           actions: processedActions,
         };
 
-        response = await CustomAxios.post("/automations", automationData);
+        response = await createAutomation(automationData);
 
-        if (response.status === 201) {
+        if (response) {
           // Show success notification
 
           // Get the newly created automation's ID from the response
-          const newAutomationId = response.data.data?.id;
+          const newAutomationId = response.id;
 
           // Refresh the automations list to get the saved automation with its backend ID
           // Preserve the selection to the newly created automation
@@ -1522,11 +1520,11 @@ This notification was sent on {{date_and_time}}.`,
           });
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error saving automation:", error);
       const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
+        (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+        (error as { message?: string })?.message ||
         "Failed to save automation";
 
       // Show error toast
@@ -1562,9 +1560,7 @@ This notification was sent on {{date_and_time}}.`,
           <Grid container spacing={0} sx={{ height: "100%" }}>
             {/* Left Sidebar - Automation List */}
             <Grid
-              item
-              xs={12}
-              md={3}
+              {...({ item: true, xs: 12, md: 3 } as GridProps & { item: boolean; xs: number; md: number })}
               sx={{
                 height: "100%",
                 borderRight: `1px solid ${theme.palette.border.dark}`,
@@ -1590,9 +1586,7 @@ This notification was sent on {{date_and_time}}.`,
 
             {/* Center Panel - Automation Builder */}
             <Grid
-              item
-              xs={12}
-              md={showConfigurationPanel ? 6 : 9}
+              {...({ item: true, xs: 12, md: showConfigurationPanel ? 6 : 9 } as GridProps & { item: boolean; xs: number; md: number })}
               sx={{
                 height: "100%",
                 ...(showConfigurationPanel
@@ -1651,9 +1645,7 @@ This notification was sent on {{date_and_time}}.`,
             {/* Right Panel - Configuration (conditional) */}
             {showConfigurationPanel && (
               <Grid
-                item
-                xs={12}
-                md={3}
+                {...({ item: true, xs: 12, md: 3 } as GridProps & { item: boolean; xs: number; md: number })}
                 sx={{
                   height: "100%",
                   background:

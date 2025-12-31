@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IViewMode } from "../../domain/interfaces/i.toggle";
+import { IViewMode } from "../types/toggle.types";
 
 /**
  * Custom hook for managing view mode with localStorage persistence

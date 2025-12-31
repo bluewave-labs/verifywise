@@ -22,7 +22,7 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
-import { ITableProps } from "../../../../domain/interfaces/i.table";
+import { ITableProps } from "../../../types/interfaces/i.table";
 
 const POLICY_TABLE_SORTING_KEY = "verifywise_policy_table_sorting";
 

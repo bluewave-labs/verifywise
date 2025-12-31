@@ -11,14 +11,18 @@ import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import {
-  deepEvalScorersService,
+  listScorers,
+  createScorer,
+  updateScorer,
+  deleteScorer,
   type DeepEvalScorer,
-} from "../../../infrastructure/api/deepEvalScorersService";
+} from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import StandardModal from "../../components/Modals/StandardModal";
 import CreateScorerModal, { type ScorerConfig } from "./CreateScorerModal";
 import ScorersTable, { type ScorerRow } from "../../components/Table/ScorersTable";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 
@@ -60,7 +64,7 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
   const loadScorers = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await deepEvalScorersService.list({ org_id: orgId || undefined });
+      const res = await listScorers({ org_id: orgId || undefined });
       setScorers(res.scorers || []);
     } catch (err) {
       console.error("Failed to load scorers", err);
@@ -215,7 +219,7 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
     if (!scorerToDelete) return;
     setIsDeleting(true);
     try {
-      await deepEvalScorersService.delete(scorerToDelete.id);
+      await deleteScorer(scorerToDelete.id);
       setAlert({ variant: "success", body: "Scorer deleted" });
       setTimeout(() => setAlert(null), 3000);
       setDeleteModalOpen(false);
@@ -234,7 +238,7 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
   const handleEditScorerSubmit = async (config: ScorerConfig) => {
     if (!editingScorer) return;
     try {
-      await deepEvalScorersService.update(editingScorer.id, {
+      await updateScorer(editingScorer.id, {
         name: config.name,
         description: `LLM scorer using ${config.provider}/${config.model}`,
         metricKey: config.slug,
@@ -282,7 +286,7 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
   // Handle submit from the new comprehensive scorer modal
   const handleNewScorerSubmit = async (config: ScorerConfig) => {
     try {
-      await deepEvalScorersService.create({
+      await createScorer({
         orgId: orgId || undefined,
         name: config.name,
         description: `LLM scorer using ${config.provider}/${config.model}`,
@@ -335,6 +339,7 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Define custom LLM judges to evaluate model outputs using your own domain-specific criteria and prompts.
         </Typography>
+        <TipBox entityName="evals-scorers" />
       </Stack>
 
       {/* Controls row */}

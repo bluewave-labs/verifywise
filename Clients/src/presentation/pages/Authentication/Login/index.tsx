@@ -174,22 +174,15 @@ const Login: React.FC = () => {
         }
       })
       .catch((error) => {
-        console.error("Error submitting form:", error);
-
         setIsSubmitting(false);
 
         let message = "An error occurred. Please try again.";
-        const status = error.response?.status;
+        const status = error.status || error.response?.status;
         const responseData = error.response?.data;
 
-        if (status === 401) {
-          // Backend returns: { message: "Unauthorized", data: "Invalid email or password" }
-          message = "Invalid email or password";
-
-          logEngine({
-            type: "event",
-            message: "Invalid credentials during login.",
-          });
+        if (status === 401 || status === 429) {
+          // Expected user errors - no logging needed, just show the message
+          message = error.message || "Invalid email or password";
         } else if (status === 500) {
           // Backend returns: { message: "Internal Server Error", error: <error message> }
           const errorMessage = responseData?.error || responseData?.message;
@@ -212,7 +205,7 @@ const Login: React.FC = () => {
             message: "Network error during login.",
           });
         } else {
-          // Handle other status codes
+          // Handle other unexpected status codes - these are worth logging
           const errorMessage =
             responseData?.message || responseData?.error || error.message;
           message =

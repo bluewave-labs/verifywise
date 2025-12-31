@@ -181,8 +181,9 @@ interface DetectionPattern {
 
 ## Pattern Categories
 
-### Cloud Providers (17 patterns)
+### Cloud Providers (28 patterns)
 `CLOUD_PROVIDER_PATTERNS` - High risk, sends data to external APIs
+Includes: OpenAI, Anthropic, Google AI, Azure OpenAI, AWS Bedrock, Cohere, Mistral, Replicate, HuggingFace, Groq, Together AI, Perplexity, Fireworks AI, DeepSeek, AI21, Cerebras, xAI, ElevenLabs, AssemblyAI, Deepgram, Stability AI, Clarifai, Databricks, Modal, LangSmith, LangFuse, Arize, Weights & Biases
 
 ### Frameworks (10 patterns)
 `FRAMEWORK_PATTERNS` - Medium risk, can use cloud or local

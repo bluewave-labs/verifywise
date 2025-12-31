@@ -71,18 +71,20 @@ export const CLOUD_PROVIDER_PATTERNS: DetectionPattern[] = [
         /openai\.beta\.assistants\./,
         /openai\.beta\.threads\./,
       ],
-      // Secret patterns (from TruffleHog/Gitleaks)
+      // Secret patterns (from Gitleaks - exact format)
       secrets: [
-        // Standard API keys with T3BlbkFJ marker (base64 "OpenAI")
+        // Full Gitleaks pattern: sk-(proj|svcacct|admin)-{74 or 58}T3BlbkFJ{74 or 58}
+        /\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{58,74}T3BlbkFJ[A-Za-z0-9_-]{58,74}\b/,
+        // Legacy format with T3BlbkFJ marker
         /\bsk-[A-Za-z0-9_-]*T3BlbkFJ[A-Za-z0-9_-]*\b/,
-        // Project keys (new format)
-        /\bsk-proj-[A-Za-z0-9_-]{20,}\b/,
+        // Project keys (new format without marker)
+        /\bsk-proj-[A-Za-z0-9_-]{48,}\b/,
         // Service account keys
-        /\bsk-svcacct-[A-Za-z0-9_-]{20,}\b/,
+        /\bsk-svcacct-[A-Za-z0-9_-]{48,}\b/,
         // Admin keys
-        /\bsk-admin-[A-Za-z0-9_-]{20,}\b/,
+        /\bsk-admin-[A-Za-z0-9_-]{48,}\b/,
         // Environment variable assignments
-        /OPENAI_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /OPENAI_API_KEY\s*[=:]\s*["']?sk-[A-Za-z0-9_-]+["']?/,
       ],
     },
   },
@@ -350,7 +352,10 @@ export const CLOUD_PROVIDER_PATTERNS: DetectionPattern[] = [
         /co\.embed\s*\(/,
       ],
       secrets: [
+        // Cohere API keys (40 chars alphanumeric - from Gitleaks)
+        /\b[a-zA-Z0-9]{40}\b/,
         /COHERE_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /CO_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
       ],
     },
   },
@@ -765,5 +770,554 @@ export const CLOUD_PROVIDER_PATTERNS: DetectionPattern[] = [
         /CEREBRAS_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
       ],
     },
+  },
+
+  // ============================================================================
+  // xAI (Grok)
+  // ============================================================================
+  {
+    name: "xai",
+    provider: "xAI",
+    description: "xAI API for Grok models",
+    documentationUrl: "https://docs.x.ai",
+    confidence: "high",
+    keywords: [
+      "xai",
+      "grok",
+      "xai-",
+      "XAI_API_KEY",
+      "api.x.ai",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+xai/m,
+        /^from\s+xai\s+import/m,
+      ],
+      dependencies: [
+        /^xai[=<>~!\s]/m,
+        /"xai"\s*:/,
+        /'xai'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.x\.ai/,
+      ],
+      secrets: [
+        // xAI API keys (xai- prefix)
+        /\bxai-[A-Za-z0-9]{48,}\b/,
+        /XAI_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /GROK_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // ElevenLabs (Voice AI)
+  // ============================================================================
+  {
+    name: "elevenlabs",
+    provider: "ElevenLabs",
+    description: "ElevenLabs text-to-speech and voice AI",
+    documentationUrl: "https://docs.elevenlabs.io",
+    confidence: "high",
+    keywords: [
+      "elevenlabs",
+      "eleven_labs",
+      "ELEVEN_API_KEY",
+      "ELEVENLABS_API_KEY",
+      "api.elevenlabs.io",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+elevenlabs/m,
+        /^from\s+elevenlabs\s+import/m,
+        /require\s*\(\s*["']elevenlabs["']\s*\)/,
+        /import\s+.*\s+from\s+["']elevenlabs["']/,
+      ],
+      dependencies: [
+        /^elevenlabs[=<>~!\s]/m,
+        /"elevenlabs"\s*:/,
+        /'elevenlabs'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.elevenlabs\.io/,
+
+        // Tier 2: SDK instantiation
+        /ElevenLabs\s*\(/,
+
+        // Tier 3: Method calls
+        /elevenlabs\.generate\s*\(/,
+        /\.text_to_speech\s*\(/,
+        /\.voice_clone\s*\(/,
+      ],
+      secrets: [
+        // ElevenLabs API keys (32 hex chars)
+        /\b[a-f0-9]{32}\b/,
+        /ELEVEN_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /ELEVENLABS_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+    minEntropy: 3.5,
+  },
+
+  // ============================================================================
+  // AssemblyAI (Speech-to-Text)
+  // ============================================================================
+  {
+    name: "assemblyai",
+    provider: "AssemblyAI",
+    description: "AssemblyAI speech-to-text and audio intelligence",
+    documentationUrl: "https://www.assemblyai.com/docs",
+    confidence: "high",
+    keywords: [
+      "assemblyai",
+      "assembly_ai",
+      "ASSEMBLYAI_API_KEY",
+      "api.assemblyai.com",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+assemblyai/m,
+        /^from\s+assemblyai\s+import/m,
+        /require\s*\(\s*["']assemblyai["']\s*\)/,
+        /import\s+.*\s+from\s+["']assemblyai["']/,
+      ],
+      dependencies: [
+        /^assemblyai[=<>~!\s]/m,
+        /"assemblyai"\s*:/,
+        /'assemblyai'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.assemblyai\.com/,
+
+        // Tier 2: SDK instantiation
+        /AssemblyAI\s*\(/,
+        /aai\.Transcriber\s*\(/,
+
+        // Tier 3: Method calls
+        /\.transcribe\s*\(/,
+        /\.submit\s*\(/,
+      ],
+      secrets: [
+        // AssemblyAI API keys (32 alphanumeric - from Gitleaks)
+        /\b[0-9a-z]{32}\b/,
+        /ASSEMBLYAI_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+    minEntropy: 3.5,
+  },
+
+  // ============================================================================
+  // Deepgram (Speech-to-Text)
+  // ============================================================================
+  {
+    name: "deepgram",
+    provider: "Deepgram",
+    description: "Deepgram speech recognition and understanding",
+    documentationUrl: "https://developers.deepgram.com",
+    confidence: "high",
+    keywords: [
+      "deepgram",
+      "DEEPGRAM_API_KEY",
+      "api.deepgram.com",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+deepgram/m,
+        /^from\s+deepgram\s+import/m,
+        /require\s*\(\s*["']@deepgram\/sdk["']\s*\)/,
+        /import\s+.*\s+from\s+["']@deepgram\/sdk["']/,
+      ],
+      dependencies: [
+        /^deepgram-sdk[=<>~!\s]/m,
+        /"@deepgram\/sdk"\s*:/,
+        /'@deepgram\/sdk'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.deepgram\.com/,
+
+        // Tier 2: SDK instantiation
+        /Deepgram\s*\(/,
+        /DeepgramClient\s*\(/,
+
+        // Tier 3: Method calls
+        /\.transcription\.prerecorded\s*\(/,
+        /\.listen\.prerecorded\s*\(/,
+        /\.listen\.live\s*\(/,
+      ],
+      secrets: [
+        // Deepgram API keys (40 alphanumeric - from Gitleaks)
+        /\b[0-9a-z]{40}\b/,
+        /DEEPGRAM_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+    minEntropy: 4.0,
+  },
+
+  // ============================================================================
+  // Stability AI (Image Generation)
+  // ============================================================================
+  {
+    name: "stability-ai",
+    provider: "Stability AI",
+    description: "Stability AI image generation (Stable Diffusion)",
+    documentationUrl: "https://platform.stability.ai/docs",
+    confidence: "high",
+    keywords: [
+      "stability",
+      "stable_diffusion",
+      "sk-",
+      "STABILITY_API_KEY",
+      "api.stability.ai",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+stability_sdk/m,
+        /^from\s+stability_sdk\s+import/m,
+        /require\s*\(\s*["']@stability-ai\/client["']\s*\)/,
+        /import\s+.*\s+from\s+["']@stability-ai\/client["']/,
+      ],
+      dependencies: [
+        /^stability-sdk[=<>~!\s]/m,
+        /"@stability-ai\/client"\s*:/,
+        /'@stability-ai\/client'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.stability\.ai/,
+
+        // Tier 2: SDK instantiation
+        /StabilityClient\s*\(/,
+
+        // Tier 3: Method calls
+        /\.generate\s*\(/,
+        /\.text_to_image\s*\(/,
+        /\.image_to_image\s*\(/,
+      ],
+      secrets: [
+        // Stability API keys (sk- prefix)
+        /\bsk-[A-Za-z0-9]{48,}\b/,
+        /STABILITY_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /STABILITY_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Clarifai (Vision AI)
+  // ============================================================================
+  {
+    name: "clarifai",
+    provider: "Clarifai",
+    description: "Clarifai AI platform for vision, NLP, and audio",
+    documentationUrl: "https://docs.clarifai.com",
+    confidence: "high",
+    keywords: [
+      "clarifai",
+      "CLARIFAI_PAT",
+      "CLARIFAI_API_KEY",
+      "api.clarifai.com",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+clarifai/m,
+        /^from\s+clarifai\s+import/m,
+        /require\s*\(\s*["']clarifai["']\s*\)/,
+        /import\s+.*\s+from\s+["']clarifai["']/,
+      ],
+      dependencies: [
+        /^clarifai[=<>~!\s]/m,
+        /"clarifai"\s*:/,
+        /'clarifai'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.clarifai\.com/,
+
+        // Tier 2: SDK instantiation
+        /ClarifaiApp\s*\(/,
+        /Clarifai\.App\s*\(/,
+
+        // Tier 3: Method calls
+        /\.predict\s*\(/,
+        /\.models\.predict\s*\(/,
+      ],
+      secrets: [
+        /CLARIFAI_PAT\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /CLARIFAI_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Databricks (Mosaic AI / MLflow)
+  // ============================================================================
+  {
+    name: "databricks",
+    provider: "Databricks",
+    description: "Databricks ML platform and Mosaic AI",
+    documentationUrl: "https://docs.databricks.com",
+    confidence: "high",
+    keywords: [
+      "databricks",
+      "dapi",
+      "DATABRICKS_TOKEN",
+      "DATABRICKS_HOST",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+databricks/m,
+        /^from\s+databricks\s+import/m,
+        /^from\s+databricks\.sdk\s+import/m,
+        /require\s*\(\s*["']@databricks\/sql["']\s*\)/,
+      ],
+      dependencies: [
+        /^databricks-sdk[=<>~!\s]/m,
+        /"@databricks\/sql"\s*:/,
+        /'@databricks\/sql'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL patterns
+        /\.cloud\.databricks\.com/,
+        /\.azuredatabricks\.net/,
+
+        // Tier 2: SDK instantiation
+        /WorkspaceClient\s*\(/,
+        /DatabricksSession\s*\(/,
+
+        // Tier 3: Method calls
+        /\.serving_endpoints\./,
+        /\.model_serving\./,
+      ],
+      secrets: [
+        // Databricks tokens (dapi prefix)
+        /\bdapi[A-Za-z0-9]{32,}\b/,
+        /DATABRICKS_TOKEN\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /DATABRICKS_HOST\s*[=:]\s*["']?https?:\/\/[^"'\s]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Modal (Serverless ML)
+  // ============================================================================
+  {
+    name: "modal",
+    provider: "Modal",
+    description: "Modal serverless infrastructure for ML",
+    documentationUrl: "https://modal.com/docs",
+    confidence: "high",
+    keywords: [
+      "modal",
+      "MODAL_TOKEN",
+      "api.modal.com",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+modal/m,
+        /^from\s+modal\s+import/m,
+      ],
+      dependencies: [
+        /^modal[=<>~!\s]/m,
+        /"modal"\s*:/,
+        /'modal'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.modal\.com/,
+
+        // Tier 2: Decorators/SDK
+        /@modal\.web_endpoint/,
+        /@modal\.function/,
+        /@modal\.cls/,
+        /modal\.Stub\s*\(/,
+        /modal\.App\s*\(/,
+      ],
+      secrets: [
+        /MODAL_TOKEN_ID\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /MODAL_TOKEN_SECRET\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // LangSmith (LLM Observability)
+  // ============================================================================
+  {
+    name: "langsmith",
+    provider: "LangSmith",
+    description: "LangSmith LLM observability and tracing",
+    documentationUrl: "https://docs.smith.langchain.com",
+    confidence: "high",
+    keywords: [
+      "langsmith",
+      "ls__",
+      "LANGCHAIN_API_KEY",
+      "LANGSMITH_API_KEY",
+      "api.smith.langchain.com",
+    ],
+    patterns: {
+      imports: [
+        /^from\s+langsmith\s+import/m,
+        /^import\s+langsmith/m,
+      ],
+      dependencies: [
+        /^langsmith[=<>~!\s]/m,
+        /"langsmith"\s*:/,
+        /'langsmith'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.smith\.langchain\.com/,
+
+        // Tier 2: SDK instantiation
+        /Client\s*\(\s*\)/,
+        /langsmith\.Client\s*\(/,
+
+        // Tier 3: Method calls
+        /\.create_run\s*\(/,
+        /\.update_run\s*\(/,
+        /@traceable/,
+      ],
+      secrets: [
+        // LangSmith API keys (ls__ prefix)
+        /\bls__[A-Za-z0-9]{32,}\b/,
+        /LANGCHAIN_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /LANGSMITH_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // LangFuse (LLM Observability)
+  // ============================================================================
+  {
+    name: "langfuse",
+    provider: "LangFuse",
+    description: "LangFuse open-source LLM observability",
+    documentationUrl: "https://langfuse.com/docs",
+    confidence: "high",
+    keywords: [
+      "langfuse",
+      "LANGFUSE_PUBLIC_KEY",
+      "LANGFUSE_SECRET_KEY",
+    ],
+    patterns: {
+      imports: [
+        /^from\s+langfuse\s+import/m,
+        /^import\s+langfuse/m,
+      ],
+      dependencies: [
+        /^langfuse[=<>~!\s]/m,
+        /"langfuse"\s*:/,
+        /'langfuse'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 2: SDK instantiation
+        /Langfuse\s*\(/,
+        /langfuse\.Langfuse\s*\(/,
+
+        // Tier 3: Method calls
+        /\.trace\s*\(/,
+        /\.generation\s*\(/,
+        /\.span\s*\(/,
+        /@observe/,
+      ],
+      secrets: [
+        /LANGFUSE_PUBLIC_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /LANGFUSE_SECRET_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /LANGFUSE_HOST\s*[=:]\s*["']?https?:\/\/[^"'\s]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Arize AI (ML Observability)
+  // ============================================================================
+  {
+    name: "arize",
+    provider: "Arize AI",
+    description: "Arize AI ML observability platform",
+    documentationUrl: "https://docs.arize.com",
+    confidence: "high",
+    keywords: [
+      "arize",
+      "phoenix",
+      "ARIZE_API_KEY",
+      "ARIZE_SPACE_KEY",
+    ],
+    patterns: {
+      imports: [
+        /^from\s+arize\s+import/m,
+        /^import\s+arize/m,
+        /^from\s+phoenix\s+import/m,
+      ],
+      dependencies: [
+        /^arize[=<>~!\s]/m,
+        /"arize"\s*:/,
+        /'arize'\s*:/,
+        /^arize-phoenix[=<>~!\s]/m,
+      ],
+      apiCalls: [
+        // Tier 2: SDK instantiation
+        /Client\s*\(\s*space_key/,
+        /arize\.Client\s*\(/,
+
+        // Tier 3: Method calls
+        /\.log\s*\(/,
+        /\.log_prediction\s*\(/,
+      ],
+      secrets: [
+        /ARIZE_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /ARIZE_SPACE_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Weights & Biases (Experiment Tracking)
+  // ============================================================================
+  {
+    name: "wandb",
+    provider: "Weights & Biases",
+    description: "Weights & Biases ML experiment tracking",
+    documentationUrl: "https://docs.wandb.ai",
+    confidence: "medium",
+    keywords: [
+      "wandb",
+      "weights_and_biases",
+      "WANDB_API_KEY",
+      "api.wandb.ai",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+wandb/m,
+        /^from\s+wandb\s+import/m,
+      ],
+      dependencies: [
+        /^wandb[=<>~!\s]/m,
+        /"wandb"\s*:/,
+        /'wandb'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.wandb\.ai/,
+
+        // Tier 3: Method calls
+        /wandb\.init\s*\(/,
+        /wandb\.log\s*\(/,
+        /wandb\.finish\s*\(/,
+        /wandb\.watch\s*\(/,
+      ],
+      secrets: [
+        // W&B API keys (40 hex chars)
+        /\b[a-f0-9]{40}\b/,
+        /WANDB_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+    minEntropy: 3.5,
   },
 ];

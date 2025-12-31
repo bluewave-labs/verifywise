@@ -50,8 +50,8 @@ const completion = await openai.chat.completions.create({
     name: "OpenAI API Key Secret",
     file: "config.py",
     content: `
-# Configuration
-OPENAI_API_KEY = "sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+# Configuration - env var assignment pattern
+OPENAI_API_KEY = "sk-proj-AbCdEfGhIjKlMnOpQrStUvWxYz123456789abcdefghij"
 `,
     expectedPatterns: ["openai"],
     expectedTypes: ["secret"],
@@ -248,6 +248,109 @@ output = together.Complete.create(
 )
 `,
     expectedPatterns: ["together"],
+    expectedTypes: ["library", "api_call"],
+  },
+
+  // ============================================================================
+  // New Phase 2 Providers
+  // ============================================================================
+  {
+    name: "ElevenLabs Voice AI",
+    file: "voice_app.py",
+    content: `
+from elevenlabs import ElevenLabs
+
+client = ElevenLabs()
+audio = client.text_to_speech(text="Hello world", voice="Rachel")
+`,
+    expectedPatterns: ["elevenlabs"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "AssemblyAI Speech-to-Text",
+    file: "transcribe.py",
+    content: `
+import assemblyai as aai
+
+transcriber = aai.Transcriber()
+# Uses AssemblyAI API
+url = "https://api.assemblyai.com/v2/transcript"
+`,
+    expectedPatterns: ["assemblyai"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "Deepgram Speech Recognition",
+    file: "deepgram_app.py",
+    content: `
+from deepgram import Deepgram
+
+dg_client = DeepgramClient()
+response = dg_client.listen.prerecorded(audio)
+`,
+    expectedPatterns: ["deepgram"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "LangSmith Observability",
+    file: "tracing.py",
+    content: `
+from langsmith import Client
+
+client = langsmith.Client()
+# Uses LangSmith API
+url = "https://api.smith.langchain.com"
+`,
+    expectedPatterns: ["langsmith"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "LangFuse Observability",
+    file: "langfuse_app.py",
+    content: `
+from langfuse import Langfuse
+
+langfuse = Langfuse()
+trace = langfuse.trace(name="my_trace")
+`,
+    expectedPatterns: ["langfuse"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "Weights & Biases Experiment Tracking",
+    file: "train.py",
+    content: `
+import wandb
+
+wandb.init(project="my_project")
+wandb.log({"loss": 0.5})
+`,
+    expectedPatterns: ["wandb"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "Databricks ML Platform",
+    file: "databricks_app.py",
+    content: `
+from databricks.sdk import WorkspaceClient
+
+client = WorkspaceClient()
+# Uses Databricks workspace
+endpoint = "myworkspace.cloud.databricks.com"
+`,
+    expectedPatterns: ["databricks"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "Stability AI Image Generation",
+    file: "image_gen.py",
+    content: `
+import stability_sdk
+
+client = StabilityClient()
+response = client.text_to_image(prompt="A sunset")
+`,
+    expectedPatterns: ["stability-ai"],
     expectedTypes: ["library", "api_call"],
   },
 ];

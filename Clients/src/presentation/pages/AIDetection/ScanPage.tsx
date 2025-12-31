@@ -255,10 +255,10 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
                 Configure a GitHub token in Settings to scan private repositories.{" "}
                 Try these examples:{" "}
                 {[
-                  "coldwaterq/MaliciousPickles",
-                  "hoangvvo/llm-sdk",
-                  "verifai/multiLLM",
-                  "scikit-learn/scikit-learn",
+                  "Shubhamsaboo/awesome-llm-apps",
+                  "langchain-ai/chat-langchain",
+                  "QuivrHQ/quivr",
+                  "nomic-ai/gpt4all",
                 ].map((repo, idx, arr) => (
                   <span key={repo}>
                     <span
@@ -334,14 +334,14 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-            <CircularProgress size={20} sx={{ color: "#13715B" }} />
-            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+            <Typography variant="body1" sx={{ fontWeight: 500, fontSize: "13px" }}>
               {progress.status === "cloning"
                 ? "Cloning repository..."
                 : `Scanning files... (${progress.files_scanned}${
                     progress.total_files ? `/${progress.total_files}` : ""
                   })`}
             </Typography>
+            <CircularProgress size={16} sx={{ color: "#13715B" }} />
           </Box>
 
           <LinearProgress

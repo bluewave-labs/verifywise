@@ -9,19 +9,22 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Collapse, IconButton, Tooltip } from "@mui/material";
+import { Box, Typography, Collapse, IconButton, Tooltip, Popover } from "@mui/material";
 import { TabContext } from "@mui/lab";
 import {
   ArrowLeft,
   ChevronDown,
   ChevronRight,
   FileCode,
-  Clock,
   CheckCircle2,
   ShieldCheck,
   Info,
   Package,
   AlertCircle,
+  Eye,
+  ThumbsUp,
+  Flag,
+  MoreHorizontal,
 } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Chip from "../../components/Chip";
@@ -57,21 +60,24 @@ import {
   getScanFindings,
   getScanSecurityFindings,
   getScanSecuritySummary,
+  updateFindingGovernanceStatus,
 } from "../../../application/repository/aiDetection.repository";
 import {
   ScanResponse,
   Finding,
   ConfidenceLevel,
+  RiskLevel,
   SecurityFinding,
   SecuritySeverity,
   SecuritySummary,
+  GovernanceStatus,
 } from "../../../domain/ai-detection/types";
 import { formatDistanceToNow } from "date-fns";
 
 interface ScanDetailsPageProps {
   scanId: number;
   onBack: () => void;
-  initialTab?: "libraries" | "security";
+  initialTab?: "libraries" | "security" | "api-calls" | "secrets";
 }
 
 // ============================================================================
@@ -104,11 +110,38 @@ const CONFIDENCE_TOOLTIPS: Record<ConfidenceLevel, string> = {
   low: "The scanner found patterns that might indicate AI/ML usage but could be false positives",
 };
 
+const RISK_LEVEL_CONFIG: Record<RiskLevel, { label: string; color: string; bgColor: string; tooltip: string }> = {
+  high: {
+    label: "High risk",
+    color: "#b42318",
+    bgColor: "#fef3f2",
+    tooltip: "Data sent to external cloud APIs. Risk of data leakage, vendor lock-in, and compliance violations.",
+  },
+  medium: {
+    label: "Medium risk",
+    color: "#b54708",
+    bgColor: "#fffaeb",
+    tooltip: "Framework that can connect to cloud APIs depending on configuration. Review usage to assess actual risk.",
+  },
+  low: {
+    label: "Low risk",
+    color: "#027a48",
+    bgColor: "#ecfdf3",
+    tooltip: "Local processing only. Data stays on your infrastructure with minimal external exposure.",
+  },
+};
+
 const SEVERITY_TOOLTIPS: Record<SecuritySeverity, string> = {
   critical: "Critical severity: Immediate action required. This finding indicates a severe security vulnerability that could lead to remote code execution or complete system compromise.",
   high: "High severity: Urgent attention needed. This finding indicates a significant security risk that should be addressed promptly.",
   medium: "Medium severity: Should be addressed. This finding indicates a moderate security concern that requires attention.",
   low: "Low severity: Consider addressing. This finding indicates a minor security concern or informational issue.",
+};
+
+const GOVERNANCE_STATUS_CONFIG: Record<GovernanceStatus, { label: string; color: string; icon: React.ElementType }> = {
+  reviewed: { label: "Reviewed", color: "#3b82f6", icon: Eye },
+  approved: { label: "Approved", color: "#10b981", icon: ThumbsUp },
+  flagged: { label: "Flagged", color: "#ef4444", icon: Flag },
 };
 
 // ============================================================================
@@ -171,16 +204,50 @@ interface FindingRowProps {
   finding: Finding;
   repositoryOwner: string;
   repositoryName: string;
+  scanId: number;
+  onGovernanceChange?: (findingId: number, status: GovernanceStatus | null) => void;
 }
 
-function FindingRow({ finding, repositoryOwner, repositoryName }: FindingRowProps) {
+function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovernanceChange }: FindingRowProps) {
   const [expanded, setExpanded] = useState(false);
+  const [governanceAnchor, setGovernanceAnchor] = useState<HTMLElement | null>(null);
+  const [localStatus, setLocalStatus] = useState<GovernanceStatus | null>(finding.governance_status || null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const getFileUrl = (filePath: string, lineNumber: number | null): string | null => {
     if (!repositoryOwner || !repositoryName) return null;
     const baseUrl = `https://github.com/${repositoryOwner}/${repositoryName}/blob/main/${filePath}`;
     return lineNumber ? `${baseUrl}#L${lineNumber}` : baseUrl;
   };
+
+  const handleGovernanceClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    setGovernanceAnchor(event.currentTarget);
+  };
+
+  const handleGovernanceClose = () => {
+    setGovernanceAnchor(null);
+  };
+
+  const handleStatusChange = async (newStatus: GovernanceStatus | null) => {
+    handleGovernanceClose();
+    if (newStatus === localStatus) return;
+
+    setIsUpdating(true);
+    try {
+      await updateFindingGovernanceStatus(scanId, finding.id, newStatus);
+      setLocalStatus(newStatus);
+      onGovernanceChange?.(finding.id, newStatus);
+    } catch {
+      // Revert to original status on failure - UI already reflects the local state
+      setLocalStatus(finding.governance_status || null);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const StatusIcon = localStatus ? GOVERNANCE_STATUS_CONFIG[localStatus].icon : MoreHorizontal;
+  const statusColor = localStatus ? GOVERNANCE_STATUS_CONFIG[localStatus].color : "#667085";
 
   return (
     <Box
@@ -225,11 +292,35 @@ function FindingRow({ finding, repositoryOwner, repositoryName }: FindingRowProp
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box sx={{ minWidth: 75, display: "flex", justifyContent: "center" }}>
+          {/* Risk Level Badge */}
+          {finding.risk_level && (
+            <Tooltip title={RISK_LEVEL_CONFIG[finding.risk_level].tooltip} arrow placement="top">
+              <Box
+                sx={{
+                  px: "8px",
+                  py: "2px",
+                  borderRadius: "4px",
+                  backgroundColor: RISK_LEVEL_CONFIG[finding.risk_level].bgColor,
+                  border: `1px solid ${RISK_LEVEL_CONFIG[finding.risk_level].color}20`,
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    color: RISK_LEVEL_CONFIG[finding.risk_level].color,
+                  }}
+                >
+                  {RISK_LEVEL_CONFIG[finding.risk_level].label}
+                </Typography>
+              </Box>
+            </Tooltip>
+          )}
+          <Box sx={{ minWidth: 120, display: "flex", justifyContent: "center" }}>
             <Tooltip title={CONFIDENCE_TOOLTIPS[finding.confidence]} arrow placement="top">
               <span>
                 <Chip
-                  label={finding.confidence.charAt(0).toUpperCase() + finding.confidence.slice(1)}
+                  label={`${finding.confidence.charAt(0).toUpperCase() + finding.confidence.slice(1)} confidence`}
                   variant={CONFIDENCE_CHIP_VARIANT[finding.confidence]}
                   size="small"
                 />
@@ -242,8 +333,87 @@ function FindingRow({ finding, repositoryOwner, repositoryName }: FindingRowProp
               {finding.file_count} {finding.file_count === 1 ? "file" : "files"}
             </Typography>
           </Box>
+          {/* Governance Status Button */}
+          <Tooltip title={localStatus ? `Status: ${GOVERNANCE_STATUS_CONFIG[localStatus].label}` : "Set status"} arrow placement="top">
+            <IconButton
+              size="small"
+              onClick={handleGovernanceClick}
+              disabled={isUpdating}
+              sx={{
+                border: "1px solid #e4e7ec",
+                borderRadius: "4px",
+                p: "4px",
+                "&:hover": { backgroundColor: "#f3f4f6" },
+              }}
+            >
+              <StatusIcon size={16} color={statusColor} />
+            </IconButton>
+          </Tooltip>
         </Box>
       </Box>
+
+      {/* Governance Status Popover */}
+      <Popover
+        open={Boolean(governanceAnchor)}
+        anchorEl={governanceAnchor}
+        onClose={handleGovernanceClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 0.5,
+              borderRadius: "4px",
+              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+              border: "1px solid #e4e7ec",
+            },
+          },
+        }}
+      >
+        <Box sx={{ p: 1, minWidth: 140 }}>
+          {(Object.entries(GOVERNANCE_STATUS_CONFIG) as [GovernanceStatus, typeof GOVERNANCE_STATUS_CONFIG[GovernanceStatus]][]).map(
+            ([status, config]) => (
+              <Box
+                key={status}
+                onClick={() => handleStatusChange(status)}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  p: "6px 8px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  backgroundColor: localStatus === status ? "#f3f4f6" : "transparent",
+                  "&:hover": { backgroundColor: "#f3f4f6" },
+                }}
+              >
+                <config.icon size={14} color={config.color} />
+                <Typography sx={{ fontSize: "13px" }}>{config.label}</Typography>
+              </Box>
+            )
+          )}
+          {localStatus && (
+            <>
+              <Box sx={{ borderTop: "1px solid #e4e7ec", my: 0.5 }} />
+              <Box
+                onClick={() => handleStatusChange(null)}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  p: "6px 8px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: "#f3f4f6" },
+                }}
+              >
+                <MoreHorizontal size={14} color="#667085" />
+                <Typography sx={{ fontSize: "13px", color: "#667085" }}>Clear status</Typography>
+              </Box>
+            </>
+          )}
+        </Box>
+      </Popover>
 
       {/* Expanded Content */}
       <Collapse in={expanded}>
@@ -569,6 +739,8 @@ export default function ScanDetailsPage({
   const navigate = useNavigate();
   const [scan, setScan] = useState<ScanResponse | null>(null);
   const [findings, setFindings] = useState<Finding[]>([]);
+  const [apiCallFindings, setApiCallFindings] = useState<Finding[]>([]);
+  const [secretFindings, setSecretFindings] = useState<Finding[]>([]);
   const [securityFindings, setSecurityFindings] = useState<SecurityFinding[]>(
     []
   );
@@ -580,11 +752,15 @@ export default function ScanDetailsPage({
 
   // Handle tab change with URL navigation
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
-    setActiveTab(newValue as "libraries" | "security");
+    setActiveTab(newValue as "libraries" | "security" | "api-calls" | "secrets");
     if (newValue === "libraries") {
       navigate(`/ai-detection/scans/${scanId}/libraries`, { replace: true });
     } else if (newValue === "security") {
       navigate(`/ai-detection/scans/${scanId}/security`, { replace: true });
+    } else if (newValue === "api-calls") {
+      navigate(`/ai-detection/scans/${scanId}/api-calls`, { replace: true });
+    } else if (newValue === "secrets") {
+      navigate(`/ai-detection/scans/${scanId}/secrets`, { replace: true });
     }
   };
 
@@ -594,8 +770,12 @@ export default function ScanDetailsPage({
   }, [initialTab]);
 
   const [page, setPage] = useState(1);
+  const [apiCallPage, setApiCallPage] = useState(1);
+  const [secretPage, setSecretPage] = useState(1);
   const [securityPage, setSecurityPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [apiCallTotalPages, setApiCallTotalPages] = useState(1);
+  const [secretTotalPages, setSecretTotalPages] = useState(1);
   const [securityTotalPages, setSecurityTotalPages] = useState(1);
   const [confidenceFilter, setConfidenceFilter] =
     useState<ConfidenceLevel | null>(null);
@@ -608,21 +788,27 @@ export default function ScanDetailsPage({
     const loadInitialData = async () => {
       setIsLoading(true);
       try {
-        const [scanResponse, findingsResponse, securityFindingsResponse, summaryResponse] =
+        const [scanResponse, findingsResponse, apiCallFindingsResponse, secretFindingsResponse, securityFindingsResponse, summaryResponse] =
           await Promise.all([
             getScan(scanId),
-            getScanFindings(scanId, { page: 1, limit: 50 }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "library" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "api_call" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "secret" }),
             getScanSecurityFindings(scanId, { page: 1, limit: 50 }),
             getScanSecuritySummary(scanId),
           ]);
         setScan(scanResponse);
         setFindings(findingsResponse.findings);
         setTotalPages(findingsResponse.pagination.total_pages);
+        setApiCallFindings(apiCallFindingsResponse.findings);
+        setApiCallTotalPages(apiCallFindingsResponse.pagination.total_pages);
+        setSecretFindings(secretFindingsResponse.findings);
+        setSecretTotalPages(secretFindingsResponse.pagination.total_pages);
         setSecurityFindings(securityFindingsResponse.findings);
         setSecurityTotalPages(securityFindingsResponse.pagination.total_pages);
         setSecuritySummary(summaryResponse);
-      } catch (error) {
-        console.error("Failed to load scan details:", error);
+      } catch {
+        // Error loading scan - component will show empty state
       } finally {
         setIsLoading(false);
       }
@@ -641,16 +827,59 @@ export default function ScanDetailsPage({
           page,
           limit: 50,
           confidence: confidenceFilter || undefined,
+          finding_type: "library",
         });
         setFindings(findingsResponse.findings);
         setTotalPages(findingsResponse.pagination.total_pages);
-      } catch (error) {
-        console.error("Failed to load library findings:", error);
+      } catch {
+        // Error loading findings - UI shows empty state
       }
     };
 
     loadLibraryFindings();
   }, [scanId, page, confidenceFilter, scan]);
+
+  // Reload API call findings when page changes
+  useEffect(() => {
+    if (!scan) return;
+
+    const loadApiCallFindings = async () => {
+      try {
+        const findingsResponse = await getScanFindings(scanId, {
+          page: apiCallPage,
+          limit: 50,
+          finding_type: "api_call",
+        });
+        setApiCallFindings(findingsResponse.findings);
+        setApiCallTotalPages(findingsResponse.pagination.total_pages);
+      } catch {
+        // Error loading findings - UI shows empty state
+      }
+    };
+
+    loadApiCallFindings();
+  }, [scanId, apiCallPage, scan]);
+
+  // Reload secret findings when page changes
+  useEffect(() => {
+    if (!scan) return;
+
+    const loadSecretFindings = async () => {
+      try {
+        const findingsResponse = await getScanFindings(scanId, {
+          page: secretPage,
+          limit: 50,
+          finding_type: "secret",
+        });
+        setSecretFindings(findingsResponse.findings);
+        setSecretTotalPages(findingsResponse.pagination.total_pages);
+      } catch {
+        // Error loading findings - UI shows empty state
+      }
+    };
+
+    loadSecretFindings();
+  }, [scanId, secretPage, scan]);
 
   // Reload security findings when page or filter changes
   useEffect(() => {
@@ -669,8 +898,8 @@ export default function ScanDetailsPage({
         setSecurityFindings(findingsResponse.findings);
         setSecurityTotalPages(findingsResponse.pagination.total_pages);
         setSecuritySummary(summaryResponse);
-      } catch (error) {
-        console.error("Failed to load security findings:", error);
+      } catch {
+        // Error loading findings - UI shows empty state
       }
     };
 
@@ -735,20 +964,19 @@ export default function ScanDetailsPage({
             <Chip label="Failed" size="small" />
           )}
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 3, ml: "28px" }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Clock size={14} color="#667085" />
-            <Typography variant="body2" sx={{ color: "#667085" }}>
-              {formatDuration(scan.scan.duration_ms)}
-            </Typography>
-          </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, ml: "28px" }}>
+          <Typography variant="body2" sx={{ color: "#101828", fontWeight: 500 }}>
+            {formatDuration(scan.scan.duration_ms)}
+          </Typography>
+          <Typography sx={{ color: "#d0d5dd", fontSize: "12px" }}>•</Typography>
           <Typography variant="body2" sx={{ color: "#667085" }}>
             {scan.scan.status === "failed" ? "Failed" : "Scanned"}{" "}
             {formatDistanceToNow(new Date(scan.scan.created_at), {
               addSuffix: true,
             })}
           </Typography>
-          <Typography variant="body2" sx={{ color: "#667085" }}>
+          <Typography sx={{ color: "#d0d5dd", fontSize: "12px" }}>•</Typography>
+          <Typography variant="body2" sx={{ color: "#344054" }}>
             by {scan.scan.triggered_by.name}
           </Typography>
         </Box>
@@ -788,7 +1016,19 @@ export default function ScanDetailsPage({
               label: "Libraries",
               value: "libraries",
               icon: "Library",
-              count: scan.summary.total,
+              count: scan.summary.by_finding_type?.library || scan.summary.total,
+            },
+            {
+              label: "API calls",
+              value: "api-calls",
+              icon: "Globe",
+              count: scan.summary.by_finding_type?.api_call || 0,
+            },
+            {
+              label: "Secrets",
+              value: "secrets",
+              icon: "Key",
+              count: scan.summary.by_finding_type?.secret || 0,
             },
             {
               label: "Security",
@@ -940,6 +1180,7 @@ export default function ScanDetailsPage({
                       finding={finding}
                       repositoryOwner={scan.scan.repository_owner}
                       repositoryName={scan.scan.repository_name}
+                      scanId={scanId}
                     />
                   ))}
 
@@ -981,6 +1222,202 @@ export default function ScanDetailsPage({
               )}
             </Box>
 
+          </Box>
+        )}
+
+        {/* API Calls Tab */}
+        {activeTab === "api-calls" && (
+          <Box sx={{ mt: "8px" }}>
+            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+              API calls to AI/ML services detected in the codebase. These represent active usage of AI models and services.
+            </Typography>
+
+            {/* Summary */}
+            <Box
+              sx={{
+                backgroundColor: "#fff",
+                border: "1px solid #d0d5dd",
+                borderRadius: "4px",
+                p: "16px",
+                mb: "8px",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Info size={16} color="#667085" />
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {scan.summary.by_finding_type?.api_call || 0} API call{(scan.summary.by_finding_type?.api_call || 0) !== 1 ? "s" : ""} detected
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ color: "#667085", mt: "8px" }}>
+                All API call findings are marked as high confidence. These indicate direct integration with AI services.
+              </Typography>
+            </Box>
+
+            {/* Findings List */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {apiCallFindings.map((finding) => (
+                <FindingRow
+                  key={finding.id}
+                  finding={finding}
+                  repositoryOwner={scan.scan.repository_owner}
+                  repositoryName={scan.scan.repository_name}
+                  scanId={scanId}
+                />
+              ))}
+            </Box>
+
+            {/* Empty State */}
+            {apiCallFindings.length === 0 && (
+              <Box
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  backgroundColor: "#f9fafb",
+                  borderRadius: "4px",
+                  mt: "8px",
+                }}
+              >
+                <Typography variant="body1" sx={{ color: "#667085" }}>
+                  No API calls detected in this repository
+                </Typography>
+                <Typography variant="body2" sx={{ color: "#98a2b3", mt: 1 }}>
+                  API calls to OpenAI, Anthropic, Google AI, and other AI services will appear here
+                </Typography>
+              </Box>
+            )}
+
+            {/* Pagination */}
+            {apiCallTotalPages > 1 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 2,
+                  mt: "16px",
+                }}
+              >
+                <CustomizableButton
+                  text="Previous"
+                  onClick={() => setApiCallPage((p) => Math.max(1, p - 1))}
+                  isDisabled={apiCallPage === 1}
+                  variant="outlined"
+                  sx={{ height: 34 }}
+                />
+                <Typography sx={{ lineHeight: "34px", color: "#667085", fontSize: "13px" }}>
+                  Page {apiCallPage} of {apiCallTotalPages}
+                </Typography>
+                <CustomizableButton
+                  text="Next"
+                  onClick={() => setApiCallPage((p) => Math.min(apiCallTotalPages, p + 1))}
+                  isDisabled={apiCallPage === apiCallTotalPages}
+                  variant="outlined"
+                  sx={{ height: 34 }}
+                />
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* Secrets Tab */}
+        {activeTab === "secrets" && (
+          <Box sx={{ mt: "8px" }}>
+            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+              Hardcoded API keys and secrets detected in the codebase. These should be moved to environment variables or a secrets manager.
+            </Typography>
+
+            {/* Warning Box - only show when secrets are found */}
+            {secretFindings.length > 0 && (
+              <Box
+                sx={{
+                  backgroundColor: "#fef3f2",
+                  border: "1px solid #fecdca",
+                  borderRadius: "4px",
+                  p: "16px",
+                  mb: "16px",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 2,
+                }}
+              >
+                <AlertCircle size={20} color="#d92d20" style={{ flexShrink: 0, marginTop: 2 }} />
+                <Box>
+                  <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#b42318", mb: 0.5 }}>
+                    Security risk detected
+                  </Typography>
+                  <Typography sx={{ fontSize: "13px", color: "#b42318" }}>
+                    Hardcoded secrets in source code can be exposed if the repository is made public or accessed by unauthorized users.
+                    Rotate any exposed credentials immediately.
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
+            {/* Findings List */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {secretFindings.map((finding) => (
+                <FindingRow
+                  key={finding.id}
+                  finding={finding}
+                  repositoryOwner={scan.scan.repository_owner}
+                  repositoryName={scan.scan.repository_name}
+                  scanId={scanId}
+                />
+              ))}
+            </Box>
+
+            {/* Empty State - only show when no secrets found */}
+            {secretFindings.length === 0 && (
+              <Box
+                sx={{
+                  p: "16px",
+                  textAlign: "center",
+                  backgroundColor: "#ecfdf3",
+                  border: "1px solid #a6f4c5",
+                  borderRadius: "4px",
+                  mt: "8px",
+                }}
+              >
+                <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+                  <ShieldCheck size={48} color="#039855" />
+                </Box>
+                <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#039855", mb: 1 }}>
+                  No hardcoded secrets detected
+                </Typography>
+                <Typography sx={{ fontSize: "13px", color: "#667085" }}>
+                  No API keys, tokens, or other secrets were found in the scanned code.
+                </Typography>
+              </Box>
+            )}
+
+            {/* Pagination */}
+            {secretTotalPages > 1 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 2,
+                  mt: "16px",
+                }}
+              >
+                <CustomizableButton
+                  text="Previous"
+                  onClick={() => setSecretPage((p) => Math.max(1, p - 1))}
+                  isDisabled={secretPage === 1}
+                  variant="outlined"
+                  sx={{ height: 34 }}
+                />
+                <Typography sx={{ lineHeight: "34px", color: "#667085", fontSize: "13px" }}>
+                  Page {secretPage} of {secretTotalPages}
+                </Typography>
+                <CustomizableButton
+                  text="Next"
+                  onClick={() => setSecretPage((p) => Math.min(secretTotalPages, p + 1))}
+                  isDisabled={secretPage === secretTotalPages}
+                  variant="outlined"
+                  sx={{ height: 34 }}
+                />
+              </Box>
+            )}
           </Box>
         )}
 

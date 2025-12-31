@@ -9,7 +9,7 @@ A TypeScript library for detecting AI/ML libraries, API calls, and hardcoded sec
 - **API Call Detection**: Finds REST API endpoints and SDK method invocations
 - **Secret Detection**: Detects hardcoded API keys with entropy validation
 - **Risk Classification**: Categorizes findings by risk level (high/medium/low)
-- **47 Detection Patterns**: Covers major AI providers and frameworks
+- **59 Detection Patterns**: Covers major AI providers, frameworks, and ML tools
 
 ## Installation
 

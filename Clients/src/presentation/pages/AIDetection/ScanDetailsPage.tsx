@@ -31,14 +31,26 @@ import Chip from "../../components/Chip";
 import TabBar from "../../components/TabBar";
 import { VWLink } from "../../components/Link";
 // AI provider icons (importing Mono variants directly to avoid @lobehub/ui dependency)
+import Ai21 from "@lobehub/icons/es/Ai21/components/Mono";
 import Anthropic from "@lobehub/icons/es/Anthropic/components/Mono";
 import Anyscale from "@lobehub/icons/es/Anyscale/components/Mono";
+import AssemblyAI from "@lobehub/icons/es/AssemblyAI/components/Mono";
 import Aws from "@lobehub/icons/es/Aws/components/Mono";
+import Baseten from "@lobehub/icons/es/Baseten/components/Mono";
+import Cerebras from "@lobehub/icons/es/Cerebras/components/Mono";
 import Cohere from "@lobehub/icons/es/Cohere/components/Mono";
 import CrewAI from "@lobehub/icons/es/CrewAI/components/Mono";
+import DeepSeek from "@lobehub/icons/es/DeepSeek/components/Mono";
+import ElevenLabs from "@lobehub/icons/es/ElevenLabs/components/Mono";
+import Fireworks from "@lobehub/icons/es/Fireworks/components/Mono";
 import Google from "@lobehub/icons/es/Google/components/Mono";
+import Groq from "@lobehub/icons/es/Groq/components/Mono";
 import HuggingFace from "@lobehub/icons/es/HuggingFace/components/Mono";
+import Jina from "@lobehub/icons/es/Jina/components/Mono";
 import LangChain from "@lobehub/icons/es/LangChain/components/Mono";
+import Langfuse from "@lobehub/icons/es/Langfuse/components/Mono";
+import LangSmith from "@lobehub/icons/es/LangSmith/components/Mono";
+import LeptonAI from "@lobehub/icons/es/LeptonAI/components/Mono";
 import LlamaIndex from "@lobehub/icons/es/LlamaIndex/components/Mono";
 import Meta from "@lobehub/icons/es/Meta/components/Mono";
 import Microsoft from "@lobehub/icons/es/Microsoft/components/Mono";
@@ -46,7 +58,17 @@ import Mistral from "@lobehub/icons/es/Mistral/components/Mono";
 import Nvidia from "@lobehub/icons/es/Nvidia/components/Mono";
 import Ollama from "@lobehub/icons/es/Ollama/components/Mono";
 import OpenAI from "@lobehub/icons/es/OpenAI/components/Mono";
+import OpenRouter from "@lobehub/icons/es/OpenRouter/components/Mono";
+import Perplexity from "@lobehub/icons/es/Perplexity/components/Mono";
+import Phidata from "@lobehub/icons/es/Phidata/components/Mono";
+import PydanticAI from "@lobehub/icons/es/PydanticAI/components/Mono";
 import Replicate from "@lobehub/icons/es/Replicate/components/Mono";
+import SambaNova from "@lobehub/icons/es/SambaNova/components/Mono";
+import Stability from "@lobehub/icons/es/Stability/components/Mono";
+import Together from "@lobehub/icons/es/Together/components/Mono";
+import Vercel from "@lobehub/icons/es/Vercel/components/Mono";
+import Vllm from "@lobehub/icons/es/Vllm/components/Mono";
+import Voyage from "@lobehub/icons/es/Voyage/components/Mono";
 // ML framework logos - for providers without lobehub icons
 import scikitLearnLogo from "../../assets/ml-logos/scikit.png";
 import numpyLogo from "../../assets/ml-logos/numpy.svg";
@@ -55,6 +77,10 @@ import matplotlibLogo from "../../assets/ml-logos/matplotlib.png";
 import mxnetLogo from "../../assets/ml-logos/mxnet.svg";
 import scipyLogo from "../../assets/ml-logos/scipy.svg";
 import daskLogo from "../../assets/ml-logos/dask.svg";
+import qdrantLogo from "../../assets/ml-logos/qdrant.svg";
+import chromaLogo from "../../assets/ml-logos/chroma.png";
+import pineconeLogo from "../../assets/ml-logos/pinecone.png";
+import weaviateLogo from "../../assets/ml-logos/weaviate.png";
 import {
   getScan,
   getScanFindings,
@@ -150,27 +176,52 @@ const GOVERNANCE_STATUS_CONFIG: Record<GovernanceStatus, { label: string; color:
 
 // Lobehub icon components
 const PROVIDER_ICON_COMPONENTS: Record<string, React.ComponentType<{ size?: number | string }>> = {
+  // Cloud AI Providers
+  "AI21 Labs": Ai21,
   "Anthropic": Anthropic,
   "Anyscale": Anyscale,
+  "AssemblyAI": AssemblyAI,
   "AWS": Aws,
+  "Baseten": Baseten,
+  "Cerebras": Cerebras,
   "Cohere": Cohere,
-  "CrewAI": CrewAI,
+  "DeepSeek": DeepSeek,
+  "ElevenLabs": ElevenLabs,
+  "Fireworks AI": Fireworks,
   "Google": Google,
+  "Groq": Groq,
   "HuggingFace": HuggingFace,
-  "LangChain": LangChain,
-  "LlamaIndex": LlamaIndex,
+  "Jina AI": Jina,
+  "LangFuse": Langfuse,
+  "LangSmith": LangSmith,
+  "Lepton AI": LeptonAI,
   "Meta": Meta,
   "Microsoft": Microsoft,
   "Mistral": Mistral,
   "Nvidia": Nvidia,
   "Ollama": Ollama,
   "OpenAI": OpenAI,
+  "OpenRouter": OpenRouter,
+  "Perplexity": Perplexity,
   "Replicate": Replicate,
+  "SambaNova": SambaNova,
+  "Stability AI": Stability,
+  "Together AI": Together,
+  "Vercel": Vercel,
+  "Voyage AI": Voyage,
+  // AI/ML Frameworks
+  "CrewAI": CrewAI,
+  "LangChain": LangChain,
+  "LlamaIndex": LlamaIndex,
+  "Phidata": Phidata,
+  "Pydantic AI": PydanticAI,
+  // Local ML
+  "vLLM": Vllm,
 };
 
-// SVG logo mappings for ML frameworks (provider names must match backend aiDetectionPatterns.ts)
+// SVG/PNG logo mappings for providers without lobehub icons
 const PROVIDER_SVG_LOGOS: Record<string, string> = {
-  // These providers don't have lobehub icons, so we use SVG/PNG logos
+  // Local ML libraries
   "scikit-learn": scikitLearnLogo,
   "NumPy": numpyLogo,
   "Pandas": pandasLogo,
@@ -178,6 +229,11 @@ const PROVIDER_SVG_LOGOS: Record<string, string> = {
   "MXNet": mxnetLogo,
   "SciPy": scipyLogo,
   "Dask": daskLogo,
+  // Vector databases
+  "Chroma": chromaLogo,
+  "Pinecone": pineconeLogo,
+  "Qdrant": qdrantLogo,
+  "Weaviate": weaviateLogo,
 };
 
 function getProviderIcon(provider?: string, size: number = 16): React.ReactNode {

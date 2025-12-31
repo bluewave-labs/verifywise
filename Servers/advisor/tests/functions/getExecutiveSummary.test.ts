@@ -1,9 +1,9 @@
 import {
-  afterEach, 
-  beforeEach, 
-  describe, 
-  expect, 
-  it, 
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
   jest} from '@jest/globals';
 import * as riskUtils from "../../../utils/risk.utils";
 import { availableRiskTools } from "../../functions/riskFunctions";
@@ -14,6 +14,13 @@ import {
   createMockRisk,
 } from "../../mocks/mockRiskData";
 import { createMockTenant } from '../../mocks/mockTenant';
+
+// Helper to create a future date that won't become overdue
+const createFutureDate = (daysFromNow: number = 365): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date;
+};
 
 const availableTools = {
   ...availableRiskTools,
@@ -188,7 +195,7 @@ describe("Advisor Functions: getExecutiveSummary", () => {
     });
 
     it("should count zero overdue when all deadlines are in the future", async () => {
-      const futureDate = new Date('2025-12-31');
+      const futureDate = createFutureDate();
       const testRisks = [
         createMockRisk({ deadline: futureDate, mitigation_status: "Not Started" }),
         createMockRisk({ deadline: futureDate, mitigation_status: "In Progress" }),

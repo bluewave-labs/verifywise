@@ -5,6 +5,13 @@ import {
 } from "../exceptions/custom.exception";
 import { numberValidation } from "../validations/number.valid";
 
+// Helper to create a future date that won't become overdue
+const createFutureDate = (daysFromNow: number = 365): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date;
+};
+
 // Mock sequelize-typescript
 jest.mock("sequelize-typescript", () => ({
   Column: jest.fn(),
@@ -841,12 +848,13 @@ describe("SubcontrolModel", () => {
 
   describe("getSummary", () => {
     it("should return correct summary", () => {
+      const futureDate = createFutureDate();
       const subcontrol = new TestSubcontrolModel({
         ...validSubcontrolData,
         id: 1,
         status: "In progress",
         risk_review: "Acceptable risk",
-        due_date: new Date("2025-12-31"), // Future date to avoid overdue
+        due_date: futureDate,
       });
 
       const summary = subcontrol.getSummary();
@@ -864,11 +872,12 @@ describe("SubcontrolModel", () => {
 
   describe("toJSON", () => {
     it("should return formatted JSON", () => {
+      const futureDate = createFutureDate();
       const subcontrol = new TestSubcontrolModel({
         ...validSubcontrolData,
         id: 1,
         created_at: new Date("2023-01-01T00:00:00.000Z"),
-        due_date: new Date("2025-12-31T00:00:00.000Z"), // Future date to avoid overdue
+        due_date: futureDate,
       });
 
       const result = subcontrol.toJSON();
@@ -876,7 +885,7 @@ describe("SubcontrolModel", () => {
       expect(result).toHaveProperty("id", 1);
       expect(result).toHaveProperty("title", "Test Subcontrol");
       expect(result).toHaveProperty("created_at", "2023-01-01T00:00:00.000Z");
-      expect(result).toHaveProperty("due_date", "2025-12-31T00:00:00.000Z");
+      expect(result).toHaveProperty("due_date", futureDate.toISOString());
       expect(result).toHaveProperty("progressPercentage", 0);
       expect(result).toHaveProperty("isOverdue", false);
     });

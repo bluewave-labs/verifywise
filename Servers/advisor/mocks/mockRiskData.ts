@@ -2,6 +2,22 @@ import { IRisk } from "../../domain.layer/interfaces/I.risk";
 import { TimeseriesDataPoint } from "../functions/riskFunctions";
 
 /**
+ * Helper functions to create dynamic dates for testing
+ * Using dynamic dates prevents tests from failing as time passes
+ */
+const createPastDate = (daysAgo: number): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date;
+};
+
+const createFutureDate = (daysFromNow: number): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date;
+};
+
+/**
  * Comprehensive mock risk data for testing
  * Covers all combinations of severity, likelihood, categories, and lifecycle phases
  */
@@ -24,7 +40,7 @@ export const mockRisks: IRisk[] = [
     review_notes: "Requires immediate attention",
     mitigation_status: "In Progress",
     current_risk_level: "Very high risk",
-    deadline: new Date('2024-12-01'), // Overdue
+    deadline: createPastDate(30), // Overdue
     mitigation_plan: "Implement data anonymization",
     implementation_strategy: "Deploy encryption and access controls",
     mitigation_evidence_document: "doc-1.pdf",
@@ -33,8 +49,8 @@ export const mockRisks: IRisk[] = [
     final_risk_level: "High",
     risk_approval: 1,
     approval_status: "Pending",
-    date_of_assessment: new Date('2024-11-01'),
-    created_at: new Date('2024-10-15'),
+    date_of_assessment: createPastDate(60),
+    created_at: createPastDate(75),
   },
   // Risk 2: Critical, Not Started
   {
@@ -53,7 +69,7 @@ export const mockRisks: IRisk[] = [
     review_notes: "Bias detected in testing phase",
     mitigation_status: "Not Started",
     current_risk_level: "High risk",
-    deadline: new Date('2025-01-15'), // Upcoming
+    deadline: createFutureDate(15), // Upcoming
     mitigation_plan: "Implement bias detection and correction",
     implementation_strategy: "Use fairness metrics and diverse datasets",
     mitigation_evidence_document: "doc-2.pdf",
@@ -62,8 +78,8 @@ export const mockRisks: IRisk[] = [
     final_risk_level: "Medium",
     risk_approval: 2,
     approval_status: "Pending",
-    date_of_assessment: new Date('2024-11-10'),
-    created_at: new Date('2024-10-20'),
+    date_of_assessment: createPastDate(50),
+    created_at: createPastDate(70),
   },
   // Risk 3: High, In Progress
   {
@@ -82,7 +98,7 @@ export const mockRisks: IRisk[] = [
     review_notes: "Monitoring shows declining performance",
     mitigation_status: "In Progress",
     current_risk_level: "Medium risk",
-    deadline: new Date('2025-02-01'),
+    deadline: createFutureDate(30),
     mitigation_plan: "Implement retraining pipeline",
     implementation_strategy: "Schedule monthly retraining",
     mitigation_evidence_document: "doc-3.pdf",
@@ -91,8 +107,8 @@ export const mockRisks: IRisk[] = [
     final_risk_level: "Low",
     risk_approval: 1,
     approval_status: "Approved",
-    date_of_assessment: new Date('2024-11-15'),
-    created_at: new Date('2024-10-25'),
+    date_of_assessment: createPastDate(45),
+    created_at: createPastDate(65),
   },
   // Risk 4: Medium, Completed
   {
@@ -111,7 +127,7 @@ export const mockRisks: IRisk[] = [
     review_notes: "Documentation completed",
     mitigation_status: "Completed",
     current_risk_level: "Low risk",
-    deadline: new Date('2024-12-15'),
+    deadline: createPastDate(15),
     mitigation_plan: "Create comprehensive documentation",
     implementation_strategy: "Use automated documentation tools",
     mitigation_evidence_document: "doc-4.pdf",
@@ -120,8 +136,8 @@ export const mockRisks: IRisk[] = [
     final_risk_level: "Very Low",
     risk_approval: 3,
     approval_status: "Approved",
-    date_of_assessment: new Date('2024-11-20'),
-    created_at: new Date('2024-11-01'),
+    date_of_assessment: createPastDate(40),
+    created_at: createPastDate(60),
   },
   // Risk 5: Low, Not Started
   {
@@ -140,7 +156,7 @@ export const mockRisks: IRisk[] = [
     review_notes: "Low priority",
     mitigation_status: "Not Started",
     current_risk_level: "Low risk",
-    deadline: new Date('2025-03-01'),
+    deadline: createFutureDate(60),
     mitigation_plan: "UI improvements",
     implementation_strategy: "Schedule for next sprint",
     mitigation_evidence_document: "doc-5.pdf",
@@ -149,8 +165,8 @@ export const mockRisks: IRisk[] = [
     final_risk_level: "Very Low",
     risk_approval: 2,
     approval_status: "Pending",
-    date_of_assessment: new Date('2024-11-25'),
-    created_at: new Date('2024-11-05'),
+    date_of_assessment: createPastDate(35),
+    created_at: createPastDate(55),
   },
   // Risk 6: Very Low, On Hold
   {
@@ -169,7 +185,7 @@ export const mockRisks: IRisk[] = [
     review_notes: "On hold pending other priorities",
     mitigation_status: "On Hold",
     current_risk_level: "Very Low risk",
-    deadline: new Date('2025-04-01'),
+    deadline: createFutureDate(90),
     mitigation_plan: "Code linting improvements",
     implementation_strategy: "Automated linting",
     mitigation_evidence_document: "doc-6.pdf",
@@ -178,8 +194,8 @@ export const mockRisks: IRisk[] = [
     final_risk_level: "No Risk",
     risk_approval: 3,
     approval_status: "Approved",
-    date_of_assessment: new Date('2024-11-28'),
-    created_at: new Date('2024-11-10'),
+    date_of_assessment: createPastDate(32),
+    created_at: createPastDate(50),
   },
   // Risk 7: High, Deferred
   {
@@ -198,7 +214,7 @@ export const mockRisks: IRisk[] = [
     review_notes: "Deferred to next quarter",
     mitigation_status: "Deferred",
     current_risk_level: "High risk",
-    deadline: new Date('2025-05-01'),
+    deadline: createFutureDate(120),
     mitigation_plan: "Implement fallback mechanisms",
     implementation_strategy: "Build redundancy",
     mitigation_evidence_document: "doc-7.pdf",
@@ -207,8 +223,8 @@ export const mockRisks: IRisk[] = [
     final_risk_level: "Medium",
     risk_approval: 1,
     approval_status: "Pending",
-    date_of_assessment: new Date('2024-11-30'),
-    created_at: new Date('2024-11-12'),
+    date_of_assessment: createPastDate(30),
+    created_at: createPastDate(48),
   },
   // Risk 8: Medium, Requires review
   {
@@ -227,7 +243,7 @@ export const mockRisks: IRisk[] = [
     review_notes: "Requires review of test strategy",
     mitigation_status: "Requires review",
     current_risk_level: "Medium risk",
-    deadline: new Date('2025-01-20'),
+    deadline: createFutureDate(20),
     mitigation_plan: "Increase test coverage to 90%",
     implementation_strategy: "Write unit and integration tests",
     mitigation_evidence_document: "doc-8.pdf",
@@ -236,8 +252,8 @@ export const mockRisks: IRisk[] = [
     final_risk_level: "Low",
     risk_approval: 2,
     approval_status: "Pending",
-    date_of_assessment: new Date('2024-12-01'),
-    created_at: new Date('2024-11-15'),
+    date_of_assessment: createPastDate(29),
+    created_at: createPastDate(45),
   },
   // Risk 9: Safety category for diversity
   {
@@ -256,7 +272,7 @@ export const mockRisks: IRisk[] = [
     review_notes: "Safety measures implemented",
     mitigation_status: "In Progress",
     current_risk_level: "Medium risk",
-    deadline: new Date('2025-01-05'),
+    deadline: createFutureDate(5),
     mitigation_plan: "Implement safety checks",
     implementation_strategy: "Multiple validation layers",
     mitigation_evidence_document: "doc-9.pdf",
@@ -265,8 +281,8 @@ export const mockRisks: IRisk[] = [
     final_risk_level: "Low",
     risk_approval: 1,
     approval_status: "Approved",
-    date_of_assessment: new Date('2024-12-02'),
-    created_at: new Date('2024-11-18'),
+    date_of_assessment: createPastDate(28),
+    created_at: createPastDate(42),
   },
   // Risk 10: Problem definition phase for lifecycle diversity
   {
@@ -285,7 +301,7 @@ export const mockRisks: IRisk[] = [
     review_notes: "Requirements clarification in progress",
     mitigation_status: "In Progress",
     current_risk_level: "Medium risk",
-    deadline: new Date('2024-12-20'),
+    deadline: createPastDate(10),
     mitigation_plan: "Conduct stakeholder workshops",
     implementation_strategy: "Document clear requirements",
     mitigation_evidence_document: "doc-10.pdf",
@@ -294,8 +310,8 @@ export const mockRisks: IRisk[] = [
     final_risk_level: "Low",
     risk_approval: 3,
     approval_status: "Approved",
-    date_of_assessment: new Date('2024-12-03'),
-    created_at: new Date('2024-11-20'),
+    date_of_assessment: createPastDate(27),
+    created_at: createPastDate(40),
   },
 ];
 
@@ -308,30 +324,30 @@ export const mockProjectRisks: IRisk[] = mockRisks.filter((_, index) => index < 
 // Subset of risks for specific framework
 export const mockFrameworkRisks: IRisk[] = mockRisks.filter((_, index) => index >= 5);
 
-// Mock timeseries data
+// Mock timeseries data (historical data points)
 export const mockTimeseriesData: TimeseriesDataPoint[] = [
   {
-    timestamp: new Date('2024-11-01'),
+    timestamp: createPastDate(60),
     data: { "Catastrophic": 2, "Major": 3, "Moderate": 4, "Minor": 1, "Negligible": 0 }
   },
   {
-    timestamp: new Date('2024-11-08'),
+    timestamp: createPastDate(53),
     data: { "Catastrophic": 2, "Major": 4, "Moderate": 3, "Minor": 1, "Negligible": 1 }
   },
   {
-    timestamp: new Date('2024-11-15'),
+    timestamp: createPastDate(46),
     data: { "Catastrophic": 1, "Major": 4, "Moderate": 4, "Minor": 1, "Negligible": 1 }
   },
   {
-    timestamp: new Date('2024-11-22'),
+    timestamp: createPastDate(39),
     data: { "Catastrophic": 2, "Major": 3, "Moderate": 3, "Minor": 2, "Negligible": 1 }
   },
   {
-    timestamp: new Date('2024-11-29'),
+    timestamp: createPastDate(32),
     data: { "Catastrophic": 2, "Major": 3, "Moderate": 3, "Minor": 1, "Negligible": 1 }
   },
   {
-    timestamp: new Date('2024-12-03'),
+    timestamp: createPastDate(27),
     data: { "Catastrophic": 2, "Major": 3, "Moderate": 3, "Minor": 1, "Negligible": 1 }
   },
 ];
@@ -356,7 +372,7 @@ export const createMockRisk = (overrides: Partial<IRisk>): IRisk => {
     review_notes: "Test notes",
     mitigation_status: "Not Started",
     current_risk_level: "Medium risk",
-    deadline: new Date('2025-06-01'),
+    deadline: createFutureDate(180),
     mitigation_plan: "Test plan",
     implementation_strategy: "Test strategy",
     mitigation_evidence_document: "test-doc.pdf",
@@ -365,8 +381,8 @@ export const createMockRisk = (overrides: Partial<IRisk>): IRisk => {
     final_risk_level: "Low",
     risk_approval: 1,
     approval_status: "Pending",
-    date_of_assessment: new Date('2024-12-03'),
-    created_at: new Date('2024-12-03'),
+    date_of_assessment: createPastDate(27),
+    created_at: createPastDate(27),
     ...overrides
   };
 };

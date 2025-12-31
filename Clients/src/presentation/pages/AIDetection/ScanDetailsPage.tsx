@@ -137,8 +137,8 @@ const GOVERNANCE_STATUS_CONFIG: Record<GovernanceStatus, { label: string; color:
 // Provider Icon Mapping
 // ============================================================================
 
-// Icon components from lightweight local implementation (no external dependencies)
-const PROVIDER_ICON_COMPONENTS: Record<string, React.ComponentType<{ size?: number | string }>> = {
+// Icon components from local SVG files (SVGR)
+const PROVIDER_ICON_COMPONENTS: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
   // Cloud AI Providers
   "AI21 Labs": PROVIDER_ICONS.Ai21,
   "Anthropic": PROVIDER_ICONS.Anthropic,
@@ -202,11 +202,11 @@ const PROVIDER_SVG_LOGOS: Record<string, string> = {
 function getProviderIcon(provider?: string, size: number = 16): React.ReactNode {
   if (!provider) return <Package size={size} color="#667085" strokeWidth={1.5} />;
 
-  // Check for lobehub icon component first
+  // Check for SVGR icon component first
   const IconComponent = PROVIDER_ICON_COMPONENTS[provider];
-  if (IconComponent) return <IconComponent size={size} />;
+  if (IconComponent) return <IconComponent width={size} height={size} />;
 
-  // Check for SVG logo
+  // Check for SVG/PNG logo
   const svgLogo = PROVIDER_SVG_LOGOS[provider];
   if (svgLogo) {
     return <img src={svgLogo} alt={provider} width={size} height={size} style={{ objectFit: "contain" }} />;

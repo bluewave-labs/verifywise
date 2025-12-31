@@ -1,270 +1,128 @@
 /**
- * Lightweight AI Provider Icons
+ * AI Provider Icons
  *
- * Simple SVG-based icons extracted from @lobehub/icons to avoid
- * pulling in 64+ unnecessary dependencies from @lobehub/ui.
- *
- * Each icon is a simple React component that renders an SVG.
+ * SVG icons for AI/ML providers used in the AI Detection feature.
+ * Icons are imported as React components using SVGR.
  */
 
-import React, { memo } from 'react';
+// AI Provider SVG icons
+import { ReactComponent as Ai21Icon } from "../../assets/icons/ai-providers/ai21.svg";
+import { ReactComponent as AnthropicIcon } from "../../assets/icons/ai-providers/anthropic.svg";
+import { ReactComponent as AnyscaleIcon } from "../../assets/icons/ai-providers/anyscale.svg";
+import { ReactComponent as AssemblyAIIcon } from "../../assets/icons/ai-providers/assemblyai.svg";
+import { ReactComponent as AwsIcon } from "../../assets/icons/ai-providers/aws.svg";
+import { ReactComponent as BasetenIcon } from "../../assets/icons/ai-providers/baseten.svg";
+import { ReactComponent as CerebrasIcon } from "../../assets/icons/ai-providers/cerebras.svg";
+import { ReactComponent as CohereIcon } from "../../assets/icons/ai-providers/cohere.svg";
+import { ReactComponent as CrewAIIcon } from "../../assets/icons/ai-providers/crewai.svg";
+import { ReactComponent as DeepSeekIcon } from "../../assets/icons/ai-providers/deepseek.svg";
+import { ReactComponent as ElevenLabsIcon } from "../../assets/icons/ai-providers/elevenlabs.svg";
+import { ReactComponent as FireworksIcon } from "../../assets/icons/ai-providers/fireworks.svg";
+import { ReactComponent as GoogleIcon } from "../../assets/icons/ai-providers/google.svg";
+import { ReactComponent as GroqIcon } from "../../assets/icons/ai-providers/groq.svg";
+import { ReactComponent as HuggingFaceIcon } from "../../assets/icons/ai-providers/huggingface.svg";
+import { ReactComponent as JinaIcon } from "../../assets/icons/ai-providers/jina.svg";
+import { ReactComponent as LangChainIcon } from "../../assets/icons/ai-providers/langchain.svg";
+import { ReactComponent as LangfuseIcon } from "../../assets/icons/ai-providers/langfuse.svg";
+import { ReactComponent as LangSmithIcon } from "../../assets/icons/ai-providers/langsmith.svg";
+import { ReactComponent as LeptonAIIcon } from "../../assets/icons/ai-providers/leptonai.svg";
+import { ReactComponent as LlamaIndexIcon } from "../../assets/icons/ai-providers/llamaindex.svg";
+import { ReactComponent as MetaIcon } from "../../assets/icons/ai-providers/meta.svg";
+import { ReactComponent as MicrosoftIcon } from "../../assets/icons/ai-providers/microsoft.svg";
+import { ReactComponent as MistralIcon } from "../../assets/icons/ai-providers/mistral.svg";
+import { ReactComponent as NvidiaIcon } from "../../assets/icons/ai-providers/nvidia.svg";
+import { ReactComponent as OllamaIcon } from "../../assets/icons/ai-providers/ollama.svg";
+import { ReactComponent as OpenAIIcon } from "../../assets/icons/ai-providers/openai.svg";
+import { ReactComponent as OpenRouterIcon } from "../../assets/icons/ai-providers/openrouter.svg";
+import { ReactComponent as PerplexityIcon } from "../../assets/icons/ai-providers/perplexity.svg";
+import { ReactComponent as PhidataIcon } from "../../assets/icons/ai-providers/phidata.svg";
+import { ReactComponent as PydanticAIIcon } from "../../assets/icons/ai-providers/pydanticai.svg";
+import { ReactComponent as ReplicateIcon } from "../../assets/icons/ai-providers/replicate.svg";
+import { ReactComponent as SambaNovaIcon } from "../../assets/icons/ai-providers/sambanova.svg";
+import { ReactComponent as StabilityIcon } from "../../assets/icons/ai-providers/stability.svg";
+import { ReactComponent as TogetherIcon } from "../../assets/icons/ai-providers/together.svg";
+import { ReactComponent as VercelIcon } from "../../assets/icons/ai-providers/vercel.svg";
+import { ReactComponent as VllmIcon } from "../../assets/icons/ai-providers/vllm.svg";
+import { ReactComponent as VoyageIcon } from "../../assets/icons/ai-providers/voyage.svg";
 
-interface IconProps {
-  size?: number | string;
-  style?: React.CSSProperties;
-  className?: string;
-}
-
-const createIcon = (path: string, title: string) => {
-  const Icon = memo(({ size = '1em', style, className, ...rest }: IconProps & React.SVGProps<SVGSVGElement>) => (
-    <svg
-      fill="currentColor"
-      fillRule="evenodd"
-      height={size}
-      width={size}
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ flex: 'none', lineHeight: 1, ...style }}
-      className={className}
-      {...rest}
-    >
-      <title>{title}</title>
-      <path d={path} />
-    </svg>
-  ));
-  Icon.displayName = title;
-  return Icon;
-};
-
-// Cloud AI Providers
-export const Ai21 = createIcon(
-  "M6.47 17l-.367-1.189H2.718L2.35 17H0l3.398-9.789h2.026L8.864 17H6.47zm-2.052-6.993l-1.17 4.028H5.56l-1.142-4.028zm4.707-2.796h2.23V17h-2.23V7.211zM11.955 15c.1-.483.277-.946.524-1.37.214-.359.482-.68.795-.951.32-.273.658-.52 1.013-.741.28-.168.54-.33.781-.483.222-.14.433-.296.632-.468.172-.148.317-.325.428-.525.107-.199.16-.423.157-.65 0-.392-.104-.674-.313-.846a1.176 1.176 0 00-.775-.259 1.207 1.207 0 00-.863.329c-.231.219-.347.585-.347 1.098H11.8a3.387 3.387 0 01.224-1.245c.146-.377.371-.716.66-.993.306-.29.667-.514 1.06-.657A4.04 4.04 0 0115.183 7c.42-.002.84.057 1.244.175.376.107.73.287 1.04.531.305.246.55.562.714.923.185.419.275.875.265 1.335.005.39-.084.774-.259 1.12-.167.328-.38.63-.632.894-.246.259-.517.49-.808.693-.29.2-.554.37-.789.51-.326.224-.596.417-.809.58a3.872 3.872 0 00-.51.455 1.229 1.229 0 00-.265.434 1.633 1.633 0 00-.074.517h4.078V17h-6.606a9.24 9.24 0 01.183-2zM18.8 8.93a5.05 5.05 0 001.135-.105c.25-.049.484-.156.686-.314.163-.139.28-.324.34-.532.068-.25.1-.51.095-.77H23V17h-2.243v-6.475H18.8V8.93z",
-  "AI21 Labs"
-);
-
-export const Anthropic = createIcon(
-  "M13.827 3.52h3.603L24 20h-3.603l-6.57-16.48zm-7.258 0h3.767L16.906 20h-3.674l-1.343-3.461H5.017l-1.344 3.46H0L6.57 3.522zm4.132 9.959L8.453 7.687 6.205 13.48H10.7z",
-  "Anthropic"
-);
-
-export const Anyscale = createIcon(
-  "M17.583 12.344L14.606 17.5H20.6c.22 0 .424-.117.535-.308l2.799-4.848h-6.351zM23.934 11.656l-2.799-4.848A.616.616 0 0020.6 6.5h-5.994l2.977 5.156h6.35zM8.653 6.5h5.953l-2.997-5.191A.616.616 0 0011.074 1H5.476l3.176 5.5zM4.881 1.343L2.083 6.191a.618.618 0 000 .617l2.997 5.191 2.976-5.156-3.175-5.5zM8.057 17.155L5.081 12l-2.998 5.192a.618.618 0 000 .617l2.798 4.848 3.175-5.5h.001zM5.476 23h5.598c.22 0 .424-.117.535-.308l2.997-5.192H8.653L5.477 23z",
-  "Anyscale"
-);
-
-export const AssemblyAI = createIcon(
-  "M10.595 1.5a3.695 3.695 0 00-3.444 2.355L0 22.26h5.432l5.629-14.486h.002a.96.96 0 011.782 0h.75V4.835h-1.393L13.498 1.5h-2.902z",
-  "AssemblyAI"
-);
-
-export const Aws = createIcon(
-  "M6.763 11.212c0 .296.032.535.088.71.064.176.144.368.256.576.04.063.056.127.056.183 0 .08-.048.16-.152.24l-.503.335a.383.383 0 01-.208.072c-.08 0-.16-.04-.239-.112a2.47 2.47 0 01-.287-.375 6.18 6.18 0 01-.248-.471c-.622.734-1.405 1.101-2.347 1.101-.67 0-1.205-.191-1.596-.574-.39-.384-.59-.894-.59-1.533 0-.678.24-1.23.726-1.644.487-.415 1.133-.623 1.955-.623.272 0 .551.024.846.064.296.04.6.104.918.176v-.583c0-.607-.127-1.03-.375-1.277-.255-.248-.686-.367-1.3-.367-.28 0-.568.031-.863.103-.295.072-.583.16-.862.272-.09.04-.184.075-.28.104a.488.488 0 01-.127.023c-.112 0-.168-.08-.168-.247v-.391c0-.128.016-.224.056-.28a.597.597 0 01.224-.167 4.577 4.577 0 011.005-.36 4.84 4.84 0 011.246-.151c.95 0 1.644.216 2.091.647.44.43.662 1.085.662 1.963v2.586h.016zm-3.24 1.214c.263 0 .534-.048.822-.144a1.78 1.78 0 00.758-.51 1.27 1.27 0 00.272-.512c.047-.191.08-.423.08-.694v-.335a6.66 6.66 0 00-.735-.136 6.02 6.02 0 00-.75-.048c-.535 0-.926.104-1.19.32-.263.215-.39.518-.39.917 0 .375.095.655.295.846.191.2.47.296.838.296zm6.41.862c-.144 0-.24-.024-.304-.08-.064-.048-.12-.16-.168-.311L7.586 6.726a1.398 1.398 0 01-.072-.32c0-.128.064-.2.191-.2h.783c.151 0 .255.025.31.08.065.048.113.16.16.312l1.342 5.284 1.245-5.284c.04-.16.088-.264.151-.312a.549.549 0 01.32-.08h.638c.152 0 .256.025.32.08.063.048.12.16.151.312l1.261 5.348 1.381-5.348c.048-.16.104-.264.16-.312a.52.52 0 01.311-.08h.743c.127 0 .2.065.2.2 0 .04-.009.08-.017.128a1.137 1.137 0 01-.056.2l-1.923 6.17c-.048.16-.104.263-.168.311a.51.51 0 01-.303.08h-.687c-.15 0-.255-.024-.32-.08-.063-.056-.119-.16-.15-.32L12.32 7.747l-1.23 5.14c-.04.16-.087.264-.15.32-.065.056-.177.08-.32.08l-.686.001zm10.256.215c-.415 0-.83-.048-1.229-.143-.399-.096-.71-.2-.918-.32-.128-.071-.215-.151-.247-.223a.563.563 0 01-.048-.224v-.407c0-.167.064-.247.183-.247.048 0 .096.008.144.024.048.016.12.048.2.08.271.12.566.215.878.279.32.064.63.096.95.096.502 0 .894-.088 1.165-.264a.86.86 0 00.415-.758.777.777 0 00-.215-.559c-.144-.151-.416-.287-.807-.415l-1.157-.36c-.583-.183-1.014-.454-1.277-.813a1.902 1.902 0 01-.4-1.158c0-.335.073-.63.216-.886.144-.255.335-.479.575-.654.24-.184.51-.32.83-.415.32-.096.655-.136 1.006-.136.175 0 .36.008.535.032.183.024.35.056.518.088.16.04.312.08.455.127.144.048.256.096.336.144a.69.69 0 01.24.2.43.43 0 01.071.263v.375c0 .168-.064.256-.184.256a.83.83 0 01-.303-.096 3.652 3.652 0 00-1.532-.311c-.455 0-.815.071-1.062.223-.248.152-.375.383-.375.71 0 .224.08.416.24.567.16.152.454.304.877.44l1.134.358c.574.184.99.44 1.237.767.247.327.367.702.367 1.117 0 .343-.072.655-.207.926a2.157 2.157 0 01-.583.703c-.248.2-.543.343-.886.447-.36.111-.734.167-1.142.167z",
-  "AWS"
-);
-
-export const Baseten = createIcon(
-  "M2.316 4.8h14.682v4.8H7.31a.302.302 0 00-.308.3v4.2c0 .171.14.3.308.3h9.688v4.8h-4.686a.302.302 0 00-.308.3v4.2c0 .171.141.3.308.3h4.378a.297.297 0 00.308-.3v-4.5h4.694a.302.302 0 00.308-.3v-4.2c0-.171-.14-.3-.308-.3h-4.694V9.6h4.694A.302.302 0 0022 9.3V5.1c0-.171-.14-.3-.308-.3h-4.694V.3c0-.171-.14-.3-.308-.3H2.316A.31.31 0 002 .3v4.2c0 .171.14.3.316.3z",
-  "Baseten"
-);
-
-export const Cerebras = createIcon(
-  "M14.121 2.701a9.299 9.299 0 000 18.598V22.7c-5.91 0-10.7-4.791-10.7-10.701S8.21 1.299 14.12 1.299V2.7zm4.752 3.677A7.353 7.353 0 109.42 17.643l-.901 1.074a8.754 8.754 0 01-1.08-12.334 8.755 8.755 0 0112.335-1.08l-.901 1.075zm-2.255.844a5.407 5.407 0 00-5.048 9.563l-.656 1.24a6.81 6.81 0 016.358-12.043l-.654 1.24zM14.12 8.539a3.46 3.46 0 100 6.922v1.402a4.863 4.863 0 010-9.726v1.402z",
-  "Cerebras"
-);
-
-export const Cohere = createIcon(
-  "M8.128 14.099c.592 0 1.77-.033 3.398-.703 1.897-.781 5.672-2.2 8.395-3.656 1.905-1.018 2.74-2.366 2.74-4.18A4.56 4.56 0 0018.1 1H7.549A6.55 6.55 0 001 7.55c0 3.617 2.745 6.549 7.128 6.549z",
-  "Cohere"
-);
-
-export const CrewAI = createIcon(
-  "M18.213 14.057l.054-.071.132-.176c.158-.212.311-.427.462-.645a.748.748 0 011.256.031 1.438 1.438 0 01.158 1.103l-.136.522-.04.152a7.935 7.935 0 01-2.464 3.863c-.572.49-1.138.938-1.774 1.306-.427.247-.857.495-1.303.706a9.628 9.628 0 01-3.155.974c-.748.097-1.503.136-2.257.116a6.531 6.531 0 01-3.837-1.423 5.967 5.967 0 01-2.071-3.494 8.859 8.859 0 01-.085-3.08 13.56 13.56 0 011.54-4.568 19.7 19.7 0 012.212-3.348 13.382 13.382 0 013.088-2.759 7.9 7.9 0 012.832-1.141c1.307-.245 2.434.207 3.481.933a6.221 6.221 0 011.806 1.893c.423.766.536 1.667.314 2.514a12.39 12.39 0 01-.99 2.67l-.223.497c-.321.713-.642 1.426-.97 2.138a.762.762 0 01-.97.466 3.39 3.39 0 01-2.283-2.49c-.095-.83.04-1.669.39-2.426l.02-.054c.232-.594.485-1.18.741-1.764l.03-.065a326.498 326.498 0 01.37-.841l.02-.047a.533.533 0 00-.204-.742 2.348 2.348 0 00-1.2.702l-.036.036-.001.001-.028.028a26.065 26.065 0 00-1.55 1.702 21.56 21.56 0 00-2.618 4.184 7.59 7.59 0 00-.816 2.753 7.042 7.042 0 00.07 2.219 2.056 2.056 0 001.934 1.715c1.801.1 3.59-.363 5.116-1.328.582-.4 1.141-.831 1.675-1.293.481-.456.91-.951 1.31-1.47z",
-  "CrewAI"
-);
-
-export const DeepSeek = createIcon(
-  "M23.748 4.482c-.254-.124-.364.113-.512.234-.051.039-.094.09-.137.136-.372.397-.806.657-1.373.626-.829-.046-1.537.214-2.163.848-.133-.782-.575-1.248-1.247-1.548-.352-.156-.708-.311-.955-.65-.172-.241-.219-.51-.305-.774-.055-.16-.11-.323-.293-.35-.2-.031-.278.136-.356.276-.313.572-.434 1.202-.422 1.84.027 1.436.633 2.58 1.838 3.393.137.093.172.187.129.323-.082.28-.18.552-.266.833-.055.179-.137.217-.329.14a5.526 5.526 0 01-1.736-1.18c-.857-.828-1.631-1.742-2.597-2.458a11.365 11.365 0 00-.689-.471c-.985-.957.13-1.743.388-1.836.27-.098.093-.432-.779-.428-.872.004-1.67.295-2.687.684a3.055 3.055 0 01-.465.137 9.597 9.597 0 00-2.883-.102c-1.885.21-3.39 1.102-4.497 2.623C.082 8.606-.231 10.684.152 12.85c.403 2.284 1.569 4.175 3.36 5.653 1.858 1.533 3.997 2.284 6.438 2.14 1.482-.085 3.133-.284 4.994-1.86.47.234.962.327 1.78.397.63.059 1.236-.03 1.705-.128.735-.156.684-.837.419-.961-2.155-1.004-1.682-.595-2.113-.926 1.096-1.296 2.746-2.642 3.392-7.003.05-.347.007-.565 0-.845-.004-.17.035-.237.23-.256a4.173 4.173 0 001.545-.475c1.396-.763 1.96-2.015 2.093-3.517.02-.23-.004-.467-.247-.588z",
-  "DeepSeek"
-);
-
-export const ElevenLabs = createIcon(
-  "M5 0h5v24H5V0zM14 0h5v24h-5V0z",
-  "ElevenLabs"
-);
-
-export const Fireworks = createIcon(
-  "M14.8 5l-2.801 6.795L9.195 5H7.397l3.072 7.428a1.64 1.64 0 003.038.002L16.598 5H14.8zm1.196 10.352l5.124-5.244-.699-1.669-5.596 5.739a1.664 1.664 0 00-.343 1.807 1.642 1.642 0 001.516 1.012L16 17l8-.02-.699-1.669-7.303.041h-.002zM2.88 10.104l.699-1.669 5.596 5.739c.468.479.603 1.189.343 1.807a1.643 1.643 0 01-1.516 1.012l-8-.018-.002.002.699-1.669 7.303.042-5.122-5.246z",
-  "Fireworks AI"
-);
-
-export const Google = createIcon(
-  "M23 12.245c0-.905-.075-1.565-.236-2.25h-10.54v4.083h6.186c-.124 1.014-.797 2.542-2.294 3.569l-.021.136 3.332 2.53.23.022C21.779 18.417 23 15.593 23 12.245z",
-  "Google"
-);
-
-export const Groq = createIcon(
-  "M12.036 2c-3.853-.035-7 3-7.036 6.781-.035 3.782 3.055 6.872 6.908 6.907h2.42v-2.566h-2.292c-2.407.028-4.38-1.866-4.408-4.23-.029-2.362 1.901-4.298 4.308-4.326h.1c2.407 0 4.358 1.915 4.365 4.278v6.305c0 2.342-1.944 4.25-4.323 4.279a4.375 4.375 0 01-3.033-1.252l-1.851 1.818A7 7 0 0012.029 22h.092c3.803-.056 6.858-3.083 6.879-6.816v-6.5C18.907 4.963 15.817 2 12.036 2z",
-  "Groq"
-);
-
-export const HuggingFace = createIcon(
-  "M16.781 3.277c2.997 1.704 4.844 4.851 4.844 8.258 0 .995-.155 1.955-.443 2.857a1.332 1.332 0 011.125.4 1.41 1.41 0 01.2 1.723c.204.165.352.385.428.632l.017.062c.06.222.12.69-.2 1.166.244.37.279.836.093 1.236-.255.57-.893 1.018-2.128 1.5l-.202.078-.131.048c-.478.173-.89.295-1.061.345l-.086.024c-.89.243-1.808.375-2.732.394-1.32 0-2.3-.36-2.923-1.067a9.852 9.852 0 01-3.18.018C9.778 21.647 8.802 22 7.494 22a11.249 11.249 0 01-2.541-.343l-.221-.06-.273-.08a16.574 16.574 0 01-1.175-.405c-1.237-.483-1.875-.93-2.13-1.501-.186-.4-.151-.867.093-1.236a1.42 1.42 0 01-.2-1.166c.069-.273.226-.516.447-.694a1.41 1.41 0 01.2-1.722c.233-.248.557-.391.917-.407l.078-.001a9.385 9.385 0 01-.44-2.85c0-3.407 1.847-6.554 4.844-8.258a9.822 9.822 0 019.687 0z",
-  "HuggingFace"
-);
-
-export const Jina = createIcon(
-  "M6.608 21.416a4.608 4.608 0 100-9.217 4.608 4.608 0 000 9.217zM20.894 2.015c.614 0 1.106.492 1.106 1.106v9.002c0 5.13-4.148 9.309-9.217 9.37v-9.355l-.03-9.032c0-.614.491-1.106 1.106-1.106h7.158l-.123.015z",
-  "Jina AI"
-);
-
-export const LangChain = createIcon(
-  "M8.373 14.502c.013-.06.024-.118.038-.17l.061.145c.115.28.229.557.506.714-.012.254-.334.357-.552.326-.048-.114-.115-.228-.255-.164-.143.056-.3-.01-.266-.185.333-.012.407-.371.468-.666zM18.385 9.245c-.318 0-.616.122-.839.342l-.902.887c-.243.24-.368.572-.343.913l.006.056c.032.262.149.498.337.682.13.128.273.21.447.266a.866.866 0 01-.247.777l-.056.055a2.022 2.022 0 01-1.355-1.555l-.01-.057-.046.037c-.03.024-.06.05-.088.078l-.902.887a1.156 1.156 0 000 1.65c.231.228.535.342.84.342.304 0 .607-.114.838-.341l.902-.888a1.156 1.156 0 00-.436-1.921.953.953 0 01.276-.842 2.062 2.062 0 011.371 1.57l.01.057.047-.037c.03-.024.06-.05.088-.078l.902-.888a1.155 1.155 0 000-1.65 1.188 1.188 0 00-.84-.342z",
-  "LangChain"
-);
-
-export const Langfuse = createIcon(
-  "M6.666 13.224c1.982.013 3.143.159 4.014.551a6.07 6.07 0 011.298.79l.425.36c1.002.819 2.202 1.276 3.52 1.027.21-.04.414-.093.613-.16a6.226 6.226 0 012.483.163l.317.094c.517.167.978.389 1.396.651l.234.155-.155.187c-1.012 1.157-2.411 1.882-3.93 2l-.168.01c-1.42.072-2.677-.344-3.828-1.128l.02-.017-.308-.223a8.446 8.446 0 01-.357-.274l-.191-.159-.343-.178c-1.24-.623-2.3-.943-3.105-1.15l-.794-.194-.223-.058-.018.048.016-.049-.01-.003-.016.053.013-.053a3.725 3.725 0 01-.749-.302l-.262-.144-.261-.163a2.396 2.396 0 01-.622-.578l-.11-.173-.097-.188a2.386 2.386 0 01-.213-.74l-.009-.1.22-.021.187-.014c.156-.01.313-.016.49-.019h.523z",
-  "LangFuse"
-);
-
-export const LangSmith = createIcon(
-  "M14.09 15.207c-.067.11-.268.116-.44.015a.466.466 0 01-.19-.2c-.032-.071-.033-.138-.002-.189.035-.057.108-.086.194-.086.077 0 .165.023.246.071.17.101.259.28.192.389zM24 12c0 3.308-2.736 6-6.099 6H6.1C2.736 18 0 15.309 0 12s2.736-6 6.099-6H17.9C21.264 6 24 8.692 24 12z",
-  "LangSmith"
-);
-
-export const LeptonAI = createIcon(
-  "M21.473 13.1V9.937c0-.56 0-.875-.014-1.106a1.058 1.058 0 00-.021-.196.786.786 0 00-.12-.21.916.916 0 00-.16-.112 21.078 21.078 0 00-.953-.568l-2.744-1.582c-.483-.28-.756-.434-.966-.538a.702.702 0 00-.175-.077.722.722 0 00-.245 0c-.021 0-.07.027-.175.077-.21.104-.476.258-.967.538L12.19 7.744c-.483.28-.756.434-.952.568-.098.063-.14.098-.161.112a.523.523 0 00-.12.21c0 .021-.013.077-.02.196-.014.23-.014.546-.014 1.106v3.165c0 .56 0 .875.014 1.106.007.119.014.175.02.195.029.078.071.148.12.21.013.015.055.05.16.113.197.126.463.287.953.567l2.744 1.582c.483.28.756.434.966.54a.698.698 0 00.176.076.72.72 0 00.245 0c.02 0 .07-.028.175-.077.21-.105.476-.259.966-.539l2.744-1.582c.483-.28.756-.434.953-.567.098-.063.14-.098.16-.112a.523.523 0 00.12-.21c0-.022.014-.077.02-.196.015-.231.015-.546.015-1.106z",
-  "Lepton AI"
-);
-
-export const LlamaIndex = createIcon(
-  "M15.855 17.122c-2.092.924-4.358.545-5.23.24 0 .21-.01.857-.048 1.78-.038.924-.332 1.507-.475 1.684.016.577.029 1.837-.047 2.26a1.93 1.93 0 01-.476.914H8.295c.114-.577.555-.946.761-1.058.114-1.193-.11-2.229-.238-2.597-.126.449-.437 1.49-.665 2.068a6.418 6.418 0 01-.713 1.299h-.951c-.048-.578.27-.77.475-.77.095-.177.323-.731.476-1.54.152-.807-.064-2.324-.19-2.981v-2.068c-1.522-.818-2.092-1.636-2.473-2.55-.304-.73-.222-1.843-.142-2.308-.096-.176-.373-.625-.476-1.25-.142-.866-.063-1.491 0-1.828-.095-.096-.285-.587-.285-1.78 0-1.192.349-1.811.523-1.972v-.529c-.666-.048-1.331-.336-1.712-.721-.38-.385-.095-.962.143-1.154.238-.193.475-.049.808-.145.333-.096.618-.192.76-.48C4.512 1.403 4.287.448 4.16 0c.57.077.935.577 1.046.818V0c.713.337 1.997 1.154 2.425 2.934.342 1.424.586 4.409.665 5.723 1.823.016 4.137-.26 6.229.193 1.901.412 2.757 1.25 3.755 1.25.999 0 1.57-.577 2.282-.096.714.481 1.094 1.828.999 2.838-.076.808-.697 1.074-.998 1.106-.38 1.27 0 2.485.237 2.934v1.827c.111.16.333.655.333 1.347 0 .693-.222 1.154-.333 1.299.19 1.077-.08 2.18-.238 2.597h-1.283c.152-.385.412-.481.523-.481.228-1.193.063-2.293-.048-2.693-.722-.424-1.188-1.17-1.331-1.491.016.272-.029 1.029-.333 1.875-.304.847-.76 1.347-.95 1.491v1.01h-1.284c0-.615.348-.737.523-.721.222-.4.76-1.01.76-2.212 0-1.015-.713-1.492-1.236-2.405-.248-.434-.127-.978-.047-1.203z",
-  "LlamaIndex"
-);
-
-export const Meta = createIcon(
-  "M6.897 4c1.915 0 3.516.932 5.43 3.376l.282-.373c.19-.246.383-.484.58-.71l.313-.35C14.588 4.788 15.792 4 17.225 4c1.273 0 2.469.557 3.491 1.516l.218.213c1.73 1.765 2.917 4.71 3.053 8.026l.011.392.002.25c0 1.501-.28 2.759-.818 3.7l-.14.23-.108.153c-.301.42-.664.758-1.086 1.009l-.265.142-.087.04a3.493 3.493 0 01-.302.118 4.117 4.117 0 01-1.33.208c-.524 0-.996-.067-1.438-.215-.614-.204-1.163-.56-1.726-1.116l-.227-.235c-.753-.812-1.534-1.976-2.493-3.586l-1.43-2.41-.544-.895-1.766 3.13-.343.592C7.597 19.156 6.227 20 4.356 20c-1.21 0-2.205-.42-2.936-1.182l-.168-.184c-.484-.573-.837-1.311-1.043-2.189l-.067-.32a8.69 8.69 0 01-.136-1.288L0 14.468c.002-.745.06-1.49.174-2.23l.1-.573c.298-1.53.828-2.958 1.536-4.157l.209-.34c1.177-1.83 2.789-3.053 4.615-3.16L6.897 4z",
-  "Meta"
-);
-
-export const Microsoft = createIcon(
-  "M11.49 2H2v9.492h9.492V2h-.002z",
-  "Microsoft"
-);
-
-export const Mistral = createIcon(
-  "M3.428 3.4h3.429v3.428h3.429v3.429h-.002 3.431V6.828h3.427V3.4h3.43v13.714H24v3.429H13.714v-3.428h-3.428v-3.429h-3.43v3.428h3.43v3.429H0v-3.429h3.428V3.4zm10.286 13.715h3.428v-3.429h-3.427v3.429z",
-  "Mistral"
-);
-
-export const Nvidia = createIcon(
-  "M10.212 8.976V7.62c.127-.01.256-.017.388-.021 3.596-.117 5.957 3.184 5.957 3.184s-2.548 3.647-5.282 3.647a3.227 3.227 0 01-1.063-.175v-4.109c1.4.174 1.681.812 2.523 2.258l1.873-1.627a4.905 4.905 0 00-3.67-1.846 6.594 6.594 0 00-.729.044m0-4.476v2.025c.13-.01.259-.019.388-.024 5.002-.174 8.261 4.226 8.261 4.226s-3.743 4.69-7.643 4.69c-.338 0-.675-.031-1.007-.092v1.25c.278.038.558.057.838.057 3.629 0 6.253-1.91 8.794-4.169.421.347 2.146 1.193 2.501 1.564-2.416 2.083-8.048 3.763-11.24 3.763-.308 0-.603-.02-.894-.048V19.5H24v-15H10.21z",
-  "Nvidia"
-);
-
-export const Ollama = createIcon(
-  "M7.905 1.09c.216.085.411.225.588.41.295.306.544.744.734 1.263.191.522.315 1.1.362 1.68a5.054 5.054 0 012.049-.636l.051-.004c.87-.07 1.73.087 2.48.474.101.053.2.11.297.17.05-.569.172-1.134.36-1.644.19-.52.439-.957.733-1.264a1.67 1.67 0 01.589-.41c.257-.1.53-.118.796-.042.401.114.745.368 1.016.737.248.337.434.769.561 1.287.23.934.27 2.163.115 3.645l.053.04.026.019c.757.576 1.284 1.397 1.563 2.35.435 1.487.216 3.155-.534 4.088l-.018.021.002.003c.417.762.67 1.567.724 2.4l.002.03c.064 1.065-.2 2.137-.814 3.19l-.007.01.01.024c.472 1.157.62 2.322.438 3.486l-.006.039a.651.651 0 01-.747.536.648.648 0 01-.54-.742c.167-1.033.01-2.069-.48-3.123a.643.643 0 01.04-.617l.004-.006c.604-.924.854-1.83.8-2.72-.046-.779-.325-1.544-.8-2.273a.644.644 0 01.18-.886l.009-.006c.243-.159.467-.565.58-1.12a4.229 4.229 0 00-.095-1.974c-.205-.7-.58-1.284-1.105-1.683-.595-.454-1.383-.673-2.38-.61a.653.653 0 01-.632-.371c-.314-.665-.772-1.141-1.343-1.436a3.288 3.288 0 00-1.772-.332c-1.245.099-2.343.801-2.67 1.686a.652.652 0 01-.61.425c-1.067.002-1.893.252-2.497.703-.522.39-.878.935-1.066 1.588a4.07 4.07 0 00-.068 1.886c.112.558.331 1.02.582 1.269l.008.007c.212.207.257.53.109.785-.36.622-.629 1.549-.673 2.44-.05 1.018.186 1.902.719 2.536l.016.019a.643.643 0 01.095.69c-.576 1.236-.753 2.252-.562 3.052a.652.652 0 01-1.269.298c-.243-1.018-.078-2.184.473-3.498l.014-.035-.008-.012a4.339 4.339 0 01-.598-1.309l-.005-.019a5.764 5.764 0 01-.177-1.785c.044-.91.278-1.842.622-2.59l.012-.026-.002-.002c-.293-.418-.51-.953-.63-1.545l-.005-.024a5.352 5.352 0 01.093-2.49c.262-.915.777-1.701 1.536-2.269.06-.045.123-.09.186-.132-.159-1.493-.119-2.73.112-3.67.127-.518.314-.95.562-1.287.27-.368.614-.622 1.015-.737.266-.076.54-.059.797.042z",
-  "Ollama"
-);
-
-export const OpenAI = createIcon(
-  "M21.55 10.004a5.416 5.416 0 00-.478-4.501c-1.217-2.09-3.662-3.166-6.05-2.66A5.59 5.59 0 0010.831 1C8.39.995 6.224 2.546 5.473 4.838A5.553 5.553 0 001.76 7.496a5.487 5.487 0 00.691 6.5 5.416 5.416 0 00.477 4.502c1.217 2.09 3.662 3.165 6.05 2.66A5.586 5.586 0 0013.168 23c2.443.006 4.61-1.546 5.361-3.84a5.553 5.553 0 003.715-2.66 5.488 5.488 0 00-.693-6.497v.001zm-8.381 11.558a4.199 4.199 0 01-2.675-.954c.034-.018.093-.05.132-.074l4.44-2.53a.71.71 0 00.364-.623v-6.176l1.877 1.069c.02.01.033.029.036.05v5.115c-.003 2.274-1.87 4.118-4.174 4.123zM4.192 17.78a4.059 4.059 0 01-.498-2.763c.032.02.09.055.131.078l4.44 2.53c.225.13.504.13.73 0l5.42-3.088v2.138a.068.068 0 01-.027.057L9.9 19.288c-1.999 1.136-4.552.46-5.707-1.51h-.001zM3.023 8.216A4.15 4.15 0 015.198 6.41l-.002.151v5.06a.711.711 0 00.364.624l5.42 3.087-1.876 1.07a.067.067 0 01-.063.005l-4.489-2.559c-1.995-1.14-2.679-3.658-1.53-5.63h.001zm15.417 3.54l-5.42-3.088L14.896 7.6a.067.067 0 01.063-.006l4.489 2.557c1.998 1.14 2.683 3.662 1.529 5.633a4.163 4.163 0 01-2.174 1.807V12.38a.71.71 0 00-.363-.623zm1.867-2.773a6.04 6.04 0 00-.132-.078l-4.44-2.53a.731.731 0 00-.729 0l-5.42 3.088V7.325a.068.068 0 01.027-.057L14.1 4.713c2-1.137 4.555-.46 5.707 1.513.487.833.664 1.809.499 2.757h.001zm-11.741 3.81l-1.877-1.068a.065.065 0 01-.036-.051V6.559c.001-2.277 1.873-4.122 4.181-4.12.976 0 1.92.338 2.671.954-.034.018-.092.05-.131.073l-4.44 2.53a.71.71 0 00-.365.623l-.003 6.173v.002zm1.02-2.168L12 9.25l2.414 1.375v2.75L12 14.75l-2.415-1.375v-2.75z",
-  "OpenAI"
-);
-
-export const OpenRouter = createIcon(
-  "M19.187 6.299a7.65 7.65 0 00-2.132-2.96c-.92-.794-2.012-1.404-3.195-1.787A11.375 11.375 0 0010.26 1c-1.246 0-2.476.185-3.6.552-1.182.383-2.275.993-3.195 1.786a7.65 7.65 0 00-2.131 2.961c-.492 1.14-.74 2.386-.726 3.642a7.94 7.94 0 00.726 3.358 8.03 8.03 0 002.13 2.744c.921.768 2.014 1.362 3.196 1.739 1.123.36 2.354.54 3.6.54 1.247 0 2.477-.18 3.6-.54 1.182-.377 2.276-.97 3.196-1.739a8.03 8.03 0 002.131-2.744 7.94 7.94 0 00.727-3.358 8.327 8.327 0 00-.727-3.642z",
-  "OpenRouter"
-);
-
-export const Perplexity = createIcon(
-  "M4.213 2.865v6.786H2V7.007L4.213 2.865zM22 9.651H12.99v4.17h3.434V9.65H22zM12.99 2h-1.98v11.821h1.98V2zM2 14.535h7.64v-3.957l2.37.785v6.815l-2.58.857L2 14.535zm15.424-.714H22v4.8l-4.576 1.523v-6.323z",
-  "Perplexity"
-);
-
-export const Phidata = createIcon(
-  "M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-1-13h2v6h-2V7zm0 8h2v2h-2v-2z",
-  "Phidata"
-);
-
-export const PydanticAI = createIcon(
-  "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
-  "Pydantic AI"
-);
-
-export const Replicate = createIcon(
-  "M2.5 5.5v13h3v-13h-3zm8 6.5v6.5h3V12h-3zm8-3.5v10h3v-10h-3z",
-  "Replicate"
-);
-
-export const SambaNova = createIcon(
-  "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z",
-  "SambaNova"
-);
-
-export const Stability = createIcon(
-  "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7v-2z",
-  "Stability AI"
-);
-
-export const Together = createIcon(
-  "M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7V5h10v14z",
-  "Together AI"
-);
-
-export const Vercel = createIcon(
-  "M12 2L2 19.5h20L12 2z",
-  "Vercel"
-);
-
-export const Vllm = createIcon(
-  "M12 2L2 22h20L12 2zm0 4l7 14H5l7-14z",
-  "vLLM"
-);
-
-export const Voyage = createIcon(
-  "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 13v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z",
-  "Voyage AI"
-);
+// Export individual icons
+export const Ai21 = Ai21Icon;
+export const Anthropic = AnthropicIcon;
+export const Anyscale = AnyscaleIcon;
+export const AssemblyAI = AssemblyAIIcon;
+export const Aws = AwsIcon;
+export const Baseten = BasetenIcon;
+export const Cerebras = CerebrasIcon;
+export const Cohere = CohereIcon;
+export const CrewAI = CrewAIIcon;
+export const DeepSeek = DeepSeekIcon;
+export const ElevenLabs = ElevenLabsIcon;
+export const Fireworks = FireworksIcon;
+export const Google = GoogleIcon;
+export const Groq = GroqIcon;
+export const HuggingFace = HuggingFaceIcon;
+export const Jina = JinaIcon;
+export const LangChain = LangChainIcon;
+export const Langfuse = LangfuseIcon;
+export const LangSmith = LangSmithIcon;
+export const LeptonAI = LeptonAIIcon;
+export const LlamaIndex = LlamaIndexIcon;
+export const Meta = MetaIcon;
+export const Microsoft = MicrosoftIcon;
+export const Mistral = MistralIcon;
+export const Nvidia = NvidiaIcon;
+export const Ollama = OllamaIcon;
+export const OpenAI = OpenAIIcon;
+export const OpenRouter = OpenRouterIcon;
+export const Perplexity = PerplexityIcon;
+export const Phidata = PhidataIcon;
+export const PydanticAI = PydanticAIIcon;
+export const Replicate = ReplicateIcon;
+export const SambaNova = SambaNovaIcon;
+export const Stability = StabilityIcon;
+export const Together = TogetherIcon;
+export const Vercel = VercelIcon;
+export const Vllm = VllmIcon;
+export const Voyage = VoyageIcon;
 
 // Provider icon mapping for easy lookup
-export const PROVIDER_ICONS: Record<string, React.ComponentType<IconProps>> = {
-  "AI21 Labs": Ai21,
-  "Anthropic": Anthropic,
-  "Anyscale": Anyscale,
-  "AssemblyAI": AssemblyAI,
-  "AWS": Aws,
-  "Baseten": Baseten,
-  "Cerebras": Cerebras,
-  "Cohere": Cohere,
-  "CrewAI": CrewAI,
-  "DeepSeek": DeepSeek,
-  "ElevenLabs": ElevenLabs,
-  "Fireworks AI": Fireworks,
-  "Google": Google,
-  "Groq": Groq,
-  "HuggingFace": HuggingFace,
-  "Jina AI": Jina,
-  "LangChain": LangChain,
-  "LangFuse": Langfuse,
-  "LangSmith": LangSmith,
-  "Lepton AI": LeptonAI,
-  "LlamaIndex": LlamaIndex,
-  "Meta": Meta,
-  "Microsoft": Microsoft,
-  "Mistral": Mistral,
-  "Nvidia": Nvidia,
-  "Ollama": Ollama,
-  "OpenAI": OpenAI,
-  "OpenRouter": OpenRouter,
-  "Perplexity": Perplexity,
-  "Phidata": Phidata,
-  "Pydantic AI": PydanticAI,
-  "Replicate": Replicate,
-  "SambaNova": SambaNova,
-  "Stability AI": Stability,
-  "Together AI": Together,
-  "Vercel": Vercel,
-  "vLLM": Vllm,
-  "Voyage AI": Voyage,
+export const PROVIDER_ICONS: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
+  Ai21: Ai21Icon,
+  Anthropic: AnthropicIcon,
+  Anyscale: AnyscaleIcon,
+  AssemblyAI: AssemblyAIIcon,
+  Aws: AwsIcon,
+  Baseten: BasetenIcon,
+  Cerebras: CerebrasIcon,
+  Cohere: CohereIcon,
+  CrewAI: CrewAIIcon,
+  DeepSeek: DeepSeekIcon,
+  ElevenLabs: ElevenLabsIcon,
+  Fireworks: FireworksIcon,
+  Google: GoogleIcon,
+  Groq: GroqIcon,
+  HuggingFace: HuggingFaceIcon,
+  Jina: JinaIcon,
+  LangChain: LangChainIcon,
+  Langfuse: LangfuseIcon,
+  LangSmith: LangSmithIcon,
+  LeptonAI: LeptonAIIcon,
+  LlamaIndex: LlamaIndexIcon,
+  Meta: MetaIcon,
+  Microsoft: MicrosoftIcon,
+  Mistral: MistralIcon,
+  Nvidia: NvidiaIcon,
+  Ollama: OllamaIcon,
+  OpenAI: OpenAIIcon,
+  OpenRouter: OpenRouterIcon,
+  Perplexity: PerplexityIcon,
+  Phidata: PhidataIcon,
+  PydanticAI: PydanticAIIcon,
+  Replicate: ReplicateIcon,
+  SambaNova: SambaNovaIcon,
+  Stability: StabilityIcon,
+  Together: TogetherIcon,
+  Vercel: VercelIcon,
+  Vllm: VllmIcon,
+  Voyage: VoyageIcon,
 };

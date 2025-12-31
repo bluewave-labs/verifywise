@@ -181,12 +181,13 @@ interface DetectionPattern {
 
 ## Pattern Categories
 
-### Cloud Providers (28 patterns)
+### Cloud Providers (45 patterns)
 `CLOUD_PROVIDER_PATTERNS` - High risk, sends data to external APIs
-Includes: OpenAI, Anthropic, Google AI, Azure OpenAI, AWS Bedrock, Cohere, Mistral, Replicate, HuggingFace, Groq, Together AI, Perplexity, Fireworks AI, DeepSeek, AI21, Cerebras, xAI, ElevenLabs, AssemblyAI, Deepgram, Stability AI, Clarifai, Databricks, Modal, LangSmith, LangFuse, Arize, Weights & Biases
+Includes: OpenAI, Anthropic, Google AI, Azure OpenAI, AWS Bedrock, Cohere, Mistral, Replicate, HuggingFace, Groq, Together AI, Perplexity, Fireworks AI, DeepSeek, AI21, Cerebras, xAI, ElevenLabs, AssemblyAI, Deepgram, Stability AI, Clarifai, Databricks, Modal, LangSmith, LangFuse, Arize, Weights & Biases, OpenRouter, SambaNova, Lepton AI, Anyscale, Baseten, Voyage AI, Jina AI, Unify AI, Writer, Pinecone, Weaviate, Qdrant, Milvus, Chroma, Helicone, Braintrust, Portkey
 
-### Frameworks (10 patterns)
+### Frameworks (17 patterns)
 `FRAMEWORK_PATTERNS` - Medium risk, can use cloud or local
+Includes: LangChain, LlamaIndex, Haystack, CrewAI, Semantic Kernel, AutoGen, Instructor, Guidance, DSPy, LiteLLM, Phidata, Pydantic AI, Smolagents, Agency Swarm, ControlFlow, Marvin, Vercel AI SDK
 
 ### Local ML (21 patterns)
 `LOCAL_ML_PATTERNS` - Low risk, processes data locally

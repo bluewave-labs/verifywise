@@ -352,4 +352,217 @@ export const FRAMEWORK_PATTERNS: DetectionPattern[] = [
       ],
     },
   },
+
+  // ============================================================================
+  // Phidata (AI Agents & Assistants)
+  // ============================================================================
+  {
+    name: "phidata",
+    provider: "Phidata",
+    description:
+      "Framework for building AI assistants with memory and tools",
+    documentationUrl: "https://docs.phidata.com/",
+    confidence: "high",
+    keywords: ["phidata", "phi", "assistant"],
+    patterns: {
+      imports: [
+        /from\s+phi\./,
+        /import\s+phi\./,
+        /from\s+phidata/,
+      ],
+      dependencies: [
+        /"phidata":\s*"/,
+        /phidata[>=<~^]/,
+      ],
+      apiCalls: [
+        // Agent creation
+        /Assistant\s*\(/,
+        /Agent\s*\(/,
+        // Knowledge base
+        /PDFKnowledgeBase\s*\(/,
+        /WebsiteKnowledgeBase\s*\(/,
+        // Tools
+        /DuckDuckGo\s*\(/,
+        /Newspaper4k\s*\(/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Pydantic AI (Type-safe AI)
+  // ============================================================================
+  {
+    name: "pydantic-ai",
+    provider: "Pydantic AI",
+    description:
+      "Type-safe AI agent framework from Pydantic team",
+    documentationUrl: "https://ai.pydantic.dev/",
+    confidence: "high",
+    keywords: ["pydantic_ai", "pydantic-ai"],
+    patterns: {
+      imports: [
+        /from\s+pydantic_ai/,
+        /import\s+pydantic_ai/,
+      ],
+      dependencies: [
+        /"pydantic-ai":\s*"/,
+        /pydantic-ai[>=<~^]/,
+      ],
+      apiCalls: [
+        /Agent\s*\(/,
+        /\.run\s*\(/,
+        /\.run_sync\s*\(/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Smolagents (Hugging Face)
+  // ============================================================================
+  {
+    name: "smolagents",
+    provider: "Hugging Face",
+    description:
+      "Lightweight AI agent library from Hugging Face",
+    documentationUrl: "https://huggingface.co/docs/smolagents/",
+    confidence: "high",
+    keywords: ["smolagents"],
+    patterns: {
+      imports: [
+        /from\s+smolagents/,
+        /import\s+smolagents/,
+      ],
+      dependencies: [
+        /"smolagents":\s*"/,
+        /smolagents[>=<~^]/,
+      ],
+      apiCalls: [
+        /CodeAgent\s*\(/,
+        /ToolCallingAgent\s*\(/,
+        /ManagedAgent\s*\(/,
+        /HfApiModel\s*\(/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Agency Swarm (Multi-Agent)
+  // ============================================================================
+  {
+    name: "agency-swarm",
+    provider: "Agency Swarm",
+    description:
+      "Framework for creating collaborative AI agent systems",
+    documentationUrl: "https://github.com/VRSEN/agency-swarm",
+    confidence: "high",
+    keywords: ["agency_swarm", "agency-swarm"],
+    patterns: {
+      imports: [
+        /from\s+agency_swarm/,
+        /import\s+agency_swarm/,
+      ],
+      dependencies: [
+        /"agency-swarm":\s*"/,
+        /agency-swarm[>=<~^]/,
+      ],
+      apiCalls: [
+        /Agency\s*\(/,
+        /Agent\s*\(/,
+        /\.run_demo\s*\(/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // ControlFlow (Prefect AI)
+  // ============================================================================
+  {
+    name: "controlflow",
+    provider: "ControlFlow",
+    description:
+      "Agentic workflow framework from Prefect team",
+    documentationUrl: "https://controlflow.ai/",
+    confidence: "high",
+    keywords: ["controlflow"],
+    patterns: {
+      imports: [
+        /from\s+controlflow/,
+        /import\s+controlflow/,
+      ],
+      dependencies: [
+        /"controlflow":\s*"/,
+        /controlflow[>=<~^]/,
+      ],
+      apiCalls: [
+        /cf\.run\s*\(/,
+        /cf\.Agent\s*\(/,
+        /cf\.Task\s*\(/,
+        /@cf\.flow/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Marvin (Prefect AI)
+  // ============================================================================
+  {
+    name: "marvin",
+    provider: "Marvin",
+    description:
+      "AI engineering toolkit from Prefect team",
+    documentationUrl: "https://www.askmarvin.ai/",
+    confidence: "high",
+    keywords: ["marvin"],
+    patterns: {
+      imports: [
+        /from\s+marvin/,
+        /import\s+marvin/,
+      ],
+      dependencies: [
+        /"marvin":\s*"/,
+        /marvin[>=<~^]/,
+      ],
+      apiCalls: [
+        /marvin\.classify\s*\(/,
+        /marvin\.extract\s*\(/,
+        /marvin\.cast\s*\(/,
+        /marvin\.fn\s*\(/,
+        /@marvin\.fn/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Vercel AI SDK
+  // ============================================================================
+  {
+    name: "vercel-ai",
+    provider: "Vercel",
+    description:
+      "Vercel AI SDK for building AI-powered applications",
+    documentationUrl: "https://sdk.vercel.ai/docs",
+    confidence: "high",
+    keywords: ["@ai-sdk", "ai-sdk", "vercel-ai", "streamText", "generateText", "useChat"],
+    patterns: {
+      imports: [
+        /from\s+["']ai["']/,
+        /from\s+["']@ai-sdk\//,
+        /import\s+.*\s+from\s+["']ai["']/,
+      ],
+      dependencies: [
+        /"ai":\s*"/,
+        /"@ai-sdk\/openai":\s*"/,
+        /"@ai-sdk\/anthropic":\s*"/,
+        /"@ai-sdk\/google":\s*"/,
+      ],
+      apiCalls: [
+        /generateText\s*\(/,
+        /streamText\s*\(/,
+        /generateObject\s*\(/,
+        /streamObject\s*\(/,
+        /useChat\s*\(/,
+        /useCompletion\s*\(/,
+      ],
+    },
+  },
 ];

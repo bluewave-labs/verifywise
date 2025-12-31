@@ -353,6 +353,112 @@ response = client.text_to_image(prompt="A sunset")
     expectedPatterns: ["stability-ai"],
     expectedTypes: ["library", "api_call"],
   },
+
+  // ============================================================================
+  // New Providers (Phase 3)
+  // ============================================================================
+  {
+    name: "OpenRouter Multi-Provider",
+    file: "router.py",
+    content: `
+import openrouter
+
+# Uses OpenRouter API
+url = "https://openrouter.ai/api/v1/chat/completions"
+`,
+    expectedPatterns: ["openrouter"],
+    expectedTypes: ["api_call"],
+  },
+  {
+    name: "Pinecone Vector Database",
+    file: "vectors.py",
+    content: `
+from pinecone import Pinecone
+
+pc = Pinecone()
+index = pc.Index("my-index")
+index.upsert(vectors=data)
+`,
+    expectedPatterns: ["pinecone"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "Weaviate Vector Database",
+    file: "weaviate_app.py",
+    content: `
+import weaviate
+
+client = weaviate.connect_to_weaviate_cloud(
+    cluster_url="https://my-cluster.weaviate.cloud"
+)
+`,
+    expectedPatterns: ["weaviate"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "Qdrant Vector Database",
+    file: "qdrant_app.py",
+    content: `
+from qdrant_client import QdrantClient
+
+client = QdrantClient(url="https://my-cluster.qdrant.io")
+client.search(collection_name="my_collection")
+`,
+    expectedPatterns: ["qdrant"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "Chroma Vector Database",
+    file: "chroma_app.py",
+    content: `
+import chromadb
+
+client = chromadb.Client()
+collection = client.get_or_create_collection("my_collection")
+collection.add(documents=docs)
+`,
+    expectedPatterns: ["chroma"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "Vercel AI SDK",
+    file: "chat.ts",
+    content: `
+import { streamText } from 'ai';
+import { openai } from '@ai-sdk/openai';
+
+// Call the AI SDK
+const result = await streamText({
+  model: openai('gpt-4'),
+  prompt: 'Hello'
+});
+`,
+    expectedPatterns: ["vercel-ai"],
+    expectedTypes: ["library", "api_call"],
+  },
+  {
+    name: "Helicone Observability",
+    file: "observe.py",
+    content: `
+# Using Helicone proxy
+url = "https://oai.helicone.ai/v1/chat/completions"
+headers = {"Helicone-Auth": "Bearer xxx"}
+`,
+    expectedPatterns: ["helicone"],
+    expectedTypes: ["api_call"],
+  },
+  {
+    name: "Phidata Agents",
+    file: "agent.py",
+    content: `
+from phi.assistant import Assistant
+from phi.tools.duckduckgo import DuckDuckGo
+
+assistant = Assistant(tools=[DuckDuckGo()])
+`,
+    expectedPatterns: ["phidata"],
+    expectedTypes: ["library", "api_call"],
+  },
 ];
 
 // Run tests

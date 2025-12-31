@@ -1320,4 +1320,712 @@ export const CLOUD_PROVIDER_PATTERNS: DetectionPattern[] = [
     },
     minEntropy: 3.5,
   },
+
+  // ============================================================================
+  // OpenRouter (Multi-Provider Gateway)
+  // ============================================================================
+  {
+    name: "openrouter",
+    provider: "OpenRouter",
+    description: "Unified API gateway for hundreds of AI models",
+    documentationUrl: "https://openrouter.ai/docs",
+    confidence: "high",
+    keywords: [
+      "openrouter",
+      "sk-or-",
+      "OPENROUTER_API_KEY",
+      "openrouter.ai",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+openrouter/m,
+        /^from\s+openrouter\s+import/m,
+      ],
+      dependencies: [
+        /^openrouter[=<>~!\s]/m,
+        /"openrouter"\s*:/,
+        /'openrouter'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /openrouter\.ai\/api/,
+        /api\.openrouter\.ai/,
+      ],
+      secrets: [
+        // OpenRouter API keys (sk-or- prefix)
+        /\bsk-or-[A-Za-z0-9_-]{48,}\b/,
+        /OPENROUTER_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // SambaNova (Enterprise AI)
+  // ============================================================================
+  {
+    name: "sambanova",
+    provider: "SambaNova",
+    description: "SambaNova enterprise AI inference platform",
+    documentationUrl: "https://sambanova.ai/products/enterprise-ai",
+    confidence: "high",
+    keywords: [
+      "sambanova",
+      "SAMBANOVA_API_KEY",
+      "api.sambanova.ai",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+sambanova/m,
+        /^from\s+sambanova\s+import/m,
+      ],
+      dependencies: [
+        /^sambanova[=<>~!\s]/m,
+        /"sambanova"\s*:/,
+        /'sambanova'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.sambanova\.ai/,
+        /fast-api\.snova\.ai/,
+      ],
+      secrets: [
+        /SAMBANOVA_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Lepton AI (Serverless AI)
+  // ============================================================================
+  {
+    name: "lepton",
+    provider: "Lepton AI",
+    description: "Lepton AI serverless platform for running AI models",
+    documentationUrl: "https://www.lepton.ai/docs",
+    confidence: "high",
+    keywords: [
+      "lepton",
+      "LEPTON_API_TOKEN",
+      "api.lepton.ai",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+leptonai/m,
+        /^from\s+leptonai\s+import/m,
+      ],
+      dependencies: [
+        /^leptonai[=<>~!\s]/m,
+        /"leptonai"\s*:/,
+        /'leptonai'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /\.lepton\.ai/,
+        /api\.lepton\.ai/,
+      ],
+      secrets: [
+        /LEPTON_API_TOKEN\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Anyscale (Ray-based AI Platform)
+  // ============================================================================
+  {
+    name: "anyscale",
+    provider: "Anyscale",
+    description: "Anyscale platform for scalable AI applications",
+    documentationUrl: "https://docs.anyscale.com",
+    confidence: "high",
+    keywords: [
+      "anyscale",
+      "ANYSCALE_API_KEY",
+      "api.anyscale.com",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+anyscale/m,
+        /^from\s+anyscale\s+import/m,
+      ],
+      dependencies: [
+        /^anyscale[=<>~!\s]/m,
+        /"anyscale"\s*:/,
+        /'anyscale'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.anyscale\.com/,
+        /endpoints\.anyscale\.com/,
+      ],
+      secrets: [
+        /ANYSCALE_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /ANYSCALE_API_BASE\s*[=:]\s*["']?https?:\/\/[^"'\s]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Baseten (Model Deployment)
+  // ============================================================================
+  {
+    name: "baseten",
+    provider: "Baseten",
+    description: "Baseten platform for deploying ML models",
+    documentationUrl: "https://docs.baseten.co",
+    confidence: "high",
+    keywords: [
+      "baseten",
+      "BASETEN_API_KEY",
+      "api.baseten.co",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+baseten/m,
+        /^from\s+baseten\s+import/m,
+        /^import\s+truss/m,
+      ],
+      dependencies: [
+        /^baseten[=<>~!\s]/m,
+        /"baseten"\s*:/,
+        /'baseten'\s*:/,
+        /^truss[=<>~!\s]/m,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.baseten\.co/,
+        /model-.*\.api\.baseten\.co/,
+      ],
+      secrets: [
+        /BASETEN_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Voyage AI (Embeddings)
+  // ============================================================================
+  {
+    name: "voyageai",
+    provider: "Voyage AI",
+    description: "Voyage AI embedding models for search and RAG",
+    documentationUrl: "https://docs.voyageai.com",
+    confidence: "high",
+    keywords: [
+      "voyageai",
+      "voyage",
+      "pa-",
+      "VOYAGE_API_KEY",
+      "api.voyageai.com",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+voyageai/m,
+        /^from\s+voyageai\s+import/m,
+      ],
+      dependencies: [
+        /^voyageai[=<>~!\s]/m,
+        /"voyageai"\s*:/,
+        /'voyageai'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.voyageai\.com/,
+      ],
+      secrets: [
+        // Voyage AI API keys (pa- prefix)
+        /\bpa-[A-Za-z0-9_-]{48,}\b/,
+        /VOYAGE_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Jina AI (Embeddings & Search)
+  // ============================================================================
+  {
+    name: "jinaai",
+    provider: "Jina AI",
+    description: "Jina AI embeddings and neural search",
+    documentationUrl: "https://jina.ai/embeddings",
+    confidence: "high",
+    keywords: [
+      "jina",
+      "jinaai",
+      "jina-",
+      "JINA_API_KEY",
+      "api.jina.ai",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+jina/m,
+        /^from\s+jina\s+import/m,
+      ],
+      dependencies: [
+        /^jina[=<>~!\s]/m,
+        /"jina"\s*:/,
+        /'jina'\s*:/,
+        /^jinaai[=<>~!\s]/m,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.jina\.ai/,
+        /r\.jina\.ai/,
+        /s\.jina\.ai/,
+      ],
+      secrets: [
+        // Jina API keys (jina_ prefix)
+        /\bjina_[A-Za-z0-9_-]{32,}\b/,
+        /JINA_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Unify AI (LLM Router)
+  // ============================================================================
+  {
+    name: "unify",
+    provider: "Unify AI",
+    description: "Unify AI intelligent LLM routing",
+    documentationUrl: "https://unify.ai/docs",
+    confidence: "high",
+    keywords: [
+      "unify",
+      "unifyai",
+      "UNIFY_KEY",
+      "api.unify.ai",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+unify/m,
+        /^from\s+unify\s+import/m,
+        /^from\s+unifyai\s+import/m,
+      ],
+      dependencies: [
+        /^unifyai[=<>~!\s]/m,
+        /"unifyai"\s*:/,
+        /'unifyai'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.unify\.ai/,
+      ],
+      secrets: [
+        /UNIFY_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /UNIFY_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Writer AI (Enterprise AI)
+  // ============================================================================
+  {
+    name: "writer",
+    provider: "Writer",
+    description: "Writer AI enterprise generative AI platform",
+    documentationUrl: "https://dev.writer.com",
+    confidence: "high",
+    keywords: [
+      "writer",
+      "writerai",
+      "WRITER_API_KEY",
+      "api.writer.com",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+writer/m,
+        /^from\s+writer\s+import/m,
+        /^from\s+writerai\s+import/m,
+      ],
+      dependencies: [
+        /^writer-sdk[=<>~!\s]/m,
+        /"writer-sdk"\s*:/,
+        /'writer-sdk'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.writer\.com/,
+        /enterprise-api\.writer\.com/,
+      ],
+      secrets: [
+        /WRITER_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // VECTOR DATABASES (Cloud Services)
+  // ============================================================================
+
+  // ============================================================================
+  // Pinecone
+  // ============================================================================
+  {
+    name: "pinecone",
+    provider: "Pinecone",
+    description: "Pinecone vector database for similarity search",
+    documentationUrl: "https://docs.pinecone.io",
+    confidence: "high",
+    keywords: [
+      "pinecone",
+      "PINECONE_API_KEY",
+      "pinecone.io",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+pinecone/m,
+        /^from\s+pinecone\s+import/m,
+        /require\s*\(\s*["']@pinecone-database\/pinecone["']\s*\)/,
+        /import\s+.*\s+from\s+["']@pinecone-database\/pinecone["']/,
+      ],
+      dependencies: [
+        /^pinecone-client[=<>~!\s]/m,
+        /^pinecone[=<>~!\s]/m,
+        /"@pinecone-database\/pinecone"\s*:/,
+        /'@pinecone-database\/pinecone'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /\.pinecone\.io/,
+        /api\.pinecone\.io/,
+
+        // Tier 2: SDK instantiation
+        /Pinecone\s*\(\s*\)/,
+        /new\s+Pinecone\s*\(/,
+
+        // Tier 3: Method calls
+        /pinecone\.Index\s*\(/,
+        /\.upsert\s*\(/,
+        /\.query\s*\(/,
+      ],
+      secrets: [
+        /PINECONE_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /PINECONE_ENVIRONMENT\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Weaviate (Cloud)
+  // ============================================================================
+  {
+    name: "weaviate",
+    provider: "Weaviate",
+    description: "Weaviate vector database with hybrid search",
+    documentationUrl: "https://weaviate.io/developers/weaviate",
+    confidence: "high",
+    keywords: [
+      "weaviate",
+      "WEAVIATE_API_KEY",
+      "weaviate.io",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+weaviate/m,
+        /^from\s+weaviate\s+import/m,
+        /require\s*\(\s*["']weaviate-client["']\s*\)/,
+        /require\s*\(\s*["']weaviate-ts-client["']\s*\)/,
+        /import\s+.*\s+from\s+["']weaviate-ts-client["']/,
+      ],
+      dependencies: [
+        /^weaviate-client[=<>~!\s]/m,
+        /"weaviate-client"\s*:/,
+        /'weaviate-client'\s*:/,
+        /"weaviate-ts-client"\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /\.weaviate\.cloud/,
+        /\.weaviate\.network/,
+
+        // Tier 2: SDK instantiation
+        /weaviate\.Client\s*\(/,
+        /weaviate\.connect_to_wcs\s*\(/,
+        /weaviate\.connect_to_weaviate_cloud\s*\(/,
+
+        // Tier 3: Method calls
+        /\.collections\.create\s*\(/,
+        /client\.schema\.create_class\s*\(/,
+      ],
+      secrets: [
+        /WEAVIATE_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /WEAVIATE_URL\s*[=:]\s*["']?https?:\/\/[^"'\s]+["']?/,
+        /WCS_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Qdrant (Cloud)
+  // ============================================================================
+  {
+    name: "qdrant",
+    provider: "Qdrant",
+    description: "Qdrant vector similarity search engine",
+    documentationUrl: "https://qdrant.tech/documentation",
+    confidence: "high",
+    keywords: [
+      "qdrant",
+      "QDRANT_API_KEY",
+      "qdrant.io",
+      "qdrant.tech",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+qdrant_client/m,
+        /^from\s+qdrant_client\s+import/m,
+        /require\s*\(\s*["']@qdrant\/js-client-rest["']\s*\)/,
+        /import\s+.*\s+from\s+["']@qdrant\/js-client-rest["']/,
+      ],
+      dependencies: [
+        /^qdrant-client[=<>~!\s]/m,
+        /"@qdrant\/js-client-rest"\s*:/,
+        /'@qdrant\/js-client-rest'\s*:/,
+        /"qdrant-client"\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /\.qdrant\.io/,
+        /\.qdrant\.tech/,
+
+        // Tier 2: SDK instantiation
+        /QdrantClient\s*\(/,
+        /qdrant_client\.QdrantClient\s*\(/,
+
+        // Tier 3: Method calls
+        /client\.upsert\s*\(/,
+        /client\.search\s*\(/,
+        /\.create_collection\s*\(/,
+      ],
+      secrets: [
+        /QDRANT_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /QDRANT_URL\s*[=:]\s*["']?https?:\/\/[^"'\s]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Milvus / Zilliz (Cloud)
+  // ============================================================================
+  {
+    name: "milvus",
+    provider: "Milvus",
+    description: "Milvus/Zilliz vector database for AI applications",
+    documentationUrl: "https://milvus.io/docs",
+    confidence: "high",
+    keywords: [
+      "milvus",
+      "zilliz",
+      "pymilvus",
+      "ZILLIZ_CLOUD",
+    ],
+    patterns: {
+      imports: [
+        /^from\s+pymilvus\s+import/m,
+        /^import\s+pymilvus/m,
+        /require\s*\(\s*["']@zilliz\/milvus2-sdk-node["']\s*\)/,
+        /import\s+.*\s+from\s+["']@zilliz\/milvus2-sdk-node["']/,
+      ],
+      dependencies: [
+        /^pymilvus[=<>~!\s]/m,
+        /"@zilliz\/milvus2-sdk-node"\s*:/,
+        /'@zilliz\/milvus2-sdk-node'\s*:/,
+        /"pymilvus"\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL (Zilliz Cloud)
+        /\.zillizcloud\.com/,
+        /cloud\.zilliz\.com/,
+
+        // Tier 2: SDK instantiation
+        /MilvusClient\s*\(/,
+        /connections\.connect\s*\(/,
+
+        // Tier 3: Method calls
+        /\.create_collection\s*\(/,
+        /\.insert\s*\(/,
+        /\.search\s*\(/,
+      ],
+      secrets: [
+        /ZILLIZ_CLOUD_URI\s*[=:]\s*["']?https?:\/\/[^"'\s]+["']?/,
+        /ZILLIZ_CLOUD_TOKEN\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /MILVUS_URI\s*[=:]\s*["']?https?:\/\/[^"'\s]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Chroma (Cloud)
+  // ============================================================================
+  {
+    name: "chroma",
+    provider: "Chroma",
+    description: "Chroma AI-native embedding database",
+    documentationUrl: "https://docs.trychroma.com",
+    confidence: "high",
+    keywords: [
+      "chromadb",
+      "chroma",
+      "CHROMA_API_KEY",
+    ],
+    patterns: {
+      imports: [
+        /^import\s+chromadb/m,
+        /^from\s+chromadb\s+import/m,
+        /require\s*\(\s*["']chromadb["']\s*\)/,
+        /import\s+.*\s+from\s+["']chromadb["']/,
+      ],
+      dependencies: [
+        /^chromadb[=<>~!\s]/m,
+        /"chromadb"\s*:/,
+        /'chromadb'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL (Chroma Cloud)
+        /api\.trychroma\.com/,
+
+        // Tier 2: SDK instantiation
+        /chromadb\.Client\s*\(/,
+        /chromadb\.HttpClient\s*\(/,
+        /chromadb\.CloudClient\s*\(/,
+        /ChromaClient\s*\(/,
+
+        // Tier 3: Method calls
+        /\.get_or_create_collection\s*\(/,
+        /\.create_collection\s*\(/,
+        /collection\.add\s*\(/,
+        /collection\.query\s*\(/,
+      ],
+      secrets: [
+        /CHROMA_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+        /CHROMA_SERVER_AUTH_CREDENTIALS\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // AI OBSERVABILITY & EVALUATION
+  // ============================================================================
+
+  // ============================================================================
+  // Helicone (LLM Observability)
+  // ============================================================================
+  {
+    name: "helicone",
+    provider: "Helicone",
+    description: "Helicone LLM observability and monitoring",
+    documentationUrl: "https://docs.helicone.ai",
+    confidence: "high",
+    keywords: [
+      "helicone",
+      "HELICONE_API_KEY",
+      "helicone.ai",
+    ],
+    patterns: {
+      imports: [
+        /^from\s+helicone\s+import/m,
+        /^import\s+helicone/m,
+      ],
+      dependencies: [
+        /^helicone[=<>~!\s]/m,
+        /"helicone"\s*:/,
+        /'helicone'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: Proxy URL (how Helicone is commonly used)
+        /oai\.helicone\.ai/,
+        /gateway\.helicone\.ai/,
+        /api\.helicone\.ai/,
+
+        // Headers
+        /Helicone-Auth/,
+        /helicone-auth/,
+      ],
+      secrets: [
+        /HELICONE_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Braintrust (AI Evaluation)
+  // ============================================================================
+  {
+    name: "braintrust",
+    provider: "Braintrust",
+    description: "Braintrust AI evaluation and observability platform",
+    documentationUrl: "https://www.braintrust.dev/docs",
+    confidence: "high",
+    keywords: [
+      "braintrust",
+      "BRAINTRUST_API_KEY",
+      "braintrust.dev",
+    ],
+    patterns: {
+      imports: [
+        /^from\s+braintrust\s+import/m,
+        /^import\s+braintrust/m,
+      ],
+      dependencies: [
+        /^braintrust[=<>~!\s]/m,
+        /"braintrust"\s*:/,
+        /'braintrust'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL / Proxy
+        /api\.braintrust\.dev/,
+        /braintrustproxy\.com/,
+
+        // Tier 3: Method calls
+        /braintrust\.init\s*\(/,
+        /braintrust\.Eval\s*\(/,
+        /@braintrust\/logger/,
+      ],
+      secrets: [
+        /BRAINTRUST_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
+
+  // ============================================================================
+  // Portkey (AI Gateway)
+  // ============================================================================
+  {
+    name: "portkey",
+    provider: "Portkey",
+    description: "Portkey AI gateway and observability",
+    documentationUrl: "https://docs.portkey.ai",
+    confidence: "high",
+    keywords: [
+      "portkey",
+      "PORTKEY_API_KEY",
+      "portkey.ai",
+    ],
+    patterns: {
+      imports: [
+        /^from\s+portkey_ai\s+import/m,
+        /^import\s+portkey_ai/m,
+      ],
+      dependencies: [
+        /^portkey-ai[=<>~!\s]/m,
+        /"portkey-ai"\s*:/,
+        /'portkey-ai'\s*:/,
+      ],
+      apiCalls: [
+        // Tier 1: API URL
+        /api\.portkey\.ai/,
+
+        // Tier 2: SDK instantiation
+        /Portkey\s*\(/,
+
+        // Headers
+        /x-portkey-api-key/,
+      ],
+      secrets: [
+        /PORTKEY_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+      ],
+    },
+  },
 ];

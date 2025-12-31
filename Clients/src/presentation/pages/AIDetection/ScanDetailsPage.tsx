@@ -30,45 +30,8 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import Chip from "../../components/Chip";
 import TabBar from "../../components/TabBar";
 import { VWLink } from "../../components/Link";
-// AI provider icons (importing Mono variants directly to avoid @lobehub/ui dependency)
-import Ai21 from "@lobehub/icons/es/Ai21/components/Mono";
-import Anthropic from "@lobehub/icons/es/Anthropic/components/Mono";
-import Anyscale from "@lobehub/icons/es/Anyscale/components/Mono";
-import AssemblyAI from "@lobehub/icons/es/AssemblyAI/components/Mono";
-import Aws from "@lobehub/icons/es/Aws/components/Mono";
-import Baseten from "@lobehub/icons/es/Baseten/components/Mono";
-import Cerebras from "@lobehub/icons/es/Cerebras/components/Mono";
-import Cohere from "@lobehub/icons/es/Cohere/components/Mono";
-import CrewAI from "@lobehub/icons/es/CrewAI/components/Mono";
-import DeepSeek from "@lobehub/icons/es/DeepSeek/components/Mono";
-import ElevenLabs from "@lobehub/icons/es/ElevenLabs/components/Mono";
-import Fireworks from "@lobehub/icons/es/Fireworks/components/Mono";
-import Google from "@lobehub/icons/es/Google/components/Mono";
-import Groq from "@lobehub/icons/es/Groq/components/Mono";
-import HuggingFace from "@lobehub/icons/es/HuggingFace/components/Mono";
-import Jina from "@lobehub/icons/es/Jina/components/Mono";
-import LangChain from "@lobehub/icons/es/LangChain/components/Mono";
-import Langfuse from "@lobehub/icons/es/Langfuse/components/Mono";
-import LangSmith from "@lobehub/icons/es/LangSmith/components/Mono";
-import LeptonAI from "@lobehub/icons/es/LeptonAI/components/Mono";
-import LlamaIndex from "@lobehub/icons/es/LlamaIndex/components/Mono";
-import Meta from "@lobehub/icons/es/Meta/components/Mono";
-import Microsoft from "@lobehub/icons/es/Microsoft/components/Mono";
-import Mistral from "@lobehub/icons/es/Mistral/components/Mono";
-import Nvidia from "@lobehub/icons/es/Nvidia/components/Mono";
-import Ollama from "@lobehub/icons/es/Ollama/components/Mono";
-import OpenAI from "@lobehub/icons/es/OpenAI/components/Mono";
-import OpenRouter from "@lobehub/icons/es/OpenRouter/components/Mono";
-import Perplexity from "@lobehub/icons/es/Perplexity/components/Mono";
-import Phidata from "@lobehub/icons/es/Phidata/components/Mono";
-import PydanticAI from "@lobehub/icons/es/PydanticAI/components/Mono";
-import Replicate from "@lobehub/icons/es/Replicate/components/Mono";
-import SambaNova from "@lobehub/icons/es/SambaNova/components/Mono";
-import Stability from "@lobehub/icons/es/Stability/components/Mono";
-import Together from "@lobehub/icons/es/Together/components/Mono";
-import Vercel from "@lobehub/icons/es/Vercel/components/Mono";
-import Vllm from "@lobehub/icons/es/Vllm/components/Mono";
-import Voyage from "@lobehub/icons/es/Voyage/components/Mono";
+// AI provider icons - lightweight local components (no external dependencies)
+import { PROVIDER_ICONS } from "../../components/ProviderIcons";
 // ML framework logos - for providers without lobehub icons
 import scikitLearnLogo from "../../assets/ml-logos/scikit.png";
 import numpyLogo from "../../assets/ml-logos/numpy.svg";
@@ -174,49 +137,49 @@ const GOVERNANCE_STATUS_CONFIG: Record<GovernanceStatus, { label: string; color:
 // Provider Icon Mapping
 // ============================================================================
 
-// Lobehub icon components
+// Icon components from lightweight local implementation (no external dependencies)
 const PROVIDER_ICON_COMPONENTS: Record<string, React.ComponentType<{ size?: number | string }>> = {
   // Cloud AI Providers
-  "AI21 Labs": Ai21,
-  "Anthropic": Anthropic,
-  "Anyscale": Anyscale,
-  "AssemblyAI": AssemblyAI,
-  "AWS": Aws,
-  "Baseten": Baseten,
-  "Cerebras": Cerebras,
-  "Cohere": Cohere,
-  "DeepSeek": DeepSeek,
-  "ElevenLabs": ElevenLabs,
-  "Fireworks AI": Fireworks,
-  "Google": Google,
-  "Groq": Groq,
-  "HuggingFace": HuggingFace,
-  "Jina AI": Jina,
-  "LangFuse": Langfuse,
-  "LangSmith": LangSmith,
-  "Lepton AI": LeptonAI,
-  "Meta": Meta,
-  "Microsoft": Microsoft,
-  "Mistral": Mistral,
-  "Nvidia": Nvidia,
-  "Ollama": Ollama,
-  "OpenAI": OpenAI,
-  "OpenRouter": OpenRouter,
-  "Perplexity": Perplexity,
-  "Replicate": Replicate,
-  "SambaNova": SambaNova,
-  "Stability AI": Stability,
-  "Together AI": Together,
-  "Vercel": Vercel,
-  "Voyage AI": Voyage,
+  "AI21 Labs": PROVIDER_ICONS.Ai21,
+  "Anthropic": PROVIDER_ICONS.Anthropic,
+  "Anyscale": PROVIDER_ICONS.Anyscale,
+  "AssemblyAI": PROVIDER_ICONS.AssemblyAI,
+  "AWS": PROVIDER_ICONS.Aws,
+  "Baseten": PROVIDER_ICONS.Baseten,
+  "Cerebras": PROVIDER_ICONS.Cerebras,
+  "Cohere": PROVIDER_ICONS.Cohere,
+  "DeepSeek": PROVIDER_ICONS.DeepSeek,
+  "ElevenLabs": PROVIDER_ICONS.ElevenLabs,
+  "Fireworks AI": PROVIDER_ICONS.Fireworks,
+  "Google": PROVIDER_ICONS.Google,
+  "Groq": PROVIDER_ICONS.Groq,
+  "HuggingFace": PROVIDER_ICONS.HuggingFace,
+  "Jina AI": PROVIDER_ICONS.Jina,
+  "LangFuse": PROVIDER_ICONS.Langfuse,
+  "LangSmith": PROVIDER_ICONS.LangSmith,
+  "Lepton AI": PROVIDER_ICONS.LeptonAI,
+  "Meta": PROVIDER_ICONS.Meta,
+  "Microsoft": PROVIDER_ICONS.Microsoft,
+  "Mistral": PROVIDER_ICONS.Mistral,
+  "Nvidia": PROVIDER_ICONS.Nvidia,
+  "Ollama": PROVIDER_ICONS.Ollama,
+  "OpenAI": PROVIDER_ICONS.OpenAI,
+  "OpenRouter": PROVIDER_ICONS.OpenRouter,
+  "Perplexity": PROVIDER_ICONS.Perplexity,
+  "Replicate": PROVIDER_ICONS.Replicate,
+  "SambaNova": PROVIDER_ICONS.SambaNova,
+  "Stability AI": PROVIDER_ICONS.Stability,
+  "Together AI": PROVIDER_ICONS.Together,
+  "Vercel": PROVIDER_ICONS.Vercel,
+  "Voyage AI": PROVIDER_ICONS.Voyage,
   // AI/ML Frameworks
-  "CrewAI": CrewAI,
-  "LangChain": LangChain,
-  "LlamaIndex": LlamaIndex,
-  "Phidata": Phidata,
-  "Pydantic AI": PydanticAI,
+  "CrewAI": PROVIDER_ICONS.CrewAI,
+  "LangChain": PROVIDER_ICONS.LangChain,
+  "LlamaIndex": PROVIDER_ICONS.LlamaIndex,
+  "Phidata": PROVIDER_ICONS.Phidata,
+  "Pydantic AI": PROVIDER_ICONS.PydanticAI,
   // Local ML
-  "vLLM": Vllm,
+  "vLLM": PROVIDER_ICONS.Vllm,
 };
 
 // SVG/PNG logo mappings for providers without lobehub icons

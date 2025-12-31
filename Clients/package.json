@@ -19,7 +19,6 @@
     "@emotion/styled": "^11.14.1",
     "@eslint/js": "^9.39.2",
     "@fontsource/roboto": "^5.1.0",
-    "@lobehub/icons": "^4.0.2",
     "@monaco-editor/react": "^4.7.0",
     "@mui/lab": "^7.0.1-beta.20",
     "@mui/material": "^7.3.6",
@@ -107,18 +106,6 @@
   "overrides": {
     "monaco-editor": {
       "dompurify": "3.3.1"
-    },
-    "@lobehub/icons": {
-      "react": "^18.3.1",
-      "react-dom": "^18.3.1"
-    },
-    "@lobehub/ui": {
-      "react": "^18.3.1",
-      "react-dom": "^18.3.1"
-    },
-    "@lobehub/fluent-emoji": {
-      "react": "^18.3.1",
-      "react-dom": "^18.3.1"
     }
   }
 }

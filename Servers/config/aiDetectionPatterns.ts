@@ -37,7 +37,119 @@ export interface DetectionPattern {
     imports?: RegExp[];
     /** Regex patterns for dependency files */
     dependencies?: RegExp[];
+    /** Regex patterns for API calls (REST endpoints and SDK method calls) */
+    apiCalls?: RegExp[];
+    /** Regex patterns for hardcoded secrets (API keys, tokens) */
+    secrets?: RegExp[];
   };
+}
+
+// ============================================================================
+// Risk Level Calculation
+// ============================================================================
+
+/**
+ * Cloud AI providers that send data to external APIs (high risk)
+ * These services process data on remote servers, posing data leakage risk
+ */
+const HIGH_RISK_PROVIDERS = [
+  "OpenAI",
+  "Anthropic",
+  "Google",
+  "Microsoft",
+  "AWS",
+  "Cohere",
+  "Mistral AI",
+  "Replicate",
+  "Hugging Face",
+  "Together AI",
+  "Groq",
+  "Perplexity",
+  "Anyscale",
+];
+
+/**
+ * Frameworks that can use cloud APIs but also support local models (medium risk)
+ * Risk depends on configuration
+ */
+const MEDIUM_RISK_PROVIDERS = [
+  "LangChain",
+  "LlamaIndex",
+  "Haystack",
+  "CrewAI",
+];
+
+/**
+ * Local-only processing libraries (low risk)
+ * Data stays on local machine, minimal data exposure risk
+ */
+const LOW_RISK_PROVIDERS = [
+  "PyTorch",
+  "TensorFlow",
+  "Keras",
+  "scikit-learn",
+  "Ollama",
+  "NVIDIA",
+  "Meta",
+  "JAX",
+  "MXNet",
+  "ONNX",
+  "NumPy",
+  "Pandas",
+  "Matplotlib",
+  "SciPy",
+  "Dask",
+  "XGBoost",
+  "LightGBM",
+  "CatBoost",
+  "spaCy",
+  "NLTK",
+  "Transformers",
+  "Accelerate",
+  "PEFT",
+];
+
+/**
+ * Calculate risk level for a finding based on provider and finding type
+ *
+ * Risk Level Logic:
+ * - secret findings: Always HIGH (exposed credentials = immediate risk)
+ * - api_call findings: Always HIGH (active data transmission)
+ * - library findings: Based on provider classification
+ *
+ * @param provider - The provider/company name
+ * @param findingType - The type of finding
+ * @returns Risk level: "high" | "medium" | "low"
+ */
+export function calculateRiskLevel(
+  provider: string,
+  findingType: "library" | "dependency" | "api_call" | "secret"
+): "high" | "medium" | "low" {
+  // Secret findings are always high risk - exposed credentials
+  if (findingType === "secret") {
+    return "high";
+  }
+
+  // API call findings are always high risk - active data transmission
+  if (findingType === "api_call") {
+    return "high";
+  }
+
+  // For library/dependency findings, check provider classification
+  if (HIGH_RISK_PROVIDERS.includes(provider)) {
+    return "high";
+  }
+
+  if (MEDIUM_RISK_PROVIDERS.includes(provider)) {
+    return "medium";
+  }
+
+  if (LOW_RISK_PROVIDERS.includes(provider)) {
+    return "low";
+  }
+
+  // Default to medium for unknown providers
+  return "medium";
 }
 
 export interface PatternCategory {
@@ -165,6 +277,41 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /"openai"\s*:/,
             /'openai'\s*:/,
           ],
+          apiCalls: [
+            // REST API URLs
+            /api\.openai\.com/,
+            /https?:\/\/[^"']*openai\.com\/v1\//,
+            // Python SDK method calls
+            /openai\.ChatCompletion\.create\s*\(/,
+            /openai\.chat\.completions\.create\s*\(/,
+            // Note: Removed generic /.completions.create/ - too broad, causes false positives
+            /openai\.Completion\.create\s*\(/,
+            /openai\.Embedding\.create\s*\(/,
+            /openai\.embeddings\.create\s*\(/,
+            /openai\.Image\.create\s*\(/,
+            /openai\.images\.generate\s*\(/,
+            /openai\.Audio\.transcribe\s*\(/,
+            /openai\.audio\.transcriptions\.create\s*\(/,
+            /openai\.Moderation\.create\s*\(/,
+            /openai\.moderations\.create\s*\(/,
+            // Assistants API (beta)
+            /openai\.beta\.assistants\./,
+            /openai\.beta\.threads\./,
+            /client\.beta\.assistants\./,
+            /client\.beta\.threads\./,
+          ],
+          secrets: [
+            // OpenAI API keys (sk-... format, 40+ chars)
+            /sk-[A-Za-z0-9]{32,}/,
+            // OpenAI project API keys (sk-proj-...)
+            /sk-proj-[A-Za-z0-9_-]{32,}/,
+            // Environment variable assignments
+            /OPENAI_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+            /OPENAI_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+            // Direct string assignments in code
+            /openai\.api_key\s*=\s*["'][^"']+["']/,
+            /api_key\s*[=:]\s*["']sk-[A-Za-z0-9]{20,}["']/,
+          ],
         },
       },
 
@@ -189,6 +336,29 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^anthropic[=<>~!\s]/m,
             /"@anthropic-ai\/sdk"\s*:/,
             /'@anthropic-ai\/sdk'\s*:/,
+          ],
+          apiCalls: [
+            // REST API URLs
+            /api\.anthropic\.com/,
+            /https?:\/\/[^"']*anthropic\.com\/v1\//,
+            // Python SDK method calls
+            /anthropic\.messages\.create\s*\(/,
+            /client\.messages\.create\s*\(/,
+            /\.messages\.create\s*\(.*model.*claude/,
+            /anthropic\.completions\.create\s*\(/,
+            /anthropic\.Anthropic\s*\(/,
+            // Streaming (more specific)
+            /anthropic\.messages\.stream\s*\(/,
+            /client\.messages\.stream\s*\(/,
+          ],
+          secrets: [
+            // Anthropic API keys (sk-ant-... format)
+            /sk-ant-[A-Za-z0-9_-]{32,}/,
+            // Environment variable assignments
+            /ANTHROPIC_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+            /CLAUDE_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+            // Direct string assignments in code
+            /api_key\s*[=:]\s*["']sk-ant-[A-Za-z0-9_-]+["']/,
           ],
         },
       },
@@ -243,6 +413,29 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+google\s+import\s+generativeai/m,
           ],
           dependencies: [/^google-generativeai[=<>~!\s]/m],
+          apiCalls: [
+            // REST API URLs
+            /generativelanguage\.googleapis\.com/,
+            /aiplatform\.googleapis\.com/,
+            // Python SDK method calls
+            /\.generate_content\s*\(/,
+            /model\.generate_content\s*\(/,
+            /GenerativeModel\s*\(/,
+            /genai\.GenerativeModel\s*\(/,
+            /\.generate_content_async\s*\(/,
+            /\.start_chat\s*\(/,
+            /chat\.send_message\s*\(/,
+            // Vertex AI
+            /vertexai\.generative_models/,
+          ],
+          secrets: [
+            // Google API keys (AIza...)
+            /AIza[A-Za-z0-9_-]{35}/,
+            // Environment variable assignments
+            /GOOGLE_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+            /GEMINI_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+            /GOOGLE_CLOUD_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+          ],
         },
       },
 
@@ -299,6 +492,14 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+huggingface_hub\s+import/m,
           ],
           dependencies: [/^huggingface[-_]hub[=<>~!\s]/m],
+          secrets: [
+            // HuggingFace API tokens (hf_...)
+            /hf_[A-Za-z0-9]{32,}/,
+            // Environment variable assignments
+            /HUGGINGFACE_TOKEN\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+            /HF_TOKEN\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+            /HUGGING_FACE_HUB_TOKEN\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+          ],
         },
       },
       {
@@ -343,6 +544,32 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /"@langchain\//,
             /'@langchain\//,
           ],
+          apiCalls: [
+            // LangChain model wrappers (specific class instantiations)
+            /ChatOpenAI\s*\(/,
+            /ChatAnthropic\s*\(/,
+            /ChatGoogleGenerativeAI\s*\(/,
+            /AzureChatOpenAI\s*\(/,
+            /BedrockChat\s*\(/,
+            /ChatCohere\s*\(/,
+            /ChatMistralAI\s*\(/,
+            /ChatGroq\s*\(/,
+            // Specific LangChain chain/agent calls (more specific patterns)
+            /chain\.invoke\s*\(/,
+            /chain\.ainvoke\s*\(/,
+            /chain\.stream\s*\(/,
+            /chain\.astream\s*\(/,
+            /agent\.invoke\s*\(/,
+            /llm\.invoke\s*\(/,
+            /model\.invoke\s*\(/,
+            /chain\.run\s*\(/,
+            /agent\.run\s*\(/,
+            /llm\.predict\s*\(/,
+            /llm\.generate\s*\(/,
+            // RunnableSequence calls
+            /runnable\.invoke\s*\(/,
+            /pipeline\.invoke\s*\(/,
+          ],
         },
       },
 
@@ -365,6 +592,20 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^llama[-_]index[=<>~!\s]/m,
             /^llama[-_]index[-_]/m,
           ],
+          apiCalls: [
+            // LLM calls
+            /OpenAI\s*\(\s*model\s*=/,
+            /Anthropic\s*\(\s*model\s*=/,
+            /llm\.complete\s*\(/,
+            /llm\.chat\s*\(/,
+            /llm\.stream_complete\s*\(/,
+            // Query engine calls
+            /query_engine\.query\s*\(/,
+            /index\.as_query_engine\s*\(/,
+            /chat_engine\.chat\s*\(/,
+            // Retriever calls
+            /retriever\.retrieve\s*\(/,
+          ],
         },
       },
 
@@ -383,6 +624,26 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+cohere\s+import/m,
           ],
           dependencies: [/^cohere[=<>~!\s]/m],
+          apiCalls: [
+            // REST API URL
+            /api\.cohere\.ai/,
+            /api\.cohere\.com/,
+            // SDK method calls
+            /cohere\.chat\s*\(/,
+            /cohere\.generate\s*\(/,
+            /cohere\.embed\s*\(/,
+            /cohere\.rerank\s*\(/,
+            /co\.chat\s*\(/,
+            /co\.generate\s*\(/,
+            /co\.embed\s*\(/,
+            /cohere_client\.chat\s*\(/,
+          ],
+          secrets: [
+            // Cohere API keys
+            /COHERE_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+            // Direct API key patterns (Cohere uses alphanumeric keys)
+            /api_key\s*[=:]\s*["'][A-Za-z0-9]{30,}["']/,
+          ],
         },
       },
 
@@ -401,6 +662,21 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+replicate\s+import/m,
           ],
           dependencies: [/^replicate[=<>~!\s]/m],
+          apiCalls: [
+            // REST API URL
+            /api\.replicate\.com/,
+            // SDK method calls
+            /replicate\.run\s*\(/,
+            /replicate\.predictions\.create\s*\(/,
+            /replicate\.models\.get\s*\(/,
+            /replicate\.stream\s*\(/,
+          ],
+          secrets: [
+            // Replicate API tokens (r8_...)
+            /r8_[A-Za-z0-9]{36,}/,
+            // Environment variable assignments
+            /REPLICATE_API_TOKEN\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+          ],
         },
       },
 
@@ -424,6 +700,27 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /"@aws-sdk\/client-bedrock"\s*:/,
             /"@aws-sdk\/client-bedrock-runtime"\s*:/,
           ],
+          apiCalls: [
+            // REST API URL
+            /bedrock-runtime\.[^.]+\.amazonaws\.com/,
+            /bedrock\.[^.]+\.amazonaws\.com/,
+            // SDK method calls
+            /\.invoke_model\s*\(/,
+            /\.invokeModel\s*\(/,
+            /invoke_model_with_response_stream\s*\(/,
+            /InvokeModelCommand\s*\(/,
+            /InvokeModelWithResponseStreamCommand\s*\(/,
+            /BedrockRuntimeClient\s*\(/,
+            /BedrockRuntime\s*\(/,
+            /boto3\.client\s*\(\s*['"]bedrock-runtime['"]/,
+          ],
+          secrets: [
+            // AWS Access Key IDs (AKIA...)
+            /AKIA[A-Z0-9]{16}/,
+            // AWS Secret Access Keys (40 chars)
+            /AWS_SECRET_ACCESS_KEY\s*[=:]\s*["']?[A-Za-z0-9\/+=]{40}["']?/,
+            /AWS_ACCESS_KEY_ID\s*[=:]\s*["']?AKIA[A-Z0-9]{16}["']?/,
+          ],
         },
       },
 
@@ -446,6 +743,23 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /"@azure\/openai"\s*:/,
             /^azure-ai-openai[=<>~!\s]/m,
           ],
+          apiCalls: [
+            // REST API URL
+            /\.openai\.azure\.com/,
+            /azure\.openai\.com/,
+            // SDK method calls
+            /AzureOpenAI\s*\(/,
+            /openai\.AzureOpenAI\s*\(/,
+            /AzureKeyCredential\s*\(/,
+            /\.get_chat_completions\s*\(/,
+            /\.get_completions\s*\(/,
+            /\.get_embeddings\s*\(/,
+          ],
+          secrets: [
+            // Azure OpenAI API keys
+            /AZURE_OPENAI_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+            /AZURE_OPENAI_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+          ],
         },
       },
 
@@ -464,6 +778,21 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+mistralai\s+import/m,
           ],
           dependencies: [/^mistralai[=<>~!\s]/m],
+          apiCalls: [
+            // REST API URL
+            /api\.mistral\.ai/,
+            // SDK method calls
+            /MistralClient\s*\(/,
+            /Mistral\s*\(/,
+            /mistral\.chat\s*\(/,
+            /mistral_client\.chat\s*\(/,
+            /mistral\.chat\.complete\s*\(/,
+            /mistral\.chat\.stream\s*\(/,
+          ],
+          secrets: [
+            // Mistral API keys
+            /MISTRAL_API_KEY\s*[=:]\s*["']?[A-Za-z0-9_-]+["']?/,
+          ],
         },
       },
 
@@ -888,6 +1217,13 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+groq\s+import/m,
           ],
           dependencies: [/^groq[=<>~!\s]/m],
+          apiCalls: [
+            // REST API URL
+            /api\.groq\.com/,
+            // SDK method calls
+            /Groq\s*\(\s*\)/,
+            /groq\.chat\.completions\.create\s*\(/,
+          ],
         },
       },
       {
@@ -902,6 +1238,15 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+together\s+import/m,
           ],
           dependencies: [/^together[=<>~!\s]/m],
+          apiCalls: [
+            // REST API URL
+            /api\.together\.xyz/,
+            /api\.together\.ai/,
+            // SDK method calls
+            /Together\s*\(\s*\)/,
+            /together\.Complete\.create\s*\(/,
+            /together\.chat\.completions\.create\s*\(/,
+          ],
         },
       },
       {
@@ -916,6 +1261,14 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+fireworks\s+import/m,
           ],
           dependencies: [/^fireworks-ai[=<>~!\s]/m],
+          apiCalls: [
+            // REST API URL
+            /api\.fireworks\.ai/,
+            // SDK method calls
+            /Fireworks\s*\(/,
+            /fireworks\.client\s*\(/,
+            /fireworks\.chat\.completions\.create\s*\(/,
+          ],
         },
       },
       {
@@ -1000,6 +1353,12 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+perplexity\s+import/m,
           ],
           dependencies: [/^perplexity[=<>~!\s]/m],
+          apiCalls: [
+            // REST API URL
+            /api\.perplexity\.ai/,
+            // SDK method calls (uses OpenAI-compatible API)
+            /perplexity\.chat\.completions\.create\s*\(/,
+          ],
         },
       },
       {
@@ -1473,6 +1832,15 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+text_generation\s+import/m,
           ],
           dependencies: [/^text-generation[=<>~!\s]/m],
+          apiCalls: [
+            // REST API URL
+            /api-inference\.huggingface\.co/,
+            // SDK method calls
+            /InferenceClient\s*\(/,
+            /inference_client\.text_generation\s*\(/,
+            /client\.text_generation\s*\(/,
+            /\.chat_completion\s*\(/,
+          ],
         },
       },
       {

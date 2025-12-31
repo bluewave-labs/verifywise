@@ -107,6 +107,18 @@
   "overrides": {
     "monaco-editor": {
       "dompurify": "3.3.1"
+    },
+    "@lobehub/icons": {
+      "react": "^18.3.1",
+      "react-dom": "^18.3.1"
+    },
+    "@lobehub/ui": {
+      "react": "^18.3.1",
+      "react-dom": "^18.3.1"
+    },
+    "@lobehub/fluent-emoji": {
+      "react": "^18.3.1",
+      "react-dom": "^18.3.1"
     }
   }
 }

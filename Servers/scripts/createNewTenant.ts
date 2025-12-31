@@ -1994,10 +1994,14 @@ export const createNewTenant = async (
         name VARCHAR(255) NOT NULL,
         provider VARCHAR(100),
         confidence VARCHAR(20) NOT NULL,
+        risk_level VARCHAR(20) DEFAULT 'medium',
         description TEXT,
         documentation_url VARCHAR(500),
         file_count INTEGER DEFAULT 1,
         file_paths JSONB,
+        governance_status VARCHAR(20) DEFAULT NULL,
+        governance_updated_at TIMESTAMP WITH TIME ZONE,
+        governance_updated_by INTEGER,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         UNIQUE(scan_id, name, provider)
       );`,
@@ -2009,6 +2013,8 @@ export const createNewTenant = async (
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_scan_idx" ON "${tenantHash}".ai_detection_findings(scan_id);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_confidence_idx" ON "${tenantHash}".ai_detection_findings(confidence);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_provider_idx" ON "${tenantHash}".ai_detection_findings(provider);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_risk_level_idx" ON "${tenantHash}".ai_detection_findings(risk_level);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_governance_idx" ON "${tenantHash}".ai_detection_findings(governance_status);`,
     ].map((query) => sequelize.query(query, { transaction })));
 
     console.log(`✅ AI Detection tables created successfully for tenant: ${tenantHash}`);

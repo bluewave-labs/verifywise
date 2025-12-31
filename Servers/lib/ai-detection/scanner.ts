@@ -365,11 +365,13 @@ export class AIDetector {
    */
   private matchGlob(path: string, pattern: string): boolean {
     // Convert glob to regex
-    // Order matters: escape dots first, then convert glob patterns
+    // Order matters: escape special regex chars first, then convert glob patterns
     const regexStr = pattern
-      .replace(/\./g, "\\.")      // Escape dots first
+      .replace(/\\/g, "\\\\")     // Escape backslashes first
+      .replace(/[.+^${}()|[\]]/g, "\\$&")  // Escape other regex metacharacters (except * and ?)
       .replace(/\*\*/g, ".*")     // Convert ** to match anything
-      .replace(/\*/g, "[^/]*");   // Convert * to match anything except /
+      .replace(/\*/g, "[^/]*")    // Convert * to match anything except /
+      .replace(/\?/g, ".");       // Convert ? to match single character
 
     return new RegExp(`^${regexStr}$`).test(path);
   }

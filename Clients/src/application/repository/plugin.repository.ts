@@ -18,7 +18,7 @@ export async function getAllPlugins({
     signal,
     responseType,
   });
-  return response.data.data as Plugin[];
+  return (response.data as any).data as Plugin[];
 }
 
 /**
@@ -37,7 +37,7 @@ export async function getPluginByKey({
     signal,
     responseType,
   });
-  return response.data.data as Plugin;
+  return (response.data as any).data as Plugin;
 }
 
 /**
@@ -57,7 +57,7 @@ export async function searchPlugins({
     signal,
     responseType,
   });
-  return response.data.data as Plugin[];
+  return (response.data as any).data as Plugin[];
 }
 
 /**
@@ -71,7 +71,7 @@ export async function installPlugin({
   const response = await apiServices.post("/plugins/install", {
     pluginKey,
   });
-  return response.data.data as PluginInstallation;
+  return (response.data as any).data as PluginInstallation;
 }
 
 /**
@@ -85,7 +85,7 @@ export async function uninstallPlugin({
   const response = await apiServices.delete(
     `/plugins/installations/${installationId}`
   );
-  return response.data.data;
+  return (response.data as any).data;
 }
 
 /**
@@ -102,7 +102,7 @@ export async function getInstalledPlugins({
     signal,
     responseType,
   });
-  return response.data.data as PluginInstallation[];
+  return (response.data as any).data as PluginInstallation[];
 }
 
 /**
@@ -119,7 +119,7 @@ export async function getCategories({
     signal,
     responseType,
   });
-  return response.data.data as PluginCategoryInfo[];
+  return (response.data as any).data as PluginCategoryInfo[];
 }
 
 /**
@@ -136,7 +136,7 @@ export async function updatePluginConfiguration({
     `/plugins/installations/${installationId}/configuration`,
     { configuration }
   );
-  return response.data.data as PluginInstallation;
+  return (response.data as any).data as PluginInstallation;
 }
 
 /**
@@ -153,7 +153,7 @@ export async function testPluginConnection({
     `/plugins/${pluginKey}/test-connection`,
     { configuration }
   );
-  return response.data.data;
+  return (response.data as any).data;
 }
 
 /**
@@ -170,7 +170,7 @@ export async function connectOAuthWorkspace({
     `/plugins/${pluginKey}/oauth/connect`,
     { code }
   );
-  return response.data.data;
+  return (response.data as any).data;
 }
 
 /**
@@ -187,7 +187,7 @@ export async function getOAuthWorkspaces({
     `/plugins/${pluginKey}/oauth/workspaces`,
     { signal }
   );
-  return response.data.data;
+  return (response.data as any).data;
 }
 
 /**
@@ -208,7 +208,7 @@ export async function updateOAuthWorkspace({
     `/plugins/${pluginKey}/oauth/workspaces/${webhookId}`,
     { routing_type, is_active }
   );
-  return response.data.data;
+  return (response.data as any).data;
 }
 
 /**

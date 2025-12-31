@@ -198,7 +198,7 @@ const MLFlowDataTable: React.FC = () => {
       case 'lifecycle_stage':
         return model.lifecycle_stage || 'Unknown';
       case 'experiment':
-        return model.experiment_info?.experiment_name || model.experiment_info?.experiment_id || 'Unknown Experiment';
+        return model.experiment_name || model.experiment_id || 'Unknown Experiment';
       case 'model_name':
         return model.model_name || 'Unknown Model';
       default:

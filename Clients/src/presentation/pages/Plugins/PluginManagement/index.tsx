@@ -16,7 +16,6 @@ import {
   FormControlLabel,
   Checkbox,
   FormControl,
-  InputLabel,
   Table,
   TableBody,
   TableCell,
@@ -28,7 +27,6 @@ import {
 } from "@mui/material";
 import {
   ArrowLeft as ArrowLeftIcon,
-  ExternalLink as ExternalLinkIcon,
   CheckCircle as CheckIcon,
   Settings as SettingsIcon,
   Home,
@@ -37,7 +35,6 @@ import {
   Trash2,
   ToggleLeft,
   ToggleRight,
-  Send,
   FileSpreadsheet as FileSpreadsheetIcon,
   Package as PackageIcon,
   Database as DatabaseIcon,
@@ -51,7 +48,7 @@ import Alert from "../../../components/Alert";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { cardStyles } from "../../../themes/components";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
-import { IBreadcrumbItem } from "../../../../domain/interfaces/i.breadcrumbs";
+import { IBreadcrumbItem } from "../../../../domain/types/breadcrumbs.types";
 import { ENV_VARs } from "../../../../../env.vars";
 
 const PluginManagement: React.FC = () => {
@@ -334,6 +331,7 @@ const PluginManagement: React.FC = () => {
     window.open(slackOAuthUrl, '_blank', 'noopener,noreferrer');
   };
 
+  /* Function reserved for future use - routing updates
   const handleUpdateWorkspaceRouting = async (webhookId: number, routing_type: string[]) => {
     if (!pluginKey) return;
 
@@ -360,6 +358,7 @@ const PluginManagement: React.FC = () => {
       });
     }
   };
+  */
 
   const handleDisconnectWorkspace = async (webhookId: number) => {
     if (!pluginKey) return;
@@ -555,6 +554,7 @@ const PluginManagement: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [toast]);
 
   if (!isAdmin) {
@@ -813,7 +813,7 @@ const PluginManagement: React.FC = () => {
                       onClick={async () => {
                         try {
                           if (plugin.key) {
-                            const installation = await install(plugin.key);
+                            await install(plugin.key);
 
                             // Refresh plugin data with installation status
                             const [updatedPlugin, installedPlugins] = await Promise.all([

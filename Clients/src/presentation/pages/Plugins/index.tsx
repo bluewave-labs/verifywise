@@ -12,7 +12,7 @@ import { usePluginInstallation } from "../../../application/hooks/usePluginInsta
 import { Plugin, PluginInstallationStatus } from "../../../domain/types/plugins";
 import Alert from "../../components/Alert";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { IBreadcrumbItem } from "../../../domain/interfaces/i.breadcrumbs";
+import { IBreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
 
 const Plugins: React.FC = () => {
   const location = useLocation();

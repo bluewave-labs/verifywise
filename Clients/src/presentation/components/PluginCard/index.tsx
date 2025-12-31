@@ -31,7 +31,6 @@ import ConfirmationModal from '../../components/Dialogs/ConfirmationModal';
 
 interface PluginCardProps {
   plugin: Plugin;
-  onInstall?: (pluginKey: string) => Promise<void>;
   onUninstall?: (installationId: number) => Promise<void>;
   onManage?: (plugin: Plugin) => void;
   loading?: boolean;
@@ -39,7 +38,6 @@ interface PluginCardProps {
 
 const PluginCard: React.FC<PluginCardProps> = ({
   plugin,
-  onInstall,
   onUninstall,
   onManage,
   loading = false,

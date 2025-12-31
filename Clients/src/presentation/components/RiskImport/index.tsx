@@ -52,7 +52,7 @@ const RiskImport: React.FC<RiskImportProps> = ({ onImportComplete }) => {
       });
 
       // Create download link
-      const blob = new Blob([response.data], {
+      const blob = new Blob([response.data as BlobPart], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
       const url = window.URL.createObjectURL(blob);

@@ -12,7 +12,7 @@ import {
 import { sequelize } from "../../database/db";
 
 // Environment configuration
-const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/main/plugins.json";
+const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/hp-dec-30-add-plugins/plugins.json";
 
 interface Plugin {
   key: string;

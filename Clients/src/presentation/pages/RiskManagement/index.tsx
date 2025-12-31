@@ -1147,7 +1147,7 @@ const RiskManagement = () => {
         title="Import Risks from CSV"
         description="Upload a CSV file to import multiple risks at once. Download the template first if you haven't already."
         maxWidth="lg"
-        hideActions
+        hideFooter
       >
         <RiskImport
           onImportComplete={() => {

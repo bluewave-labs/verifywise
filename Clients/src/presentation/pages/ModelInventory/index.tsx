@@ -2030,7 +2030,7 @@ const ModelInventory: React.FC = () => {
                       {
                         label: "MLFlow data",
                         value: "mlflow",
-                        icon: "Database",
+                        icon: "Database" as const,
                         count: mlflowData.length,
                         isLoading: isMlflowLoading,
                       },
@@ -2039,7 +2039,7 @@ const ModelInventory: React.FC = () => {
                 {
                   label: "Evidence hub",
                   value: "evidence-hub",
-                  icon: "Database",
+                  icon: "Database" as const,
                   count: evidenceHubData.length,
                   isLoading: isEvidenceLoading,
                 },

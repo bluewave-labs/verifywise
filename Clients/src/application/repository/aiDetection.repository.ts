@@ -20,6 +20,9 @@ import {
   SecurityFindingsResponse,
   GetSecurityFindingsParams,
   SecuritySummary,
+  GovernanceStatus,
+  GovernanceSummary,
+  UpdateGovernanceStatusResponse,
 } from "../../domain/ai-detection/types";
 
 const BASE_URL = "/ai-detection";
@@ -117,6 +120,7 @@ export async function getScanFindings(
   if (params.page) queryParams.append("page", params.page.toString());
   if (params.limit) queryParams.append("limit", params.limit.toString());
   if (params.confidence) queryParams.append("confidence", params.confidence);
+  if (params.finding_type) queryParams.append("finding_type", params.finding_type);
 
   const queryString = queryParams.toString();
   const url = `${BASE_URL}/scans/${scanId}/findings${queryString ? `?${queryString}` : ""}`;
@@ -331,4 +335,59 @@ export async function pollScanStatus(
 
     poll();
   });
+}
+
+// ============================================================================
+// Governance Operations
+// ============================================================================
+
+/**
+ * Update governance status for a finding
+ *
+ * @param scanId - Scan ID
+ * @param findingId - Finding ID
+ * @param governanceStatus - New status or null to clear
+ * @param signal - Optional abort signal
+ * @param authToken - Optional auth token
+ * @returns Updated finding
+ */
+export async function updateFindingGovernanceStatus(
+  scanId: number,
+  findingId: number,
+  governanceStatus: GovernanceStatus | null,
+  signal?: AbortSignal,
+  authToken: string = getAuthToken()
+): Promise<UpdateGovernanceStatusResponse> {
+  const response = await apiServices.patch<{ data: UpdateGovernanceStatusResponse }>(
+    `${BASE_URL}/scans/${scanId}/findings/${findingId}/governance`,
+    { governance_status: governanceStatus },
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      signal,
+    }
+  );
+  return response.data.data;
+}
+
+/**
+ * Get governance summary for a scan
+ *
+ * @param scanId - Scan ID
+ * @param signal - Optional abort signal
+ * @param authToken - Optional auth token
+ * @returns Governance summary
+ */
+export async function getGovernanceSummary(
+  scanId: number,
+  signal?: AbortSignal,
+  authToken: string = getAuthToken()
+): Promise<GovernanceSummary> {
+  const response = await apiServices.get<{ data: GovernanceSummary }>(
+    `${BASE_URL}/scans/${scanId}/governance-summary`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      signal,
+    }
+  );
+  return response.data.data;
 }

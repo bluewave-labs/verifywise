@@ -28,6 +28,8 @@ import {
   deleteScanController,
   getSecurityFindingsController,
   getSecuritySummaryController,
+  updateGovernanceStatusController,
+  getGovernanceSummaryController,
 } from "../controllers/aiDetection.ctrl";
 
 const router = express.Router();
@@ -112,5 +114,20 @@ router.post("/scans/:scanId/cancel", authenticateJWT, authorize(WRITE_ROLES), ca
  * @access  Private - Admin only
  */
 router.delete("/scans/:scanId", authenticateJWT, authorize(ADMIN_ONLY), deleteScanController);
+
+/**
+ * @route   PATCH /ai-detection/scans/:scanId/findings/:findingId/governance
+ * @desc    Update governance status for a finding
+ * @access  Private - Admin, Editor
+ * @body    { governance_status: "reviewed" | "approved" | "flagged" | null }
+ */
+router.patch("/scans/:scanId/findings/:findingId/governance", authenticateJWT, authorize(WRITE_ROLES), updateGovernanceStatusController);
+
+/**
+ * @route   GET /ai-detection/scans/:scanId/governance-summary
+ * @desc    Get governance summary for a scan
+ * @access  Private - All roles
+ */
+router.get("/scans/:scanId/governance-summary", authenticateJWT, authorize(ALL_ROLES), getGovernanceSummaryController);
 
 export default router;

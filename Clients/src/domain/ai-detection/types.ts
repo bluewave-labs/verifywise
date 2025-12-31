@@ -20,6 +20,10 @@ export type ScanStatus =
 
 export type ConfidenceLevel = "high" | "medium" | "low";
 
+export type RiskLevel = "high" | "medium" | "low";
+
+export type GovernanceStatus = "reviewed" | "approved" | "flagged";
+
 export interface TriggeredByUser {
   id: number;
   name: string;
@@ -54,15 +58,19 @@ export interface FilePath {
 
 export interface Finding {
   id: number;
-  finding_type: "library" | "dependency";
+  finding_type: "library" | "dependency" | "api_call" | "secret";
   category: string;
   name: string;
   provider: string;
   confidence: ConfidenceLevel;
+  risk_level: RiskLevel;
   description?: string;
   documentation_url?: string;
   file_count: number;
   file_paths: FilePath[];
+  governance_status?: GovernanceStatus | null;
+  governance_updated_at?: string;
+  governance_updated_by?: number;
 }
 
 // ============================================================================
@@ -139,10 +147,18 @@ export interface FindingsByConfidence {
   low: number;
 }
 
+export interface FindingsByType {
+  library: number;
+  dependency: number;
+  api_call: number;
+  secret: number;
+}
+
 export interface ScanSummary {
   total: number;
   by_confidence: FindingsByConfidence;
   by_provider: Record<string, number>;
+  by_finding_type?: FindingsByType;
 }
 
 export interface ScanResponse {
@@ -185,6 +201,7 @@ export interface GetFindingsParams {
   page?: number;
   limit?: number;
   confidence?: ConfidenceLevel;
+  finding_type?: "library" | "dependency" | "api_call" | "secret";
 }
 
 // ============================================================================
@@ -224,4 +241,27 @@ export interface ConfidenceStats {
   high: { count: number; percentage: number };
   medium: { count: number; percentage: number };
   low: { count: number; percentage: number };
+}
+
+// ============================================================================
+// Governance Types
+// ============================================================================
+
+export interface GovernanceSummary {
+  total: number;
+  reviewed: number;
+  approved: number;
+  flagged: number;
+  unreviewed: number;
+}
+
+export interface UpdateGovernanceStatusRequest {
+  governance_status: GovernanceStatus | null;
+}
+
+export interface UpdateGovernanceStatusResponse {
+  id: number;
+  governance_status: GovernanceStatus | null;
+  governance_updated_at: string;
+  governance_updated_by: number;
 }

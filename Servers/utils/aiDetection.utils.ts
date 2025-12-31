@@ -16,6 +16,7 @@ import {
   IUpdateScanProgressInput,
   ICreateFindingInput,
   ScanStatus,
+  GovernanceStatus,
 } from "../domain.layer/interfaces/i.aiDetection";
 import { ICreateModelSecurityFindingInput } from "../domain.layer/interfaces/i.modelSecurity";
 
@@ -407,6 +408,7 @@ export async function createFindingsBatchQuery(
       :name_${index},
       :provider_${index},
       :confidence_${index},
+      :risk_level_${index},
       :description_${index},
       :documentation_url_${index},
       :file_count_${index},
@@ -423,6 +425,7 @@ export async function createFindingsBatchQuery(
     replacements[`name_${index}`] = input.name;
     replacements[`provider_${index}`] = input.provider || null;
     replacements[`confidence_${index}`] = input.confidence;
+    replacements[`risk_level_${index}`] = input.risk_level || "medium";
     replacements[`description_${index}`] = input.description || null;
     replacements[`documentation_url_${index}`] = input.documentation_url || null;
     replacements[`file_count_${index}`] = input.file_count || 1;
@@ -437,6 +440,7 @@ export async function createFindingsBatchQuery(
       name,
       provider,
       confidence,
+      risk_level,
       description,
       documentation_url,
       file_count,
@@ -554,7 +558,8 @@ export async function getFindingsForScanQuery(
   tenantId: string,
   page: number = 1,
   limit: number = 50,
-  confidence?: string
+  confidence?: string,
+  findingType?: string
 ): Promise<{ findings: IFinding[]; total: number }> {
   const offset = (page - 1) * limit;
   const replacements: Record<string, unknown> = { scanId, limit, offset };
@@ -563,6 +568,11 @@ export async function getFindingsForScanQuery(
   if (confidence) {
     whereClause += " AND confidence = :confidence";
     replacements.confidence = confidence;
+  }
+
+  if (findingType) {
+    whereClause += " AND finding_type = :findingType";
+    replacements.findingType = findingType;
   }
 
   const countQuery = `
@@ -602,7 +612,7 @@ export async function getFindingsForScanQuery(
  *
  * @param scanId - Scan ID
  * @param tenantId - Tenant schema hash
- * @returns Summary with counts by confidence and provider
+ * @returns Summary with counts by confidence, provider, and finding type
  */
 export async function getFindingsSummaryQuery(
   scanId: number,
@@ -611,6 +621,7 @@ export async function getFindingsSummaryQuery(
   total: number;
   by_confidence: { high: number; medium: number; low: number };
   by_provider: Record<string, number>;
+  by_finding_type: { library: number; dependency: number; api_call: number };
 }> {
   const confidenceQuery = `
     SELECT
@@ -630,12 +641,25 @@ export async function getFindingsSummaryQuery(
     GROUP BY provider;
   `;
 
-  const [confidenceResults, providerResults] = await Promise.all([
+  const findingTypeQuery = `
+    SELECT
+      finding_type,
+      COUNT(*) as count
+    FROM "${tenantId}".ai_detection_findings
+    WHERE scan_id = :scanId
+    GROUP BY finding_type;
+  `;
+
+  const [confidenceResults, providerResults, findingTypeResults] = await Promise.all([
     sequelize.query(confidenceQuery, {
       replacements: { scanId },
       type: QueryTypes.SELECT,
     }),
     sequelize.query(providerQuery, {
+      replacements: { scanId },
+      type: QueryTypes.SELECT,
+    }),
+    sequelize.query(findingTypeQuery, {
       replacements: { scanId },
       type: QueryTypes.SELECT,
     }),
@@ -656,10 +680,17 @@ export async function getFindingsSummaryQuery(
     byProvider[row.provider] = parseInt(row.count, 10);
   });
 
+  // Build finding type counts
+  const byFindingType = { library: 0, dependency: 0, api_call: 0, secret: 0 };
+  (findingTypeResults as { finding_type: string; count: string }[]).forEach((row) => {
+    byFindingType[row.finding_type as keyof typeof byFindingType] = parseInt(row.count, 10);
+  });
+
   return {
     total,
     by_confidence: byConfidence,
     by_provider: byProvider,
+    by_finding_type: byFindingType,
   };
 }
 
@@ -669,13 +700,12 @@ export async function getFindingsSummaryQuery(
  * @param scanId - Scan ID
  * @param tenantId - Tenant schema hash
  * @param transaction - Database transaction
- * @returns Number of findings deleted
  */
 export async function deleteFindingsForScanQuery(
   scanId: number,
   tenantId: string,
   transaction: Transaction
-): Promise<number> {
+): Promise<void> {
   const query = `
     DELETE FROM "${tenantId}".ai_detection_findings
     WHERE scan_id = :scanId;
@@ -686,10 +716,6 @@ export async function deleteFindingsForScanQuery(
     type: QueryTypes.DELETE,
     transaction,
   });
-
-  // Return the number of deleted rows - actually this info is not available
-  // from Sequelize DELETE, so we return 0 and rely on cascade behavior
-  return 0;
 }
 
 // ============================================================================
@@ -746,4 +772,98 @@ export async function clearScanCachePathQuery(
     replacements: { scanId },
     type: QueryTypes.UPDATE,
   });
+}
+
+// ============================================================================
+// Governance Status Queries
+// ============================================================================
+
+/**
+ * Update governance status for a finding
+ *
+ * @param findingId - Finding ID
+ * @param scanId - Scan ID (for verification)
+ * @param governanceStatus - New governance status (or null to clear)
+ * @param userId - User making the update
+ * @param tenantId - Tenant schema hash
+ * @returns Updated finding or null if not found
+ */
+export async function updateFindingGovernanceStatusQuery(
+  findingId: number,
+  scanId: number,
+  governanceStatus: GovernanceStatus | null,
+  userId: number,
+  tenantId: string
+): Promise<IFinding | null> {
+  const query = `
+    UPDATE "${tenantId}".ai_detection_findings
+    SET
+      governance_status = :governance_status,
+      governance_updated_at = NOW(),
+      governance_updated_by = :user_id
+    WHERE id = :finding_id AND scan_id = :scan_id
+    RETURNING *;
+  `;
+
+  const results = await sequelize.query(query, {
+    replacements: {
+      finding_id: findingId,
+      scan_id: scanId,
+      governance_status: governanceStatus,
+      user_id: userId,
+    },
+    type: QueryTypes.UPDATE,
+  });
+
+  return ((results as unknown as IFinding[][])[0])?.[0] || null;
+}
+
+/**
+ * Get governance status summary for a scan
+ *
+ * @param scanId - Scan ID
+ * @param tenantId - Tenant schema hash
+ * @returns Summary with counts by governance status
+ */
+export async function getGovernanceSummaryQuery(
+  scanId: number,
+  tenantId: string
+): Promise<{
+  total: number;
+  reviewed: number;
+  approved: number;
+  flagged: number;
+  unreviewed: number;
+}> {
+  const query = `
+    SELECT
+      COUNT(*) as total,
+      COUNT(*) FILTER (WHERE governance_status = 'reviewed') as reviewed,
+      COUNT(*) FILTER (WHERE governance_status = 'approved') as approved,
+      COUNT(*) FILTER (WHERE governance_status = 'flagged') as flagged,
+      COUNT(*) FILTER (WHERE governance_status IS NULL) as unreviewed
+    FROM "${tenantId}".ai_detection_findings
+    WHERE scan_id = :scanId;
+  `;
+
+  const results = await sequelize.query(query, {
+    replacements: { scanId },
+    type: QueryTypes.SELECT,
+  });
+
+  const row = results[0] as {
+    total: string;
+    reviewed: string;
+    approved: string;
+    flagged: string;
+    unreviewed: string;
+  };
+
+  return {
+    total: parseInt(row.total, 10),
+    reviewed: parseInt(row.reviewed, 10),
+    approved: parseInt(row.approved, 10),
+    flagged: parseInt(row.flagged, 10),
+    unreviewed: parseInt(row.unreviewed, 10),
+  };
 }

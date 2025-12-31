@@ -29,6 +29,8 @@ import {
   IFindingsResponse,
   IScansResponse,
   IScanStatusResponse,
+  GovernanceStatus,
+  IUpdateGovernanceStatusResponse,
 } from "../domain.layer/interfaces/i.aiDetection";
 import {
   ValidationException,
@@ -49,6 +51,8 @@ import {
   createModelSecurityFindingsBatchQuery,
   getFindingsForScanQuery,
   getFindingsSummaryQuery,
+  updateFindingGovernanceStatusQuery,
+  getGovernanceSummaryQuery,
 } from "../utils/aiDetection.utils";
 import {
   AI_DETECTION_PATTERNS,
@@ -56,6 +60,7 @@ import {
   DEPENDENCY_FILES,
   SKIP_DIRECTORIES,
   DetectionPattern,
+  calculateRiskLevel,
 } from "../config/aiDetectionPatterns";
 import {
   getProviderFromExtension,
@@ -479,27 +484,63 @@ function shouldScanFile(filePath: string): "code" | "dependency" | false {
  */
 function scanFileForPatterns(
   content: string,
-  _filePath: string,
   fileType: "code" | "dependency"
-): Array<{ pattern: DetectionPattern; lineNumber: number | null; matchedText: string }> {
+): Array<{
+  pattern: DetectionPattern;
+  lineNumber: number | null;
+  matchedText: string;
+  findingType: "library" | "api_call" | "secret";
+}> {
   const matches: Array<{
     pattern: DetectionPattern;
     lineNumber: number | null;
     matchedText: string;
+    findingType: "library" | "api_call" | "secret";
   }> = [];
 
   const lines = content.split("\n");
 
   for (const category of AI_DETECTION_PATTERNS) {
     for (const pattern of category.patterns) {
+      // Check imports/dependencies (library findings)
       const patternsToCheck =
         fileType === "code" ? pattern.patterns.imports : pattern.patterns.dependencies;
 
-      if (!patternsToCheck) continue;
+      if (patternsToCheck) {
+        for (const regex of patternsToCheck) {
+          // Search line by line for code files to get line numbers
+          if (fileType === "code") {
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
+              const match = line.match(regex);
+              if (match) {
+                matches.push({
+                  pattern,
+                  lineNumber: i + 1,
+                  matchedText: match[0].substring(0, 100), // Truncate long matches
+                  findingType: "library",
+                });
+                break; // One match per pattern per file is enough
+              }
+            }
+          } else {
+            // For dependency files, check entire content
+            const match = content.match(regex);
+            if (match) {
+              matches.push({
+                pattern,
+                lineNumber: null,
+                matchedText: match[0].substring(0, 100),
+                findingType: "library",
+              });
+            }
+          }
+        }
+      }
 
-      for (const regex of patternsToCheck) {
-        // Search line by line for code files to get line numbers
-        if (fileType === "code") {
+      // Check API calls (only for code files)
+      if (fileType === "code" && pattern.patterns.apiCalls) {
+        for (const regex of pattern.patterns.apiCalls) {
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const match = line.match(regex);
@@ -507,20 +548,33 @@ function scanFileForPatterns(
               matches.push({
                 pattern,
                 lineNumber: i + 1,
-                matchedText: match[0].substring(0, 100), // Truncate long matches
+                matchedText: match[0].substring(0, 100),
+                findingType: "api_call",
               });
               break; // One match per pattern per file is enough
             }
           }
-        } else {
-          // For dependency files, check entire content
-          const match = content.match(regex);
-          if (match) {
-            matches.push({
-              pattern,
-              lineNumber: null,
-              matchedText: match[0].substring(0, 100),
-            });
+        }
+      }
+
+      // Check hardcoded secrets (only for code files)
+      if (fileType === "code" && pattern.patterns.secrets) {
+        for (const regex of pattern.patterns.secrets) {
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const match = line.match(regex);
+            if (match) {
+              // Mask the secret in matched text to avoid exposing it
+              const matchedText = match[0].substring(0, 100);
+              const maskedText = maskSecret(matchedText);
+              matches.push({
+                pattern,
+                lineNumber: i + 1,
+                matchedText: maskedText,
+                findingType: "secret",
+              });
+              break; // One match per pattern per file is enough
+            }
           }
         }
       }
@@ -528,6 +582,19 @@ function scanFileForPatterns(
   }
 
   return matches;
+}
+
+/**
+ * Mask a secret to avoid exposing full value
+ * Shows first 4 and last 4 characters with asterisks in between
+ */
+function maskSecret(secret: string): string {
+  if (secret.length <= 12) {
+    // Very short secrets - show first 2 and mask rest
+    return secret.substring(0, 2) + "*".repeat(secret.length - 2);
+  }
+  // Show first 4 and last 4 characters
+  return secret.substring(0, 4) + "*".repeat(8) + secret.substring(secret.length - 4);
 }
 /**
  * Scan model file content for security threats
@@ -623,7 +690,8 @@ async function scanModelFileContent(
       }
     }
   } catch (error) {
-    console.warn("Error scanning model file " + filePath + ":", error);
+    // Silently continue - model file scan failures shouldn't fail the entire scan
+    // Error is expected for corrupted or incompatible model files
   }
 
   return { findings };
@@ -728,8 +796,9 @@ export async function startScan(
     });
 
     // Start async scanning process (non-blocking)
-    executeScan(scan.id!, owner, repo, ctx).catch((error) => {
-      console.error(`Scan ${scan.id} failed:`, error);
+    // Errors are handled internally by executeScan via updateScanProgressQuery
+    executeScan(scan.id!, owner, repo, ctx).catch(() => {
+      // Error already handled and logged in executeScan
     });
 
     return scan;
@@ -792,13 +861,14 @@ async function executeScan(
       ctx.tenantId
     );
 
-    // Collect findings (aggregated by pattern)
+    // Collect findings (aggregated by pattern and finding type)
     const findingsMap = new Map<
       string,
       {
         pattern: DetectionPattern;
         filePaths: IFilePath[];
         category: string;
+        findingType: "library" | "api_call" | "secret";
       }
     >();
 
@@ -821,11 +891,11 @@ async function executeScan(
         const content = await readFileContent(file.fullPath);
 
         // Scan for patterns
-        const matches = scanFileForPatterns(content, file.path, fileType);
+        const matches = scanFileForPatterns(content, fileType);
 
-        // Aggregate findings
+        // Aggregate findings (separate by findingType so library and api_call are tracked independently)
         for (const match of matches) {
-          const key = `${match.pattern.name}::${match.pattern.provider}`;
+          const key = `${match.pattern.name}::${match.pattern.provider}::${match.findingType}`;
           const existing = findingsMap.get(key);
 
           if (existing) {
@@ -840,6 +910,7 @@ async function executeScan(
               category: AI_DETECTION_PATTERNS.find((c) =>
                 c.patterns.includes(match.pattern)
               )?.name || "Unknown",
+              findingType: match.findingType,
               filePaths: [
                 {
                   path: file.path,
@@ -852,9 +923,9 @@ async function executeScan(
         }
 
         progressState.findingsCount = findingsMap.size;
-      } catch (error) {
-        // Skip files that fail to read (might be binary, etc.)
-        console.warn(`Failed to scan file ${file.path}:`, error);
+      } catch {
+        // Skip files that fail to read (might be binary, permissions issue, etc.)
+        // This is expected behavior and doesn't need logging
       }
 
       // Update progress in database periodically (every 50 files - can be more frequent since local reads are fast)
@@ -969,29 +1040,53 @@ async function executeScan(
           operator_name: "error",
           module_name: "scanner",
         });
-        console.warn("Model file scan incomplete for " + modelFile.path + ":", error);
+        // Error already recorded as a finding with threat_type: "scan_incomplete"
       }
     }
 
     // Store findings in database
     const transaction = await sequelize.transaction();
     try {
-      const findingInputs: ICreateFindingInput[] = [];
+      // Deduplicate findings by name+provider to avoid ON CONFLICT errors
+      // (same library may be detected as both "library" and "api_call" finding types)
+      const deduplicatedFindingsMap = new Map<string, ICreateFindingInput>();
 
       for (const [, finding] of findingsMap) {
-        findingInputs.push({
-          scan_id: scanId,
-          finding_type: "library",
-          category: finding.category,
-          name: finding.pattern.name,
-          provider: finding.pattern.provider,
-          confidence: finding.pattern.confidence,
-          description: finding.pattern.description,
-          documentation_url: finding.pattern.documentationUrl,
-          file_count: finding.filePaths.length,
-          file_paths: finding.filePaths,
-        });
+        const findingType = finding.findingType || "library";
+        const key = `${finding.pattern.name}::${finding.pattern.provider}`;
+        const existing = deduplicatedFindingsMap.get(key);
+
+        if (existing) {
+          // Merge file paths from both findings
+          const existingPaths = existing.file_paths || [];
+          existing.file_paths = [...existingPaths, ...finding.filePaths];
+          existing.file_count = existing.file_paths.length;
+          // If one is api_call, prefer that (higher risk)
+          if (findingType === "api_call") {
+            existing.finding_type = "api_call";
+            existing.confidence = "high";
+            existing.risk_level = "high";
+          }
+        } else {
+          deduplicatedFindingsMap.set(key, {
+            scan_id: scanId,
+            finding_type: findingType,
+            category: finding.category,
+            name: finding.pattern.name,
+            provider: finding.pattern.provider,
+            // API call findings are always high confidence
+            confidence: findingType === "api_call" ? "high" : finding.pattern.confidence,
+            // Calculate risk level based on provider and finding type
+            risk_level: calculateRiskLevel(finding.pattern.provider, findingType),
+            description: finding.pattern.description,
+            documentation_url: finding.pattern.documentationUrl,
+            file_count: finding.filePaths.length,
+            file_paths: finding.filePaths,
+          });
+        }
       }
+
+      const findingInputs = Array.from(deduplicatedFindingsMap.values());
 
       if (findingInputs.length > 0) {
         await createFindingsBatchQuery(findingInputs, ctx.tenantId, transaction);
@@ -1177,6 +1272,7 @@ export async function getScan(
  * @param page - Page number
  * @param limit - Items per page
  * @param confidence - Optional confidence filter
+ * @param findingType - Optional finding type filter (library, dependency, api_call)
  * @returns Paginated findings
  */
 export async function getScanFindings(
@@ -1184,7 +1280,8 @@ export async function getScanFindings(
   ctx: IServiceContext,
   page: number = 1,
   limit: number = 50,
-  confidence?: string
+  confidence?: string,
+  findingType?: string
 ): Promise<IFindingsResponse> {
   // Verify scan exists
   const scan = await getScanByIdQuery(scanId, ctx.tenantId);
@@ -1197,7 +1294,8 @@ export async function getScanFindings(
     ctx.tenantId,
     page,
     limit,
-    confidence
+    confidence,
+    findingType
   );
 
   return {
@@ -1208,10 +1306,14 @@ export async function getScanFindings(
       name: f.name,
       provider: f.provider || "",
       confidence: f.confidence,
+      risk_level: f.risk_level || "medium",
       description: f.description,
       documentation_url: f.documentation_url,
       file_count: f.file_count || 0,
       file_paths: f.file_paths || [],
+      governance_status: f.governance_status,
+      governance_updated_at: f.governance_updated_at?.toISOString(),
+      governance_updated_by: f.governance_updated_by,
     })),
     pagination: {
       total,
@@ -1593,4 +1695,81 @@ export async function getSecuritySummary(
     by_threat_type,
     model_files_scanned: parseInt(modelFilesResult[0]?.model_files_scanned || "0", 10),
   };
+}
+
+// ============================================================================
+// Governance Status Operations
+// ============================================================================
+
+/**
+ * Update governance status for a finding
+ *
+ * @param scanId - Scan ID
+ * @param findingId - Finding ID
+ * @param governanceStatus - New status or null to clear
+ * @param ctx - Service context
+ * @returns Updated finding with governance info
+ */
+export async function updateFindingGovernanceStatus(
+  scanId: number,
+  findingId: number,
+  governanceStatus: GovernanceStatus | null,
+  ctx: IServiceContext
+): Promise<IUpdateGovernanceStatusResponse> {
+  // Verify scan exists and belongs to tenant
+  const scan = await getScanByIdQuery(scanId, ctx.tenantId);
+  if (!scan) {
+    throw new NotFoundException(`Scan ${scanId} not found`);
+  }
+
+  // Validate governance status if provided
+  if (governanceStatus !== null && !["reviewed", "approved", "flagged"].includes(governanceStatus)) {
+    throw new ValidationException("governance_status must be 'reviewed', 'approved', 'flagged', or null");
+  }
+
+  // Update the finding
+  const updatedFinding = await updateFindingGovernanceStatusQuery(
+    findingId,
+    scanId,
+    governanceStatus,
+    ctx.userId,
+    ctx.tenantId
+  );
+
+  if (!updatedFinding) {
+    throw new NotFoundException(`Finding ${findingId} not found in scan ${scanId}`);
+  }
+
+  return {
+    id: updatedFinding.id!,
+    governance_status: governanceStatus,
+    governance_updated_at: new Date().toISOString(),
+    governance_updated_by: ctx.userId,
+  };
+}
+
+/**
+ * Get governance summary for a scan
+ *
+ * @param scanId - Scan ID
+ * @param ctx - Service context
+ * @returns Governance summary with counts
+ */
+export async function getGovernanceSummary(
+  scanId: number,
+  ctx: IServiceContext
+): Promise<{
+  total: number;
+  reviewed: number;
+  approved: number;
+  flagged: number;
+  unreviewed: number;
+}> {
+  // Verify scan exists
+  const scan = await getScanByIdQuery(scanId, ctx.tenantId);
+  if (!scan) {
+    throw new NotFoundException(`Scan ${scanId} not found`);
+  }
+
+  return getGovernanceSummaryQuery(scanId, ctx.tenantId);
 }

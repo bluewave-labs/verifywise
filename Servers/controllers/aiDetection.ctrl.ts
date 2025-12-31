@@ -28,6 +28,8 @@ import {
   deleteScan,
   getSecurityFindings,
   getSecuritySummary,
+  updateFindingGovernanceStatus,
+  getGovernanceSummary,
 } from "../services/aiDetection.service";
 import { IServiceContext, ScanStatus } from "../domain.layer/interfaces/i.aiDetection";
 
@@ -190,7 +192,7 @@ export async function getScanController(
  * Get findings for a scan
  *
  * GET /ai-detection/scans/:scanId/findings
- * Query: page, limit, confidence
+ * Query: page, limit, confidence, finding_type
  */
 export async function getScanFindingsController(
   req: Request,
@@ -212,6 +214,7 @@ export async function getScanFindingsController(
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = Math.min(parseInt(req.query.limit as string, 10) || 50, 100);
     const confidence = req.query.confidence as string | undefined;
+    const findingType = req.query.finding_type as string | undefined;
 
     // Validate confidence if provided
     if (confidence && !["high", "medium", "low"].includes(confidence)) {
@@ -220,8 +223,15 @@ export async function getScanFindingsController(
         .json(STATUS_CODE[400]("confidence must be 'high', 'medium', or 'low'"));
     }
 
+    // Validate finding_type if provided
+    if (findingType && !["library", "dependency", "api_call", "secret"].includes(findingType)) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("finding_type must be 'library', 'dependency', 'api_call', or 'secret'"));
+    }
+
     const ctx = buildServiceContext(req);
-    const findings = await getScanFindings(scanId, ctx, page, limit, confidence);
+    const findings = await getScanFindings(scanId, ctx, page, limit, confidence, findingType);
 
     return res.status(200).json(STATUS_CODE[200](findings));
   } catch (error) {
@@ -288,7 +298,7 @@ export async function getActiveScanController(
     // Return null if no active scan (not 404, as this is expected)
     return res.status(200).json(STATUS_CODE[200](activeScan));
   } catch (error) {
-    console.error("Error in getActiveScanController:", error);
+    // Error handling delegated to handleException
     return handleException(res, error);
   }
 }
@@ -452,6 +462,104 @@ export async function getSecuritySummaryController(
 
     const ctx = buildServiceContext(req);
     const summary = await getSecuritySummary(scanId, ctx);
+
+    return res.status(200).json(STATUS_CODE[200](summary));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Update governance status for a finding
+ *
+ * PATCH /ai-detection/scans/:scanId/findings/:findingId/governance
+ * Body: { governance_status: "reviewed" | "approved" | "flagged" | null }
+ */
+export async function updateGovernanceStatusController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Updating finding governance status",
+    functionName: "updateGovernanceStatusController",
+    fileName: FILE_NAME,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+    const findingId = parseInt(req.params.findingId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    if (isNaN(findingId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid finding ID"));
+    }
+
+    const { governance_status } = req.body;
+
+    // Validate governance_status if provided
+    if (governance_status !== null && governance_status !== undefined &&
+        !["reviewed", "approved", "flagged"].includes(governance_status)) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("governance_status must be 'reviewed', 'approved', 'flagged', or null"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const result = await updateFindingGovernanceStatus(
+      scanId,
+      findingId,
+      governance_status ?? null,
+      ctx
+    );
+
+    await logSuccess({
+      eventType: "Update",
+      description: `Updated governance status for finding ${findingId} to ${governance_status || 'cleared'}`,
+      userId: ctx.userId,
+      functionName: "updateGovernanceStatusController",
+      fileName: FILE_NAME,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](result));
+  } catch (error) {
+    await logError({
+      error: error as Error,
+      eventType: "Update",
+      description: "Failed to update finding governance status",
+      functionName: "updateGovernanceStatusController",
+      fileName: FILE_NAME,
+    });
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get governance summary for a scan
+ *
+ * GET /ai-detection/scans/:scanId/governance-summary
+ */
+export async function getGovernanceSummaryController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting governance summary",
+    functionName: "getGovernanceSummaryController",
+    fileName: FILE_NAME,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const summary = await getGovernanceSummary(scanId, ctx);
 
     return res.status(200).json(STATUS_CODE[200](summary));
   } catch (error) {

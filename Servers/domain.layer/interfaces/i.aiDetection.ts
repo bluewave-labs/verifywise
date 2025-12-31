@@ -78,12 +78,23 @@ export interface IUpdateScanProgressInput {
 /**
  * Valid finding types
  */
-export type FindingType = "library" | "dependency";
+export type FindingType = "library" | "dependency" | "api_call" | "secret";
+
+/**
+ * Valid governance status values for findings
+ */
+export type GovernanceStatus = "reviewed" | "approved" | "flagged";
 
 /**
  * Valid confidence levels
  */
 export type ConfidenceLevel = "high" | "medium" | "low";
+
+/**
+ * Valid risk levels for findings
+ * Based on data leakage potential and security impact
+ */
+export type RiskLevel = "high" | "medium" | "low";
 
 /**
  * Represents a file path where a finding was detected
@@ -105,10 +116,14 @@ export interface IFinding {
   name: string;
   provider?: string;
   confidence: ConfidenceLevel;
+  risk_level?: RiskLevel;
   description?: string;
   documentation_url?: string;
   file_count?: number;
   file_paths?: IFilePath[];
+  governance_status?: GovernanceStatus | null;
+  governance_updated_at?: Date;
+  governance_updated_by?: number;
   created_at?: Date;
 }
 
@@ -122,6 +137,7 @@ export interface ICreateFindingInput {
   name: string;
   provider?: string;
   confidence: ConfidenceLevel;
+  risk_level?: RiskLevel;
   description?: string;
   documentation_url?: string;
   file_count?: number;
@@ -212,10 +228,31 @@ export interface IFindingResponse {
   name: string;
   provider: string;
   confidence: ConfidenceLevel;
+  risk_level: RiskLevel;
   description?: string;
   documentation_url?: string;
   file_count: number;
   file_paths: IFilePath[];
+  governance_status?: GovernanceStatus | null;
+  governance_updated_at?: string;
+  governance_updated_by?: number;
+}
+
+/**
+ * Request for updating finding governance status
+ */
+export interface IUpdateGovernanceStatusRequest {
+  governance_status: GovernanceStatus | null;
+}
+
+/**
+ * Response for governance status update
+ */
+export interface IUpdateGovernanceStatusResponse {
+  id: number;
+  governance_status: GovernanceStatus | null;
+  governance_updated_at: string;
+  governance_updated_by: number;
 }
 
 /**

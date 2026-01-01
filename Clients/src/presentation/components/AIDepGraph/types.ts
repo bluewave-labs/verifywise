@@ -16,7 +16,7 @@ import type {
 // Re-export for convenience
 export type DependencyNodeType = DomainDependencyNodeType;
 
-// ReactFlow node data
+// ReactFlow node data with index signature for compatibility
 export interface AIDepNodeData {
   label: string;
   sublabel?: string;
@@ -31,6 +31,8 @@ export interface AIDepNodeData {
   connectionCount?: number;
   isHighlighted?: boolean;
   findingId: number;
+  // Index signature for ReactFlow compatibility
+  [key: string]: unknown;
 }
 
 // ReactFlow edge data

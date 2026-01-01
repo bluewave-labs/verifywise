@@ -1,23 +1,45 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { BackendResponse } from "../../domain/types/ApiTypes";
 
 /**
- * Creates a new incident management entry in the database.
+ * Evidence hub entry structure
+ */
+interface EvidenceHubEntry {
+  id: number;
+  title?: string;
+  description?: string;
+  file_id?: number;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Evidence hub input for create
+ */
+interface EvidenceHubInput {
+  title?: string;
+  description?: string;
+  file_id?: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Creates a new evidence hub entry in the database.
  *
  * @param {string} routeUrl - The API route URL.
- * @param {any} data - The incident management data to be saved.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+ * @param {EvidenceHubInput} data - The evidence hub data to be saved.
+ * @returns {Promise<BackendResponse<EvidenceHubEntry>>} The response from the API.
  */
 export async function createEvidenceHub(
     routeUrl: string,
-    data: any
-): Promise<any> {
+    data: EvidenceHubInput
+): Promise<BackendResponse<EvidenceHubEntry>> {
     try {
-        const response = await apiServices.post(routeUrl, data);
+        const response = await apiServices.post<BackendResponse<EvidenceHubEntry>>(routeUrl, data);
         return response.data;
     } catch (error) {
-        console.error("Error creating incident management:", error);
+        console.error("Error creating evidence hub:", error);
         throw error;
     }
 }

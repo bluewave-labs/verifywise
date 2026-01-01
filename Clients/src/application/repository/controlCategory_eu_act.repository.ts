@@ -1,4 +1,28 @@
-import { apiServices } from "../../infrastructure/api/networkServices";
+import { apiServices, ApiResponse } from "../../infrastructure/api/networkServices";
+import { BackendResponse } from "../../domain/types/ApiTypes";
+
+/**
+ * Control category structure
+ */
+interface ControlCategory {
+  id: number;
+  name: string;
+  description?: string;
+  order_id?: number;
+  project_id?: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Control category input for create/update
+ */
+interface ControlCategoryInput {
+  name?: string;
+  description?: string;
+  order_id?: number;
+  project_id?: number;
+  [key: string]: unknown;
+}
 
 export async function getControlCategoryById({
   id,
@@ -8,8 +32,8 @@ export async function getControlCategoryById({
   id: number;
   signal?: AbortSignal;
   responseType?: string;
-}): Promise<any> {
-  const response = await apiServices.get(`/controlCategory/${id}`, {
+}): Promise<BackendResponse<ControlCategory>> {
+  const response = await apiServices.get<BackendResponse<ControlCategory>>(`/controlCategory/${id}`, {
     signal,
     responseType,
   });
@@ -19,9 +43,9 @@ export async function getControlCategoryById({
 export async function createControlCategory({
   body,
 }: {
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.post("/controlCategory", body, {
+  body: ControlCategoryInput;
+}): Promise<ApiResponse<BackendResponse<ControlCategory>>> {
+  const response = await apiServices.post<BackendResponse<ControlCategory>>("/controlCategory", body, {
   });
   return response;
 }
@@ -31,9 +55,9 @@ export async function updateControlCategory({
   body,
 }: {
   id: number;
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.patch(`/controlCategory/${id}`, body);
+  body: ControlCategoryInput;
+}): Promise<ApiResponse<BackendResponse<ControlCategory>>> {
+  const response = await apiServices.patch<BackendResponse<ControlCategory>>(`/controlCategory/${id}`, body);
   return response;
 }
 
@@ -41,13 +65,13 @@ export async function deleteControlCategory({
   id,
 }: {
   id: number;
-}): Promise<any> {
-  const response = await apiServices.delete(`/controlCategory/${id}`);
+}): Promise<ApiResponse<null>> {
+  const response = await apiServices.delete<null>(`/controlCategory/${id}`);
   return response;
 }
 
-export async function getAllControlCategories(): Promise<any> {
-  const response = await apiServices.get("/controlCategory");
+export async function getAllControlCategories(): Promise<BackendResponse<ControlCategory[]>> {
+  const response = await apiServices.get<BackendResponse<ControlCategory[]>>("/controlCategory");
   return response.data;
 }
 
@@ -57,8 +81,8 @@ export async function getControlCategoriesByProjectId({
 }: {
   projectId: number;
   signal?: AbortSignal;
-}): Promise<any> {
-  const response = await apiServices.get(`/controlCategory/byprojectid/${projectId}`, {
+}): Promise<BackendResponse<ControlCategory[]>> {
+  const response = await apiServices.get<BackendResponse<ControlCategory[]>>(`/controlCategory/byprojectid/${projectId}`, {
     signal,
   });
   return response.data;

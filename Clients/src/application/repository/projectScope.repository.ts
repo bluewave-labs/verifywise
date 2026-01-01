@@ -1,11 +1,37 @@
-import { apiServices } from "../../infrastructure/api/networkServices";
+import { apiServices, ApiResponse } from "../../infrastructure/api/networkServices";
+import { BackendResponse } from "../../domain/types/ApiTypes";
+
+/**
+ * Project scope structure
+ */
+interface ProjectScope {
+  id: number;
+  project_id?: number;
+  name?: string;
+  description?: string;
+  in_scope?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Project scope input for create/update
+ */
+interface ProjectScopeInput {
+  project_id?: number;
+  name?: string;
+  description?: string;
+  in_scope?: boolean;
+  [key: string]: unknown;
+}
 
 export async function getAllProjectScopes({
   signal,
 }: {
   signal?: AbortSignal;
-} = {}): Promise<any> {
-  const response = await apiServices.get("/projectScopes", {
+} = {}): Promise<BackendResponse<ProjectScope[]>> {
+  const response = await apiServices.get<BackendResponse<ProjectScope[]>>("/projectScopes", {
     signal,
   });
   return response.data;
@@ -17,8 +43,8 @@ export async function getProjectScopeById({
 }: {
   id: number;
   signal?: AbortSignal;
-}): Promise<any> {
-  const response = await apiServices.get(`/projectScopes/${id}`, {
+}): Promise<BackendResponse<ProjectScope>> {
+  const response = await apiServices.get<BackendResponse<ProjectScope>>(`/projectScopes/${id}`, {
     signal,
   });
   return response.data;
@@ -27,9 +53,9 @@ export async function getProjectScopeById({
 export async function createProjectScope({
   body,
 }: {
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.post("/projectScopes", body);
+  body: ProjectScopeInput;
+}): Promise<ApiResponse<BackendResponse<ProjectScope>>> {
+  const response = await apiServices.post<BackendResponse<ProjectScope>>("/projectScopes", body);
   return response;
 }
 
@@ -38,9 +64,9 @@ export async function updateProjectScope({
   body,
 }: {
   id: number;
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.put(`/projectScopes/${id}`, body);
+  body: ProjectScopeInput;
+}): Promise<ApiResponse<BackendResponse<ProjectScope>>> {
+  const response = await apiServices.put<BackendResponse<ProjectScope>>(`/projectScopes/${id}`, body);
   return response;
 }
 
@@ -48,7 +74,7 @@ export async function deleteProjectScope({
   id,
 }: {
   id: number;
-}): Promise<any> {
+}): Promise<ApiResponse<null>> {
   const response = await apiServices.delete(`/projectScopes/${id}`);
   return response;
 }

@@ -5,10 +5,26 @@
  */
 
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { BackendResponse } from "../../domain/types/ApiTypes";
 import { EntityType } from "../../config/changeHistory.config";
 
+/**
+ * Change history entry structure
+ */
+interface ChangeHistoryEntry {
+  id: number;
+  entity_type: string;
+  entity_id: number;
+  field_name: string;
+  old_value?: string;
+  new_value?: string;
+  changed_by: number;
+  changed_at: string;
+  [key: string]: unknown;
+}
+
 export interface ChangeHistoryResponse {
-  data: any[];
+  data: ChangeHistoryEntry[];
   hasMore: boolean;
   total: number;
 }
@@ -31,11 +47,11 @@ export const getEntityChangeHistory = async (
   try {
     // Convert entity_type to route format (e.g., "model_inventory" -> "model-inventory")
     const routeType = entityType.replace(/_/g, "-");
-    const response = await apiServices.get(
+    const response = await apiServices.get<BackendResponse<ChangeHistoryResponse>>(
       `/${routeType}-change-history/${entityId}?limit=${limit}&offset=${offset}`
     );
     // API returns { message: "OK", data: { data: [...], hasMore: boolean, total: number } }
-    return (response.data as any).data;
+    return response.data.data;
   } catch (error) {
     console.error(`Error getting ${entityType} change history:`, error);
     throw error;

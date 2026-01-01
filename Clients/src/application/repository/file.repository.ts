@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { apiServices } from "../../infrastructure/api/networkServices";
+import { apiServices, ApiResponse } from "../../infrastructure/api/networkServices";
+import { BackendResponse } from "../../domain/types/ApiTypes";
 
 // Type definitions for API responses
 export interface FileMetadata {
@@ -54,7 +54,7 @@ export async function getFileById({
   signal?: AbortSignal;
   responseType?: string;
 }): Promise<Blob | ArrayBuffer> {
-  const response = await apiServices.get<any>(`/files/${id}`, {
+  const response = await apiServices.get<Blob | ArrayBuffer>(`/files/${id}`, {
     signal,
     responseType,
   });
@@ -68,6 +68,28 @@ export async function getFileById({
  * @param {AbortSignal} signal - Optional abort signal for cancellation
  * @returns {Promise<FileMetadata[]>} Array of file metadata
  */
+/**
+ * Raw file data from API
+ */
+interface RawFileData {
+  id: string | number;
+  filename: string;
+  size?: number;
+  mimetype?: string;
+  upload_date?: string;
+  uploaded_time?: string;
+  uploaded_by?: string | number;
+  uploader_name?: string;
+  uploader_surname?: string;
+  source?: string;
+  project_title?: string;
+  project_id?: string | number;
+  parent_id?: number;
+  sub_id?: number;
+  meta_id?: number;
+  is_evidence?: boolean;
+}
+
 export async function getUserFilesMetaData({
   signal,
 }: {
@@ -75,14 +97,14 @@ export async function getUserFilesMetaData({
 } = {}): Promise<FileMetadata[]> {
     const [fileManageResponse, fileResponse] = await Promise.all([
       apiServices.get<FileManagerResponse>("/file-manager", { signal }),
-      apiServices.get<any[]>("/files", { signal })
+      apiServices.get<RawFileData[]>("/files", { signal })
     ]);
 
     // Extract and return all file data from API
     // Keep all fields intact so transformFileData can process them
-    const rawFiles = [...(fileManageResponse.data?.data?.files ?? []), ...(fileResponse.data ?? [])];
+    const rawFiles: RawFileData[] = [...(fileManageResponse.data?.data?.files ?? []), ...(fileResponse.data ?? [])];
 
-    return rawFiles.map((f: any) => ({
+    return rawFiles.map((f: RawFileData) => ({
         id: String(f.id),
         filename: f.filename,
         size: f?.size,
@@ -175,7 +197,7 @@ export async function downloadFileFromManager({
  *
  * @param {string} id - The file ID to delete
  * @param {AbortSignal} signal - Optional abort signal for cancellation
- * @returns {Promise<any>} Delete response
+ * @returns {Promise<null>} Delete response
  */
 export async function deleteFileFromManager({
   id,
@@ -185,8 +207,8 @@ export async function deleteFileFromManager({
   id: string;
   signal?: AbortSignal;
   source?: string;
-}): Promise<any> {
-  const response = await apiServices.delete<any>(`/file-manager/${id}?isFileManagerFile=${source === "File Manager"}`, {
+}): Promise<null> {
+  const response = await apiServices.delete<null>(`/file-manager/${id}?isFileManagerFile=${source === "File Manager"}`, {
     signal,
   });
   return response.data;
@@ -199,7 +221,7 @@ export async function deleteFileFromManager({
  * @param {string} questionId - The question ID
  * @param {string} userId - The user ID
  * @param {string} projectId - The project ID (optional)
- * @returns {Promise<any>} Delete response
+ * @returns {Promise<ApiResponse<BackendResponse<{ deleted: number[] }>>>} Delete response
  */
 export async function deleteQuestionEvidenceFiles({
   deleteFileIds,
@@ -211,7 +233,7 @@ export async function deleteQuestionEvidenceFiles({
   questionId: string;
   userId: string;
   projectId?: string;
-}): Promise<any> {
+}): Promise<ApiResponse<BackendResponse<{ deleted: number[] }>>> {
   const formData = new FormData();
   formData.append("delete", JSON.stringify(deleteFileIds));
   formData.append("question_id", questionId);
@@ -220,7 +242,7 @@ export async function deleteQuestionEvidenceFiles({
     formData.append("project_id", projectId);
   }
 
-  const response = await apiServices.post("/files", formData, {
+  const response = await apiServices.post<BackendResponse<{ deleted: number[] }>>("/files", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

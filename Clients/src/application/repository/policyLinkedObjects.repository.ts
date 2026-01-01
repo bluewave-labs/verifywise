@@ -1,24 +1,45 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { BackendResponse } from "../../domain/types/ApiTypes";
 
 /**
- * Creates a new model inventory entry in the database.
+ * Policy linked object structure
+ */
+interface PolicyLinkedObject {
+  id: number;
+  policy_id: number;
+  object_type: string;
+  object_id: number;
+  created_at?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Policy linked object input for create
+ */
+interface PolicyLinkedObjectInput {
+  policy_id?: number;
+  object_type?: string;
+  object_id?: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Creates a new policy linked object entry in the database.
  *
  * @param {string} routeUrl - The API route URL.
- * @param {any} data - The model inventory data to be saved.
-  * @returns {Promise<any>} The response from the API.
+ * @param {PolicyLinkedObjectInput} data - The policy linked object data to be saved.
+ * @returns {Promise<BackendResponse<PolicyLinkedObject>>} The response from the API.
  */
 export async function createPolicyLinkedObjects(
   routeUrl: string,
-  data: any,
-): Promise<any> {
+  data: PolicyLinkedObjectInput,
+): Promise<BackendResponse<PolicyLinkedObject>> {
   try {
-    const response = await apiServices.post(routeUrl, data);
+    const response = await apiServices.post<BackendResponse<PolicyLinkedObject>>(routeUrl, data);
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating policy linked objects:", error);
     // Re-throw the error with proper structure to preserve validation details
     throw error;
   }
 }
-

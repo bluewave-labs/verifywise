@@ -1,21 +1,44 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { BackendResponse } from "../../domain/types/ApiTypes";
+
+/**
+ * Model inventory entry structure
+ */
+interface ModelInventory {
+  id: number;
+  name: string;
+  description?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Model inventory input for create
+ */
+interface ModelInventoryInput {
+  name?: string;
+  description?: string;
+  status?: string;
+  [key: string]: unknown;
+}
 
 /**
  * Creates a new model inventory entry in the database.
  *
  * @param {string} routeUrl - The API route URL.
- * @param {any} data - The model inventory data to be saved.
-  * @returns {Promise<any>} The response from the API.
+ * @param {ModelInventoryInput} data - The model inventory data to be saved.
+ * @returns {Promise<BackendResponse<ModelInventory>>} The response from the API.
  */
 export async function createModelInventory(
   routeUrl: string,
-  data: any,
-): Promise<any> {
+  data: ModelInventoryInput,
+): Promise<BackendResponse<ModelInventory>> {
   try {
-    const response = await apiServices.post(routeUrl, data);
+    const response = await apiServices.post<BackendResponse<ModelInventory>>(routeUrl, data);
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating model inventory:", error);
     // Re-throw the error with proper structure to preserve validation details
     throw error;

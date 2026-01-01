@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { apiServices } from "../../infrastructure/api/networkServices";
+import { apiServices, ApiResponse } from "../../infrastructure/api/networkServices";
+import { BackendResponse } from "../../domain/types/ApiTypes";
 
 export interface CreateShareLinkParams {
   resource_type: string;
@@ -25,15 +25,36 @@ export interface UpdateShareLinkParams {
 }
 
 /**
+ * Share link structure
+ */
+interface ShareLink {
+  id: number;
+  token: string;
+  resource_type: string;
+  resource_id: number;
+  settings?: {
+    shareAllFields: boolean;
+    allowDataExport: boolean;
+    allowViewersToOpenRecords: boolean;
+    displayToolbar: boolean;
+  };
+  is_enabled: boolean;
+  expires_at?: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
+}
+
+/**
  * Creates a new share link
  * POST /api/shares
  *
  * @param {CreateShareLinkParams} body - The share link data
- * @returns {Promise<any>} A promise that resolves to the created share link
+ * @returns {Promise<ApiResponse<BackendResponse<ShareLink>>>} A promise that resolves to the created share link
  * @throws Will throw an error if the creation fails
  */
-export async function createShareLink(body: CreateShareLinkParams): Promise<any> {
-  const response = await apiServices.post("/shares", body);
+export async function createShareLink(body: CreateShareLinkParams): Promise<ApiResponse<BackendResponse<ShareLink>>> {
+  const response = await apiServices.post<BackendResponse<ShareLink>>("/shares", body);
   return response;
 }
 
@@ -43,14 +64,14 @@ export async function createShareLink(body: CreateShareLinkParams): Promise<any>
  *
  * @param {string} resourceType - Type of resource (e.g., 'model', 'policy')
  * @param {number} resourceId - ID of the resource
- * @returns {Promise<any>} A promise that resolves to the list of share links
+ * @returns {Promise<ApiResponse<BackendResponse<ShareLink[]>>>} A promise that resolves to the list of share links
  * @throws Will throw an error if the request fails
  */
 export async function getShareLinksForResource(
   resourceType: string,
   resourceId: number
-): Promise<any> {
-  const response = await apiServices.get(`/shares/${resourceType}/${resourceId}`);
+): Promise<ApiResponse<BackendResponse<ShareLink[]>>> {
+  const response = await apiServices.get<BackendResponse<ShareLink[]>>(`/shares/${resourceType}/${resourceId}`);
   return response;
 }
 
@@ -59,11 +80,11 @@ export async function getShareLinksForResource(
  * GET /api/shares/token/:token
  *
  * @param {string} token - The share token
- * @returns {Promise<any>} A promise that resolves to the share link data
+ * @returns {Promise<ApiResponse<BackendResponse<ShareLink>>>} A promise that resolves to the share link data
  * @throws Will throw an error if the request fails
  */
-export async function getShareLinkByToken(token: string): Promise<any> {
-  const response = await apiServices.get(`/shares/token/${token}`);
+export async function getShareLinkByToken(token: string): Promise<ApiResponse<BackendResponse<ShareLink>>> {
+  const response = await apiServices.get<BackendResponse<ShareLink>>(`/shares/token/${token}`);
   return response;
 }
 
@@ -73,14 +94,14 @@ export async function getShareLinkByToken(token: string): Promise<any> {
  *
  * @param {number} id - The share link ID
  * @param {UpdateShareLinkParams} body - The update data
- * @returns {Promise<any>} A promise that resolves to the updated share link
+ * @returns {Promise<ApiResponse<BackendResponse<ShareLink>>>} A promise that resolves to the updated share link
  * @throws Will throw an error if the update fails
  */
 export async function updateShareLink(
   id: number,
   body: UpdateShareLinkParams
-): Promise<any> {
-  const response = await apiServices.patch(`/shares/${id}`, body);
+): Promise<ApiResponse<BackendResponse<ShareLink>>> {
+  const response = await apiServices.patch<BackendResponse<ShareLink>>(`/shares/${id}`, body);
   return response;
 }
 
@@ -89,10 +110,10 @@ export async function updateShareLink(
  * DELETE /api/shares/:id
  *
  * @param {number} id - The share link ID
- * @returns {Promise<any>} A promise that resolves to the deletion confirmation
+ * @returns {Promise<ApiResponse<null>>} A promise that resolves to the deletion confirmation
  * @throws Will throw an error if the deletion fails
  */
-export async function deleteShareLink(id: number): Promise<any> {
+export async function deleteShareLink(id: number): Promise<ApiResponse<null>> {
   const response = await apiServices.delete(`/shares/${id}`);
   return response;
 }

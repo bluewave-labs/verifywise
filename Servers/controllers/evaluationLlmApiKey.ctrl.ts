@@ -247,7 +247,7 @@ export const verifyKey = async (req: Request, res: Response) => {
         });
       } else {
         // Other errors - give benefit of doubt
-        console.warn(`API key verification got status ${response.status} for provider ${provider}`);
+        console.warn('API key verification got status', response.status, 'for provider:', provider);
         return res.status(200).json({
           success: true,
           valid: true,
@@ -255,7 +255,7 @@ export const verifyKey = async (req: Request, res: Response) => {
         });
       }
     } catch (fetchError: any) {
-      console.error(`Error verifying ${provider} API key:`, fetchError.message);
+      console.error('Error verifying API key for provider:', provider, '-', fetchError.message);
       // Network errors - give benefit of doubt
       return res.status(200).json({
         success: true,

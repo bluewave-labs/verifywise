@@ -16,7 +16,7 @@ interface RequestParams {
   [key: string]: any;
 }
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   data: T;
   status: number;
   statusText: string;

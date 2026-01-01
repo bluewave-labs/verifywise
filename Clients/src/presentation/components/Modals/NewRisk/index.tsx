@@ -296,13 +296,14 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       selectedLikelihood.name as RiskLikelihood,
       selectedSeverity.name as RiskSeverity
     );
+    const actionOwnerId = formattedUsers?.find(
+      (user) => String(user._id) === String(values.action_owner)
+    )?._id;
     const _riskDetails: CreateVendorRiskInput = {
       vendor_id: values.vendor_id ? Number(values.vendor_id) : undefined,
       risk_description: values.risk_description,
       impact_description: values.impact_description,
-      action_owner: formattedUsers?.find(
-        (user) => String(user._id) === String(values.action_owner)
-      )?._id,
+      action_owner: actionOwnerId ? Number(actionOwnerId) : undefined,
       action_plan: values.action_plan,
       risk_severity: selectedSeverity.name as VendorRisk["risk_severity"],
       risk_level: risk_risklevel.level,

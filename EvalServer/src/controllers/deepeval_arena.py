@@ -360,6 +360,11 @@ async def run_arena_comparison_task(
 Score each response on each criterion from 1-10 (10 being best).
 Then determine the overall winner.
 
+For your reasoning, use subtle markdown formatting for readability:
+- Use **bold** for model names
+- Use *italics* for key differentiating phrases (e.g., "more comprehensive", "clearer explanation")
+- Keep formatting minimal - only highlight what truly matters
+
 Respond in EXACTLY this JSON format:
 {{
   "scores": {{

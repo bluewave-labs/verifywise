@@ -17,17 +17,14 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Collapse,
+  Modal,
+  IconButton,
 } from "@mui/material";
 import {
   Trophy,
   AlertCircle,
-  ChevronDown,
-  ChevronRight,
-  Scale,
-  MessageSquare,
-  Zap,
   Bot,
+  X,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -88,9 +85,9 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
         color: "#374151",
         lineHeight: 1.7,
         "& p": { mb: 1, mt: 0 },
-        "& h1": { fontSize: 16, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
-        "& h2": { fontSize: 15, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
-        "& h3": { fontSize: 14, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h1": { fontSize: 15, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h2": { fontSize: 13, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h3": { fontSize: 13, fontWeight: 600, color: "#1e293b", mt: 2, mb: 1 },
         "& h4": { fontSize: 13, fontWeight: 700, color: "#1e293b", mt: 1.5, mb: 0.5 },
         "& ul, & ol": { pl: 2.5, mb: 1 },
         "& li": { mb: 0.5 },
@@ -226,7 +223,12 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
   const [results, setResults] = useState<ArenaResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
+  const [selectedRound, setSelectedRound] = useState<number | null>(null);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     const loadResults = async () => {
@@ -244,29 +246,15 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
     loadResults();
   }, [comparisonId]);
 
-  const toggleRound = (idx: number) => {
-    const isCurrentlyExpanded = expandedRounds.has(idx);
-    setExpandedRounds((prev) => {
-      const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
-      return next;
-    });
-    
-    // Auto-scroll to the round when expanding (with offset for better visibility)
-    if (!isCurrentlyExpanded) {
-      setTimeout(() => {
-        const element = document.getElementById(`round-${idx}`);
-        if (element) {
-          const yOffset = -80; // Offset to show content above
-          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-          window.scrollTo({ top: y, behavior: "smooth" });
-        }
-      }, 150);
-    }
+  const getColor = (idx: number) => COLORS[idx % COLORS.length];
+
+  const handleOpenRound = (idx: number) => {
+    setSelectedRound(idx);
   };
 
-  const getColor = (idx: number) => COLORS[idx % COLORS.length];
+  const handleCloseRound = () => {
+    setSelectedRound(null);
+  };
 
   if (loading) {
     return (
@@ -295,7 +283,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
   const contestants = results.contestants || [];
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto" }}>
+    <Box>
       {/* Back button */}
       <Box sx={{ mb: 2 }}>
         <Typography
@@ -318,7 +306,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
       </Box>
 
       {/* Header */}
-      <Typography sx={{ fontSize: 22, fontWeight: 700, color: "#111827", mb: 4 }}>
+      <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#111827", mb: 4 }}>
         {results.name}
       </Typography>
 
@@ -342,114 +330,72 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
         </Box>
       )}
 
-      {/* Summary Section - Winner and Battle Info */}
+      {/* Summary Section - Winner and Battle Info Combined */}
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 1,
+          p: "12px",
+          borderRadius: "4px",
+          background: isCompleted
+            ? "linear-gradient(135deg, #fef9c3 0%, #fde047 100%)"
+            : "#f9fafb",
+          border: isCompleted ? "1px solid #facc15" : "1px solid #e5e7eb",
           mb: 2,
         }}
       >
-        {/* Winner Card */}
-        <Box
-          sx={{
-            p: 1,
-            borderRadius: "4px",
-            background: isCompleted
-              ? "linear-gradient(135deg, #fef9c3 0%, #fde047 100%)"
-              : "#f9fafb",
-            border: isCompleted ? "1px solid #facc15" : "1px solid #e5e7eb",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-          }}
-        >
-          <Typography sx={{ fontSize: 10, fontWeight: 600, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5, mb: 0.5 }}>
-            Winner
-          </Typography>
-          <Typography sx={{ fontSize: 18, fontWeight: 700, color: isCompleted ? "#713f12" : "#6b7280" }}>
-            {results.results?.winner || "—"}
-          </Typography>
-          <Typography sx={{ fontSize: 11, color: isCompleted ? "#a16207" : "#9ca3af" }}>
-            {isCompleted && results.results?.winner
-              ? `${winCounts[results.results.winner] || 0} of ${totalRounds} rounds won`
-              : "No winner determined"}
-          </Typography>
-        </Box>
-
-        {/* Battle Info */}
-        <Box
-          sx={{
-            p: 1,
-            borderRadius: "4px",
-            backgroundColor: "#f8fafc",
-            border: "1px solid #e2e8f0",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-          }}
-        >
-          <Typography sx={{ fontSize: 10, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: 0.5, mb: 0.5 }}>
-            Battle Info
-          </Typography>
-          <Stack direction="row" spacing={3} justifyContent="center">
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          {/* Winner Section */}
+          <Stack direction="row" alignItems="center" spacing={2}>
             <Box>
-              <Typography sx={{ fontSize: 9, color: "#9ca3af", textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: 10, fontWeight: 600, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                Winner
+              </Typography>
+              <Typography sx={{ fontSize: 18, fontWeight: 700, color: isCompleted ? "#713f12" : "#6b7280" }}>
+                {results.results?.winner || "—"}
+              </Typography>
+              <Typography sx={{ fontSize: 11, color: isCompleted ? "#a16207" : "#9ca3af" }}>
+                {isCompleted && results.results?.winner
+                  ? `${winCounts[results.results.winner] || 0} of ${totalRounds} rounds won`
+                  : "No winner determined"}
+              </Typography>
+            </Box>
+          </Stack>
+
+          {/* Battle Info Section */}
+          <Stack direction="row" spacing={3} alignItems="flex-start">
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase" }}>
                 Judge
               </Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: isCompleted ? "#713f12" : "#374151" }}>
                 {results.judgeModel || "gpt-4o"}
               </Typography>
             </Box>
-            <Box>
-              <Typography sx={{ fontSize: 9, color: "#9ca3af", textTransform: "uppercase" }}>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase" }}>
                 Rounds
               </Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: isCompleted ? "#713f12" : "#374151" }}>
                 {totalRounds}
               </Typography>
             </Box>
-            <Box>
-              <Typography sx={{ fontSize: 9, color: "#9ca3af", textTransform: "uppercase" }}>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase" }}>
                 Duration
               </Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: isCompleted ? "#713f12" : "#374151" }}>
                 {results.createdAt && results.completedAt
-                  ? `${Math.round((new Date(results.completedAt).getTime() - new Date(results.createdAt).getTime()) / 1000)}s`
+                  ? `${Math.round((new Date(results.completedAt).getTime() - new Date(results.createdAt).getTime()) / 1000 / 1000)} seconds`
                   : "—"}
               </Typography>
             </Box>
           </Stack>
-          {results.metric?.name && (
-            <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 1, justifyContent: "center" }}>
-              {results.metric.name.split(", ").map((criterion, idx) => (
-                <Box
-                  key={idx}
-                  sx={{
-                    px: 1,
-                    py: 0.25,
-                    borderRadius: "4px",
-                    backgroundColor: "rgba(19, 113, 91, 0.08)",
-                    border: "1px solid rgba(19, 113, 91, 0.3)",
-                  }}
-                >
-                  <Typography sx={{ fontSize: 10, fontWeight: 600, color: "#13715B" }}>
-                    {criterion}
-                  </Typography>
-                </Box>
-              ))}
-            </Stack>
-          )}
-        </Box>
+        </Stack>
       </Box>
 
       {/* Contestant Performance Table */}
-      <Box sx={{ mb: 2 }}>
-        <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b", mb: 1 }}>
-          Contestant Performance
+      <Box sx={{ mt: "16px", mb: "16px" }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b", mb: 1 }}>
+          Contestant performance
         </Typography>
         <TableContainer
           component={Paper}
@@ -601,9 +547,9 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
         if (criteriaList.length === 0) return null;
         
         return (
-          <Box sx={{ mb: 2 }}>
-            <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b", mb: 1 }}>
-              Average Scores by Criterion
+          <Box sx={{ mt: "16px", mb: "16px" }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b", mb: 1 }}>
+              Average scores by criterion
             </Typography>
             
             <Box
@@ -617,9 +563,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                 <Box
                   key={criterion}
                   sx={{
-                    pl: 1,
-                    pr: 2,
-                    py: 1,
+                    p: "8px",
                     borderRadius: "4px",
                     backgroundColor: "#f8fafc",
                     border: "1px solid #e2e8f0",
@@ -675,362 +619,325 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
         );
       })()}
 
-      {/* Round Results */}
+      {/* Round Results - Clickable Cards */}
       {results.results?.detailedResults?.length > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-            <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b" }}>
-              Round Details ({totalRounds} rounds)
-            </Typography>
-            <CustomizableButton
-              variant="outlined"
-              text={expandedRounds.size === totalRounds ? "Collapse All" : "Expand All"}
-              onClick={() => {
-                if (expandedRounds.size === totalRounds) {
-                  setExpandedRounds(new Set());
-                } else {
-                  setExpandedRounds(new Set(results.results.detailedResults.map((_, i) => i)));
-                }
-              }}
-              sx={{
-                fontSize: 11,
-                color: "#13715B",
-                borderColor: "#13715B",
-                "&:hover": {
-                  backgroundColor: "transparent",
-                  borderColor: "#13715B",
-                },
-              }}
-            />
-          </Stack>
+        <Box sx={{ mt: "16px" }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b", mb: 2 }}>
+            Round details ({totalRounds} rounds)
+          </Typography>
 
-          <Stack spacing={2}>
-            {results.results.detailedResults.map((round, idx) => {
-              const isExpanded = expandedRounds.has(idx);
-              const winnerColor = round.winner
-                ? getColor(contestants.indexOf(round.winner))
-                : null;
-
-              return (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "12px",
+            }}
+          >
+            {results.results.detailedResults.map((round, idx) => (
                 <Box
-                  id={`round-${idx}`}
                   key={idx}
+                  onClick={() => handleOpenRound(idx)}
                   sx={{
+                    p: "12px",
                     border: "1px solid #e2e8f0",
                     borderRadius: "4px",
-                    overflow: "hidden",
                     backgroundColor: "#fff",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                    cursor: "pointer",
                     transition: "all 0.2s ease",
+                    "&:hover": {
+                      backgroundColor: "#f8fafc",
+                      borderColor: "#13715B",
+                    },
                   }}
                 >
-                  {/* Round Header */}
-                  <Box
-                    onClick={() => toggleRound(idx)}
-                    sx={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      justifyContent: "space-between",
-                      pl: 1,
-                      pr: 2,
-                      py: 1,
-                      cursor: "pointer",
-                      background: isExpanded
-                        ? "#f8fafc"
-                        : "transparent",
-                      "&:hover": { backgroundColor: "#f8fafc" },
-                    }}
-                  >
-                    <Box>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Box
-                          sx={{
-                            width: 24,
-                            height: 24,
-                            borderRadius: "4px",
-                            backgroundColor: isExpanded ? "#13715B" : "#e2e8f0",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transition: "all 0.2s ease",
-                          }}
-                        >
-                          {isExpanded ? (
-                            <ChevronDown size={14} color="#fff" />
-                          ) : (
-                            <ChevronRight size={14} color="#64748b" />
-                          )}
-                        </Box>
-                        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
-                          Round {idx + 1}
-                        </Typography>
-                      </Stack>
-                      <Typography
-                        sx={{
-                          fontSize: 11,
-                          color: "#64748b",
-                          maxWidth: 500,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          mt: 0.5,
-                          ml: 4,
-                        }}
-                      >
-                        {round.input?.slice(0, 80)}...
-                      </Typography>
-                    </Box>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#1e293b" }}>
+                      Round {idx + 1}
+                    </Typography>
                     {round.winner ? (
-                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.25 }}>
-                        <Trophy size={14} color="#f59e0b" />
+                      <Stack direction="row" alignItems="center" spacing={0.5}>
+                        <Trophy size={12} color="#f59e0b" />
                         <Typography
                           sx={{
-                            fontSize: 13,
+                            fontSize: 11,
                             fontWeight: 700,
-                            color: winnerColor?.text || "#374151",
+                            color: "#374151",
                           }}
                         >
                           {round.winner}
                         </Typography>
                       </Stack>
                     ) : (
-                      <Typography
-                        sx={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "#64748b",
-                          mt: 0.25,
-                        }}
-                      >
+                      <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#64748b" }}>
                         Tie
                       </Typography>
                     )}
-                  </Box>
-
-                  {/* Round Details */}
-                  <Collapse in={isExpanded}>
-                    <Box sx={{ pl: 1, pr: 2, py: 1, backgroundColor: "#fafbfc" }}>
-                      {/* Prompt */}
-                      <Box sx={{ mb: 2 }}>
-                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                          <Box
-                            sx={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: "4px",
-                              backgroundColor: "#e2e8f0",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <MessageSquare size={10} color="#64748b" />
-                          </Box>
-                          <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                            Prompt
-                          </Typography>
-                        </Stack>
-                        <Box
-                          sx={{
-                            p: 1,
-                            backgroundColor: "#fff",
-                            borderRadius: "4px",
-                            border: "1px solid #e2e8f0",
-                          }}
-                        >
-                          <Typography sx={{ fontSize: 13, color: "#1e293b", lineHeight: 1.6 }}>
-                            {round.input}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      {/* Responses Grid */}
-                      <Box sx={{ mb: 2 }}>
-                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                          <Box
-                            sx={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: "4px",
-                              backgroundColor: "#dcfce7",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Zap size={10} color="#16a34a" />
-                          </Box>
-                          <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#16a34a", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                            Responses
-                          </Typography>
-                        </Stack>
-                        <Box
-                          sx={{
-                            display: "grid",
-                            gridTemplateColumns: `repeat(${Math.min(round.contestants?.length || 2, 2)}, 1fr)`,
-                            gap: 1,
-                          }}
-                        >
-                          {round.contestants?.map((c, cIdx) => {
-                            const isRoundWinner = c.name === round.winner;
-                            const contestantInfo = results.contestantInfo?.find((ci) => ci.name === c.name);
-                            // Get provider info - use from round data or fall back to contestantInfo
-                            const providerKey = (c as { provider?: string }).provider || contestantInfo?.provider || "";
-                            const RoundProviderIcon = PROVIDER_ICONS[providerKey.toLowerCase()];
-                            return (
-                              <Box
-                                key={cIdx}
-                                sx={{
-                                  p: 1,
-                                  borderRadius: "4px",
-                                  border: isRoundWinner ? `2px solid #f59e0b` : "1px solid #e2e8f0",
-                                  backgroundColor: "#fff",
-                                }}
-                              >
-                                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                                  <Stack direction="row" alignItems="center" spacing={1}>
-                                    <Box
-                                      sx={{
-                                        width: 22,
-                                        height: 22,
-                                        borderRadius: "4px",
-                                        backgroundColor: "#f8fafc",
-                                        border: "1px solid #e2e8f0",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                      }}
-                                    >
-                                      {RoundProviderIcon ? (
-                                        <RoundProviderIcon style={{ width: 12, height: 12 }} />
-                                      ) : (
-                                        <Bot size={12} color="#64748b" />
-                                      )}
-                                    </Box>
-                                    <Box>
-                                      <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#1e293b" }}>
-                                        {c.name}
-                                      </Typography>
-                                      <Typography sx={{ fontSize: 10, color: "#64748b" }}>
-                                        {getProviderDisplayName(providerKey)}
-                                      </Typography>
-                                    </Box>
-                                  </Stack>
-                                  {isRoundWinner && (
-                                    <Box
-                                      sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 0.25,
-                                        px: 1,
-                                        py: 0.5,
-                                        borderRadius: "4px",
-                                        background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
-                                      }}
-                                    >
-                                      <Trophy size={10} color="#fff" />
-                                      <Typography sx={{ fontSize: 9, fontWeight: 700, color: "#fff" }}>WINNER</Typography>
-                                    </Box>
-                                  )}
-                                </Stack>
-                                
-                                {/* Scores per criterion */}
-                                {c.scores && Object.keys(c.scores).length > 0 && (
-                                  <Box sx={{ mb: 1 }}>
-                                    <Stack direction="row" flexWrap="wrap" gap={0.5}>
-                                      {Object.entries(c.scores).map(([criterion, score]) => (
-                                        <Box
-                                          key={criterion}
-                                          sx={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 0.5,
-                                            px: 1,
-                                            py: 0.25,
-                                            borderRadius: "4px",
-                                            backgroundColor: score >= 8 ? "#ecfdf5" : score >= 6 ? "#fefce8" : "#fef2f2",
-                                            border: `1px solid ${score >= 8 ? "#a7f3d0" : score >= 6 ? "#fde68a" : "#fecaca"}`,
-                                          }}
-                                        >
-                                          <Typography sx={{ fontSize: 9, color: "#6b7280", fontWeight: 500 }}>
-                                            {criterion}
-                                          </Typography>
-                                          <Typography 
-                                            sx={{ 
-                                              fontSize: 10, 
-                                              fontWeight: 700, 
-                                              color: score >= 8 ? "#059669" : score >= 6 ? "#d97706" : "#dc2626",
-                                            }}
-                                          >
-                                            {score}/10
-                                          </Typography>
-                                        </Box>
-                                      ))}
-                                    </Stack>
-                                  </Box>
-                                )}
-                                
-                                {/* Separator line */}
-                                <Box sx={{ borderTop: "1px solid #e2e8f0", mt: 2, mb: 1 }} />
-                                
-                                <Box
-                                  sx={{
-                                    maxHeight: 250,
-                                    overflowY: "auto",
-                                    pr: 0.5,
-                                    "&::-webkit-scrollbar": { width: 4 },
-                                    "&::-webkit-scrollbar-thumb": { backgroundColor: "#e2e8f0", borderRadius: 2 },
-                                  }}
-                                >
-                                  <MarkdownRenderer content={c.output || "No output"} />
-                                </Box>
-                              </Box>
-                            );
-                          })}
-                        </Box>
-                      </Box>
-
-                      {/* Judge Reasoning */}
-                      {round.reason && !round.reason.toLowerCase().includes("judge selected") && (
-                        <Box
-                          sx={{
-                            p: 1,
-                            backgroundColor: "#dbeafe",
-                            borderRadius: "4px",
-                            border: "1px solid #93c5fd",
-                          }}
-                        >
-                          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                            <Box
-                              sx={{
-                                width: 20,
-                                height: 20,
-                                borderRadius: "4px",
-                                backgroundColor: "#1e40af",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <Scale size={10} color="#fff" />
-                            </Box>
-                            <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                              Judge's Reasoning
-                            </Typography>
-                          </Stack>
-                          <Typography sx={{ fontSize: 12, color: "#1e3a8a", lineHeight: 1.6 }}>
-                            {round.reason}
-                          </Typography>
-                        </Box>
-                      )}
-                    </Box>
-                  </Collapse>
+                  </Stack>
+                  <Typography
+                    sx={{
+                      fontSize: 11,
+                      color: "#64748b",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {round.input?.slice(0, 60)}...
+                  </Typography>
                 </Box>
-              );
-            })}
-          </Stack>
+            ))}
+          </Box>
         </Box>
       )}
+
+      {/* Round Details Modal */}
+      <Modal
+        open={selectedRound !== null}
+        onClose={handleCloseRound}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Box
+          sx={{
+            width: "90%",
+            maxWidth: 900,
+            maxHeight: "90vh",
+            backgroundColor: "#fff",
+            borderRadius: "8px",
+            boxShadow: 24,
+            outline: "none",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {selectedRound !== null && results.results?.detailedResults?.[selectedRound] && (() => {
+            const round = results.results.detailedResults[selectedRound];
+
+            return (
+              <>
+                {/* Modal Header */}
+                <Box
+                  sx={{
+                    p: "16px",
+                    borderBottom: "1px solid #e2e8f0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    backgroundColor: "#f8fafc",
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>
+                      Round {selectedRound + 1}
+                    </Typography>
+                    {round.winner ? (
+                      <Stack direction="row" alignItems="center" spacing={0.5}>
+                        <Trophy size={14} color="#f59e0b" />
+                        <Typography
+                          sx={{
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: "#374151",
+                          }}
+                        >
+                          {round.winner}
+                        </Typography>
+                      </Stack>
+                    ) : (
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>
+                        Tie
+                      </Typography>
+                    )}
+                  </Stack>
+                  <IconButton onClick={handleCloseRound} size="small">
+                    <X size={18} color="#64748b" />
+                  </IconButton>
+                </Box>
+
+                {/* Modal Content */}
+                <Box sx={{ p: "16px", overflowY: "auto", flex: 1 }}>
+                  {/* Prompt */}
+                  <Box sx={{ mb: "16px" }}>
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+                      Prompt
+                    </Typography>
+                    <Box
+                      sx={{
+                        p: "12px",
+                        backgroundColor: "#f8fafc",
+                        borderRadius: "4px",
+                        border: "1px solid #e2e8f0",
+                      }}
+                    >
+                      <Typography sx={{ fontSize: 13, color: "#1e293b", lineHeight: 1.6 }}>
+                        {round.input}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Responses Grid */}
+                  <Box sx={{ mb: "16px" }}>
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+                      Responses
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: `repeat(${Math.min(round.contestants?.length || 2, 2)}, 1fr)`,
+                        gap: "12px",
+                      }}
+                    >
+                      {round.contestants?.map((c, cIdx) => {
+                        const isRoundWinner = c.name === round.winner;
+                        const contestantInfo = results.contestantInfo?.find((ci) => ci.name === c.name);
+                        const providerKey = (c as { provider?: string }).provider || contestantInfo?.provider || "";
+                        const RoundProviderIcon = PROVIDER_ICONS[providerKey.toLowerCase()];
+                        return (
+                          <Box
+                            key={cIdx}
+                            sx={{
+                              p: "12px",
+                              borderRadius: "4px",
+                              border: isRoundWinner ? `2px solid #f59e0b` : "1px solid #e2e8f0",
+                              backgroundColor: "#fff",
+                              minWidth: 0,
+                            }}
+                          >
+                            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: "8px" }}>
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <Box
+                                  sx={{
+                                    width: 22,
+                                    height: 22,
+                                    borderRadius: "4px",
+                                    backgroundColor: "#f8fafc",
+                                    border: "1px solid #e2e8f0",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {RoundProviderIcon ? (
+                                    <RoundProviderIcon style={{ width: 12, height: 12 }} />
+                                  ) : (
+                                    <Bot size={12} color="#64748b" />
+                                  )}
+                                </Box>
+                                <Box sx={{ minWidth: 0 }}>
+                                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#1e293b" }}>
+                                    {c.name}
+                                  </Typography>
+                                  <Typography sx={{ fontSize: 10, color: "#64748b" }}>
+                                    {getProviderDisplayName(providerKey)}
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                              {isRoundWinner && (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 0.25,
+                                    px: 1,
+                                    py: 0.5,
+                                    borderRadius: "4px",
+                                    background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  <Trophy size={10} color="#fff" />
+                                  <Typography sx={{ fontSize: 9, fontWeight: 700, color: "#fff" }}>WINNER</Typography>
+                                </Box>
+                              )}
+                            </Stack>
+
+                            {/* Scores per criterion */}
+                            {c.scores && Object.keys(c.scores).length > 0 && (
+                              <Box sx={{ mb: "8px" }}>
+                                <Stack direction="row" flexWrap="wrap" gap="8px">
+                                  {Object.entries(c.scores).map(([criterion, score]) => (
+                                    <Box
+                                      key={criterion}
+                                      sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 0.5,
+                                        px: 1,
+                                        py: 0.25,
+                                        borderRadius: "4px",
+                                        backgroundColor: score >= 8 ? "#ecfdf5" : score >= 6 ? "#fefce8" : "#fef2f2",
+                                        border: `1px solid ${score >= 8 ? "#a7f3d0" : score >= 6 ? "#fde68a" : "#fecaca"}`,
+                                      }}
+                                    >
+                                      <Typography sx={{ fontSize: 9, color: "#6b7280", fontWeight: 500 }}>
+                                        {criterion}
+                                      </Typography>
+                                      <Typography
+                                        sx={{
+                                          fontSize: 10,
+                                          fontWeight: 700,
+                                          color: score >= 8 ? "#059669" : score >= 6 ? "#d97706" : "#dc2626",
+                                        }}
+                                      >
+                                        {score}/10
+                                      </Typography>
+                                    </Box>
+                                  ))}
+                                </Stack>
+                              </Box>
+                            )}
+
+                            {/* Separator line */}
+                            <Box sx={{ borderTop: "1px solid #e2e8f0", mt: "8px", mb: "8px" }} />
+
+                            <Box
+                              sx={{
+                                maxHeight: 300,
+                                overflowY: "auto",
+                                overflowX: "hidden",
+                                wordBreak: "break-word",
+                                pr: 0.5,
+                                "&::-webkit-scrollbar": { width: 4 },
+                                "&::-webkit-scrollbar-thumb": { backgroundColor: "#e2e8f0", borderRadius: 2 },
+                              }}
+                            >
+                              <MarkdownRenderer content={c.output || "No output"} />
+                            </Box>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </Box>
+
+                  {/* Judge Reasoning */}
+                  {round.reason && !round.reason.toLowerCase().includes("judge selected") && (
+                    <Box
+                      sx={{
+                        p: "12px",
+                        backgroundColor: "#f8fafc",
+                        borderRadius: "4px",
+                        border: "1px solid #e2e8f0",
+                      }}
+                    >
+                      <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+                        Judge's reasoning
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: "#1e293b", lineHeight: 1.6 }}>
+                        {round.reason}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              </>
+            );
+          })()}
+        </Box>
+      </Modal>
 
       {/* Empty State */}
       {(!results.results?.detailedResults || results.results.detailedResults.length === 0) && isCompleted && (

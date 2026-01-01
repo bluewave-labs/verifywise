@@ -31,6 +31,7 @@ import {
   getAllLlmApiKeys,
   deleteLlmApiKey,
   addLlmApiKey,
+  verifyLlmApiKey,
   type LLMApiKey,
 } from "../../../application/repository/deepEval.repository";
 import type { LLMProvider } from "../../../infrastructure/api/evaluationLlmApiKeysService";
@@ -940,87 +941,9 @@ export default function EvalsDashboard() {
     }
   };
 
-  // Verify API key by making a real API call to the provider
+  // Verify API key by calling the backend endpoint (avoids CORS issues)
   const verifyApiKey = async (provider: string, apiKey: string): Promise<{ valid: boolean; error?: string }> => {
-    try {
-      const endpoints: Record<string, { url: string; headers: Record<string, string>; method?: string }> = {
-        openai: {
-          url: "https://api.openai.com/v1/models",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        },
-        anthropic: {
-          url: "https://api.anthropic.com/v1/models",
-          headers: { 
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-          },
-        },
-        google: {
-          url: `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`,
-          headers: {},
-        },
-        xai: {
-          url: "https://api.x.ai/v1/models",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        },
-        mistral: {
-          url: "https://api.mistral.ai/v1/models",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        },
-        huggingface: {
-          url: "https://huggingface.co/api/whoami",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        },
-        openrouter: {
-          url: "https://openrouter.ai/api/v1/auth/key",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        },
-      };
-
-      const config = endpoints[provider];
-      if (!config) {
-        // For custom/unknown providers, skip verification
-        return { valid: true };
-      }
-
-      const response = await fetch(config.url, {
-        method: config.method || "GET",
-        headers: {
-          ...config.headers,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        return { valid: true };
-      } else if (response.status === 401 || response.status === 403) {
-        return { valid: false, error: "Invalid API key - authentication failed" };
-      } else if (response.status === 400) {
-        // 400 often means invalid API key format or key doesn't exist
-        // Parse response to get specific error message
-        try {
-          const data = await response.json();
-          const errorMsg = data?.error?.message || data?.message || "Invalid API key";
-          console.warn(`API key verification failed with 400:`, errorMsg);
-          return { valid: false, error: errorMsg };
-        } catch {
-          return { valid: false, error: "Invalid API key - bad request" };
-        }
-      } else if (response.status === 429) {
-        // Rate limited - key might be valid, let it through
-        console.warn("API key verification rate limited, assuming valid");
-        return { valid: true };
-      } else {
-        // Other errors (5xx, etc) - give benefit of doubt
-        const text = await response.text();
-        console.warn(`API key verification got status ${response.status}:`, text);
-        return { valid: true };
-      }
-    } catch (err) {
-      console.error("API key verification error:", err);
-      // Network errors (CORS, etc) - can't verify, assume valid
-      return { valid: true };
-    }
+    return verifyLlmApiKey(provider, apiKey);
   };
 
   // State for verification
@@ -1223,7 +1146,7 @@ export default function EvalsDashboard() {
               >
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                   <Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13, color: "#344054" }}>
                       Provider API keys
                     </Typography>
                     <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
@@ -1295,7 +1218,7 @@ export default function EvalsDashboard() {
                     />
                   </Box>
                 ) : (
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {llmApiKeys.map((key) => {
                       const providerConfig = LLM_PROVIDERS.find(p => p._id === key.provider);
                       const ProviderLogo = providerConfig?.Logo;
@@ -1308,7 +1231,7 @@ export default function EvalsDashboard() {
                         <Box
                           sx={{
                             border: "1.5px solid #eaecf0",
-                            borderRadius: "10px",
+                            borderRadius: "4px",
                             p: 2,
                             pl: 2.5,
                             backgroundColor: "#ffffff",
@@ -1468,14 +1391,14 @@ export default function EvalsDashboard() {
                 }}
               >
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                  <Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13, color: "#344054" }}>
                       Local providers
                     </Typography>
-                    <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
-                      Run models locally without API keys
+                    <Typography sx={{ fontSize: 13, color: "#666666" }}>
+                      — Run models locally without API keys. These will appear as options when creating a new experiment. No API key required.
                     </Typography>
-                  </Box>
+                  </Stack>
                   {!ENV_VARs.IS_DEMO_APP && (
                     <CustomizableButton
                       variant="contained"
@@ -1545,7 +1468,7 @@ export default function EvalsDashboard() {
                     </Typography>
                   </Box>
                 ) : (
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {localProviders.map((provider) => (
                       <Collapse
                         key={provider.id}
@@ -1555,7 +1478,7 @@ export default function EvalsDashboard() {
                         <Box
                           sx={{
                             border: "1.5px solid #eaecf0",
-                            borderRadius: "10px",
+                            borderRadius: "4px",
                             p: 2,
                             pl: 2.5,
                             backgroundColor: "#ffffff",
@@ -1623,9 +1546,6 @@ export default function EvalsDashboard() {
                   </Box>
                 )}
 
-                <Typography sx={{ fontSize: 12, color: "#9CA3AF", mt: 2.5, fontStyle: "italic" }}>
-                  These will appear as options when creating a new experiment. No API key required.
-                </Typography>
               </Box>
             </Box>
           ) : !projectId ? (

@@ -1,21 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   GetRequestParams,
   RequestParams,
 } from "../../domain/interfaces/i.requestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { AxiosResponse } from "axios";
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.
  *
  * @param {RequestParams} params - The parameters for creating a new user.
- * @returns {Promise<any>} A promise that resolves to the response data of the created user.
+ * @returns {Promise<AxiosResponse>} A promise that resolves to the response data of the created user.
  * @throws Will throw an error if the user creation fails.
  */
 export async function createNewUser({
   routeUrl,
   body,
-}: RequestParams): Promise<any> {
+}: RequestParams): Promise<AxiosResponse> {
   const response = await apiServices.post(routeUrl, body);
   return response;
 }
@@ -24,13 +24,13 @@ export async function createNewUser({
  * Logs in a user by sending a POST request to the specified route URL with the provided credentials.
  *
  * @param {RequestParams} params - The parameters for the login request.
- * @returns {Promise<any>} A promise that resolves to the response data of the logged-in user.
+ * @returns {Promise<AxiosResponse>} A promise that resolves to the response data of the logged-in user.
  * @throws Will throw an error if the login fails.
  */
 export async function loginUser({
   routeUrl,
   body,
-}: RequestParams): Promise<any> {
+}: RequestParams): Promise<AxiosResponse> {
   try {
     const response = await apiServices.post(routeUrl, body);
     return response;
@@ -44,23 +44,24 @@ export async function loginUser({
  * Retrieves a user by their ID from the specified route URL.
  *
  * @param {RequestParams} params - The parameters for the request.
- * @returns {Promise<any>} The user data retrieved from the API.
+ * @returns {Promise<unknown>} The user data retrieved from the API.
  * @throws Will throw an error if the request fails.
  */
 export async function getEntityById({
   routeUrl,
   signal,
   responseType = "json",
-}: GetRequestParams): Promise<any> {
+}: GetRequestParams): Promise<unknown> {
   try {
     const response = await apiServices.get(routeUrl, {
       signal,
       responseType,
     });
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
     // Don't log 404 errors as they're often expected (e.g., empty lists)
-    if (error?.status !== 404) {
+    const axiosError = error as { status?: number };
+    if (axiosError?.status !== 404) {
       console.error("Error getting entity by ID:", error);
     }
     throw error;
@@ -71,14 +72,14 @@ export async function getEntityById({
  * Updates a user entity by its ID.
  *
  * @param {RequestParams} params - The parameters for the update operation.
- * @returns {Promise<any>} The updated entity data.
+ * @returns {Promise<AxiosResponse | undefined>} The updated entity data.
  * @throws Will throw an error if the update operation fails.
  */
 export async function updateEntityById({
   routeUrl,
   body,
   headers,
-}: RequestParams): Promise<any> {
+}: RequestParams): Promise<AxiosResponse | undefined> {
   try {
     const response = await apiServices.patch(routeUrl, body, {
       headers: { ...headers },
@@ -93,12 +94,12 @@ export async function updateEntityById({
  * Deletes a user by their ID.
  *
  * @param {RequestParams} params - The parameters for the function.
- * @returns {Promise<any>} The response data from the delete operation.
+ * @returns {Promise<AxiosResponse>} The response data from the delete operation.
  * @throws Will throw an error if the delete operation fails.
  */
 export async function deleteEntityById({
   routeUrl,
-}: RequestParams): Promise<any> {
+}: RequestParams): Promise<AxiosResponse> {
   try {
     const response = await apiServices.delete(routeUrl);
     return response;
@@ -112,13 +113,13 @@ export async function deleteEntityById({
  * Fetches all users from the API.
  *
  * @param {RequestParams} params - The parameters for the request.
- * @returns {Promise<any>} A promise that resolves to the data of all users.
+ * @returns {Promise<unknown>} A promise that resolves to the data of all users.
  * @throws Will throw an error if the API request fails.
  */
 export async function getAllEntities({
   routeUrl,
   params,
-}: RequestParams & { params?: Record<string, any> }): Promise<any> {
+}: RequestParams & { params?: Record<string, unknown> }): Promise<unknown> {
   try {
     const response = await apiServices.get(routeUrl, { params });
     return response.data;
@@ -132,12 +133,12 @@ export async function getAllEntities({
  * Checks if any user exists in the database.
  *
  * @param {RequestParams} params - The parameters for the request.
- * @returns {Promise<any>} The response data indicating if a user exists.
+ * @returns {Promise<unknown>} The response data indicating if a user exists.
  * @throws Will throw an error if the request fails.
  */
 export async function checkUserExists({
   routeUrl,
-}: RequestParams): Promise<any> {
+}: RequestParams): Promise<unknown> {
   try {
     const response = await apiServices.get(routeUrl);
     return response.data;
@@ -150,10 +151,10 @@ export async function checkUserExists({
 /**
  * Creates demo data by sending a POST request to the autoDrivers endpoint.
  *
- * @returns {Promise<any>} A promise that resolves to the response data.
+ * @returns {Promise<AxiosResponse>} A promise that resolves to the response data.
  * @throws Will throw an error if the request fails.
  */
-export async function postAutoDrivers(): Promise<any> {
+export async function postAutoDrivers(): Promise<AxiosResponse> {
   try {
     const response = await apiServices.post("/autoDrivers");
 
@@ -190,10 +191,10 @@ export async function checkDemoDataExists(): Promise<boolean> {
 /**
  * Deletes demo data by sending a DELETE request to the autoDrivers endpoint.
  *
- * @returns {Promise<any>} A promise that resolves to the response data.
+ * @returns {Promise<AxiosResponse>} A promise that resolves to the response data.
  * @throws Will throw an error if the request fails.
  */
-export async function deleteAutoDrivers(): Promise<any> {
+export async function deleteAutoDrivers(): Promise<AxiosResponse> {
   try {
     const response = await apiServices.delete("/autoDrivers");
 
@@ -207,7 +208,7 @@ export async function deleteAutoDrivers(): Promise<any> {
 export async function resetPassword({
   routeUrl,
   body,
-}: RequestParams): Promise<any> {
+}: RequestParams): Promise<AxiosResponse> {
   const response = await apiServices.post(routeUrl, body);
   return response;
 }
@@ -216,10 +217,10 @@ export async function resetPassword({
  * Fetches all users from the database.
  *
  * @param {RequestParams} params - The parameters for the request.
- * @returns {Promise<any>} A promise that resolves to the list of users.
+ * @returns {Promise<unknown>} A promise that resolves to the list of users.
  * @throws Will throw an error if the request fails.
  */
-export async function getAllUsers(): Promise<any> {
+export async function getAllUsers(): Promise<unknown> {
   try {
     const response = await apiServices.get("/users");
     return response.data;
@@ -233,14 +234,14 @@ export async function getAllUsers(): Promise<any> {
  * Create generated reports.
  *
  * @param {RequestParams} params - The parameters for the request.
- * @returns {Promise<any>} A promise that resolves returning the generated report.
+ * @returns {Promise<AxiosResponse | undefined>} A promise that resolves returning the generated report.
  * @throws Will throw an error if the request fails.
  */
 export async function generateReport({
   routeUrl,
   body,
   signal,
-}: RequestParams): Promise<any> {
+}: RequestParams): Promise<AxiosResponse | undefined> {
   try {
     const response = await apiServices.post(routeUrl, body, {
       signal,
@@ -253,7 +254,7 @@ export async function generateReport({
   }
 }
 
-export async function getAllFrameworks(): Promise<any> {
+export async function getAllFrameworks(): Promise<unknown> {
   try {
     const response = await apiServices.get("/frameworks");
     return response.data;
@@ -290,14 +291,14 @@ export const assignFrameworkToProject = async ({
  * Archives an incident by updating its "isArchived" flag.
  *
  * @param {RequestParams} params - The parameters for the archive operation.
- * @returns {Promise<any>} A promise that resolves to the response after archiving the incident.
+ * @returns {Promise<AxiosResponse>} A promise that resolves to the response after archiving the incident.
  * @throws Will throw an error if the archive operation fails.
  */
 export async function archiveIncidentById({
   routeUrl,
   body,
   headers,
-}: RequestParams): Promise<any> {
+}: RequestParams): Promise<AxiosResponse> {
   try {
     // PATCH /incidents/:id/archive
     const response = await apiServices.patch(`${routeUrl}/archive`, body, {

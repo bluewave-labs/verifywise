@@ -1,6 +1,15 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { AxiosResponse } from "axios";
 
+interface Subtopic {
+  id: number;
+  title: string;
+  topic_id?: number;
+  order_no?: number;
+}
 
+type CreateSubtopicInput = Partial<Omit<Subtopic, 'id'>>;
+type UpdateSubtopicInput = Partial<Omit<Subtopic, 'id'>>;
 
 export async function getSubtopicById({
   id,
@@ -10,8 +19,8 @@ export async function getSubtopicById({
   id: number;
   signal?: AbortSignal;
   responseType?: string;
-}): Promise<any> {
-  const response = await apiServices.get(`/subtopics/${id}`, {
+}): Promise<Subtopic> {
+  const response = await apiServices.get<Subtopic>(`/subtopics/${id}`, {
     signal,
     responseType,
   });
@@ -21,9 +30,9 @@ export async function getSubtopicById({
 export async function createSubtopic({
   body,
 }: {
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.post("/subtopics", body);
+  body: CreateSubtopicInput;
+}): Promise<AxiosResponse<Subtopic>> {
+  const response = await apiServices.post<Subtopic>("/subtopics", body);
   return response;
 }
 
@@ -32,9 +41,9 @@ export async function updateSubtopic({
   body,
 }: {
   id: number;
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.patch(`/subtopics/${id}`, body);
+  body: UpdateSubtopicInput;
+}): Promise<AxiosResponse<Subtopic>> {
+  const response = await apiServices.patch<Subtopic>(`/subtopics/${id}`, body);
   return response;
 }
 
@@ -42,7 +51,7 @@ export async function deleteSubtopic({
   id,
 }: {
   id: number;
-}): Promise<any> {
+}): Promise<AxiosResponse> {
   const response = await apiServices.delete(`/subtopics/${id}`);
   return response;
 }

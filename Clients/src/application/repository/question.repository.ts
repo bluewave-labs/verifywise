@@ -1,4 +1,16 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { AxiosResponse } from "axios";
+
+interface QuestionData {
+  question_text?: string;
+  question_type?: string;
+  [key: string]: unknown;
+}
+
+interface AnswerData {
+  answer_text?: string;
+  [key: string]: unknown;
+}
 
 export async function getQuestionById({
   id,
@@ -8,7 +20,7 @@ export async function getQuestionById({
   id: number;
   signal?: AbortSignal;
   responseType?: string;
-}): Promise<any> {
+}): Promise<unknown> {
   const response = await apiServices.get(`/questions/${id}`, {
     signal,
     responseType,
@@ -16,7 +28,7 @@ export async function getQuestionById({
   return response.data;
 }
 
-export async function createQuestion({ body }: { body: any }): Promise<any> {
+export async function createQuestion({ body }: { body: QuestionData }): Promise<AxiosResponse> {
   const response = await apiServices.post("/questions", body);
   return response;
 }
@@ -26,13 +38,13 @@ export async function updateQuestion({
   body,
 }: {
   id: number;
-  body: any;
-}): Promise<any> {
+  body: QuestionData;
+}): Promise<AxiosResponse> {
   const response = await apiServices.patch(`/questions/${id}`, body);
   return response;
 }
 
-export async function deleteQuestion({ id }: { id: number }): Promise<any> {
+export async function deleteQuestion({ id }: { id: number }): Promise<AxiosResponse> {
   const response = await apiServices.delete(`/questions/${id}`);
   return response;
 }
@@ -42,13 +54,13 @@ export async function updateEUAIActAnswerById({
   body,
 }: {
   answerId: number;
-  body: any;
-}): Promise<any> {
+  body: AnswerData | FormData;
+}): Promise<AxiosResponse> {
   try {
     // Match the pattern used by ISO27001/ISO42001 drawers
     // When sending FormData, set Content-Type to multipart/form-data
     // Axios will automatically add the boundary parameter
-    const headers: any = {};
+    const headers: Record<string, string> = {};
     if (body instanceof FormData) {
       headers["Content-Type"] = "multipart/form-data";
     } else {
@@ -61,7 +73,7 @@ export async function updateEUAIActAnswerById({
       { headers }
     );
     return response;
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 }

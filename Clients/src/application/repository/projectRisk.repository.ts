@@ -1,4 +1,13 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { ProjectRisk } from "../../domain/types/ProjectRisk";
+import { AxiosResponse } from "axios";
+
+type CreateProjectRiskInput = Partial<Omit<ProjectRisk, 'id'>>;
+type UpdateProjectRiskInput = Partial<Omit<ProjectRisk, 'id'>>;
+
+interface ProjectRiskResponse {
+  data: ProjectRisk[];
+}
 
 export async function getProjectRiskById({
   id,
@@ -6,8 +15,8 @@ export async function getProjectRiskById({
 }: {
   id: number;
   signal?: AbortSignal;
-}): Promise<any> {
-  const response = await apiServices.get(`/projectRisks/${id}`, {
+}): Promise<ProjectRisk> {
+  const response = await apiServices.get<ProjectRisk>(`/projectRisks/${id}`, {
     signal,
   });
   return response.data;
@@ -19,8 +28,8 @@ export async function getAllProjectRisks({
 }: {
   signal?: AbortSignal;
   filter?: 'active' | 'deleted' | 'all';
-} = {}): Promise<any> {
-  const response = await apiServices.get(`/projectRisks?filter=${filter}`, {
+} = {}): Promise<ProjectRisk[]> {
+  const response = await apiServices.get<ProjectRisk[]>(`/projectRisks?filter=${filter}`, {
     signal,
   });
   return response.data;
@@ -34,8 +43,8 @@ export async function getAllProjectRisksByProjectId({
   projectId: string;
   signal?: AbortSignal;
   filter?: 'active' | 'deleted' | 'all';
-}): Promise<any> {
-  const response = await apiServices.get(`/projectRisks/by-projid/${projectId}?filter=${filter}`, {
+}): Promise<ProjectRiskResponse> {
+  const response = await apiServices.get<ProjectRiskResponse>(`/projectRisks/by-projid/${projectId}?filter=${filter}`, {
     signal,
   });
   return response.data;
@@ -49,8 +58,8 @@ export async function getAllRisksByFrameworkId({
   frameworkId: number;
   signal?: AbortSignal;
   filter?: 'active' | 'deleted' | 'all';
-}): Promise<any> {
-  const response = await apiServices.get(`/projectRisks/by-frameworkid/${frameworkId}?filter=${filter}`, {
+}): Promise<ProjectRisk[]> {
+  const response = await apiServices.get<ProjectRisk[]>(`/projectRisks/by-frameworkid/${frameworkId}?filter=${filter}`, {
     signal,
   });
   return response.data;
@@ -62,8 +71,8 @@ export async function getNonMitigatedProjectRisks({
 }: {
   projectId: number;
   signal?: AbortSignal;
-}): Promise<any> {
-  const response = await apiServices.get(`/projectRisks/by-projid/non-mitigated/${projectId}`, {
+}): Promise<ProjectRisk[]> {
+  const response = await apiServices.get<ProjectRisk[]>(`/projectRisks/by-projid/non-mitigated/${projectId}`, {
     signal,
   });
   return response.data;
@@ -72,9 +81,9 @@ export async function getNonMitigatedProjectRisks({
 export async function createProjectRisk({
   body,
 }: {
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.post("/projectRisks", body);
+  body: CreateProjectRiskInput;
+}): Promise<AxiosResponse<ProjectRisk>> {
+  const response = await apiServices.post<ProjectRisk>("/projectRisks", body);
   return response;
 }
 
@@ -83,9 +92,9 @@ export async function updateProjectRisk({
   body,
 }: {
   id: number;
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.put(`/projectRisks/${id}`, body);
+  body: UpdateProjectRiskInput;
+}): Promise<AxiosResponse<ProjectRisk>> {
+  const response = await apiServices.put<ProjectRisk>(`/projectRisks/${id}`, body);
   return response;
 }
 
@@ -93,7 +102,7 @@ export async function deleteProjectRisk({
   id,
 }: {
   id: number;
-}): Promise<any> {
+}): Promise<AxiosResponse> {
   const response = await apiServices.delete(`/projectRisks/${id}`);
-  return response
+  return response;
 }

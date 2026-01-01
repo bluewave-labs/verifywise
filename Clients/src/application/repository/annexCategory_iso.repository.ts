@@ -36,9 +36,9 @@ export async function UpdateAnnexCategoryById({
       },
     });
     return response;
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating annex category by ID:", error);
-    if (error instanceof Error && "response" in error && error.response) {
+    if (error instanceof Error && "response" in error && (error as { response?: unknown }).response) {
       // Handle specific HTTP error responses
       throw error;
     } else if (error instanceof Error && "request" in error) {

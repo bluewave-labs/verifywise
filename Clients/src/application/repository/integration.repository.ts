@@ -31,10 +31,25 @@ interface MlflowSyncStatusResponse {
   };
 }
 
+/**
+ * MLflow model structure
+ */
+interface MlflowModel {
+  name: string;
+  version?: string;
+  description?: string;
+  creation_timestamp?: number;
+  last_updated_timestamp?: number;
+  run_id?: string;
+  status?: string;
+  source?: string;
+  tags?: Record<string, string>;
+}
+
 interface MlflowModelsResponse {
   configured: boolean;
   connected?: boolean;
-  models: any[];
+  models: MlflowModel[];
   message?: string;
   error?: string;
 }

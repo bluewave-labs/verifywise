@@ -213,10 +213,10 @@ export async function downloadFile({
 }: {
   fileId: string;
 }): Promise<Blob> {
-  const response = await apiServices.get(`/comments/files/${fileId}/download`, {
+  const response = await apiServices.get<Blob>(`/comments/files/${fileId}/download`, {
     responseType: "blob",
   });
-  return response.data as Blob;
+  return response.data;
 }
 
 /**
@@ -264,6 +264,11 @@ export async function removeReaction({
 }
 
 /**
+ * Table counts response structure
+ */
+type TableCountsData = Record<string, { unreadCount: number; fileCount: number }>;
+
+/**
  * Get comment and file counts for all rows in a table
  */
 export async function getTableCounts({
@@ -272,13 +277,11 @@ export async function getTableCounts({
 }: {
   tableId: string;
   signal?: AbortSignal;
-}): Promise<Record<string, { unreadCount: number; fileCount: number }>> {
-  const response = await apiServices.get(`/comments/${tableId}/counts`, {
+}): Promise<TableCountsData> {
+  const response = await apiServices.get<BackendResponse<TableCountsData>>(`/comments/${tableId}/counts`, {
     signal,
   });
-  // Backend returns { message: "OK", data: counts }, so we need response.data.data
-  const data = response.data as { data?: Record<string, { unreadCount: number; fileCount: number }> };
-  return data.data || data as unknown as Record<string, { unreadCount: number; fileCount: number }>;
+  return response.data.data;
 }
 
 /**

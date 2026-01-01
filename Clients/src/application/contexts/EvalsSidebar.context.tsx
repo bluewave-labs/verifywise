@@ -96,6 +96,7 @@ export const EvalsSidebarProvider: FC<{ children: ReactNode }> = ({ children }) 
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useEvalsSidebarContext = () => {
   const context = useContext(EvalsSidebarContext);
   if (!context) {
@@ -105,6 +106,7 @@ export const useEvalsSidebarContext = () => {
 };
 
 // Safe version that returns null if not in provider
+// eslint-disable-next-line react-refresh/only-export-components
 export const useEvalsSidebarContextSafe = () => {
   return useContext(EvalsSidebarContext);
 };

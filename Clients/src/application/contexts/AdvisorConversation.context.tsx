@@ -172,6 +172,7 @@ export const AdvisorConversationProvider: React.FC<{ children: React.ReactNode }
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAdvisorConversation = (): AdvisorConversationContextType => {
   const context = useContext(AdvisorConversationContext);
   if (!context) {
@@ -180,6 +181,7 @@ export const useAdvisorConversation = (): AdvisorConversationContextType => {
   return context;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAdvisorConversationSafe = (): AdvisorConversationContextType | null => {
   return useContext(AdvisorConversationContext);
 };

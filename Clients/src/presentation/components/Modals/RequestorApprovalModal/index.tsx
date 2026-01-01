@@ -38,10 +38,10 @@ import { ApprovalStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum
 import StepDetailsModal from './StepDetailsModal';
 import { stepDetailsMap, timelineDataMap } from './mockData';
 import dayjs from "dayjs";
-import DualButtonModal from "../../Dialogs/DualButtonModal";
+import DualButtonModal from "../../Dialogs/ConfirmationModal";
 import { getMenuGroups } from './mockData';
 import Field from "../../Inputs/Field";
-import { IMenuItem } from "../../../../domain/interfaces/i.menu";
+import { IMenuItem } from "../../../types/interfaces/i.menu";
 
 
 export interface IRequestorApprovalProps {

@@ -14,6 +14,7 @@ import {
   FolderTree,
   Layers,
   AlertCircle,
+  Workflow,
 } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -168,6 +169,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Incident Management",
           icon: <AlertCircle size={16} strokeWidth={1.5} />,
           path: "/ai-incident-managements",
+        },
+        {
+          id: "approval-workflows",
+          label: "Approval Workflows",
+          icon: <Workflow size={16} strokeWidth={1.5} />,
+          path: "/approval-workflows",
         },
       ],
     },

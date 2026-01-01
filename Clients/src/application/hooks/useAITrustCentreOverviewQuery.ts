@@ -80,7 +80,7 @@ export const useAITrustCentreOverviewMutation = () => {
       // Invalidate and refetch overview data
       queryClient.invalidateQueries({ queryKey: overviewQueryKey });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Error updating AI Trust Centre overview:', error);
     },
   });

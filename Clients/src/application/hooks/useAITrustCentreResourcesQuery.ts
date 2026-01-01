@@ -53,7 +53,7 @@ export const useCreateAITrustCentreResourceMutation = () => {
       // Invalidate and refetch resources data
       queryClient.invalidateQueries({ queryKey: resourcesQueryKey });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Error creating AI Trust Centre resource:', error);
     },
   });
@@ -85,7 +85,7 @@ export const useUpdateAITrustCentreResourceMutation = () => {
       // Invalidate and refetch resources data
       queryClient.invalidateQueries({ queryKey: resourcesQueryKey });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Error updating AI Trust Centre resource:', error);
     },
   });
@@ -103,7 +103,7 @@ export const useDeleteAITrustCentreResourceMutation = () => {
       // Invalidate and refetch resources data
       queryClient.invalidateQueries({ queryKey: resourcesQueryKey });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Error deleting AI Trust Centre resource:', error);
     },
   });

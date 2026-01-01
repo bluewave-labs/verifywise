@@ -53,11 +53,24 @@ export interface AITrustCentreOverviewData {
   };
 }
 
+/**
+ * API response structure for overview endpoint.
+ */
+interface OverviewApiResponse {
+  data?: {
+    overview?: AITrustCentreOverviewData;
+  };
+  overview?: AITrustCentreOverviewData;
+}
+
+/**
+ * Return type for useAITrustCentreOverview hook.
+ */
 interface UseAITrustCentreOverviewReturn {
   data: AITrustCentreOverviewData | null;
   loading: boolean;
   error: string | null;
-  fetchOverview: () => Promise<any>;
+  fetchOverview: () => Promise<OverviewApiResponse | undefined>;
   updateOverview: (data: Partial<AITrustCentreOverviewData>) => Promise<void>;
 }
 
@@ -80,8 +93,9 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
         setData(null);
       }
       return response; // Return the response
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch AI Trust Centre overview");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to fetch AI Trust Centre overview";
+      setError(errorMessage);
       console.error("Error fetching AI Trust Centre overview:", err);
       throw err;
     } finally {
@@ -97,8 +111,9 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
         await updateAITrustCentreOverview(overviewData);
         // Don't refetch immediately - let the component handle the state update
         // await fetchOverview();
-      } catch (err: any) {
-        setError(err.message || "Failed to update AI Trust Centre overview");
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to update AI Trust Centre overview";
+        setError(errorMessage);
         console.error("Error updating AI Trust Centre overview:", err);
         throw err;
       } finally {

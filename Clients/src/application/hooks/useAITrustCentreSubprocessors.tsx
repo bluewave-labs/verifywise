@@ -57,10 +57,11 @@ export const useAITrustCentreSubprocessors =
           response?.subprocessors ||
           [];
         setSubprocessors(subprocessors);
-      } catch (err: any) {
+      } catch (err) {
+        const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
         const errorMessage =
-          err.response?.data?.message ||
-          err.message ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to fetch AI Trust Centre subprocessors";
         setError(errorMessage);
         console.error("Error fetching AI Trust Centre subprocessors:", err);
@@ -79,10 +80,11 @@ export const useAITrustCentreSubprocessors =
 
           // Refresh the subprocessors list after creating a new one
           await fetchSubprocessors();
-        } catch (err: any) {
+        } catch (err) {
+          const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
           const errorMessage =
-            err.response?.data?.message ||
-            err.message ||
+            axiosError.response?.data?.message ||
+            axiosError.message ||
             "Failed to create AI Trust Centre subprocessor";
           setError(errorMessage);
           console.error("Error creating AI Trust Centre subprocessor:", err);
@@ -103,10 +105,11 @@ export const useAITrustCentreSubprocessors =
 
           // Refresh the subprocessors list after deleting
           await fetchSubprocessors();
-        } catch (err: any) {
+        } catch (err) {
+          const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
           const errorMessage =
-            err.response?.data?.message ||
-            err.message ||
+            axiosError.response?.data?.message ||
+            axiosError.message ||
             "Failed to delete AI Trust Centre subprocessor";
           setError(errorMessage);
           console.error("Error deleting AI Trust Centre subprocessor:", err);
@@ -139,10 +142,11 @@ export const useAITrustCentreSubprocessors =
 
           // Refresh the subprocessors list after updating
           await fetchSubprocessors();
-        } catch (err: any) {
+        } catch (err) {
+          const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
           const errorMessage =
-            err.response?.data?.message ||
-            err.message ||
+            axiosError.response?.data?.message ||
+            axiosError.message ||
             "Failed to update AI Trust Centre subprocessor";
           setError(errorMessage);
           console.error("Error updating AI Trust Centre subprocessor:", err);

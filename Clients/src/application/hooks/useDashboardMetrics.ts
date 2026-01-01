@@ -1,6 +1,75 @@
 import { useEffect, useState, useCallback } from "react";
 import { getAllEntities } from "../repository/entity.repository";
 
+/** API response types for dashboard endpoints */
+interface FileApiItem {
+  id?: number;
+  filename?: string;
+  name?: string;
+  uploaded_time?: string;
+  created_at?: string;
+  updated_at?: string;
+  project_title?: string;
+  project_name?: string;
+  uploader_name?: string;
+  uploader_surname?: string;
+}
+
+interface VendorRiskApiItem {
+  id?: number;
+  risk_name?: string;
+  title?: string;
+  risk_level?: string;
+  review_date?: string;
+  created_at?: string;
+  vendor_name?: string;
+}
+
+interface VendorApiItem {
+  id?: number;
+  name?: string;
+  vendor_name?: string;
+  company_name?: string;
+  created_at?: string;
+  createdAt?: string;
+  status?: string;
+  vendor_status?: string;
+}
+
+interface UserApiItem {
+  id?: number;
+  first_name?: string;
+  firstName?: string;
+  last_name?: string;
+  lastName?: string;
+  name?: string;
+  username?: string;
+  email?: string;
+  created_at?: string;
+  createdAt?: string;
+  role?: string;
+  user_role?: string;
+}
+
+interface PolicyApiItem {
+  id?: string;
+  title?: string;
+  status?: string;
+  last_updated_at?: string;
+  author_id?: number;
+}
+
+interface IncidentApiItem {
+  id?: number;
+  incident_id?: string;
+  description?: string;
+  title?: string;
+  severity?: string;
+  status?: string;
+  created_at?: string;
+  createdAt?: string;
+}
+
 // Types for the additional dashboard metrics
 export interface RiskMetrics {
   total: number;
@@ -192,7 +261,7 @@ export const useDashboardMetrics = () => {
         distribution: { high: 0, medium: 0, low: 0, resolved: 0 },
         recent: [],
       });
-    } catch (err) {
+    } catch {
       setRiskMetrics(null);
     }
   }, []);
@@ -209,7 +278,7 @@ export const useDashboardMetrics = () => {
 
       const evidenceMetrics = {
         total: filesArray.length,
-        recent: filesArray.slice(0, 5).map((file: any, index: number) => ({
+        recent: filesArray.slice(0, 5).map((file: FileApiItem, index: number) => ({
           id: file.id || index + 1,
           title: file.filename || file.name || "Evidence File",
           uploaded_at:
@@ -226,7 +295,7 @@ export const useDashboardMetrics = () => {
       };
 
       setEvidenceMetrics(evidenceMetrics);
-    } catch (err) {
+    } catch {
       setEvidenceMetrics(null);
     }
   }, []);
@@ -237,7 +306,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default assessment progress since dashboard doesn't provide assessment-specific data
       setAssessmentProgress([]);
-    } catch (err) {
+    } catch {
       setAssessmentProgress([]);
     }
   }, []);
@@ -248,7 +317,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default recent activity since dashboard doesn't provide activity-specific data
       setRecentActivity([]);
-    } catch (err) {
+    } catch {
       setRecentActivity([]);
     }
   }, []);
@@ -259,7 +328,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default upcoming tasks since dashboard doesn't provide task-specific data
       setUpcomingTasks([]);
-    } catch (err) {
+    } catch {
       setUpcomingTasks([]);
     }
   }, []);
@@ -270,7 +339,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default compliance status since dashboard doesn't provide compliance-specific data
       setComplianceStatus(null);
-    } catch (err) {
+    } catch {
       setComplianceStatus(null);
     }
   }, []);
@@ -281,7 +350,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default user activity since dashboard doesn't provide user activity-specific data
       setUserActivity(null);
-    } catch (err) {
+    } catch {
       setUserActivity(null);
     }
   }, []);
@@ -292,7 +361,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default AI Trust Center status since dashboard doesn't provide AI Trust Center-specific data
       setAiTrustCenter(null);
-    } catch (err) {
+    } catch {
       setAiTrustCenter(null);
     }
   }, []);
@@ -308,7 +377,7 @@ export const useDashboardMetrics = () => {
 
       const vendorRiskMetrics = {
         total: risksArray.length,
-        recent: risksArray.slice(0, 5).map((risk: any, index: number) => ({
+        recent: risksArray.slice(0, 5).map((risk: VendorRiskApiItem, index: number) => ({
           id: risk.id || index + 1,
           title: risk.risk_name || risk.title || "Vendor Risk",
           severity:
@@ -320,7 +389,7 @@ export const useDashboardMetrics = () => {
       };
 
       setVendorRiskMetrics(vendorRiskMetrics);
-    } catch (err) {
+    } catch {
       setVendorRiskMetrics(null);
     }
   }, []);
@@ -336,7 +405,7 @@ export const useDashboardMetrics = () => {
 
       const vendorMetrics = {
         total: vendorsArray.length,
-        recent: vendorsArray.slice(0, 5).map((vendor: any, index: number) => ({
+        recent: vendorsArray.slice(0, 5).map((vendor: VendorApiItem, index: number) => ({
           id: vendor.id || index + 1,
           name:
             vendor.name ||
@@ -350,7 +419,7 @@ export const useDashboardMetrics = () => {
       };
 
       setVendorMetrics(vendorMetrics);
-    } catch (err) {
+    } catch {
       setVendorMetrics(null);
     }
   }, []);
@@ -366,7 +435,7 @@ export const useDashboardMetrics = () => {
 
       const usersMetrics = {
         total: usersArray.length,
-        recent: usersArray.slice(0, 5).map((user: any, index: number) => ({
+        recent: usersArray.slice(0, 5).map((user: UserApiItem, index: number) => ({
           id: user.id || index + 1,
           name:
             `${user.first_name || user.firstName || ""} ${
@@ -383,7 +452,7 @@ export const useDashboardMetrics = () => {
       };
 
       setUsersMetrics(usersMetrics);
-    } catch (err) {
+    } catch {
       setUsersMetrics(null);
     }
   }, []);
@@ -400,7 +469,7 @@ export const useDashboardMetrics = () => {
 
       const policyMetrics = {
         total: policiesArray.length,
-        recent: policiesArray.slice(0, 5).map((policy: any) => ({
+        recent: policiesArray.slice(0, 5).map((policy: PolicyApiItem) => ({
           id: policy.id || "unknown",
           title: policy.title || "Untitled Policy",
           status: policy.status || "unknown",
@@ -410,7 +479,7 @@ export const useDashboardMetrics = () => {
       };
 
       setPolicyMetrics(policyMetrics);
-    } catch (err) {
+    } catch {
       setPolicyMetrics(null);
     }
   }, []);
@@ -426,7 +495,7 @@ export const useDashboardMetrics = () => {
 
       const incidentMetrics = {
         total: incidentsArray.length,
-        recent: incidentsArray.slice(0, 5).map((incident: any, index: number) => ({
+        recent: incidentsArray.slice(0, 5).map((incident: IncidentApiItem, index: number) => ({
           id: incident.id || index + 1,
           incident_id: incident.incident_id || `INC-${index + 1}`,
           description: incident.description || incident.title || "Incident",
@@ -437,7 +506,7 @@ export const useDashboardMetrics = () => {
       };
 
       setIncidentMetrics(incidentMetrics);
-    } catch (err) {
+    } catch {
       setIncidentMetrics(null);
     }
   }, []);

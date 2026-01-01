@@ -57,10 +57,11 @@ export const useAITrustCentreResources =
           response?.resources ||
           [];
         setResources(resources);
-      } catch (err: any) {
+      } catch (err) {
+        const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
         const errorMessage =
-          err.response?.data?.message ||
-          err.message ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to fetch AI Trust Centre resources";
         setError(errorMessage);
         console.error("Error fetching AI Trust Centre resources:", err);
@@ -84,10 +85,11 @@ export const useAITrustCentreResources =
 
           // Refresh the resources list after creating a new one
           await fetchResources();
-        } catch (err: any) {
+        } catch (err) {
+          const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
           const errorMessage =
-            err.response?.data?.message ||
-            err.message ||
+            axiosError.response?.data?.message ||
+            axiosError.message ||
             "Failed to create AI Trust Centre resource";
           setError(errorMessage);
           console.error("Error creating AI Trust Centre resource:", err);
@@ -108,10 +110,11 @@ export const useAITrustCentreResources =
 
           // Refresh the resources list after deleting
           await fetchResources();
-        } catch (err: any) {
+        } catch (err) {
+          const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
           const errorMessage =
-            err.response?.data?.message ||
-            err.message ||
+            axiosError.response?.data?.message ||
+            axiosError.message ||
             "Failed to delete AI Trust Centre resource";
           setError(errorMessage);
           console.error("Error deleting AI Trust Centre resource:", err);
@@ -146,10 +149,11 @@ export const useAITrustCentreResources =
 
           // Refresh the resources list after updating
           await fetchResources();
-        } catch (err: any) {
+        } catch (err) {
+          const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
           const errorMessage =
-            err.response?.data?.message ||
-            err.message ||
+            axiosError.response?.data?.message ||
+            axiosError.message ||
             "Failed to update AI Trust Centre resource";
           setError(errorMessage);
           console.error("Error updating AI Trust Centre resource:", err);

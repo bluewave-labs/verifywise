@@ -1,5 +1,16 @@
-import { apiServices } from "../../infrastructure/api/networkServices";
+import { apiServices, ApiResponse } from "../../infrastructure/api/networkServices";
+import { BackendResponse } from "../../domain/types/ApiTypes";
+import { Subcontrol } from "../../domain/types/Subcontrol";
 
+/**
+ * Input type for creating a subcontrol
+ */
+type CreateSubcontrolInput = Partial<Omit<Subcontrol, "id">>;
+
+/**
+ * Input type for updating a subcontrol
+ */
+type UpdateSubcontrolInput = Partial<Omit<Subcontrol, "id">>;
 
 export async function getSubcontrolById({
   id,
@@ -9,8 +20,8 @@ export async function getSubcontrolById({
   id: number;
   signal?: AbortSignal;
   responseType?: string;
-}): Promise<any> {
-  const response = await apiServices.get(`/subcontrols/${id}`, {
+}): Promise<BackendResponse<Subcontrol>> {
+  const response = await apiServices.get<BackendResponse<Subcontrol>>(`/subcontrols/${id}`, {
     signal,
     responseType,
   });
@@ -20,9 +31,9 @@ export async function getSubcontrolById({
 export async function createSubcontrol({
   body,
 }: {
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.post("/subcontrols", body);
+  body: CreateSubcontrolInput;
+}): Promise<ApiResponse<BackendResponse<Subcontrol>>> {
+  const response = await apiServices.post<BackendResponse<Subcontrol>>("/subcontrols", body);
   return response;
 }
 
@@ -31,9 +42,9 @@ export async function updateSubcontrol({
   body,
 }: {
   id: number;
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.patch(`/subcontrols/${id}`, body);
+  body: UpdateSubcontrolInput;
+}): Promise<ApiResponse<BackendResponse<Subcontrol>>> {
+  const response = await apiServices.patch<BackendResponse<Subcontrol>>(`/subcontrols/${id}`, body);
   return response;
 }
 
@@ -41,7 +52,7 @@ export async function deleteSubcontrol({
   id,
 }: {
   id: number;
-}): Promise<any> {
-  const response = await apiServices.delete(`/subcontrols/${id}`);
+}): Promise<ApiResponse<BackendResponse<null>>> {
+  const response = await apiServices.delete<BackendResponse<null>>(`/subcontrols/${id}`);
   return response;
 }

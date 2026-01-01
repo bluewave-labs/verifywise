@@ -1,11 +1,23 @@
-import { apiServices } from "../../infrastructure/api/networkServices";
+import { apiServices, ApiResponse } from "../../infrastructure/api/networkServices";
+import { BackendResponse } from "../../domain/types/ApiTypes";
+import { VendorModel } from "../../domain/models/Common/vendor/vendor.model";
+
+/**
+ * Input type for creating a new vendor
+ */
+type CreateVendorInput = Partial<Omit<VendorModel, "id">>;
+
+/**
+ * Input type for updating a vendor
+ */
+type UpdateVendorInput = Partial<Omit<VendorModel, "id">>;
 
 export async function getAllVendors({
   signal,
 }: {
   signal?: AbortSignal;
-} = {}): Promise<any> {
-  const response = await apiServices.get("/vendors", {
+} = {}): Promise<BackendResponse<VendorModel[]>> {
+  const response = await apiServices.get<BackendResponse<VendorModel[]>>("/vendors", {
     signal,
   });
   return response.data;
@@ -17,8 +29,8 @@ export async function getVendorById({
 }: {
   id: number;
   signal?: AbortSignal;
-}): Promise<any> {
-  const response = await apiServices.get(`/vendors/${id}`, {
+}): Promise<BackendResponse<VendorModel>> {
+  const response = await apiServices.get<BackendResponse<VendorModel>>(`/vendors/${id}`, {
     signal,
   });
   return response.data;
@@ -30,8 +42,8 @@ export async function getVendorsByProjectId({
 }: {
   projectId: number;
   signal?: AbortSignal;
-}): Promise<any> {
-  const response = await apiServices.get(`/vendors/project-id/${projectId}`, {
+}): Promise<BackendResponse<VendorModel[]>> {
+  const response = await apiServices.get<BackendResponse<VendorModel[]>>(`/vendors/project-id/${projectId}`, {
     signal,
   });
   return response.data;
@@ -40,9 +52,9 @@ export async function getVendorsByProjectId({
 export async function createNewVendor({
   body,
 }: {
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.post("/vendors", body);
+  body: CreateVendorInput;
+}): Promise<ApiResponse<BackendResponse<VendorModel>>> {
+  const response = await apiServices.post<BackendResponse<VendorModel>>("/vendors", body);
   return response;
 }
 
@@ -51,9 +63,9 @@ export async function update({
   body,
 }: {
   id: number;
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.patch(`/vendors/${id}`, body);
+  body: UpdateVendorInput;
+}): Promise<ApiResponse<BackendResponse<VendorModel>>> {
+  const response = await apiServices.patch<BackendResponse<VendorModel>>(`/vendors/${id}`, body);
   return response;
 }
 
@@ -61,7 +73,7 @@ export async function deleteVendor({
   id,
 }: {
   id: number;
-}): Promise<any> {
-  const response = await apiServices.delete(`/vendors/${id}`);
+}): Promise<ApiResponse<BackendResponse<null>>> {
+  const response = await apiServices.delete<BackendResponse<null>>(`/vendors/${id}`);
   return response;
 }

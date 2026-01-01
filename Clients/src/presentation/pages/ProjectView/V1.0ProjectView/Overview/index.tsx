@@ -18,10 +18,10 @@ import useUsers from "../../../../../application/hooks/useUsers";
 import {
   User as UserIcon,
   Activity as ActivityIcon,
-  Clock as ClockIcon,
   UserCheck as UserCheckIcon,
   Target as TargetIcon,
-  Users as UsersIcon
+  Users as UsersIcon,
+  Clock as ClockIcon
 } from "lucide-react";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
@@ -207,142 +207,141 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
   const titleIso42001 = ["Clauses", "Annexes"];
 
   return (
-    <Stack className="vw-project-overview">
-      <Stack className="vw-project-overview-row" sx={rowStyle}>
-        {project ? (
-          <>
-            <InfoCard
-              title="Owner"
-              body={projectOwner || "N/A"}
-              icon={<UserIcon size={16} />}
-            />
-            <InfoCard
-              title="Use case status"
-              body={project.status || "Not started"}
-              icon={<ActivityIcon size={16} />}
-            />
-            <InfoCard
-              title="Last updated"
-              body={displayFormattedDate(project.last_updated.toString())}
-              icon={<ClockIcon size={16} />}
-            />
-            {user.name !== undefined && user.surname !== undefined ? (
-              <>
+    <Stack sx={{ width: "100%" }}>
+      {/* Main Content */}
+      <Stack className="vw-project-overview" sx={{ width: "100%" }}>
+        <Stack className="vw-project-overview-row" sx={rowStyle}>
+          {project ? (
+            <>
+              <InfoCard
+                title="Owner"
+                body={projectOwner || "N/A"}
+                icon={<UserIcon size={16} />}
+              />
+              <InfoCard
+                title="Use case status"
+                body={project.status || "Not started"}
+                icon={<ActivityIcon size={16} />}
+              />
+              <InfoCard
+                title="Last updated"
+                body={displayFormattedDate(project.last_updated.toString())}
+                icon={<ClockIcon size={16} />}
+              />
+              {user.name !== undefined && user.surname !== undefined ? (
                 <InfoCard
                   title="Last updated by"
                   body={`${user.name} ${user.surname}`}
                   icon={<UserCheckIcon size={16} />}
                 />
-              </>
-            ) : (
-              <>
+              ) : (
                 <InfoCard
                   title="Last updated by"
                   body="N/A"
                   icon={<UserCheckIcon size={16} />}
                 />
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            <CustomizableSkeleton variant="text" width="30%" height={32} />
-            <CustomizableSkeleton variant="text" width="30%" height={32} />
-            <CustomizableSkeleton variant="text" width="30%" height={32} />
-          </>
-        )}
-      </Stack>
-      <Stack className="vw-project-overview-row" sx={rowStyle}>
-        {project ? (
-          <>
-            <DescriptionCard
-              title="Goal"
-              body={project.goal}
-              icon={<TargetIcon size={16} />}
-            />
-            <TeamCard
-              title="Team members"
-              members={projectMembers}
-              icon={<UsersIcon size={16} />}
-            />
-          </>
-        ) : (
-          <>
-            <CustomizableSkeleton
-              variant="rectangular"
-              width="60%"
-              height={100}
-            />
-            <CustomizableSkeleton
-              variant="rectangular"
-              width="60%"
-              height={100}
-            />
-          </>
-        )}
-      </Stack>
-      <Stack className="vw-project-overview-row" sx={rowStyle}>
-        {project ? (
-          <>
-            {projectFrameworkId && (
-              <Stack sx={columnStyle}>
-                <Typography sx={projectRiskSection}>
-                  EU AI Act Completion Status
-                </Typography>
-                <GroupStatsCard
-                  completed={completedEuActNumbers}
-                  total={totalEuActNumbers}
-                  title={titleEuAct}
-                  progressbarColor="#13715B"
-                />
-              </Stack>
-            )}
-            {projectFrameworkId2 && (
-              <Stack sx={columnStyle}>
-                <Typography sx={projectRiskSection}>
-                  ISO 42001 Completion Status
-                </Typography>
-                <GroupStatsCard
-                  completed={completedIso42001Numbers}
-                  total={totalIso42001Numbers}
-                  title={titleIso42001}
-                  progressbarColor="#13715B"
-                />
-              </Stack>
-            )}
-          </>
-        ) : (
-          <>
-            <CustomizableSkeleton
-              variant="rectangular"
-              width="45%"
-              height={100}
-            />
-            <CustomizableSkeleton
-              variant="rectangular"
-              width="45%"
-              height={100}
-            />
-          </>
-        )}
-      </Stack>
-      <Divider />
-      <Stack sx={{ gap: 10 }}>
-        {project ? (
-          <>
-            <Typography sx={projectRiskSection}>Use case risks</Typography>
-            <RisksCard risksSummary={projectRisksSummary} />
-          </>
-        ) : (
-          <>
-            <CustomizableSkeleton variant="text" width="20%" height={32} />
-            <CustomizableSkeleton
-              variant="rectangular"
-              width="100%"
-              height={200}
-            />
-          </>
-        )}
+              )}
+            </>
+          ) : (
+            <>
+              <CustomizableSkeleton variant="text" width="30%" height={32} />
+              <CustomizableSkeleton variant="text" width="30%" height={32} />
+              <CustomizableSkeleton variant="text" width="30%" height={32} />
+            </>
+          )}
+        </Stack>
+        <Stack className="vw-project-overview-row" sx={rowStyle}>
+          {project ? (
+            <>
+              <DescriptionCard
+                title="Goal"
+                body={project.goal}
+                icon={<TargetIcon size={16} />}
+              />
+              <TeamCard
+                title="Team members"
+                members={projectMembers}
+                icon={<UsersIcon size={16} />}
+              />
+            </>
+          ) : (
+            <>
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="60%"
+                height={100}
+              />
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="60%"
+                height={100}
+              />
+            </>
+          )}
+        </Stack>
+        <Stack className="vw-project-overview-row" sx={rowStyle}>
+          {project ? (
+            <>
+              {projectFrameworkId && (
+                <Stack sx={columnStyle}>
+                  <Typography sx={projectRiskSection}>
+                    EU AI Act Completion Status
+                  </Typography>
+                  <GroupStatsCard
+                    completed={completedEuActNumbers}
+                    total={totalEuActNumbers}
+                    title={titleEuAct}
+                    progressbarColor="#13715B"
+                  />
+                </Stack>
+              )}
+              {projectFrameworkId2 && (
+                <Stack sx={columnStyle}>
+                  <Typography sx={projectRiskSection}>
+                    ISO 42001 Completion Status
+                  </Typography>
+                  <GroupStatsCard
+                    completed={completedIso42001Numbers}
+                    total={totalIso42001Numbers}
+                    title={titleIso42001}
+                    progressbarColor="#13715B"
+                  />
+                </Stack>
+              )}
+            </>
+          ) : (
+            <>
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="45%"
+                height={100}
+              />
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="45%"
+                height={100}
+              />
+            </>
+          )}
+        </Stack>
+        <Divider />
+        <Stack sx={{ gap: 10 }}>
+          {project ? (
+            <>
+              <Typography sx={projectRiskSection}>Use case risks</Typography>
+              <RisksCard risksSummary={projectRisksSummary} />
+            </>
+          ) : (
+            <>
+              <CustomizableSkeleton variant="text" width="20%" height={32} />
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={200}
+              />
+            </>
+          )}
+        </Stack>
       </Stack>
     </Stack>
   );

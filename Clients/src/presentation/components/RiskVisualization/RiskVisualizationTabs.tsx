@@ -4,7 +4,7 @@ import { TabContext, TabPanel } from "@mui/lab";
 import RiskHeatMap from "./RiskHeatMap";
 import RiskCategories from "./RiskCategories";
 import TabBar from "../TabBar";
-import { IRiskVisualizationTabsProps } from "../../../domain/interfaces/i.risk";
+import { IRiskVisualizationTabsProps } from "../../types/interfaces/i.risk";
 
 const RiskVisualizationTabs: React.FC<IRiskVisualizationTabsProps> = ({
   risks,

@@ -5,7 +5,7 @@ import { displayFormattedDate } from "../../../../tools/isoDateToString";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import { styles } from "./styles";
 import { handleDownload } from "../../../../../application/tools/fileDownload";
-import { IReportTableProps } from "../../../../../domain/interfaces/i.table";
+import { IReportTableProps } from "../../../../types/interfaces/i.table";
 
 const ReportTableBody: React.FC<IReportTableProps> = ({
   rows,
@@ -107,7 +107,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
                   onEdit={() => {}}
                   onDownload={() => handleDownload(row.id, row.filename)}
                   warningTitle="Remove this report?"
-                  warningMessage={`Are you sure you want to remove this report. This action is non-recoverable.`}
+                  warningMessage={`Are you sure you want to remove this report? This action is non-recoverable.`}
                 ></IconButton>
               </TableCell>
             </TableRow>

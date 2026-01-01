@@ -1,9 +1,9 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { Box, Stack, Popover, Typography, IconButton } from "@mui/material";
+import { Box, Stack, Popover, Typography, IconButton, Tooltip } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { BarChart3, ChevronDown } from "lucide-react"
+import { BarChart3, ChevronDown, History as HistoryIcon } from "lucide-react"
 import ibmLogo from "../../assets/ibm_logo.svg";
 import mitLogo from "../../assets/mit_logo.svg";
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
@@ -23,7 +23,6 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import useUsers from "../../../application/hooks/useUsers";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
-import HelperDrawer from "../../components/HelperDrawer";
 import TipBox from "../../components/TipBox";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
@@ -36,6 +35,8 @@ import { useTableGrouping, useGroupByState } from "../../../application/hooks/us
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import HistorySidebar from "../../components/Common/HistorySidebar";
+import { useEntityChangeHistory } from "../../../application/hooks/useEntityChangeHistory";
 
 /**
  * Set initial loading status for all CRUD process
@@ -94,13 +95,13 @@ const RiskManagement = () => {
 
   // State for filtering
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
 
   // Modal state for StandardModal pattern
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isAiRiskModalOpen, setIsAiRiskModalOpen] = useState(false);
   const [isSubmitting] = useState(false);
+  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
 
   // Refs for form submission
   const onSubmitRef = useRef<(() => void) | null>(null);
@@ -108,6 +109,12 @@ const RiskManagement = () => {
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // Prefetch history data when modal opens in edit mode
+  useEntityChangeHistory(
+    "risk",
+    isRiskModalOpen && selectedRow.length > 0 && selectedRow[0]?.id ? selectedRow[0].id : 0
+  );
 
   // FilterBy configuration
   const getUniqueOwners = useCallback(() => {
@@ -141,18 +148,6 @@ const RiskManagement = () => {
     {
       id: 'severity',
       label: 'Severity',
-      type: 'select' as const,
-      options: [
-        { value: 'Very High', label: 'Very High' },
-        { value: 'High', label: 'High' },
-        { value: 'Medium', label: 'Medium' },
-        { value: 'Low', label: 'Low' },
-        { value: 'Very Low', label: 'Very Low' },
-      ],
-    },
-    {
-      id: 'likelihood',
-      label: 'Likelihood',
       type: 'select' as const,
       options: [
         { value: 'Very High', label: 'Very High' },
@@ -216,8 +211,6 @@ const RiskManagement = () => {
         return risk.risk_description;
       case 'severity':
         return risk.severity;
-      case 'likelihood':
-        return risk.likelihood;
       case 'risk_level':
         return risk.current_risk_level || risk.risk_level_autocalculated;
       case 'mitigation_status':
@@ -386,6 +379,7 @@ const RiskManagement = () => {
   const handleRiskModalClose = () => {
     setIsRiskModalOpen(false);
     setSelectedRow([]);
+    setIsHistorySidebarOpen(false);
   };
 
   const handleRiskModalSubmit = () => {
@@ -478,17 +472,20 @@ const RiskManagement = () => {
   };
 
   const handleUpdate = () => {
+    // Set flash immediately to ensure visibility
+    setCurrentRow(selectedRow[0].id!); // set current row to trigger flash-feedback
+    
     setTimeout(() => {
       setIsLoading(initialLoadingState);
-      setCurrentRow(selectedRow[0].id!); // set current row to trigger flash-feedback
       handleToast("success", "Risk updated successfully");
-    }, 1000);
+      // Fetch fresh data after flash is set
+      fetchProjectRisks();
+    }, 500);
 
     setTimeout(() => {
       setCurrentRow(null);
-    }, 2000);
-    fetchProjectRisks();
-    setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
+    }, 3000); // Flash duration consistent with other tables
+    setRefreshKey((prevKey) => prevKey + 1);
   };
 
   const handleError = (errorMessage: string) => {
@@ -503,6 +500,18 @@ const RiskManagement = () => {
         routeUrl: `/projectRisks/${riskId}`,
       });
       if (response.status === 200) {
+
+          // Delete the risk from all linked policies
+      try {
+        await deleteEntityById({
+          routeUrl: `/policy-linked/risk/${riskId}/unlink-all`, 
+        });
+      } catch (linkedError) {
+        console.error("Error deleting risk from linked policies", linkedError);
+        handleToast("warning", "Risk deleted but failed to remove from some linked policies.");
+      }
+
+
         // Set current pagination number after deleting the risk
         const rowsPerPage = 5;
         const rowCount = projectRisks.slice(
@@ -555,8 +564,6 @@ const RiskManagement = () => {
         return 'Unassigned';
       case 'severity':
         return risk.severity || 'Unknown';
-      case 'likelihood':
-        return risk.likelihood || 'Unknown';
       default:
         return 'Other';
     }
@@ -573,47 +580,14 @@ const RiskManagement = () => {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Risk management & mitigation"
-        description="Identify, assess, and mitigate risks across your AI projects and operations"
-        whatItDoes="Manage *risk lifecycle* from *identification* to *mitigation* across all AI projects. Track *risk severity*, *likelihood assessments*, and *mitigation strategies*. Maintain comprehensive *risk registers* with *ownership assignments* and *progress monitoring*."
-        whyItMatters="Effective **risk management** is crucial for maintaining *operational resilience* and *regulatory compliance*. Proactive risk identification and mitigation help prevent incidents, protect assets, and ensure *business continuity* while meeting *governance requirements*."
-        quickActions={[
-          {
-            label: "Add New Risk",
-            description: "Identify and document new risks with assessment details",
-            primary: true
-          },
-          {
-            label: "Import AI Risks",
-            description: "Add risks from the MIT AI Risk Database for comprehensive coverage"
-          }
-        ]}
-        useCases={[
-          "*Operational risk assessment* for *AI model deployments* and *data processing activities*",
-          "*Regulatory compliance* tracking for *governance frameworks* like *EU AI Act* and ISO standards"
-        ]}
-        keyFeatures={[
-          "**Comprehensive risk assessment** with *severity* and *likelihood scoring*",
-          "*MIT AI Risk Database* integration for *industry-standard risk templates*",
-          "*Risk visualization* and *filtering* with *real-time dashboard updates*"
-        ]}
-        tips={[
-          "*Regular risk reviews* help identify *emerging threats* before they impact operations",
-          "Use *risk categories* to organize threats by *impact area* and *regulatory requirements*",
-          "Set *clear ownership* and *target dates* for effective *risk mitigation tracking*"
-        ]}
-      />
 
-      <Stack gap={"16px"} maxWidth={1400} key={refreshKey}>
+      <Stack gap={"16px"} key={refreshKey}>
         <PageHeader
           title="Risk Management"
           description="Manage and monitor risks across all your projects"
           rightContent={
             <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              articlePath="risk-management/risk-assessment"
               size="small"
             />
           }
@@ -662,7 +636,6 @@ const RiskManagement = () => {
                 { id: 'mitigation_status', label: 'Mitigation status' },
                 { id: 'owner', label: 'Owner' },
                 { id: 'severity', label: 'Severity' },
-                { id: 'likelihood', label: 'Likelihood' },
               ]}
               onGroupChange={handleGroupChange}
             />
@@ -709,7 +682,7 @@ const RiskManagement = () => {
                   border: "1px solid #13715B",
                   gap: 2,
                 }}
-                onClick={handleInsertFromMenuOpen}
+                onClick={handleInsertFromMenuOpen as (event: unknown) => void}
                 icon={<ChevronDown size={16} />}
                 isDisabled={
                   !allowedRoles.projectRisks.create.includes(userRoleName)
@@ -964,37 +937,9 @@ const RiskManagement = () => {
           </Stack>
         </Stack>
 
-        {/* Add/Edit Risk Modal */}
-        <StandardModal
-          isOpen={isRiskModalOpen}
-          onClose={handleRiskModalClose}
-          title={selectedRow.length > 0 ? "Edit project risk" : "Add a new risk"}
-          description={selectedRow.length > 0
-            ? "Modify the risk details and mitigation strategies."
-            : "Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
-          }
-          onSubmit={handleRiskModalSubmit}
-          submitButtonText={selectedRow.length > 0 ? "Update" : "Save"}
-          isSubmitting={isSubmitting}
-          maxWidth="1039px"
-        >
-          <AddNewRiskForm
-            closePopup={handleRiskModalClose}
-            popupStatus={selectedRow.length > 0 ? "edit" : "new"}
-            onSuccess={selectedRow.length > 0 ? handleUpdate : handleSuccess}
-            onError={handleError}
-            onLoading={handleLoading}
-            users={users}
-            usersLoading={usersLoading}
-            onSubmitRef={onSubmitRef}
-          />
-        </StandardModal>
+        {/* Table Section */}
         {showCustomizableSkeleton ? (
-          <CustomizableSkeleton
-            variant="rectangular"
-            width="100%"
-            height={200}
-          />
+          <CustomizableSkeleton />
         ) : (
           <GroupedTableView
             groupedData={groupedRisks}
@@ -1013,6 +958,80 @@ const RiskManagement = () => {
             )}
           />
         )}
+
+        {/* Add/Edit Risk Modal */}
+        <StandardModal
+          isOpen={isRiskModalOpen}
+          onClose={handleRiskModalClose}
+          title={selectedRow.length > 0 ? "Edit project risk" : "Add a new risk"}
+          description={selectedRow.length > 0
+            ? "Modify the risk details and mitigation strategies."
+            : "Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
+          }
+          onSubmit={handleRiskModalSubmit}
+          submitButtonText={selectedRow.length > 0 ? "Update" : "Save"}
+          isSubmitting={isSubmitting}
+          maxWidth={isHistorySidebarOpen ? "1375px" : "1039px"}
+          headerActions={selectedRow.length > 0 ? (
+            <Tooltip title="View activity history" arrow>
+              <IconButton
+                onClick={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
+                size="small"
+                sx={{
+                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
+                  "&:hover": {
+                    backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
+                  },
+                }}
+              >
+                <HistoryIcon size={20} />
+              </IconButton>
+            </Tooltip>
+          ) : undefined}
+        >
+          <Stack
+            direction="row"
+            sx={{
+              width: "100%",
+              minHeight: 0,
+              alignItems: "stretch",
+              overflow: "hidden",
+              position: "relative"
+            }}
+          >
+            <Box sx={{
+              flex: isHistorySidebarOpen ? "0 0 auto" : 1,
+              minWidth: 0,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflowX: "hidden",
+              overflowY: "auto"
+            }}>
+              <AddNewRiskForm
+                closePopup={handleRiskModalClose}
+                popupStatus={selectedRow.length > 0 ? "edit" : "new"}
+                onSuccess={selectedRow.length > 0 ? handleUpdate : handleSuccess}
+                onError={handleError}
+                onLoading={handleLoading}
+                users={users}
+                usersLoading={usersLoading}
+                onSubmitRef={onSubmitRef}
+                compactMode={isHistorySidebarOpen}
+              />
+            </Box>
+            {selectedRow.length > 0 && selectedRow[0]?.id && (
+              <HistorySidebar
+                entityType="risk"
+                entityId={selectedRow[0].id}
+                isOpen={isHistorySidebarOpen}
+              />
+            )}
+          </Stack>
+        </StandardModal>
       </Stack>
       <AddNewRiskMITModal
         isOpen={isAIModalOpen}

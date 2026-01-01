@@ -39,10 +39,12 @@ const useRegisterUser = () => {
     values: FormValues;
     user: RegisterUser;
     setIsSubmitting: (value: boolean) => void;
-  }) => {
+  }, userToken: string | null) => {
     try {
        const response = await createNewUser({
         userData: { ...values, role_id: user.roleId || 1 },
+      }, {
+        Authorization: `Bearer ${userToken || ""}`,
       });
       handleApiResponse({ response, user, setIsSubmitting });
       return {

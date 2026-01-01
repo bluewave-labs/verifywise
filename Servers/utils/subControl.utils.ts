@@ -240,6 +240,7 @@ export const updateSubcontrolByIdQuery = async (
           subcontrol[f as keyof SubcontrolModel];
         return true;
       }
+      return false;
     })
     .map((f) => {
       return `${f} = :${f}`;

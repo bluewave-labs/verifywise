@@ -37,16 +37,16 @@ export function GroupedTableView<T>({
   if (groupedData) {
     // Render grouped view
     return (
-      <Stack spacing={3}>
-        {groupedData.map(({ group, items }) => (
-          <Box key={group}>
+      <Stack spacing={0}>
+        {groupedData.map(({ group, items }, index) => (
+          <Box key={group} sx={{ marginTop: index === 0 ? 0 : '24px' }}>
             <Typography
               component="div"
               sx={{
                 fontSize: '15px',
                 fontWeight: 600,
                 color: '#374151',
-                marginBottom: '12px',
+                marginBottom: '4px',
                 paddingLeft: '4px',
                 display: 'flex',
                 alignItems: 'center',

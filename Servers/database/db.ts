@@ -78,7 +78,14 @@ import { NISTAIMRFFunctionModel } from "../domain.layer/frameworks/NIST-AI-RMF/n
 import { NISTAIMRFSubcategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_subcategory.model";
 import { NISTAIMRFCategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_category.model";
 import { EvidenceHubModel } from "../domain.layer/models/evidenceHub/evidenceHub.model";
+import { LLMKeyModel } from "../domain.layer/models/llmKey/llmKey.model";
 import { ShareLinkModel } from "../domain.layer/models/shareLink/shareLink.model";
+import { EvaluationLlmApiKeyModel } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
+import { NotesModel } from "../domain.layer/models/notes/notes.model";
+import { EntityGraphAnnotationsModel } from "../domain.layer/models/entityGraphAnnotations/entityGraphAnnotations.model";
+import { EntityGraphViewsModel } from "../domain.layer/models/entityGraphViews/entityGraphViews.model";
+import { EntityGraphGapRulesModel } from "../domain.layer/models/entityGraphGapRules/entityGraphGapRules.model";
+import { PolicyLinkedObjectsModel } from "../domain.layer/models/policy/policy_linked_objects.model";
 
 dotenv.config();
 
@@ -166,7 +173,14 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     NISTAIMRFFunctionModel,
     NISTAIMRFCategoryModel,
     NISTAIMRFSubcategoryModel,
+    LLMKeyModel,
     ShareLinkModel,
+    EvaluationLlmApiKeyModel,
+    NotesModel,
+    EntityGraphAnnotationsModel,
+    EntityGraphViewsModel,
+    EntityGraphGapRulesModel,
+    PolicyLinkedObjectsModel,
   ],
 }) as Sequelize;
 

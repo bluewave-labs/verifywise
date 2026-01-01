@@ -8,7 +8,7 @@ data:
   FRONTEND_PORT: "8080"
   FRONTEND_URL: "http://verifywise.ai:8080"
   HOST: "verifywise.ai"
-  BIAS_AND_FAIRNESS_PORT: "8000"
+  LLM_EVALS_PORT: "8000"
   NODE_ENV: "production"
   DB_SSL: "false"
   MULTI_TENANCY_ENABLED: "false"

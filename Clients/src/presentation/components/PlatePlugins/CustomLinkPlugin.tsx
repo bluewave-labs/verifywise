@@ -1,5 +1,10 @@
-import { createPlatePlugin } from "platejs/react";
+import { LinkPlugin } from "@platejs/link/react";
+import { insertLink as plateInsertLink, wrapLink, unwrapLink } from "@platejs/link";
+import { Range } from "slate";
 
+/**
+ * Custom LinkElement component for rendering links in the editor
+ */
 export const LinkElement = (props: any) => {
   const { attributes, children, element } = props;
   const url = element.url || element.href || "";
@@ -29,21 +34,52 @@ export const LinkElement = (props: any) => {
   );
 };
 
-export const linkPlugin = createPlatePlugin({
-  key: "link",
-  node: {
-    isElement: true,
-    component: LinkElement,
+/**
+ * Configured LinkPlugin with custom element rendering
+ */
+export const linkPlugin = LinkPlugin.configure({
+  render: {
+    node: LinkElement,
   },
 });
 
+/**
+ * Insert or wrap a link in the editor
+ * - If text is selected and no custom text provided: wraps the selection
+ * - Otherwise: inserts a new link node
+ */
 export const insertLink = (editor: any, url: string, text?: string | null) => {
   if (!url) return;
 
-  editor.tf.insertNodes({
-    type: "link",
-    url,
-    children: text ? [{ text }] : [{ text: url }],
-  });
+  const { selection } = editor;
+
+  // If there's a selection and no custom text provided, wrap the selection with link
+  if (selection && !Range.isCollapsed(selection) && !text) {
+    wrapLink(editor, { url, target: "_blank" });
+  } else {
+    // Insert new link with provided text or URL as display text
+    plateInsertLink(editor, { url, text: text || url, target: "_blank" });
+  }
+};
+
+/**
+ * Remove link from the current selection
+ */
+export const removeLink = (editor: any) => {
+  unwrapLink(editor);
+};
+
+/**
+ * Check if the current selection is inside a link
+ */
+export const isLinkActive = (editor: any): boolean => {
+  try {
+    const [link] = editor.nodes({
+      match: (n: any) => n.type === "a",
+    });
+    return !!link;
+  } catch {
+    return false;
+  }
 };
 

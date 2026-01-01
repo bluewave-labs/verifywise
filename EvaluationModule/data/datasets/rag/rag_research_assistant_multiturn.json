@@ -1,0 +1,38 @@
+[
+  {
+    "scenario": "User researching climate change impacts",
+    "expected_outcome": "Provide accurate information from retrieved documents with proper citations",
+    "context": ["Global temperatures have risen 1.1°C since pre-industrial times (IPCC 2021). Sea levels rose 20cm in the 20th century. Arctic ice has decreased 13% per decade since 1979."],
+    "turns": [
+      { "role": "user", "content": "What are the main effects of climate change according to recent research?" },
+      { "role": "assistant", "content": "According to IPCC 2021 data, the main effects include: 1) Global temperature rise of 1.1°C since pre-industrial times, 2) Sea level rise of 20cm during the 20th century, and 3) Arctic ice decreasing at 13% per decade since 1979. Would you like me to elaborate on any of these impacts?" },
+      { "role": "user", "content": "Tell me more about the sea level rise specifically." },
+      { "role": "assistant", "content": "Based on the research data, sea levels rose approximately 20 centimeters throughout the 20th century. This rise is primarily attributed to thermal expansion of warming oceans and melting ice sheets. The rate has accelerated in recent decades. Should I search for more specific regional impacts or projections for the future?" }
+    ]
+  },
+  {
+    "scenario": "User asking about company product documentation",
+    "expected_outcome": "Retrieve and synthesize relevant product information",
+    "context": ["ProductX supports integration with Slack, Teams, and Discord. API rate limit is 1000 requests/hour for Pro plans. Enterprise plans have custom rate limits. Setup requires OAuth 2.0 authentication."],
+    "turns": [
+      { "role": "user", "content": "Does ProductX integrate with Slack?" },
+      { "role": "assistant", "content": "Yes, ProductX supports integration with Slack, as well as Teams and Discord. Would you like details on how to set up the Slack integration?" },
+      { "role": "user", "content": "Yes, and what are the API limits?" },
+      { "role": "assistant", "content": "For setup, ProductX uses OAuth 2.0 authentication. Regarding API limits: Pro plans have 1000 requests/hour, while Enterprise plans offer custom rate limits based on your needs. Which plan are you on? I can provide more specific guidance." },
+      { "role": "user", "content": "We're on Pro. Is 1000/hour enough for a team of 50?" },
+      { "role": "assistant", "content": "With 50 team members, 1000 requests/hour means roughly 20 requests per person per hour. For typical usage (syncing messages, notifications), this should be sufficient. However, if you're building automations or have heavy API usage, you might want to consider Enterprise for custom limits. Would you like me to find information about Enterprise pricing?" }
+    ]
+  },
+  {
+    "scenario": "User researching historical events",
+    "expected_outcome": "Provide accurate historical information with proper context",
+    "context": ["The Industrial Revolution began in Britain around 1760. Key inventions included the steam engine (James Watt, 1769), spinning jenny (1764), and power loom (1785). Factory system replaced cottage industry."],
+    "turns": [
+      { "role": "user", "content": "When did the Industrial Revolution start and where?" },
+      { "role": "assistant", "content": "The Industrial Revolution began in Britain around 1760. It marked a major shift from agricultural economies to industrial manufacturing. Would you like to know about the key inventions that drove this transformation?" },
+      { "role": "user", "content": "Yes, what were the main inventions?" },
+      { "role": "assistant", "content": "The key inventions included: 1) The spinning jenny in 1764, which revolutionized textile production, 2) James Watt's improved steam engine in 1769, which powered factories and transportation, and 3) The power loom in 1785, which automated weaving. These innovations led to the factory system replacing the cottage industry model." }
+    ]
+  }
+]
+

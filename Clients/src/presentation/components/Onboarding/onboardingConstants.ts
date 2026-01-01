@@ -1,4 +1,4 @@
-import { OnboardingStepConfig } from "../../../domain/interfaces/i.onboarding";
+import { OnboardingStepConfig } from "../../types/interfaces/i.onboarding";
 import { IllustrationType } from "../../../domain/enums/onboarding.enum";
 
 export const ONBOARDING_DURATION = "3 minutes";
@@ -47,28 +47,6 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
     showForUser: true,
     canSkip: true,
     requiresInput: false,
-  },
-  {
-    id: 6,
-    title: "Set Up Your Organization",
-    description: "Configure your organization settings, invite team members, and enable the frameworks you need.",
-    componentName: "AdminSetupStep",
-    illustration: IllustrationType.ICON_GRID,
-    showForAdmin: true,
-    showForUser: false,
-    canSkip: true,
-    requiresInput: false,
-  },
-  {
-    id: 8,
-    title: "Create Your First Demo Project",
-    description: "Let's create a sample project to explore VerifyWise features hands-on.",
-    componentName: "SampleProjectStep",
-    illustration: IllustrationType.GEOMETRIC_SHAPES,
-    showForAdmin: true,
-    showForUser: true,
-    canSkip: true,
-    requiresInput: true,
   },
   {
     id: 9,

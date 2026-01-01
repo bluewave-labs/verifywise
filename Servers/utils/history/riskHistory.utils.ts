@@ -13,7 +13,11 @@ export async function recordHistorySnapshot(
 ): Promise<RiskHistoryModel> {
   try {
     // Get current counts for the parameter
-    const snapshot_data = await getCurrentParameterCounts(parameter, tenant, transaction);
+    const snapshot_data = await getCurrentParameterCounts(
+      parameter,
+      tenant,
+      transaction
+    );
 
     // Create history snapshot
     const recorded_at = new Date();
@@ -39,7 +43,10 @@ export async function recordHistorySnapshot(
 
     return result[0];
   } catch (error) {
-    console.error(`Error recording history snapshot for parameter ${parameter}:`, error);
+    console.error(
+      `Error recording history snapshot for parameter ${parameter}:`,
+      error
+    );
     throw error;
   }
 }
@@ -55,9 +62,9 @@ export async function getCurrentParameterCounts(
   try {
     const counts: Record<string, number> = {};
 
-    if (parameter === 'severity') {
+    if (parameter === "severity") {
       // Get counts for each severity level
-      const severityCounts = await sequelize.query(
+      const severityCounts = (await sequelize.query(
         `SELECT severity, COUNT(*) as count
          FROM "${tenant}".risks
          WHERE is_deleted = false
@@ -66,11 +73,17 @@ export async function getCurrentParameterCounts(
           type: QueryTypes.SELECT,
           transaction,
         }
-      ) as Array<{ severity: string; count: string }>;
+      )) as Array<{ severity: string; count: string }>;
 
       // Initialize all severity levels to 0
-      const severityLevels = ['Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'];
-      severityLevels.forEach(severity => {
+      const severityLevels = [
+        "Negligible",
+        "Minor",
+        "Moderate",
+        "Major",
+        "Catastrophic",
+      ];
+      severityLevels.forEach((severity) => {
         counts[severity] = 0;
       });
 
@@ -80,9 +93,9 @@ export async function getCurrentParameterCounts(
           counts[row.severity] = parseInt(row.count, 10);
         }
       });
-    } else if (parameter === 'likelihood') {
+    } else if (parameter === "likelihood") {
       // Get counts for each likelihood level
-      const likelihoodCounts = await sequelize.query(
+      const likelihoodCounts = (await sequelize.query(
         `SELECT likelihood, COUNT(*) as count
          FROM "${tenant}".risks
          WHERE is_deleted = false
@@ -91,11 +104,17 @@ export async function getCurrentParameterCounts(
           type: QueryTypes.SELECT,
           transaction,
         }
-      ) as Array<{ likelihood: string; count: string }>;
+      )) as Array<{ likelihood: string; count: string }>;
 
       // Initialize all likelihood levels to 0
-      const likelihoodLevels = ['Rare', 'Unlikely', 'Possible', 'Likely', 'Almost Certain'];
-      likelihoodLevels.forEach(likelihood => {
+      const likelihoodLevels = [
+        "Rare",
+        "Unlikely",
+        "Possible",
+        "Likely",
+        "Almost Certain",
+      ];
+      likelihoodLevels.forEach((likelihood) => {
         counts[likelihood] = 0;
       });
 
@@ -105,9 +124,9 @@ export async function getCurrentParameterCounts(
           counts[row.likelihood] = parseInt(row.count, 10);
         }
       });
-    } else if (parameter === 'mitigation_status') {
+    } else if (parameter === "mitigation_status") {
       // Get counts for each mitigation status
-      const mitigationCounts = await sequelize.query(
+      const mitigationCounts = (await sequelize.query(
         `SELECT mitigation_status, COUNT(*) as count
          FROM "${tenant}".risks
          WHERE is_deleted = false
@@ -116,11 +135,19 @@ export async function getCurrentParameterCounts(
           type: QueryTypes.SELECT,
           transaction,
         }
-      ) as Array<{ mitigation_status: string; count: string }>;
+      )) as Array<{ mitigation_status: string; count: string }>;
 
       // Initialize all mitigation statuses to 0
-      const mitigationStatuses = ['Not Started', 'In Progress', 'Completed', 'On Hold', 'Deferred', 'Canceled', 'Requires review'];
-      mitigationStatuses.forEach(status => {
+      const mitigationStatuses = [
+        "Not Started",
+        "In Progress",
+        "Completed",
+        "On Hold",
+        "Deferred",
+        "Canceled",
+        "Requires review",
+      ];
+      mitigationStatuses.forEach((status) => {
         counts[status] = 0;
       });
 
@@ -130,9 +157,9 @@ export async function getCurrentParameterCounts(
           counts[row.mitigation_status] = parseInt(row.count, 10);
         }
       });
-    } else if (parameter === 'risk_level') {
+    } else if (parameter === "risk_level") {
       // Get counts for each risk level (using risk_level_autocalculated)
-      const riskLevelCounts = await sequelize.query(
+      const riskLevelCounts = (await sequelize.query(
         `SELECT risk_level_autocalculated, COUNT(*) as count
          FROM "${tenant}".risks
          WHERE is_deleted = false
@@ -141,11 +168,18 @@ export async function getCurrentParameterCounts(
           type: QueryTypes.SELECT,
           transaction,
         }
-      ) as Array<{ risk_level_autocalculated: string; count: string }>;
+      )) as Array<{ risk_level_autocalculated: string; count: string }>;
 
       // Initialize all risk levels to 0
-      const riskLevels = ['No risk', 'Very low risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk'];
-      riskLevels.forEach(level => {
+      const riskLevels = [
+        "No risk",
+        "Very low risk",
+        "Low risk",
+        "Medium risk",
+        "High risk",
+        "Very high risk",
+      ];
+      riskLevels.forEach((level) => {
         counts[level] = 0;
       });
 
@@ -157,7 +191,7 @@ export async function getCurrentParameterCounts(
       });
     } else {
       // Generic handling for other parameters
-      const paramCounts = await sequelize.query(
+      const paramCounts = (await sequelize.query(
         `SELECT ${parameter}, COUNT(*) as count
          FROM "${tenant}".risks
          WHERE is_deleted = false
@@ -166,17 +200,20 @@ export async function getCurrentParameterCounts(
           type: QueryTypes.SELECT,
           transaction,
         }
-      ) as Array<{ [key: string]: any; count: string }>;
+      )) as Array<{ [key: string]: any; count: string }>;
 
       paramCounts.forEach((row) => {
-        const key = row[parameter] !== null ? String(row[parameter]) : 'null';
+        const key = row[parameter] !== null ? String(row[parameter]) : "null";
         counts[key] = parseInt(row.count, 10);
       });
     }
 
     return counts;
   } catch (error) {
-    console.error(`Error getting current parameter counts for ${parameter}:`, error);
+    console.error(
+      `Error getting current parameter counts for ${parameter}:`,
+      error
+    );
     throw error;
   }
 }
@@ -186,7 +223,7 @@ export async function getCurrentParameterCounts(
  */
 export async function getTimeseriesData(
   parameter: string,
-  startDate: Date,
+  _startDate: Date,
   endDate: Date,
   tenant: string,
   transaction?: Transaction
@@ -194,7 +231,7 @@ export async function getTimeseriesData(
   try {
     // For proper interpolation, we need to include snapshots from before the start date
     // This allows us to use historical data for time points that don't have exact snapshots
-    const snapshots = await sequelize.query(
+    const snapshots = (await sequelize.query(
       `SELECT DISTINCT ON (recorded_at::date) *, recorded_at::date AS recorded_at_date
         FROM "${tenant}".risk_history
         WHERE parameter = :parameter
@@ -207,7 +244,7 @@ export async function getTimeseriesData(
         },
         transaction,
       }
-    ) as [RiskHistoryModel[], number];
+    )) as [RiskHistoryModel[], number];
 
     return snapshots[0];
   } catch (error) {
@@ -223,7 +260,7 @@ async function getTimeseriesDataAtATime(
   transaction?: Transaction
 ): Promise<RiskHistoryModel> {
   try {
-    const snapshots = await sequelize.query(
+    const snapshots = (await sequelize.query(
       `SELECT * FROM "${tenant}".risk_history
         WHERE parameter = :parameter
         AND recorded_at::date < :date::date
@@ -235,7 +272,7 @@ async function getTimeseriesDataAtATime(
         },
         transaction,
       }
-    ) as [RiskHistoryModel[], number];
+    )) as [RiskHistoryModel[], number];
 
     return snapshots[0][0];
   } catch (error) {
@@ -373,7 +410,7 @@ export async function getTimeseriesWithInterpolation(
  */
 export async function getTimeseriesForTimeframe(
   parameter: string,
-  timeframe: '7days' | '15days' | '1month' | '3months' | '6months' | '1year',
+  timeframe: "7days" | "15days" | "1month" | "3months" | "6months" | "1year",
   tenant: string,
   transaction?: Transaction
 ): Promise<Array<{ timestamp: Date; data: Record<string, number> }>> {
@@ -382,35 +419,42 @@ export async function getTimeseriesForTimeframe(
 
   // Calculate start date based on timeframe
   switch (timeframe) {
-    case '7days':
+    case "7days":
       startDate.setDate(startDate.getDate() - 7);
       break;
-    case '15days':
+    case "15days":
       startDate.setDate(startDate.getDate() - 15);
       break;
-    case '1month':
+    case "1month":
       startDate.setMonth(startDate.getMonth() - 1);
       break;
-    case '3months':
+    case "3months":
       startDate.setMonth(startDate.getMonth() - 3);
       break;
-    case '6months':
+    case "6months":
       startDate.setMonth(startDate.getMonth() - 6);
       break;
-    case '1year':
+    case "1year":
       startDate.setFullYear(startDate.getFullYear() - 1);
       break;
   }
 
   // Determine appropriate interval based on timeframe
   let intervalHours = 24; // default: daily
-  if (timeframe === '3months' || timeframe === '6months') {
+  if (timeframe === "3months" || timeframe === "6months") {
     intervalHours = 24 * 7; // weekly
-  } else if (timeframe === '1year') {
+  } else if (timeframe === "1year") {
     intervalHours = 24 * 30; // monthly
   }
 
-  return await getTimeseriesWithInterpolation(parameter, startDate, endDate, tenant, intervalHours, transaction);
+  return await getTimeseriesWithInterpolation(
+    parameter,
+    startDate,
+    endDate,
+    tenant,
+    intervalHours,
+    transaction
+  );
 }
 
 /**
@@ -485,14 +529,22 @@ export async function shouldRecordSnapshot(
   transaction?: Transaction
 ): Promise<boolean> {
   try {
-    const latestSnapshot = await getLatestSnapshot(parameter, tenant, transaction);
+    const latestSnapshot = await getLatestSnapshot(
+      parameter,
+      tenant,
+      transaction
+    );
 
     if (!latestSnapshot) {
       // No previous snapshot, should record
       return true;
     }
 
-    const currentCounts = await getCurrentParameterCounts(parameter, tenant, transaction);
+    const currentCounts = await getCurrentParameterCounts(
+      parameter,
+      tenant,
+      transaction
+    );
     const previousCounts = latestSnapshot.snapshot_data;
 
     // Compare current and previous counts
@@ -528,10 +580,19 @@ export async function recordSnapshotIfChanged(
   triggered_by_user_id?: number,
   transaction?: Transaction
 ): Promise<RiskHistoryModel | null> {
-  const shouldRecord = await shouldRecordSnapshot(parameter, tenant, transaction);
+  const shouldRecord = await shouldRecordSnapshot(
+    parameter,
+    tenant,
+    transaction
+  );
 
   if (shouldRecord) {
-    return await recordHistorySnapshot(parameter, tenant, triggered_by_user_id, transaction);
+    return await recordHistorySnapshot(
+      parameter,
+      tenant,
+      triggered_by_user_id,
+      transaction
+    );
   }
 
   return null;

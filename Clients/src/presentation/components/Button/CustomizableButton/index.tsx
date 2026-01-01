@@ -13,7 +13,7 @@ import React, { memo, useCallback } from "react";
 import { Button, CircularProgress, Box } from "@mui/material";
 import { ButtonProps, SxProps, Theme } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ICustomizableButtonProps } from "../../../../domain/interfaces/i.button";
+import { ICustomizableButtonProps } from "../../../types/button.types";
 
 /**
  * CustomizableButton component
@@ -216,7 +216,9 @@ const CustomizableButton = memo(
           ]}
           disableElevation={variant === "contained" && !isLink}
           startIcon={
-            loading ? (
+            // Show spinner as startIcon if loading AND (has original startIcon OR has endIcon)
+            // If no icons at all, we'll show a centered spinner instead
+            loading && (resolvedStartIcon || endIcon) ? (
               <Box
                 component="span"
                 sx={{ display: "flex", alignItems: "center" }}
@@ -224,12 +226,13 @@ const CustomizableButton = memo(
                 {spinner}
               </Box>
             ) : (
-              resolvedStartIcon
+              (resolvedStartIcon as React.ReactNode)
             )
           }
-          endIcon={!loading ? endIcon : undefined}
+          endIcon={!loading ? (endIcon as React.ReactNode) : undefined}
           {...filteredRest}
         >
+          {/* Show centered spinner only when loading and NO icons at all */}
           {loading && !resolvedStartIcon && !endIcon && (
             <Box
               component="span"
@@ -250,7 +253,7 @@ const CustomizableButton = memo(
               transition: "opacity 0.2s ease",
             }}
           >
-            {buttonText}
+            {buttonText as React.ReactNode}
           </Box>
         </Button>
       );

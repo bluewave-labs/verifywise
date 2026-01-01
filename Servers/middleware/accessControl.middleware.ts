@@ -25,13 +25,13 @@
  * @module middleware/accessControl
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 
 interface AuthenticatedRequest extends Request {
-    userId?: number;
-    role?: string;
-    tenantId?: string;
-    organizationId?: number;
+  userId?: number;
+  role?: string;
+  tenantId?: string;
+  organizationId?: number;
 }
 
 /**
@@ -61,19 +61,21 @@ interface AuthenticatedRequest extends Request {
  * // Protect sensitive operations
  * router.get('/audit-logs', authenticateJWT, authorize(['Admin', 'Auditor']), getAuditLogs);
  */
-const authorize = (allowedRoles: string[]) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+const authorize =
+  (allowedRoles: string[]) =>
+  (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     // Check if role exists (populated by authenticateJWT middleware)
     if (!req.role) {
-        console.error('Authorization failed: No role found in request');
-        return res.status(401).json({ message: "Authentication required" });
+      console.error("Authorization failed: No role found in request");
+      return res.status(401).json({ message: "Authentication required" });
     }
     const roleName = req.role; // Extract role from authenticated request
 
     if (!allowedRoles.includes(roleName)) {
-        return res.status(403).json({ message: "Access denied" });
+      return res.status(403).json({ message: "Access denied" });
     }
 
-    next(); // Proceed if role is authorized
-};
+    return next(); // Proceed if role is authorized
+  };
 
 export default authorize;

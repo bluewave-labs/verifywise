@@ -5,7 +5,6 @@ import {
   createNewSubtopicQuery,
   deleteSubtopicByIdQuery,
   getAllSubtopicsQuery,
-  getSubtopicByIdQuery,
   getSubTopicByTopicIdQuery,
   updateSubtopicByIdQuery,
 } from "../utils/subtopic.utils";

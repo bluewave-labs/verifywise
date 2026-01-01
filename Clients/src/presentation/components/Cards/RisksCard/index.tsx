@@ -10,7 +10,7 @@ import {
   trendIconDown,
   trendIconStable,
 } from "./style";
-import { risksSummary, EnhancedRiskSummary, RiskTrend } from "../../../../domain/interfaces/iRiskSummary";
+import { risksSummary, EnhancedRiskSummary, RiskTrend } from "../../../../domain/interfaces/i.riskSummary";
 
 interface RisksCardProps {
   risksSummary: risksSummary | EnhancedRiskSummary;

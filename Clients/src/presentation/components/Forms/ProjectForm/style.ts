@@ -32,7 +32,7 @@ export const teamMembersRenderInputStyle = {
 };
 
 export const teamMembersSxStyle = {
-  width: "350px",
+  width: "100%",
   "& .MuiChip-root": {
     borderRadius: "4px",
   },

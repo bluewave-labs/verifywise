@@ -1,9 +1,12 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import { sequelize } from "../database/db";
-import { QueryTypes } from 'sequelize';
-import { countSubControlsEUByProjectId, countAnswersEUByProjectId } from '../utils/eu.utils';
-import logger from '../utils/logger/fileLogger';
-import { logEvent } from '../utils/logger/dbLogger';
+import { QueryTypes } from "sequelize";
+import {
+  countSubControlsEUByProjectId,
+  countAnswersEUByProjectId,
+} from "../utils/eu.utils";
+import logger from "../utils/logger/fileLogger";
+import { logEvent } from "../utils/logger/dbLogger";
 
 // Default conformity steps - will be created for each new CE Marking record
 const DEFAULT_CONFORMITY_STEPS = [
@@ -31,12 +34,14 @@ export const getCEMarking = async (req: Request, res: Response) => {
       `SELECT id FROM "${tenantId}".projects WHERE id = :projectId`,
       {
         replacements: { projectId },
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
       }
     );
 
     if (!projectResult || projectResult.length === 0) {
-      return res.status(404).json({ error: 'Project not found or you do not have access to it' });
+      return res
+        .status(404)
+        .json({ error: "Project not found or you do not have access to it" });
     }
 
     // Check if CE Marking record exists
@@ -44,7 +49,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
       `SELECT * FROM "${tenantId}".ce_markings WHERE project_id = :projectId`,
       {
         replacements: { projectId },
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
       }
     );
 
@@ -70,7 +75,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
           {
             replacements: { projectId, userId },
             type: QueryTypes.INSERT,
-            transaction
+            transaction,
           }
         );
 
@@ -89,10 +94,10 @@ export const getCEMarking = async (req: Request, res: Response) => {
               replacements: {
                 ceMarkingId: ceMarking.id,
                 stepNumber: step.step_number,
-                stepName: step.step_name
+                stepName: step.step_name,
               },
               type: QueryTypes.INSERT,
-              transaction
+              transaction,
             }
           );
         }
@@ -110,7 +115,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
           {
             replacements: { ceMarkingId: ceMarking.id, userId },
             type: QueryTypes.INSERT,
-            transaction
+            transaction,
           }
         );
 
@@ -128,7 +133,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
        ORDER BY step_number`,
       {
         replacements: { ceMarkingId: ceMarking.id },
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
       }
     );
 
@@ -138,7 +143,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
        WHERE ce_marking_id = :ceMarkingId`,
       {
         replacements: { ceMarkingId: ceMarking.id },
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
       }
     );
 
@@ -148,7 +153,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
        WHERE ce_marking_id = :ceMarkingId`,
       {
         replacements: { ceMarkingId: ceMarking.id },
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
       }
     );
 
@@ -158,13 +163,13 @@ export const getCEMarking = async (req: Request, res: Response) => {
        WHERE ce_marking_id = :ceMarkingId`,
       {
         replacements: { ceMarkingId: ceMarking.id },
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
       }
     );
 
     // Calculate completed steps count
     const completedStepsCount = (conformitySteps as any[]).filter(
-      step => step.status === 'Completed' || step.status === 'Not needed'
+      (step) => step.status === "Completed" || step.status === "Not needed"
     ).length;
 
     // Calculate EU AI Act controls completion
@@ -179,7 +184,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
       const euAiActFrameworkResult = await sequelize.query(
         `SELECT id FROM public.frameworks WHERE name = 'EU AI Act'`,
         {
-          type: QueryTypes.SELECT
+          type: QueryTypes.SELECT,
         }
       );
 
@@ -191,31 +196,31 @@ export const getCEMarking = async (req: Request, res: Response) => {
            WHERE project_id = :projectId AND framework_id = :frameworkId`,
           {
             replacements: { projectId, frameworkId: euAiActFrameworkId },
-            type: QueryTypes.SELECT
+            type: QueryTypes.SELECT,
           }
         );
 
-      if (frameworkResult.length > 0) {
-        const projectFrameworkId = (frameworkResult[0] as any).id;
+        if (frameworkResult.length > 0) {
+          const projectFrameworkId = (frameworkResult[0] as any).id;
 
-        // Use the same utility functions as the Overview tab
-        // Count compliance/controls (subcontrols_eu)
-        const { totalSubcontrols, doneSubcontrols } =
-          await countSubControlsEUByProjectId(projectFrameworkId, tenantId);
+          // Use the same utility functions as the Overview tab
+          // Count compliance/controls (subcontrols_eu)
+          const { totalSubcontrols, doneSubcontrols } =
+            await countSubControlsEUByProjectId(projectFrameworkId, tenantId);
 
-        controlsTotal = parseInt(totalSubcontrols) || 0;
-        controlsCompleted = parseInt(doneSubcontrols) || 0;
+          controlsTotal = parseInt(totalSubcontrols) || 0;
+          controlsCompleted = parseInt(doneSubcontrols) || 0;
 
-        // Count assessments (answers_eu)
-        const { totalAssessments, answeredAssessments } =
-          await countAnswersEUByProjectId(projectFrameworkId, tenantId);
+          // Count assessments (answers_eu)
+          const { totalAssessments, answeredAssessments } =
+            await countAnswersEUByProjectId(projectFrameworkId, tenantId);
 
-        assessmentsTotal = parseInt(totalAssessments) || 0;
-        assessmentsCompleted = parseInt(answeredAssessments) || 0;
-      }
+          assessmentsTotal = parseInt(totalAssessments) || 0;
+          assessmentsCompleted = parseInt(answeredAssessments) || 0;
+        }
       }
     } catch (error) {
-      logger.error('Error calculating EU AI Act completion:', error);
+      logger.error("Error calculating EU AI Act completion:", error);
       // Continue with zeros if calculation fails
     }
 
@@ -233,14 +238,14 @@ export const getCEMarking = async (req: Request, res: Response) => {
       assessmentsTotal,
 
       // Conformity steps
-      conformitySteps: (conformitySteps as any[]).map(step => ({
+      conformitySteps: (conformitySteps as any[]).map((step) => ({
         id: step.id,
         step: step.step_name,
         description: step.description,
         status: step.status,
         owner: step.owner,
         dueDate: step.due_date,
-        completedDate: step.completed_date
+        completedDate: step.completed_date,
       })),
       completedStepsCount,
       totalStepsCount: conformitySteps.length,
@@ -260,21 +265,29 @@ export const getCEMarking = async (req: Request, res: Response) => {
       // Policies and evidence
       policiesLinked: linkedPolicies.length,
       evidenceLinked: linkedEvidences.length,
-      linkedPolicies: (linkedPolicies as any[]).map(p => p.policy_id),
-      linkedEvidences: (linkedEvidences as any[]).map(e => e.file_id),
+      linkedPolicies: (linkedPolicies as any[]).map((p) => p.policy_id),
+      linkedEvidences: (linkedEvidences as any[]).map((e) => e.file_id),
 
       // Incidents
       totalIncidents: linkedIncidents.length,
       aiActReportableIncidents: ceMarking.ai_act_reportable_incidents || 0,
       lastIncident: ceMarking.last_incident,
-      linkedIncidents: (linkedIncidents as any[]).map(i => i.incident_id)
+      linkedIncidents: (linkedIncidents as any[]).map((i) => i.incident_id),
     };
 
-    res.status(200).json(response);
+    return res.status(200).json(response);
   } catch (error) {
-    logger.error('Error in getCEMarking:', error);
-    await logEvent('Error', `Failed to get CE Marking data: ${(error as Error).message}`);
-    res.status(500).json({ error: 'Failed to get CE Marking data', details: (error as Error).message });
+    logger.error("Error in getCEMarking:", error);
+    await logEvent(
+      "Error",
+      `Failed to get CE Marking data: ${(error as Error).message}`
+    );
+    return res
+      .status(500)
+      .json({
+        error: "Failed to get CE Marking data",
+        details: (error as Error).message,
+      });
   }
 };
 
@@ -295,13 +308,15 @@ export const updateCEMarking = async (req: Request, res: Response) => {
       {
         replacements: { projectId },
         type: QueryTypes.SELECT,
-        transaction
+        transaction,
       }
     );
 
     if (!projectResult || projectResult.length === 0) {
       await transaction.rollback();
-      return res.status(404).json({ error: 'Project not found or you do not have access to it' });
+      return res
+        .status(404)
+        .json({ error: "Project not found or you do not have access to it" });
     }
 
     // Get existing CE Marking record
@@ -310,13 +325,13 @@ export const updateCEMarking = async (req: Request, res: Response) => {
       {
         replacements: { projectId },
         type: QueryTypes.SELECT,
-        transaction
+        transaction,
       }
     );
 
     if (!existingResult[0]) {
       await transaction.rollback();
-      return res.status(404).json({ error: 'CE Marking record not found' });
+      return res.status(404).json({ error: "CE Marking record not found" });
     }
 
     const existing: any = existingResult[0];
@@ -328,26 +343,26 @@ export const updateCEMarking = async (req: Request, res: Response) => {
 
     // Map frontend fields to database columns
     const fieldMapping: Record<string, string> = {
-      isHighRiskAISystem: 'is_high_risk_ai_system',
-      roleInProduct: 'role_in_product',
-      annexIIICategory: 'annex_iii_category',
-      controlsCompleted: 'controls_completed',
-      controlsTotal: 'controls_total',
-      assessmentsCompleted: 'assessments_completed',
-      assessmentsTotal: 'assessments_total',
-      declarationStatus: 'declaration_status',
-      signedOn: 'signed_on',
-      signatory: 'signatory',
-      declarationDocument: 'declaration_document',
-      registrationStatus: 'registration_status',
-      euRegistrationId: 'eu_registration_id',
-      registrationDate: 'registration_date',
-      euRecordUrl: 'eu_record_url',
-      policiesLinked: 'policies_linked',
-      evidenceLinked: 'evidence_linked',
-      totalIncidents: 'total_incidents',
-      aiActReportableIncidents: 'ai_act_reportable_incidents',
-      lastIncident: 'last_incident'
+      isHighRiskAISystem: "is_high_risk_ai_system",
+      roleInProduct: "role_in_product",
+      annexIIICategory: "annex_iii_category",
+      controlsCompleted: "controls_completed",
+      controlsTotal: "controls_total",
+      assessmentsCompleted: "assessments_completed",
+      assessmentsTotal: "assessments_total",
+      declarationStatus: "declaration_status",
+      signedOn: "signed_on",
+      signatory: "signatory",
+      declarationDocument: "declaration_document",
+      registrationStatus: "registration_status",
+      euRegistrationId: "eu_registration_id",
+      registrationDate: "registration_date",
+      euRecordUrl: "eu_record_url",
+      policiesLinked: "policies_linked",
+      evidenceLinked: "evidence_linked",
+      totalIncidents: "total_incidents",
+      aiActReportableIncidents: "ai_act_reportable_incidents",
+      lastIncident: "last_incident",
     };
 
     // Process main fields
@@ -364,7 +379,7 @@ export const updateCEMarking = async (req: Request, res: Response) => {
           auditEntries.push({
             field: dbField,
             oldValue: oldValue?.toString() || null,
-            newValue: newValue?.toString() || null
+            newValue: newValue?.toString() || null,
           });
         }
       }
@@ -384,17 +399,17 @@ export const updateCEMarking = async (req: Request, res: Response) => {
       });
 
       // Add system fields
-      setClauseParts.push('updated_at = NOW()');
-      setClauseParts.push('updated_by = :userId');
+      setClauseParts.push("updated_at = NOW()");
+      setClauseParts.push("updated_by = :userId");
 
       await sequelize.query(
         `UPDATE "${tenantId}".ce_markings
-         SET ${setClauseParts.join(', ')}
+         SET ${setClauseParts.join(", ")}
          WHERE project_id = :projectId`,
         {
           replacements,
           type: QueryTypes.UPDATE,
-          transaction
+          transaction,
         }
       );
 
@@ -415,10 +430,10 @@ export const updateCEMarking = async (req: Request, res: Response) => {
               field: entry.field,
               oldValue: entry.oldValue,
               newValue: entry.newValue,
-              userId
+              userId,
             },
             type: QueryTypes.INSERT,
-            transaction
+            transaction,
           }
         );
       }
@@ -432,7 +447,7 @@ export const updateCEMarking = async (req: Request, res: Response) => {
         {
           replacements: { ceMarkingId: existing.id },
           type: QueryTypes.DELETE,
-          transaction
+          transaction,
         }
       );
 
@@ -444,7 +459,7 @@ export const updateCEMarking = async (req: Request, res: Response) => {
           {
             replacements: { ceMarkingId: existing.id, policyId, userId },
             type: QueryTypes.INSERT,
-            transaction
+            transaction,
           }
         );
       }
@@ -457,12 +472,12 @@ export const updateCEMarking = async (req: Request, res: Response) => {
         {
           replacements: {
             ceMarkingId: existing.id,
-            oldValue: existing.policies_linked?.toString() || '0',
+            oldValue: existing.policies_linked?.toString() || "0",
             newValue: updates.linkedPolicies.length.toString(),
-            userId
+            userId,
           },
           type: QueryTypes.INSERT,
-          transaction
+          transaction,
         }
       );
     }
@@ -475,7 +490,7 @@ export const updateCEMarking = async (req: Request, res: Response) => {
         {
           replacements: { ceMarkingId: existing.id },
           type: QueryTypes.DELETE,
-          transaction
+          transaction,
         }
       );
 
@@ -487,7 +502,7 @@ export const updateCEMarking = async (req: Request, res: Response) => {
           {
             replacements: { ceMarkingId: existing.id, fileId, userId },
             type: QueryTypes.INSERT,
-            transaction
+            transaction,
           }
         );
       }
@@ -500,12 +515,12 @@ export const updateCEMarking = async (req: Request, res: Response) => {
         {
           replacements: {
             ceMarkingId: existing.id,
-            oldValue: existing.evidence_linked?.toString() || '0',
+            oldValue: existing.evidence_linked?.toString() || "0",
             newValue: updates.linkedEvidences.length.toString(),
-            userId
+            userId,
           },
           type: QueryTypes.INSERT,
-          transaction
+          transaction,
         }
       );
     }
@@ -518,7 +533,7 @@ export const updateCEMarking = async (req: Request, res: Response) => {
         {
           replacements: { ceMarkingId: existing.id },
           type: QueryTypes.DELETE,
-          transaction
+          transaction,
         }
       );
 
@@ -530,7 +545,7 @@ export const updateCEMarking = async (req: Request, res: Response) => {
           {
             replacements: { ceMarkingId: existing.id, incidentId, userId },
             type: QueryTypes.INSERT,
-            transaction
+            transaction,
           }
         );
       }
@@ -543,12 +558,12 @@ export const updateCEMarking = async (req: Request, res: Response) => {
         {
           replacements: {
             ceMarkingId: existing.id,
-            oldValue: existing.total_incidents?.toString() || '0',
+            oldValue: existing.total_incidents?.toString() || "0",
             newValue: updates.linkedIncidents.length.toString(),
-            userId
+            userId,
           },
           type: QueryTypes.INSERT,
-          transaction
+          transaction,
         }
       );
     }
@@ -563,7 +578,7 @@ export const updateCEMarking = async (req: Request, res: Response) => {
             {
               replacements: { stepId: step.id },
               type: QueryTypes.SELECT,
-              transaction
+              transaction,
             }
           );
 
@@ -573,13 +588,19 @@ export const updateCEMarking = async (req: Request, res: Response) => {
             const stepValues: any[] = [];
 
             // Check each field for changes
-            const stepFields = ['description', 'status', 'owner', 'dueDate', 'completedDate'];
+            const stepFields = [
+              "description",
+              "status",
+              "owner",
+              "dueDate",
+              "completedDate",
+            ];
             const stepFieldMapping: Record<string, string> = {
-              description: 'description',
-              status: 'status',
-              owner: 'owner',
-              dueDate: 'due_date',
-              completedDate: 'completed_date'
+              description: "description",
+              status: "status",
+              owner: "owner",
+              dueDate: "due_date",
+              completedDate: "completed_date",
             };
 
             for (const field of stepFields) {
@@ -608,10 +629,10 @@ export const updateCEMarking = async (req: Request, res: Response) => {
                         fieldName: `step_${existingStep.step_number}_${dbField}`,
                         oldValue: oldValue?.toString() || null,
                         newValue: newValue?.toString() || null,
-                        userId
+                        userId,
                       },
                       type: QueryTypes.INSERT,
-                      transaction
+                      transaction,
                     }
                   );
                 }
@@ -619,9 +640,13 @@ export const updateCEMarking = async (req: Request, res: Response) => {
             }
 
             // Auto-populate completed_date when status changes to Completed
-            if (step.status === 'Completed' && existingStep.status !== 'Completed' && !step.completedDate) {
-              stepUpdates.push('completed_date');
-              stepValues.push(new Date().toISOString().split('T')[0]);
+            if (
+              step.status === "Completed" &&
+              existingStep.status !== "Completed" &&
+              !step.completedDate
+            ) {
+              stepUpdates.push("completed_date");
+              stepValues.push(new Date().toISOString().split("T")[0]);
             }
 
             // Update step if there are changes
@@ -638,16 +663,16 @@ export const updateCEMarking = async (req: Request, res: Response) => {
               });
 
               // Add updated_at field
-              stepSetClauseParts.push('updated_at = NOW()');
+              stepSetClauseParts.push("updated_at = NOW()");
 
               await sequelize.query(
                 `UPDATE "${tenantId}".ce_marking_conformity_steps
-                 SET ${stepSetClauseParts.join(', ')}
+                 SET ${stepSetClauseParts.join(", ")}
                  WHERE id = :stepId`,
                 {
                   replacements: stepReplacements,
                   type: QueryTypes.UPDATE,
-                  transaction
+                  transaction,
                 }
               );
             }
@@ -660,11 +685,19 @@ export const updateCEMarking = async (req: Request, res: Response) => {
     await transaction.commit();
 
     // Return updated data
-    await getCEMarking(req, res);
+    return await getCEMarking(req, res);
   } catch (error) {
     await transaction.rollback();
-    logger.error('Error in updateCEMarking:', error);
-    await logEvent('Error', `Failed to update CE Marking data: ${(error as Error).message}`);
-    res.status(500).json({ error: 'Failed to update CE Marking data', details: (error as Error).message });
+    logger.error("Error in updateCEMarking:", error);
+    await logEvent(
+      "Error",
+      `Failed to update CE Marking data: ${(error as Error).message}`
+    );
+    return res
+      .status(500)
+      .json({
+        error: "Failed to update CE Marking data",
+        details: (error as Error).message,
+      });
   }
 };

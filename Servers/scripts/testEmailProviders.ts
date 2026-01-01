@@ -3,10 +3,10 @@
  * Run with: ts-node scripts/testEmailProviders.ts
  */
 
-import dotenv from 'dotenv';
-import { EmailProviderFactory } from '../services/email/providers/EmailProviderFactory';
-import { EmailOptions } from '../services/email/types';
-import { compileMjmlToHtml } from '../tools/mjmlCompiler';
+import dotenv from "dotenv";
+import { EmailProviderFactory } from "../services/email/providers/EmailProviderFactory";
+import { EmailOptions } from "../services/email/types";
+import { compileMjmlToHtml } from "../tools/mjmlCompiler";
 
 // Load environment variables
 dotenv.config();
@@ -29,12 +29,14 @@ const testTemplate = `
 </mjml>
 `;
 
-async function testProvider(providerType: 'resend' | 'smtp', testEmail: string) {
+async function testProvider(
+  providerType: "resend" | "smtp",
+  testEmail: string
+) {
   console.log(`\n🧪 Testing ${providerType.toUpperCase()} provider...`);
 
   try {
     // Temporarily set provider type
-    const originalProvider = process.env.EMAIL_PROVIDER;
     process.env.EMAIL_PROVIDER = providerType;
 
     // Create provider
@@ -51,7 +53,7 @@ async function testProvider(providerType: 'resend' | 'smtp', testEmail: string) 
 
     // Prepare test email
     const templateData = {
-      user_name: 'Test User',
+      user_name: "Test User",
       provider_name: provider.getProviderName(),
       test_time: new Date().toISOString(),
     };
@@ -76,7 +78,6 @@ async function testProvider(providerType: 'resend' | 'smtp', testEmail: string) 
       console.log(`   Error: ${result.error?.name} - ${result.error?.message}`);
       return false;
     }
-
   } catch (error: any) {
     console.log(`❌ Provider test failed:`);
     console.log(`   Error: ${error.message}`);
@@ -90,13 +91,13 @@ async function testProvider(providerType: 'resend' | 'smtp', testEmail: string) 
 }
 
 async function main() {
-  console.log('🚀 VerifyWise Email Provider Test Suite');
-  console.log('=====================================');
+  console.log("🚀 VerifyWise Email Provider Test Suite");
+  console.log("=====================================");
 
   const testEmail = process.argv[2];
   if (!testEmail) {
-    console.log('❌ Please provide a test email address:');
-    console.log('   ts-node scripts/testEmailProviders.ts test@example.com');
+    console.log("❌ Please provide a test email address:");
+    console.log("   ts-node scripts/testEmailProviders.ts test@example.com");
     process.exit(1);
   }
 
@@ -106,45 +107,45 @@ async function main() {
 
   // Test Resend provider (if configured)
   if (process.env.RESEND_API_KEY) {
-    results.resend = await testProvider('resend', testEmail);
+    results.resend = await testProvider("resend", testEmail);
   } else {
-    console.log('\n⚠️  Skipping Resend test - RESEND_API_KEY not configured');
+    console.log("\n⚠️  Skipping Resend test - RESEND_API_KEY not configured");
   }
 
   // Test SMTP provider (if configured)
   if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-    results.smtp = await testProvider('smtp', testEmail);
+    results.smtp = await testProvider("smtp", testEmail);
   } else {
-    console.log('\n⚠️  Skipping SMTP test - SMTP configuration not found');
+    console.log("\n⚠️  Skipping SMTP test - SMTP configuration not found");
   }
 
   // Summary
-  console.log('\n📊 Test Results Summary');
-  console.log('=====================');
+  console.log("\n📊 Test Results Summary");
+  console.log("=====================");
 
   let allPassed = true;
   for (const [provider, passed] of Object.entries(results)) {
-    const status = passed ? '✅ PASSED' : '❌ FAILED';
+    const status = passed ? "✅ PASSED" : "❌ FAILED";
     console.log(`${provider.toUpperCase()}: ${status}`);
     if (!passed) allPassed = false;
   }
 
   if (Object.keys(results).length === 0) {
-    console.log('⚠️  No providers were tested - check your configuration');
+    console.log("⚠️  No providers were tested - check your configuration");
     process.exit(1);
   }
 
   if (allPassed) {
-    console.log('\n🎉 All configured providers passed!');
+    console.log("\n🎉 All configured providers passed!");
     process.exit(0);
   } else {
-    console.log('\n💥 Some providers failed - check configuration');
+    console.log("\n💥 Some providers failed - check configuration");
     process.exit(1);
   }
 }
 
 // Run the test
 main().catch((error) => {
-  console.error('💥 Test suite crashed:', error);
+  console.error("💥 Test suite crashed:", error);
   process.exit(1);
 });

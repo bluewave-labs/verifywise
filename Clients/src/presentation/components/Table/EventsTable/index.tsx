@@ -24,7 +24,7 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
-import { IEventsTableProps } from "../../../../domain/interfaces/i.table";
+import { IEventsTableProps } from "../../../types/interfaces/i.table";
 
 const EVENTS_TABLE_SORTING_KEY = "verifywise_events_table_sorting";
 
@@ -291,7 +291,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                 key={event.id}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
+                  "&:hover": { backgroundColor: "#f5f5f5", cursor: "pointer" },
                 }}
               >
                 <TableCell

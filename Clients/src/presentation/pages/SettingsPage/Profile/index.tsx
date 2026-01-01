@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useCallback,
   ChangeEvent,
+  useContext,
 } from "react";
 import {
   Box,
@@ -19,7 +20,7 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import validator from "validator";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
@@ -38,6 +39,7 @@ import {
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useProfilePhotoFetch } from "../../../../application/hooks/useProfilePhotoFetch";
 import Avatar from "../../../components/Avatar/VWAvatar";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 /**
  * ProfileForm component for managing user profile information.
@@ -67,17 +69,19 @@ const ProfileForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false); // Separate saving state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-interface AlertState {
-  variant: "success" | "info" | "warning" | "error";
-  title?: string;
-  body: string;
-  isToast?: boolean;
-}
+  interface AlertState {
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+    isToast?: boolean;
+  }
 
   const [alert, setAlert] = useState<AlertState | null>(null);
 
   const theme = useTheme();
   const initialStateRef = useRef({ firstname: "", lastname: "", email: "" });
+
+  const { refreshUsers } = useContext(VerifyWiseContext);
 
   const isModified =
     firstname !== initialStateRef.current.firstname ||
@@ -119,7 +123,7 @@ interface AlertState {
         email: emailAddr,
       };
     },
-    [],
+    []
   );
 
   /**
@@ -142,10 +146,10 @@ interface AlertState {
       updateInitialState(
         actualUserData?.name || "",
         actualUserData?.surname || "",
-        actualUserData?.email || "",
+        actualUserData?.email || ""
       );
     } catch (error) {
-        logEngine({
+      logEngine({
         type: "error",
         message: "Failed to fetch user data.",
       });
@@ -199,6 +203,7 @@ interface AlertState {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   /**
@@ -214,13 +219,17 @@ interface AlertState {
       showAlert(
         "error",
         "Error",
-        "Validation errors occurred while saving the profile.",
+        "Validation errors occurred while saving the profile."
       );
       return;
     }
 
     if (!id) {
-      showAlert("error", "Error", "User session not found. Please log in again.");
+      showAlert(
+        "error",
+        "Error",
+        "User session not found. Please log in again."
+      );
       return;
     }
 
@@ -239,13 +248,12 @@ interface AlertState {
         userData: updatedUser,
       });
 
-  
       // Validate response before proceeding with success path
       if (response && response.status >= 200 && response.status < 300) {
         // Update the initial state to reflect the new saved values
         // This prevents the form from thinking it's still modified
         updateInitialState(firstname, lastname, email);
-
+        refreshUsers();
         showAlert("success", "Success", "Profile updated successfully.");
       } else {
         // Handle failure response
@@ -258,7 +266,7 @@ interface AlertState {
         showAlert(
           "error",
           "Error",
-          "Failed to update profile. Please try again.",
+          "Failed to update profile. Please try again."
         );
       }
     } catch (error) {
@@ -272,7 +280,7 @@ interface AlertState {
       showAlert(
         "error",
         "Error",
-        "Failed to update profile. Please try again.",
+        "Failed to update profile. Please try again."
       );
     } finally {
       setSaving(false);
@@ -318,11 +326,11 @@ interface AlertState {
         2,
         50,
         false,
-        false,
+        false
       );
       setFirstnameError(validation.accepted ? null : validation.message);
     },
-    [],
+    []
   );
 
   /**
@@ -339,11 +347,11 @@ interface AlertState {
         2,
         50,
         false,
-        false,
+        false
       );
       setLastnameError(validation.accepted ? null : validation.message);
     },
-    [],
+    []
   );
 
   /**
@@ -387,7 +395,7 @@ interface AlertState {
         showAlert(
           "error",
           "Error",
-          "Failed to delete account. Please try again.",
+          "Failed to delete account. Please try again."
         );
       }
     } catch (error) {
@@ -400,14 +408,13 @@ interface AlertState {
       showAlert(
         "error",
         "Error",
-        "Failed to delete account. Please try again.",
+        "Failed to delete account. Please try again."
       );
     } finally {
       setIsDeleteModalOpen(false);
       setShowToast(false);
     }
   }, [id, logout, showAlert]);
-
 
   // Utility function to clear preview and revoke URLs
   const clearImagePreview = useCallback(() => {
@@ -416,6 +423,8 @@ interface AlertState {
       setSelectedImagePreview(null);
     }
   }, [selectedImagePreview]);
+
+  const { setPhotoRefreshFlag } = useContext(VerifyWiseContext);
 
   // Handle Image file selection and upload
   const handleImageChange = useCallback(
@@ -436,7 +445,11 @@ interface AlertState {
       }
 
       if (!id) {
-        showAlert("error", "Error", "User session not found. Please log in again.");
+        showAlert(
+          "error",
+          "Error",
+          "User session not found. Please log in again."
+        );
         return;
       }
 
@@ -457,6 +470,7 @@ interface AlertState {
             if (imageUrl && imageUrl.startsWith("blob:")) {
               URL.revokeObjectURL(imageUrl);
             }
+            setPhotoRefreshFlag(prev => !prev);
             setImageUrl(photoUrl);
             setImageLoadError(false);
           }
@@ -465,7 +479,7 @@ interface AlertState {
           showAlert(
             "success",
             "Success",
-            "Profile photo uploaded successfully",
+            "Profile photo uploaded successfully"
           );
         } else {
           showAlert("error", "Error", "Failed to upload profile photo");
@@ -480,22 +494,26 @@ interface AlertState {
         }
       }
     },
-    [id, showAlert, clearImagePreview, fetchProfilePhotoAsBlobUrl, imageUrl],
+    [id, showAlert, clearImagePreview, fetchProfilePhotoAsBlobUrl, imageUrl]
   );
 
   // Image removal handlers
   const handleRemoveImage = useCallback(
     () => setIsRemoveImageModalOpen(true),
-    [],
+    []
   );
   const handleRemoveImageCancel = useCallback(
     () => setIsRemoveImageModalOpen(false),
-    [],
+    []
   );
 
   const handleRemoveImageConfirm = useCallback(async () => {
     if (!id) {
-      showAlert("error", "Error", "User session not found. Please log in again.");
+      showAlert(
+        "error",
+        "Error",
+        "User session not found. Please log in again."
+      );
       return;
     }
 
@@ -512,25 +530,25 @@ interface AlertState {
         setImageUrl(null);
         setImageLoadError(false); // Reset error state
         clearImagePreview();
-
+        setPhotoRefreshFlag(prev => !prev);
         setIsRemoveImageModalOpen(false);
         showAlert(
           "success",
           "Image Removed",
-          "Profile photo removed successfully",
+          "Profile photo removed successfully"
         );
       } else {
         showAlert(
           "error",
           "Remove Failed",
-          "Failed to remove profile photo. Please try again.",
+          "Failed to remove profile photo. Please try again."
         );
       }
     } catch (error) {
       showAlert(
         "error",
         "Remove Failed",
-        "Failed to remove profile photo. Please try again.",
+        "Failed to remove profile photo. Please try again."
       );
     } finally {
       setImageRemoving(false);
@@ -730,7 +748,7 @@ interface AlertState {
         )}
 
         {isDeleteModalOpen && (
-          <DualButtonModal
+          <ConfirmationModal
             title="Confirm delete"
             body={
               <Typography fontSize={13}>
@@ -782,11 +800,18 @@ interface AlertState {
                 }}
               >
                 <Avatar
-                  user={{ firstname, lastname, pathToImage: !imageLoadError ? selectedImagePreview ?? imageUrl ?? "" : undefined }}
+                  user={{
+                    firstname,
+                    lastname,
+                    pathToImage: !imageLoadError
+                      ? selectedImagePreview ?? imageUrl ?? ""
+                      : undefined,
+                  }}
                   size="medium"
                   sx={{ width: 84, height: 84 }}
                 />
-              </Box>)}
+              </Box>
+            )}
           </Box>
         </Box>
         <Box sx={{ display: "flex", gap: 1 }}>
@@ -844,7 +869,7 @@ interface AlertState {
                 Loading...
               </>
             ) : (
-              "Update"
+              "Change"
             )}
             <input
               type="file"
@@ -869,7 +894,7 @@ interface AlertState {
         </Typography>
       </Stack>
       {isRemoveImageModalOpen && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Remove profile photo"
           body={
             <Typography fontSize={13}>

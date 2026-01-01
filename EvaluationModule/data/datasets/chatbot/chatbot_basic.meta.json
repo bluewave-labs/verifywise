@@ -1,0 +1,8 @@
+{
+  "name": "Basic Chatbot",
+  "description": "Basic chatbot capabilities across multiple domains including general conversation, coding, math, knowledge, creative writing, and reasoning.",
+  "type": "single-turn",
+  "use_case": "chatbot",
+  "tags": ["general-purpose", "multi-domain", "beginner-friendly"],
+  "prompt_count": 12
+}

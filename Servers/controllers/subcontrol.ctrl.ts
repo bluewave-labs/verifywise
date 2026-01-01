@@ -5,7 +5,6 @@ import {
   createNewSubcontrolQuery,
   deleteSubcontrolByIdQuery,
   getAllSubcontrolsQuery,
-  getSubcontrolByIdQuery,
   updateSubcontrolByIdQuery,
 } from "../utils/subControl.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";

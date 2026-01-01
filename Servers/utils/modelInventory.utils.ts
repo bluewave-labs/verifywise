@@ -2,10 +2,12 @@ import { ModelInventoryModel } from "../domain.layer/models/modelInventory/model
 import { sequelize } from "../database/db";
 import { Transaction } from "sequelize";
 import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
-import { buildVendorReplacements } from "./automation/vendor.automation.utils";
 import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
-import { buildModelReplacements, buildModelUpdateReplacements } from "./automation/modelInventory.automation.utils";
+import {
+  buildModelReplacements,
+  buildModelUpdateReplacements,
+} from "./automation/modelInventory.automation.utils";
 import { IModelInventoryProjectFramework } from "../domain.layer/interfaces/i.modelInventoryProjectFramework";
 import { recordSnapshotIfChanged } from "./history/modelInventoryHistory.utils";
 
@@ -20,12 +22,12 @@ export const getAllModelInventoriesQuery = async (tenant: string) => {
   for (const model of modelInventories) {
     (model.dataValues as any).projects = [];
     (model.dataValues as any).frameworks = [];
-    const projectFrameworks = await sequelize.query(
+    const projectFrameworks = (await sequelize.query(
       `SELECT project_id, framework_id FROM "${tenant}".model_inventories_projects_frameworks WHERE model_inventory_id = :model_inventory_id`,
       {
         replacements: { model_inventory_id: model.id },
       }
-    ) as [(IModelInventoryProjectFramework)[], number];
+    )) as [IModelInventoryProjectFramework[], number];
     for (const pf of projectFrameworks[0]) {
       if (pf.project_id && pf.framework_id) {
         (model.dataValues as any).frameworks.push(pf.framework_id);
@@ -48,12 +50,12 @@ export const getModelByTenantIdQuery = async (tenant: string) => {
   for (const model of modelInventory) {
     (model.dataValues as any).projects = [];
     (model.dataValues as any).frameworks = [];
-    const projectFrameworks = await sequelize.query(
+    const projectFrameworks = (await sequelize.query(
       `SELECT project_id, framework_id FROM "${tenant}".model_inventories_projects_frameworks WHERE model_inventory_id = :model_inventory_id`,
       {
         replacements: { model_inventory_id: model.id },
       }
-    ) as [(IModelInventoryProjectFramework)[], number];
+    )) as [IModelInventoryProjectFramework[], number];
     for (const pf of projectFrameworks[0]) {
       if (pf.project_id && pf.framework_id) {
         (model.dataValues as any).frameworks.push(pf.framework_id);
@@ -82,12 +84,12 @@ export const getModelInventoryByIdQuery = async (
   const model = modelInventory[0];
   (model.dataValues as any).projects = [];
   (model.dataValues as any).frameworks = [];
-  const projectFrameworks = await sequelize.query(
+  const projectFrameworks = (await sequelize.query(
     `SELECT project_id, framework_id FROM "${tenant}".model_inventories_projects_frameworks WHERE model_inventory_id = :model_inventory_id`,
     {
       replacements: { model_inventory_id: model.id },
     }
-  ) as [(IModelInventoryProjectFramework)[], number];
+  )) as [IModelInventoryProjectFramework[], number];
   for (const pf of projectFrameworks[0]) {
     if (pf.project_id && pf.framework_id) {
       (model.dataValues as any).frameworks.push(pf.framework_id);
@@ -150,7 +152,7 @@ export const createNewModelInventoryQuery = async (
       VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :reference_link, :biases, :limitations, :hosting_provider, :security_assessment_data, :is_demo, :created_at, :updated_at) RETURNING *`,
       {
         replacements: {
-          provider_model: modelInventory.provider_model || '',
+          provider_model: modelInventory.provider_model || "",
           provider: modelInventory.provider,
           model: modelInventory.model,
           version: modelInventory.version,
@@ -165,7 +167,9 @@ export const createNewModelInventoryQuery = async (
           biases: modelInventory.biases,
           limitations: modelInventory.limitations,
           hosting_provider: modelInventory.hosting_provider,
-          security_assessment_data: JSON.stringify(modelInventory.security_assessment_data || []),
+          security_assessment_data: JSON.stringify(
+            modelInventory.security_assessment_data || []
+          ),
           is_demo: modelInventory.is_demo,
           created_at: created_at,
           updated_at: created_at,
@@ -181,7 +185,7 @@ export const createNewModelInventoryQuery = async (
     (createdModel.dataValues as any).frameworks = [];
 
     for (const projectId of projects) {
-      const result = await sequelize.query(
+      const result = (await sequelize.query(
         `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id)
          VALUES (:model_inventory_id, :project_id);`,
         {
@@ -191,21 +195,21 @@ export const createNewModelInventoryQuery = async (
           },
           transaction,
         }
-      ) as [IModelInventoryProjectFramework[], number];
+      )) as [IModelInventoryProjectFramework[], number];
       if (result[0].length > 0) {
         (createdModel.dataValues as any).projects.push(projectId);
       }
     }
 
     for (const frameworkId of frameworks) {
-      const [[{ project_id }]] = await sequelize.query(
+      const [[{ project_id }]] = (await sequelize.query(
         `SELECT project_id FROM "${tenant}".projects_frameworks WHERE framework_id = :framework_id LIMIT 1;`,
         {
           replacements: { framework_id: frameworkId },
           transaction,
         }
-      ) as [{ project_id: number }[], number];
-      const result = await sequelize.query(
+      )) as [{ project_id: number }[], number];
+      const result = (await sequelize.query(
         `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id, framework_id)
          VALUES (:model_inventory_id, :project_id, :framework_id);`,
         {
@@ -216,20 +220,28 @@ export const createNewModelInventoryQuery = async (
           },
           transaction,
         }
-      ) as [IModelInventoryProjectFramework[], number];
+      )) as [IModelInventoryProjectFramework[], number];
       if (result[0].length > 0) {
         (createdModel.dataValues as any).frameworks.push(frameworkId);
       }
     }
 
-    const automations = await sequelize.query(
+    const automations = (await sequelize.query(
       `SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
         a.id AS automation_id,
         aa.*
-      FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
+      FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_added' AND a.is_active ORDER BY aa."order" ASC;`,
+      { transaction }
+    )) as [
+      (TenantAutomationActionModel & {
+        trigger_key: string;
+        action_key: string;
+        automation_id: number;
+      })[],
+      number,
+    ];
     if (automations[0].length > 0) {
       const automation = automations[0][0];
       if (automation["trigger_key"] === "model_added") {
@@ -241,21 +253,26 @@ export const createNewModelInventoryQuery = async (
         // Replace variables in subject and body
         const processedParams = {
           ...params,
-          subject: replaceTemplateVariables(params.subject || '', replacements),
-          body: replaceTemplateVariables(params.body || '', replacements),
+          subject: replaceTemplateVariables(params.subject || "", replacements),
+          body: replaceTemplateVariables(params.body || "", replacements),
           automation_id: automation.automation_id,
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
+        await enqueueAutomationAction(automation.action_key, {
+          ...processedParams,
+          tenant,
+        });
       } else {
-        console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+        console.warn(
+          `No matching trigger found for key: ${automation["trigger_key"]}`
+        );
       }
     }
 
     // Record history snapshot for status changes
     try {
-      await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+      await recordSnapshotIfChanged("status", tenant, undefined, transaction);
     } catch (historyError) {
       console.error("Error recording history snapshot:", historyError);
       // Don't throw - history recording failure shouldn't block model creation
@@ -288,7 +305,7 @@ export const updateModelInventoryByIdQuery = async (
       {
         replacements: {
           id,
-          provider_model: modelInventory.provider_model || '',
+          provider_model: modelInventory.provider_model || "",
           provider: modelInventory.provider,
           model: modelInventory.model,
           version: modelInventory.version,
@@ -303,7 +320,9 @@ export const updateModelInventoryByIdQuery = async (
           biases: modelInventory.biases,
           limitations: modelInventory.limitations,
           hosting_provider: modelInventory.hosting_provider,
-          security_assessment_data: JSON.stringify(modelInventory.security_assessment_data || []),
+          security_assessment_data: JSON.stringify(
+            modelInventory.security_assessment_data || []
+          ),
           is_demo: modelInventory.is_demo,
           updated_at,
         },
@@ -337,7 +356,7 @@ export const updateModelInventoryByIdQuery = async (
 
       // Then, insert new associations
       for (const projectId of projects) {
-        const result = await sequelize.query(
+        const result = (await sequelize.query(
           `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id)
             VALUES (:model_inventory_id, :project_id);`,
           {
@@ -347,7 +366,7 @@ export const updateModelInventoryByIdQuery = async (
             },
             transaction,
           }
-        ) as [IModelInventoryProjectFramework[], number];
+        )) as [IModelInventoryProjectFramework[], number];
         if (result[0].length > 0) {
           (updatedModel.dataValues as any).projects.push(projectId);
         }
@@ -366,15 +385,15 @@ export const updateModelInventoryByIdQuery = async (
 
       // Then, insert new associations
       for (const frameworkId of frameworks) {
-        const [[{ project_id }]] = await sequelize.query(
+        const [[{ project_id }]] = (await sequelize.query(
           `SELECT project_id FROM "${tenant}".projects_frameworks WHERE framework_id = :framework_id LIMIT 1;`,
           {
             replacements: { framework_id: frameworkId },
             transaction,
           }
-        ) as [{ project_id: number }[], number];
+        )) as [{ project_id: number }[], number];
 
-        const result = await sequelize.query(
+        const result = (await sequelize.query(
           `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id, framework_id)
             VALUES (:model_inventory_id, :project_id, :framework_id);`,
           {
@@ -385,48 +404,64 @@ export const updateModelInventoryByIdQuery = async (
             },
             transaction,
           }
-        ) as [IModelInventoryProjectFramework[], number];
+        )) as [IModelInventoryProjectFramework[], number];
         if (result[0].length > 0) {
           (updatedModel.dataValues as any).frameworks.push(frameworkId);
         }
       }
     }
 
-    const automations = await sequelize.query(
+    const automations = (await sequelize.query(
       `SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
         a.id AS automation_id,
         aa.*
-      FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
+      FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_updated' AND a.is_active ORDER BY aa."order" ASC;`,
+      { transaction }
+    )) as [
+      (TenantAutomationActionModel & {
+        trigger_key: string;
+        action_key: string;
+        automation_id: number;
+      })[],
+      number,
+    ];
     if (automations[0].length > 0) {
       const automation = automations[0][0];
       if (automation["trigger_key"] === "model_updated") {
         const params = automation.params!;
 
         // Build replacements
-        const replacements = buildModelUpdateReplacements(oldModel, updatedModel);
+        const replacements = buildModelUpdateReplacements(
+          oldModel,
+          updatedModel
+        );
 
         // Replace variables in subject and body
         const processedParams = {
           ...params,
-          subject: replaceTemplateVariables(params.subject || '', replacements),
-          body: replaceTemplateVariables(params.body || '', replacements),
+          subject: replaceTemplateVariables(params.subject || "", replacements),
+          body: replaceTemplateVariables(params.body || "", replacements),
           automation_id: automation.automation_id,
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
+        await enqueueAutomationAction(automation.action_key, {
+          ...processedParams,
+          tenant,
+        });
       } else {
-        console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+        console.warn(
+          `No matching trigger found for key: ${automation["trigger_key"]}`
+        );
       }
     }
 
     // Record history snapshot if status changed
     try {
       if (oldModel && oldModel.status !== updatedModel.status) {
-        await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+        await recordSnapshotIfChanged("status", tenant, undefined, transaction);
       }
     } catch (historyError) {
       console.error("Error recording history snapshot:", historyError);
@@ -458,22 +493,30 @@ export const deleteModelInventoryByIdQuery = async (
       );
     }
 
-    const result = await sequelize.query(
+    const result = (await sequelize.query(
       `DELETE FROM "${tenant}".model_inventories WHERE id = :id RETURNING *`,
       {
         replacements: { id },
         transaction,
       }
-    ) as [(ModelInventoryModel)[], number];
+    )) as [ModelInventoryModel[], number];
     const deletedModel = result[0][0];
-    const automations = await sequelize.query(
+    const automations = (await sequelize.query(
       `SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
         a.id AS automation_id,
         aa.*
-      FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
+      FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
+      { transaction }
+    )) as [
+      (TenantAutomationActionModel & {
+        trigger_key: string;
+        action_key: string;
+        automation_id: number;
+      })[],
+      number,
+    ];
     if (automations[0].length > 0) {
       const automation = automations[0][0];
       if (automation["trigger_key"] === "model_deleted") {
@@ -485,21 +528,26 @@ export const deleteModelInventoryByIdQuery = async (
         // Replace variables in subject and body
         const processedParams = {
           ...params,
-          subject: replaceTemplateVariables(params.subject || '', replacements),
-          body: replaceTemplateVariables(params.body || '', replacements),
+          subject: replaceTemplateVariables(params.subject || "", replacements),
+          body: replaceTemplateVariables(params.body || "", replacements),
           automation_id: automation.automation_id,
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
+        await enqueueAutomationAction(automation.action_key, {
+          ...processedParams,
+          tenant,
+        });
       } else {
-        console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+        console.warn(
+          `No matching trigger found for key: ${automation["trigger_key"]}`
+        );
       }
     }
 
     // Record history snapshot after deletion
     try {
-      await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+      await recordSnapshotIfChanged("status", tenant, undefined, transaction);
     } catch (historyError) {
       console.error("Error recording history snapshot:", historyError);
       // Don't throw - history recording failure shouldn't block model deletion

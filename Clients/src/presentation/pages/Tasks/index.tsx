@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useContext, useMemo, useCallback, useRef } from "react";
-import {
-  Box,
-  Stack,
-  Typography,
-} from "@mui/material";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
+import { Box, Stack, Typography } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 import { CirclePlus as AddCircleIcon } from "lucide-react";
 import { SearchBox } from "../../components/Search";
@@ -12,7 +15,6 @@ import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { ITask, TaskSummary } from "../../../domain/interfaces/i.task";
@@ -26,26 +28,26 @@ import {
   restoreTask,
   hardDeleteTask,
 } from "../../../application/repository/task.repository";
-import HeaderCard from "../../components/Cards/DashboardHeaderCard";
+import TaskSummaryCards from "./TaskSummaryCards";
 import CreateTask from "../../components/Modals/CreateTask";
 import useUsers from "../../../application/hooks/useUsers";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
-import {
-  vwhomeHeaderCards,
-  vwhomeBody,
-} from "../Home/1.0Home/style";
+import { vwhomeBody } from "../Home/1.0Home/style";
 import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
 import TasksSteps from "./TasksSteps";
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
 import { GroupBy } from "../../components/Table/GroupBy";
-import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import {
+  useTableGrouping,
+  useGroupByState,
+} from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import TipBox from "../../components/TipBox";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import Alert from "../../components/Alert";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -72,11 +74,16 @@ const Tasks: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<ITask | null>(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState<ITask | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "error" | "warning" | "info";
+    title: string;
+    body?: string;
+  } | null>(null);
+  
+  // Flash indicator state for updated rows
+  const [flashRowId, setFlashRowId] = useState<number | null>(null);
 
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
@@ -89,8 +96,6 @@ const Tasks: React.FC = () => {
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
-
-
   // Calculate summary from tasks data
   const summary: TaskSummary = useMemo(
     () => ({
@@ -99,7 +104,7 @@ const Tasks: React.FC = () => {
       inProgress: tasks.filter(
         (task) =>
           (task.status as string) === "In Progress" || // API response
-          (task.status as string) === "In progress"    // UI display
+          (task.status as string) === "In progress" // UI display
       ).length,
       completed: tasks.filter((task) => task.status === "Completed").length,
       overdue: tasks.filter((task) => task.isOverdue === true).length,
@@ -182,57 +187,63 @@ const Tasks: React.FC = () => {
   }, [tasks, users]);
 
   // FilterBy - Filter columns configuration
-  const taskFilterColumns: FilterColumn[] = useMemo(() => [
-    {
-      id: 'title',
-      label: 'Title',
-      type: 'text' as const,
-    },
-    {
-      id: 'status',
-      label: 'Status',
-      type: 'select' as const,
-      options: Object.values(TaskStatus).map((status) => ({
-        value: status,
-        label: STATUS_DISPLAY_MAP[status] || status,
-      })),
-    },
-    {
-      id: 'priority',
-      label: 'Priority',
-      type: 'select' as const,
-      options: Object.values(TaskPriority).map((priority) => ({
-        value: priority,
-        label: priority,
-      })),
-    },
-    {
-      id: 'assignee',
-      label: 'Assignee',
-      type: 'select' as const,
-      options: getUniqueAssignees(),
-    },
-    {
-      id: 'due_date',
-      label: 'Due date',
-      type: 'date' as const,
-    },
-  ], [getUniqueAssignees]);
+  const taskFilterColumns: FilterColumn[] = useMemo(
+    () => [
+      {
+        id: "title",
+        label: "Title",
+        type: "text" as const,
+      },
+      {
+        id: "status",
+        label: "Status",
+        type: "select" as const,
+        options: Object.values(TaskStatus).map((status) => ({
+          value: status,
+          label: STATUS_DISPLAY_MAP[status] || status,
+        })),
+      },
+      {
+        id: "priority",
+        label: "Priority",
+        type: "select" as const,
+        options: Object.values(TaskPriority).map((priority) => ({
+          value: priority,
+          label: priority,
+        })),
+      },
+      {
+        id: "assignee",
+        label: "Assignee",
+        type: "select" as const,
+        options: getUniqueAssignees(),
+      },
+      {
+        id: "due_date",
+        label: "Due date",
+        type: "date" as const,
+      },
+    ],
+    [getUniqueAssignees]
+  );
 
   // FilterBy - Field value getter
   const getTaskFieldValue = useCallback(
-    (item: TaskModel, fieldId: string): string | number | Date | null | undefined => {
+    (
+      item: TaskModel,
+      fieldId: string
+    ): string | number | Date | null | undefined => {
       switch (fieldId) {
-        case 'title':
+        case "title":
           return item.title;
-        case 'status':
+        case "status":
           return item.status;
-        case 'priority':
+        case "priority":
           return item.priority;
-        case 'assignee':
+        case "assignee":
           // Return comma-separated assignee IDs for matching
-          return item.assignees?.map(id => id.toString()).join(',');
-        case 'due_date':
+          return item.assignees?.map((id) => id.toString()).join(",");
+        case "due_date":
           return item.due_date;
         default:
           return null;
@@ -242,7 +253,10 @@ const Tasks: React.FC = () => {
   );
 
   // FilterBy - Initialize hook
-  const { filterData: filterTaskData, handleFilterChange: handleTaskFilterChange } = useFilterBy<TaskModel>(getTaskFieldValue);
+  const {
+    filterData: filterTaskData,
+    handleFilterChange: handleTaskFilterChange,
+  } = useFilterBy<TaskModel>(getTaskFieldValue);
 
   // Apply FilterBy and search filtering
   const filteredTasks = useMemo(() => {
@@ -272,9 +286,21 @@ const Tasks: React.FC = () => {
       if (response && response.data) {
         // Add the new task to the list
         setTasks((prev) => [response.data, ...prev]);
+        setAlert({
+          variant: "success",
+          title: "Task created successfully",
+          body: "Your new task has been added.",
+        });
+        setTimeout(() => setAlert(null), 4000);
       }
     } catch (error) {
       console.error("Error creating task:", error);
+      setAlert({
+        variant: "error",
+        title: "Error creating task",
+        body: "Failed to create the task. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 4000);
     }
   };
 
@@ -282,24 +308,28 @@ const Tasks: React.FC = () => {
     setEditingTask(task);
   };
 
-  const handleDeleteTask = (taskId: number) => {
+  // Archive handler - called from IconButton's modal confirmation
+  const handleArchiveTask = async (taskId: number) => {
     const task = tasks.find((t) => t.id === taskId);
-    if (task) {
-      setTaskToDelete(task);
-      setDeleteConfirmOpen(true);
-    }
-  };
-
-  const confirmDeleteTask = async () => {
-    if (!taskToDelete) return;
+    if (!task) return;
 
     try {
-      await deleteTask({ id: taskToDelete.id! });
-      setTasks((prev) => prev.filter((task) => task.id !== taskToDelete.id));
-      setDeleteConfirmOpen(false);
-      setTaskToDelete(null);
+      await deleteTask({ id: taskId });
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      setAlert({
+        variant: "success",
+        title: "Task archived successfully",
+        body: `"${task.title}" has been archived.`,
+      });
+      setTimeout(() => setAlert(null), 4000);
     } catch (error) {
-      console.error("Error deleting task:", error);
+      console.error("Error archiving task:", error);
+      setAlert({
+        variant: "error",
+        title: "Error archiving task",
+        body: "Failed to archive the task. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 4000);
     }
   };
 
@@ -317,10 +347,29 @@ const Tasks: React.FC = () => {
             task.id === editingTask.id ? response.data : task
           )
         );
+        
+        // Flash the updated row
+        setFlashRowId(editingTask.id!);
+        setTimeout(() => {
+          setFlashRowId(null);
+        }, 3000);
+        
         setEditingTask(null);
+        setAlert({
+          variant: "success",
+          title: "Task updated successfully",
+          body: "Your changes have been saved.",
+        });
+        setTimeout(() => setAlert(null), 4000);
       }
     } catch (error) {
       console.error("Error updating task:", error);
+      setAlert({
+        variant: "error",
+        title: "Error updating task",
+        body: "Failed to update the task. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 4000);
     }
   };
 
@@ -340,6 +389,13 @@ const Tasks: React.FC = () => {
                 : task
             )
           );
+          
+          // Flash the updated row
+          setFlashRowId(taskId);
+          setTimeout(() => {
+            setFlashRowId(null);
+          }, 3000);
+          
           return true;
         }
         return false;
@@ -354,50 +410,83 @@ const Tasks: React.FC = () => {
       const response = await restoreTask({ id: taskId });
       // Repository returns response.data directly, so check for response.data (the actual task)
       if (response?.data) {
+        const restoredTask = response.data;
         // Update the task in the list with restored status
         setTasks((prev) =>
           prev.map((task) =>
-            task.id === taskId
-              ? { ...task, status: TaskStatus.OPEN }
-              : task
+            task.id === taskId ? { ...task, status: TaskStatus.OPEN } : task
           )
         );
+        setAlert({
+          variant: "success",
+          title: "Task restored successfully",
+          body: `"${restoredTask.title}" has been restored.`,
+        });
+        setTimeout(() => setAlert(null), 4000);
       }
     } catch (error) {
       console.error("Error restoring task:", error);
+      setAlert({
+        variant: "error",
+        title: "Error restoring task",
+        body: "Failed to restore the task. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 4000);
     }
   };
 
   const handleHardDeleteTask = async (taskId: number) => {
+    const taskToHardDelete = tasks.find((t) => t.id === taskId);
     try {
       await hardDeleteTask({ id: taskId });
       // Remove the task from the list completely
       setTasks((prev) => prev.filter((task) => task.id !== taskId));
+      setAlert({
+        variant: "success",
+        title: "Task deleted permanently",
+        body: `"${taskToHardDelete?.title}" has been permanently deleted.`,
+      });
+      setTimeout(() => setAlert(null), 4000);
     } catch (error) {
       console.error("Error permanently deleting task:", error);
+      setAlert({
+        variant: "error",
+        title: "Error deleting task",
+        body: "Failed to delete the task. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 4000);
     }
   };
 
   // Define how to get the group key for each task
-  const getTaskGroupKey = (task: TaskModel, field: string): string | string[] => {
+  const getTaskGroupKey = (
+    task: TaskModel,
+    field: string
+  ): string | string[] => {
     switch (field) {
-      case 'status':
-        return STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status || 'Unknown';
-      case 'priority':
-        return task.priority || 'No Priority';
-      case 'assignees':
+      case "status":
+        return (
+          STATUS_DISPLAY_MAP[task.status as TaskStatus] ||
+          task.status ||
+          "Unknown"
+        );
+      case "priority":
+        return task.priority || "No Priority";
+      case "assignees":
         if (task.assignees && task.assignees.length > 0) {
           // Return array of assignee names - task will appear in multiple groups
           return task.assignees.map((assigneeId) => {
             const user = users.find((u) => u.id === Number(assigneeId));
-            return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+            return user ? `${user.name} ${user.surname}`.trim() : "Unknown";
           });
         }
-        return 'Unassigned';
-      case 'due_date':
-        return task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No Due Date';
+        return "Unassigned";
+      case "due_date":
+        return task.due_date
+          ? new Date(task.due_date).toLocaleDateString()
+          : "No Due Date";
       default:
-        return 'Other';
+        return "Other";
     }
   };
 
@@ -412,41 +501,47 @@ const Tasks: React.FC = () => {
   // Export columns and data
   const exportColumns = useMemo(() => {
     return [
-      { id: 'title', label: 'Title' },
-      { id: 'status', label: 'Status' },
-      { id: 'priority', label: 'Priority' },
-      { id: 'assignees', label: 'Assignees' },
-      { id: 'due_date', label: 'Due Date' },
-      { id: 'creator', label: 'Creator' },
-      { id: 'categories', label: 'Categories' },
+      { id: "title", label: "Title" },
+      { id: "status", label: "Status" },
+      { id: "priority", label: "Priority" },
+      { id: "assignees", label: "Assignees" },
+      { id: "due_date", label: "Due Date" },
+      { id: "creator", label: "Creator" },
+      { id: "categories", label: "Categories" },
     ];
   }, []);
 
   const exportData = useMemo(() => {
     return filteredTasks.map((task: TaskModel) => {
       // Look up assignee names from user IDs
-      const assigneeNames = task.assignees && task.assignees.length > 0
-        ? task.assignees
-            .map((assigneeId) => {
-              const user = users.find((u) => u.id === Number(assigneeId));
-              return user ? `${user.name} ${user.surname}`.trim() : null;
-            })
-            .filter(Boolean)
-            .join(', ') || 'Unassigned'
-        : 'Unassigned';
+      const assigneeNames =
+        task.assignees && task.assignees.length > 0
+          ? task.assignees
+              .map((assigneeId) => {
+                const user = users.find((u) => u.id === Number(assigneeId));
+                return user ? `${user.name} ${user.surname}`.trim() : null;
+              })
+              .filter(Boolean)
+              .join(", ") || "Unassigned"
+          : "Unassigned";
 
       // Look up creator name from creator_id
       const creatorUser = users.find((u) => u.id === task.creator_id);
-      const creatorName = creatorUser ? `${creatorUser.name} ${creatorUser.surname}`.trim() : '-';
+      const creatorName = creatorUser
+        ? `${creatorUser.name} ${creatorUser.surname}`.trim()
+        : "-";
 
       return {
-        title: task.title || '-',
-        status: STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status || '-',
-        priority: task.priority || '-',
+        title: task.title || "-",
+        status:
+          STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status || "-",
+        priority: task.priority || "-",
         assignees: assigneeNames,
-        due_date: task.due_date ? new Date(task.due_date).toLocaleDateString() : '-',
+        due_date: task.due_date
+          ? new Date(task.due_date).toLocaleDateString()
+          : "-",
         creator: creatorName,
-        categories: task.categories?.join(', ') || '-',
+        categories: task.categories?.join(", ") || "-",
       };
     });
   }, [filteredTasks, users]);
@@ -454,40 +549,6 @@ const Tasks: React.FC = () => {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Task management"
-        description="Coordinate AI governance activities and compliance tasks across your teams"
-        whatItDoes="Centralize *task assignment* and tracking for *AI governance activities*. Manage deadlines, priorities, and progress for *compliance requirements*, *audits*, and *implementation projects*."
-        whyItMatters="Effective **task management** ensures nothing falls through the cracks in your *AI governance program*. It provides *accountability* and visibility into team workload, helping meet *compliance deadlines* and *implementation milestones*."
-        quickActions={[
-          {
-            label: "Create New Task",
-            description:
-              "Assign a governance or compliance task to team members",
-            primary: true,
-          },
-          {
-            label: "Filter by Assignee",
-            description: "Use the assignee dropdown to view tasks assigned to specific users",
-          },
-        ]}
-        useCases={[
-          "*Compliance activities* like *framework implementation steps* and *audit preparations*",
-          "*Risk remediation tasks* arising from *vendor assessments* and *model evaluations*",
-        ]}
-        keyFeatures={[
-          "**Priority-based task management** with *due date tracking* and overdue detection",
-          "*Assignment to individual users* with *status tracking*",
-          "*Advanced filtering* by status, priority, assignee, and search functionality",
-        ]}
-        tips={[
-          "Use the *priority levels* (High, Medium, Low) to focus on the most critical tasks first",
-          "Set *due dates* to track deadlines and automatically identify overdue tasks",
-          "Use the *search and filter options* to quickly find specific tasks or view by assignee",
-        ]}
-      />
 
       {/* Page Header */}
       <Stack sx={vwhomeBody}>
@@ -496,7 +557,7 @@ const Tasks: React.FC = () => {
           description="This table includes a list of tasks assigned to team members. You can create and manage all tasks here."
           rightContent={
             <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              articlePath="ai-governance/task-management"
               size="small"
             />
           }
@@ -506,14 +567,8 @@ const Tasks: React.FC = () => {
       {/* Tips */}
       <TipBox entityName="tasks" />
 
-      {/* Header Cards */}
-      <Stack sx={vwhomeHeaderCards} data-joyride-id="task-summary-cards">
-        <HeaderCard title="Tasks" count={summary.total} />
-        <HeaderCard title="Overdue" count={summary.overdue} />
-        <HeaderCard title="In progress" count={summary.inProgress} />
-        <HeaderCard title="Completed" count={summary.completed} />
-      </Stack>
-
+      {/* Summary Cards */}
+      <TaskSummaryCards summary={summary} />
 
       {/* Filter Controls */}
       <Stack
@@ -532,10 +587,10 @@ const Tasks: React.FC = () => {
           {/* GroupBy */}
           <GroupBy
             options={[
-              { id: 'status', label: 'Status' },
-              { id: 'priority', label: 'Priority' },
-              { id: 'assignees', label: 'Assignees' },
-              { id: 'due_date', label: 'Due date' },
+              { id: "status", label: "Status" },
+              { id: "priority", label: "Priority" },
+              { id: "assignees", label: "Assignees" },
+              { id: "due_date", label: "Due date" },
             ]}
             onGroupChange={handleGroupChange}
           />
@@ -552,7 +607,12 @@ const Tasks: React.FC = () => {
           </Box>
 
           {/* Include archived toggle */}
-          <Stack direction="row" alignItems="center" gap={1} data-joyride-id="include-archived-toggle">
+          <Stack
+            direction="row"
+            alignItems="center"
+            gap={1}
+            data-joyride-id="include-archived-toggle"
+          >
             <Typography
               component="span"
               variant="body2"
@@ -570,7 +630,12 @@ const Tasks: React.FC = () => {
         </Stack>
 
         {/* Right side: Export and Add button */}
-        <Stack direction="row" gap="8px" alignItems="center" data-joyride-id="add-task-button">
+        <Stack
+          direction="row"
+          gap="8px"
+          alignItems="center"
+          data-joyride-id="add-task-button"
+        >
           <ExportMenu
             data={exportData}
             columns={exportColumns}
@@ -614,20 +679,20 @@ const Tasks: React.FC = () => {
               <TasksTable
                 tasks={data}
                 users={users}
-                onArchive={handleDeleteTask}
+                onArchive={handleArchiveTask}
                 onEdit={handleEditTask}
                 onStatusChange={handleTaskStatusChange}
-                statusOptions={TASK_STATUS_OPTIONS.map(
-                  (status) => {
-                    const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
-                    return displayStatus;
-                  }
-                )}
+                statusOptions={TASK_STATUS_OPTIONS.map((status) => {
+                  const displayStatus =
+                    STATUS_DISPLAY_MAP[status as TaskStatus] || status;
+                  return displayStatus;
+                })}
                 isUpdateDisabled={isCreatingDisabled}
                 onRowClick={handleEditTask}
                 hidePagination={options?.hidePagination}
                 onRestore={handleRestoreTask}
                 onHardDelete={handleHardDeleteTask}
+                flashRowId={flashRowId}
               />
             )}
           />
@@ -652,24 +717,20 @@ const Tasks: React.FC = () => {
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <DualButtonModal
-        title="Archive task"
-        body={
-          <Typography fontSize={13}>
-            Are you sure you want to archive "{taskToDelete?.title}"? You can
-            restore it later by using the "Include archived" toggle.
-          </Typography>
-        }
-        cancelText="Cancel"
-        proceedText="Archive"
-        onCancel={() => setDeleteConfirmOpen(false)}
-        onProceed={confirmDeleteTask}
-        proceedButtonColor="warning"
-        proceedButtonVariant="contained"
-        isOpen={deleteConfirmOpen}
-        TitleFontSize={0}
-      />
+      {/* Hard Delete Confirmation Dialog */}
+      {/* Archive is handled by IconButton component to avoid double modals */}
+      {/* Hard delete needs a second confirmation in Tasks page */}
+
+      {/* Notification Toast */}
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body || ""}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
 
       {/* Page Tour */}
       <PageTour steps={TasksSteps} run={true} tourKey="tasks-tour" />

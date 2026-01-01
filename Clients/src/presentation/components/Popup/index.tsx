@@ -1,9 +1,8 @@
-import { Button, Typography, useTheme, Stack } from "@mui/material";
+import { Button, Typography, useTheme, Stack, Modal } from "@mui/material";
 import { X as ClearIcon } from "lucide-react";
 import { FC } from "react";
-import { Unstable_Popup as BasePopup } from "@mui/base/Unstable_Popup";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
-import { IPopupProps } from "../../../domain/interfaces/iWidget";
+import { IPopupProps } from "../../types/widget.types";
 
 const Popup: FC<IPopupProps> = ({
   popupId,
@@ -84,19 +83,12 @@ const Popup: FC<IPopupProps> = ({
       >
         {openPopupButtonName}
       </Button>
-      <BasePopup
+      <Modal
         className="Popup"
-        id={id}
         open={open}
-        anchor={anchor}
-        style={{
-          position: "fixed",
-          transform: "none",
-          left: 0,
-          top: 0,
-          width: "100%",
-          height: "100%",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
+        onClose={() => handleOpenOrClose?.(null as any)}
+        aria-labelledby={id}
+        sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -124,7 +116,7 @@ const Popup: FC<IPopupProps> = ({
           </Button>
           {popupContent}
         </Stack>
-      </BasePopup>
+      </Modal>
     </>
   );
 };

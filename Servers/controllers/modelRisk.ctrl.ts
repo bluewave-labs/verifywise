@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
-import { ModelRiskModel } from "../domain.layer/models/modelRisk/modelRisk.model";
 import {
   getAllModelRisksQuery,
   getModelRiskByIdQuery,
@@ -13,8 +12,8 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 
 export async function getAllModelRisks(req: Request, res: Response) {
-  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
-  
+  const filter = (req.query.filter as "active" | "deleted" | "all") || "active";
+
   logStructured(
     "processing",
     `starting getAllModelRisks with filter: ${filter}`,
@@ -24,10 +23,7 @@ export async function getAllModelRisks(req: Request, res: Response) {
   logger.debug(`🔍 Fetching all model risks with filter: ${filter}`);
 
   try {
-    const modelRisks = await getAllModelRisksQuery(
-      req.tenantId!,
-      filter
-    );
+    const modelRisks = await getAllModelRisksQuery(req.tenantId!, filter);
     if (modelRisks && modelRisks.length > 0) {
       logStructured(
         "successful",
@@ -39,9 +35,7 @@ export async function getAllModelRisks(req: Request, res: Response) {
         .status(200)
         .json(
           STATUS_CODE[200](
-            modelRisks.map((modelRisk) =>
-              modelRisk.toSafeJSON()
-            )
+            modelRisks.map((modelRisk) => modelRisk.toSafeJSON())
           )
         );
     }
@@ -149,9 +143,8 @@ export async function updateModelRiskById(req: Request, res: Response) {
   const modelRiskId = parseInt(id, 10);
 
   // Get existing model risk for business rule validation
-  let existingModelRisk = null;
   try {
-    existingModelRisk = await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
+    await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
   } catch (error) {
     // Continue without existing data if query fails
   }
@@ -208,7 +201,6 @@ export async function updateModelRiskById(req: Request, res: Response) {
 
 export async function deleteModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
-  const modelRiskId = parseInt(id, 10);
 
   logStructured(
     "processing",
@@ -221,7 +213,10 @@ export async function deleteModelRiskById(req: Request, res: Response) {
   const transaction: Transaction = await sequelize.transaction();
 
   try {
-    const success = await deleteModelRiskByIdQuery(parseInt(id, 10), req.tenantId!);
+    const success = await deleteModelRiskByIdQuery(
+      parseInt(id, 10),
+      req.tenantId!
+    );
 
     if (!success) {
       await transaction.rollback();
@@ -242,7 +237,9 @@ export async function deleteModelRiskById(req: Request, res: Response) {
       "modelRisk.ctrl.ts"
     );
     logger.debug(`✅ Model risk deleted with ID: ${id}`);
-    return res.status(200).json(STATUS_CODE[200]("Model risk deleted successfully."));
+    return res
+      .status(200)
+      .json(STATUS_CODE[200]("Model risk deleted successfully."));
   } catch (error) {
     await transaction.rollback();
     logStructured(

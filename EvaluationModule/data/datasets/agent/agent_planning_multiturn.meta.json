@@ -1,0 +1,9 @@
+{
+  "name": "Planning & Coordination Multi-Turn",
+  "description": "Multi-turn agent conversations for project planning, scheduling, and team coordination.",
+  "type": "multi-turn",
+  "use_case": "agent",
+  "tags": ["agent", "multi-turn", "planning", "project-management"],
+  "prompt_count": 1
+}
+

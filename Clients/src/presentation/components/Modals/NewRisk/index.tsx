@@ -18,6 +18,8 @@ import {
   Stack,
   Typography,
   Divider,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
@@ -37,6 +39,10 @@ import {
   useUpdateVendorRisk,
 } from "../../../../application/hooks/useVendorRiskMutations";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { History as HistoryIcon } from "lucide-react";
+import HistorySidebar from "../../Common/HistorySidebar";
+import { useVendorRiskChangeHistory } from "../../../../application/hooks/useVendorRiskChangeHistory";
+import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 
 interface ExistingRisk {
@@ -68,7 +74,7 @@ interface AddNewRiskProps {
   handleChange: (event: React.SyntheticEvent, newValue: string) => void;
   existingRisk?: ExistingRisk | null;
   onSuccess?: () => void;
-  vendors: any[];
+  vendors: VendorModel[];
 }
 
 const initialState = {
@@ -121,11 +127,13 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
   const VENDOR_OPTIONS =
     vendors?.length > 0
-      ? vendors.map((vendor: any) => ({
-          _id: vendor.id,
-          name: vendor.vendor_name,
-        }))
-      : [{ _id: "no-vendor", name: "No Vendor Exists" }];
+      ? vendors
+          .filter((vendor) => vendor.id !== undefined)
+          .map((vendor) => ({
+            _id: vendor.id as number,
+            name: vendor.vendor_name,
+          }))
+      : [{ _id: "no-vendor" as string | number, name: "No Vendor Exists" }];
 
   const [values, setValues] = useState(initialState);
   const [errors, setErrors] = useState({} as FormErrors);
@@ -135,6 +143,12 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     title?: string;
     body: string;
   } | null>(null);
+  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+
+  // Prefetch history data when modal opens in edit mode
+  useVendorRiskChangeHistory(
+    isOpen && existingRisk?.id ? existingRisk.id : undefined
+  );
 
   const { users } = useUsers();
   const formattedUsers = users?.map((user) => ({
@@ -415,113 +429,115 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   const risksPanel = (
     <TabPanel value="2" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 0 }}>
       <Stack spacing={6}>
-      <Stack direction="row" spacing={6}>
-        <Stack flex={1} spacing={6}>
-          <Stack direction="row" spacing={6}>
-            <Box flex={1}>
-              <Select
-                items={VENDOR_OPTIONS}
-                label="Vendor"
-                placeholder="Select vendor"
-                isHidden={false}
-                id="vendor_id"
-                onChange={(e) => handleOnChange("vendor_id", e.target.value)}
-                value={values.vendor_id}
-                error={errors.vendor_id}
-                sx={{ width: "100%" }}
+        <Stack direction="row" spacing={6}>
+          <Stack flex={1} spacing={6}>
+            <Stack direction="row" spacing={6}>
+              <Box flex={1}>
+                <Select
+                  items={VENDOR_OPTIONS}
+                  label="Vendor"
+                  placeholder="Select vendor"
+                  isHidden={false}
+                  id="vendor_id"
+                  onChange={(e) => handleOnChange("vendor_id", e.target.value)}
+                  value={values.vendor_id}
+                  error={errors.vendor_id}
+                  sx={{ width: "100%" }}
+                  isRequired
+                  disabled={isEditingDisabled}
+                />
+              </Box>
+              <Box flex={1}>
+                <Select
+                  items={formattedUsers}
+                  label="Action owner"
+                  placeholder="Select owner"
+                  isHidden={false}
+                  id="action_owner"
+                  onChange={(e) =>
+                    handleOnChange("action_owner", e.target.value)
+                  }
+                  value={values.action_owner || ""}
+                  error={errors.action_owner}
+                  sx={{ width: "100%" }}
+                  isRequired
+                  disabled={isEditingDisabled}
+                />
+              </Box>
+            </Stack>
+            <Box>
+              <Field
+                label="Risk description"
+                width="100%"
+                value={values.risk_description}
+                onChange={(e) =>
+                  handleOnChange("risk_description", e.target.value)
+                }
+                error={errors.risk_description}
                 isRequired
                 disabled={isEditingDisabled}
-              />
-            </Box>
-            <Box flex={1}>
-              <Select
-                items={formattedUsers}
-                label="Action owner"
-                placeholder="Select owner"
-                isHidden={false}
-                id="action_owner"
-                onChange={(e) => handleOnChange("action_owner", e.target.value)}
-                value={values.action_owner || ""}
-                error={errors.action_owner}
-                sx={{ width: "100%" }}
-                isRequired
-                disabled={isEditingDisabled}
+                type="description"
+                rows={7}
+                placeholder="Describe the specific risk related to this vendor (e.g., data breach, service outage, compliance gap)."
               />
             </Box>
           </Stack>
+          <Stack flex={1} spacing={6}>
+            <Box>
+              <Field
+                label="Action plan"
+                width="100%"
+                type="description"
+                value={values.action_plan}
+                error={errors.action_plan}
+                onChange={(e) => handleOnChange("action_plan", e.target.value)}
+                isRequired
+                disabled={isEditingDisabled}
+                rows={4}
+                placeholder="Outline the steps or controls you will take to reduce or eliminate this risk."
+              />
+            </Box>
+            <Box>
+              <Field
+                label="Impact description"
+                width="100%"
+                value={values.impact_description}
+                onChange={(e) =>
+                  handleOnChange("impact_description", e.target.value)
+                }
+                error={errors.impact_description}
+                isRequired
+                disabled={isEditingDisabled}
+                type="description"
+                rows={4}
+                placeholder="Explain the potential consequences if this risk occurs (e.g., financial, reputational, regulatory)."
+              />
+            </Box>
+          </Stack>
+        </Stack>
+        <Stack>
+          <Divider sx={{ mb: 4 }} />
           <Box>
-            <Field
-              label="Risk description"
-              width="100%"
-              value={values.risk_description}
-              onChange={(e) =>
-                handleOnChange("risk_description", e.target.value)
-              }
-              error={errors.risk_description}
-              isRequired
-              disabled={isEditingDisabled}
-              type="description"
-              rows={7}
-              placeholder="Describe the specific risk related to this vendor (e.g., data breach, service outage, compliance gap)."
-            />
+            <Typography fontWeight={600} fontSize={16} mb={2}>
+              Calculate risk level
+            </Typography>
+            <Typography fontSize={13} color="text.secondary" mb={4}>
+              The Risk Level is calculated by multiplying the Likelihood and
+              Severity scores. By assigning these scores, the risk level will be
+              determined based on your inputs.
+            </Typography>
+            <Stack direction="row" spacing={6}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <RiskLevel
+                  likelihood={Number(values.likelihood) || 1}
+                  riskSeverity={Number(values.risk_severity) || 1}
+                  handleOnSelectChange={handleOnSelectChange}
+                  disabled={isEditingDisabled}
+                />
+              </Suspense>
+            </Stack>
           </Box>
         </Stack>
-        <Stack flex={1} spacing={6}>
-          <Box>
-            <Field
-              label="Action plan"
-              width="100%"
-              type="description"
-              value={values.action_plan}
-              error={errors.action_plan}
-              onChange={(e) => handleOnChange("action_plan", e.target.value)}
-              isRequired
-              disabled={isEditingDisabled}
-              rows={4}
-              placeholder="Outline the steps or controls you will take to reduce or eliminate this risk."
-            />
-          </Box>
-          <Box>
-            <Field
-              label="Impact description"
-              width="100%"
-              value={values.impact_description}
-              onChange={(e) =>
-                handleOnChange("impact_description", e.target.value)
-              }
-              error={errors.impact_description}
-              isRequired
-              disabled={isEditingDisabled}
-              type="description"
-              rows={4}
-              placeholder="Explain the potential consequences if this risk occurs (e.g., financial, reputational, regulatory)."
-            />
-          </Box>
-        </Stack>
-      </Stack>
-      <Stack>
-      <Divider sx={{ mb: 4 }} />
-      <Box>
-        <Typography fontWeight={600} fontSize={16} mb={2}>
-          Calculate risk level
-        </Typography>
-        <Typography fontSize={13} color="text.secondary" mb={4}>
-          The Risk Level is calculated by multiplying the Likelihood and
-          Severity scores. By assigning these scores, the risk level will be
-          determined based on your inputs.
-        </Typography>
-        <Stack direction="row" spacing={6}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <RiskLevel
-              likelihood={Number(values.likelihood) || 1}
-              riskSeverity={Number(values.risk_severity) || 1}
-              handleOnSelectChange={handleOnSelectChange}
-              disabled={isEditingDisabled}
-            />
-          </Suspense>
-        </Stack>
-      </Box>
-      </Stack>
       </Stack>
     </TabPanel>
   );
@@ -546,6 +562,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         isOpen={isOpen}
         onClose={() => {
           setValues(initialState);
+          setIsHistorySidebarOpen(false);
           setIsOpen();
         }}
         title={existingRisk ? "Edit risk" : "Add a new vendor risk"}
@@ -557,9 +574,66 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         onSubmit={handleSave}
         submitButtonText="Save"
         isSubmitting={isSubmitting || isEditingDisabled}
-        maxWidth="1000px"
+        maxWidth={isHistorySidebarOpen ? "1300px" : "1000px"}
+        headerActions={
+          existingRisk?.id ? (
+            <Tooltip title="View activity history" arrow>
+              <IconButton
+                onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
+                size="small"
+                sx={{
+                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  backgroundColor: isHistorySidebarOpen
+                    ? "#E6F4F1"
+                    : "transparent",
+                  "&:hover": {
+                    backgroundColor: isHistorySidebarOpen
+                      ? "#D1EDE6"
+                      : "#F2F4F7",
+                  },
+                }}
+              >
+                <HistoryIcon size={20} />
+              </IconButton>
+            </Tooltip>
+          ) : undefined
+        }
       >
-        <TabContext value={value}>{risksPanel}</TabContext>
+        <Stack
+          direction="row"
+          sx={{
+            width: "100%",
+            minHeight: 0,
+            alignItems: "flex-start",
+            overflow: "hidden",
+            position: "relative",
+          }}
+        >
+          {/* Main Content */}
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "auto",
+            }}
+          >
+            <TabContext value={value}>{risksPanel}</TabContext>
+          </Box>
+
+          {/* History Sidebar - Only shown when editing */}
+          {existingRisk?.id && (
+            <HistorySidebar
+              isOpen={isHistorySidebarOpen}
+              entityType="vendor_risk"
+              entityId={existingRisk.id}
+            />
+          )}
+        </Stack>
       </StandardModal>
     </Stack>
   );

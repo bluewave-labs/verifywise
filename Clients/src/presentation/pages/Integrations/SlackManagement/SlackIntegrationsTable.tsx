@@ -1,4 +1,4 @@
-import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
+import TablePaginationActions from "../../../components/TablePagination";
 import { singleTheme } from "../../../themes";
 import { ChevronsUpDown } from "lucide-react";
 
@@ -122,7 +122,7 @@ const SlackIntegrationsTable = ({
         "Slack Integration has been successfully deleted.",
       );
       refreshSlackIntegrations();
-    } catch (error) {
+    } catch {
       showAlert(
         "error",
         "Error",
@@ -152,7 +152,12 @@ const SlackIntegrationsTable = ({
     }
   };
 
-  const handleSaveNotificationRouting = useCallback(async (routingData: any[], originalIds: number[]) => {
+  interface RoutingDataItem {
+    id: number[];
+    routingType: string;
+  }
+
+  const handleSaveNotificationRouting = useCallback(async (routingData: RoutingDataItem[], originalIds: number[]) => {
     const transformedData = routingData.reduce(
       (acc: { id: number; routingType: string[] }[], item) => {
         item.id.forEach((id: number) => {
@@ -256,12 +261,6 @@ const SlackIntegrationsTable = ({
                   key={column.id}
                   sx={{
                     ...singleTheme.tableStyles.primary.header.cell,
-                    ...(column.id === "action" && {
-                      position: "sticky",
-                      right: 0,
-                      backgroundColor:
-                        singleTheme.tableStyles.primary.header.backgroundColors,
-                    }),
                   }}
                 >
                   {column.label}
@@ -311,8 +310,6 @@ const SlackIntegrationsTable = ({
                       sx={{
                         ...singleTheme.tableStyles.primary.body.cell,
                         textTransform: "none",
-                        position: "sticky",
-                        right: 0,
                       }}
                     >
                       <IconButton

@@ -1,5 +1,5 @@
 import React, { createContext } from "react";
-import { defaultProjectStatus, ProjectStatus } from "../hooks/useProjectStatus";
+import { defaultProjectStatus, ProjectStatus } from "../../domain/types/projectStatus.types";
 import { Project } from "../../domain/types/Project";
 import { ComponentVisible } from "../../application/interfaces/ComponentVisible";
 import { User } from "../../domain/types/User";
@@ -32,6 +32,8 @@ interface VerifyWiseContextProps {
   refreshUsers: () => void;
   userRoleName: string;
   organizationId: number | null;
+  photoRefreshFlag: boolean;
+  setPhotoRefreshFlag: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -65,6 +67,8 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   refreshUsers: () => {},
   userRoleName: "",
   organizationId: null,
+  photoRefreshFlag: false,
+  setPhotoRefreshFlag: () => {},
 });
 
 export { VerifyWiseContext };

@@ -1,6 +1,7 @@
 import { Typography, Box, Grid } from "@mui/material";
+import type { GridProps } from "@mui/material";
 import { Gauge as SpeedGreenIcon } from "lucide-react";
-import { RiskMetrics } from "../../../../domain/interfaces/iRiskSummary";
+import { RiskMetrics } from "../../../../domain/interfaces/i.riskSummary";
 
 interface RiskMetricsCardProps {
   metrics: RiskMetrics;
@@ -37,6 +38,12 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
     justifyContent: "center",
   };
 
+  const gridItemProps = {
+    item: true,
+    xs: 3,
+    sm: 3,
+  } as GridProps & { item: boolean; xs: number; sm: number };
+
   return (
     <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
       <Typography 
@@ -57,7 +64,7 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
 
       <Grid container spacing={2} sx={{ flex: 1, width: "100%", height: "100%" }}>
         {/* Risk Velocity */}
-        <Grid item xs={3} sm={3} sx={{ height: "100%" }}>
+        <Grid {...gridItemProps} sx={{ height: "100%" }}>
           <Box sx={metricBoxStyle}>
             <Typography 
               variant="caption" 
@@ -90,7 +97,7 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
         </Grid>
 
         {/* Mitigation Progress */}
-        <Grid item xs={3} sm={3} sx={{ height: "100%" }}>
+        <Grid {...gridItemProps} sx={{ height: "100%" }}>
           <Box sx={metricBoxStyle}>
             <Typography 
               variant="caption" 
@@ -120,7 +127,7 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
 
         {/* New This Week */}
         {velocity && (
-          <Grid item xs={3} sm={3} sx={{ height: "100%" }}>
+          <Grid {...gridItemProps} sx={{ height: "100%" }}>
             <Box sx={metricBoxStyle}>
               <Typography 
                 variant="caption" 
@@ -151,7 +158,7 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
 
         {/* Resolved This Week */}
         {velocity && (
-          <Grid item xs={3} sm={3} sx={{ height: "100%" }}>
+          <Grid {...gridItemProps} sx={{ height: "100%" }}>
             <Box sx={metricBoxStyle}>
               <Typography 
                 variant="caption" 

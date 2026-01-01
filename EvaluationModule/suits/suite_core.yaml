@@ -1,0 +1,85 @@
+version: 1
+suite_name: core
+description: "Core quality gate thresholds for DeepEval metrics. Set thresholds as needed; null skips a check."
+metrics:
+  # Single-turn metrics
+  "Relevance":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Correctness":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Completeness":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Hallucination":
+    comparison: lte
+    thresholds:
+      average_score: 0.5
+  "Instruction Following":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Toxicity":
+    comparison: lte
+    thresholds:
+      average_score: 0.5
+  "Bias":
+    comparison: lte
+    thresholds:
+      average_score: 0.5
+
+  # Conversational (multi-turn) metrics
+  "Turn Relevancy":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Conversation Coherence":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Conversation Helpfulness":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Task Completion":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Conversation Safety":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Conversation Relevancy":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Conversation Quality":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Knowledge Retention":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+
+  # RAG metrics
+  "Context Relevancy":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Faithfulness":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Context Precision":
+    comparison: gte
+    thresholds:
+      average_score: 0.5
+  "Context Recall":
+    comparison: gte
+    thresholds:
+      average_score: 0.5

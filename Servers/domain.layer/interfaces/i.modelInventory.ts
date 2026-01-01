@@ -1,5 +1,4 @@
 import { ModelInventoryStatus } from "../enums/model-inventory-status.enum";
-import { FileManagerMetadata } from "../models/fileManager/fileManager.model";
 
 export interface IModelInventory {
   id?: number;
@@ -16,7 +15,7 @@ export interface IModelInventory {
   biases?: string;
   limitations?: string;
   hosting_provider?: string;
-  security_assessment_data: Filedata[],
+  security_assessment_data: Filedata[];
   is_demo?: boolean;
   created_at?: Date;
   updated_at?: Date;

@@ -3,7 +3,6 @@ import { ITrainingRegister } from "../../interfaces/i.trainingRegister";
 import { numberValidation } from "../../validations/number.valid";
 import {
   ValidationException,
-  BusinessLogicException,
   NotFoundException,
 } from "../../exceptions/custom.exception";
 

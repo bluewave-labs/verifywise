@@ -12,7 +12,6 @@ import {
   Brain,
   Shield,
   Telescope,
-  Scale,
   Settings,
   FolderTree,
   Layers,
@@ -94,15 +93,6 @@ const NAVIGATION_COMMANDS: Command[] = [
     group: COMMAND_GROUPS[0],    
 icon: AlertTriangle,
     action: { type: 'navigate', payload: '/risk-management' }
-  },
-  {
-    id: 'nav-fairness',
-    label: 'Bias & Fairness',
-    description: 'AI bias and fairness dashboard',
-    keywords: ['bias', 'fairness', 'ml', 'evaluation', 'ethics'],
-    group: COMMAND_GROUPS[0],
-    icon: Scale,
-    action: { type: 'navigate', payload: '/fairness-dashboard' }
   },
   {
     id: 'nav-training',

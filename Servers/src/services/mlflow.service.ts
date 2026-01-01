@@ -93,7 +93,7 @@ class MLFlowService {
     experimentsMap: Map<
       string,
       { name?: string; artifact_location?: string | null }
-    >,
+    >
   ): MLFlowModel | null {
     const runInfo = run.info || {};
     const runData = run.data || {};
@@ -101,7 +101,9 @@ class MLFlowService {
     const paramsArray = runData.params || [];
     const metricsArray = runData.metrics || [];
 
-    const tags = (tagsArray as Array<{ key: string; value: string }>).reduce<Record<string, string>>((acc, tag) => {
+    const tags = (tagsArray as Array<{ key: string; value: string }>).reduce<
+      Record<string, string>
+    >((acc, tag) => {
       if (tag.key && typeof tag.value === "string") {
         acc[tag.key] = tag.value;
       }
@@ -125,12 +127,16 @@ class MLFlowService {
       return null;
     }
 
-    const parameters = (paramsArray as Array<{ key: string; value: string }>).reduce<Record<string, string>>((acc, param) => {
+    const parameters = (
+      paramsArray as Array<{ key: string; value: string }>
+    ).reduce<Record<string, string>>((acc, param) => {
       acc[param.key] = param.value;
       return acc;
     }, {});
 
-    const metrics = (metricsArray as Array<{ key: string; value: number }>).reduce<Record<string, number>>((acc, metric) => {
+    const metrics = (
+      metricsArray as Array<{ key: string; value: number }>
+    ).reduce<Record<string, number>>((acc, metric) => {
       acc[metric.key] = metric.value;
       return acc;
     }, {});
@@ -141,7 +147,8 @@ class MLFlowService {
       version: runInfo.run_id,
       lifecycle_stage: stage,
       creation_timestamp: runInfo.start_time || Date.now(),
-      last_updated_timestamp: runInfo.end_time || runInfo.start_time || Date.now(),
+      last_updated_timestamp:
+        runInfo.end_time || runInfo.start_time || Date.now(),
       description: tags["mlflow.note.content"] || "",
       run_id: runInfo.run_id,
       source: runInfo.artifact_uri,
@@ -177,7 +184,7 @@ class MLFlowService {
       throw new ValidationException(
         "MLFlow tracking server URL is required",
         "trackingServerUrl",
-        payload.trackingServerUrl,
+        payload.trackingServerUrl
       );
     }
 
@@ -199,7 +206,7 @@ class MLFlowService {
         throw new ValidationException(
           "Username and password are required for basic authentication",
           "authMethod",
-          "basic",
+          "basic"
         );
       }
       apiToken = undefined;
@@ -208,7 +215,7 @@ class MLFlowService {
         throw new ValidationException(
           "API token is required when using token authentication",
           "authMethod",
-          "token",
+          "token"
         );
       }
       username = undefined;
@@ -236,7 +243,7 @@ class MLFlowService {
     const assignEncryptedValue = (
       value: string | undefined,
       targetKey: "username" | "password" | "api_token",
-      ivKey: "username_iv" | "password_iv" | "api_token_iv",
+      ivKey: "username_iv" | "password_iv" | "api_token_iv"
     ) => {
       if (value) {
         const encrypted = encryptText(value);
@@ -254,35 +261,41 @@ class MLFlowService {
 
     if (existingRecord) {
       const setClause = Object.keys(attributes)
-        .map(key => `"${key}" = :${key}`)
+        .map((key) => `"${key}" = :${key}`)
         .join(", ");
-      await sequelize.query(`UPDATE "${tenant}".mlflow_integrations SET ${setClause} WHERE id = :id;`, {
-        replacements: {
-          ...attributes,
-          id: existingRecord.id
+      await sequelize.query(
+        `UPDATE "${tenant}".mlflow_integrations SET ${setClause} WHERE id = :id;`,
+        {
+          replacements: {
+            ...attributes,
+            id: existingRecord.id,
+          },
         }
-      });
+      );
     } else {
-      await sequelize.query(`
+      await sequelize.query(
+        `
         INSERT INTO "${tenant}".mlflow_integrations (
           tracking_server_url, auth_method, username, username_iv, password, password_iv, api_token, api_token_iv, verify_ssl, timeout, updated_by
         ) VALUES (
           :tracking_server_url, :auth_method, :username, :username_iv, :password, :password_iv, :api_token, :api_token_iv, :verify_ssl, :timeout, :updated_by
-        );`, {
-        replacements: {
-          tracking_server_url: attributes.tracking_server_url,
-          auth_method: attributes.auth_method,
-          username: attributes.username,
-          username_iv: attributes.username_iv,
-          password: attributes.password,
-          password_iv: attributes.password_iv,
-          api_token: attributes.api_token,
-          api_token_iv: attributes.api_token_iv,
-          verify_ssl: attributes.verify_ssl,
-          timeout: attributes.timeout,
-          updated_by: attributes.updated_by,
+        );`,
+        {
+          replacements: {
+            tracking_server_url: attributes.tracking_server_url,
+            auth_method: attributes.auth_method,
+            username: attributes.username,
+            username_iv: attributes.username_iv,
+            password: attributes.password,
+            password_iv: attributes.password_iv,
+            api_token: attributes.api_token,
+            api_token_iv: attributes.api_token_iv,
+            verify_ssl: attributes.verify_ssl,
+            timeout: attributes.timeout,
+            updated_by: attributes.updated_by,
+          },
         }
-      });
+      );
     }
 
     return {
@@ -369,7 +382,7 @@ class MLFlowService {
       }
 
       throw new Error(
-        `MLFlow server returned status ${response.status}: ${response.statusText || 'Unknown error'}`,
+        `MLFlow server returned status ${response.status}: ${response.statusText || "Unknown error"}`
       );
     } catch (error: any) {
       console.error("MLFlow connection test error:", error);
@@ -406,45 +419,54 @@ class MLFlowService {
     const updatePayload: Record<string, unknown> = {
       last_tested_at: now,
       last_test_status: result.success ? "success" : "error",
-      last_test_message: result.success ? null : result.message?.slice(0, 1000) ?? null,
+      last_test_message: result.success
+        ? null
+        : (result.message?.slice(0, 1000) ?? null),
     };
 
     if (result.success) {
       updatePayload.last_successful_test_at = now;
     } else {
       updatePayload.last_failed_test_at = now;
-      updatePayload.last_failed_test_message = result.message?.slice(0, 1000) ?? null;
+      updatePayload.last_failed_test_message =
+        result.message?.slice(0, 1000) ?? null;
     }
-    await sequelize.query(`
+    await sequelize.query(
+      `
       UPDATE "${tenant}".mlflow_integrations SET
         last_tested_at = :last_tested_at,
         last_test_status = :last_test_status,
-        last_test_message = :last_test_message;`, {
-      replacements: {
-        last_tested_at: updatePayload.last_tested_at,
-        last_test_status: updatePayload.last_test_status,
-        last_test_message: updatePayload.last_test_message,
+        last_test_message = :last_test_message;`,
+      {
+        replacements: {
+          last_tested_at: updatePayload.last_tested_at,
+          last_test_status: updatePayload.last_test_status,
+          last_test_message: updatePayload.last_test_message,
+        },
       }
-    });
+    );
   }
 
   async recordSyncResult(
     status: MLFlowSyncStatus,
     tenant: string,
-    message?: string | null,
+    message?: string | null
   ) {
-    await sequelize.query(`
+    await sequelize.query(
+      `
       UPDATE "${tenant}".mlflow_integrations SET
         last_synced_at = :last_synced_at,
         last_sync_status = :last_sync_status,
         last_sync_message = :last_sync_message
-      RETURNING *;`, {
-      replacements: {
-        last_synced_at: new Date(),
-        last_sync_status: status,
-        last_sync_message: message ? message.slice(0, 1000) : null,
+      RETURNING *;`,
+      {
+        replacements: {
+          last_synced_at: new Date(),
+          last_sync_status: status,
+          last_sync_message: message ? message.slice(0, 1000) : null,
+        },
       }
-    });
+    );
   }
 
   async getSyncStatus(tenant: string) {
@@ -478,7 +500,7 @@ class MLFlowService {
 
   async resolveRuntimeConfig(
     tenant: string,
-    overrides?: Partial<SaveConfigurationPayload>,
+    overrides?: Partial<SaveConfigurationPayload>
   ): Promise<RuntimeMLFlowConfig> {
     const existingRecord = await this.getIntegrationRecord(tenant);
     const existingSecrets = existingRecord
@@ -492,14 +514,17 @@ class MLFlowService {
       throw new ValidationException(
         "MLFlow tracking server URL is required",
         "trackingServerUrl",
-        overrides?.trackingServerUrl,
+        overrides?.trackingServerUrl
       );
     }
 
     const authMethod: MLFlowAuthMethod =
       overrides?.authMethod || existingRecord?.auth_method || "none";
     const timeout =
-      overrides?.timeout ?? existingRecord?.timeout ?? existingSecrets?.timeout ?? 30;
+      overrides?.timeout ??
+      existingRecord?.timeout ??
+      existingSecrets?.timeout ??
+      30;
     const verifySsl =
       overrides?.verifySsl ?? existingRecord?.verify_ssl ?? true;
 
@@ -511,22 +536,25 @@ class MLFlowService {
     };
 
     if (authMethod === "basic") {
-      config.username = overrides?.username?.trim() || existingSecrets?.username;
-      config.password = overrides?.password?.trim() || existingSecrets?.password;
+      config.username =
+        overrides?.username?.trim() || existingSecrets?.username;
+      config.password =
+        overrides?.password?.trim() || existingSecrets?.password;
       if (!config.username || !config.password) {
         throw new ValidationException(
           "Username and password are required for basic authentication",
           "authMethod",
-          "basic",
+          "basic"
         );
       }
     } else if (authMethod === "token") {
-      config.apiToken = overrides?.apiToken?.trim() || existingSecrets?.apiToken;
+      config.apiToken =
+        overrides?.apiToken?.trim() || existingSecrets?.apiToken;
       if (!config.apiToken) {
         throw new ValidationException(
           "API token is required when using token authentication",
           "authMethod",
-          "token",
+          "token"
         );
       }
     }
@@ -538,16 +566,15 @@ class MLFlowService {
     const config = await this.resolveRuntimeConfig(tenant);
 
     try {
-      const experimentsResponse =
-        await this.makeAuthenticatedRequest<{
-          experiments?: Array<{
-            experiment_id: string;
-            name?: string;
-            artifact_location?: string;
-          }>;
-        }>(config, "/api/2.0/mlflow/experiments/search", {
-          max_results: 1000,
-        });
+      const experimentsResponse = await this.makeAuthenticatedRequest<{
+        experiments?: Array<{
+          experiment_id: string;
+          name?: string;
+          artifact_location?: string;
+        }>;
+      }>(config, "/api/2.0/mlflow/experiments/search", {
+        max_results: 1000,
+      });
 
       const experiments = experimentsResponse.experiments ?? [];
       const experimentsMap = new Map<
@@ -580,7 +607,7 @@ class MLFlowService {
             experiment_ids: chunk,
             max_results: 1000,
           },
-          "post",
+          "post"
         );
 
         if (runsResponse.runs?.length) {
@@ -621,10 +648,7 @@ class MLFlowService {
     }
   }
 
-  private async persistModelRecords(
-    models: MLFlowModel[],
-    tenant: string,
-  ) {
+  private async persistModelRecords(models: MLFlowModel[], tenant: string) {
     if (!models.length) {
       return;
     }
@@ -636,7 +660,7 @@ class MLFlowService {
           acc[key] = value !== undefined && value !== null ? String(value) : "";
           return acc;
         },
-        {} as Record<string, string>,
+        {} as Record<string, string>
       );
 
       return {
@@ -672,18 +696,33 @@ class MLFlowService {
     });
 
     let keys = [
-      "model_name", "version", "lifecycle_stage", "run_id", "description",
-      "source", "status", "tags", "metrics", "parameters",
-      "experiment_id", "experiment_name", "artifact_location",
-      "training_status", "training_started_at", "training_ended_at",
-      "source_version", "model_created_at", "model_updated_at", "last_synced_at",
+      "model_name",
+      "version",
+      "lifecycle_stage",
+      "run_id",
+      "description",
+      "source",
+      "status",
+      "tags",
+      "metrics",
+      "parameters",
+      "experiment_id",
+      "experiment_name",
+      "artifact_location",
+      "training_status",
+      "training_started_at",
+      "training_ended_at",
+      "source_version",
+      "model_created_at",
+      "model_updated_at",
+      "last_synced_at",
     ];
 
     let values: Record<string, any> = {};
     let attributes: string[] = [];
 
     records.forEach((record, index) => {
-      const rowPlaceholders = keys.map(key => {
+      const rowPlaceholders = keys.map((key) => {
         const paramKey = `${key}_${index}`;
         if (["tags", "metrics", "parameters"].includes(key)) {
           values[paramKey] = JSON.stringify(record[key as keyof typeof record]);
@@ -696,14 +735,16 @@ class MLFlowService {
     });
 
     // Columns to update on conflict
-    const updateColumns = keys.filter(k => k !== "model_name" && k !== "version");
+    const updateColumns = keys.filter(
+      (k) => k !== "model_name" && k !== "version"
+    );
 
     // Build query
     const query = `
       INSERT INTO "${tenant}".mlflow_model_records (${keys.join(", ")})
       VALUES ${attributes.join(", ")}
       ON CONFLICT (model_name, version) DO UPDATE
-      SET ${updateColumns.map(k => `${k} = EXCLUDED.${k}`).join(", ")}
+      SET ${updateColumns.map((k) => `${k} = EXCLUDED.${k}`).join(", ")}
     `;
 
     // Execute
@@ -735,9 +776,9 @@ class MLFlowService {
   }
 
   private async getIntegrationRecord(tenant: string) {
-    const record = await sequelize.query(`
+    const record = (await sequelize.query(`
       SELECT * FROM "${tenant}".mlflow_integrations LIMIT 1
-    `) as [IMLFlowIntegration[], number];
+    `)) as [IMLFlowIntegration[], number];
     return record[0][0];
   }
 
@@ -775,7 +816,7 @@ class MLFlowService {
 
     if (config.authMethod === "basic" && config.username && config.password) {
       const auth = Buffer.from(
-        `${config.username}:${config.password}`,
+        `${config.username}:${config.password}`
       ).toString("base64");
       axiosConfig.headers = {
         Authorization: `Basic ${auth}`,
@@ -794,7 +835,7 @@ class MLFlowService {
     endpoint: string,
     params?: Record<string, unknown>,
     data?: Record<string, unknown>,
-    method: "get" | "post" = "get",
+    method: "get" | "post" = "get"
   ): Promise<T> {
     const axiosConfig = this.buildAxiosConfig(config);
     if (params) {
@@ -820,242 +861,6 @@ class MLFlowService {
       chunks.push(items.slice(i, i + chunkSize));
     }
     return chunks;
-  }
-
-  private async fetchRunAugmentation(
-    config: RuntimeMLFlowConfig,
-    runId: string,
-  ): Promise<{
-    metrics?: Record<string, number>;
-    parameters?: Record<string, string>;
-    experiment?: {
-      experiment_id: string;
-      experiment_name: string;
-      artifact_location: string;
-    };
-    runInfo?: {
-      status?: string;
-      source_version?: string;
-      start_time?: number;
-      end_time?: number;
-    };
-  } | undefined> {
-    try {
-      const runResponse = await this.makeAuthenticatedRequest<{
-        run: {
-          info: {
-            experiment_id?: string;
-            status?: string;
-            source_version?: string;
-            start_time?: number;
-            end_time?: number;
-          };
-          data: {
-            metrics?: Array<{ key: string; value: number }>;
-            params?: Array<{ key: string; value: string }>;
-          };
-        };
-      }>(config, "/api/2.0/mlflow/runs/get", { run_id: runId });
-
-      const metrics: Record<string, number> = {};
-      runResponse.run?.data?.metrics?.forEach((metric) => {
-        metrics[metric.key] = metric.value;
-      });
-
-      const parameters: Record<string, string> = {};
-      runResponse.run?.data?.params?.forEach((param) => {
-        parameters[param.key] = param.value;
-      });
-
-      let experiment:
-        | {
-          experiment_id: string;
-          experiment_name: string;
-          artifact_location: string;
-        }
-        | undefined;
-
-      const experimentId = runResponse.run?.info?.experiment_id;
-      if (experimentId) {
-        experiment = await this.fetchExperimentMetadata(
-          config,
-          experimentId,
-        );
-      }
-
-      return {
-        metrics,
-        parameters,
-        experiment,
-        runInfo: runResponse.run?.info,
-      };
-    } catch (error) {
-      console.warn(`Failed to fetch augmentation for run ${runId}:`, error);
-      return undefined;
-    }
-  }
-
-  private async fetchExperimentMetadata(
-    config: RuntimeMLFlowConfig,
-    experimentId: string,
-  ) {
-    try {
-      const experimentResponse = await this.makeAuthenticatedRequest<{
-        experiment: {
-          experiment_id: string;
-          name: string;
-          artifact_location: string;
-        };
-      }>(config, "/api/2.0/mlflow/experiments/get", {
-        experiment_id: experimentId,
-      });
-
-      return {
-        experiment_id: experimentResponse.experiment.experiment_id,
-        experiment_name: experimentResponse.experiment.name,
-        artifact_location: experimentResponse.experiment.artifact_location,
-      };
-    } catch (error) {
-      console.warn(
-        `Failed to fetch experiment metadata for ${experimentId}:`,
-        error,
-      );
-      return undefined;
-    }
-  }
-
-  private createModelFromVersion(model: any, version: any, runAugmentation?: {
-    metrics?: Record<string, number>;
-    parameters?: Record<string, string>;
-    experiment?: {
-      experiment_id: string;
-      experiment_name: string;
-      artifact_location: string;
-    };
-    runInfo?: {
-      status?: string;
-      source_version?: string;
-      start_time?: number;
-      end_time?: number;
-    };
-  }): MLFlowModel {
-    const creationTimestamp = version?.creation_timestamp
-      ? Number(version.creation_timestamp)
-      : Date.now();
-    const updatedTimestamp = version?.last_updated_timestamp
-      ? Number(version.last_updated_timestamp)
-      : creationTimestamp;
-
-    return {
-      id: `${model.name}-${version?.version || "latest"}`,
-      name: model.name,
-      version: version?.version || "latest",
-      lifecycle_stage: version?.current_stage || "None",
-      creation_timestamp: creationTimestamp,
-      last_updated_timestamp: updatedTimestamp,
-      description: model.description || "",
-      run_id: version?.run_id,
-      source: version?.source,
-      status: version?.status || version?.current_stage || "Unknown",
-      tags: this.normalizeTags(model.tags),
-      metrics: runAugmentation?.metrics || {},
-      parameters: runAugmentation?.parameters || {},
-      experiment_info: runAugmentation?.experiment,
-      training_status: runAugmentation?.runInfo?.status,
-      training_started_at: runAugmentation?.runInfo?.start_time,
-      training_ended_at: runAugmentation?.runInfo?.end_time,
-      source_version: runAugmentation?.runInfo?.source_version,
-    };
-  }
-
-  private normalizeTags(
-    tags?: Array<{ key: string; value: string }> | Record<string, string>,
-  ): Record<string, string> {
-    if (!tags) {
-      return {};
-    }
-
-    if (Array.isArray(tags)) {
-      return tags.reduce<Record<string, string>>((acc, tag) => {
-        if (tag.key) {
-          acc[tag.key] = tag.value;
-        }
-        return acc;
-      }, {});
-    }
-
-    return tags;
-  }
-
-  private getDemoModels(): MLFlowModel[] {
-    console.log("Using demo data - MLFlow backend not available");
-
-    return [
-      {
-        id: "model_1",
-        name: "Customer Churn Prediction",
-        version: "v3.2.1",
-        lifecycle_stage: "Production",
-        creation_timestamp: new Date("2024-01-15T10:00:00.000Z").getTime(),
-        last_updated_timestamp: new Date("2024-01-20T15:30:00.000Z").getTime(),
-        description: "XGBoost model for predicting customer churn",
-        run_id: "demo_run_1",
-        source: "mlflow",
-        status: "Active",
-        tags: {
-          model_type: "classification",
-          framework: "xgboost",
-          environment: "production",
-        },
-        metrics: {
-          accuracy: 0.85,
-          precision: 0.82,
-          recall: 0.88,
-        },
-        parameters: {
-          n_estimators: "100",
-          max_depth: "6",
-          learning_rate: "0.1",
-        },
-        experiment_info: {
-          experiment_id: "demo_exp_1",
-          experiment_name: "Customer Churn Prediction Q4 2023",
-          artifact_location: "/mlflow/artifacts/demo_exp_1",
-        },
-      },
-      {
-        id: "model_2",
-        name: "Sentiment Analysis Model",
-        version: "v2.1.0",
-        lifecycle_stage: "Staging",
-        creation_timestamp: new Date("2024-01-10T12:00:00.000Z").getTime(),
-        last_updated_timestamp: new Date("2024-01-18T16:45:00.000Z").getTime(),
-        description: "BERT-based sentiment analysis model",
-        run_id: "demo_run_2",
-        source: "mlflow",
-        status: "Testing",
-        tags: {
-          model_type: "nlp",
-          framework: "transformers",
-          environment: "staging",
-        },
-        metrics: {
-          f1_score: 0.79,
-          accuracy: 0.81,
-          precision: 0.78,
-        },
-        parameters: {
-          max_length: "512",
-          batch_size: "16",
-          learning_rate: "0.0001",
-        },
-        experiment_info: {
-          experiment_id: "demo_exp_2",
-          experiment_name: "Sentiment Analysis R&D",
-          artifact_location: "/mlflow/artifacts/demo_exp_2",
-        },
-      },
-    ];
   }
 }
 

@@ -41,9 +41,7 @@ import {
   getOrganizationsExistsQuery,
   updateOrganizationByIdQuery,
 } from "../utils/organization.utils";
-import { invite } from "./vwmailer.ctrl";
 import { createNewTenant } from "../scripts/createNewTenant";
-import { createNewUserQuery } from "../utils/user.utils";
 import { createNewUserWrapper } from "./user.ctrl";
 import {
   ValidationException,
@@ -78,7 +76,7 @@ import { generateUserTokens } from "../utils/auth.utils";
  * }
  */
 export async function getAllOrganizations(
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<any> {
   logStructured(
@@ -144,7 +142,7 @@ export async function getAllOrganizations(
  * }
  */
 export async function getOrganizationsExists(
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<any> {
   try {
@@ -328,12 +326,15 @@ export async function createOrganization(
       );
 
       // Generate tokens for the newly created user
-      const { accessToken } = generateUserTokens({
-        id: user.id!,
-        email: body.userEmail,
-        roleName: "Admin", // roleId 1 corresponds to Admin
-        organizationId: organization_id,
-      }, res);
+      const { accessToken } = generateUserTokens(
+        {
+          id: user.id!,
+          email: body.userEmail,
+          roleName: "Admin", // roleId 1 corresponds to Admin
+          organizationId: organization_id,
+        },
+        res
+      );
 
       await transaction.commit();
       logStructured(
@@ -346,14 +347,16 @@ export async function createOrganization(
         "Create",
         `Organization created: ${createdOrganization.name}`
       );
-      return res.status(201).json(STATUS_CODE[201]({
-        user: user.toSafeJSON(),
-        organization: {
-          id: createdOrganization.id,
-          name: createdOrganization.name
-        },
-        token: accessToken,
-      }));
+      return res.status(201).json(
+        STATUS_CODE[201]({
+          user: user.toSafeJSON(),
+          organization: {
+            id: createdOrganization.id,
+            name: createdOrganization.name,
+          },
+          token: accessToken,
+        })
+      );
     }
 
     logStructured(
@@ -407,7 +410,8 @@ export async function createOrganization(
     );
     await logEvent(
       "Error",
-      `Unexpected error during organization creation: ${(error as Error).message
+      `Unexpected error during organization creation: ${
+        (error as Error).message
       }`
     );
     logger.error("❌ Error in createOrganization:", error);
@@ -552,7 +556,8 @@ export async function updateOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during update for organization ID ${organizationId}: ${(error as Error).message
+      `Unexpected error during update for organization ID ${organizationId}: ${
+        (error as Error).message
       }`
     );
     logger.error("❌ Error in updateOrganizationById:", error);
@@ -664,7 +669,8 @@ export async function deleteOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during delete for organization ID ${organizationId}: ${(error as Error).message
+      `Unexpected error during delete for organization ID ${organizationId}: ${
+        (error as Error).message
       }`
     );
     logger.error("❌ Error in deleteOrganizationById:", error);

@@ -1,7 +1,7 @@
 import React from "react";
 import { PieChart } from "@mui/x-charts";
 import { Box, Typography } from "@mui/material";
-import { IStatusDonutChartProps } from "../../../domain/interfaces/i.chart";
+import { IStatusDonutChartProps } from "../../types/interfaces/i.chart";
 
 const StatusDonutChart: React.FC<IStatusDonutChartProps> = ({
   data,

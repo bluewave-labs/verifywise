@@ -39,10 +39,8 @@ import {
   createNewUser,
   deleteUserById,
   getAllUsers,
-  getUserByEmail,
   getUserById,
   loginUser,
-  resetPassword,
   updateUserById,
   calculateProgress,
   ChangePassword,
@@ -50,7 +48,9 @@ import {
   uploadUserProfilePhoto,
   getUserProfilePhoto,
   deleteUserProfilePhoto,
+  resetPassword,
 } from "../controllers/user.ctrl";
+import resetPasswordMiddleware from "../middleware/resetPassword.middleware";
 import authenticateJWT from "../middleware/auth.middleware";
 import registerJWT from "../middleware/register.middleware";
 
@@ -126,7 +126,8 @@ router.post("/register", registerJWT, createNewUser);
 const loginLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 5, // limit each IP to 5 login requests per windowMs
-  message: "Too many login attempts from this IP, please try again after a minute",
+  message:
+    "Too many login attempts from this IP, please try again after a minute",
 });
 router.post("/login", loginLimiter, loginUser);
 
@@ -144,7 +145,7 @@ router.post("/refresh-token", refreshAccessToken);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-// router.post("/reset-password", resetPassword);
+router.post("/reset-password", resetPasswordMiddleware, resetPassword);
 
 /**
  * PATCH /users/:id
@@ -195,7 +196,12 @@ router.get("/:id/calculate-progress", authenticateJWT, calculateProgress);
 /**
  * Profile Photo Routes
  */
-router.post("/:id/profile-photo", authenticateJWT, upload.single("photo"), uploadUserProfilePhoto);
+router.post(
+  "/:id/profile-photo",
+  authenticateJWT,
+  upload.single("photo"),
+  uploadUserProfilePhoto
+);
 router.get("/:id/profile-photo", authenticateJWT, getUserProfilePhoto);
 router.delete("/:id/profile-photo", authenticateJWT, deleteUserProfilePhoto);
 

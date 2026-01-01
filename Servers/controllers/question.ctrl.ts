@@ -7,8 +7,6 @@ import {
   getAllQuestionsQuery,
   getQuestionByIdQuery,
   updateQuestionByIdQuery,
-  RequestWithFile,
-  UploadedFile,
   getQuestionBySubTopicIdQuery,
   getQuestionByTopicIdQuery,
 } from "../utils/question.utils";
@@ -453,7 +451,6 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
   logger.debug(`🔍 Looking up questions for subtopic ID: ${subtopicId}`);
 
   try {
-
     const questions = await getQuestionBySubTopicIdQuery(
       subtopicId,
       req.tenantId!
@@ -508,7 +505,6 @@ export async function getQuestionsByTopicId(req: Request, res: Response) {
   logger.debug(`🔍 Looking up questions for topic ID: ${topicId}`);
 
   try {
-
     const questions = await getQuestionByTopicIdQuery(topicId, req.tenantId!);
 
     if (questions && questions.length !== 0) {

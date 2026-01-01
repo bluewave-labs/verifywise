@@ -248,7 +248,7 @@ const RisksView: FC<RisksViewProps> = memo(
     }, []);
 
     return (
-      <Stack sx={{ maxWidth: 1220 }}>
+      <Stack>
         {alert && (
           <Suspense fallback={<div>Loading...</div>}>
             <Box>

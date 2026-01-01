@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Stack,
   Typography,
@@ -9,7 +10,6 @@ import {
   Divider,
   Popover
 } from "@mui/material";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useContext, useEffect, useState, useMemo, useRef } from "react";
 import {
@@ -36,7 +36,7 @@ import ProjectForm from "../../components/Forms/ProjectForm";
 import AddFrameworkModal from "../ProjectView/AddNewFramework";
 import allowedRoles from "../../../application/constants/permissions";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import StandardModal from "../../components/Modals/StandardModal";
 import { deleteProject } from "../../../application/repository/project.repository";
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
@@ -112,7 +112,6 @@ const Framework = () => {
   const functionId = searchParams.get("functionId");
   const categoryId = searchParams.get("categoryId");
   const subcategoryId = searchParams.get("subcategoryId");
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const { changeComponentVisibility, projects, userRoleName, setProjects } =
     useContext(VerifyWiseContext);
@@ -290,6 +289,10 @@ const Framework = () => {
     return localStorage.getItem(NIST_AI_RMF_TAB_KEY) || "govern";
   });
 
+  const [risksFrameworkIndex, setRisksFrameworkIndex] = useState(0);
+  const [linkedModelsFrameworkIndex, setLinkedModelsFrameworkIndex] = useState(0);
+
+
   // Sync mainTabValue with URL tab param when navigating programmatically
   useEffect(() => {
     const newTabValue = tab || "dashboard";
@@ -323,6 +326,7 @@ const Framework = () => {
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
   // Filter states following ProjectFrameworks pattern
@@ -538,7 +542,7 @@ const Framework = () => {
     const getLinkedModelCount = async() => {
       if (filteredFrameworks.length === 0) return;
 
-      const framework = filteredFrameworks[selectedFramework];
+      const framework = filteredFrameworks[linkedModelsFrameworkIndex];
       if (!framework) return;
       const frameworkId = framework?.id;
 
@@ -553,7 +557,7 @@ const Framework = () => {
 
     getLinkedModelCount();
 
-  }, [filteredFrameworks, selectedFramework]);
+  }, [filteredFrameworks, linkedModelsFrameworkIndex]);
 
   const renderFrameworkContent = () => {
     if (loading) {
@@ -883,43 +887,6 @@ const Framework = () => {
 
   return (
     <Stack className="vwhome" gap={"16px"} ref={refs[0]}>
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Organizational frameworks"
-        description="Navigate compliance frameworks like ISO 27001, ISO 42001, and NIST AI RMF for AI governance"
-        whatItDoes="Provide *structured guidance* for implementing *organizational frameworks* and *compliance standards*. Access detailed requirements, clauses, annexes, and NIST AI RMF functions for *ISO 27001*, *ISO 42001*, and *NIST AI RMF* frameworks*."
-        whyItMatters="**Compliance frameworks** ensure your organization meets *industry standards* and *regulatory requirements*. They provide *systematic approaches* to managing risks, implementing controls, and demonstrating *due diligence* to stakeholders and regulators."
-        quickActions={[
-          {
-            label: "Explore Framework Requirements",
-            description:
-              "Browse detailed clauses and implementation guidelines for each framework",
-            primary: true,
-          },
-          {
-            label: "Check Compliance Status",
-            description:
-              "Review your organization's current compliance progress and gaps",
-          },
-        ]}
-        useCases={[
-          "*ISO 27001 implementation* for *information security management systems*",
-          "*ISO 42001 compliance* for *artificial intelligence management systems* and *governance*",
-          "*NIST AI RMF integration* for *AI risk management* and *trustworthy AI development*",
-        ]}
-        keyFeatures={[
-          "**Comprehensive framework navigation** with *hierarchical clause structure*",
-          "*Cross-referencing* between different *standards* and requirements",
-          "*Progress tracking* and *compliance gap analysis* tools for implementation planning",
-          "*AI risk management* through NIST framework functions and categories",
-        ]}
-        tips={[
-          "Start with *gap analysis* to understand your *current compliance position*",
-          "Focus on *foundational clauses* before moving to *specific technical requirements*",
-          "Document your *implementation decisions* and evidence for *audit readiness*",
-        ]}
-      />
       <PageBreadcrumbs />
       <Stack
         sx={{
@@ -934,7 +901,7 @@ const Framework = () => {
           description="This page provides an overview of available AI and data governance frameworks to your organization."
           rightContent={
             <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              articlePath="compliance/assessments"
               size="small"
             />
           }
@@ -947,9 +914,9 @@ const Framework = () => {
                 variant="contained"
                 text="Manage frameworks"
                 endIcon={<WhiteDownArrowIcon size={16} style={{ transform: rotated ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />}
-                onClick={(event: React.MouseEvent<any>) => {
+                onClick={(event) => {
                   setRotated((prev) => !prev);
-                  handleManageProjectClick(event);
+                  handleManageProjectClick(event as React.MouseEvent<any>);
                 }}
                 isDisabled={
                   !allowedRoles.frameworks.manage.includes(userRoleName) &&
@@ -1086,165 +1053,6 @@ const Framework = () => {
       {/* Tips */}
       <TipBox entityName="framework" />
 
-      {/* <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          mb: 2,
-        }}
-      >
-        {organizationalProject ? (
-          <>
-            <Button
-              variant="contained"
-              endIcon={<WhiteDownArrowIcon size={16} style={{ transform: rotated ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />}
-              onClick={(event: React.MouseEvent<any>) => {
-                setRotated((prev) => !prev);
-                handleManageProjectClick(event);
-              }}
-              disabled={
-                !allowedRoles.frameworks.manage.includes(userRoleName) &&
-                !allowedRoles.projects.edit.includes(userRoleName) &&
-                !allowedRoles.projects.delete.includes(userRoleName)
-              }
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "#0e5c47",
-                  boxShadow: "0px 4px 8px rgba(19, 113, 91, 0.3)",
-                },
-                "&:disabled": {
-                  backgroundColor: "#cccccc",
-                  color: "#666666",
-                  boxShadow: "none",
-                },
-                "& .MuiButton-endIcon": {
-                  marginLeft: 1,
-                  transition: "transform 0.2s ease",
-                  transform: rotated ? "rotate(180deg)" : "rotate(0deg)",
-                },
-              }}
-            >
-              Manage Project
-            </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={isMenuOpen}
-              onClose={handleMenuClose}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              slotProps={{
-                paper: {
-                  sx: {
-                    ...dropDownStyle,
-                    width: 200,
-                    mt: 1,
-                  },
-                },
-              }}
-            >
-              <MenuItem
-                onClick={handleManageFrameworksClick}
-                disabled={
-                  !allowedRoles.frameworks.manage.includes(userRoleName)
-                }
-              >
-                <ListItemIcon sx={{ minWidth: 32 }}>
-                  <SettingsIcon
-                    size={16}
-                    style={{
-                      color: "text.secondary",
-                    }}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Manage Frameworks"
-                  primaryTypographyProps={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    color: "text.primary",
-                  }}
-                />
-              </MenuItem>
-              <MenuItem
-                onClick={handleEditProjectClick}
-                disabled={!allowedRoles.projects.edit.includes(userRoleName)}
-              >
-                <ListItemIcon sx={{ minWidth: 32 }}>
-                  <EditIconGrey
-                    size={16}
-                    style={{
-                      color: "text.secondary",
-                    }}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Edit Project"
-                  primaryTypographyProps={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    color: "text.primary",
-                  }}
-                />
-              </MenuItem>
-              <Divider sx={{ my: 0.5 }} />
-              <MenuItem
-                onClick={handleDeleteProjectClick}
-                disabled={
-                  !allowedRoles.projects.delete.includes(userRoleName)
-                }
-              >
-                <ListItemIcon sx={{ minWidth: 32 }}>
-                  <DeleteIconRed
-                    size={16}
-                    style={{
-                      color: "#DB504A",
-                    }}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Delete Project"
-                  primaryTypographyProps={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    color: "error.main",
-                  }}
-                />
-              </MenuItem>
-            </Menu>
-          </>
-        ) : (
-          <Button
-            variant="contained"
-            startIcon={<AddCircleOutlineIcon size={16} />}
-            onClick={() => setIsProjectFormModalOpen(true)}
-            disabled={!allowedRoles.projects.create.includes(userRoleName)}
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              textTransform: "none",
-              "&:hover": {
-                backgroundColor: "#0e5c47",
-              },
-              "&:disabled": {
-                backgroundColor: "#cccccc",
-                color: "#666666",
-              },
-            }}
-          >
-            New Project
-          </Button>
-        )}
-      </Box> */}
-
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
         <>
@@ -1319,8 +1127,8 @@ const Framework = () => {
               <FrameworkRisks
                 organizationalProject={organizationalProject}
                 filteredFrameworks={filteredFrameworks}
-                selectedFramework={selectedFramework}
-                onFrameworkSelect={handleFrameworkSelect}
+                selectedFramework={risksFrameworkIndex}
+                onFrameworkSelect={setRisksFrameworkIndex}
               />
             </TabPanel>
 
@@ -1328,8 +1136,8 @@ const Framework = () => {
               <FrameworkLinkedModels
                 organizationalProject={organizationalProject}
                 filteredFrameworks={filteredFrameworks}
-                selectedFramework={selectedFramework}
-                onFrameworkSelect={handleFrameworkSelect}
+                selectedFramework={linkedModelsFrameworkIndex}
+                onFrameworkSelect={setLinkedModelsFrameworkIndex}
               />
             </TabPanel>
 
@@ -1452,7 +1260,7 @@ const Framework = () => {
       )}
 
       {isDeleteModalOpen && organizationalProject && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm Delete"
           body={
             <Typography fontSize={13}>

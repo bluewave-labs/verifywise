@@ -1,6 +1,6 @@
 import { Box, Paper, Typography } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
-import { IBannerProps } from "../../../../domain/interfaces/iWidget";
+import { IBannerProps } from "../../../../domain/interfaces/i.widget";
 import {
   bannerBoxStyle,
   bannerPaperStyle,

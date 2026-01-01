@@ -1,8 +1,11 @@
 .home-layout {
   position: relative;
   min-height: 100vh;
-  max-width: 1400px;
-  margin: 0 auto;
+  /* Remove fixed max-width, let content area handle constraints */
+  margin: 0;
+  /* Reserve space for the help sidebar on the right */
+  margin-right: var(--help-sidebar-padding, 64px);
+  transition: margin-right 300ms ease-in-out;
 }
 
 .home-layout aside {
@@ -20,9 +23,10 @@
 }
 
 .home-layout > div {
-  max-width: 1400px;
   min-height: calc(100vh - 24px * 2);
   flex: 1;
+  min-width: 0; /* Allow flex item to shrink below content size */
+  overflow-x: hidden; /* Prevent horizontal overflow */
   padding: 24px;
   padding-left: 24px; /* Gap between sidebar and content */
   padding-bottom: 40px;

@@ -13,7 +13,7 @@ import CustomAxios from "./customAxios";
  * Individual search result
  */
 export interface SearchResult {
-  id: number;
+  id: number | string;
   entityType: string;
   title: string;
   subtitle?: string;
@@ -93,6 +93,7 @@ export const ENTITY_DISPLAY_NAMES: Record<string, string> = {
   ai_trust_center_subprocessors: "Subprocessors",
   training_registar: "Training",
   incident_management: "Incidents",
+  deepeval_projects: "LLM evals",
 };
 
 /**

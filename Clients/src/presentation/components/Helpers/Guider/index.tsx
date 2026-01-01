@@ -1,6 +1,7 @@
-import { Link, Stack, Tooltip, Typography } from "@mui/material";
+import { Link, Stack } from "@mui/material";
 import { HelpCircle as QuestionMarkIcon } from "lucide-react";
 import { GuiderStyler } from "./style";
+import VWTooltip from "../../VWTooltip";
 
 const Guider = ({
   title,
@@ -14,30 +15,21 @@ const Guider = ({
   const theme = GuiderStyler();
 
   return (
-    <Tooltip
-      sx={{ fontSize: 13 }}
-      title={
-        <Stack
-          className="tooltip-note"
-          sx={{
-            display: "flex",
-            gap: 3,
-          }}
-        >
-          <Typography fontSize={14} fontWeight={"bold"}>
-            {title}
-          </Typography>
-          <Typography fontSize={13}>{description}</Typography>
-          <Link href={`${link}`} sx={{ color: "white" }} fontSize={13}>
+    <VWTooltip
+      header={title}
+      content={
+        <>
+          <p>{description}</p>
+          <Link href={link} sx={{ color: "white", fontSize: "13px" }}>
             Read more
           </Link>
-        </Stack>
+        </>
       }
     >
       <Stack component={"div"} sx={theme.helperFrameStyle}>
         <QuestionMarkIcon size={16} />
       </Stack>
-    </Tooltip>
+    </VWTooltip>
   );
 };
 

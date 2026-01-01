@@ -12,38 +12,17 @@
 import { useEffect, useState } from "react";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
 import { getAllProjectRisksByProjectId } from "../repository/projectRisk.repository";
+import { ProjectRisk } from "../../domain/types/ProjectRisk";
 
-export interface ProjectRisk {
-  id: number;
-  project_id: number;
-  risk_name: any;
-  risk_owner: any;
-  ai_lifecycle_phase: any;
-  risk_description: any;
-  risk_category: any;
-  impact: any;
-  assessment_mapping: any;
-  controls_mapping: any;
-  likelihood: any;
-  severity: any;
-  risk_level_autocalculated: any;
-  review_notes: any;
-  mitigation_status: any;
-  current_risk_level: any;
-  deadline: any;
-  mitigation_plan: any;
-  implementation_strategy: any;
-  mitigation_evidence_document: any;
-  likelihood_mitigation: any;
-  risk_severity: any;
-  final_risk_level: any;
-  risk_approval: any;
-  approval_status: any;
-  date_of_assessment: any;
-  recommendations?: any;
+// Re-export for backwards compatibility
+export type { ProjectRisk } from "../../domain/types/ProjectRisk";
+
+interface UseProjectRisksParams {
+  projectId: number;
+  refreshKey?: number | string | boolean;
 }
 
-const useProjectRisks = ({ projectId, refreshKey }: { projectId: number, refreshKey?: any }) => {
+const useProjectRisks = ({ projectId, refreshKey }: UseProjectRisksParams) => {
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
   const [loadingProjectRisks, setLoadingProjectRisks] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);

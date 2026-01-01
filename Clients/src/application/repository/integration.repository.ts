@@ -59,6 +59,19 @@ interface MlflowTestData {
   verifySsl?: boolean;
 }
 
+interface MlflowConfigureResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+interface MlflowSyncResponse {
+  success: boolean;
+  message?: string;
+  syncedModels?: number;
+  error?: string;
+}
+
 /**
  * Get MLflow configuration status
  *
@@ -133,21 +146,21 @@ export async function testMlflowConnection(
  * Configure MLflow integration
  *
  * @param {MlflowConfigureData} data - The configuration data
- * @returns {Promise<any>} The configuration result
+ * @returns {Promise<MlflowConfigureResponse>} The configuration result
  */
 export async function configureMlflow(
   data: MlflowConfigureData
-): Promise<any> {
-  const response = await apiServices.post("/integrations/mlflow/configure", data);
+): Promise<MlflowConfigureResponse> {
+  const response = await apiServices.post<MlflowConfigureResponse>("/integrations/mlflow/configure", data);
   return response.data;
 }
 
 /**
  * Trigger MLflow sync
  *
- * @returns {Promise<any>} The sync result
+ * @returns {Promise<MlflowSyncResponse>} The sync result
  */
-export async function triggerMlflowSync(): Promise<any> {
-  const response = await apiServices.post("/integrations/mlflow/sync", {});
+export async function triggerMlflowSync(): Promise<MlflowSyncResponse> {
+  const response = await apiServices.post<MlflowSyncResponse>("/integrations/mlflow/sync", {});
   return response.data;
 }

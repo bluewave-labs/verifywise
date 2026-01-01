@@ -58,9 +58,10 @@ export async function getEntityById({
       responseType,
     });
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Don't log 404 errors as they're often expected (e.g., empty lists)
-    if (error?.status !== 404) {
+    const apiError = error as { status?: number };
+    if (apiError?.status !== 404) {
       console.error("Error getting entity by ID:", error);
     }
     throw error;

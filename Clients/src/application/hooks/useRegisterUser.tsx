@@ -21,13 +21,30 @@ interface RegisterUser {
 }
 
 /**
+ * Nested response data structure from Axios errors.
+ */
+interface AxiosErrorData {
+  /** Nested data containing error details */
+  data?: string;
+  /** Error message */
+  message?: string;
+}
+
+/**
  * Error response structure from API.
  */
 interface ApiErrorResponse {
   /** HTTP status code */
   status?: number;
-  /** Error data payload */
-  data?: unknown;
+  /** Error data payload (string or object) */
+  data?: string | AxiosErrorData;
+  /** Axios response wrapper for errors */
+  response?: {
+    /** Response data */
+    data?: AxiosErrorData;
+  };
+  /** Error message */
+  message?: string;
 }
 
 /**

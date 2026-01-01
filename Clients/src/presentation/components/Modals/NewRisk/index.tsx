@@ -38,6 +38,7 @@ import {
   useCreateVendorRisk,
   useUpdateVendorRisk,
 } from "../../../../application/hooks/useVendorRiskMutations";
+import { CreateVendorRiskInput } from "../../../../domain/types/VendorRisk";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { History as HistoryIcon } from "lucide-react";
 import HistorySidebar from "../../Common/HistorySidebar";
@@ -319,7 +320,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
    * @param riskDetails - The vendor details to create
    */
 
-  const createRisk = async (riskDetails: object) => {
+  const createRisk = async (riskDetails: CreateVendorRiskInput) => {
     setIsSubmitting(true);
     try {
       const response = await createVendorRiskMutation.mutateAsync(riskDetails);

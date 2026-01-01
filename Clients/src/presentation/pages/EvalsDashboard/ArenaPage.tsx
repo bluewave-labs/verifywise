@@ -16,14 +16,7 @@ import {
   TextField,
   Divider,
   alpha,
-  Select,
-  MenuItem,
-  FormControl,
-  Popper,
-  Paper,
-  ClickAwayListener,
   InputAdornment,
-  Tooltip,
 } from "@mui/material";
 import {
   Trophy,
@@ -36,17 +29,17 @@ import {
   Folder,
   Search,
   Check,
-  ChevronRight,
-  ChevronDown,
-  Settings,
-  Key,
   Info,
 } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import ModalStandard from "../../components/Modals/StandardModal";
+import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
 import ArenaTable from "../../components/Table/ArenaTable";
+import VWTooltip from "../../components/VWTooltip";
+import Checkbox from "../../components/Inputs/Checkbox";
+import GroupedSelect from "../../components/Inputs/Select/GroupedSelect";
+import ModelSelector from "../../components/Inputs/ModelSelector";
 import ArenaResultsPage from "./ArenaResultsPage";
 import { FilterBy, FilterCondition, FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy, GroupByOption } from "../../components/Table/GroupBy";
@@ -61,25 +54,7 @@ import {
   type ArenaContestant,
   type LLMApiKey,
 } from "../../../application/repository/deepEval.repository";
-import { PROVIDERS, getModelsForProvider } from "../../utils/providers";
 import { useNavigate } from "react-router-dom";
-
-// Provider icons
-import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
-import { ReactComponent as AnthropicLogo } from "../../assets/icons/anthropic_logo.svg";
-import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg";
-import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
-import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
-import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
-
-const PROVIDER_ICONS: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
-  openai: OpenAILogo,
-  anthropic: AnthropicLogo,
-  google: GeminiLogo,
-  mistral: MistralLogo,
-  xai: XAILogo,
-  openrouter: OpenRouterLogo,
-};
 
 // Timing constants (in milliseconds)
 const POLLING_INTERVAL_MS = 5000;
@@ -138,471 +113,6 @@ const EVALUATION_CRITERIA = [
     prompt: "Evaluate which response more closely follows and adheres to the specific instructions or constraints given.",
   },
 ];
-
-// Model Selector Component (Braintrust-style)
-interface ModelSelectorProps {
-  provider: string;
-  model: string;
-  onProviderChange: (provider: string) => void;
-  onModelChange: (model: string) => void;
-  borderColor?: string;
-  configuredProviders: LLMApiKey[];
-  onNavigateToSettings: () => void;
-}
-
-function ModelSelector({ 
-  provider, 
-  model, 
-  onProviderChange, 
-  onModelChange, 
-  borderColor = "#e5e7eb",
-  configuredProviders,
-  onNavigateToSettings,
-}: ModelSelectorProps) {
-  const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [customModel, setCustomModel] = useState(model || "");
-  const anchorRef = useRef<HTMLDivElement>(null);
-  
-  const providerList = Object.values(PROVIDERS);
-  const models = getModelsForProvider(provider);
-  const selectedModel = models.find(m => m.id === model);
-  
-  // OpenRouter allows custom model names
-  const isOpenRouter = provider === "openrouter";
-  
-  // Sync customModel when model prop changes (for OpenRouter)
-  useEffect(() => {
-    if (isOpenRouter) {
-      setCustomModel(model);
-    }
-  }, [model, isOpenRouter]);
-  
-  // Check if provider has API key configured
-  const hasApiKey = (providerId: string) => configuredProviders.some(cp => cp.provider === providerId);
-  const currentProviderHasKey = hasApiKey(provider);
-  
-  const filteredModels = models.filter(m => 
-    m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleProviderSelect = (newProvider: string) => {
-    onProviderChange(newProvider);
-    onModelChange(""); // Reset model when provider changes
-    setCustomModel(""); // Reset custom model too
-    setSearchQuery("");
-  };
-
-  const handleModelSelect = (modelId: string) => {
-    onModelChange(modelId);
-    setOpen(false);
-    setSearchQuery("");
-  };
-
-  // Render provider icon
-  const renderProviderIcon = (providerId: string, size: number = 20) => {
-    const Icon = PROVIDER_ICONS[providerId];
-    if (!Icon) return null;
-    return (
-      <Box 
-        sx={{ 
-          width: size, 
-          height: size, 
-          minWidth: size,
-          minHeight: size,
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          "& svg": {
-            width: "100%",
-            height: "100%",
-          }
-        }}
-      >
-        <Icon />
-      </Box>
-    );
-  };
-
-  return (
-    <Box>
-      <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054", mb: 0.75 }}>
-        Model
-      </Typography>
-      <Box
-        ref={anchorRef}
-        onClick={() => setOpen(!open)}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          px: 1.5,
-          py: 1.25,
-          border: "1px solid",
-          borderColor: open ? borderColor : "#e5e7eb",
-          borderRadius: "8px",
-          backgroundColor: "#fff",
-          cursor: "pointer",
-          transition: "all 0.15s ease",
-          "&:hover": {
-            borderColor: "#d1d5db",
-          },
-        }}
-      >
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          {renderProviderIcon(provider, 20)}
-          <Typography sx={{ fontSize: 13, color: (selectedModel || (isOpenRouter && model)) ? "#111827" : "#9ca3af" }}>
-            {isOpenRouter && model ? model : (selectedModel?.name || "Select a model")}
-          </Typography>
-        </Stack>
-        <ChevronDown size={16} color="#6b7280" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-      </Box>
-
-      <Popper
-        open={open}
-        anchorEl={anchorRef.current}
-        placement="bottom-start"
-        style={{ zIndex: 1300, width: anchorRef.current?.offsetWidth ? Math.max(anchorRef.current.offsetWidth, 520) : 520 }}
-      >
-        <ClickAwayListener onClickAway={() => { setOpen(false); setSearchQuery(""); }}>
-          <Paper
-            elevation={8}
-            sx={{
-              mt: 0.5,
-              borderRadius: "12px",
-              border: "1px solid #e5e7eb",
-              overflow: "hidden",
-            }}
-          >
-            {/* Search */}
-            <Box sx={{ p: 1.5, borderBottom: "1px solid #f3f4f6" }}>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Find a model"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
-                autoComplete="off"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search size={16} color="#9ca3af" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: 13,
-                    borderRadius: "8px",
-                    backgroundColor: "#f9fafb",
-                    "& fieldset": { borderColor: "#e5e7eb" },
-                    "&:hover fieldset": { borderColor: "#d1d5db" },
-                    "&.Mui-focused fieldset": { borderColor: "#13715B" },
-                  },
-                }}
-              />
-            </Box>
-
-            {/* Split view */}
-            <Stack direction="row" sx={{ height: 320 }}>
-              {/* Providers list */}
-              <Box
-                sx={{
-                  width: 200,
-                  borderRight: "1px solid #f3f4f6",
-                  overflowY: "auto",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <Box sx={{ flex: 1, overflowY: "auto", py: 0.5 }}>
-                  {providerList.map((p) => {
-                    const isSelected = p.provider === provider;
-                    const providerHasKey = hasApiKey(p.provider);
-                    return (
-                      <Box
-                        key={p.provider}
-                        onClick={() => handleProviderSelect(p.provider)}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          px: 1.5,
-                          height: 38,
-                          minHeight: 38,
-                          cursor: "pointer",
-                          backgroundColor: isSelected ? "#E8F5F1" : "transparent",
-                          "&:hover": {
-                            backgroundColor: isSelected ? "#E8F5F1" : "#f9fafb",
-                          },
-                        }}
-                      >
-                        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
-                          {renderProviderIcon(p.provider, 20)}
-                          <Stack spacing={0} sx={{ minWidth: 0 }}>
-                            <Typography sx={{ fontSize: 13, fontWeight: isSelected ? 600 : 400, color: isSelected ? "#13715B" : "#374151", lineHeight: 1.2 }}>
-                              {p.displayName}
-                            </Typography>
-                            {!providerHasKey && (
-                              <Typography sx={{ fontSize: 10, color: "#f59e0b", lineHeight: 1.2 }}>
-                                No API key
-                              </Typography>
-                            )}
-                          </Stack>
-                        </Stack>
-                        {isSelected ? (
-                          <Check size={14} color="#13715B" />
-                        ) : (
-                          <ChevronRight size={14} color="#9ca3af" />
-                        )}
-                      </Box>
-                    );
-                  })}
-                </Box>
-                
-                {/* Add provider button */}
-                <Box sx={{ p: 1.5, borderTop: "1px solid #f3f4f6" }}>
-                  <Box
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpen(false);
-                      onNavigateToSettings();
-                    }}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.5,
-                      px: 1.5,
-                      py: 1,
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      backgroundColor: "#E8F5F1",
-                      "&:hover": {
-                        backgroundColor: "#D1EDE6",
-                      },
-                    }}
-                  >
-                    <Plus size={16} color="#13715B" />
-                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#13715B" }}>
-                      Add API key
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-
-              {/* Models list */}
-              <Box
-                sx={{
-                  flex: 1,
-                  overflowY: "auto",
-                  py: 0.5,
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                {!currentProviderHasKey ? (
-                  /* No API key message - centered vertically */
-                  <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", p: 4 }}>
-                    <Box sx={{ textAlign: "center" }}>
-                      <Box
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: "12px",
-                          backgroundColor: "#fef3c7",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          margin: "0 auto",
-                          mb: 2,
-                        }}
-                      >
-                        <Key size={24} color="#f59e0b" />
-                      </Box>
-                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827", mb: 0.5 }}>
-                        API key required
-                      </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>
-                        Add an API key for {PROVIDERS[provider]?.displayName || provider} to use its models
-                      </Typography>
-                      <Box
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpen(false);
-                          onNavigateToSettings();
-                        }}
-                        sx={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 1,
-                          px: 3,
-                          py: 1.5,
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          backgroundColor: "#13715B",
-                          color: "#fff",
-                          fontSize: 13,
-                          fontWeight: 500,
-                          "&:hover": {
-                            backgroundColor: "#0f5f4c",
-                          },
-                        }}
-                      >
-                        <Settings size={14} />
-                        Go to Settings
-                      </Box>
-                    </Box>
-                  </Box>
-                ) : isOpenRouter ? (
-                  /* Custom model input for OpenRouter */
-                  <Box sx={{ p: 2 }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 1 }}>
-                      Enter Model Name
-                    </Typography>
-                    <Typography sx={{ fontSize: 11, color: "#6b7280", mb: 1.5 }}>
-                      OpenRouter supports any model. Enter the model ID (e.g., anthropic/claude-3-opus)
-                    </Typography>
-                    <TextField
-                      size="small"
-                      fullWidth
-                      placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
-                      value={customModel}
-                      onChange={(e) => setCustomModel(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && customModel.trim()) {
-                          onModelChange(customModel.trim());
-                          setOpen(false);
-                        }
-                        e.stopPropagation();
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      autoComplete="off"
-                      sx={{
-                        mb: 1.5,
-                        "& .MuiOutlinedInput-root": {
-                          fontSize: 13,
-                          borderRadius: "8px",
-                        },
-                      }}
-                    />
-                    <Box
-                      onClick={() => {
-                        if (customModel.trim()) {
-                          onModelChange(customModel.trim());
-                          setOpen(false);
-                        }
-                      }}
-                      sx={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 1,
-                        px: 2,
-                        py: 1,
-                        borderRadius: "6px",
-                        cursor: customModel.trim() ? "pointer" : "not-allowed",
-                        backgroundColor: customModel.trim() ? "#13715B" : "#e5e7eb",
-                        color: customModel.trim() ? "#fff" : "#9ca3af",
-                        fontSize: 12,
-                        fontWeight: 500,
-                        "&:hover": {
-                          backgroundColor: customModel.trim() ? "#0f5f4c" : "#e5e7eb",
-                        },
-                      }}
-                    >
-                      <Check size={14} />
-                      Use this model
-                    </Box>
-                    
-                    {/* Popular OpenRouter models */}
-                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
-                      Popular Models
-                    </Typography>
-                    {[
-                      { id: "openai/gpt-4o", name: "GPT-4o" },
-                      { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
-                      { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
-                      { id: "meta-llama/llama-3.1-70b-instruct", name: "Llama 3.1 70B" },
-                      { id: "mistralai/mistral-large", name: "Mistral Large" },
-                    ].map((m) => (
-                      <Box
-                        key={m.id}
-                        onClick={() => {
-                          setCustomModel(m.id);
-                          onModelChange(m.id);
-                          setOpen(false);
-                        }}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          px: 1.5,
-                          py: 0.75,
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          backgroundColor: model === m.id ? "#E8F5F1" : "transparent",
-                          "&:hover": {
-                            backgroundColor: model === m.id ? "#E8F5F1" : "#f9fafb",
-                          },
-                        }}
-                      >
-                        <Typography sx={{ fontSize: 12, fontWeight: model === m.id ? 600 : 400, color: model === m.id ? "#13715B" : "#374151" }}>
-                          {m.name}
-                        </Typography>
-                        <Typography sx={{ fontSize: 10, color: "#9ca3af" }}>
-                          {m.id}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                ) : filteredModels.length === 0 ? (
-                  <Box sx={{ p: 3, textAlign: "center" }}>
-                    <Typography sx={{ fontSize: 13, color: "#9ca3af" }}>
-                      No models found
-                    </Typography>
-                  </Box>
-                ) : (
-                  filteredModels.map((m) => {
-                    const isSelected = m.id === model;
-                    return (
-                      <Box
-                        key={m.id}
-                        onClick={() => handleModelSelect(m.id)}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          pl: 2.5,
-                          pr: 1.5,
-                          py: 1,
-                          cursor: "pointer",
-                          backgroundColor: isSelected ? "#E8F5F1" : "transparent",
-                          "&:hover": {
-                            backgroundColor: isSelected ? "#E8F5F1" : "#f9fafb",
-                          },
-                        }}
-                      >
-                        <Stack direction="row" alignItems="center" spacing={1.5}>
-                          {isSelected && <Check size={16} color="#13715B" />}
-                          {renderProviderIcon(provider, 18)}
-                          <Typography sx={{ fontSize: 13, fontWeight: isSelected ? 600 : 400, color: isSelected ? "#13715B" : "#374151" }}>
-                            {m.name}
-                          </Typography>
-                        </Stack>
-                      </Box>
-                    );
-                  })
-                )}
-              </Box>
-            </Stack>
-          </Paper>
-        </ClickAwayListener>
-      </Popper>
-    </Box>
-  );
-}
 
 interface UserDataset {
   id: number;
@@ -677,6 +187,10 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   const groupByOptions: GroupByOption[] = [
     { id: "status", label: "Status" },
   ];
+
+  // Wizard step state
+  const [activeStep, setActiveStep] = useState(0);
+  const wizardSteps = ["Settings", "Contestants"];
 
   // New comparison form state
   const [newComparison, setNewComparison] = useState({
@@ -859,6 +373,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   };
 
   const resetForm = () => {
+    setActiveStep(0);
     setNewComparison({
       name: "",
       selectedCriteria: ["helpfulness", "accuracy"],
@@ -974,13 +489,15 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   // If viewing results, show the results page
   if (viewingResultsId) {
     return (
-      <ArenaResultsPage
-        comparisonId={viewingResultsId}
-        onBack={() => {
-          setViewingResultsId(null);
-          loadComparisons();
-        }}
-      />
+      <Box sx={{ minHeight: "unset" }}>
+        <ArenaResultsPage
+          comparisonId={viewingResultsId}
+          onBack={() => {
+            setViewingResultsId(null);
+            loadComparisons();
+          }}
+        />
+      </Box>
     );
   }
 
@@ -990,9 +507,9 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       <Box
         sx={{
           background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)",
-          borderRadius: "16px",
-          p: 4,
-          mb: 3,
+          borderRadius: "8px",
+          p: "16px",
+          mb: "16px",
           position: "relative",
           overflow: "hidden",
         }}
@@ -1022,56 +539,41 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         />
         
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ position: "relative", zIndex: 1 }}>
-          <Box>
-            <Stack direction="row" alignItems="center" spacing={1.5} mb={1}>
-              <Box
-                sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: "12px",
-                  background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 4px 14px rgba(251,191,36,0.4)",
-                }}
-              >
-                <Swords size={24} color="#1e1b4b" />
-              </Box>
-              <Typography
-                sx={{
-                  fontSize: 24,
-                  fontWeight: 700,
-                  color: "#fff",
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                LLM Arena
-              </Typography>
-            </Stack>
-            <Typography sx={{ fontSize: 14, color: "rgba(255,255,255,0.7)", maxWidth: 400 }}>
+          <Box sx={{ textAlign: "center", flex: 1, pt: "16px", pb: "16px" }}>
+            <Typography
+              sx={{
+                fontSize: 24,
+                fontWeight: 700,
+                color: "#fff",
+                letterSpacing: "-0.02em",
+                mb: 1,
+              }}
+            >
+              LLM Arena
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: "rgba(255,255,255,0.7)", maxWidth: 400, mx: "auto", mb: "16px" }}>
               Pit your models against each other in head-to-head battles. Let the LLM judge decide the winner.
             </Typography>
+            <CustomizableButton
+              variant="contained"
+              text="New Battle"
+              icon={<Zap size={18} />}
+              onClick={() => setCreateModalOpen(true)}
+              sx={{
+                background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
+                color: "#1e1b4b",
+                fontWeight: 600,
+                px: 6,
+                py: 1.5,
+                borderRadius: "4px",
+                boxShadow: "0 4px 14px rgba(251,191,36,0.4)",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%)",
+                  boxShadow: "0 6px 20px rgba(251,191,36,0.5)",
+                },
+              }}
+            />
           </Box>
-          <CustomizableButton
-            variant="contained"
-            text="New Battle"
-            icon={<Zap size={18} />}
-            onClick={() => setCreateModalOpen(true)}
-            sx={{
-              background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
-              color: "#1e1b4b",
-              fontWeight: 600,
-              px: 3,
-              py: 1.5,
-              borderRadius: "12px",
-              boxShadow: "0 4px 14px rgba(251,191,36,0.4)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%)",
-                boxShadow: "0 6px 20px rgba(251,191,36,0.5)",
-              },
-            }}
-          />
         </Stack>
       </Box>
 
@@ -1092,8 +594,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         <Box
           sx={{
             border: "2px dashed #c7d2fe",
-            borderRadius: "16px",
-            p: 8,
+            borderRadius: "8px",
+            p: "16px",
             textAlign: "center",
             backgroundColor: "#f5f3ff",
             position: "relative",
@@ -1131,6 +633,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               alignItems: "center",
               justifyContent: "center",
               margin: "0 auto",
+              mt: "16px",
               mb: 3,
               boxShadow: "0 8px 24px rgba(99,102,241,0.3)",
             }}
@@ -1140,28 +643,10 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#1e1b4b", mb: 1 }}>
             No battles yet
           </Typography>
-          <Typography sx={{ fontSize: 14, color: "#6b7280", mb: 4, maxWidth: 400, mx: "auto" }}>
+          <Typography sx={{ fontSize: 14, color: "#6b7280", maxWidth: 400, mx: "auto", mb: "16px" }}>
             Create your first arena battle to pit different model versions against each other
             and discover which one performs better.
           </Typography>
-          <CustomizableButton
-            variant="contained"
-            text="Start First Battle"
-            icon={<Zap size={18} />}
-            onClick={() => setCreateModalOpen(true)}
-            sx={{
-              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-              color: "#fff",
-              fontWeight: 600,
-              px: 4,
-              py: 1.5,
-              borderRadius: "12px",
-              boxShadow: "0 4px 14px rgba(99,102,241,0.4)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)",
-              },
-            }}
-          />
         </Box>
       ) : (
         /* Comparisons with toolbar */
@@ -1171,7 +656,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             direction="row"
             spacing={2}
             alignItems="center"
-            sx={{ mt: 8, mb: 3 }}
+            sx={{ mt: 2, mb: 2 }}
           >
             <FilterBy
               columns={filterColumns}
@@ -1228,154 +713,88 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         </>
       )}
 
-      {/* Create Comparison Modal */}
-      <ModalStandard
+      {/* Create Comparison Modal - 2-Step Wizard */}
+      <StepperModal
         isOpen={createModalOpen}
         onClose={() => {
           setCreateModalOpen(false);
           resetForm();
         }}
-        title=""
-        description=""
+        title="Create arena battle"
+        steps={wizardSteps}
+        activeStep={activeStep}
+        onNext={() => setActiveStep((prev) => prev + 1)}
+        onBack={() => setActiveStep((prev) => prev - 1)}
         onSubmit={handleCreateComparison}
-        submitButtonText={creating ? "Starting..." : "Start Battle"}
-        isSubmitting={creating || !newComparison.name.trim() || newComparison.selectedCriteria.length === 0}
+        submitButtonText={creating ? "Starting..." : "Start battle"}
+        isSubmitting={creating}
+        canProceed={
+          activeStep === 0
+            ? newComparison.name.trim() !== "" && newComparison.selectedCriteria.length > 0
+            : newComparison.contestants.every((c) => c.hyperparameters?.model)
+        }
       >
-        <Stack spacing={4}>
-          {/* Modal Header */}
-          <Box sx={{ textAlign: "center" }}>
-            <Box
-              sx={{
-                width: 56,
-                height: 56,
-                borderRadius: "16px",
-                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto",
-                mb: 2,
-                boxShadow: "0 8px 24px rgba(99,102,241,0.3)",
-              }}
-            >
-              <Swords size={28} color="#fff" />
-            </Box>
-            <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
-              Create Arena Battle
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: "#6b7280", mt: 0.5 }}>
-              Compare two or more model outputs to determine which performs better
-            </Typography>
-          </Box>
+        {activeStep === 0 ? (
+          /* Step 1: Settings */
+          <Stack spacing={4}>
+            <Field
+              label="Battle name"
+              value={newComparison.name}
+              onChange={(e) => setNewComparison({ ...newComparison, name: e.target.value })}
+              placeholder="e.g., GPT-4 vs Claude Showdown"
+              isRequired
+            />
 
-          <Divider />
-
-          <Field
-            label="Battle name"
-            value={newComparison.name}
-            onChange={(e) => setNewComparison({ ...newComparison, name: e.target.value })}
-            placeholder="e.g., GPT-4 vs Claude Showdown"
-            isRequired
-          />
-
-          {/* Evaluation Settings */}
-          <Box
-            sx={{
-              p: 4,
-              borderRadius: "12px",
-              backgroundColor: "#f8fafc",
-              border: "1px solid #e2e8f0",
-            }}
-          >
-            <Stack direction="row" alignItems="center" spacing={1} mb={2.5}>
-              <Target size={16} color="#6366f1" />
-              <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
-                Evaluation Settings
-              </Typography>
-            </Stack>
-            
             {/* Judge Model */}
-            <Box sx={{ mb: 2.5 }}>
+            <Box>
               <ModelSelector
                 provider={newComparison.judgeProvider}
                 model={newComparison.judgeModel}
                 onProviderChange={(provider) => setNewComparison({ ...newComparison, judgeProvider: provider, judgeModel: "" })}
                 onModelChange={(model) => setNewComparison({ ...newComparison, judgeModel: model })}
-                borderColor="#6366f1"
                 configuredProviders={configuredProviders}
                 onNavigateToSettings={() => navigate("/evals#settings")}
+                label="Judge model"
               />
               <Typography sx={{ fontSize: 11, color: "#9ca3af", mt: 1 }}>
                 The LLM that will compare and score the responses
               </Typography>
             </Box>
-            
+
             {/* Evaluation Criteria */}
             <Box>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1.5}>
-                <Stack direction="row" alignItems="center" spacing={0.75}>
-                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
-                    Evaluation Criteria
-                  </Typography>
-                  <Tooltip
-                    title={
-                      <Box sx={{ p: 0.5 }}>
-                        <Typography sx={{ fontSize: 12, fontWeight: 600, mb: 1 }}>
-                          How criteria are used:
-                        </Typography>
-                        <Typography sx={{ fontSize: 11, mb: 1, lineHeight: 1.4 }}>
-                          The judge model evaluates each response against all selected criteria and picks an overall winner.
-                        </Typography>
-                        <Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
-                        {EVALUATION_CRITERIA.map((c) => (
-                          <Box key={c.id} sx={{ mb: 0.75 }}>
-                            <Typography sx={{ fontSize: 11, fontWeight: 600 }}>{c.name}</Typography>
-                            <Typography sx={{ fontSize: 10, opacity: 0.8 }}>{c.description}</Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    }
-                    arrow
-                    placement="right"
-                    componentsProps={{
-                      tooltip: {
-                        sx: {
-                          backgroundColor: "#1f2937",
-                          maxWidth: 280,
-                          p: 1.5,
-                        },
-                      },
-                      arrow: {
-                        sx: {
-                          color: "#1f2937",
-                        },
-                      },
-                    }}
-                  >
-                    <Box sx={{ display: "flex", cursor: "help" }}>
-                      <Info size={14} color="#9ca3af" />
-                    </Box>
-                  </Tooltip>
-                </Stack>
-                <Chip
-                  label={`${newComparison.selectedCriteria.length} selected`}
-                  size="small"
-                  sx={{
-                    backgroundColor: newComparison.selectedCriteria.length > 0 ? "#f5f3ff" : "#fef2f2",
-                    color: newComparison.selectedCriteria.length > 0 ? "#6366f1" : "#ef4444",
-                    fontWeight: 600,
-                    fontSize: 11,
-                    height: 22,
-                  }}
-                />
+              <Stack direction="row" alignItems="center" spacing={0.75} mb={1.5}>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                  Evaluation criteria
+                </Typography>
+                <VWTooltip
+                  header="How criteria are used"
+                  content={
+                    <>
+                      <p>The judge model evaluates each response against all selected criteria and picks an overall winner.</p>
+                      {EVALUATION_CRITERIA.map((c) => (
+                        <Box key={c.id} sx={{ mb: 0.75 }}>
+                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{c.name}</Typography>
+                          <Typography sx={{ fontSize: 13, opacity: 0.8, color: "#fff" }}>{c.description}</Typography>
+                        </Box>
+                      ))}
+                    </>
+                  }
+                  maxWidth={320}
+                  placement="right"
+                >
+                  <Box sx={{ display: "flex", cursor: "help" }}>
+                    <Info size={14} color="#9ca3af" />
+                  </Box>
+                </VWTooltip>
               </Stack>
-              
+
               {/* Grid of criteria - 2 column boxes */}
               <Box
                 sx={{
                   display: "grid",
                   gridTemplateColumns: "repeat(2, 1fr)",
-                  gap: 1.5,
+                  gap: 1,
                 }}
               >
                 {EVALUATION_CRITERIA.map((criteria) => {
@@ -1387,41 +806,23 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 4,
-                        px: 2,
-                        py: 1.5,
-                        borderRadius: "10px",
-                        border: "1px solid",
-                        borderColor: "#e5e7eb",
-                        backgroundColor: "#fff",
+                        gap: 1,
                         cursor: "pointer",
-                        transition: "all 0.15s ease",
-                        "&:hover": {
-                          borderColor: "#d1d5db",
-                          backgroundColor: "#f9fafb",
-                        },
                       }}
                     >
-                      <Box
+                      <Checkbox
+                        id={`criteria-${criteria.id}`}
+                        isChecked={isSelected}
+                        value={criteria.id}
+                        onChange={() => {}}
+                        onClick={(e) => e.stopPropagation()}
+                        size="small"
+                        sx={{ p: 0 }}
+                      />
+                      <Typography
                         sx={{
-                          width: 18,
-                          height: 18,
-                          borderRadius: "4px",
-                          border: "2px solid",
-                          borderColor: isSelected ? "#6366f1" : "#d1d5db",
-                          backgroundColor: isSelected ? "#6366f1" : "transparent",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {isSelected && <Check size={12} color="#fff" strokeWidth={3} />}
-                      </Box>
-                      <Typography 
-                        sx={{ 
-                          fontSize: 13, 
-                          fontWeight: 500, 
+                          fontSize: 13,
+                          fontWeight: 500,
                           color: "#374151",
                         }}
                       >
@@ -1431,18 +832,17 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   );
                 })}
               </Box>
-              
+
               {newComparison.selectedCriteria.length === 0 && (
                 <Typography sx={{ fontSize: 12, color: "#ef4444", mt: 1.5, textAlign: "center" }}>
                   Please select at least one evaluation criterion
                 </Typography>
               )}
             </Box>
-            
-            {/* Dataset selector - shared across all contestants */}
-            <Box sx={{ mt: 3 }}>
+
+            {/* Dataset selector */}
+            <Box>
               <Stack direction="row" alignItems="center" spacing={1} mb={0.75}>
-                <Database size={14} color="#6366f1" />
                 <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054" }}>
                   Dataset
                 </Typography>
@@ -1450,104 +850,42 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               <Typography sx={{ fontSize: 11, color: "#9ca3af", mb: 1 }}>
                 All contestants will be evaluated using this dataset
               </Typography>
-              <FormControl fullWidth size="small">
-                <Select
-                  value={newComparison.datasetPath || ""}
-                  onChange={(e) => setNewComparison({ ...newComparison, datasetPath: e.target.value })}
-                  displayEmpty
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        maxHeight: 280,
-                        overflowY: "auto",
-                      },
-                    },
-                  }}
-                  sx={{
-                    fontSize: 13,
-                    backgroundColor: "#fff",
-                    borderRadius: "8px",
-                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#e5e7eb" },
-                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#d1d5db" },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#6366f1" },
-                  }}
-                >
-                  <MenuItem value="" disabled>
-                    <Typography sx={{ color: "#9ca3af", fontSize: 13 }}>
-                      {datasetsLoading ? "Loading datasets..." : "Select a dataset"}
-                    </Typography>
-                  </MenuItem>
-                  
-                  {/* My Datasets section */}
-                  {myDatasets.length > 0 && (
-                    <MenuItem disabled sx={{ opacity: 1, py: 0.5 }}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Database size={12} color="#6366f1" />
-                        <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#6366f1", textTransform: "uppercase" }}>
-                          My Datasets
-                        </Typography>
-                      </Stack>
-                    </MenuItem>
-                  )}
-                  {myDatasets.map((ds) => (
-                    <MenuItem key={`my-${ds.id}`} value={ds.path} sx={{ pl: 3 }}>
-                      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
-                        <Database size={14} color="#6366f1" />
-                        <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{ds.name}</Typography>
-                          <Typography sx={{ fontSize: 11, color: "#9ca3af" }}>
-                            {ds.promptCount} prompts • {ds.datasetType || "chatbot"}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </MenuItem>
-                  ))}
-                  
-                  {/* Template Datasets section */}
-                  {templateDatasets.length > 0 && (
-                    <MenuItem disabled sx={{ opacity: 1, py: 0.5, mt: myDatasets.length > 0 ? 1 : 0 }}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Folder size={12} color="#10b981" />
-                        <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase" }}>
-                          Template Datasets
-                        </Typography>
-                      </Stack>
-                    </MenuItem>
-                  )}
-                  {templateDatasets.map((ds) => (
-                    <MenuItem key={`template-${ds.key}`} value={ds.path} sx={{ pl: 3 }}>
-                      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
-                        <Folder size={14} color="#10b981" />
-                        <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{ds.name}</Typography>
-                          <Typography sx={{ fontSize: 11, color: "#9ca3af" }}>
-                            {ds.use_case}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </MenuItem>
-                  ))}
-                  
-                  {myDatasets.length === 0 && templateDatasets.length === 0 && !datasetsLoading && (
-                    <MenuItem disabled>
-                      <Typography sx={{ fontSize: 13, color: "#9ca3af", fontStyle: "italic" }}>
-                        No datasets found. Upload one in the Datasets tab.
-                      </Typography>
-                    </MenuItem>
-                  )}
-                </Select>
-              </FormControl>
+              <GroupedSelect
+                id="dataset-select"
+                value={newComparison.datasetPath || ""}
+                onChange={(value) => setNewComparison({ ...newComparison, datasetPath: String(value) })}
+                placeholder="Select a dataset"
+                loading={datasetsLoading}
+                loadingText="Loading datasets..."
+                emptyText="No datasets found. Upload one in the Datasets tab."
+                groups={[
+                  {
+                    label: "My Datasets",
+                    color: "#6366f1",
+                    items: myDatasets.map((ds) => ({
+                      value: ds.path,
+                      label: ds.name,
+                      description: `${ds.promptCount} prompts • ${ds.datasetType || "chatbot"}`,
+                    })),
+                  },
+                  {
+                    label: "Template Datasets",
+                    color: "#10b981",
+                    items: templateDatasets.map((ds) => ({
+                      value: ds.path,
+                      label: ds.name,
+                      description: ds.use_case,
+                    })),
+                  },
+                ]}
+              />
             </Box>
-          </Box>
-
-          {/* Spacer between Evaluation Settings and Contestants */}
-          <Box sx={{ height: 6 }} />
-
-          {/* Contestants */}
+          </Stack>
+        ) : (
+          /* Step 2: Contestants */
           <Box>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
               <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Swords size={16} color="#6366f1" />
                 <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
                   Contestants
                 </Typography>
@@ -1566,7 +904,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               </Stack>
               <CustomizableButton
                 variant="contained"
-                text="Add Player"
+                text="Add player"
                 icon={<Box sx={{ display: "flex" }}><Plus size={14} /></Box>}
                 onClick={addContestant}
                 sx={{
@@ -1589,8 +927,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 }}
               />
             </Stack>
-            
-            <Stack spacing={4}>
+
+            <Stack spacing="8px">
               {newComparison.contestants.map((contestant, index) => {
                 // Cycle through colors for multiple contestants
                 const colors = [
@@ -1603,14 +941,14 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 ];
                 const colorScheme = colors[index % colors.length];
                 const hasRemoveButton = newComparison.contestants.length > 2;
-                
+
                 return (
                   <Box
                     key={index}
                     sx={{
                       p: 3,
                       pt: 3,
-                      borderRadius: "12px",
+                      borderRadius: "4px",
                       border: "2px solid",
                       borderColor: colorScheme.border,
                       backgroundColor: colorScheme.bg,
@@ -1635,8 +973,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                         }}
                       >
                         <Target size={14} />
-                        {contestant.hyperparameters?.model 
-                          ? contestant.name 
+                        {contestant.hyperparameters?.model
+                          ? contestant.name
                           : `Contestant ${index + 1}`}
                       </Box>
                       {hasRemoveButton && (
@@ -1657,16 +995,16 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                     </Stack>
 
                     <Stack spacing={2.5} sx={{ pb: 2 }}>
-                      {/* Model selector (Braintrust-style) */}
+                      {/* Model selector */}
                       <Box sx={{ pb: 1 }}>
                         <ModelSelector
                           provider={contestant.hyperparameters?.provider || "openai"}
                           model={contestant.hyperparameters?.model || ""}
                           onProviderChange={(newProvider) => updateContestant(index, "provider", newProvider)}
                           onModelChange={(newModel) => updateContestant(index, "model", newModel)}
-                          borderColor={colorScheme.border}
                           configuredProviders={configuredProviders}
                           onNavigateToSettings={() => navigate("/evals#settings")}
+                          label=""
                         />
                       </Box>
                     </Stack>
@@ -1675,8 +1013,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               })}
             </Stack>
           </Box>
-        </Stack>
-      </ModalStandard>
+        )}
+      </StepperModal>
 
     </Box>
   );

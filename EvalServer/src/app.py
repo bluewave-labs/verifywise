@@ -20,10 +20,21 @@ logger = logging.getLogger('uvicorn')
 def run_migrations():
     logger.info("Running migrations...")
     try:
-        alembic_cfg = Config("alembic.ini")
-        command.upgrade(alembic_cfg, "head")
+        import subprocess
+        result = subprocess.run(
+            ["alembic", "upgrade", "head"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        if result.returncode == 0:
+            logger.info("Migrations completed successfully")
+        else:
+            logger.warning(f"Migrations failed: {result.stderr}")
+    except subprocess.TimeoutExpired:
+        logger.warning("Migrations timed out, continuing anyway")
     except Exception as e:
-        logger.info(f"Error running migrations: {e}")
+        logger.warning(f"Migrations skipped or failed: {e}")
 
 async def shutdown_redis():
     await close_redis()

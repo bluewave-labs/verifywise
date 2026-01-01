@@ -4,18 +4,19 @@ import {
   TableRow,
   TableCell,
   IconButton,
-  Popover,
+  Menu,
+  MenuItem,
   Typography,
   Chip,
   Stack,
   Box,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
-import { Eye, Trash2, MoreVertical } from "lucide-react";
+import { Eye, Trash2, Settings } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ArenaRow } from "./index";
 import ConfirmationModal from "../../Dialogs/ConfirmationModal";
-import CustomizableButton from "../../Button/CustomizableButton";
 
 interface ArenaTableBodyProps {
   rows: ArenaRow[];
@@ -106,10 +107,13 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
   onDelete,
   deleting,
 }) => {
+  const theme = useTheme();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [menuRow, setMenuRow] = useState<ArenaRow | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<ArenaRow | null>(null);
+
+  const dropDownStyle = singleTheme.dropDownStyles.primary;
 
   const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, row: ArenaRow) => {
     e.stopPropagation();
@@ -322,17 +326,11 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
                 <CircularProgress size={18} sx={{ color: "#6366f1" }} />
               ) : (
                 <IconButton
-                  size="small"
+                  disableRipple={theme.components?.MuiIconButton?.defaultProps?.disableRipple}
                   onClick={(e) => handleMenuOpen(e, row)}
-                  sx={{
-                    color: "#667085",
-                    padding: "6px",
-                    "&:hover": {
-                      backgroundColor: "#F3F4F6",
-                    },
-                  }}
+                  sx={singleTheme.iconButtons}
                 >
-                  <MoreVertical size={18} />
+                  <Settings size={20} />
                 </IconButton>
               )}
             </TableCell>
@@ -340,73 +338,31 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
         ))}
 
       {/* Action Menu */}
-      <Popover
-        open={Boolean(menuAnchorEl)}
+      <Menu
         anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        sx={{
-          "& .MuiPopover-paper": {
-            minWidth: 120,
-            borderRadius: "4px",
-            border: "1px solid #d0d5dd",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            overflow: "hidden",
-            mt: 0.5,
-            p: 1,
+        slotProps={{
+          paper: {
+            sx: dropDownStyle,
           },
         }}
       >
-        <Stack spacing={1}>
-          {onViewResults && menuRow?.status === "completed" && (
-            <CustomizableButton
-              variant="outlined"
-              onClick={handleViewResultsClick}
-              startIcon={<Eye size={14} />}
-              sx={{
-                height: "34px",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
-                backgroundColor: "transparent",
-                justifyContent: "flex-start",
-                "&:hover": {
-                  backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
-                },
-              }}
-            >
-              View Results
-            </CustomizableButton>
-          )}
-          {onDelete && (
-            <CustomizableButton
-              variant="outlined"
-              onClick={handleDeleteClick}
-              startIcon={<Trash2 size={14} />}
-              sx={{
-                height: "34px",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#DC2626",
-                borderColor: "#d0d5dd",
-                backgroundColor: "transparent",
-                justifyContent: "flex-start",
-                "&:hover": {
-                  backgroundColor: "#FEF2F2",
-                  borderColor: "#DC2626",
-                },
-              }}
-            >
-              Delete
-            </CustomizableButton>
-          )}
-        </Stack>
-      </Popover>
+        {onViewResults && menuRow?.status === "completed" && (
+          <MenuItem onClick={handleViewResultsClick}>
+            View results
+          </MenuItem>
+        )}
+        {onDelete && (
+          <MenuItem
+            onClick={handleDeleteClick}
+            sx={{ color: "#d32f2f" }}
+          >
+            Delete
+          </MenuItem>
+        )}
+      </Menu>
 
       {/* Delete Confirmation Modal */}
       <ConfirmationModal

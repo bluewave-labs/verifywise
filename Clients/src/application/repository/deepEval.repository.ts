@@ -193,6 +193,9 @@ export const deleteLlmApiKey = (provider: LLMProvider) =>
 export const hasLlmApiKey = (provider: LLMProvider) =>
   evaluationLlmApiKeysService.hasKey(provider);
 
+export const verifyLlmApiKey = (provider: string, apiKey: string) =>
+  evaluationLlmApiKeysService.verifyKey({ provider, apiKey });
+
 // ==================== EVALUATION LOGS ====================
 
 export const createLog = (

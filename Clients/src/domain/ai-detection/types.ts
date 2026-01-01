@@ -22,6 +22,10 @@ export type ConfidenceLevel = "high" | "medium" | "low";
 
 export type RiskLevel = "high" | "medium" | "low";
 
+export type LicenseRiskLevel = "high" | "medium" | "low" | "unknown";
+
+export type LicenseSource = "package" | "huggingface" | "pypi" | "npm" | "manual";
+
 export type GovernanceStatus = "reviewed" | "approved" | "flagged";
 
 export interface TriggeredByUser {
@@ -56,9 +60,18 @@ export interface FilePath {
   matched_text: string;
 }
 
+export type FindingType =
+  | "library"
+  | "dependency"
+  | "api_call"
+  | "secret"
+  | "model_ref"
+  | "rag_component"
+  | "agent";
+
 export interface Finding {
   id: number;
-  finding_type: "library" | "dependency" | "api_call" | "secret";
+  finding_type: FindingType;
   category: string;
   name: string;
   provider: string;
@@ -71,6 +84,11 @@ export interface Finding {
   governance_status?: GovernanceStatus | null;
   governance_updated_at?: string;
   governance_updated_by?: number;
+  // License information
+  license_id?: string | null;
+  license_name?: string | null;
+  license_risk?: LicenseRiskLevel | null;
+  license_source?: LicenseSource | null;
 }
 
 // ============================================================================
@@ -152,6 +170,9 @@ export interface FindingsByType {
   dependency: number;
   api_call: number;
   secret: number;
+  model_ref: number;
+  rag_component: number;
+  agent: number;
 }
 
 export interface ScanSummary {
@@ -201,7 +222,7 @@ export interface GetFindingsParams {
   page?: number;
   limit?: number;
   confidence?: ConfidenceLevel;
-  finding_type?: "library" | "dependency" | "api_call" | "secret";
+  finding_type?: FindingType;
 }
 
 // ============================================================================
@@ -277,7 +298,136 @@ export interface AIDetectionStats {
   unique_repositories: number;
   top_providers: { provider: string; count: number }[];
   findings_by_confidence: { high: number; medium: number; low: number };
-  findings_by_type: { library: number; api_call: number; dependency: number; secret: number };
+  findings_by_type: FindingsByType;
   security_findings: number;
   recent_activity: { date: string; scans: number; findings: number }[];
+}
+
+// ============================================================================
+// Dependency Graph Types
+// ============================================================================
+
+export type DependencyNodeType =
+  | "library"
+  | "model"
+  | "api"
+  | "secret"
+  | "rag"
+  | "agent"
+  | "repository";
+
+export type EdgeRelationship =
+  | "uses"
+  | "calls"
+  | "requires"
+  | "exposes"
+  | "orchestrates"
+  | "contains";
+
+export interface DependencyGraphNode {
+  id: string;
+  findingId: number;
+  type: DependencyNodeType;
+  label: string;
+  sublabel?: string;
+  provider: string;
+  confidence: ConfidenceLevel;
+  riskLevel: RiskLevel;
+  fileCount: number;
+  filePaths: FilePath[];
+  governanceStatus?: GovernanceStatus | null;
+}
+
+export interface DependencyGraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  relationship: EdgeRelationship;
+  confidence: ConfidenceLevel;
+}
+
+export interface DependencyGraphRepository {
+  owner: string;
+  name: string;
+  url: string;
+}
+
+export interface DependencyGraphSummary {
+  totalNodes: number;
+  byType: Record<string, number>;
+  byRiskLevel: { high: number; medium: number; low: number };
+  byProvider: Record<string, number>;
+}
+
+export interface DependencyGraphResponse {
+  nodes: DependencyGraphNode[];
+  edges: DependencyGraphEdge[];
+  repository: DependencyGraphRepository;
+  summary: DependencyGraphSummary;
+}
+
+// ============================================================================
+// Compliance Mapping Types
+// ============================================================================
+
+export type ComplianceCategory =
+  | "transparency"
+  | "documentation"
+  | "risk_management"
+  | "data_governance"
+  | "human_oversight"
+  | "security"
+  | "monitoring"
+  | "accountability";
+
+export type DocumentationRequirement = "required" | "recommended" | "conditional";
+
+export interface ComplianceRequirement {
+  id: string;
+  articleRef: string;
+  title: string;
+  description: string;
+  category: ComplianceCategory;
+  documentationRequired: DocumentationRequirement;
+  checklistItems: string[];
+}
+
+export interface ComplianceFindingMapping {
+  findingId: number;
+  findingName: string;
+  findingType: string;
+  provider: string;
+  requirements: ComplianceRequirement[];
+  riskFactors: string[];
+  documentationNeeds: string[];
+}
+
+export interface ComplianceChecklistItem {
+  id: string;
+  text: string;
+  category: ComplianceCategory;
+  articleRef: string;
+  priority: "high" | "medium" | "low";
+  relatedFindings: { id: number; name: string; type: string }[];
+  completed: boolean;
+}
+
+export interface ComplianceSummary {
+  totalRequirements: number;
+  byCategory: Record<ComplianceCategory, number>;
+  byPriority: { high: number; medium: number; low: number };
+  coveragePercentage: number;
+}
+
+export interface ComplianceMappingResponse {
+  scanId: number;
+  repository: {
+    owner: string;
+    name: string;
+    url: string;
+  };
+  mappings: ComplianceFindingMapping[];
+  checklist: ComplianceChecklistItem[];
+  summary: ComplianceSummary;
+  generatedAt: string;
 }

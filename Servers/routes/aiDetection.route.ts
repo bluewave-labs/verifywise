@@ -31,6 +31,9 @@ import {
   updateGovernanceStatusController,
   getGovernanceSummaryController,
   getAIDetectionStatsController,
+  exportAIBOMController,
+  getDependencyGraphController,
+  getComplianceMappingController,
 } from "../controllers/aiDetection.ctrl";
 
 const router = express.Router();
@@ -137,5 +140,29 @@ router.get("/scans/:scanId/governance-summary", authenticateJWT, authorize(ALL_R
  * @access  Private - All roles
  */
 router.get("/stats", authenticateJWT, authorize(ALL_ROLES), getAIDetectionStatsController);
+
+/**
+ * @route   GET /ai-detection/scans/:scanId/export/ai-bom
+ * @desc    Export scan results as AI Bill of Materials (AI-BOM)
+ * @access  Private - All roles
+ * @returns JSON file with AI-BOM format
+ */
+router.get("/scans/:scanId/export/ai-bom", authenticateJWT, authorize(ALL_ROLES), exportAIBOMController);
+
+/**
+ * @route   GET /ai-detection/scans/:scanId/dependency-graph
+ * @desc    Get dependency graph data for visualization
+ * @access  Private - All roles
+ * @returns { nodes: DependencyGraphNode[], edges: DependencyGraphEdge[], metadata: {...} }
+ */
+router.get("/scans/:scanId/dependency-graph", authenticateJWT, authorize(ALL_ROLES), getDependencyGraphController);
+
+/**
+ * @route   GET /ai-detection/scans/:scanId/compliance
+ * @desc    Get EU AI Act compliance mapping for scan findings
+ * @access  Private - All roles
+ * @returns { mappings: [...], checklist: [...], summary: {...} }
+ */
+router.get("/scans/:scanId/compliance", authenticateJWT, authorize(ALL_ROLES), getComplianceMappingController);
 
 export default router;

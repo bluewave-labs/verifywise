@@ -25,6 +25,10 @@ import {
   ThumbsUp,
   Flag,
   MoreHorizontal,
+  Download,
+  Network,
+  Scale,
+  FileText,
 } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Chip from "../../components/Chip";
@@ -50,6 +54,8 @@ import {
   getScanSecurityFindings,
   getScanSecuritySummary,
   updateFindingGovernanceStatus,
+  exportAIBOM,
+  getComplianceMapping,
 } from "../../../application/repository/aiDetection.repository";
 import {
   ScanResponse,
@@ -60,13 +66,26 @@ import {
   SecuritySeverity,
   SecuritySummary,
   GovernanceStatus,
+  ComplianceMappingResponse,
+  ComplianceCategory,
 } from "../../../domain/ai-detection/types";
 import { formatDistanceToNow } from "date-fns";
+import AIDepGraphModal from "../../components/AIDepGraphModal";
+
+type TabValue =
+  | "libraries"
+  | "security"
+  | "api-calls"
+  | "secrets"
+  | "models"
+  | "rag"
+  | "agents"
+  | "compliance";
 
 interface ScanDetailsPageProps {
   scanId: number;
   onBack: () => void;
-  initialTab?: "libraries" | "security" | "api-calls" | "secrets";
+  initialTab?: TabValue;
 }
 
 // ============================================================================
@@ -120,6 +139,34 @@ const RISK_LEVEL_CONFIG: Record<RiskLevel, { label: string; color: string; bgCol
   },
 };
 
+// License risk configuration for inline badge display
+const LICENSE_RISK_CONFIG: Record<string, { label: string; color: string; bgColor: string; tooltip: string }> = {
+  high: {
+    label: "Restrictive",
+    color: "#b42318",
+    bgColor: "#fef3f2",
+    tooltip: "Restrictive license (GPL, AGPL, CC-NC). May require code disclosure or prohibit commercial use.",
+  },
+  medium: {
+    label: "Moderate",
+    color: "#b54708",
+    bgColor: "#fffaeb",
+    tooltip: "Moderate restrictions (LGPL, MPL, CC-BY-SA). Some obligations but generally allows commercial use.",
+  },
+  low: {
+    label: "Permissive",
+    color: "#027a48",
+    bgColor: "#ecfdf3",
+    tooltip: "Permissive license (MIT, Apache, BSD). Minimal restrictions, allows commercial use.",
+  },
+  unknown: {
+    label: "Unknown",
+    color: "#667085",
+    bgColor: "#f2f4f7",
+    tooltip: "License could not be determined. Verify manually before commercial use.",
+  },
+};
+
 const SEVERITY_TOOLTIPS: Record<SecuritySeverity, string> = {
   critical: "Critical severity: Immediate action required. This finding indicates a severe security vulnerability that could lead to remote code execution or complete system compromise.",
   high: "High severity: Urgent attention needed. This finding indicates a significant security risk that should be addressed promptly.",
@@ -131,6 +178,23 @@ const GOVERNANCE_STATUS_CONFIG: Record<GovernanceStatus, { label: string; color:
   reviewed: { label: "Reviewed", color: "#3b82f6", icon: Eye },
   approved: { label: "Approved", color: "#10b981", icon: ThumbsUp },
   flagged: { label: "Flagged", color: "#ef4444", icon: Flag },
+};
+
+const COMPLIANCE_CATEGORY_CONFIG: Record<ComplianceCategory, { label: string; color: string; bgColor: string }> = {
+  transparency: { label: "Transparency", color: "#0369a1", bgColor: "#e0f2fe" },
+  documentation: { label: "Documentation", color: "#6366f1", bgColor: "#eef2ff" },
+  risk_management: { label: "Risk management", color: "#dc2626", bgColor: "#fef2f2" },
+  data_governance: { label: "Data governance", color: "#059669", bgColor: "#ecfdf5" },
+  human_oversight: { label: "Human oversight", color: "#d97706", bgColor: "#fffbeb" },
+  security: { label: "Security", color: "#be185d", bgColor: "#fdf2f8" },
+  monitoring: { label: "Monitoring", color: "#7c3aed", bgColor: "#f5f3ff" },
+  accountability: { label: "Accountability", color: "#0891b2", bgColor: "#ecfeff" },
+};
+
+const PRIORITY_CONFIG: Record<string, { label: string; color: string; bgColor: string }> = {
+  high: { label: "High", color: "#b42318", bgColor: "#fef3f2" },
+  medium: { label: "Medium", color: "#b54708", bgColor: "#fffaeb" },
+  low: { label: "Low", color: "#027a48", bgColor: "#ecfdf3" },
 };
 
 // ============================================================================
@@ -331,6 +395,45 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
                   }}
                 >
                   {RISK_LEVEL_CONFIG[finding.risk_level].label}
+                </Typography>
+              </Box>
+            </Tooltip>
+          )}
+          {/* License Badge */}
+          {finding.license_id && finding.license_risk && (
+            <Tooltip
+              title={
+                <Box>
+                  <Typography sx={{ fontWeight: 600, fontSize: 12 }}>{finding.license_name || finding.license_id}</Typography>
+                  <Typography sx={{ fontSize: 11, mt: 0.5 }}>
+                    {LICENSE_RISK_CONFIG[finding.license_risk]?.tooltip || "License information available"}
+                  </Typography>
+                </Box>
+              }
+              arrow
+              placement="top"
+            >
+              <Box
+                sx={{
+                  px: "8px",
+                  py: "2px",
+                  borderRadius: "4px",
+                  backgroundColor: LICENSE_RISK_CONFIG[finding.license_risk]?.bgColor || "#f2f4f7",
+                  border: `1px solid ${LICENSE_RISK_CONFIG[finding.license_risk]?.color || "#667085"}20`,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <Scale size={12} color={LICENSE_RISK_CONFIG[finding.license_risk]?.color || "#667085"} />
+                <Typography
+                  sx={{
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    color: LICENSE_RISK_CONFIG[finding.license_risk]?.color || "#667085",
+                  }}
+                >
+                  {finding.license_id}
                 </Typography>
               </Box>
             </Tooltip>
@@ -760,6 +863,9 @@ export default function ScanDetailsPage({
   const [findings, setFindings] = useState<Finding[]>([]);
   const [apiCallFindings, setApiCallFindings] = useState<Finding[]>([]);
   const [secretFindings, setSecretFindings] = useState<Finding[]>([]);
+  const [modelFindings, setModelFindings] = useState<Finding[]>([]);
+  const [ragFindings, setRagFindings] = useState<Finding[]>([]);
+  const [agentFindings, setAgentFindings] = useState<Finding[]>([]);
   const [securityFindings, setSecurityFindings] = useState<SecurityFinding[]>(
     []
   );
@@ -771,16 +877,8 @@ export default function ScanDetailsPage({
 
   // Handle tab change with URL navigation
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
-    setActiveTab(newValue as "libraries" | "security" | "api-calls" | "secrets");
-    if (newValue === "libraries") {
-      navigate(`/ai-detection/scans/${scanId}/libraries`, { replace: true });
-    } else if (newValue === "security") {
-      navigate(`/ai-detection/scans/${scanId}/security`, { replace: true });
-    } else if (newValue === "api-calls") {
-      navigate(`/ai-detection/scans/${scanId}/api-calls`, { replace: true });
-    } else if (newValue === "secrets") {
-      navigate(`/ai-detection/scans/${scanId}/secrets`, { replace: true });
-    }
+    setActiveTab(newValue as TabValue);
+    navigate(`/ai-detection/scans/${scanId}/${newValue}`, { replace: true });
   };
 
   // Sync activeTab when initialTab changes (URL navigation)
@@ -791,31 +889,54 @@ export default function ScanDetailsPage({
   const [page, setPage] = useState(1);
   const [apiCallPage, setApiCallPage] = useState(1);
   const [secretPage, setSecretPage] = useState(1);
+  const [modelPage, setModelPage] = useState(1);
+  const [ragPage, setRagPage] = useState(1);
+  const [agentPage, setAgentPage] = useState(1);
   const [securityPage, setSecurityPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [apiCallTotalPages, setApiCallTotalPages] = useState(1);
   const [secretTotalPages, setSecretTotalPages] = useState(1);
+  const [modelTotalPages, setModelTotalPages] = useState(1);
+  const [ragTotalPages, setRagTotalPages] = useState(1);
+  const [agentTotalPages, setAgentTotalPages] = useState(1);
   const [securityTotalPages, setSecurityTotalPages] = useState(1);
   const [confidenceFilter, setConfidenceFilter] =
     useState<ConfidenceLevel | null>(null);
   const [severityFilter, setSeverityFilter] = useState<SecuritySeverity | null>(
     null
   );
+  const [isExporting, setIsExporting] = useState(false);
+  const [showDepGraph, setShowDepGraph] = useState(false);
+  const [complianceData, setComplianceData] = useState<ComplianceMappingResponse | null>(null);
+  const [complianceLoading, setComplianceLoading] = useState(false);
+  const [expandedChecklist, setExpandedChecklist] = useState<Set<string>>(new Set());
 
   // Initial load - only loads scan data
   useEffect(() => {
     const loadInitialData = async () => {
       setIsLoading(true);
       try {
-        const [scanResponse, findingsResponse, apiCallFindingsResponse, secretFindingsResponse, securityFindingsResponse, summaryResponse] =
-          await Promise.all([
-            getScan(scanId),
-            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "library" }),
-            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "api_call" }),
-            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "secret" }),
-            getScanSecurityFindings(scanId, { page: 1, limit: 50 }),
-            getScanSecuritySummary(scanId),
-          ]);
+        const [
+          scanResponse,
+          findingsResponse,
+          apiCallFindingsResponse,
+          secretFindingsResponse,
+          modelFindingsResponse,
+          ragFindingsResponse,
+          agentFindingsResponse,
+          securityFindingsResponse,
+          summaryResponse,
+        ] = await Promise.all([
+          getScan(scanId),
+          getScanFindings(scanId, { page: 1, limit: 50, finding_type: "library" }),
+          getScanFindings(scanId, { page: 1, limit: 50, finding_type: "api_call" }),
+          getScanFindings(scanId, { page: 1, limit: 50, finding_type: "secret" }),
+          getScanFindings(scanId, { page: 1, limit: 50, finding_type: "model_ref" }),
+          getScanFindings(scanId, { page: 1, limit: 50, finding_type: "rag_component" }),
+          getScanFindings(scanId, { page: 1, limit: 50, finding_type: "agent" }),
+          getScanSecurityFindings(scanId, { page: 1, limit: 50 }),
+          getScanSecuritySummary(scanId),
+        ]);
         setScan(scanResponse);
         setFindings(findingsResponse.findings);
         setTotalPages(findingsResponse.pagination.total_pages);
@@ -823,6 +944,12 @@ export default function ScanDetailsPage({
         setApiCallTotalPages(apiCallFindingsResponse.pagination.total_pages);
         setSecretFindings(secretFindingsResponse.findings);
         setSecretTotalPages(secretFindingsResponse.pagination.total_pages);
+        setModelFindings(modelFindingsResponse.findings);
+        setModelTotalPages(modelFindingsResponse.pagination.total_pages);
+        setRagFindings(ragFindingsResponse.findings);
+        setRagTotalPages(ragFindingsResponse.pagination.total_pages);
+        setAgentFindings(agentFindingsResponse.findings);
+        setAgentTotalPages(agentFindingsResponse.pagination.total_pages);
         setSecurityFindings(securityFindingsResponse.findings);
         setSecurityTotalPages(securityFindingsResponse.pagination.total_pages);
         setSecuritySummary(summaryResponse);
@@ -900,6 +1027,69 @@ export default function ScanDetailsPage({
     loadSecretFindings();
   }, [scanId, secretPage, scan]);
 
+  // Reload model findings when page changes
+  useEffect(() => {
+    if (!scan) return;
+
+    const loadModelFindings = async () => {
+      try {
+        const findingsResponse = await getScanFindings(scanId, {
+          page: modelPage,
+          limit: 50,
+          finding_type: "model_ref",
+        });
+        setModelFindings(findingsResponse.findings);
+        setModelTotalPages(findingsResponse.pagination.total_pages);
+      } catch {
+        // Error loading findings - UI shows empty state
+      }
+    };
+
+    loadModelFindings();
+  }, [scanId, modelPage, scan]);
+
+  // Reload RAG findings when page changes
+  useEffect(() => {
+    if (!scan) return;
+
+    const loadRagFindings = async () => {
+      try {
+        const findingsResponse = await getScanFindings(scanId, {
+          page: ragPage,
+          limit: 50,
+          finding_type: "rag_component",
+        });
+        setRagFindings(findingsResponse.findings);
+        setRagTotalPages(findingsResponse.pagination.total_pages);
+      } catch {
+        // Error loading findings - UI shows empty state
+      }
+    };
+
+    loadRagFindings();
+  }, [scanId, ragPage, scan]);
+
+  // Reload agent findings when page changes
+  useEffect(() => {
+    if (!scan) return;
+
+    const loadAgentFindings = async () => {
+      try {
+        const findingsResponse = await getScanFindings(scanId, {
+          page: agentPage,
+          limit: 50,
+          finding_type: "agent",
+        });
+        setAgentFindings(findingsResponse.findings);
+        setAgentTotalPages(findingsResponse.pagination.total_pages);
+      } catch {
+        // Error loading findings - UI shows empty state
+      }
+    };
+
+    loadAgentFindings();
+  }, [scanId, agentPage, scan]);
+
   // Reload security findings when page or filter changes
   useEffect(() => {
     if (!scan) return;
@@ -925,6 +1115,25 @@ export default function ScanDetailsPage({
     loadSecurityFindings();
   }, [scanId, securityPage, severityFilter, scan]);
 
+  // Load compliance data when tab is selected (lazy loading)
+  useEffect(() => {
+    if (activeTab !== "compliance" || !scan || complianceData) return;
+
+    const loadComplianceData = async () => {
+      setComplianceLoading(true);
+      try {
+        const data = await getComplianceMapping(scanId);
+        setComplianceData(data);
+      } catch {
+        // Error loading compliance data - UI shows empty state
+      } finally {
+        setComplianceLoading(false);
+      }
+    };
+
+    loadComplianceData();
+  }, [activeTab, scanId, scan, complianceData]);
+
   const formatDuration = (ms?: number): string => {
     if (!ms) return "-";
     if (ms < 1000) return `${ms}ms`;
@@ -933,6 +1142,34 @@ export default function ScanDetailsPage({
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}m ${remainingSeconds}s`;
+  };
+
+  // Handle AI-BOM export
+  const handleExportAIBOM = async () => {
+    if (!scan || isExporting) return;
+
+    setIsExporting(true);
+    try {
+      const aiBomData = await exportAIBOM(scanId);
+
+      // Create blob and download
+      const blob = new Blob([JSON.stringify(aiBomData, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ai-bom-${scan.scan.repository_owner}-${scan.scan.repository_name}-${scanId}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch {
+      // Export failed - could show error toast here
+      console.error("Failed to export AI-BOM");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   if (isLoading && !scan) {
@@ -969,36 +1206,67 @@ export default function ScanDetailsPage({
       </Box>
 
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
-          {scan.scan.status === "failed" ? (
-            <AlertCircle size={24} color="#d92d20" />
-          ) : (
-            <CheckCircle2 size={24} color="#039855" />
-          )}
-          <Typography sx={{ fontSize: "15px", fontWeight: 600 }}>
-            {scan.scan.repository_owner}/{scan.scan.repository_name}
-          </Typography>
-          {scan.scan.status === "failed" && (
-            <Chip label="Failed" size="small" />
-          )}
+      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
+            {scan.scan.status === "failed" ? (
+              <AlertCircle size={24} color="#d92d20" />
+            ) : (
+              <CheckCircle2 size={24} color="#039855" />
+            )}
+            <Typography sx={{ fontSize: "15px", fontWeight: 600 }}>
+              {scan.scan.repository_owner}/{scan.scan.repository_name}
+            </Typography>
+            {scan.scan.status === "failed" && (
+              <Chip label="Failed" size="small" />
+            )}
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, ml: "28px" }}>
+            <Typography variant="body2" sx={{ color: "#101828", fontWeight: 500 }}>
+              {formatDuration(scan.scan.duration_ms)}
+            </Typography>
+            <Typography sx={{ color: "#d0d5dd", fontSize: "12px" }}>•</Typography>
+            <Typography variant="body2" sx={{ color: "#667085" }}>
+              {scan.scan.status === "failed" ? "Failed" : "Scanned"}{" "}
+              {formatDistanceToNow(new Date(scan.scan.created_at), {
+                addSuffix: true,
+              })}
+            </Typography>
+            <Typography sx={{ color: "#d0d5dd", fontSize: "12px" }}>•</Typography>
+            <Typography variant="body2" sx={{ color: "#344054" }}>
+              by {scan.scan.triggered_by.name}
+            </Typography>
+          </Box>
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, ml: "28px" }}>
-          <Typography variant="body2" sx={{ color: "#101828", fontWeight: 500 }}>
-            {formatDuration(scan.scan.duration_ms)}
-          </Typography>
-          <Typography sx={{ color: "#d0d5dd", fontSize: "12px" }}>•</Typography>
-          <Typography variant="body2" sx={{ color: "#667085" }}>
-            {scan.scan.status === "failed" ? "Failed" : "Scanned"}{" "}
-            {formatDistanceToNow(new Date(scan.scan.created_at), {
-              addSuffix: true,
-            })}
-          </Typography>
-          <Typography sx={{ color: "#d0d5dd", fontSize: "12px" }}>•</Typography>
-          <Typography variant="body2" sx={{ color: "#344054" }}>
-            by {scan.scan.triggered_by.name}
-          </Typography>
-        </Box>
+
+        {/* Action Buttons */}
+        {scan.scan.status === "completed" && (
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Tooltip title="View AI dependency graph" arrow placement="top">
+              <span>
+                <CustomizableButton
+                  text="View graph"
+                  onClick={() => setShowDepGraph(true)}
+                  variant="outlined"
+                  startIcon={<Network size={16} />}
+                  sx={{ height: 34 }}
+                />
+              </span>
+            </Tooltip>
+            <Tooltip title="Export AI Bill of Materials (AI-BOM)" arrow placement="top">
+              <span>
+                <CustomizableButton
+                  text={isExporting ? "Exporting..." : "Export AI-BOM"}
+                  onClick={handleExportAIBOM}
+                  variant="outlined"
+                  startIcon={<Download size={16} />}
+                  isDisabled={isExporting}
+                  sx={{ height: 34 }}
+                />
+              </span>
+            </Tooltip>
+          </Box>
+        )}
       </Box>
 
       {/* Error Message Alert */}
@@ -1044,6 +1312,24 @@ export default function ScanDetailsPage({
               count: scan.summary.by_finding_type?.api_call || 0,
             },
             {
+              label: "Models",
+              value: "models",
+              icon: "Box",
+              count: scan.summary.by_finding_type?.model_ref || 0,
+            },
+            {
+              label: "RAG",
+              value: "rag",
+              icon: "Database",
+              count: scan.summary.by_finding_type?.rag_component || 0,
+            },
+            {
+              label: "Agents",
+              value: "agents",
+              icon: "Bot",
+              count: scan.summary.by_finding_type?.agent || 0,
+            },
+            {
               label: "Secrets",
               value: "secrets",
               icon: "Key",
@@ -1054,6 +1340,12 @@ export default function ScanDetailsPage({
               value: "security",
               icon: "Shield",
               count: securitySummary?.total || 0,
+            },
+            {
+              label: "Compliance",
+              value: "compliance",
+              icon: "ClipboardCheck",
+              count: complianceData?.checklist?.length || 0,
             },
           ]}
           activeTab={activeTab}
@@ -1329,6 +1621,311 @@ export default function ScanDetailsPage({
                   text="Next"
                   onClick={() => setApiCallPage((p) => Math.min(apiCallTotalPages, p + 1))}
                   isDisabled={apiCallPage === apiCallTotalPages}
+                  variant="outlined"
+                  sx={{ height: 34 }}
+                />
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* Models Tab */}
+        {activeTab === "models" && (
+          <Box sx={{ mt: "8px" }}>
+            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+              Pre-trained AI/ML model references detected in the codebase. These include Hugging Face models, Ollama models, and other model identifiers.
+            </Typography>
+
+            {/* Summary */}
+            <Box
+              sx={{
+                backgroundColor: "#fff",
+                border: "1px solid #d0d5dd",
+                borderRadius: "4px",
+                p: "16px",
+                mb: "8px",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Package size={16} color="#667085" />
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {scan.summary.by_finding_type?.model_ref || 0} model reference{(scan.summary.by_finding_type?.model_ref || 0) !== 1 ? "s" : ""} detected
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ color: "#667085", mt: "8px" }}>
+                Model references indicate usage of pre-trained models from Hugging Face Hub, Ollama, and other sources.
+              </Typography>
+            </Box>
+
+            {/* Findings List */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {modelFindings.map((finding) => (
+                <FindingRow
+                  key={finding.id}
+                  finding={finding}
+                  repositoryOwner={scan.scan.repository_owner}
+                  repositoryName={scan.scan.repository_name}
+                  scanId={scanId}
+                />
+              ))}
+            </Box>
+
+            {/* Empty State */}
+            {modelFindings.length === 0 && (
+              <Box
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  backgroundColor: "#f9fafb",
+                  borderRadius: "4px",
+                  mt: "8px",
+                }}
+              >
+                <Typography variant="body1" sx={{ color: "#667085" }}>
+                  No model references detected in this repository
+                </Typography>
+                <Typography variant="body2" sx={{ color: "#98a2b3", mt: 1 }}>
+                  References to Hugging Face models, Ollama models, and other pre-trained models will appear here
+                </Typography>
+              </Box>
+            )}
+
+            {/* Pagination */}
+            {modelTotalPages > 1 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 2,
+                  mt: "16px",
+                }}
+              >
+                <CustomizableButton
+                  text="Previous"
+                  onClick={() => setModelPage((p) => Math.max(1, p - 1))}
+                  isDisabled={modelPage === 1}
+                  variant="outlined"
+                  sx={{ height: 34 }}
+                />
+                <Typography sx={{ lineHeight: "34px", color: "#667085", fontSize: "13px" }}>
+                  Page {modelPage} of {modelTotalPages}
+                </Typography>
+                <CustomizableButton
+                  text="Next"
+                  onClick={() => setModelPage((p) => Math.min(modelTotalPages, p + 1))}
+                  isDisabled={modelPage === modelTotalPages}
+                  variant="outlined"
+                  sx={{ height: 34 }}
+                />
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* RAG Tab */}
+        {activeTab === "rag" && (
+          <Box sx={{ mt: "8px" }}>
+            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+              RAG (Retrieval-Augmented Generation) pipeline components detected in the codebase. These include vector databases, document loaders, and embedding models.
+            </Typography>
+
+            {/* Summary */}
+            <Box
+              sx={{
+                backgroundColor: "#fff",
+                border: "1px solid #d0d5dd",
+                borderRadius: "4px",
+                p: "16px",
+                mb: "8px",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Info size={16} color="#667085" />
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {scan.summary.by_finding_type?.rag_component || 0} RAG component{(scan.summary.by_finding_type?.rag_component || 0) !== 1 ? "s" : ""} detected
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ color: "#667085", mt: "8px" }}>
+                RAG components indicate usage of vector databases, document loaders, and embedding systems for retrieval-augmented generation.
+              </Typography>
+            </Box>
+
+            {/* Findings List */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {ragFindings.map((finding) => (
+                <FindingRow
+                  key={finding.id}
+                  finding={finding}
+                  repositoryOwner={scan.scan.repository_owner}
+                  repositoryName={scan.scan.repository_name}
+                  scanId={scanId}
+                />
+              ))}
+            </Box>
+
+            {/* Empty State */}
+            {ragFindings.length === 0 && (
+              <Box
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  backgroundColor: "#f9fafb",
+                  borderRadius: "4px",
+                  mt: "8px",
+                }}
+              >
+                <Typography variant="body1" sx={{ color: "#667085" }}>
+                  No RAG components detected in this repository
+                </Typography>
+                <Typography variant="body2" sx={{ color: "#98a2b3", mt: 1 }}>
+                  Vector databases (Pinecone, Chroma, Qdrant), document loaders, and embedding models will appear here
+                </Typography>
+              </Box>
+            )}
+
+            {/* Pagination */}
+            {ragTotalPages > 1 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 2,
+                  mt: "16px",
+                }}
+              >
+                <CustomizableButton
+                  text="Previous"
+                  onClick={() => setRagPage((p) => Math.max(1, p - 1))}
+                  isDisabled={ragPage === 1}
+                  variant="outlined"
+                  sx={{ height: 34 }}
+                />
+                <Typography sx={{ lineHeight: "34px", color: "#667085", fontSize: "13px" }}>
+                  Page {ragPage} of {ragTotalPages}
+                </Typography>
+                <CustomizableButton
+                  text="Next"
+                  onClick={() => setRagPage((p) => Math.min(ragTotalPages, p + 1))}
+                  isDisabled={ragPage === ragTotalPages}
+                  variant="outlined"
+                  sx={{ height: 34 }}
+                />
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* Agents Tab */}
+        {activeTab === "agents" && (
+          <Box sx={{ mt: "8px" }}>
+            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+              AI agent frameworks and autonomous systems detected in the codebase. These include LangChain agents, CrewAI, AutoGen, and MCP servers.
+            </Typography>
+
+            {/* Warning Box - agents carry high risk */}
+            {agentFindings.length > 0 && (
+              <Box
+                sx={{
+                  backgroundColor: "#fffaeb",
+                  border: "1px solid #fedf89",
+                  borderRadius: "4px",
+                  p: "16px",
+                  mb: "16px",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 2,
+                }}
+              >
+                <AlertCircle size={20} color="#b54708" style={{ flexShrink: 0, marginTop: 2 }} />
+                <Box>
+                  <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#b54708", mb: 0.5 }}>
+                    Autonomous AI systems detected
+                  </Typography>
+                  <Typography sx={{ fontSize: "13px", color: "#b54708" }}>
+                    AI agents can take autonomous actions and interact with external systems. Review these carefully for governance and security implications.
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
+            {/* Summary */}
+            <Box
+              sx={{
+                backgroundColor: "#fff",
+                border: "1px solid #d0d5dd",
+                borderRadius: "4px",
+                p: "16px",
+                mb: "8px",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Info size={16} color="#667085" />
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {scan.summary.by_finding_type?.agent || 0} agent framework{(scan.summary.by_finding_type?.agent || 0) !== 1 ? "s" : ""} detected
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ color: "#667085", mt: "8px" }}>
+                Agent findings are marked as high risk due to their autonomous nature and ability to interact with external systems.
+              </Typography>
+            </Box>
+
+            {/* Findings List */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {agentFindings.map((finding) => (
+                <FindingRow
+                  key={finding.id}
+                  finding={finding}
+                  repositoryOwner={scan.scan.repository_owner}
+                  repositoryName={scan.scan.repository_name}
+                  scanId={scanId}
+                />
+              ))}
+            </Box>
+
+            {/* Empty State */}
+            {agentFindings.length === 0 && (
+              <Box
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  backgroundColor: "#f9fafb",
+                  borderRadius: "4px",
+                  mt: "8px",
+                }}
+              >
+                <Typography variant="body1" sx={{ color: "#667085" }}>
+                  No AI agents detected in this repository
+                </Typography>
+                <Typography variant="body2" sx={{ color: "#98a2b3", mt: 1 }}>
+                  LangChain agents, CrewAI, AutoGen, MCP servers, and other autonomous AI systems will appear here
+                </Typography>
+              </Box>
+            )}
+
+            {/* Pagination */}
+            {agentTotalPages > 1 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 2,
+                  mt: "16px",
+                }}
+              >
+                <CustomizableButton
+                  text="Previous"
+                  onClick={() => setAgentPage((p) => Math.max(1, p - 1))}
+                  isDisabled={agentPage === 1}
+                  variant="outlined"
+                  sx={{ height: 34 }}
+                />
+                <Typography sx={{ lineHeight: "34px", color: "#667085", fontSize: "13px" }}>
+                  Page {agentPage} of {agentTotalPages}
+                </Typography>
+                <CustomizableButton
+                  text="Next"
+                  onClick={() => setAgentPage((p) => Math.min(agentTotalPages, p + 1))}
+                  isDisabled={agentPage === agentTotalPages}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
@@ -1697,7 +2294,336 @@ export default function ScanDetailsPage({
             )}
           </Box>
         )}
+
+        {/* Compliance Tab */}
+        {activeTab === "compliance" && (
+          <Box sx={{ mt: "8px" }}>
+            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+              EU AI Act compliance mapping based on detected AI components. Review these requirements to ensure your AI system meets regulatory obligations.
+            </Typography>
+
+            {complianceLoading ? (
+              <Box sx={{ textAlign: "center", py: 4 }}>
+                <Typography variant="body1" sx={{ color: "#667085" }}>
+                  Loading compliance data...
+                </Typography>
+              </Box>
+            ) : !complianceData ? (
+              <Box sx={{ textAlign: "center", py: 4 }}>
+                <Typography variant="body1" sx={{ color: "#667085" }}>
+                  Unable to load compliance data
+                </Typography>
+              </Box>
+            ) : (
+              <>
+                {/* Summary Cards */}
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: "8px",
+                    mb: "16px",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      backgroundColor: "#fff",
+                      border: "1px solid #d0d5dd",
+                      borderRadius: "4px",
+                      p: 2,
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                      {complianceData.summary.totalRequirements}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#667085" }}>
+                      Total requirements
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      backgroundColor: "#fef3f2",
+                      border: "1px solid #fecdca",
+                      borderRadius: "4px",
+                      p: 2,
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography variant="h4" sx={{ fontWeight: 600, color: "#b42318" }}>
+                      {complianceData.summary.byPriority.high}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#667085" }}>
+                      High priority
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      backgroundColor: "#fffaeb",
+                      border: "1px solid #fedf89",
+                      borderRadius: "4px",
+                      p: 2,
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography variant="h4" sx={{ fontWeight: 600, color: "#b54708" }}>
+                      {complianceData.summary.byPriority.medium}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#667085" }}>
+                      Medium priority
+                    </Typography>
+                  </Box>
+                  <Tooltip
+                    title="Percentage of EU AI Act requirements triggered by detected AI components"
+                    arrow
+                  >
+                    <Box
+                      sx={{
+                        backgroundColor: "#f9fafb",
+                        border: "1px solid #d0d5dd",
+                        borderRadius: "4px",
+                        p: 2,
+                        textAlign: "center",
+                        cursor: "help",
+                      }}
+                    >
+                      <Typography variant="h4" sx={{ fontWeight: 600, color: "#344054" }}>
+                        {Math.round(complianceData.summary.coveragePercentage)}%
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: "#667085" }}>
+                        Requirements scope
+                      </Typography>
+                    </Box>
+                  </Tooltip>
+                </Box>
+
+                {/* Category breakdown */}
+                <Box sx={{ mb: "16px" }}>
+                  <Typography sx={{ fontSize: "15px", fontWeight: 500, mb: 2 }}>
+                    Requirements by category
+                  </Typography>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {Object.entries(complianceData.summary.byCategory).map(([category, count]) => {
+                      const config = COMPLIANCE_CATEGORY_CONFIG[category as ComplianceCategory];
+                      if (!config || count === 0) return null;
+                      return (
+                        <Box
+                          key={category}
+                          sx={{
+                            px: "12px",
+                            py: "6px",
+                            borderRadius: "4px",
+                            backgroundColor: config.bgColor,
+                            border: `1px solid ${config.color}30`,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
+                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: config.color }}>
+                            {config.label}
+                          </Typography>
+                          <Typography sx={{ fontSize: "13px", color: config.color }}>
+                            ({count})
+                          </Typography>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                </Box>
+
+                {/* Compliance Checklist */}
+                <Box>
+                  <Typography sx={{ fontSize: "15px", fontWeight: 500, mb: 2 }}>
+                    Compliance checklist
+                  </Typography>
+
+                  {complianceData.checklist.length === 0 ? (
+                    <Box
+                      sx={{
+                        backgroundColor: "#ecfdf3",
+                        border: "1px solid #a6f4c5",
+                        borderRadius: "4px",
+                        p: 4,
+                        textAlign: "center",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+                        <CheckCircle2 size={48} color="#039855" />
+                      </Box>
+                      <Typography variant="body1" sx={{ fontWeight: 500, color: "#039855", mb: 1 }}>
+                        No specific compliance actions needed
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: "#667085" }}>
+                        Based on the scan results, no additional compliance requirements were identified.
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {complianceData.checklist.map((item) => {
+                        const priorityConfig = PRIORITY_CONFIG[item.priority];
+                        const categoryConfig = COMPLIANCE_CATEGORY_CONFIG[item.category];
+                        const isExpanded = expandedChecklist.has(item.id);
+
+                        return (
+                          <Box
+                            key={item.id}
+                            sx={{
+                              border: "1px solid #e4e7ec",
+                              borderRadius: "4px",
+                              backgroundColor: "#fff",
+                            }}
+                          >
+                            {/* Checklist item header */}
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "flex-start",
+                                p: "12px",
+                                cursor: "pointer",
+                                "&:hover": { backgroundColor: "#f9fafb" },
+                              }}
+                              onClick={() => {
+                                const newSet = new Set(expandedChecklist);
+                                if (isExpanded) {
+                                  newSet.delete(item.id);
+                                } else {
+                                  newSet.add(item.id);
+                                }
+                                setExpandedChecklist(newSet);
+                              }}
+                            >
+                              <IconButton size="small" sx={{ mr: 1, mt: "-4px" }}>
+                                {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                              </IconButton>
+
+                              <Box sx={{ flex: 1 }}>
+                                <Typography sx={{ fontSize: "14px", fontWeight: 500, mb: "4px" }}>
+                                  {item.text}
+                                </Typography>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                                  {/* Article reference */}
+                                  <Box
+                                    sx={{
+                                      px: "6px",
+                                      py: "2px",
+                                      borderRadius: "4px",
+                                      backgroundColor: "#f2f4f7",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "4px",
+                                    }}
+                                  >
+                                    <FileText size={12} color="#667085" />
+                                    <Typography sx={{ fontSize: "11px", color: "#667085" }}>
+                                      {item.articleRef}
+                                    </Typography>
+                                  </Box>
+                                  {/* Category badge */}
+                                  {categoryConfig && (
+                                    <Box
+                                      sx={{
+                                        px: "6px",
+                                        py: "2px",
+                                        borderRadius: "4px",
+                                        backgroundColor: categoryConfig.bgColor,
+                                      }}
+                                    >
+                                      <Typography sx={{ fontSize: "11px", color: categoryConfig.color }}>
+                                        {categoryConfig.label}
+                                      </Typography>
+                                    </Box>
+                                  )}
+                                </Box>
+                              </Box>
+
+                              {/* Priority badge */}
+                              {priorityConfig && (
+                                <Box
+                                  sx={{
+                                    px: "8px",
+                                    py: "2px",
+                                    borderRadius: "4px",
+                                    backgroundColor: priorityConfig.bgColor,
+                                    border: `1px solid ${priorityConfig.color}20`,
+                                  }}
+                                >
+                                  <Typography sx={{ fontSize: "12px", fontWeight: 500, color: priorityConfig.color }}>
+                                    {priorityConfig.label}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+
+                            {/* Expanded content - related findings */}
+                            <Collapse in={isExpanded}>
+                              <Box sx={{ px: "12px", pb: "12px", borderTop: "1px solid #e4e7ec", pt: "12px" }}>
+                                {item.relatedFindings.length > 0 ? (
+                                  <>
+                                    <Typography sx={{ fontSize: "13px", fontWeight: 500, mb: "8px", color: "#344054" }}>
+                                      Related AI components:
+                                    </Typography>
+                                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                                      {item.relatedFindings.map((finding) => (
+                                        <Box
+                                          key={finding.id}
+                                          sx={{
+                                            px: "8px",
+                                            py: "4px",
+                                            borderRadius: "4px",
+                                            backgroundColor: "#f9fafb",
+                                            border: "1px solid #e4e7ec",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "6px",
+                                          }}
+                                        >
+                                          {getProviderIcon(finding.name, 14)}
+                                          <Typography sx={{ fontSize: "12px", color: "#344054" }}>
+                                            {finding.name}
+                                          </Typography>
+                                          <Typography sx={{ fontSize: "11px", color: "#98a2b3" }}>
+                                            ({finding.type})
+                                          </Typography>
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                  </>
+                                ) : (
+                                  <Typography sx={{ fontSize: "13px", color: "#667085" }}>
+                                    This requirement applies to multiple AI components detected in the scan.
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Collapse>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Generated timestamp */}
+                <Box sx={{ mt: 3, display: "flex", alignItems: "center", gap: 1 }}>
+                  <Info size={14} color="#667085" />
+                  <Typography variant="body2" sx={{ color: "#667085" }}>
+                    Compliance mapping generated {formatDistanceToNow(new Date(complianceData.generatedAt), { addSuffix: true })}
+                  </Typography>
+                </Box>
+              </>
+            )}
+          </Box>
+        )}
       </TabContext>
+
+      {/* AI Dependency Graph Modal */}
+      <AIDepGraphModal
+        open={showDepGraph}
+        onClose={() => setShowDepGraph(false)}
+        scanId={scanId}
+        repositoryName={`${scan.scan.repository_owner}/${scan.scan.repository_name}`}
+        repositoryUrl={scan.scan.repository_url}
+      />
     </>
   );
 }

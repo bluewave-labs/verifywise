@@ -78,7 +78,14 @@ export interface IUpdateScanProgressInput {
 /**
  * Valid finding types
  */
-export type FindingType = "library" | "dependency" | "api_call" | "secret";
+export type FindingType =
+  | "library"
+  | "dependency"
+  | "api_call"
+  | "secret"
+  | "model_ref"
+  | "rag_component"
+  | "agent";
 
 /**
  * Valid governance status values for findings
@@ -95,6 +102,16 @@ export type ConfidenceLevel = "high" | "medium" | "low";
  * Based on data leakage potential and security impact
  */
 export type RiskLevel = "high" | "medium" | "low";
+
+/**
+ * License risk levels for findings
+ */
+export type LicenseRiskLevel = "high" | "medium" | "low" | "unknown";
+
+/**
+ * Source of license information
+ */
+export type LicenseSource = "package" | "huggingface" | "pypi" | "npm" | "manual";
 
 /**
  * Represents a file path where a finding was detected
@@ -124,6 +141,11 @@ export interface IFinding {
   governance_status?: GovernanceStatus | null;
   governance_updated_at?: Date;
   governance_updated_by?: number;
+  // License information
+  license_id?: string | null;
+  license_name?: string | null;
+  license_risk?: LicenseRiskLevel | null;
+  license_source?: LicenseSource | null;
   created_at?: Date;
 }
 
@@ -142,6 +164,11 @@ export interface ICreateFindingInput {
   documentation_url?: string;
   file_count?: number;
   file_paths?: IFilePath[];
+  // License information
+  license_id?: string | null;
+  license_name?: string | null;
+  license_risk?: LicenseRiskLevel | null;
+  license_source?: LicenseSource | null;
 }
 
 // ============================================================================
@@ -236,6 +263,11 @@ export interface IFindingResponse {
   governance_status?: GovernanceStatus | null;
   governance_updated_at?: string;
   governance_updated_by?: number;
+  // License information
+  license_id?: string | null;
+  license_name?: string | null;
+  license_risk?: LicenseRiskLevel | null;
+  license_source?: LicenseSource | null;
 }
 
 /**

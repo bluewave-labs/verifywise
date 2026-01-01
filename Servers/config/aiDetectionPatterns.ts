@@ -41,6 +41,12 @@ export interface DetectionPattern {
     apiCalls?: RegExp[];
     /** Regex patterns for hardcoded secrets (API keys, tokens) */
     secrets?: RegExp[];
+    /** Regex patterns for model references (Hugging Face models, etc.) */
+    modelRefs?: RegExp[];
+    /** Regex patterns for RAG pipeline components (vector DBs, embeddings, etc.) */
+    ragPatterns?: RegExp[];
+    /** Regex patterns for AI agent frameworks and MCP servers */
+    agentPatterns?: RegExp[];
   };
 }
 
@@ -109,12 +115,25 @@ const LOW_RISK_PROVIDERS = [
   "PEFT",
 ];
 
+/** All valid finding types */
+export type FindingType =
+  | "library"
+  | "dependency"
+  | "api_call"
+  | "secret"
+  | "model_ref"
+  | "rag_component"
+  | "agent";
+
 /**
  * Calculate risk level for a finding based on provider and finding type
  *
  * Risk Level Logic:
  * - secret findings: Always HIGH (exposed credentials = immediate risk)
  * - api_call findings: Always HIGH (active data transmission)
+ * - model_ref findings: Based on provider (cloud models = high, local = medium)
+ * - rag_component findings: MEDIUM (data processing, depends on vector DB)
+ * - agent findings: HIGH (autonomous actions, potential for misuse)
  * - library findings: Based on provider classification
  *
  * @param provider - The provider/company name
@@ -123,7 +142,7 @@ const LOW_RISK_PROVIDERS = [
  */
 export function calculateRiskLevel(
   provider: string,
-  findingType: "library" | "dependency" | "api_call" | "secret"
+  findingType: FindingType
 ): "high" | "medium" | "low" {
   // Secret findings are always high risk - exposed credentials
   if (findingType === "secret") {
@@ -133,6 +152,30 @@ export function calculateRiskLevel(
   // API call findings are always high risk - active data transmission
   if (findingType === "api_call") {
     return "high";
+  }
+
+  // Agent findings are high risk - autonomous actions
+  if (findingType === "agent") {
+    return "high";
+  }
+
+  // Model reference findings - check if cloud or local
+  if (findingType === "model_ref") {
+    // Cloud-hosted models are high risk
+    if (HIGH_RISK_PROVIDERS.includes(provider)) {
+      return "high";
+    }
+    // Most model refs are medium risk (could be local or cloud)
+    return "medium";
+  }
+
+  // RAG component findings are medium risk by default
+  if (findingType === "rag_component") {
+    // Cloud vector DBs are higher risk
+    if (["Pinecone", "Weaviate Cloud", "Qdrant Cloud"].includes(provider)) {
+      return "high";
+    }
+    return "medium";
   }
 
   // For library/dependency findings, check provider classification
@@ -4208,6 +4251,703 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /^from\s+pybullet\s+import/m,
           ],
           dependencies: [/^pybullet[=<>~!\s]/m],
+        },
+      },
+    ],
+  },
+
+  // ============================================================================
+  // Hugging Face Model References
+  // ============================================================================
+  {
+    name: "Model References",
+    findingType: "model_ref",
+    patterns: [
+      {
+        name: "Hugging Face Model",
+        provider: "Hugging Face",
+        description: "Reference to a model hosted on Hugging Face Hub",
+        documentationUrl: "https://huggingface.co/docs",
+        confidence: "high",
+        patterns: {
+          modelRefs: [
+            // AutoModel.from_pretrained("model-name")
+            /AutoModel\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /AutoModelFor\w+\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /AutoTokenizer\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /AutoProcessor\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /AutoFeatureExtractor\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /AutoConfig\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            // Specific model classes
+            /BertModel\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /GPT2Model\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /T5Model\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /LlamaModel\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /MistralModel\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /Qwen2Model\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /GemmaModel\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /PhiModel\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            // Pipeline with model
+            /pipeline\s*\([^)]*model\s*=\s*["']([^"']+)["']/,
+            /pipeline\s*\(\s*["'][^"']+["']\s*,\s*["']([^"']+)["']/,
+            /pipeline\s*\(\s*["'][^"']+["']\s*,\s*model\s*=\s*["']([^"']+)["']/,
+            // Diffusers
+            /DiffusionPipeline\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /StableDiffusionPipeline\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /StableDiffusionXLPipeline\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /AutoPipelineForText2Image\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            /AutoPipelineForImage2Image\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            // Sentence Transformers
+            /SentenceTransformer\s*\(\s*["']([^"']+)["']/,
+            // PEFT/LoRA
+            /PeftModel\.from_pretrained\s*\(\s*[^,]+,\s*["']([^"']+)["']/,
+            // TRL
+            /AutoModelForCausalLMWithValueHead\.from_pretrained\s*\(\s*["']([^"']+)["']/,
+            // Generic from_pretrained with org/model format
+            /from_pretrained\s*\(\s*["']([a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+)["']/,
+            // Model ID in config/variables (org/model format)
+            /model_id\s*[=:]\s*["']([a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+)["']/,
+            /model_name\s*[=:]\s*["']([a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+)["']/,
+            /base_model\s*[=:]\s*["']([a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+)["']/,
+            /pretrained_model_name\s*[=:]\s*["']([a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+)["']/,
+          ],
+        },
+      },
+      {
+        name: "Ollama Model",
+        provider: "Ollama",
+        description: "Reference to a locally-hosted Ollama model",
+        documentationUrl: "https://ollama.ai",
+        confidence: "high",
+        patterns: {
+          modelRefs: [
+            // Ollama Python client
+            /ollama\.chat\s*\([^)]*model\s*=\s*["']([^"']+)["']/,
+            /ollama\.generate\s*\([^)]*model\s*=\s*["']([^"']+)["']/,
+            /ollama\.pull\s*\(\s*["']([^"']+)["']/,
+            /ollama\.show\s*\(\s*["']([^"']+)["']/,
+            // LangChain Ollama
+            /ChatOllama\s*\([^)]*model\s*=\s*["']([^"']+)["']/,
+            /Ollama\s*\([^)]*model\s*=\s*["']([^"']+)["']/,
+            /OllamaEmbeddings\s*\([^)]*model\s*=\s*["']([^"']+)["']/,
+          ],
+        },
+      },
+      {
+        name: "OpenAI Model",
+        provider: "OpenAI",
+        description: "Reference to an OpenAI model",
+        documentationUrl: "https://platform.openai.com/docs/models",
+        confidence: "high",
+        patterns: {
+          modelRefs: [
+            // Model parameter in API calls
+            /model\s*[=:]\s*["'](gpt-4[^"']*|gpt-3\.5[^"']*|o1[^"']*|davinci[^"']*|curie[^"']*|babbage[^"']*|ada[^"']*)["']/,
+            // LangChain ChatOpenAI
+            /ChatOpenAI\s*\([^)]*model\s*=\s*["']([^"']+)["']/,
+            /ChatOpenAI\s*\([^)]*model_name\s*=\s*["']([^"']+)["']/,
+          ],
+        },
+      },
+      {
+        name: "Anthropic Model",
+        provider: "Anthropic",
+        description: "Reference to an Anthropic Claude model",
+        documentationUrl: "https://docs.anthropic.com/en/docs/models",
+        confidence: "high",
+        patterns: {
+          modelRefs: [
+            // Model parameter in API calls
+            /model\s*[=:]\s*["'](claude-3[^"']*|claude-2[^"']*|claude-instant[^"']*)["']/,
+            // LangChain ChatAnthropic
+            /ChatAnthropic\s*\([^)]*model\s*=\s*["']([^"']+)["']/,
+            /ChatAnthropic\s*\([^)]*model_name\s*=\s*["']([^"']+)["']/,
+          ],
+        },
+      },
+      {
+        name: "Google AI Model",
+        provider: "Google",
+        description: "Reference to a Google Gemini model",
+        documentationUrl: "https://ai.google.dev/models",
+        confidence: "high",
+        patterns: {
+          modelRefs: [
+            // Gemini models
+            /model\s*[=:]\s*["'](gemini-[^"']+)["']/,
+            /GenerativeModel\s*\(\s*["'](gemini-[^"']+)["']/,
+            /ChatGoogleGenerativeAI\s*\([^)]*model\s*=\s*["']([^"']+)["']/,
+          ],
+        },
+      },
+    ],
+  },
+
+  // ============================================================================
+  // RAG Pipeline Components
+  // ============================================================================
+  {
+    name: "RAG Components",
+    findingType: "rag_component",
+    patterns: [
+      // Vector Databases
+      {
+        name: "Pinecone",
+        provider: "Pinecone",
+        description: "Pinecone vector database for similarity search",
+        documentationUrl: "https://docs.pinecone.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+pinecone/m,
+            /^from\s+pinecone\s+import/m,
+          ],
+          dependencies: [
+            /^pinecone-client[=<>~!\s]/m,
+            /^pinecone[=<>~!\s]/m,
+            /"pinecone-client"\s*:/,
+          ],
+          ragPatterns: [
+            /Pinecone\s*\(/,
+            /pinecone\.init\s*\(/,
+            /pinecone\.Index\s*\(/,
+            /\.upsert\s*\(/,
+            /\.query\s*\([^)]*vector/,
+          ],
+        },
+      },
+      {
+        name: "Weaviate",
+        provider: "Weaviate",
+        description: "Weaviate vector search engine",
+        documentationUrl: "https://weaviate.io/developers/weaviate",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+weaviate/m,
+            /^from\s+weaviate\s+import/m,
+          ],
+          dependencies: [
+            /^weaviate-client[=<>~!\s]/m,
+            /"weaviate-client"\s*:/,
+          ],
+          ragPatterns: [
+            /weaviate\.Client\s*\(/,
+            /weaviate\.connect_to/,
+            /\.query\.get\s*\(/,
+            /\.data\.insert\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "Chroma",
+        provider: "Chroma",
+        description: "Chroma open-source embedding database",
+        documentationUrl: "https://docs.trychroma.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+chromadb/m,
+            /^from\s+chromadb\s+import/m,
+          ],
+          dependencies: [
+            /^chromadb[=<>~!\s]/m,
+            /"chromadb"\s*:/,
+          ],
+          ragPatterns: [
+            /chromadb\.Client\s*\(/,
+            /chromadb\.PersistentClient\s*\(/,
+            /chromadb\.HttpClient\s*\(/,
+            /\.get_or_create_collection\s*\(/,
+            /\.add\s*\([^)]*embeddings/,
+          ],
+        },
+      },
+      {
+        name: "Qdrant",
+        provider: "Qdrant",
+        description: "Qdrant vector similarity search engine",
+        documentationUrl: "https://qdrant.tech/documentation",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+qdrant_client\s+import/m,
+            /^import\s+qdrant_client/m,
+          ],
+          dependencies: [
+            /^qdrant-client[=<>~!\s]/m,
+            /"qdrant-client"\s*:/,
+          ],
+          ragPatterns: [
+            /QdrantClient\s*\(/,
+            /\.upsert\s*\(/,
+            /\.search\s*\([^)]*query_vector/,
+            /\.create_collection\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "Milvus",
+        provider: "Milvus",
+        description: "Milvus open-source vector database",
+        documentationUrl: "https://milvus.io/docs",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+pymilvus\s+import/m,
+            /^import\s+pymilvus/m,
+          ],
+          dependencies: [
+            /^pymilvus[=<>~!\s]/m,
+            /"pymilvus"\s*:/,
+          ],
+          ragPatterns: [
+            /connections\.connect\s*\(/,
+            /Collection\s*\([^)]*schema/,
+            /\.insert\s*\(/,
+            /\.search\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "FAISS",
+        provider: "Meta",
+        description: "Facebook AI Similarity Search library",
+        documentationUrl: "https://faiss.ai",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^import\s+faiss/m,
+            /^from\s+faiss\s+import/m,
+          ],
+          dependencies: [
+            /^faiss-cpu[=<>~!\s]/m,
+            /^faiss-gpu[=<>~!\s]/m,
+          ],
+          ragPatterns: [
+            /faiss\.IndexFlatL2\s*\(/,
+            /faiss\.IndexIVFFlat\s*\(/,
+            /faiss\.IndexHNSW/,
+            /\.add\s*\([^)]*np\./,
+            /\.search\s*\([^)]*np\./,
+          ],
+        },
+      },
+      {
+        name: "pgvector",
+        provider: "pgvector",
+        description: "PostgreSQL vector similarity extension",
+        documentationUrl: "https://github.com/pgvector/pgvector",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+pgvector\s+import/m,
+          ],
+          dependencies: [
+            /^pgvector[=<>~!\s]/m,
+          ],
+          ragPatterns: [
+            /register_vector\s*\(/,
+            /CREATE\s+EXTENSION.*vector/i,
+            /vector\s*\(\s*\d+\s*\)/,
+            /<->\s*'?\[/,  // Vector distance operator
+          ],
+        },
+      },
+      // Document Loaders & Text Splitters
+      {
+        name: "LangChain Document Loaders",
+        provider: "LangChain",
+        description: "LangChain document loading utilities for RAG",
+        documentationUrl: "https://python.langchain.com/docs/modules/data_connection",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+langchain\.document_loaders\s+import/m,
+            /^from\s+langchain_community\.document_loaders\s+import/m,
+          ],
+          ragPatterns: [
+            /PyPDFLoader\s*\(/,
+            /DirectoryLoader\s*\(/,
+            /TextLoader\s*\(/,
+            /CSVLoader\s*\(/,
+            /UnstructuredFileLoader\s*\(/,
+            /WebBaseLoader\s*\(/,
+            /RecursiveCharacterTextSplitter\s*\(/,
+            /CharacterTextSplitter\s*\(/,
+            /\.load_and_split\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "LlamaIndex Data Loaders",
+        provider: "LlamaIndex",
+        description: "LlamaIndex data connectors for RAG",
+        documentationUrl: "https://docs.llamaindex.ai/en/stable/module_guides/loading",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+llama_index\.readers\s+import/m,
+            /^from\s+llama_index\.core\.readers\s+import/m,
+          ],
+          ragPatterns: [
+            /SimpleDirectoryReader\s*\(/,
+            /PDFReader\s*\(/,
+            /WikipediaReader\s*\(/,
+            /SimpleWebPageReader\s*\(/,
+            /\.load_data\s*\(/,
+          ],
+        },
+      },
+      // Embedding Models
+      {
+        name: "OpenAI Embeddings",
+        provider: "OpenAI",
+        description: "OpenAI embedding models for vector representations",
+        documentationUrl: "https://platform.openai.com/docs/guides/embeddings",
+        confidence: "high",
+        patterns: {
+          ragPatterns: [
+            /OpenAIEmbeddings\s*\(/,
+            /text-embedding-ada-002/,
+            /text-embedding-3-small/,
+            /text-embedding-3-large/,
+            /\.embeddings\.create\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "Sentence Transformers Embeddings",
+        provider: "Hugging Face",
+        description: "Sentence Transformers for computing embeddings",
+        documentationUrl: "https://www.sbert.net",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+sentence_transformers\s+import/m,
+          ],
+          dependencies: [
+            /^sentence-transformers[=<>~!\s]/m,
+          ],
+          ragPatterns: [
+            /SentenceTransformer\s*\(/,
+            /\.encode\s*\([^)]*sentences/,
+            /HuggingFaceEmbeddings\s*\(/,
+          ],
+        },
+      },
+      // RAG Frameworks
+      {
+        name: "LangChain RAG",
+        provider: "LangChain",
+        description: "LangChain Retrieval-Augmented Generation components",
+        documentationUrl: "https://python.langchain.com/docs/use_cases/question_answering",
+        confidence: "high",
+        patterns: {
+          ragPatterns: [
+            /RetrievalQA\s*\(/,
+            /ConversationalRetrievalChain\s*\(/,
+            /create_retrieval_chain\s*\(/,
+            /VectorStoreRetriever\s*\(/,
+            /\.as_retriever\s*\(/,
+            /create_stuff_documents_chain\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "LlamaIndex RAG",
+        provider: "LlamaIndex",
+        description: "LlamaIndex query engines and retrievers",
+        documentationUrl: "https://docs.llamaindex.ai/en/stable/module_guides/querying",
+        confidence: "high",
+        patterns: {
+          ragPatterns: [
+            /VectorStoreIndex\s*\(/,
+            /\.as_query_engine\s*\(/,
+            /\.as_retriever\s*\(/,
+            /RetrieverQueryEngine\s*\(/,
+            /SummaryIndex\s*\(/,
+            /TreeIndex\s*\(/,
+          ],
+        },
+      },
+    ],
+  },
+
+  // ============================================================================
+  // AI Agents & Autonomous Systems
+  // ============================================================================
+  {
+    name: "AI Agents",
+    findingType: "agent",
+    patterns: [
+      {
+        name: "LangChain Agents",
+        provider: "LangChain",
+        description: "LangChain agent framework for autonomous AI",
+        documentationUrl: "https://python.langchain.com/docs/modules/agents",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+langchain\.agents\s+import/m,
+            /^from\s+langchain_core\.agents\s+import/m,
+          ],
+          agentPatterns: [
+            /create_react_agent\s*\(/,
+            /create_openai_functions_agent\s*\(/,
+            /create_openai_tools_agent\s*\(/,
+            /create_structured_chat_agent\s*\(/,
+            /AgentExecutor\s*\(/,
+            /initialize_agent\s*\(/,
+            /Tool\s*\(\s*name\s*=/,
+            /StructuredTool\s*\(/,
+            /@tool\s*\n/,
+          ],
+        },
+      },
+      {
+        name: "LangGraph",
+        provider: "LangChain",
+        description: "LangGraph for building stateful agent workflows",
+        documentationUrl: "https://langchain-ai.github.io/langgraph",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+langgraph\s+import/m,
+            /^from\s+langgraph\.graph\s+import/m,
+            /^from\s+langgraph\.prebuilt\s+import/m,
+          ],
+          dependencies: [
+            /^langgraph[=<>~!\s]/m,
+          ],
+          agentPatterns: [
+            /StateGraph\s*\(/,
+            /MessageGraph\s*\(/,
+            /create_react_agent\s*\(/,
+            /\.add_node\s*\(/,
+            /\.add_edge\s*\(/,
+            /\.add_conditional_edges\s*\(/,
+            /ToolNode\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "CrewAI",
+        provider: "CrewAI",
+        description: "CrewAI multi-agent orchestration framework",
+        documentationUrl: "https://docs.crewai.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+crewai\s+import/m,
+            /^import\s+crewai/m,
+          ],
+          dependencies: [
+            /^crewai[=<>~!\s]/m,
+          ],
+          agentPatterns: [
+            /Agent\s*\([^)]*role\s*=/,
+            /Task\s*\([^)]*description\s*=/,
+            /Crew\s*\([^)]*agents\s*=/,
+            /\.kickoff\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "AutoGen",
+        provider: "Microsoft",
+        description: "Microsoft AutoGen multi-agent conversation framework",
+        documentationUrl: "https://microsoft.github.io/autogen",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+autogen\s+import/m,
+            /^import\s+autogen/m,
+            /^from\s+pyautogen\s+import/m,
+          ],
+          dependencies: [
+            /^pyautogen[=<>~!\s]/m,
+            /^autogen[=<>~!\s]/m,
+          ],
+          agentPatterns: [
+            /AssistantAgent\s*\(/,
+            /UserProxyAgent\s*\(/,
+            /ConversableAgent\s*\(/,
+            /GroupChat\s*\(/,
+            /GroupChatManager\s*\(/,
+            /\.initiate_chat\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "Semantic Kernel",
+        provider: "Microsoft",
+        description: "Microsoft Semantic Kernel AI orchestration SDK",
+        documentationUrl: "https://learn.microsoft.com/semantic-kernel",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+semantic_kernel\s+import/m,
+            /^import\s+semantic_kernel/m,
+          ],
+          dependencies: [
+            /^semantic-kernel[=<>~!\s]/m,
+          ],
+          agentPatterns: [
+            /Kernel\s*\(\)/,
+            /kernel\.add_plugin\s*\(/,
+            /kernel\.invoke\s*\(/,
+            /@kernel_function/,
+            /ChatCompletionAgent\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "OpenAI Assistants",
+        provider: "OpenAI",
+        description: "OpenAI Assistants API for building AI agents",
+        documentationUrl: "https://platform.openai.com/docs/assistants",
+        confidence: "high",
+        patterns: {
+          agentPatterns: [
+            /client\.beta\.assistants\.create\s*\(/,
+            /client\.beta\.threads\.create\s*\(/,
+            /client\.beta\.threads\.runs\.create\s*\(/,
+            /openai\.beta\.assistants\./,
+            /assistant_id\s*[=:]/,
+            /thread_id\s*[=:]/,
+          ],
+        },
+      },
+      {
+        name: "Phidata",
+        provider: "Phidata",
+        description: "Phidata framework for building AI assistants",
+        documentationUrl: "https://docs.phidata.com",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+phi\s+import/m,
+            /^from\s+phi\.agent\s+import/m,
+            /^from\s+phi\.assistant\s+import/m,
+          ],
+          dependencies: [
+            /^phidata[=<>~!\s]/m,
+          ],
+          agentPatterns: [
+            /Agent\s*\([^)]*model\s*=/,
+            /Assistant\s*\([^)]*llm\s*=/,
+            /\.run\s*\([^)]*stream\s*=/,
+          ],
+        },
+      },
+      {
+        name: "Haystack Agents",
+        provider: "Haystack",
+        description: "Haystack agent components for building AI pipelines",
+        documentationUrl: "https://docs.haystack.deepset.ai/docs/agents",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+haystack\.agents\s+import/m,
+            /^from\s+haystack_experimental\.components\.agents\s+import/m,
+          ],
+          agentPatterns: [
+            /Agent\s*\([^)]*tools\s*=/,
+            /ToolInvoker\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "MCP Server",
+        provider: "Anthropic",
+        description: "Model Context Protocol server implementation",
+        documentationUrl: "https://modelcontextprotocol.io",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+mcp\s+import/m,
+            /^from\s+mcp\.server\s+import/m,
+            /^import.*@modelcontextprotocol\/sdk/,
+            /require\s*\(\s*['"]@modelcontextprotocol\/sdk['"]\s*\)/,
+          ],
+          dependencies: [
+            /^mcp[=<>~!\s]/m,
+            /"@modelcontextprotocol\/sdk"\s*:/,
+          ],
+          agentPatterns: [
+            /Server\s*\(\s*\{[^}]*name\s*:/,
+            /McpServer\s*\(/,
+            /\.tool\s*\(\s*\{[^}]*name\s*:/,
+            /\.resource\s*\(\s*\{[^}]*uri\s*:/,
+            /\.prompt\s*\(\s*\{[^}]*name\s*:/,
+            /server\.setRequestHandler/,
+          ],
+        },
+      },
+      {
+        name: "LlamaIndex Agents",
+        provider: "LlamaIndex",
+        description: "LlamaIndex agent framework",
+        documentationUrl: "https://docs.llamaindex.ai/en/stable/module_guides/deploying/agents",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+llama_index\.agent\s+import/m,
+            /^from\s+llama_index\.core\.agent\s+import/m,
+          ],
+          agentPatterns: [
+            /OpenAIAgent\s*\(/,
+            /ReActAgent\s*\(/,
+            /FunctionCallingAgent\s*\(/,
+            /AgentRunner\s*\(/,
+            /FunctionTool\s*\(/,
+            /QueryEngineTool\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "Pydantic AI",
+        provider: "Pydantic",
+        description: "Pydantic AI agent framework with type safety",
+        documentationUrl: "https://ai.pydantic.dev",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+pydantic_ai\s+import/m,
+          ],
+          dependencies: [
+            /^pydantic-ai[=<>~!\s]/m,
+          ],
+          agentPatterns: [
+            /Agent\s*\([^)]*model\s*=/,
+            /@agent\.tool/,
+            /@agent\.system_prompt/,
+            /\.run\s*\(/,
+            /\.run_sync\s*\(/,
+          ],
+        },
+      },
+      {
+        name: "Swarm",
+        provider: "OpenAI",
+        description: "OpenAI Swarm multi-agent orchestration (experimental)",
+        documentationUrl: "https://github.com/openai/swarm",
+        confidence: "high",
+        patterns: {
+          imports: [
+            /^from\s+swarm\s+import/m,
+          ],
+          dependencies: [
+            /^openai-swarm[=<>~!\s]/m,
+            /^git\+.*openai\/swarm/,
+          ],
+          agentPatterns: [
+            /Swarm\s*\(\)/,
+            /Agent\s*\([^)]*name\s*=/,
+            /\.run\s*\([^)]*agent\s*=/,
+            /handoff_to\s*\(/,
+          ],
         },
       },
     ],

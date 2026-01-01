@@ -83,6 +83,7 @@ import {
 } from "../domain.layer/interfaces/i.modelSecurity";
 import { QueryTypes } from "sequelize";
 import { isModelFileExtension } from "../config/modelSecurityPatterns";
+import { getLicenseForFinding } from "../utils/licenseDetection.utils";
 
 // ============================================================================
 // Types
@@ -491,13 +492,17 @@ function scanFileForPatterns(
   pattern: DetectionPattern;
   lineNumber: number | null;
   matchedText: string;
-  findingType: "library" | "api_call" | "secret";
+  findingType: "library" | "api_call" | "secret" | "model_ref" | "rag_component" | "agent";
+  extractedModelName?: string; // Extracted model name from capturing group (for model_ref findings)
+  confidence?: "high" | "medium" | "low"; // Override pattern's default confidence
 }> {
   const matches: Array<{
     pattern: DetectionPattern;
     lineNumber: number | null;
     matchedText: string;
-    findingType: "library" | "api_call" | "secret";
+    findingType: "library" | "api_call" | "secret" | "model_ref" | "rag_component" | "agent";
+    extractedModelName?: string;
+    confidence?: "high" | "medium" | "low";
   }> = [];
 
   const lines = content.split("\n");
@@ -574,6 +579,75 @@ function scanFileForPatterns(
                 lineNumber: i + 1,
                 matchedText: maskedText,
                 findingType: "secret",
+              });
+              break; // One match per pattern per file is enough
+            }
+          }
+        }
+      }
+
+      // Check model references (Hugging Face models, etc.) - only for code files
+      // Extract model names from capturing groups for better identification
+      if (fileType === "code" && pattern.patterns.modelRefs) {
+        for (const regex of pattern.patterns.modelRefs) {
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const match = line.match(regex);
+            if (match) {
+              // Extract model name from first capturing group if present
+              const extractedModel = match[1] || null;
+
+              // Determine confidence based on pattern specificity
+              // - Explicit from_pretrained/pipeline calls are high confidence
+              // - Generic model ID patterns are medium confidence
+              const isExplicitApiCall = /from_pretrained|pipeline|AutoModel|AutoTokenizer|ollama\.(chat|generate|pull)|ChatOpenAI|ChatAnthropic|GenerativeModel/i.test(match[0]);
+              const confidence: "high" | "medium" | "low" = isExplicitApiCall ? "high" : "medium";
+
+              matches.push({
+                pattern,
+                lineNumber: i + 1,
+                matchedText: match[0].substring(0, 100),
+                findingType: "model_ref",
+                extractedModelName: extractedModel || undefined,
+                confidence,
+              });
+              break; // One match per pattern per file is enough
+            }
+          }
+        }
+      }
+
+      // Check RAG pipeline components (vector DBs, embeddings, etc.) - only for code files
+      if (fileType === "code" && pattern.patterns.ragPatterns) {
+        for (const regex of pattern.patterns.ragPatterns) {
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const match = line.match(regex);
+            if (match) {
+              matches.push({
+                pattern,
+                lineNumber: i + 1,
+                matchedText: match[0].substring(0, 100),
+                findingType: "rag_component",
+              });
+              break; // One match per pattern per file is enough
+            }
+          }
+        }
+      }
+
+      // Check AI agent patterns (LangChain agents, MCP, etc.) - only for code files
+      if (fileType === "code" && pattern.patterns.agentPatterns) {
+        for (const regex of pattern.patterns.agentPatterns) {
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const match = line.match(regex);
+            if (match) {
+              matches.push({
+                pattern,
+                lineNumber: i + 1,
+                matchedText: match[0].substring(0, 100),
+                findingType: "agent",
               });
               break; // One match per pattern per file is enough
             }
@@ -864,13 +938,16 @@ async function executeScan(
     );
 
     // Collect findings (aggregated by pattern and finding type)
+    // For model_ref findings, we also aggregate by extracted model name
     const findingsMap = new Map<
       string,
       {
         pattern: DetectionPattern;
         filePaths: IFilePath[];
         category: string;
-        findingType: "library" | "api_call" | "secret";
+        findingType: "library" | "api_call" | "secret" | "model_ref" | "rag_component" | "agent";
+        extractedModelName?: string; // For model_ref findings: the actual model ID
+        overrideConfidence?: "high" | "medium" | "low"; // Dynamic confidence override
       }
     >();
 
@@ -896,8 +973,12 @@ async function executeScan(
         const matches = scanFileForPatterns(content, fileType);
 
         // Aggregate findings (separate by findingType so library and api_call are tracked independently)
+        // For model_ref findings, also separate by extracted model name
         for (const match of matches) {
-          const key = `${match.pattern.name}::${match.pattern.provider}::${match.findingType}`;
+          // For model_ref findings with extracted model names, include the model name in the key
+          // This ensures each unique model gets its own finding entry
+          const modelNameSuffix = match.extractedModelName ? `::${match.extractedModelName}` : "";
+          const key = `${match.pattern.name}::${match.pattern.provider}::${match.findingType}${modelNameSuffix}`;
           const existing = findingsMap.get(key);
 
           if (existing) {
@@ -913,6 +994,8 @@ async function executeScan(
                 c.patterns.includes(match.pattern)
               )?.name || "Unknown",
               findingType: match.findingType,
+              extractedModelName: match.extractedModelName,
+              overrideConfidence: match.confidence,
               filePaths: [
                 {
                   path: file.path,
@@ -1049,35 +1132,46 @@ async function executeScan(
     // Store findings in database
     const transaction = await sequelize.transaction();
     try {
-      // Deduplicate findings by name+provider to avoid ON CONFLICT errors
-      // (same library may be detected as both "library" and "api_call" finding types)
+      // Deduplicate findings by name+provider+findingType+modelName to avoid ON CONFLICT errors
+      // Each finding type is kept separate (library, api_call, secret, model_ref, rag_component, agent)
+      // For model_ref findings, also separate by extracted model name
       const deduplicatedFindingsMap = new Map<string, ICreateFindingInput>();
 
       for (const [, finding] of findingsMap) {
         const findingType = finding.findingType || "library";
-        const key = `${finding.pattern.name}::${finding.pattern.provider}`;
+
+        // Build the display name - for model_ref findings with extracted model name,
+        // show the actual model instead of the generic pattern name
+        let displayName = finding.pattern.name;
+        if (finding.extractedModelName && findingType === "model_ref") {
+          // Format: "Provider: model-name" (e.g., "Hugging Face: bert-base-uncased")
+          displayName = `${finding.pattern.provider}: ${finding.extractedModelName}`;
+        }
+
+        // Use displayName in the key since DB constraint is on (scan_id, name, provider)
+        // This ensures proper deduplication matching the database unique constraint
+        const key = `${displayName}::${finding.pattern.provider}::${findingType}`;
         const existing = deduplicatedFindingsMap.get(key);
 
         if (existing) {
-          // Merge file paths from both findings
+          // Merge file paths from findings of the same type
           const existingPaths = existing.file_paths || [];
           existing.file_paths = [...existingPaths, ...finding.filePaths];
           existing.file_count = existing.file_paths.length;
-          // If one is api_call, prefer that (higher risk)
-          if (findingType === "api_call") {
-            existing.finding_type = "api_call";
-            existing.confidence = "high";
-            existing.risk_level = "high";
-          }
         } else {
+          // Determine confidence based on finding type and override
+          let confidence = finding.overrideConfidence || finding.pattern.confidence;
+          if (findingType === "api_call" || findingType === "secret" || findingType === "agent") {
+            confidence = "high"; // These finding types are always high confidence
+          }
+
           deduplicatedFindingsMap.set(key, {
             scan_id: scanId,
             finding_type: findingType,
             category: finding.category,
-            name: finding.pattern.name,
+            name: displayName,
             provider: finding.pattern.provider,
-            // API call findings are always high confidence
-            confidence: findingType === "api_call" ? "high" : finding.pattern.confidence,
+            confidence,
             // Calculate risk level based on provider and finding type
             risk_level: calculateRiskLevel(finding.pattern.provider, findingType),
             description: finding.pattern.description,
@@ -1090,7 +1184,35 @@ async function executeScan(
 
       const findingInputs = Array.from(deduplicatedFindingsMap.values());
 
+      // Add license information to findings
       if (findingInputs.length > 0) {
+        console.log(`[LICENSE] Processing ${findingInputs.length} findings for license info`);
+        let licensesFound = 0;
+        // Batch license lookups (limit concurrent requests)
+        const licensePromises = findingInputs.map(async (finding) => {
+          try {
+            const license = await getLicenseForFinding(
+              finding.name,
+              finding.provider || "",
+              undefined // No code content available at this point
+            );
+            if (license) {
+              finding.license_id = license.licenseId;
+              finding.license_name = license.licenseName;
+              finding.license_risk = license.licenseRisk;
+              finding.license_source = license.licenseSource;
+              licensesFound++;
+              console.log(`[LICENSE] Found license for ${finding.name} (${finding.provider}): ${license.licenseId}`);
+            } else {
+              console.log(`[LICENSE] No license found for ${finding.name} (${finding.provider})`);
+            }
+          } catch (err) {
+            console.log(`[LICENSE] Error looking up license for ${finding.name}: ${err}`);
+          }
+        });
+        await Promise.all(licensePromises);
+        console.log(`[LICENSE] Total licenses found: ${licensesFound}/${findingInputs.length}`);
+
         await createFindingsBatchQuery(findingInputs, ctx.tenantId, transaction);
       }
 
@@ -1316,6 +1438,11 @@ export async function getScanFindings(
       governance_status: f.governance_status,
       governance_updated_at: f.governance_updated_at?.toISOString(),
       governance_updated_by: f.governance_updated_by,
+      // License information
+      license_id: f.license_id,
+      license_name: f.license_name,
+      license_risk: f.license_risk,
+      license_source: f.license_source,
     })),
     pagination: {
       total,
@@ -1790,4 +1917,733 @@ export async function getAIDetectionStats(
   ctx: IServiceContext
 ): Promise<IAIDetectionStats> {
   return getAIDetectionStatsQuery(ctx.tenantId);
+}
+
+// ============================================================================
+// AI-BOM Export
+// ============================================================================
+
+/**
+ * AI Bill of Materials format (based on CycloneDX-like structure)
+ */
+export interface AIBOMComponent {
+  type: "library" | "model" | "service" | "framework" | "tool";
+  name: string;
+  provider: string;
+  version?: string;
+  description?: string;
+  confidence: "high" | "medium" | "low";
+  riskLevel: "high" | "medium" | "low";
+  documentationUrl?: string;
+  purl?: string; // Package URL (e.g., pkg:npm/openai@4.0.0)
+  locations: Array<{
+    path: string;
+    lineNumber?: number | null;
+  }>;
+  metadata?: {
+    findingType: string;
+    governanceStatus?: string | null;
+    detectedAt?: string;
+  };
+}
+
+export interface AIBOMExport {
+  bomFormat: "AI-BOM";
+  specVersion: "1.0";
+  serialNumber: string;
+  version: 1;
+  metadata: {
+    timestamp: string;
+    tools: Array<{ name: string; version: string }>;
+    repository: {
+      url: string;
+      owner: string;
+      name: string;
+    };
+    scan: {
+      id: number;
+      completedAt?: string;
+      filesScanned: number;
+    };
+  };
+  components: AIBOMComponent[];
+  summary: {
+    totalComponents: number;
+    byType: Record<string, number>;
+    byRiskLevel: { high: number; medium: number; low: number };
+    byProvider: Record<string, number>;
+  };
+}
+
+/**
+ * Map finding type to component type
+ */
+function findingTypeToComponentType(
+  findingType: string
+): "library" | "model" | "service" | "framework" | "tool" {
+  switch (findingType) {
+    case "model_ref":
+      return "model";
+    case "api_call":
+      return "service";
+    case "agent":
+      return "framework";
+    case "rag_component":
+      return "tool";
+    default:
+      return "library";
+  }
+}
+
+/**
+ * Generate a Package URL (purl) for a component
+ */
+function generatePurl(provider: string, name: string): string {
+  const normalizedProvider = provider.toLowerCase().replace(/\s+/g, "-");
+  const normalizedName = name.toLowerCase().replace(/\s+/g, "-");
+  return `pkg:ai/${normalizedProvider}/${normalizedName}`;
+}
+
+/**
+ * Export scan results as AI Bill of Materials (AI-BOM)
+ *
+ * @param scanId - Scan ID
+ * @param ctx - Service context
+ * @returns AI-BOM export object
+ */
+export async function exportScanAsAIBOM(
+  scanId: number,
+  ctx: IServiceContext
+): Promise<AIBOMExport> {
+  // Get scan details
+  const scan = await getScanWithUserQuery(scanId, ctx.tenantId);
+  if (!scan) {
+    throw new NotFoundException(`Scan with ID ${scanId} not found`);
+  }
+
+  // Get all findings for the scan (library, api_call, model_ref, rag_component, agent)
+  // Exclude secrets and model_security from AI-BOM
+  const findingsResponse = await getFindingsForScanQuery(
+    scanId,
+    ctx.tenantId,
+    1,
+    1000 // Get all findings
+  );
+
+  // Filter out secrets and model_security findings
+  const relevantFindings = findingsResponse.findings.filter(
+    (f) => !["secret", "model_security"].includes(f.finding_type)
+  );
+
+  // Transform findings to AI-BOM components
+  const components: AIBOMComponent[] = relevantFindings.map((finding) => ({
+    type: findingTypeToComponentType(finding.finding_type),
+    name: finding.name,
+    provider: finding.provider || "Unknown",
+    description: finding.description || undefined,
+    confidence: finding.confidence,
+    riskLevel: finding.risk_level || "medium",
+    documentationUrl: finding.documentation_url || undefined,
+    purl: generatePurl(finding.provider || "unknown", finding.name),
+    locations: (finding.file_paths || []).map((fp) => ({
+      path: fp.path,
+      lineNumber: fp.line_number,
+    })),
+    metadata: {
+      findingType: finding.finding_type,
+      governanceStatus: finding.governance_status || null,
+      detectedAt: finding.created_at?.toISOString(),
+    },
+  }));
+
+  // Calculate summary statistics
+  const byType: Record<string, number> = {};
+  const byRiskLevel = { high: 0, medium: 0, low: 0 };
+  const byProvider: Record<string, number> = {};
+
+  for (const component of components) {
+    // Count by type
+    byType[component.type] = (byType[component.type] || 0) + 1;
+
+    // Count by risk level
+    byRiskLevel[component.riskLevel]++;
+
+    // Count by provider
+    byProvider[component.provider] = (byProvider[component.provider] || 0) + 1;
+  }
+
+  // Generate serial number (UUID-like)
+  const serialNumber = `urn:uuid:${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
+
+  return {
+    bomFormat: "AI-BOM",
+    specVersion: "1.0",
+    serialNumber,
+    version: 1,
+    metadata: {
+      timestamp: new Date().toISOString(),
+      tools: [
+        { name: "VerifyWise AI Detection", version: "1.0.0" },
+      ],
+      repository: {
+        url: scan.repository_url,
+        owner: scan.repository_owner,
+        name: scan.repository_name,
+      },
+      scan: {
+        id: scan.id!,
+        completedAt: scan.completed_at?.toISOString(),
+        filesScanned: scan.files_scanned || 0,
+      },
+    },
+    components,
+    summary: {
+      totalComponents: components.length,
+      byType,
+      byRiskLevel,
+      byProvider,
+    },
+  };
+}
+
+// ============================================================================
+// AI Dependency Graph
+// ============================================================================
+
+/**
+ * Graph node for AI Dependency visualization
+ */
+export interface DependencyGraphNode {
+  id: string;
+  findingId: number;
+  type: "library" | "model" | "api" | "secret" | "rag" | "agent" | "repository";
+  label: string;
+  sublabel?: string;
+  provider: string;
+  confidence: "high" | "medium" | "low";
+  riskLevel: "high" | "medium" | "low";
+  fileCount: number;
+  filePaths: IFilePath[];
+  governanceStatus?: string | null;
+}
+
+/**
+ * Graph edge representing relationship between components
+ */
+export interface DependencyGraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  relationship: "uses" | "calls" | "requires" | "exposes" | "orchestrates" | "contains";
+  confidence: "high" | "medium" | "low";
+}
+
+/**
+ * Full dependency graph response
+ */
+export interface DependencyGraphResponse {
+  nodes: DependencyGraphNode[];
+  edges: DependencyGraphEdge[];
+  repository: {
+    owner: string;
+    name: string;
+    url: string;
+  };
+  summary: {
+    totalNodes: number;
+    byType: Record<string, number>;
+    byRiskLevel: { high: number; medium: number; low: number };
+    byProvider: Record<string, number>;
+  };
+}
+
+/**
+ * Map finding type to graph node type
+ */
+function findingTypeToNodeType(
+  findingType: string
+): "library" | "model" | "api" | "secret" | "rag" | "agent" {
+  switch (findingType) {
+    case "model_ref":
+      return "model";
+    case "api_call":
+      return "api";
+    case "secret":
+      return "secret";
+    case "rag_component":
+      return "rag";
+    case "agent":
+      return "agent";
+    default:
+      return "library";
+  }
+}
+
+/**
+ * Infer relationships between findings based on file co-location
+ * If two findings appear in the same file, they likely have a relationship
+ */
+function inferRelationships(
+  nodes: DependencyGraphNode[]
+): DependencyGraphEdge[] {
+  const edges: DependencyGraphEdge[] = [];
+  const edgeSet = new Set<string>(); // Prevent duplicates
+
+  // Build a map of file paths to node IDs
+  const fileToNodes = new Map<string, string[]>();
+  for (const node of nodes) {
+    for (const fp of node.filePaths) {
+      const existing = fileToNodes.get(fp.path) || [];
+      existing.push(node.id);
+      fileToNodes.set(fp.path, existing);
+    }
+  }
+
+  // Create a map for quick node lookup
+  const nodeMap = new Map<string, DependencyGraphNode>();
+  for (const node of nodes) {
+    nodeMap.set(node.id, node);
+  }
+
+  // For each file with multiple findings, create edges
+  for (const [, nodeIds] of fileToNodes) {
+    if (nodeIds.length < 2) continue;
+
+    // Create relationships between co-located findings
+    for (let i = 0; i < nodeIds.length; i++) {
+      for (let j = i + 1; j < nodeIds.length; j++) {
+        const nodeA = nodeMap.get(nodeIds[i])!;
+        const nodeB = nodeMap.get(nodeIds[j])!;
+
+        // Determine relationship type and direction based on finding types
+        const relationship = determineRelationship(nodeA, nodeB);
+        if (!relationship) continue;
+
+        const edgeKey = `${relationship.source}-${relationship.target}`;
+        if (edgeSet.has(edgeKey)) continue;
+        edgeSet.add(edgeKey);
+
+        edges.push({
+          id: `edge-${relationship.source}-${relationship.target}`,
+          source: relationship.source,
+          target: relationship.target,
+          relationship: relationship.type,
+          confidence: "medium", // Inferred relationships are medium confidence
+        });
+      }
+    }
+  }
+
+  return edges;
+}
+
+/**
+ * Determine relationship type and direction between two nodes
+ */
+function determineRelationship(
+  nodeA: DependencyGraphNode,
+  nodeB: DependencyGraphNode
+): { source: string; target: string; type: DependencyGraphEdge["relationship"] } | null {
+  const typeA = nodeA.type;
+  const typeB = nodeB.type;
+
+  // Define relationship rules (source type → target type → relationship)
+  // Library uses model
+  if (typeA === "library" && typeB === "model") {
+    return { source: nodeA.id, target: nodeB.id, type: "uses" };
+  }
+  if (typeB === "library" && typeA === "model") {
+    return { source: nodeB.id, target: nodeA.id, type: "uses" };
+  }
+
+  // Library calls API
+  if (typeA === "library" && typeB === "api") {
+    return { source: nodeA.id, target: nodeB.id, type: "calls" };
+  }
+  if (typeB === "library" && typeA === "api") {
+    return { source: nodeB.id, target: nodeA.id, type: "calls" };
+  }
+
+  // Agent orchestrates model/api
+  if (typeA === "agent" && (typeB === "model" || typeB === "api")) {
+    return { source: nodeA.id, target: nodeB.id, type: "orchestrates" };
+  }
+  if (typeB === "agent" && (typeA === "model" || typeA === "api")) {
+    return { source: nodeB.id, target: nodeA.id, type: "orchestrates" };
+  }
+
+  // RAG uses model for embeddings
+  if (typeA === "rag" && typeB === "model") {
+    return { source: nodeA.id, target: nodeB.id, type: "uses" };
+  }
+  if (typeB === "rag" && typeA === "model") {
+    return { source: nodeB.id, target: nodeA.id, type: "uses" };
+  }
+
+  // Secret exposes (connected to API)
+  if (typeA === "secret" && typeB === "api") {
+    return { source: nodeA.id, target: nodeB.id, type: "exposes" };
+  }
+  if (typeB === "secret" && typeA === "api") {
+    return { source: nodeB.id, target: nodeA.id, type: "exposes" };
+  }
+
+  // Default: no relationship for unhandled pairs
+  return null;
+}
+
+/**
+ * Get dependency graph data for a scan
+ *
+ * @param scanId - Scan ID
+ * @param ctx - Service context
+ * @returns Dependency graph with nodes and edges
+ */
+export async function getDependencyGraph(
+  scanId: number,
+  ctx: IServiceContext
+): Promise<DependencyGraphResponse> {
+  // Get scan details
+  const scan = await getScanWithUserQuery(scanId, ctx.tenantId);
+  if (!scan) {
+    throw new NotFoundException(`Scan with ID ${scanId} not found`);
+  }
+
+  // Get all findings for the scan
+  const findingsResponse = await getFindingsForScanQuery(
+    scanId,
+    ctx.tenantId,
+    1,
+    1000 // Get all findings
+  );
+
+  // Transform findings to graph nodes
+  const nodes: DependencyGraphNode[] = findingsResponse.findings.map((finding) => ({
+    id: `finding-${finding.id}`,
+    findingId: finding.id!,
+    type: findingTypeToNodeType(finding.finding_type),
+    label: finding.name,
+    sublabel: finding.provider || undefined,
+    provider: finding.provider || "Unknown",
+    confidence: finding.confidence,
+    riskLevel: (finding.risk_level as "high" | "medium" | "low") || "medium",
+    fileCount: finding.file_count || 0,
+    filePaths: finding.file_paths || [],
+    governanceStatus: finding.governance_status,
+  }));
+
+  // Infer relationships between findings
+  const edges = inferRelationships(nodes);
+
+  // Calculate summary statistics
+  const byType: Record<string, number> = {};
+  const byRiskLevel = { high: 0, medium: 0, low: 0 };
+  const byProvider: Record<string, number> = {};
+
+  for (const node of nodes) {
+    byType[node.type] = (byType[node.type] || 0) + 1;
+    byRiskLevel[node.riskLevel]++;
+    byProvider[node.provider] = (byProvider[node.provider] || 0) + 1;
+  }
+
+  return {
+    nodes,
+    edges,
+    repository: {
+      owner: scan.repository_owner,
+      name: scan.repository_name,
+      url: scan.repository_url,
+    },
+    summary: {
+      totalNodes: nodes.length,
+      byType,
+      byRiskLevel,
+      byProvider,
+    },
+  };
+}
+
+// ============================================================================
+// Compliance Mapping
+// ============================================================================
+
+import {
+  COMPLIANCE_REQUIREMENTS,
+  getComplianceRequirementsForFinding,
+  getRiskFactorsForFinding,
+  getDocumentationNeedsForFinding,
+  ComplianceRequirement,
+  ComplianceCategory,
+} from "../config/complianceMapping";
+
+/**
+ * Compliance mapping response types
+ */
+export interface ComplianceFindingMapping {
+  findingId: number;
+  findingName: string;
+  findingType: string;
+  provider: string;
+  requirements: ComplianceRequirement[];
+  riskFactors: string[];
+  documentationNeeds: string[];
+}
+
+export interface ComplianceChecklistItem {
+  id: string;
+  text: string;
+  category: ComplianceCategory;
+  articleRef: string;
+  priority: "high" | "medium" | "low";
+  relatedFindings: { id: number; name: string; type: string }[];
+  completed: boolean;
+}
+
+export interface ComplianceSummary {
+  totalRequirements: number;
+  byCategory: Record<ComplianceCategory, number>;
+  byPriority: { high: number; medium: number; low: number };
+  coveragePercentage: number;
+}
+
+export interface ComplianceMappingResponse {
+  scanId: number;
+  repository: {
+    owner: string;
+    name: string;
+    url: string;
+  };
+  mappings: ComplianceFindingMapping[];
+  checklist: ComplianceChecklistItem[];
+  summary: ComplianceSummary;
+  generatedAt: string;
+}
+
+/**
+ * Get compliance mapping for a scan
+ *
+ * Maps all findings from a scan to EU AI Act compliance requirements
+ * and generates a comprehensive checklist.
+ */
+export async function getComplianceMapping(
+  scanId: number,
+  ctx: IServiceContext
+): Promise<ComplianceMappingResponse> {
+  // Verify scan exists and is completed
+  const scan = await getScanWithUserQuery(scanId, ctx.tenantId);
+  if (!scan) {
+    throw new NotFoundException(`Scan with ID ${scanId} not found`);
+  }
+
+  if (scan.status !== "completed") {
+    throw new BusinessLogicException(
+      "Compliance mapping is only available for completed scans"
+    );
+  }
+
+  // Get all findings for the scan (no pagination - need all for mapping)
+  const { findings } = await getFindingsForScanQuery(
+    scanId,
+    ctx.tenantId,
+    1,
+    1000 // Get up to 1000 findings
+  );
+
+  // Map each finding to compliance requirements
+  const mappings: ComplianceFindingMapping[] = findings.map((finding) => ({
+    findingId: finding.id!,
+    findingName: finding.name,
+    findingType: finding.finding_type,
+    provider: finding.provider || "",
+    requirements: getComplianceRequirementsForFinding(
+      finding.finding_type,
+      finding.provider
+    ),
+    riskFactors: getRiskFactorsForFinding(finding.finding_type),
+    documentationNeeds: getDocumentationNeedsForFinding(finding.finding_type),
+  }));
+
+  // Generate unified checklist from all mappings
+  const checklist = generateComplianceChecklist(mappings);
+
+  // Calculate summary statistics
+  const summary = calculateComplianceSummary(mappings, checklist);
+
+  return {
+    scanId,
+    repository: {
+      owner: scan.repository_owner,
+      name: scan.repository_name,
+      url: scan.repository_url,
+    },
+    mappings,
+    checklist,
+    summary,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Generate a consolidated compliance checklist from finding mappings
+ */
+function generateComplianceChecklist(
+  mappings: ComplianceFindingMapping[]
+): ComplianceChecklistItem[] {
+  // Collect all unique checklist items with their related findings
+  const checklistMap = new Map<
+    string,
+    {
+      item: string;
+      requirement: ComplianceRequirement;
+      findings: { id: number; name: string; type: string }[];
+    }
+  >();
+
+  for (const mapping of mappings) {
+    for (const requirement of mapping.requirements) {
+      for (const checkItem of requirement.checklistItems) {
+        const key = `${requirement.id}::${checkItem}`;
+        const existing = checklistMap.get(key);
+
+        if (existing) {
+          // Only add finding if not already present (avoid duplicates)
+          const alreadyExists = existing.findings.some(
+            (f) => f.id === mapping.findingId
+          );
+          if (!alreadyExists) {
+            existing.findings.push({
+              id: mapping.findingId,
+              name: mapping.findingName,
+              type: mapping.findingType,
+            });
+          }
+        } else {
+          checklistMap.set(key, {
+            item: checkItem,
+            requirement,
+            findings: [
+              {
+                id: mapping.findingId,
+                name: mapping.findingName,
+                type: mapping.findingType,
+              },
+            ],
+          });
+        }
+      }
+    }
+  }
+
+  // Convert to checklist items with priority based on finding count and requirement type
+  const checklist: ComplianceChecklistItem[] = [];
+
+  for (const [key, value] of checklistMap) {
+    const priority = determinePriority(value.requirement, value.findings.length);
+
+    checklist.push({
+      id: key,
+      text: value.item,
+      category: value.requirement.category,
+      articleRef: value.requirement.articleRef,
+      priority,
+      relatedFindings: value.findings,
+      completed: false, // Default to not completed
+    });
+  }
+
+  // Sort by priority (high first) then by category
+  return checklist.sort((a, b) => {
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    }
+    return a.category.localeCompare(b.category);
+  });
+}
+
+/**
+ * Determine priority of a checklist item
+ */
+function determinePriority(
+  requirement: ComplianceRequirement,
+  findingCount: number
+): "high" | "medium" | "low" {
+  // High priority: security, or required documentation with many findings
+  if (
+    requirement.category === "security" ||
+    (requirement.documentationRequired === "required" && findingCount >= 3)
+  ) {
+    return "high";
+  }
+
+  // Medium priority: human oversight, risk management, or moderate findings
+  if (
+    requirement.category === "human_oversight" ||
+    requirement.category === "risk_management" ||
+    findingCount >= 2
+  ) {
+    return "medium";
+  }
+
+  return "low";
+}
+
+/**
+ * Calculate compliance summary statistics
+ */
+function calculateComplianceSummary(
+  mappings: ComplianceFindingMapping[],
+  checklist: ComplianceChecklistItem[]
+): ComplianceSummary {
+  // Count unique requirements
+  const uniqueRequirements = new Set<string>();
+  const byCategory: Record<ComplianceCategory, number> = {
+    transparency: 0,
+    documentation: 0,
+    risk_management: 0,
+    data_governance: 0,
+    human_oversight: 0,
+    security: 0,
+    monitoring: 0,
+    accountability: 0,
+  };
+
+  for (const mapping of mappings) {
+    for (const req of mapping.requirements) {
+      if (!uniqueRequirements.has(req.id)) {
+        uniqueRequirements.add(req.id);
+        byCategory[req.category]++;
+      }
+    }
+  }
+
+  // Count by priority
+  const byPriority = { high: 0, medium: 0, low: 0 };
+  for (const item of checklist) {
+    byPriority[item.priority]++;
+  }
+
+  // Calculate coverage (percentage of all possible requirements that are triggered)
+  const totalPossibleRequirements = Object.keys(COMPLIANCE_REQUIREMENTS).length;
+  const coveragePercentage = Math.round(
+    (uniqueRequirements.size / totalPossibleRequirements) * 100
+  );
+
+  return {
+    totalRequirements: uniqueRequirements.size,
+    byCategory,
+    byPriority,
+    coveragePercentage,
+  };
+}
+
+/**
+ * Get compliance requirements for specific finding types
+ * Useful for displaying requirements in finding details
+ */
+export function getRequirementsForFindingType(
+  findingType: string,
+  provider?: string
+): ComplianceRequirement[] {
+  return getComplianceRequirementsForFinding(findingType, provider);
 }

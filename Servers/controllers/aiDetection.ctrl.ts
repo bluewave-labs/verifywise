@@ -31,6 +31,9 @@ import {
   updateFindingGovernanceStatus,
   getGovernanceSummary,
   getAIDetectionStats,
+  exportScanAsAIBOM,
+  getDependencyGraph,
+  getComplianceMapping,
 } from "../services/aiDetection.service";
 import { IServiceContext, ScanStatus } from "../domain.layer/interfaces/i.aiDetection";
 
@@ -225,10 +228,11 @@ export async function getScanFindingsController(
     }
 
     // Validate finding_type if provided
-    if (findingType && !["library", "dependency", "api_call", "secret"].includes(findingType)) {
+    const validFindingTypes = ["library", "dependency", "api_call", "secret", "model_ref", "rag_component", "agent"];
+    if (findingType && !validFindingTypes.includes(findingType)) {
       return res
         .status(400)
-        .json(STATUS_CODE[400]("finding_type must be 'library', 'dependency', 'api_call', or 'secret'"));
+        .json(STATUS_CODE[400](`finding_type must be one of: ${validFindingTypes.join(", ")}`));
     }
 
     const ctx = buildServiceContext(req);
@@ -588,6 +592,132 @@ export async function getAIDetectionStatsController(
     const stats = await getAIDetectionStats(ctx);
 
     return res.status(200).json(STATUS_CODE[200](stats));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Export scan results as AI Bill of Materials (AI-BOM)
+ *
+ * GET /ai-detection/scans/:scanId/export/ai-bom
+ *
+ * Returns an AI-BOM formatted JSON document containing all
+ * detected AI/ML components from the scan.
+ */
+export async function exportAIBOMController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Exporting scan as AI-BOM",
+    functionName: "exportAIBOMController",
+    fileName: FILE_NAME,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const aibom = await exportScanAsAIBOM(scanId, ctx);
+
+    // Set response headers for JSON download
+    const filename = `ai-bom-${aibom.metadata.repository.owner}-${aibom.metadata.repository.name}-${scanId}.json`;
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `AI-BOM export for scan ${scanId}`,
+      userId: ctx.userId,
+      functionName: "exportAIBOMController",
+      fileName: FILE_NAME,
+    });
+
+    return res.status(200).json(aibom);
+  } catch (error) {
+    await logError({
+      error: error as Error,
+      eventType: "Read",
+      description: "Failed to export AI-BOM",
+      functionName: "exportAIBOMController",
+      fileName: FILE_NAME,
+    });
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get AI Dependency Graph for a scan
+ *
+ * GET /ai-detection/scans/:scanId/dependency-graph
+ *
+ * Returns graph nodes and edges for visualizing AI component relationships.
+ */
+export async function getDependencyGraphController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting AI dependency graph",
+    functionName: "getDependencyGraphController",
+    fileName: FILE_NAME,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const graph = await getDependencyGraph(scanId, ctx);
+
+    return res.status(200).json(STATUS_CODE[200](graph));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get Compliance Mapping for a scan
+ *
+ * GET /ai-detection/scans/:scanId/compliance
+ *
+ * Returns EU AI Act compliance requirements mapped to scan findings,
+ * along with a generated compliance checklist.
+ */
+export async function getComplianceMappingController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting compliance mapping for scan",
+    functionName: "getComplianceMappingController",
+    fileName: FILE_NAME,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const compliance = await getComplianceMapping(scanId, ctx);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved compliance mapping with ${compliance.checklist.length} checklist items`,
+      userId: ctx.userId,
+      functionName: "getComplianceMappingController",
+      fileName: FILE_NAME,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](compliance));
   } catch (error) {
     return handleException(res, error);
   }

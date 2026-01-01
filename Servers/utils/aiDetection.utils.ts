@@ -399,8 +399,26 @@ export async function createFindingsBatchQuery(
 ): Promise<number> {
   if (inputs.length === 0) return 0;
 
+  // Final deduplication safety check - PostgreSQL ON CONFLICT fails if same row appears twice in batch
+  // Key is (scan_id, name, provider) - must match the unique constraint
+  const deduplicatedMap = new Map<string, ICreateFindingInput>();
+  for (const input of inputs) {
+    const key = `${input.scan_id}::${input.name}::${input.provider}`;
+    const existing = deduplicatedMap.get(key);
+    if (existing) {
+      // Merge file paths
+      const existingPaths = existing.file_paths || [];
+      const newPaths = input.file_paths || [];
+      existing.file_paths = [...existingPaths, ...newPaths];
+      existing.file_count = existing.file_paths.length;
+    } else {
+      deduplicatedMap.set(key, { ...input });
+    }
+  }
+  const deduplicatedInputs = Array.from(deduplicatedMap.values());
+
   // Use single INSERT with multiple VALUES
-  const values = inputs.map((_input, index) => {
+  const values = deduplicatedInputs.map((_input, index) => {
     return `(
       :scan_id_${index},
       :finding_type_${index},
@@ -413,12 +431,16 @@ export async function createFindingsBatchQuery(
       :documentation_url_${index},
       :file_count_${index},
       :file_paths_${index},
+      :license_id_${index},
+      :license_name_${index},
+      :license_risk_${index},
+      :license_source_${index},
       NOW()
     )`;
   });
 
   const replacements: Record<string, unknown> = {};
-  inputs.forEach((input, index) => {
+  deduplicatedInputs.forEach((input, index) => {
     replacements[`scan_id_${index}`] = input.scan_id;
     replacements[`finding_type_${index}`] = input.finding_type;
     replacements[`category_${index}`] = input.category;
@@ -430,6 +452,10 @@ export async function createFindingsBatchQuery(
     replacements[`documentation_url_${index}`] = input.documentation_url || null;
     replacements[`file_count_${index}`] = input.file_count || 1;
     replacements[`file_paths_${index}`] = JSON.stringify(input.file_paths || []);
+    replacements[`license_id_${index}`] = input.license_id || null;
+    replacements[`license_name_${index}`] = input.license_name || null;
+    replacements[`license_risk_${index}`] = input.license_risk || null;
+    replacements[`license_source_${index}`] = input.license_source || null;
   });
 
   const query = `
@@ -445,11 +471,19 @@ export async function createFindingsBatchQuery(
       documentation_url,
       file_count,
       file_paths,
+      license_id,
+      license_name,
+      license_risk,
+      license_source,
       created_at
     ) VALUES ${values.join(", ")}
     ON CONFLICT (scan_id, name, provider) DO UPDATE SET
       file_count = ai_detection_findings.file_count + EXCLUDED.file_count,
-      file_paths = ai_detection_findings.file_paths || EXCLUDED.file_paths;
+      file_paths = ai_detection_findings.file_paths || EXCLUDED.file_paths,
+      license_id = COALESCE(EXCLUDED.license_id, ai_detection_findings.license_id),
+      license_name = COALESCE(EXCLUDED.license_name, ai_detection_findings.license_name),
+      license_risk = COALESCE(EXCLUDED.license_risk, ai_detection_findings.license_risk),
+      license_source = COALESCE(EXCLUDED.license_source, ai_detection_findings.license_source);
   `;
 
   await sequelize.query(query, {
@@ -458,7 +492,7 @@ export async function createFindingsBatchQuery(
     transaction,
   });
 
-  return inputs.length;
+  return deduplicatedInputs.length;
 }
 
 /**
@@ -621,7 +655,15 @@ export async function getFindingsSummaryQuery(
   total: number;
   by_confidence: { high: number; medium: number; low: number };
   by_provider: Record<string, number>;
-  by_finding_type: { library: number; dependency: number; api_call: number };
+  by_finding_type: {
+    library: number;
+    dependency: number;
+    api_call: number;
+    secret: number;
+    model_ref: number;
+    rag_component: number;
+    agent: number;
+  };
 }> {
   const confidenceQuery = `
     SELECT
@@ -681,9 +723,19 @@ export async function getFindingsSummaryQuery(
   });
 
   // Build finding type counts
-  const byFindingType = { library: 0, dependency: 0, api_call: 0, secret: 0 };
+  const byFindingType = {
+    library: 0,
+    dependency: 0,
+    api_call: 0,
+    secret: 0,
+    model_ref: 0,
+    rag_component: 0,
+    agent: 0,
+  };
   (findingTypeResults as { finding_type: string; count: string }[]).forEach((row) => {
-    byFindingType[row.finding_type as keyof typeof byFindingType] = parseInt(row.count, 10);
+    if (row.finding_type in byFindingType) {
+      byFindingType[row.finding_type as keyof typeof byFindingType] = parseInt(row.count, 10);
+    }
   });
 
   return {

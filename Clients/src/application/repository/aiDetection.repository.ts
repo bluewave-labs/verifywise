@@ -24,6 +24,8 @@ import {
   GovernanceSummary,
   UpdateGovernanceStatusResponse,
   AIDetectionStats,
+  DependencyGraphResponse,
+  ComplianceMappingResponse,
 } from "../../domain/ai-detection/types";
 
 const BASE_URL = "/ai-detection";
@@ -410,6 +412,87 @@ export async function getAIDetectionStats(
 ): Promise<AIDetectionStats> {
   const response = await apiServices.get<{ data: AIDetectionStats }>(
     `${BASE_URL}/stats`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      signal,
+    }
+  );
+  return response.data.data;
+}
+
+// ============================================================================
+// Export Operations
+// ============================================================================
+
+/**
+ * Export scan results as AI Bill of Materials (AI-BOM)
+ *
+ * @param scanId - Scan ID
+ * @param signal - Optional abort signal
+ * @param authToken - Optional auth token
+ * @returns AI-BOM JSON data
+ */
+export async function exportAIBOM(
+  scanId: number,
+  signal?: AbortSignal,
+  authToken: string = getAuthToken()
+): Promise<unknown> {
+  const response = await apiServices.get<{ data: unknown }>(
+    `${BASE_URL}/scans/${scanId}/export/ai-bom`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      signal,
+    }
+  );
+  return response.data.data;
+}
+
+// ============================================================================
+// Dependency Graph Operations
+// ============================================================================
+
+/**
+ * Get dependency graph data for visualization
+ *
+ * @param scanId - Scan ID
+ * @param signal - Optional abort signal
+ * @param authToken - Optional auth token
+ * @returns Dependency graph nodes, edges, and metadata
+ */
+export async function getDependencyGraph(
+  scanId: number,
+  signal?: AbortSignal,
+  authToken: string = getAuthToken()
+): Promise<DependencyGraphResponse> {
+  const response = await apiServices.get<{ data: DependencyGraphResponse }>(
+    `${BASE_URL}/scans/${scanId}/dependency-graph`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      signal,
+    }
+  );
+  return response.data.data;
+}
+
+// ============================================================================
+// Compliance Operations
+// ============================================================================
+
+/**
+ * Get EU AI Act compliance mapping for a scan
+ *
+ * @param scanId - Scan ID
+ * @param signal - Optional abort signal
+ * @param authToken - Optional auth token
+ * @returns Compliance mapping with findings, checklist, and summary
+ */
+export async function getComplianceMapping(
+  scanId: number,
+  signal?: AbortSignal,
+  authToken: string = getAuthToken()
+): Promise<ComplianceMappingResponse> {
+  const response = await apiServices.get<{ data: ComplianceMappingResponse }>(
+    `${BASE_URL}/scans/${scanId}/compliance`,
     {
       headers: { Authorization: `Bearer ${authToken}` },
       signal,

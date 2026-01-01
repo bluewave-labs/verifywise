@@ -7,12 +7,13 @@
  * @module pages/AIDetection/HistoryPage
  */
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
 import {
   Box,
   Typography,
   IconButton,
   Tooltip,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -25,13 +26,19 @@ import {
 } from "@mui/material";
 import Chip from "../../components/Chip";
 import Alert from "../../components/Alert";
-import { Trash2, ChevronsUpDown, Clock } from "lucide-react";
+import { Trash2, ChevronsUpDown, Clock, ChevronUp, ChevronDown } from "lucide-react";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import EmptyState from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
+import { FilterBy, FilterColumn, FilterCondition } from "../../components/Table/FilterBy";
+import { GroupBy } from "../../components/Table/GroupBy";
+import SearchBox from "../../components/Search/SearchBox";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { useGroupByState, useTableGrouping } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { getScans, deleteScan, getScanStatus } from "../../../application/repository/aiDetection.repository";
 import { Scan, ScansResponse, ScanStatus } from "../../../domain/ai-detection/types";
 
@@ -39,6 +46,13 @@ const ACTIVE_STATUSES: ScanStatus[] = ["pending", "cloning", "scanning"];
 const POLL_INTERVAL_MS = 3000;
 
 const HISTORY_ROWS_PER_PAGE_KEY = "verifywise_ai_detection_history_rows_per_page";
+const HISTORY_SORTING_KEY = "verifywise_ai_detection_history_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
@@ -49,6 +63,88 @@ interface HistoryPageProps {
   onScanDeleted: () => void;
 }
 
+// Table columns configuration with sortable flag
+const TABLE_COLUMNS = [
+  { id: "repository", label: "REPOSITORY", sortable: true },
+  { id: "status", label: "STATUS", sortable: true },
+  { id: "findings", label: "FINDINGS", sortable: true },
+  { id: "files", label: "FILES SCANNED", sortable: true },
+  { id: "duration", label: "DURATION", sortable: true },
+  { id: "triggered_by", label: "TRIGGERED BY", sortable: true },
+  { id: "actions", label: "", sortable: false },
+];
+
+// Sortable Table Header Component
+const SortableTableHead: React.FC<{
+  columns: typeof TABLE_COLUMNS;
+  sortConfig: SortConfig;
+  onSort: (columnId: string) => void;
+}> = ({ columns, sortConfig, onSort }) => {
+  return (
+    <TableHead
+      sx={{
+        backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors,
+      }}
+    >
+      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+        {columns.map((column) => (
+          <TableCell
+            key={column.id}
+            sx={{
+              ...singleTheme.tableStyles.primary.header.cell,
+              ...(column.sortable
+                ? {
+                    cursor: "pointer",
+                    userSelect: "none",
+                    "&:hover": {
+                      backgroundColor: "#f0f0f0",
+                    },
+                  }
+                : {}),
+            }}
+            onClick={() => column.sortable && onSort(column.id)}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "13px",
+                  color: sortConfig.key === column.id ? "primary.main" : "inherit",
+                }}
+              >
+                {column.label}
+              </Typography>
+              {column.sortable && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                  }}
+                >
+                  {sortConfig.key === column.id && sortConfig.direction === "asc" && (
+                    <ChevronUp size={16} />
+                  )}
+                  {sortConfig.key === column.id && sortConfig.direction === "desc" && (
+                    <ChevronDown size={16} />
+                  )}
+                  {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
+                </Box>
+              )}
+            </Box>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+  );
+};
+
 const STATUS_CONFIG: Record<ScanStatus, string> = {
   pending: "Pending",
   cloning: "Cloning",
@@ -57,6 +153,39 @@ const STATUS_CONFIG: Record<ScanStatus, string> = {
   failed: "Failed",
   cancelled: "Cancelled",
 };
+
+// Filter columns configuration
+const FILTER_COLUMNS: FilterColumn[] = [
+  {
+    id: "status",
+    label: "Status",
+    type: "select",
+    options: [
+      { value: "pending", label: "Pending" },
+      { value: "cloning", label: "Cloning" },
+      { value: "scanning", label: "Scanning" },
+      { value: "completed", label: "Completed" },
+      { value: "failed", label: "Failed" },
+      { value: "cancelled", label: "Cancelled" },
+    ],
+  },
+  {
+    id: "repository",
+    label: "Repository",
+    type: "text",
+  },
+  {
+    id: "triggered_by",
+    label: "Triggered by",
+    type: "text",
+  },
+];
+
+// Group by options
+const GROUP_BY_OPTIONS = [
+  { id: "status", label: "Status" },
+  { id: "triggered_by", label: "Triggered by" },
+];
 
 export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageProps) {
   const theme = useTheme();
@@ -75,11 +204,69 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
     variant: "success" | "error";
     body: string;
   } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Sorting state - initialize from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(HISTORY_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // FilterBy - Field value getter
+  const getScanFieldValue = useCallback(
+    (item: Scan, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case "status":
+          return item.status;
+        case "repository":
+          return `${item.repository_owner}/${item.repository_name}`;
+        case "triggered_by":
+          return `${item.triggered_by.name}${item.triggered_by.surname ? ` ${item.triggered_by.surname}` : ""}`;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy hook
+  const { filterData, handleFilterChange } = useFilterBy<Scan>(getScanFieldValue);
 
   // Save rowsPerPage to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(HISTORY_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
   }, [rowsPerPage]);
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(HISTORY_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
+  // Sorting handler
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else {
+          return { key: "", direction: null };
+        }
+      }
+      // New column - start with ascending
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
 
   const loadScans = useCallback(async () => {
     setIsLoading(true);
@@ -205,6 +392,114 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
     const remainingSeconds = totalSeconds % 60;
     return `${minutes}m ${remainingSeconds}s`;
   };
+
+  // Filter and search scans
+  const filteredScans = useMemo(() => {
+    // First apply FilterBy conditions
+    let filtered = filterData(scans);
+
+    // Then apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((scan) => {
+        const repoName = `${scan.repository_owner}/${scan.repository_name}`.toLowerCase();
+        const triggeredBy = `${scan.triggered_by.name}${scan.triggered_by.surname ? ` ${scan.triggered_by.surname}` : ""}`.toLowerCase();
+        return repoName.includes(query) || triggeredBy.includes(query);
+      });
+    }
+
+    return filtered;
+  }, [filterData, scans, searchQuery]);
+
+  // Sort the filtered scans based on current sort configuration
+  const sortedScans = useMemo(() => {
+    if (!filteredScans || !sortConfig.key || !sortConfig.direction) {
+      return filteredScans || [];
+    }
+
+    const sortableScans = [...filteredScans];
+
+    // Status order for sorting
+    const getStatusOrder = (status: ScanStatus): number => {
+      const order: Record<ScanStatus, number> = {
+        scanning: 0,
+        cloning: 1,
+        pending: 2,
+        completed: 3,
+        failed: 4,
+        cancelled: 5,
+      };
+      return order[status] ?? 99;
+    };
+
+    return sortableScans.sort((a: Scan, b: Scan) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortConfig.key) {
+        case "repository":
+          aValue = `${a.repository_owner}/${a.repository_name}`.toLowerCase();
+          bValue = `${b.repository_owner}/${b.repository_name}`.toLowerCase();
+          break;
+        case "status":
+          aValue = getStatusOrder(a.status);
+          bValue = getStatusOrder(b.status);
+          break;
+        case "findings":
+          aValue = a.findings_count ?? 0;
+          bValue = b.findings_count ?? 0;
+          break;
+        case "files":
+          aValue = a.files_scanned ?? 0;
+          bValue = b.files_scanned ?? 0;
+          break;
+        case "duration":
+          aValue = a.duration_ms ?? 0;
+          bValue = b.duration_ms ?? 0;
+          break;
+        case "triggered_by":
+          aValue = `${a.triggered_by.name}${a.triggered_by.surname ? ` ${a.triggered_by.surname}` : ""}`.toLowerCase();
+          bValue = `${b.triggered_by.name}${b.triggered_by.surname ? ` ${b.triggered_by.surname}` : ""}`.toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      // Handle string comparisons
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      // Handle number comparisons
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filteredScans, sortConfig]);
+
+  // Define how to get the group key for each scan
+  const getScanGroupKey = (
+    scan: Scan,
+    field: string
+  ): string | string[] => {
+    switch (field) {
+      case "status":
+        return STATUS_CONFIG[scan.status] || "Unknown";
+      case "triggered_by":
+        return `${scan.triggered_by.name}${scan.triggered_by.surname ? ` ${scan.triggered_by.surname}` : ""}`;
+      default:
+        return "Other";
+    }
+  };
+
+  // Apply grouping to sorted scans
+  const groupedScans = useTableGrouping({
+    data: sortedScans,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getScanGroupKey,
+  });
 
   const columns = [
     {
@@ -365,146 +660,159 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
         rightContent={<HelperIcon articlePath="ai-detection/history" size="small" />}
       />
 
+      {/* Toolbar with Filter, Group, Search */}
+      <Stack direction="row" gap={2} alignItems="center" sx={{ mb: 2 }}>
+        <FilterBy
+          columns={FILTER_COLUMNS}
+          onFilterChange={handleFilterChange}
+        />
+        <GroupBy
+          options={GROUP_BY_OPTIONS}
+          onGroupChange={handleGroupChange}
+        />
+        <SearchBox
+          placeholder="Search scans..."
+          value={searchQuery}
+          onChange={setSearchQuery}
+          fullWidth={false}
+        />
+      </Stack>
+
       {/* Table */}
-      <TableContainer
-        sx={{
-          backgroundColor: "#fff",
-          border: "1px solid #d0d5dd",
-          borderRadius: "4px",
-          overflow: "hidden",
-        }}
-      >
-        <Table>
-            <TableHead
-              sx={{
-                backgroundColor:
-                  singleTheme.tableStyles.primary.header.backgroundColors,
-              }}
-            >
-              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                {columns.map((col) => (
-                  <TableCell
-                    key={col.id}
-                    sx={singleTheme.tableStyles.primary.header.cell}
+      <GroupedTableView
+        groupedData={groupedScans}
+        ungroupedData={sortedScans}
+        renderTable={(data, options) => (
+          <TableContainer
+            sx={{
+              backgroundColor: "#fff",
+              borderRadius: "4px",
+              overflow: "hidden",
+            }}
+          >
+            <Table sx={singleTheme.tableStyles.primary.frame}>
+              <SortableTableHead
+                columns={TABLE_COLUMNS}
+                sortConfig={sortConfig}
+                onSort={handleSort}
+              />
+              <TableBody sx={singleTheme.tableStyles.primary.body}>
+                {data.map((scan) => (
+                  <TableRow
+                    key={scan.id}
+                    onClick={() => {
+                      if (scan.status === "completed" || scan.status === "failed") {
+                        onScanClick(scan.id);
+                      }
+                    }}
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.row,
+                      cursor: ["completed", "failed"].includes(scan.status) ? "pointer" : "default",
+                    }}
                   >
-                    {col.label}
-                  </TableCell>
+                    {columns.map((col) => (
+                      <TableCell
+                        key={col.id}
+                        sx={singleTheme.tableStyles.primary.body.cell}
+                      >
+                        {col.render(scan)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            </TableHead>
-            <TableBody sx={singleTheme.tableStyles.primary.body}>
-              {scans.map((scan) => (
-                <TableRow
-                  key={scan.id}
-                  onClick={() => {
-                    if (scan.status === "completed" || scan.status === "failed") {
-                      onScanClick(scan.id);
-                    }
-                  }}
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.row,
-                    cursor: ["completed", "failed"].includes(scan.status) ? "pointer" : "default",
-                  }}
-                >
-                  {columns.map((col) => (
+              </TableBody>
+              {!options?.hidePagination && (
+                <TableFooter>
+                  <TableRow
+                    sx={{
+                      "& .MuiTableCell-root.MuiTableCell-footer": {
+                        paddingX: theme.spacing(8),
+                        paddingY: theme.spacing(4),
+                      },
+                    }}
+                  >
                     <TableCell
-                      key={col.id}
-                      sx={singleTheme.tableStyles.primary.body.cell}
+                      sx={{
+                        paddingX: theme.spacing(2),
+                        fontSize: 12,
+                        opacity: 0.7,
+                      }}
                     >
-                      {col.render(scan)}
+                      Showing {getRange()} of {total} scan(s)
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow
-                sx={{
-                  "& .MuiTableCell-root.MuiTableCell-footer": {
-                    paddingX: theme.spacing(8),
-                    paddingY: theme.spacing(4),
-                  },
-                }}
-              >
-                <TableCell
-                  sx={{
-                    paddingX: theme.spacing(2),
-                    fontSize: 12,
-                    opacity: 0.7,
-                  }}
-                >
-                  Showing {getRange()} of {total} scan(s)
-                </TableCell>
-                <TablePagination
-                  count={total}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  rowsPerPage={rowsPerPage}
-                  rowsPerPageOptions={[5, 10, 15, 25]}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  ActionsComponent={(props) => (
-                    <TablePaginationActions {...props} />
-                  )}
-                  labelRowsPerPage="Rows per page"
-                  labelDisplayedRows={({ page: currentPage, count }) =>
-                    `Page ${currentPage + 1} of ${Math.max(
-                      1,
-                      Math.ceil(count / rowsPerPage)
-                    )}`
-                  }
-                  slotProps={{
-                    select: {
-                      MenuProps: {
-                        keepMounted: true,
-                        PaperProps: {
-                          className: "pagination-dropdown",
+                    <TablePagination
+                      count={total}
+                      page={page}
+                      onPageChange={handleChangePage}
+                      rowsPerPage={rowsPerPage}
+                      rowsPerPageOptions={[5, 10, 15, 25]}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      ActionsComponent={(props) => (
+                        <TablePaginationActions {...props} />
+                      )}
+                      labelRowsPerPage="Rows per page"
+                      labelDisplayedRows={({ page: currentPage, count }) =>
+                        `Page ${currentPage + 1} of ${Math.max(
+                          1,
+                          Math.ceil(count / rowsPerPage)
+                        )}`
+                      }
+                      slotProps={{
+                        select: {
+                          MenuProps: {
+                            keepMounted: true,
+                            PaperProps: {
+                              className: "pagination-dropdown",
+                              sx: {
+                                mt: 0,
+                                mb: theme.spacing(2),
+                              },
+                            },
+                            transformOrigin: {
+                              vertical: "bottom",
+                              horizontal: "left",
+                            },
+                            anchorOrigin: {
+                              vertical: "top",
+                              horizontal: "left",
+                            },
+                            sx: { mt: theme.spacing(-2) },
+                          },
+                          inputProps: { id: "pagination-dropdown" },
+                          IconComponent: SelectorVertical,
                           sx: {
-                            mt: 0,
-                            mb: theme.spacing(2),
+                            ml: theme.spacing(4),
+                            mr: theme.spacing(12),
+                            minWidth: theme.spacing(20),
+                            textAlign: "left",
+                            "&.Mui-focused > div": {
+                              backgroundColor: theme.palette.background.main,
+                            },
                           },
                         },
-                        transformOrigin: {
-                          vertical: "bottom",
-                          horizontal: "left",
+                      }}
+                      sx={{
+                        mt: theme.spacing(6),
+                        color: theme.palette.text.secondary,
+                        "& .MuiSelect-icon": {
+                          width: "24px",
+                          height: "fit-content",
                         },
-                        anchorOrigin: {
-                          vertical: "top",
-                          horizontal: "left",
+                        "& .MuiSelect-select": {
+                          width: theme.spacing(10),
+                          borderRadius: theme.shape.borderRadius,
+                          border: `1px solid ${theme.palette.border.light}`,
+                          padding: theme.spacing(4),
                         },
-                        sx: { mt: theme.spacing(-2) },
-                      },
-                      inputProps: { id: "pagination-dropdown" },
-                      IconComponent: SelectorVertical,
-                      sx: {
-                        ml: theme.spacing(4),
-                        mr: theme.spacing(12),
-                        minWidth: theme.spacing(20),
-                        textAlign: "left",
-                        "&.Mui-focused > div": {
-                          backgroundColor: theme.palette.background.main,
-                        },
-                      },
-                    },
-                  }}
-                  sx={{
-                    mt: theme.spacing(6),
-                    color: theme.palette.text.secondary,
-                    "& .MuiSelect-icon": {
-                      width: "24px",
-                      height: "fit-content",
-                    },
-                    "& .MuiSelect-select": {
-                      width: theme.spacing(10),
-                      borderRadius: theme.shape.borderRadius,
-                      border: `1px solid ${theme.palette.border.light}`,
-                      padding: theme.spacing(4),
-                    },
-                  }}
-                />
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </TableContainer>
+                      }}
+                    />
+                  </TableRow>
+                </TableFooter>
+              )}
+            </Table>
+          </TableContainer>
+        )}
+      />
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && scanToDelete && (

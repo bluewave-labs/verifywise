@@ -23,7 +23,6 @@ import {
 } from "@mui/material";
 import type { GridProps } from "@mui/material";
 import { RefreshCw, XCircle, Eye, ChevronsUpDown } from "lucide-react";
-import { getMlflowModels } from "../../../application/repository/integration.repository";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import VWChip from "../../components/Chip";
 import EmptyState from "../../components/EmptyState";
@@ -41,6 +40,7 @@ import {
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { apiServices } from "../../../infrastructure/api/networkServices";
 
 interface SelectorVerticalProps {
   className?: string;
@@ -75,7 +75,7 @@ const MLFlowDataTable: React.FC = () => {
 
     const experiments = new Set(
       mlflowData
-        .map((model) => model.experiment_info?.experiment_id)
+        .map((model) => model.experiment_id)
         .filter(Boolean),
     ).size;
 
@@ -97,24 +97,31 @@ const MLFlowDataTable: React.FC = () => {
     setWarning(null);
 
     try {
-      const data = await getMlflowModels({});
+      const response = await apiServices.get<{
+        message: string;
+        data: {
+          configured: boolean;
+          connected?: boolean;
+          models: any[];
+          message?: string;
+          error?: string;
+        };
+      }>("/plugins/mlflow/models");
 
-      if (data) {
-        // Handle new response format: { configured: boolean, connected?: boolean, models: [], message?: string }
-        if ('models' in data && Array.isArray(data.models)) {
+      if (response.data?.data) {
+        // Handle plugin API response format: { message: "OK", data: { configured: boolean, models: [] } }
+        const pluginData = response.data.data;
+        if ('models' in pluginData && Array.isArray(pluginData.models)) {
           // Check various states
-          if (!data.configured) {
-            setWarning("Configure the MLFlow integration to start syncing live data.");
-          } else if (data.connected === false) {
+          if (!pluginData.configured) {
+            setWarning("Configure the MLFlow plugin to start syncing live data.");
+          } else if (pluginData.connected === false) {
             // MLFlow is configured but server is not reachable
-            setWarning(data.message || "MLFlow server is not reachable.");
-          } else if (data.error) {
-            setWarning(data.error);
+            setWarning(pluginData.message || "MLFlow server is not reachable.");
+          } else if (pluginData.error) {
+            setWarning(pluginData.error);
           }
-          setMlflowData(data.models);
-        } else if (Array.isArray(data)) {
-          // Backwards compatibility: handle old format where response is directly an array
-          setMlflowData(data as unknown as MLFlowModel[]);
+          setMlflowData(pluginData.models);
         } else {
           setMlflowData([]);
         }
@@ -134,8 +141,29 @@ const MLFlowDataTable: React.FC = () => {
     fetchMLFlowData();
   }, []);
 
-  const handleRefresh = () => {
-    fetchMLFlowData();
+  const handleRefresh = async () => {
+    setLoading(true);
+    setWarning(null);
+
+    try {
+      // Call sync endpoint to fetch fresh data from MLflow server
+      await apiServices.post("/plugins/mlflow/sync");
+
+      // Then fetch the updated data from database
+      await fetchMLFlowData();
+    } catch (error: any) {
+      console.error("Error syncing MLflow data:", error);
+
+      // If sync fails, still try to fetch existing data
+      await fetchMLFlowData();
+
+      // Show warning if sync failed but data was fetched
+      if (error.response?.data?.message) {
+        setWarning(`Sync failed: ${error.response.data.message}`);
+      } else {
+        setWarning("Failed to sync with MLflow server. Showing cached data.");
+      }
+    }
   };
 
   const handleModelClick = (model: MLFlowModel) => {
@@ -170,9 +198,9 @@ const MLFlowDataTable: React.FC = () => {
       case 'lifecycle_stage':
         return model.lifecycle_stage || 'Unknown';
       case 'experiment':
-        return model.experiment_info?.experiment_name || model.experiment_info?.experiment_id || 'Unknown Experiment';
+        return model.experiment_name || model.experiment_id || 'Unknown Experiment';
       case 'model_name':
-        return model.name || 'Unknown Model';
+        return model.model_name || 'Unknown Model';
       default:
         return 'Other';
     }
@@ -219,7 +247,7 @@ const MLFlowDataTable: React.FC = () => {
           onClick={handleRefresh}
           disabled={loading}
         >
-          Refresh
+          Sync
         </Button>
       </Box>
 
@@ -247,7 +275,7 @@ const MLFlowDataTable: React.FC = () => {
       {/* Table Section - increased spacing */}
       <Box sx={{ mt: 8, mb: 2 }}>
         {mlflowData.length === 0 && !loading ? (
-          <EmptyState message="No MLFlow runs have been synced yet. Configure the integration and click Refresh to pull the latest models." />
+          <EmptyState message="No MLFlow runs have been synced yet. Configure the integration and click Sync to pull the latest models." />
         ) : (
           <GroupedTableView
             groupedData={groupedMLFlowData}
@@ -285,7 +313,7 @@ const MLFlowDataTable: React.FC = () => {
                     onClick={() => handleModelClick(model)}
                   >
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      {model.name}
+                      {model.model_name}
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {model.version}
@@ -370,7 +398,7 @@ const MLFlowDataTable: React.FC = () => {
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "15px" }}>
-                  {selectedModel.name}
+                  {selectedModel.model_name}
                 </Typography>
                 <IconButton onClick={handleCloseModal}>
                   <XCircle size={20} />
@@ -454,13 +482,13 @@ const MLFlowDataTable: React.FC = () => {
                   </Typography>
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                     <Typography variant="body2">
-                      <strong>Experiment ID:</strong> {selectedModel.experiment_info?.experiment_id}
+                      <strong>Experiment ID:</strong> {selectedModel.experiment_id}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Experiment Name:</strong> {selectedModel.experiment_info?.experiment_name}
+                      <strong>Experiment Name:</strong> {selectedModel.experiment_name}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Artifact Location:</strong> {selectedModel.experiment_info?.artifact_location}
+                      <strong>Artifact Location:</strong> {selectedModel.artifact_location}
                     </Typography>
                   </Box>
                 </Grid>

@@ -63,9 +63,9 @@ export const routeMapping: Record<string, string> = {
   // File management
   "/file-manager": "Evidence",
 
-  // Integrations
-  "/integrations": "Integrations",
-  "/integrations/mlflow": "MLFlow",
+  // Plugins
+  "/plugins/marketplace": "Plugins",
+  "/plugins/my-plugins": "Plugins",
 
   // Reporting
   "/reporting": "Reporting Dashboard",
@@ -154,8 +154,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // File management
   "/file-manager": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
 
-  // Integrations
-  "/integrations": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
+  // Plugins
+  "/plugins/marketplace": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
+  "/plugins/my-plugins": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
 
   // Reporting
   "/reporting": () => React.createElement(BarChart3, { size: 14, strokeWidth: 1.5 }),
@@ -176,9 +177,6 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Automations
   "/automations": () => React.createElement(Zap, { size: 14, strokeWidth: 1.5 }),
-
-  // MLFlow
-  "/integrations/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),
 
   // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
   "/framework/framework-risks": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
@@ -216,6 +214,11 @@ export const dynamicRoutePatterns = [
     pattern: /\/ai-incident-managements\/\d+/,
     label: "Incident Management Details",
     description: "Specific incident management information",
+  },
+  {
+    pattern: /\/plugins\/[a-zA-Z0-9-]+\/manage/,
+    label: "Plugin Details",
+    description: "Specific plugin management page",
   },
 ] as const;
 

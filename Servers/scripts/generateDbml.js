@@ -106,7 +106,6 @@ function modelToTableName(modelName) {
     'AutomationExecutionLogModel': 'automation_execution_logs',
     'AIIncidentManagementModel': 'ai_incident_management',
     'SlackWebhookModel': 'slack_webhooks',
-    'MLFlowIntegrationModel': 'mlflow_integrations',
     'MLFlowModelRecordModel': 'mlflow_model_records',
     'ModelInventoryHistoryModel': 'model_inventory_history',
     'RiskHistoryModel': 'risk_history',

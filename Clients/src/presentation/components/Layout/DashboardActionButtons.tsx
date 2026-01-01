@@ -1,7 +1,7 @@
 import React, { useMemo, memo, useCallback } from 'react';
 import { Stack, IconButton } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Puzzle, Zap } from 'lucide-react';
+import { Search, Zap, Package } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
@@ -52,12 +52,12 @@ const STYLE = {
     border: '1px solid #e5e5e5',
     '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: '#d0d5dd' },
   },
-  integrations: {
+  plugins: {
     backgroundColor: 'transparent',
-    color: '#8B5CF6',
+    color: '#10B981',
     border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(139, 92, 246, 0.08)', borderColor: '#8B5CF6' },
-    '&.Mui-disabled': { backgroundColor: 'transparent', color: '#8B5CF6', opacity: 0.5 },
+    '&:hover': { backgroundColor: 'rgba(16, 185, 129, 0.08)', borderColor: '#10B981' },
+    '&.Mui-disabled': { backgroundColor: 'transparent', color: '#10B981', opacity: 0.5 },
   },
   automations: {
     backgroundColor: 'transparent',
@@ -127,21 +127,21 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         </IconButton>
       </VWTooltip>
 
-      {/* Integrations */}
+      {/* Plugins */}
       <VWTooltip
-        header="Integrations"
-        content={isAdmin ? "Connect external tools and services." : "Admin access required."}
+        header="Plugins"
+        content={isAdmin ? "Browse and manage plugins from the marketplace." : "Admin access required."}
         placement="bottom"
         maxWidth={200}
       >
         <span>
           <IconButton
             size="small"
-            onClick={isAdmin ? () => navigate('/integrations') : undefined}
+            onClick={isAdmin ? () => navigate('/plugins/marketplace') : undefined}
             disabled={!isAdmin}
-            sx={{ ...baseStyles, ...STYLE.integrations }}
+            sx={{ ...baseStyles, ...STYLE.plugins }}
           >
-            <Puzzle size={16} />
+            <Package size={16} />
           </IconButton>
         </span>
       </VWTooltip>

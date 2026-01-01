@@ -573,9 +573,43 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
           >
             {finding.file_paths.slice(0, 20).map((fp, idx) => {
               const fileUrl = getFileUrl(fp.path, fp.line_number);
-              return (
+              const hasCodeContext = fp.matched_text && fp.matched_text.includes("│");
+
+              const codePreviewTooltip = hasCodeContext ? (
                 <Box
-                  key={idx}
+                  sx={{
+                    backgroundColor: "#1e1e1e",
+                    color: "#d4d4d4",
+                    p: "12px",
+                    borderRadius: "6px",
+                    fontFamily: "monospace",
+                    fontSize: "11px",
+                    whiteSpace: "pre",
+                    maxWidth: "600px",
+                    overflow: "auto",
+                  }}
+                >
+                  {fp.matched_text}
+                </Box>
+              ) : fp.matched_text ? (
+                <Box
+                  sx={{
+                    backgroundColor: "#1e1e1e",
+                    color: "#ce9178",
+                    p: "8px 12px",
+                    borderRadius: "6px",
+                    fontFamily: "monospace",
+                    fontSize: "12px",
+                    maxWidth: "400px",
+                    wordBreak: "break-all",
+                  }}
+                >
+                  {fp.matched_text}
+                </Box>
+              ) : null;
+
+              const filePathContent = (
+                <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
@@ -584,6 +618,9 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
                     px: 1,
                     fontFamily: "monospace",
                     fontSize: 13,
+                    cursor: fp.matched_text ? "help" : "default",
+                    "&:hover": fp.matched_text ? { backgroundColor: "#f0f0f0" } : {},
+                    borderRadius: "4px",
                   }}
                 >
                   {fileUrl ? (
@@ -618,6 +655,29 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
                     </span>
                   )}
                 </Box>
+              );
+
+              return codePreviewTooltip ? (
+                <Tooltip
+                  key={idx}
+                  title={codePreviewTooltip}
+                  arrow
+                  placement="right"
+                  enterDelay={200}
+                  componentsProps={{
+                    tooltip: {
+                      sx: {
+                        backgroundColor: "transparent",
+                        p: 0,
+                        maxWidth: "none",
+                      },
+                    },
+                  }}
+                >
+                  {filePathContent}
+                </Tooltip>
+              ) : (
+                <Box key={idx}>{filePathContent}</Box>
               );
             })}
             {finding.file_paths.length > 20 && (
@@ -806,9 +866,43 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
           >
             {finding.file_paths.slice(0, 20).map((fp, idx) => {
               const fileUrl = getFileUrl(fp.path, fp.line_number);
-              return (
+              const hasCodeContext = fp.matched_text && fp.matched_text.includes("│");
+
+              const codePreviewTooltip = hasCodeContext ? (
                 <Box
-                  key={idx}
+                  sx={{
+                    backgroundColor: "#1e1e1e",
+                    color: "#d4d4d4",
+                    p: "12px",
+                    borderRadius: "6px",
+                    fontFamily: "monospace",
+                    fontSize: "11px",
+                    whiteSpace: "pre",
+                    maxWidth: "600px",
+                    overflow: "auto",
+                  }}
+                >
+                  {fp.matched_text}
+                </Box>
+              ) : fp.matched_text ? (
+                <Box
+                  sx={{
+                    backgroundColor: "#1e1e1e",
+                    color: "#ce9178",
+                    p: "8px 12px",
+                    borderRadius: "6px",
+                    fontFamily: "monospace",
+                    fontSize: "12px",
+                    maxWidth: "400px",
+                    wordBreak: "break-all",
+                  }}
+                >
+                  {fp.matched_text}
+                </Box>
+              ) : null;
+
+              const filePathContent = (
+                <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
@@ -817,6 +911,9 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
                     px: 1,
                     fontFamily: "monospace",
                     fontSize: 13,
+                    cursor: fp.matched_text ? "help" : "default",
+                    "&:hover": fp.matched_text ? { backgroundColor: "#f0f0f0" } : {},
+                    borderRadius: "4px",
                   }}
                 >
                   {fileUrl ? (
@@ -851,6 +948,29 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
                     </span>
                   )}
                 </Box>
+              );
+
+              return codePreviewTooltip ? (
+                <Tooltip
+                  key={idx}
+                  title={codePreviewTooltip}
+                  arrow
+                  placement="right"
+                  enterDelay={200}
+                  componentsProps={{
+                    tooltip: {
+                      sx: {
+                        backgroundColor: "transparent",
+                        p: 0,
+                        maxWidth: "none",
+                      },
+                    },
+                  }}
+                >
+                  {filePathContent}
+                </Tooltip>
+              ) : (
+                <Box key={idx}>{filePathContent}</Box>
               );
             })}
             {finding.file_paths.length > 20 && (

@@ -483,6 +483,30 @@ function shouldScanFile(filePath: string): "code" | "dependency" | false {
 }
 
 /**
+ * Extract surrounding lines for code context (3 lines before and after by default)
+ */
+function getCodeContext(lines: string[], matchLineIndex: number, contextLines: number = 3, maskSecrets: boolean = false): string {
+  const startLine = Math.max(0, matchLineIndex - contextLines);
+  const endLine = Math.min(lines.length - 1, matchLineIndex + contextLines);
+
+  const contextParts: string[] = [];
+  for (let i = startLine; i <= endLine; i++) {
+    const lineNum = i + 1; // 1-indexed line number
+    const prefix = i === matchLineIndex ? "→ " : "  ";
+    let lineContent = lines[i].substring(0, 120); // Truncate very long lines
+
+    // Mask secrets in the matched line if requested
+    if (maskSecrets && i === matchLineIndex) {
+      lineContent = maskSecret(lineContent);
+    }
+
+    contextParts.push(`${prefix}${lineNum.toString().padStart(4, " ")} │ ${lineContent}`);
+  }
+
+  return contextParts.join("\n");
+}
+
+/**
  * Scan file content for AI patterns
  */
 function scanFileForPatterns(
@@ -524,7 +548,7 @@ function scanFileForPatterns(
                 matches.push({
                   pattern,
                   lineNumber: i + 1,
-                  matchedText: match[0].substring(0, 100), // Truncate long matches
+                  matchedText: getCodeContext(lines, i),
                   findingType: "library",
                 });
                 break; // One match per pattern per file is enough
@@ -555,7 +579,7 @@ function scanFileForPatterns(
               matches.push({
                 pattern,
                 lineNumber: i + 1,
-                matchedText: match[0].substring(0, 100),
+                matchedText: getCodeContext(lines, i),
                 findingType: "api_call",
               });
               break; // One match per pattern per file is enough
@@ -571,13 +595,11 @@ function scanFileForPatterns(
             const line = lines[i];
             const match = line.match(regex);
             if (match) {
-              // Mask the secret in matched text to avoid exposing it
-              const matchedText = match[0].substring(0, 100);
-              const maskedText = maskSecret(matchedText);
+              // Use code context with secret masking enabled
               matches.push({
                 pattern,
                 lineNumber: i + 1,
-                matchedText: maskedText,
+                matchedText: getCodeContext(lines, i, 3, true), // maskSecrets = true
                 findingType: "secret",
               });
               break; // One match per pattern per file is enough
@@ -606,7 +628,7 @@ function scanFileForPatterns(
               matches.push({
                 pattern,
                 lineNumber: i + 1,
-                matchedText: match[0].substring(0, 100),
+                matchedText: getCodeContext(lines, i),
                 findingType: "model_ref",
                 extractedModelName: extractedModel || undefined,
                 confidence,
@@ -627,7 +649,7 @@ function scanFileForPatterns(
               matches.push({
                 pattern,
                 lineNumber: i + 1,
-                matchedText: match[0].substring(0, 100),
+                matchedText: getCodeContext(lines, i),
                 findingType: "rag_component",
               });
               break; // One match per pattern per file is enough
@@ -646,7 +668,7 @@ function scanFileForPatterns(
               matches.push({
                 pattern,
                 lineNumber: i + 1,
-                matchedText: match[0].substring(0, 100),
+                matchedText: getCodeContext(lines, i),
                 findingType: "agent",
               });
               break; // One match per pattern per file is enough

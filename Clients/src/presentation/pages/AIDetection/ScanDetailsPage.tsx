@@ -662,8 +662,9 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
                   key={idx}
                   title={codePreviewTooltip}
                   arrow
-                  placement="bottom-start"
-                  enterDelay={200}
+                  placement="top-start"
+                  enterDelay={300}
+                  leaveDelay={0}
                   componentsProps={{
                     tooltip: {
                       sx: {
@@ -955,8 +956,9 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
                   key={idx}
                   title={codePreviewTooltip}
                   arrow
-                  placement="bottom-start"
-                  enterDelay={200}
+                  placement="top-start"
+                  enterDelay={300}
+                  leaveDelay={0}
                   componentsProps={{
                     tooltip: {
                       sx: {

@@ -79,15 +79,16 @@ export async function getNotes(
     const notes = extractData<Note[]>(response);
     // Ensure we always return an array
     return Array.isArray(notes) ? notes : [];
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status?: number } };
     // On error, return empty array instead of throwing (or handle based on error type)
-    if (error?.response?.status === 204) {
+    if (axiosError?.response?.status === 204) {
       // 204 No Content is a valid response for empty notes
       return [];
     }
     throw new APIError(
       "Failed to fetch notes",
-      error?.response?.status,
+      axiosError?.response?.status,
       error
     );
   }
@@ -105,10 +106,11 @@ export async function getNoteById(noteId: number): Promise<Note> {
       `/notes/${noteId}`
     );
     return extractData<Note>(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status?: number } };
     throw new APIError(
       `Failed to fetch note with ID ${noteId}`,
-      error?.response?.status,
+      axiosError?.response?.status,
       error
     );
   }
@@ -127,8 +129,9 @@ export async function createNote(input: CreateNoteRequest): Promise<Note> {
       input
     );
     return extractData<Note>(response);
-  } catch (error: any) {
-    throw new APIError("Failed to create note", error?.response?.status, error);
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status?: number } };
+    throw new APIError("Failed to create note", axiosError?.response?.status, error);
   }
 }
 
@@ -149,10 +152,11 @@ export async function updateNote(
       input
     );
     return extractData<Note>(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status?: number } };
     throw new APIError(
       `Failed to update note with ID ${noteId}`,
-      error?.response?.status,
+      axiosError?.response?.status,
       error
     );
   }
@@ -167,10 +171,11 @@ export async function updateNote(
 export async function deleteNote(noteId: number): Promise<void> {
   try {
     await apiServices.delete(`/notes/${noteId}`);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status?: number } };
     throw new APIError(
       `Failed to delete note with ID ${noteId}`,
-      error?.response?.status,
+      axiosError?.response?.status,
       error
     );
   }

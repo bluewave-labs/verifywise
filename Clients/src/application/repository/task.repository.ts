@@ -2,6 +2,20 @@ import { apiServices } from "../../infrastructure/api/networkServices";
 import { getAuthToken } from "../redux/auth/getAuthToken";
 import { ITask } from "../../domain/interfaces/i.task";
 import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
+import { BackendResponse } from "../../domain/types/ApiTypes";
+
+/**
+ * Response structure for paginated task list
+ */
+interface TaskListResponse {
+  tasks: ITask[];
+  pagination: {
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+  };
+}
 
 /**
  * Retrieves all tasks with optional filtering, sorting, and pagination
@@ -9,7 +23,7 @@ import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
  * @param {object} params - Query parameters for filtering and pagination
  * @param {AbortSignal} [signal] - Optional abort signal for canceling the request
  * @param {string} [authToken] - Optional auth token, defaults to stored token
- * @returns {Promise<any>} The tasks data with pagination info
+ * @returns {Promise<BackendResponse<TaskListResponse>>} The tasks data with pagination info
  * @throws Will throw an error if the request fails
  */
 export async function getAllTasks({
@@ -42,7 +56,7 @@ export async function getAllTasks({
   sort_order?: "ASC" | "DESC";
   page?: string;
   page_size?: string;
-} = {}): Promise<any> {
+} = {}): Promise<BackendResponse<TaskListResponse>> {
   try {
     // Build query parameters
     const params = new URLSearchParams();
@@ -72,7 +86,7 @@ export async function getAllTasks({
     const queryString = params.toString();
     const url = `/tasks${queryString ? `?${queryString}` : ""}`;
 
-    const response = await apiServices.get(url, {
+    const response = await apiServices.get<BackendResponse<TaskListResponse>>(url, {
       headers: { Authorization: `Bearer ${authToken}` },
       signal,
     });
@@ -91,7 +105,7 @@ export async function getAllTasks({
  * @param {string} params.id - The task ID
  * @param {AbortSignal} [params.signal] - Optional abort signal
  * @param {string} [params.authToken] - Optional auth token
- * @returns {Promise<any>} The task data
+ * @returns {Promise<BackendResponse<ITask>>} The task data
  * @throws Will throw an error if the request fails
  */
 export async function getTaskById({
@@ -102,9 +116,9 @@ export async function getTaskById({
   id: string | number;
   signal?: AbortSignal;
   authToken?: string;
-}): Promise<any> {
+}): Promise<BackendResponse<ITask>> {
   try {
-    const response = await apiServices.get(`/tasks/${id}`, {
+    const response = await apiServices.get<BackendResponse<ITask>>(`/tasks/${id}`, {
       headers: { Authorization: `Bearer ${authToken}` },
       signal,
     });
@@ -121,7 +135,7 @@ export async function getTaskById({
  * @param {object} params - Parameters for creating a task
  * @param {Partial<ITask>} params.body - The task data
  * @param {string} [params.authToken] - Optional auth token
- * @returns {Promise<any>} The created task data
+ * @returns {Promise<BackendResponse<ITask>>} The created task data
  * @throws Will throw an error if the request fails
  */
 export async function createTask({
@@ -130,9 +144,9 @@ export async function createTask({
 }: {
   body: Partial<ITask>;
   authToken?: string;
-}): Promise<any> {
+}): Promise<BackendResponse<ITask>> {
   try {
-    const response = await apiServices.post("/tasks", body, {
+    const response = await apiServices.post<BackendResponse<ITask>>("/tasks", body, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;
@@ -149,7 +163,7 @@ export async function createTask({
  * @param {string|number} params.id - The task ID
  * @param {Partial<ITask>} params.body - The updated task data
  * @param {string} [params.authToken] - Optional auth token
- * @returns {Promise<any>} The updated task data
+ * @returns {Promise<BackendResponse<ITask>>} The updated task data
  * @throws Will throw an error if the request fails
  */
 export async function updateTask({
@@ -160,9 +174,9 @@ export async function updateTask({
   id: string | number;
   body: Partial<ITask>;
   authToken?: string;
-}): Promise<any> {
+}): Promise<BackendResponse<ITask>> {
   try {
-    const response = await apiServices.put(`/tasks/${id}`, body, {
+    const response = await apiServices.put<BackendResponse<ITask>>(`/tasks/${id}`, body, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;
@@ -178,7 +192,7 @@ export async function updateTask({
  * @param {object} params - Parameters for deleting a task
  * @param {string|number} params.id - The task ID
  * @param {string} [params.authToken] - Optional auth token
- * @returns {Promise<any>} The deletion response
+ * @returns {Promise<BackendResponse<null>>} The deletion response
  * @throws Will throw an error if the request fails
  */
 export async function deleteTask({
@@ -187,9 +201,9 @@ export async function deleteTask({
 }: {
   id: string | number;
   authToken?: string;
-}): Promise<any> {
+}): Promise<BackendResponse<null>> {
   try {
-    const response = await apiServices.delete(`/tasks/${id}`, {
+    const response = await apiServices.delete<BackendResponse<null>>(`/tasks/${id}`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;
@@ -206,7 +220,7 @@ export async function deleteTask({
  * @param {string|number} params.id - The task ID
  * @param {TaskStatus} params.status - The new status
  * @param {string} [params.authToken] - Optional auth token
- * @returns {Promise<any>} The updated task data
+ * @returns {Promise<BackendResponse<ITask>>} The updated task data
  * @throws Will throw an error if the request fails
  */
 export async function updateTaskStatus({
@@ -217,9 +231,9 @@ export async function updateTaskStatus({
   id: string | number;
   status: TaskStatus;
   authToken?: string;
-}): Promise<any> {
+}): Promise<BackendResponse<ITask>> {
   try {
-    const response = await apiServices.put(
+    const response = await apiServices.put<BackendResponse<ITask>>(
       `/tasks/${id}`,
       { status },
       {
@@ -239,7 +253,7 @@ export async function updateTaskStatus({
  * @param {object} params - Parameters for restoring a task
  * @param {string|number} params.id - The task ID
  * @param {string} [params.authToken] - Optional auth token
- * @returns {Promise<any>} The restored task data
+ * @returns {Promise<BackendResponse<ITask>>} The restored task data
  * @throws Will throw an error if the request fails
  */
 export async function restoreTask({
@@ -248,9 +262,9 @@ export async function restoreTask({
 }: {
   id: string | number;
   authToken?: string;
-}): Promise<any> {
+}): Promise<BackendResponse<ITask>> {
   try {
-    const response = await apiServices.put(`/tasks/${id}/restore`, {}, {
+    const response = await apiServices.put<BackendResponse<ITask>>(`/tasks/${id}/restore`, {}, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;
@@ -266,7 +280,7 @@ export async function restoreTask({
  * @param {object} params - Parameters for hard deleting a task
  * @param {string|number} params.id - The task ID
  * @param {string} [params.authToken] - Optional auth token
- * @returns {Promise<any>} The deletion response
+ * @returns {Promise<BackendResponse<null>>} The deletion response
  * @throws Will throw an error if the request fails
  */
 export async function hardDeleteTask({
@@ -275,9 +289,9 @@ export async function hardDeleteTask({
 }: {
   id: string | number;
   authToken?: string;
-}): Promise<any> {
+}): Promise<BackendResponse<null>> {
   try {
-    const response = await apiServices.delete(`/tasks/${id}/hard`, {
+    const response = await apiServices.delete<BackendResponse<null>>(`/tasks/${id}/hard`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;

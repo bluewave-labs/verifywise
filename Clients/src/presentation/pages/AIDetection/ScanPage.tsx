@@ -60,7 +60,7 @@ type ScanState = "idle" | "scanning" | "completed" | "failed";
 interface StatCardProps {
   title: string;
   value: number | string;
-  Icon: React.ComponentType<{ size?: number }>;
+  Icon: React.ComponentType<{ size?: number | string }>;
   subtitle?: string;
   tooltip?: string;
 }

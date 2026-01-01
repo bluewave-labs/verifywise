@@ -138,7 +138,7 @@ export const scanningContent: ArticleContent = {
     {
       type: 'heading',
       id: 'governance-status',
-      level: 4,
+      level: 3,
       text: 'Governance status',
     },
     {

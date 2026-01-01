@@ -50,10 +50,12 @@ const useAssessmentProgress = ({
         } else {
           setAssessmentProgress(defaultAssessmentProgress);
         }
-      } catch (error: any) {
+      } catch (error) {
         // Ignore abort errors (caused by React StrictMode or component unmount)
-        if (error?.message === "canceled" || error?.name === "AbortError") {
-          return;
+        if (error instanceof Error) {
+          if (error.message === "canceled" || error.name === "AbortError") {
+            return;
+          }
         }
         console.error("Failed to fetch progress data:", error);
         setAssessmentProgress(defaultAssessmentProgress);

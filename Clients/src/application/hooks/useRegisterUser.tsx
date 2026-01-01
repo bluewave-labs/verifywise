@@ -4,14 +4,41 @@ import { API_RESPONSES, UNEXPECTED } from "../constants/apiResponses";
 import { createNewUser } from "../repository/user.repository";
 import { ApiResponse, User } from "../../domain/types/User";
 
+/**
+ * User data for registration.
+ */
 interface RegisterUser {
+  /** Unique identifier for the user */
   id: string;
+  /** User's email address */
   email?: string;
+  /** User's first name */
   firstname: string;
+  /** User's last name */
   lastname: string;
+  /** Role ID to assign to the user */
   roleId: number;
 }
 
+/**
+ * Error response structure from API.
+ */
+interface ApiErrorResponse {
+  /** HTTP status code */
+  status?: number;
+  /** Error data payload */
+  data?: unknown;
+}
+
+/**
+ * Custom hook for handling user registration.
+ *
+ * @returns {Object} Object containing the registerUser function
+ *
+ * @example
+ * const { registerUser } = useRegisterUser();
+ * const result = await registerUser({ values, user, setIsSubmitting }, token);
+ */
 const useRegisterUser = () => {
   const handleApiResponse = ({
     response,
@@ -51,7 +78,8 @@ const useRegisterUser = () => {
         isSuccess: response.status,
         response: response,
       };
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiErrorResponse;
       logEngine({
         type: "error",
         message: `An error occurred: ${
@@ -60,8 +88,8 @@ const useRegisterUser = () => {
       });
       setIsSubmitting(false);
       return {
-        isSuccess: error.status || false,
-        response: error,
+        isSuccess: apiError.status || false,
+        response: apiError,
       };
     }
   };

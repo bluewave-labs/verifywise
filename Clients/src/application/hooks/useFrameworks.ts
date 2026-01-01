@@ -1,23 +1,51 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useCallback } from "react";
 import { Framework } from "../../domain/types/Framework";
+import { ProjectFramework } from "../../domain/types/Project";
 import { getAllFrameworks } from "../repository/entity.repository";
 
+/**
+ * Result object returned by the useFrameworks hook.
+ */
 interface UseFrameworksResult {
+  /** All available frameworks in the system */
   allFrameworks: Framework[];
+  /** Frameworks filtered to those assigned to the current project */
   filteredFrameworks: Framework[];
+  /** Map of framework_id to project_framework_id for quick lookup */
   projectFrameworksMap: Map<number, number>;
+  /** Loading state for the frameworks query */
   loading: boolean;
+  /** Error message if fetch failed, null otherwise */
   error: string | null;
+  /** Function to refetch all frameworks */
   refreshAllFrameworks: () => Promise<void>;
+  /** Function to invalidate and refetch filtered frameworks */
   refreshFilteredFrameworks: () => Promise<void>;
 }
 
+/**
+ * Parameters for the useFrameworks hook.
+ */
+interface UseFrameworksParams {
+  /** List of project-framework relationships to filter by */
+  listOfFrameworks: ProjectFramework[];
+}
+
+/**
+ * Custom hook to fetch and manage frameworks with project-specific filtering.
+ *
+ * @param {UseFrameworksParams} params - The parameters object
+ * @returns {UseFrameworksResult} Object containing frameworks data and utilities
+ *
+ * @example
+ * const { allFrameworks, filteredFrameworks, loading } = useFrameworks({
+ *   listOfFrameworks: project.framework
+ * });
+ */
 const useFrameworks = ({
   listOfFrameworks,
-}: {
-  listOfFrameworks: any[];
-}): UseFrameworksResult => {
+}: UseFrameworksParams): UseFrameworksResult => {
   const queryClient = useQueryClient();
 
   // Fetch all frameworks using TanStack Query
@@ -46,7 +74,7 @@ const useFrameworks = ({
     let _filteredFrameworks: Framework[] = [];
 
     if (allFrameworks.length > 0 && listOfFrameworks.length > 0) {
-      const frameworkIds = listOfFrameworks.map((f: any) => {
+      const frameworkIds = listOfFrameworks.map((f: ProjectFramework) => {
         _projectFrameworksMap.set(Number(f.framework_id), Number(f.project_framework_id));
         return Number(f.framework_id);
       });

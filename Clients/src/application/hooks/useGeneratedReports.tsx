@@ -41,7 +41,7 @@ const useGeneratedReports = ({
         if(response){
           setGeneratedReports(response.data)
         }
-      } catch (err: any) {
+      } catch (err) {
         if (err instanceof Error) {
           setError(`Request failed: ${err.message}`);
         } else {

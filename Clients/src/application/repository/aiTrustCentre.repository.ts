@@ -56,7 +56,7 @@ export async function getAITrustCentreOverview(): Promise<BackendResponse<AITrus
   try {
     const response = await apiServices.get<BackendResponse<AITrustCentreOverview>>("/aiTrustCentre/overview");
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching AI Trust Center overview:", error);
     throw error;
   }
@@ -74,7 +74,7 @@ export async function updateAITrustCentreOverview(
   try {
     const response = await apiServices.put<BackendResponse<AITrustCentreOverview>>("/aiTrustCentre/overview", data);
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error updating AI Trust Center overview:", error);
     throw error;
   }
@@ -99,7 +99,7 @@ export async function uploadAITrustCentreLogo(
       },
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error uploading AI Trust Center logo:", error);
     throw error;
   }
@@ -114,7 +114,7 @@ export async function deleteAITrustCentreLogo(): Promise<null> {
   try {
     const response = await apiServices.delete<null>("/aiTrustCentre/logo");
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error deleting AI Trust Center logo:", error);
     throw error;
   }
@@ -148,7 +148,7 @@ export async function createAITrustCentreResource(
       },
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error creating AI Trust Center resource:", error);
     throw error;
   }
@@ -163,7 +163,7 @@ export async function getAITrustCentreResources(): Promise<BackendResponse<AITru
   try {
     const response = await apiServices.get<BackendResponse<AITrustCentreResource[]>>("/aiTrustCentre/resources");
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching AI Trust Center resources:", error);
     throw error;
   }
@@ -181,7 +181,7 @@ export async function deleteAITrustCentreResource(
   try {
     const response = await apiServices.delete<null>(`/aiTrustCentre/resources/${resourceId}`);
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error deleting AI Trust Center resource:", error);
     throw error;
   }
@@ -228,7 +228,7 @@ export async function updateAITrustCentreResource(
       },
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error updating AI Trust Center resource:", error);
     throw error;
   }
@@ -243,7 +243,7 @@ export async function getAITrustCentreSubprocessors(): Promise<BackendResponse<A
   try {
     const response = await apiServices.get<BackendResponse<AITrustCentreSubprocessor[]>>("/aiTrustCentre/subprocessors");
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching AI Trust Center subprocessors:", error);
     throw error;
   }
@@ -276,7 +276,7 @@ export async function createAITrustCentreSubprocessor(
       },
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error creating AI Trust Center subprocessor:", error);
     throw error;
   }
@@ -311,7 +311,7 @@ export async function updateAITrustCentreSubprocessor(
       },
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error updating AI Trust Center subprocessor:", error);
     throw error;
   }
@@ -329,7 +329,7 @@ export async function deleteAITrustCentreSubprocessor(
   try {
     const response = await apiServices.delete<null>(`/aiTrustCentre/subprocessors/${subprocessorId}`);
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error deleting AI Trust Center subprocessor:", error);
     throw error;
   }
@@ -347,7 +347,7 @@ export async function getAITrustCentreLogo(tenantId: string): Promise<BackendRes
       responseType: "json",
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching AI Trust Center logo:", error);
     throw error;
   }

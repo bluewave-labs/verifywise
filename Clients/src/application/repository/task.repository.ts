@@ -92,7 +92,7 @@ export async function getAllTasks({
     });
 
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching tasks:", error);
     throw error;
   }
@@ -123,7 +123,7 @@ export async function getTaskById({
       signal,
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching task by ID:", error);
     throw error;
   }
@@ -150,7 +150,7 @@ export async function createTask({
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error creating task:", error);
     throw error;
   }
@@ -180,7 +180,7 @@ export async function updateTask({
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error updating task:", error);
     throw error;
   }
@@ -207,7 +207,7 @@ export async function deleteTask({
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error deleting task:", error);
     throw error;
   }
@@ -241,7 +241,7 @@ export async function updateTaskStatus({
       }
     );
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error updating task status:", error);
     throw error;
   }
@@ -268,7 +268,7 @@ export async function restoreTask({
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error restoring task:", error);
     throw error;
   }
@@ -295,7 +295,7 @@ export async function hardDeleteTask({
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error permanently deleting task:", error);
     throw error;
   }

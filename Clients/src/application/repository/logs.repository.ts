@@ -23,7 +23,7 @@ export async function getAllLogs({ routeUrl }: RequestParams): Promise<BackendRe
   try {
     const response = await apiServices.get<BackendResponse<LogEntry[]>>(routeUrl);
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching logs:", error);
     throw error;
   }

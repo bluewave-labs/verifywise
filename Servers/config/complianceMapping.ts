@@ -81,14 +81,15 @@ export const COMPLIANCE_REQUIREMENTS: Record<string, ComplianceRequirement> = {
   },
   TRANS_003: {
     id: "TRANS_003",
-    articleRef: "Article 52",
+    articleRef: "Article 50",
     title: "User Notification of AI Interaction",
     description:
-      "Users must be informed when interacting with AI systems, especially chatbots and content generation.",
+      "Providers must ensure users know when interacting with AI systems. AI-generated content must be marked as artificially generated in machine-readable format.",
     category: "transparency",
     documentationRequired: "required",
     checklistItems: [
       "Implement user notification for AI-generated content",
+      "Mark synthetic content as artificially generated",
       "Disclose AI agent capabilities to users",
       "Label AI-assisted outputs appropriately",
     ],
@@ -228,11 +229,11 @@ export const COMPLIANCE_REQUIREMENTS: Record<string, ComplianceRequirement> = {
     articleRef: "Article 15",
     title: "AI System Security",
     description:
-      "Ensure AI systems achieve appropriate levels of accuracy, robustness, and cybersecurity.",
+      "High-risk AI systems shall achieve appropriate levels of accuracy, robustness, and cybersecurity, and perform consistently throughout their lifecycle.",
     category: "security",
     documentationRequired: "required",
     checklistItems: [
-      "Secure API key storage and rotation",
+      "Declare accuracy levels and metrics in documentation",
       "Implement input validation for AI systems",
       "Protect against prompt injection attacks",
       "Monitor for adversarial inputs",
@@ -240,31 +241,33 @@ export const COMPLIANCE_REQUIREMENTS: Record<string, ComplianceRequirement> = {
   },
   SEC_002: {
     id: "SEC_002",
-    articleRef: "Article 15(4)",
-    title: "Secret and Credential Management",
+    articleRef: "Article 15(5)",
+    title: "AI-Specific Cybersecurity",
     description:
-      "Properly manage secrets, API keys, and credentials used in AI integrations.",
+      "Systems must resist unauthorized alterations and address AI-specific vulnerabilities including data poisoning, model poisoning, adversarial examples, and confidentiality attacks.",
     category: "security",
     documentationRequired: "required",
     checklistItems: [
-      "Audit detected secrets and credentials",
-      "Implement secure credential storage",
+      "Protect against data poisoning attacks",
+      "Protect against model poisoning attacks",
+      "Implement defenses against adversarial examples",
+      "Secure API keys and credentials",
       "Rotate exposed credentials immediately",
-      "Use environment variables for secrets",
     ],
   },
 
-  // Article 61 - Post-Market Monitoring
+  // Article 72 - Post-Market Monitoring
   MON_001: {
     id: "MON_001",
-    articleRef: "Article 61",
+    articleRef: "Article 72",
     title: "Post-Market Monitoring",
     description:
-      "Establish and document a post-market monitoring system for AI components.",
+      "Providers shall establish and document a post-market monitoring system proportionate to the nature of the AI technologies and risks.",
     category: "monitoring",
     documentationRequired: "required",
     checklistItems: [
-      "Monitor AI component performance",
+      "Establish post-market monitoring system",
+      "Monitor AI component performance continuously",
       "Track model drift and degradation",
       "Log AI system outputs and decisions",
       "Implement alerting for anomalies",

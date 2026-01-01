@@ -25,7 +25,7 @@ export async function GetAnnexCategoriesById({
       responseType,
     });
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error getting annex categories by ID:", error);
     throw error;
   }

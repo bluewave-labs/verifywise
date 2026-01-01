@@ -45,8 +45,7 @@ export async function createControlCategory({
 }: {
   body: ControlCategoryInput;
 }): Promise<ApiResponse<BackendResponse<ControlCategory>>> {
-  const response = await apiServices.post<BackendResponse<ControlCategory>>("/controlCategory", body, {
-  });
+  const response = await apiServices.post<BackendResponse<ControlCategory>>("/controlCategory", body);
   return response;
 }
 

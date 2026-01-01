@@ -110,7 +110,7 @@ export async function deleteSlackIntegration({id,}: {
     const response = await apiServices.delete<BackendResponse<null>>(`/slackWebhooks/${id}`);
     return response.data;
   } catch (error: unknown) {
-    console.error("Error deleting task:", error);
+    console.error("Error deleting Slack integration:", error);
     throw error;
   }
 }

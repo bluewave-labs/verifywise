@@ -21,6 +21,44 @@ import {
 // ============================================================================
 
 /**
+ * Ensure the github_tokens table exists in the tenant schema
+ *
+ * @param tenantId - The tenant schema hash
+ */
+async function ensureGitHubTokensTableExists(tenantId: string): Promise<void> {
+  try {
+    // Check if table exists
+    const [result] = await sequelize.query<{ exists: boolean }>(
+      `SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = :tenantId
+        AND table_name = 'github_tokens'
+      )`,
+      { type: QueryTypes.SELECT, replacements: { tenantId } }
+    );
+
+    if (!result?.exists) {
+      // Create the table if it doesn't exist
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS "${tenantId}".github_tokens (
+          id SERIAL PRIMARY KEY,
+          encrypted_token TEXT NOT NULL,
+          token_name VARCHAR(100) DEFAULT 'GitHub Personal Access Token',
+          created_by INTEGER NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          last_used_at TIMESTAMP WITH TIME ZONE
+        );
+      `);
+      console.log(`Created github_tokens table in schema ${tenantId}`);
+    }
+  } catch (error) {
+    console.error(`Error ensuring github_tokens table exists in ${tenantId}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Get the GitHub token for a tenant (returns encrypted)
  *
  * @param tenantId - The tenant schema hash
@@ -29,6 +67,9 @@ import {
 export async function getGitHubTokenQuery(
   tenantId: string
 ): Promise<IGitHubToken | null> {
+  // Ensure table exists before querying
+  await ensureGitHubTokensTableExists(tenantId);
+
   const [token] = await sequelize.query<IGitHubToken>(
     `SELECT id, encrypted_token, token_name, created_by, created_at, updated_at, last_used_at
      FROM "${tenantId}".github_tokens
@@ -78,6 +119,9 @@ export async function saveGitHubTokenQuery(
   tenantId: string,
   tokenName?: string
 ): Promise<IGitHubToken> {
+  // Ensure table exists before saving
+  await ensureGitHubTokensTableExists(tenantId);
+
   // Encrypt the token before storing
   const encryptedToken = encrypt(plainToken);
 

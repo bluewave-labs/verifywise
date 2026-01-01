@@ -299,6 +299,159 @@ function getProviderIcon(provider?: string, size: number = 16): React.ReactNode 
 }
 
 // ============================================================================
+// File Path Item Component (with click-to-show code preview)
+// ============================================================================
+
+interface FilePathItemProps {
+  path: string;
+  lineNumber: number | null;
+  matchedText: string;
+  fileUrl: string | null;
+}
+
+function FilePathItem({ path, lineNumber, matchedText, fileUrl }: FilePathItemProps) {
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const hasCodeContext = matchedText && matchedText.includes("│");
+  const hasContent = !!matchedText;
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    if (hasContent) {
+      event.preventDefault();
+      event.stopPropagation();
+      setAnchorEl(event.currentTarget);
+    }
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const codePreviewContent = hasCodeContext ? (
+    <Box
+      sx={{
+        backgroundColor: "#1e1e1e",
+        color: "#d4d4d4",
+        p: "12px",
+        fontFamily: "monospace",
+        fontSize: "11px",
+        whiteSpace: "pre",
+        maxWidth: "600px",
+        overflow: "auto",
+      }}
+    >
+      {matchedText}
+    </Box>
+  ) : matchedText ? (
+    <Box
+      sx={{
+        backgroundColor: "#1e1e1e",
+        color: "#ce9178",
+        p: "8px 12px",
+        fontFamily: "monospace",
+        fontSize: "12px",
+        maxWidth: "400px",
+        wordBreak: "break-all",
+      }}
+    >
+      {matchedText}
+    </Box>
+  ) : null;
+
+  return (
+    <>
+      <Box
+        onClick={handleClick}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          py: 0.5,
+          px: 1,
+          fontFamily: "monospace",
+          fontSize: 13,
+          cursor: hasContent ? "pointer" : "default",
+          "&:hover": hasContent ? {
+            backgroundColor: "#e8e8e8",
+            "& .click-for-code-hint": { opacity: 0.7 },
+          } : {},
+          borderRadius: "4px",
+          backgroundColor: anchorEl ? "#e0e0e0" : "transparent",
+        }}
+      >
+        {fileUrl ? (
+          <a
+            href={fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              fontFamily: "monospace",
+              color: "#101828",
+              wordBreak: "break-all",
+              textDecoration: "none",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+          >
+            {path}
+            {lineNumber && (
+              <span style={{ color: "#667085", marginLeft: "4px" }}>
+                :{lineNumber}
+              </span>
+            )}
+          </a>
+        ) : (
+          <span style={{ fontFamily: "monospace", color: "#101828", wordBreak: "break-all" }}>
+            {path}
+            {lineNumber && (
+              <span style={{ color: "#667085", marginLeft: "4px" }}>
+                :{lineNumber}
+              </span>
+            )}
+          </span>
+        )}
+        {hasContent && (
+          <Box
+            component="span"
+            className="click-for-code-hint"
+            sx={{
+              ml: "auto",
+              color: "#667085",
+              fontSize: "11px",
+              opacity: 0,
+              transition: "opacity 0.15s ease",
+            }}
+          >
+            (click for code)
+          </Box>
+        )}
+      </Box>
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+        disableScrollLock={false}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 0.5,
+              borderRadius: "6px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              overflow: "hidden",
+              position: "fixed",
+            },
+          },
+        }}
+      >
+        {codePreviewContent}
+      </Popover>
+    </>
+  );
+}
+
+// ============================================================================
 // Finding Row Component (for Library findings)
 // ============================================================================
 
@@ -393,7 +546,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
           </Box>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {/* Risk Level Badge */}
           {finding.risk_level && (
             <Tooltip title={RISK_LEVEL_CONFIG[finding.risk_level].tooltip} arrow placement="top">
@@ -571,116 +724,15 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
               p: 1,
             }}
           >
-            {finding.file_paths.slice(0, 20).map((fp, idx) => {
-              const fileUrl = getFileUrl(fp.path, fp.line_number);
-              const hasCodeContext = fp.matched_text && fp.matched_text.includes("│");
-
-              const codePreviewTooltip = hasCodeContext ? (
-                <Box
-                  sx={{
-                    backgroundColor: "#1e1e1e",
-                    color: "#d4d4d4",
-                    p: "12px",
-                    borderRadius: "6px",
-                    fontFamily: "monospace",
-                    fontSize: "11px",
-                    whiteSpace: "pre",
-                    maxWidth: "600px",
-                    overflow: "auto",
-                  }}
-                >
-                  {fp.matched_text}
-                </Box>
-              ) : fp.matched_text ? (
-                <Box
-                  sx={{
-                    backgroundColor: "#1e1e1e",
-                    color: "#ce9178",
-                    p: "8px 12px",
-                    borderRadius: "6px",
-                    fontFamily: "monospace",
-                    fontSize: "12px",
-                    maxWidth: "400px",
-                    wordBreak: "break-all",
-                  }}
-                >
-                  {fp.matched_text}
-                </Box>
-              ) : null;
-
-              const filePathContent = (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    py: 0.5,
-                    px: 1,
-                    fontFamily: "monospace",
-                    fontSize: 13,
-                    cursor: fp.matched_text ? "help" : "default",
-                    "&:hover": fp.matched_text ? { backgroundColor: "#f0f0f0" } : {},
-                    borderRadius: "4px",
-                  }}
-                >
-                  {fileUrl ? (
-                    <a
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        fontFamily: "monospace",
-                        color: "#101828",
-                        wordBreak: "break-all",
-                        textDecoration: "none",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-                      onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-                    >
-                      {fp.path}
-                      {fp.line_number && (
-                        <span style={{ color: "#667085", marginLeft: "4px" }}>
-                          :{fp.line_number}
-                        </span>
-                      )}
-                    </a>
-                  ) : (
-                    <span style={{ fontFamily: "monospace", color: "#101828", wordBreak: "break-all" }}>
-                      {fp.path}
-                      {fp.line_number && (
-                        <span style={{ color: "#667085", marginLeft: "4px" }}>
-                          :{fp.line_number}
-                        </span>
-                      )}
-                    </span>
-                  )}
-                </Box>
-              );
-
-              return codePreviewTooltip ? (
-                <Tooltip
-                  key={idx}
-                  title={codePreviewTooltip}
-                  arrow
-                  placement="top-start"
-                  enterDelay={300}
-                  leaveDelay={0}
-                  componentsProps={{
-                    tooltip: {
-                      sx: {
-                        backgroundColor: "transparent",
-                        p: 0,
-                        maxWidth: "none",
-                      },
-                    },
-                  }}
-                >
-                  {filePathContent}
-                </Tooltip>
-              ) : (
-                <Box key={idx}>{filePathContent}</Box>
-              );
-            })}
+            {finding.file_paths.slice(0, 20).map((fp, idx) => (
+              <FilePathItem
+                key={idx}
+                path={fp.path}
+                lineNumber={fp.line_number}
+                matchedText={fp.matched_text}
+                fileUrl={getFileUrl(fp.path, fp.line_number)}
+              />
+            ))}
             {finding.file_paths.length > 20 && (
               <Typography
                 variant="body2"
@@ -865,116 +917,15 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
               p: 1,
             }}
           >
-            {finding.file_paths.slice(0, 20).map((fp, idx) => {
-              const fileUrl = getFileUrl(fp.path, fp.line_number);
-              const hasCodeContext = fp.matched_text && fp.matched_text.includes("│");
-
-              const codePreviewTooltip = hasCodeContext ? (
-                <Box
-                  sx={{
-                    backgroundColor: "#1e1e1e",
-                    color: "#d4d4d4",
-                    p: "12px",
-                    borderRadius: "6px",
-                    fontFamily: "monospace",
-                    fontSize: "11px",
-                    whiteSpace: "pre",
-                    maxWidth: "600px",
-                    overflow: "auto",
-                  }}
-                >
-                  {fp.matched_text}
-                </Box>
-              ) : fp.matched_text ? (
-                <Box
-                  sx={{
-                    backgroundColor: "#1e1e1e",
-                    color: "#ce9178",
-                    p: "8px 12px",
-                    borderRadius: "6px",
-                    fontFamily: "monospace",
-                    fontSize: "12px",
-                    maxWidth: "400px",
-                    wordBreak: "break-all",
-                  }}
-                >
-                  {fp.matched_text}
-                </Box>
-              ) : null;
-
-              const filePathContent = (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    py: 0.5,
-                    px: 1,
-                    fontFamily: "monospace",
-                    fontSize: 13,
-                    cursor: fp.matched_text ? "help" : "default",
-                    "&:hover": fp.matched_text ? { backgroundColor: "#f0f0f0" } : {},
-                    borderRadius: "4px",
-                  }}
-                >
-                  {fileUrl ? (
-                    <a
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        fontFamily: "monospace",
-                        color: "#101828",
-                        wordBreak: "break-all",
-                        textDecoration: "none",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-                      onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-                    >
-                      {fp.path}
-                      {fp.line_number && (
-                        <span style={{ color: "#667085", marginLeft: "4px" }}>
-                          :{fp.line_number}
-                        </span>
-                      )}
-                    </a>
-                  ) : (
-                    <span style={{ fontFamily: "monospace", color: "#101828", wordBreak: "break-all" }}>
-                      {fp.path}
-                      {fp.line_number && (
-                        <span style={{ color: "#667085", marginLeft: "4px" }}>
-                          :{fp.line_number}
-                        </span>
-                      )}
-                    </span>
-                  )}
-                </Box>
-              );
-
-              return codePreviewTooltip ? (
-                <Tooltip
-                  key={idx}
-                  title={codePreviewTooltip}
-                  arrow
-                  placement="top-start"
-                  enterDelay={300}
-                  leaveDelay={0}
-                  componentsProps={{
-                    tooltip: {
-                      sx: {
-                        backgroundColor: "transparent",
-                        p: 0,
-                        maxWidth: "none",
-                      },
-                    },
-                  }}
-                >
-                  {filePathContent}
-                </Tooltip>
-              ) : (
-                <Box key={idx}>{filePathContent}</Box>
-              );
-            })}
+            {finding.file_paths.slice(0, 20).map((fp, idx) => (
+              <FilePathItem
+                key={idx}
+                path={fp.path}
+                lineNumber={fp.line_number}
+                matchedText={fp.matched_text}
+                fileUrl={getFileUrl(fp.path, fp.line_number)}
+              />
+            ))}
             {finding.file_paths.length > 20 && (
               <Typography
                 variant="body2"

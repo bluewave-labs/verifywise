@@ -180,21 +180,40 @@ const GOVERNANCE_STATUS_CONFIG: Record<GovernanceStatus, { label: string; color:
   flagged: { label: "Flagged", color: "#ef4444", icon: Flag },
 };
 
-const COMPLIANCE_CATEGORY_CONFIG: Record<ComplianceCategory, { label: string; color: string; bgColor: string }> = {
-  transparency: { label: "Transparency", color: "#0369a1", bgColor: "#e0f2fe" },
-  documentation: { label: "Documentation", color: "#6366f1", bgColor: "#eef2ff" },
-  risk_management: { label: "Risk management", color: "#dc2626", bgColor: "#fef2f2" },
-  data_governance: { label: "Data governance", color: "#059669", bgColor: "#ecfdf5" },
-  human_oversight: { label: "Human oversight", color: "#d97706", bgColor: "#fffbeb" },
-  security: { label: "Security", color: "#be185d", bgColor: "#fdf2f8" },
-  monitoring: { label: "Monitoring", color: "#7c3aed", bgColor: "#f5f3ff" },
-  accountability: { label: "Accountability", color: "#0891b2", bgColor: "#ecfeff" },
+const COMPLIANCE_CATEGORY_CONFIG: Record<ComplianceCategory, { label: string; color: string; bgColor: string; description: string }> = {
+  transparency: { label: "Transparency", color: "#0369a1", bgColor: "#e0f2fe", description: "Requirements for making AI systems understandable to users and deployers" },
+  documentation: { label: "Documentation", color: "#6366f1", bgColor: "#eef2ff", description: "Requirements for maintaining technical records of AI components" },
+  risk_management: { label: "Risk management", color: "#dc2626", bgColor: "#fef2f2", description: "Requirements for identifying and mitigating AI-related risks" },
+  data_governance: { label: "Data governance", color: "#059669", bgColor: "#ecfdf5", description: "Requirements for managing data used by AI systems" },
+  human_oversight: { label: "Human oversight", color: "#d97706", bgColor: "#fffbeb", description: "Requirements for human control over AI decisions" },
+  security: { label: "Security", color: "#be185d", bgColor: "#fdf2f8", description: "Requirements for protecting AI systems from attacks" },
+  monitoring: { label: "Monitoring", color: "#7c3aed", bgColor: "#f5f3ff", description: "Requirements for ongoing observation of AI performance" },
+  accountability: { label: "Accountability", color: "#0891b2", bgColor: "#ecfeff", description: "Requirements for quality management and responsibility" },
 };
 
-const PRIORITY_CONFIG: Record<string, { label: string; color: string; bgColor: string }> = {
-  high: { label: "High", color: "#b42318", bgColor: "#fef3f2" },
-  medium: { label: "Medium", color: "#b54708", bgColor: "#fffaeb" },
-  low: { label: "Low", color: "#027a48", bgColor: "#ecfdf3" },
+const PRIORITY_CONFIG: Record<string, { label: string; color: string; bgColor: string; description: string }> = {
+  high: { label: "High", color: "#b42318", bgColor: "#fef3f2", description: "Address immediately - critical for compliance" },
+  medium: { label: "Medium", color: "#b54708", bgColor: "#fffaeb", description: "Address soon - important for compliance" },
+  low: { label: "Low", color: "#027a48", bgColor: "#ecfdf3", description: "Address when possible - recommended for compliance" },
+};
+
+// EU AI Act article descriptions for tooltips
+const ARTICLE_DESCRIPTIONS: Record<string, string> = {
+  "Article 9": "Risk Management System - Requires identifying and mitigating risks throughout the AI lifecycle",
+  "Article 9(2)": "Risk Management - Specifically covers third-party and dependency risks",
+  "Article 10": "Data Governance - Requires quality datasets and proper data management",
+  "Article 10(3)": "Data Governance - Covers data processing and preparation requirements",
+  "Article 11": "Technical Documentation - Requires comprehensive documentation before market placement",
+  "Article 11(1)": "Technical Documentation - Covers minimum content standards",
+  "Article 13": "Transparency - AI systems must be transparent enough for users to interpret outputs",
+  "Article 13(3)": "Transparency - Requires clear information about AI model capabilities",
+  "Article 14": "Human Oversight - AI systems must allow effective human supervision",
+  "Article 14(4)": "Human Oversight - Covers autonomy controls and intervention capabilities",
+  "Article 15": "Security - AI systems must achieve appropriate accuracy, robustness, and cybersecurity",
+  "Article 15(5)": "Security - Covers AI-specific vulnerabilities like data poisoning and adversarial attacks",
+  "Article 17": "Quality Management - Requires documented quality management systems",
+  "Article 50": "Transparency Obligations - Users must know when interacting with AI; synthetic content must be marked",
+  "Article 72": "Post-Market Monitoring - Requires ongoing monitoring of AI systems after deployment",
 };
 
 // ============================================================================
@@ -2502,56 +2521,69 @@ export default function ScanDetailsPage({
                                   {item.text}
                                 </Typography>
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                                  {/* Article reference */}
-                                  <Box
-                                    sx={{
-                                      px: "6px",
-                                      py: "2px",
-                                      borderRadius: "4px",
-                                      backgroundColor: "#f2f4f7",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "4px",
-                                    }}
+                                  {/* Article reference with tooltip */}
+                                  <Tooltip
+                                    title={ARTICLE_DESCRIPTIONS[item.articleRef] || `EU AI Act ${item.articleRef}`}
+                                    arrow
+                                    placement="top"
                                   >
-                                    <FileText size={12} color="#667085" />
-                                    <Typography sx={{ fontSize: "11px", color: "#667085" }}>
-                                      {item.articleRef}
-                                    </Typography>
-                                  </Box>
-                                  {/* Category badge */}
-                                  {categoryConfig && (
                                     <Box
                                       sx={{
                                         px: "6px",
                                         py: "2px",
                                         borderRadius: "4px",
-                                        backgroundColor: categoryConfig.bgColor,
+                                        backgroundColor: "#f2f4f7",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "4px",
+                                        cursor: "help",
                                       }}
                                     >
-                                      <Typography sx={{ fontSize: "11px", color: categoryConfig.color }}>
-                                        {categoryConfig.label}
+                                      <FileText size={12} color="#667085" />
+                                      <Typography sx={{ fontSize: "11px", color: "#667085" }}>
+                                        {item.articleRef}
                                       </Typography>
                                     </Box>
+                                  </Tooltip>
+                                  {/* Category badge with tooltip */}
+                                  {categoryConfig && (
+                                    <Tooltip title={categoryConfig.description} arrow placement="top">
+                                      <Box
+                                        sx={{
+                                          px: "6px",
+                                          py: "2px",
+                                          borderRadius: "4px",
+                                          backgroundColor: categoryConfig.bgColor,
+                                          cursor: "help",
+                                        }}
+                                      >
+                                        <Typography sx={{ fontSize: "11px", color: categoryConfig.color }}>
+                                          {categoryConfig.label}
+                                        </Typography>
+                                      </Box>
+                                    </Tooltip>
                                   )}
                                 </Box>
                               </Box>
 
-                              {/* Priority badge */}
+                              {/* Priority badge with tooltip */}
                               {priorityConfig && (
-                                <Box
-                                  sx={{
-                                    px: "8px",
-                                    py: "2px",
-                                    borderRadius: "4px",
-                                    backgroundColor: priorityConfig.bgColor,
-                                    border: `1px solid ${priorityConfig.color}20`,
-                                  }}
-                                >
-                                  <Typography sx={{ fontSize: "12px", fontWeight: 500, color: priorityConfig.color }}>
-                                    {priorityConfig.label}
-                                  </Typography>
-                                </Box>
+                                <Tooltip title={priorityConfig.description} arrow placement="top">
+                                  <Box
+                                    sx={{
+                                      px: "8px",
+                                      py: "2px",
+                                      borderRadius: "4px",
+                                      backgroundColor: priorityConfig.bgColor,
+                                      border: `1px solid ${priorityConfig.color}20`,
+                                      cursor: "help",
+                                    }}
+                                  >
+                                    <Typography sx={{ fontSize: "12px", fontWeight: 500, color: priorityConfig.color }}>
+                                      {priorityConfig.label}
+                                    </Typography>
+                                  </Box>
+                                </Tooltip>
                               )}
                             </Box>
 
@@ -2560,8 +2592,8 @@ export default function ScanDetailsPage({
                               <Box sx={{ px: "12px", pb: "12px", borderTop: "1px solid #e4e7ec", pt: "12px" }}>
                                 {item.relatedFindings.length > 0 ? (
                                   <>
-                                    <Typography sx={{ fontSize: "13px", fontWeight: 500, mb: "8px", color: "#344054" }}>
-                                      Related AI components:
+                                    <Typography sx={{ fontSize: "13px", color: "#667085", mb: "8px" }}>
+                                      This requirement was triggered because the following AI components were detected in your code:
                                     </Typography>
                                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                                       {item.relatedFindings.map((finding) => (

@@ -1,5 +1,5 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { AxiosProgressEvent, AxiosResponse } from "axios";
+import { AxiosProgressEvent } from "axios";
 
 interface Comment {
   id: number;

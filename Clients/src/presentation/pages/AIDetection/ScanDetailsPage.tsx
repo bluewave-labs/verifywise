@@ -2587,45 +2587,98 @@ export default function ScanDetailsPage({
                               )}
                             </Box>
 
-                            {/* Expanded content - related findings */}
+                            {/* Expanded content - actionable guidance */}
                             <Collapse in={isExpanded}>
                               <Box sx={{ px: "12px", pb: "12px", borderTop: "1px solid #e4e7ec", pt: "12px" }}>
-                                {item.relatedFindings.length > 0 ? (
-                                  <>
-                                    <Typography sx={{ fontSize: "13px", color: "#667085", mb: "8px" }}>
-                                      This requirement was triggered because the following AI components were detected in your code:
-                                    </Typography>
-                                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                                      {item.relatedFindings.map((finding) => (
-                                        <Box
-                                          key={finding.id}
-                                          sx={{
-                                            px: "8px",
-                                            py: "4px",
-                                            borderRadius: "4px",
-                                            backgroundColor: "#f9fafb",
-                                            border: "1px solid #e4e7ec",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "6px",
-                                          }}
-                                        >
-                                          {getProviderIcon(finding.name, 14)}
-                                          <Typography sx={{ fontSize: "12px", color: "#344054" }}>
-                                            {finding.name}
+                                {(() => {
+                                  // Get documentation needs and risk factors from related findings
+                                  const relatedMappings = item.relatedFindings
+                                    .map((f) => complianceData.mappings.find((m) => m.findingId === f.id))
+                                    .filter(Boolean);
+
+                                  const documentationNeeds = [...new Set(relatedMappings.flatMap((m) => m?.documentationNeeds || []))];
+                                  const riskFactors = [...new Set(relatedMappings.flatMap((m) => m?.riskFactors || []))];
+
+                                  return (
+                                    <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                                      {/* What to document section */}
+                                      {documentationNeeds.length > 0 && (
+                                        <Box>
+                                          <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#344054", mb: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                            <FileText size={14} color="#6366f1" />
+                                            What to document
                                           </Typography>
-                                          <Typography sx={{ fontSize: "11px", color: "#98a2b3" }}>
-                                            ({finding.type})
-                                          </Typography>
+                                          <Box component="ul" sx={{ m: 0, pl: "20px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                                            {documentationNeeds.map((need, idx) => (
+                                              <Typography component="li" key={idx} sx={{ fontSize: "13px", color: "#667085" }}>
+                                                {need}
+                                              </Typography>
+                                            ))}
+                                          </Box>
                                         </Box>
-                                      ))}
+                                      )}
+
+                                      {/* Risk factors section */}
+                                      {riskFactors.length > 0 && (
+                                        <Box>
+                                          <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#344054", mb: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                            <AlertCircle size={14} color="#dc2626" />
+                                            Key risks to address
+                                          </Typography>
+                                          <Box component="ul" sx={{ m: 0, pl: "20px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                                            {riskFactors.map((risk, idx) => (
+                                              <Typography component="li" key={idx} sx={{ fontSize: "13px", color: "#667085" }}>
+                                                {risk}
+                                              </Typography>
+                                            ))}
+                                          </Box>
+                                        </Box>
+                                      )}
+
+                                      {/* Detected components section */}
+                                      {item.relatedFindings.length > 0 && (
+                                        <Box>
+                                          <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#344054", mb: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                            <Package size={14} color="#667085" />
+                                            Detected components ({item.relatedFindings.length})
+                                          </Typography>
+                                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                                            {item.relatedFindings.map((finding) => (
+                                              <Box
+                                                key={finding.id}
+                                                sx={{
+                                                  px: "8px",
+                                                  py: "4px",
+                                                  borderRadius: "4px",
+                                                  backgroundColor: "#f9fafb",
+                                                  border: "1px solid #e4e7ec",
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                  gap: "6px",
+                                                }}
+                                              >
+                                                {getProviderIcon(finding.name, 14)}
+                                                <Typography sx={{ fontSize: "12px", color: "#344054" }}>
+                                                  {finding.name}
+                                                </Typography>
+                                                <Typography sx={{ fontSize: "11px", color: "#98a2b3" }}>
+                                                  ({finding.type})
+                                                </Typography>
+                                              </Box>
+                                            ))}
+                                          </Box>
+                                        </Box>
+                                      )}
+
+                                      {/* Fallback if no detailed info available */}
+                                      {documentationNeeds.length === 0 && riskFactors.length === 0 && item.relatedFindings.length === 0 && (
+                                        <Typography sx={{ fontSize: "13px", color: "#667085" }}>
+                                          This requirement applies to AI components detected in the scan. Review your implementation to ensure compliance.
+                                        </Typography>
+                                      )}
                                     </Box>
-                                  </>
-                                ) : (
-                                  <Typography sx={{ fontSize: "13px", color: "#667085" }}>
-                                    This requirement applies to multiple AI components detected in the scan.
-                                  </Typography>
-                                )}
+                                  );
+                                })()}
                               </Box>
                             </Collapse>
                           </Box>

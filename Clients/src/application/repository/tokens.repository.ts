@@ -31,7 +31,7 @@ export async function getApiTokens({
 
 export async function deleteApiToken({
   routeUrl,
-}: RequestParams): Promise<ApiResponse<BackendResponse<null>>> {
-  const response = await apiServices.delete<BackendResponse<null>>(routeUrl);
+}: RequestParams): Promise<ApiResponse<null>> {
+  const response = await apiServices.delete<null>(routeUrl);
   return response;
 }

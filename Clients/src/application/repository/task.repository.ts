@@ -192,7 +192,7 @@ export async function updateTask({
  * @param {object} params - Parameters for deleting a task
  * @param {string|number} params.id - The task ID
  * @param {string} [params.authToken] - Optional auth token
- * @returns {Promise<BackendResponse<null>>} The deletion response
+ * @returns {Promise<null>} The deletion response (already unwrapped by apiServices.delete)
  * @throws Will throw an error if the request fails
  */
 export async function deleteTask({
@@ -201,9 +201,9 @@ export async function deleteTask({
 }: {
   id: string | number;
   authToken?: string;
-}): Promise<BackendResponse<null>> {
+}): Promise<null> {
   try {
-    const response = await apiServices.delete<BackendResponse<null>>(`/tasks/${id}`, {
+    const response = await apiServices.delete<null>(`/tasks/${id}`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;
@@ -280,7 +280,7 @@ export async function restoreTask({
  * @param {object} params - Parameters for hard deleting a task
  * @param {string|number} params.id - The task ID
  * @param {string} [params.authToken] - Optional auth token
- * @returns {Promise<BackendResponse<null>>} The deletion response
+ * @returns {Promise<null>} The deletion response (already unwrapped by apiServices.delete)
  * @throws Will throw an error if the request fails
  */
 export async function hardDeleteTask({
@@ -289,9 +289,9 @@ export async function hardDeleteTask({
 }: {
   id: string | number;
   authToken?: string;
-}): Promise<BackendResponse<null>> {
+}): Promise<null> {
   try {
-    const response = await apiServices.delete<BackendResponse<null>>(`/tasks/${id}/hard`, {
+    const response = await apiServices.delete<null>(`/tasks/${id}/hard`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     return response.data;

@@ -73,7 +73,7 @@ export async function deleteVendor({
   id,
 }: {
   id: number;
-}): Promise<ApiResponse<BackendResponse<null>>> {
-  const response = await apiServices.delete<BackendResponse<null>>(`/vendors/${id}`);
+}): Promise<ApiResponse<null>> {
+  const response = await apiServices.delete<null>(`/vendors/${id}`);
   return response;
 }

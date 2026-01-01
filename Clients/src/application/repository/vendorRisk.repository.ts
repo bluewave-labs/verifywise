@@ -82,8 +82,8 @@ export async function deleteVendorRisk({
   id,
 }: {
   id: number;
-}): Promise<ApiResponse<BackendResponse<null>>> {
-  const response = await apiServices.delete<BackendResponse<null>>(`/vendorRisks/${id}`);
+}): Promise<ApiResponse<null>> {
+  const response = await apiServices.delete<null>(`/vendorRisks/${id}`);
   return response;
 }
 

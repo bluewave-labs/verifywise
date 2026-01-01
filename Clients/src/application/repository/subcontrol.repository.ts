@@ -52,7 +52,7 @@ export async function deleteSubcontrol({
   id,
 }: {
   id: number;
-}): Promise<ApiResponse<BackendResponse<null>>> {
-  const response = await apiServices.delete<BackendResponse<null>>(`/subcontrols/${id}`);
+}): Promise<ApiResponse<null>> {
+  const response = await apiServices.delete<null>(`/subcontrols/${id}`);
   return response;
 }

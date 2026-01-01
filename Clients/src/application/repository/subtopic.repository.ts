@@ -52,7 +52,7 @@ export async function deleteSubtopic({
   id,
 }: {
   id: number;
-}): Promise<ApiResponse<BackendResponse<null>>> {
-  const response = await apiServices.delete<BackendResponse<null>>(`/subtopics/${id}`);
+}): Promise<ApiResponse<null>> {
+  const response = await apiServices.delete<null>(`/subtopics/${id}`);
   return response;
 }

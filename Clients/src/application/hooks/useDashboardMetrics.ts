@@ -375,17 +375,23 @@ export const useDashboardMetrics = () => {
       const risksData = response.data || [];
       const risksArray = Array.isArray(risksData) ? risksData : [];
 
-      const vendorRiskMetrics = {
+      const vendorRiskMetrics: VendorRiskMetrics = {
         total: risksArray.length,
-        recent: risksArray.slice(0, 5).map((risk: VendorRiskApiItem, index: number) => ({
-          id: risk.id || index + 1,
-          title: risk.risk_name || risk.title || "Vendor Risk",
-          severity:
-            risk.risk_level?.toLowerCase().replace(" risk", "") || "medium",
-          created_at:
-            risk.review_date || risk.created_at || new Date().toISOString(),
-          vendor_name: risk.vendor_name || "Unknown Vendor",
-        })),
+        recent: risksArray.slice(0, 5).map((risk: VendorRiskApiItem, index: number) => {
+          // Normalize severity to expected union type
+          const rawSeverity = risk.risk_level?.toLowerCase().replace(" risk", "") || "medium";
+          const severity: "high" | "medium" | "low" =
+            rawSeverity === "high" ? "high" :
+            rawSeverity === "low" ? "low" : "medium";
+
+          return {
+            id: risk.id || index + 1,
+            title: risk.risk_name || risk.title || "Vendor Risk",
+            severity,
+            created_at: risk.review_date || risk.created_at || new Date().toISOString(),
+            vendor_name: risk.vendor_name || "Unknown Vendor",
+          };
+        }),
       };
 
       setVendorRiskMetrics(vendorRiskMetrics);

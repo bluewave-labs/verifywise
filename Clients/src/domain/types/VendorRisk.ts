@@ -18,7 +18,7 @@ export type VendorRisk = {
   /** Severity of impact on a 5-point scale */
   impact: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
   /** Probability of risk occurrence on a 5-point scale */
-  likelihood: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
+  likelihood: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost Certain";
   /** Overall risk severity classification */
   risk_severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
   /** Planned actions to mitigate or address the risk */

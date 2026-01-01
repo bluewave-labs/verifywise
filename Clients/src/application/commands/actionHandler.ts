@@ -38,7 +38,7 @@ export class CommandActionHandler {
           this.handlers.modal(action.payload)
           break
 
-        case 'function':
+        case 'function': {
           if (!action.payload || typeof action.payload !== 'object') {
             throw new Error('Function action requires a valid payload object')
           }
@@ -48,6 +48,7 @@ export class CommandActionHandler {
           }
           this.handlers.function(funcPayload.name, funcPayload.params)
           break
+        }
 
         case 'filter':
           if (action.payload === undefined) {

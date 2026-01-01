@@ -1,32 +1,4 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { AxiosProgressEvent } from "axios";
-
-interface Comment {
-  id: number;
-  message: string;
-  tableId: string;
-  rowId: string | number;
-  author_id: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface CommentsResponse {
-  comments: Comment[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-  };
-}
-
-interface FileInfo {
-  id: string;
-  filename: string;
-  size: number;
-  mimetype: string;
-  upload_date: string;
-}
 
 /**
  * Get all comments for a specific table row
@@ -43,8 +15,8 @@ export async function getCommentsByTableRow({
   page?: number;
   limit?: number;
   signal?: AbortSignal;
-}): Promise<CommentsResponse> {
-  const response = await apiServices.get<CommentsResponse>(
+}): Promise<any> {
+  const response = await apiServices.get(
     `/comments/${tableId}/${rowId}?page=${page}&limit=${limit}`,
     { signal }
   );
@@ -62,8 +34,8 @@ export async function createComment({
   tableId: string;
   rowId: string | number;
   message: string;
-}): Promise<Comment> {
-  const response = await apiServices.post<Comment>("/comments", {
+}): Promise<any> {
+  const response = await apiServices.post("/comments", {
     tableId,
     rowId,
     message,
@@ -80,8 +52,8 @@ export async function updateComment({
 }: {
   commentId: number;
   message: string;
-}): Promise<Comment> {
-  const response = await apiServices.put<Comment>(`/comments/${commentId}`, {
+}): Promise<any> {
+  const response = await apiServices.put(`/comments/${commentId}`, {
     message,
   });
   return response.data;
@@ -94,8 +66,9 @@ export async function deleteComment({
   commentId,
 }: {
   commentId: number;
-}): Promise<void> {
-  await apiServices.delete(`/comments/${commentId}`);
+}): Promise<any> {
+  const response = await apiServices.delete(`/comments/${commentId}`);
+  return response.data;
 }
 
 /**
@@ -109,8 +82,8 @@ export async function getFilesByTableRow({
   tableId: string;
   rowId: string | number;
   signal?: AbortSignal;
-}): Promise<FileInfo[]> {
-  const response = await apiServices.get<FileInfo[]>(`/comments/${tableId}/${rowId}/files`, {
+}): Promise<any> {
+  const response = await apiServices.get(`/comments/${tableId}/${rowId}/files`, {
     signal,
   });
   return response.data;
@@ -131,7 +104,7 @@ export async function uploadFile({
   file: File;
   commentId?: number;
   onProgress?: (progress: number) => void;
-}): Promise<FileInfo> {
+}): Promise<any> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("tableId", tableId);
@@ -140,11 +113,11 @@ export async function uploadFile({
     formData.append("commentId", commentId.toString());
   }
 
-  const response = await apiServices.post<FileInfo>("/comments/files", formData, {
+  const response = await apiServices.post("/comments/files", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
-    onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+    onUploadProgress: (progressEvent: any) => {
       if (onProgress && progressEvent.total) {
         const percentCompleted = Math.round(
           (progressEvent.loaded * 100) / progressEvent.total
@@ -177,14 +150,9 @@ export async function deleteFile({
   fileId,
 }: {
   fileId: string;
-}): Promise<void> {
-  await apiServices.delete(`/comments/files/${fileId}`);
-}
-
-interface Reaction {
-  emoji: string;
-  user_id: number;
-  created_at: string;
+}): Promise<any> {
+  const response = await apiServices.delete(`/comments/files/${fileId}`);
+  return response.data;
 }
 
 /**
@@ -196,8 +164,8 @@ export async function addReaction({
 }: {
   commentId: string;
   emoji: string;
-}): Promise<Reaction> {
-  const response = await apiServices.post<Reaction>(`/comments/${commentId}/reactions`, {
+}): Promise<any> {
+  const response = await apiServices.post(`/comments/${commentId}/reactions`, {
     emoji,
   });
   return response.data;
@@ -212,10 +180,11 @@ export async function removeReaction({
 }: {
   commentId: string;
   emoji: string;
-}): Promise<void> {
-  await apiServices.delete(
+}): Promise<any> {
+  const response = await apiServices.delete(
     `/comments/${commentId}/reactions/${encodeURIComponent(emoji)}`
   );
+  return response.data;
 }
 
 /**
@@ -245,9 +214,10 @@ export async function markAsRead({
 }: {
   tableId: string;
   rowId: string | number;
-}): Promise<void> {
-  await apiServices.post("/comments/mark-read", {
+}): Promise<any> {
+  const response = await apiServices.post("/comments/mark-read", {
     tableId,
     rowId: rowId.toString(),
   });
+  return response.data;
 }

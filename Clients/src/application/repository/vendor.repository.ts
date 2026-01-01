@@ -1,30 +1,11 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { AxiosResponse } from "axios";
-
-interface Vendor {
-  id: number;
-  vendor_name: string;
-  vendor_type?: string;
-  website?: string;
-  contact_person?: string;
-  review_result?: string;
-  review_status?: string;
-  reviewer?: number;
-  risk_status?: string;
-  review_date?: string;
-  assignee?: number;
-  project_id?: number;
-}
-
-type CreateVendorInput = Partial<Omit<Vendor, 'id'>>;
-type UpdateVendorInput = Partial<Omit<Vendor, 'id'>>;
 
 export async function getAllVendors({
   signal,
 }: {
   signal?: AbortSignal;
-} = {}): Promise<Vendor[]> {
-  const response = await apiServices.get<Vendor[]>("/vendors", {
+} = {}): Promise<any> {
+  const response = await apiServices.get("/vendors", {
     signal,
   });
   return response.data;
@@ -36,8 +17,8 @@ export async function getVendorById({
 }: {
   id: number;
   signal?: AbortSignal;
-}): Promise<Vendor> {
-  const response = await apiServices.get<Vendor>(`/vendors/${id}`, {
+}): Promise<any> {
+  const response = await apiServices.get(`/vendors/${id}`, {
     signal,
   });
   return response.data;
@@ -49,8 +30,8 @@ export async function getVendorsByProjectId({
 }: {
   projectId: number;
   signal?: AbortSignal;
-}): Promise<Vendor[]> {
-  const response = await apiServices.get<Vendor[]>(`/vendors/project-id/${projectId}`, {
+}): Promise<any> {
+  const response = await apiServices.get(`/vendors/project-id/${projectId}`, {
     signal,
   });
   return response.data;
@@ -59,9 +40,9 @@ export async function getVendorsByProjectId({
 export async function createNewVendor({
   body,
 }: {
-  body: CreateVendorInput;
-}): Promise<AxiosResponse<Vendor>> {
-  const response = await apiServices.post<Vendor>("/vendors", body);
+  body: any;
+}): Promise<any> {
+  const response = await apiServices.post("/vendors", body);
   return response;
 }
 
@@ -70,9 +51,9 @@ export async function update({
   body,
 }: {
   id: number;
-  body: UpdateVendorInput;
-}): Promise<AxiosResponse<Vendor>> {
-  const response = await apiServices.patch<Vendor>(`/vendors/${id}`, body);
+  body: any;
+}): Promise<any> {
+  const response = await apiServices.patch(`/vendors/${id}`, body);
   return response;
 }
 
@@ -80,7 +61,7 @@ export async function deleteVendor({
   id,
 }: {
   id: number;
-}): Promise<AxiosResponse> {
+}): Promise<any> {
   const response = await apiServices.delete(`/vendors/${id}`);
   return response;
 }

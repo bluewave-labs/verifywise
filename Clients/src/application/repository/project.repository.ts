@@ -1,22 +1,11 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { Project } from "../../domain/types/Project";
-import { AxiosResponse } from "axios";
-
-type CreateProjectInput = Partial<Omit<Project, 'id' | 'last_updated' | 'last_updated_by'>>;
-type UpdateProjectInput = Partial<Omit<Project, 'id'>>;
-
-interface ProgressData {
-  completed: number;
-  total: number;
-  percentage: number;
-}
 
 export async function getAllProjects({
   signal,
 }: {
   signal?: AbortSignal;
-} = {}): Promise<Project[]> {
-  const response = await apiServices.get<Project[]>("/projects", {
+} = {}): Promise<any> {
+  const response = await apiServices.get("/projects", {
     signal,
   });
   return response.data;
@@ -28,15 +17,15 @@ export async function getProjectById({
 }: {
   id: string;
   signal?: AbortSignal;
-}): Promise<Project> {
-  const response = await apiServices.get<Project>(`/projects/${id}`, {
+}): Promise<any> {
+  const response = await apiServices.get(`/projects/${id}`, {
     signal,
   });
   return response.data;
 }
 
-export async function createProject({ body }: { body: CreateProjectInput }): Promise<AxiosResponse<Project>> {
-  const response = await apiServices.post<Project>("/projects", body);
+export async function createProject({ body }: { body: any }): Promise<any> {
+  const response = await apiServices.post("/projects", body);
   return response;
 }
 
@@ -45,13 +34,13 @@ export async function updateProject({
   body,
 }: {
   id: number;
-  body: UpdateProjectInput;
-}): Promise<AxiosResponse<Project>> {
-  const response = await apiServices.patch<Project>(`/projects/${id}`, body);
+  body: any;
+}): Promise<any> {
+  const response = await apiServices.patch(`/projects/${id}`, body);
   return response;
 }
 
-export async function deleteProject({ id }: { id: number }): Promise<AxiosResponse> {
+export async function deleteProject({ id }: { id: number }): Promise<any> {
   const response = await apiServices.delete(`/projects/${id}`);
   return response;
 }
@@ -62,8 +51,8 @@ export async function getProjectProgressData({
 }: {
   routeUrl: string;
   signal?: AbortSignal;
-}): Promise<ProgressData> {
-  const response = await apiServices.get<ProgressData>(routeUrl, {
+}): Promise<any> {
+  const response = await apiServices.get(routeUrl, {
     signal,
   });
   return response.data;

@@ -1,6 +1,4 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { VendorRisk, CreateVendorRiskInput, UpdateVendorRiskInput } from "../../domain/types/VendorRisk";
-import { AxiosResponse } from "axios";
 
 export async function getAllVendorRisks({
   signal,
@@ -8,11 +6,11 @@ export async function getAllVendorRisks({
 }: {
   signal?: AbortSignal;
   filter?: 'active' | 'deleted' | 'all';
-} = {}): Promise<VendorRisk[]> {
-  const response = await apiServices.get<VendorRisk[]>(`/vendorRisks/all?filter=${filter}`, {
+} = {}): Promise<any> {
+  const response = await apiServices.get(`/vendorRisks/all?filter=${filter}`, {
     signal,
   });
-  return response.data;
+  return  response.data;  
 }
 
 export async function getVendorRisksByProjectId({
@@ -23,11 +21,11 @@ export async function getVendorRisksByProjectId({
   projectId: number;
   signal?: AbortSignal;
   filter?: 'active' | 'deleted' | 'all';
-}): Promise<VendorRisk[]> {
-  const response = await apiServices.get<VendorRisk[]>(`/vendorRisks/by-projid/${projectId}?filter=${filter}`, {
+}): Promise<any> {
+  const response = await apiServices.get(`/vendorRisks/by-projid/${projectId}?filter=${filter}`, {
     signal,
   });
-  return response.data;
+  return response.data
 }
 
 export async function getVendorRisksByVendorId({
@@ -38,8 +36,8 @@ export async function getVendorRisksByVendorId({
   vendorId: number;
   signal?: AbortSignal;
   filter?: 'active' | 'deleted' | 'all';
-}): Promise<VendorRisk[]> {
-  const response = await apiServices.get<VendorRisk[]>(`/vendorRisks/by-vendorid/${vendorId}?filter=${filter}`, {
+}): Promise<any> {
+  const response = await apiServices.get(`/vendorRisks/by-vendorid/${vendorId}?filter=${filter}`, {
     signal,
   });
   return response.data;
@@ -51,20 +49,20 @@ export async function getVendorRiskById({
 }: {
   id: number;
   signal?: AbortSignal;
-}): Promise<VendorRisk> {
-  const response = await apiServices.get<VendorRisk>(`/vendorRisks/${id}`, {
+}): Promise<any> {
+  const response = await apiServices.get(`/vendorRisks/${id}`, {
     signal,
   });
-  return response.data;
+  return  response.data
 }
 
 export async function createVendorRisk({
   body,
 }: {
-  body: CreateVendorRiskInput;
-}): Promise<AxiosResponse<VendorRisk>> {
-  const response = await apiServices.post<VendorRisk>("/vendorRisks", body);
-  return response;
+  body: any;
+}): Promise<any> {
+  const response = await apiServices.post("/vendorRisks", body);
+  return response
 }
 
 export async function updateVendorRisk({
@@ -72,9 +70,9 @@ export async function updateVendorRisk({
   body,
 }: {
   id: number;
-  body: UpdateVendorRiskInput;
-}): Promise<AxiosResponse<VendorRisk>> {
-  const response = await apiServices.put<VendorRisk>(`/vendorRisks/${id}`, body);
+  body: any;
+}): Promise<any> {
+  const response = await apiServices.put(`/vendorRisks/${id}`, body);
   return response;
 }
 
@@ -82,7 +80,7 @@ export async function deleteVendorRisk({
   id,
 }: {
   id: number;
-}): Promise<AxiosResponse> {
+}): Promise<any> {
   const response = await apiServices.delete(`/vendorRisks/${id}`);
   return response;
 }

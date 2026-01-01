@@ -1,16 +1,4 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { AxiosResponse } from "axios";
-
-interface QuestionData {
-  question_text?: string;
-  question_type?: string;
-  [key: string]: unknown;
-}
-
-interface AnswerData {
-  answer_text?: string;
-  [key: string]: unknown;
-}
 
 export async function getQuestionById({
   id,
@@ -20,7 +8,7 @@ export async function getQuestionById({
   id: number;
   signal?: AbortSignal;
   responseType?: string;
-}): Promise<unknown> {
+}): Promise<any> {
   const response = await apiServices.get(`/questions/${id}`, {
     signal,
     responseType,
@@ -28,7 +16,7 @@ export async function getQuestionById({
   return response.data;
 }
 
-export async function createQuestion({ body }: { body: QuestionData }): Promise<AxiosResponse> {
+export async function createQuestion({ body }: { body: any }): Promise<any> {
   const response = await apiServices.post("/questions", body);
   return response;
 }
@@ -38,13 +26,13 @@ export async function updateQuestion({
   body,
 }: {
   id: number;
-  body: QuestionData;
-}): Promise<AxiosResponse> {
+  body: any;
+}): Promise<any> {
   const response = await apiServices.patch(`/questions/${id}`, body);
   return response;
 }
 
-export async function deleteQuestion({ id }: { id: number }): Promise<AxiosResponse> {
+export async function deleteQuestion({ id }: { id: number }): Promise<any> {
   const response = await apiServices.delete(`/questions/${id}`);
   return response;
 }
@@ -54,22 +42,26 @@ export async function updateEUAIActAnswerById({
   body,
 }: {
   answerId: number;
-  body: AnswerData | FormData;
-}): Promise<AxiosResponse> {
-  // Match the pattern used by ISO27001/ISO42001 drawers
-  // When sending FormData, set Content-Type to multipart/form-data
-  // Axios will automatically add the boundary parameter
-  const headers: Record<string, string> = {};
-  if (body instanceof FormData) {
-    headers["Content-Type"] = "multipart/form-data";
-  } else {
-    headers["Content-Type"] = "application/json";
-  }
+  body: any;
+}): Promise<any> {
+  try {
+    // Match the pattern used by ISO27001/ISO42001 drawers
+    // When sending FormData, set Content-Type to multipart/form-data
+    // Axios will automatically add the boundary parameter
+    const headers: any = {};
+    if (body instanceof FormData) {
+      headers["Content-Type"] = "multipart/form-data";
+    } else {
+      headers["Content-Type"] = "application/json";
+    }
 
-  const response = await apiServices.patch(
-    `/eu-ai-act/saveAnswer/${answerId}`,
-    body,
-    { headers }
-  );
-  return response;
+    const response = await apiServices.patch(
+      `/eu-ai-act/saveAnswer/${answerId}`,
+      body,
+      { headers }
+    );
+    return response;
+  } catch (error: any) {
+    throw error;
+  }
 }

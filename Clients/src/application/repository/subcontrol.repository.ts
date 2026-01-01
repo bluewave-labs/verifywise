@@ -1,18 +1,5 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { AxiosResponse } from "axios";
 
-interface Subcontrol {
-  id: number;
-  title: string;
-  description?: string;
-  control_id?: number;
-  status?: string;
-  owner?: number;
-  order_no?: number;
-}
-
-type CreateSubcontrolInput = Partial<Omit<Subcontrol, 'id'>>;
-type UpdateSubcontrolInput = Partial<Omit<Subcontrol, 'id'>>;
 
 export async function getSubcontrolById({
   id,
@@ -22,8 +9,8 @@ export async function getSubcontrolById({
   id: number;
   signal?: AbortSignal;
   responseType?: string;
-}): Promise<Subcontrol> {
-  const response = await apiServices.get<Subcontrol>(`/subcontrols/${id}`, {
+}): Promise<any> {
+  const response = await apiServices.get(`/subcontrols/${id}`, {
     signal,
     responseType,
   });
@@ -33,9 +20,9 @@ export async function getSubcontrolById({
 export async function createSubcontrol({
   body,
 }: {
-  body: CreateSubcontrolInput;
-}): Promise<AxiosResponse<Subcontrol>> {
-  const response = await apiServices.post<Subcontrol>("/subcontrols", body);
+  body: any;
+}): Promise<any> {
+  const response = await apiServices.post("/subcontrols", body);
   return response;
 }
 
@@ -44,9 +31,9 @@ export async function updateSubcontrol({
   body,
 }: {
   id: number;
-  body: UpdateSubcontrolInput;
-}): Promise<AxiosResponse<Subcontrol>> {
-  const response = await apiServices.patch<Subcontrol>(`/subcontrols/${id}`, body);
+  body: any;
+}): Promise<any> {
+  const response = await apiServices.patch(`/subcontrols/${id}`, body);
   return response;
 }
 
@@ -54,7 +41,7 @@ export async function deleteSubcontrol({
   id,
 }: {
   id: number;
-}): Promise<AxiosResponse> {
+}): Promise<any> {
   const response = await apiServices.delete(`/subcontrols/${id}`);
   return response;
 }

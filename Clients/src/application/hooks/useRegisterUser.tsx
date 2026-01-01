@@ -31,16 +31,17 @@ interface AxiosErrorData {
 }
 
 /**
- * Error response structure from API.
+ * Unified registration response that handles both success and error cases.
+ * Provides all possible properties that consuming code might access.
  */
-interface ApiErrorResponse {
+interface RegistrationResponse {
   /** HTTP status code */
   status?: number;
-  /** Error data payload (string or object) */
-  data?: string | AxiosErrorData;
-  /** Axios response wrapper for errors */
+  /** Response data - can be User on success or error string/object on failure */
+  data?: User | string | AxiosErrorData;
+  /** Axios error response wrapper */
   response?: {
-    /** Response data */
+    /** Nested response data */
     data?: AxiosErrorData;
   };
   /** Error message */
@@ -83,7 +84,7 @@ const useRegisterUser = () => {
     values: FormValues;
     user: RegisterUser;
     setIsSubmitting: (value: boolean) => void;
-  }, userToken: string | null) => {
+  }, userToken: string | null): Promise<{ isSuccess: number | false; response: RegistrationResponse }> => {
     try {
        const response = await createNewUser({
         userData: { ...values, role_id: user.roleId || 1 },
@@ -93,10 +94,10 @@ const useRegisterUser = () => {
       handleApiResponse({ response, user, setIsSubmitting });
       return {
         isSuccess: response.status,
-        response: response,
+        response: response as RegistrationResponse,
       };
     } catch (error) {
-      const apiError = error as ApiErrorResponse;
+      const apiError = error as RegistrationResponse;
       logEngine({
         type: "error",
         message: `An error occurred: ${

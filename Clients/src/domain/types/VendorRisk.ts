@@ -37,9 +37,10 @@ export type VendorRisk = {
 
 /**
  * Input type for creating a new vendor risk.
- * Omits auto-generated fields like risk_id and timestamps.
+ * Uses Partial to allow flexibility in what fields are provided.
+ * Backend handles defaults for missing fields.
  */
-export type CreateVendorRiskInput = Omit<VendorRisk, 'risk_id' | 'is_deleted' | 'deleted_at'>;
+export type CreateVendorRiskInput = Partial<Omit<VendorRisk, 'risk_id' | 'is_deleted' | 'deleted_at'>>;
 
 /**
  * Input type for updating an existing vendor risk.

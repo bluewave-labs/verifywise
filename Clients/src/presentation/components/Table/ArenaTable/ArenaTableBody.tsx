@@ -13,7 +13,7 @@ import {
   CircularProgress,
   useTheme,
 } from "@mui/material";
-import { Settings } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ArenaRow } from "./index";
 import ConfirmationModal from "../../Dialogs/ConfirmationModal";
@@ -330,7 +330,7 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
                   onClick={(e) => handleMenuOpen(e, row)}
                   sx={singleTheme.iconButtons}
                 >
-                  <Settings size={20} />
+                  <MoreVertical size={18} />
                 </IconButton>
               )}
             </TableCell>

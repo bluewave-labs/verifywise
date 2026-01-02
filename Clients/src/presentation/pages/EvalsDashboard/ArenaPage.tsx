@@ -652,7 +652,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             direction="row"
             spacing={2}
             alignItems="center"
-            sx={{ mt: 2, mb: 2 }}
+            sx={{ mt: 2, mb: 3 }}
           >
             <FilterBy
               columns={filterColumns}

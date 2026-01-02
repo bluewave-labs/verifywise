@@ -140,7 +140,6 @@ export async function sendSubmissionApprovedEmail(
 ): Promise<void> {
   try {
     const entityTypeDisplay = getEntityTypeDisplayName(entityType);
-    const dashboardLink = buildFrontendUrl("/");
 
     await sendEmail(
       submitterEmail,
@@ -151,7 +150,6 @@ export async function sendSubmissionApprovedEmail(
         formName,
         submissionId: String(submissionId),
         entityType: entityTypeDisplay,
-        dashboardLink,
       }
     );
 

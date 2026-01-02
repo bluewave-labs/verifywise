@@ -636,6 +636,8 @@ export async function rejectSubmission(req: Request, res: Response) {
         tenantSlug,
         formSlug
       ).catch((err) => logger.error("Failed to send rejection email:", err));
+    } else {
+      logger.warn(`Could not send rejection email for submission #${submissionId}: missing tenant slug or form slug`);
     }
 
     logStructured(

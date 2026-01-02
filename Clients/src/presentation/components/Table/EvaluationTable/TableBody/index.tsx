@@ -1,6 +1,18 @@
 import { useState } from "react";
-import { TableBody, TableRow, TableCell, IconButton, Typography, Popover, Stack, useTheme } from "@mui/material";
-import { MoreVertical, RotateCcw, Download, Copy, Trash2 } from "lucide-react";
+import { TableBody, TableRow, TableCell, IconButton, Typography, Popover, Stack, Box, keyframes } from "@mui/material";
+import { MoreVertical, RotateCcw, Download, Copy, Trash2, Loader2 } from "lucide-react";
+
+// Pulse animation for running text
+const pulse = keyframes`
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+`;
+
+// Spin animation for loader icon
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
 import CustomizableButton from "../../../Button/CustomizableButton";
@@ -16,7 +28,6 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   onDownload,
   onCopy,
 }) => {
-  const theme = useTheme();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<IEvaluationRow | null>(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
@@ -100,9 +111,28 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
               }}
             >
               {isRunning ? (
-                <Typography sx={{ fontSize: 13, color: "#ef6c00", fontStyle: "italic" }}>Running...</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box
+                    component={Loader2}
+                    size={14}
+                    sx={{
+                      color: "#ef6c00",
+                      animation: `${spin} 1s linear infinite`,
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      color: "#ef6c00",
+                      fontWeight: 500,
+                      animation: `${pulse} 1.5s ease-in-out infinite`,
+                    }}
+                  >
+                    Running...
+                  </Typography>
+                </Box>
               ) : row.status === "Failed" ? (
-                <Typography sx={{ fontSize: 13, color: "#c62828" }}>Failed</Typography>
+                <Typography sx={{ fontSize: 13, color: "#c62828", fontWeight: 500 }}>Failed</Typography>
               ) : (
                 row.id
               )}
@@ -243,7 +273,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
             <CustomizableButton
               variant="outlined"
               onClick={handleRerunClick}
-              disabled={menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"}
+              isDisabled={menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"}
               startIcon={<RotateCcw size={14} />}
               sx={{
                 height: "34px",
@@ -257,10 +287,6 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   backgroundColor: "#F0FDF4",
                   borderColor: "#13715B",
                   color: "#13715B",
-                },
-                "&:disabled": {
-                  color: "#9CA3AF",
-                  borderColor: "#E5E7EB",
                 },
               }}
             >

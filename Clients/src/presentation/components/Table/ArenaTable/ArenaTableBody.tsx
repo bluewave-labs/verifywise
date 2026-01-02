@@ -10,8 +10,21 @@ import {
   Box,
   CircularProgress,
   useTheme,
+  keyframes,
 } from "@mui/material";
-import { MoreVertical, Eye, Trash2, Download, Copy } from "lucide-react";
+import { MoreVertical, Eye, Trash2, Download, Copy, Loader2 } from "lucide-react";
+
+// Pulse animation for running text
+const pulse = keyframes`
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+`;
+
+// Spin animation for loader icon
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ArenaRow } from "./index";
 import ConfirmationModal from "../../Dialogs/ConfirmationModal";
@@ -238,9 +251,26 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
                   </Typography>
                 </Box>
               ) : row.status === "running" || row.status === "pending" ? (
-                <Typography sx={{ fontSize: 12, color: "#ef6c00", fontStyle: "italic" }}>
-                  In progress...
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.75 }}>
+                  <Box
+                    component={Loader2}
+                    size={12}
+                    sx={{
+                      color: "#ef6c00",
+                      animation: `${spin} 1s linear infinite`,
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      color: "#ef6c00",
+                      fontWeight: 500,
+                      animation: `${pulse} 1.5s ease-in-out infinite`,
+                    }}
+                  >
+                    Running...
+                  </Typography>
+                </Box>
               ) : row.status === "failed" ? (
                 <Typography sx={{ fontSize: 12, color: "#c62828" }}>
                   —

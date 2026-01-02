@@ -99,10 +99,9 @@ const Organization = () => {
   // Fetch organization data and logo
   const fetchOrganization = useCallback(async () => {
     try {
-      const organizations = await GetMyOrganization({
+      const org = await GetMyOrganization({
         routeUrl: `/organizations/${organizationId}`,
       });
-      const org = organizations.data.data;
       const organizationModel = OrganizationModel.fromApiData(org);
       setOrganizationName(organizationModel.name || "");
       setOrganizationExists(true);
@@ -310,8 +309,8 @@ const Organization = () => {
         "The organization was created successfully."
       );
 
-      if (response?.data && response.data.id) {
-        setOrganizationName(response.data.name || "");
+      if (response?.id) {
+        setOrganizationName(response.name || "");
         setOrganizationExists(true);
         setHasChanges(false);
       }

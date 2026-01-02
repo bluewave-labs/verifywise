@@ -1,10 +1,9 @@
 import { apiServices, ApiResponse } from "../../infrastructure/api/networkServices";
-import { BackendResponse } from "../../domain/types/ApiTypes";
 
 /**
  * Project structure
  */
-interface Project {
+export interface Project {
   id: number;
   name: string;
   description?: string;
@@ -36,15 +35,23 @@ interface ProjectProgressData {
   [key: string]: unknown;
 }
 
+/**
+ * Backend response wrapper for type-safe API calls
+ */
+interface BackendResponse<T> {
+  message: string;
+  data: T;
+}
+
 export async function getAllProjects({
   signal,
 }: {
   signal?: AbortSignal;
-} = {}): Promise<BackendResponse<Project[]>> {
+} = {}): Promise<Project[]> {
   const response = await apiServices.get<BackendResponse<Project[]>>("/projects", {
     signal,
   });
-  return response.data;
+  return response.data.data;
 }
 
 export async function getProjectById({
@@ -53,11 +60,11 @@ export async function getProjectById({
 }: {
   id: string;
   signal?: AbortSignal;
-}): Promise<BackendResponse<Project>> {
+}): Promise<Project> {
   const response = await apiServices.get<BackendResponse<Project>>(`/projects/${id}`, {
     signal,
   });
-  return response.data;
+  return response.data.data;
 }
 
 export async function createProject({ body }: { body: ProjectInput }): Promise<ApiResponse<BackendResponse<Project>>> {
@@ -87,9 +94,9 @@ export async function getProjectProgressData({
 }: {
   routeUrl: string;
   signal?: AbortSignal;
-}): Promise<BackendResponse<ProjectProgressData>> {
+}): Promise<ProjectProgressData> {
   const response = await apiServices.get<BackendResponse<ProjectProgressData>>(routeUrl, {
     signal,
   });
-  return response.data;
+  return response.data.data;
 }

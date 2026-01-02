@@ -84,10 +84,9 @@ const Reports: React.FC<ReportsProps> = ({
 
   const fetchOrganization = useCallback(async () => {
     try {
-      const organizations = await GetMyOrganization({
+      const org = await GetMyOrganization({
         routeUrl: `/organizations/${organizationId}`,
       });
-      const org = organizations.data.data;
       setOrganizationName(org.name || "");
     } catch (error) {
       console.error("Error fetching organization:", error);

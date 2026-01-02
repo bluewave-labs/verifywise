@@ -51,7 +51,6 @@ const PROVIDER_ICONS: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = 
 
 export interface ConfiguredProvider {
   provider: string;
-  [key: string]: unknown;
 }
 
 interface ModelSelectorProps {

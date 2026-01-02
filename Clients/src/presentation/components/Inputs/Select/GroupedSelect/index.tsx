@@ -79,7 +79,6 @@ const GroupedSelect: React.FC<GroupedSelectProps> = ({
   const theme = useTheme();
 
   const allItems = groups.flatMap((g) => g.items);
-  const selectedItem = allItems.find((item) => item.value === value);
   const hasItems = allItems.length > 0;
 
   const renderValue = (selected: unknown) => {

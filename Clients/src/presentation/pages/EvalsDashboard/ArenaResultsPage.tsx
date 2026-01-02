@@ -310,10 +310,10 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
 
       {/* Header */}
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-        <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>
+        <Typography sx={{ fontSize: 17, fontWeight: 700, color: "#111827" }}>
           {results.name}
         </Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
           <CustomizableButton
             variant="outlined"
             onClick={() => {

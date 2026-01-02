@@ -414,7 +414,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         </Box>
 
         {/* Action buttons */}
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
           <CustomizableButton
             variant="outlined"
             onClick={async () => {

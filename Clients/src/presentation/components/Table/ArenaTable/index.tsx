@@ -50,6 +50,8 @@ export interface ArenaTableProps {
   rows: ArenaRow[];
   onRowClick?: (row: ArenaRow) => void;
   onViewResults?: (row: ArenaRow) => void;
+  onDownload?: (row: ArenaRow) => void;
+  onCopy?: (row: ArenaRow) => void;
   onDelete?: (row: ArenaRow) => void;
   loading?: boolean;
   deleting?: string | null;
@@ -69,6 +71,8 @@ const ArenaTable: React.FC<ArenaTableProps> = ({
   rows,
   onRowClick,
   onViewResults,
+  onDownload,
+  onCopy,
   onDelete,
   loading = false,
   deleting,
@@ -216,6 +220,8 @@ const ArenaTable: React.FC<ArenaTableProps> = ({
             rowsPerPage={rowsPerPage}
             onRowClick={onRowClick}
             onViewResults={onViewResults}
+            onDownload={onDownload}
+            onCopy={onCopy}
             onDelete={onDelete}
             deleting={deleting}
           />

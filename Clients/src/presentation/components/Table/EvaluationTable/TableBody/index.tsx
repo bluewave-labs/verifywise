@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { TableBody, TableRow, TableCell, Chip, IconButton, Typography, Menu, MenuItem, useTheme } from "@mui/material";
-import { Settings } from "lucide-react";
+import { TableBody, TableRow, TableCell, Chip, IconButton, Typography, Popover, Stack, useTheme } from "@mui/material";
+import { MoreVertical, RotateCcw, Download, Copy, Trash2 } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
+import CustomizableButton from "../../../Button/CustomizableButton";
 import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../types/interfaces/i.table";
 
 const StatusChip: React.FC<{
@@ -68,14 +69,14 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   onShowDetails,
   onRemoveModel,
   onRerun,
+  onDownload,
+  onCopy,
 }) => {
   const theme = useTheme();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<IEvaluationRow | null>(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [menuRow, setMenuRow] = useState<IEvaluationRow | null>(null);
-
-  const dropDownStyle = singleTheme.dropDownStyles.primary;
 
   const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, row: IEvaluationRow) => {
     e.stopPropagation();
@@ -91,6 +92,20 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   const handleRerunClick = () => {
     if (menuRow && onRerun) {
       onRerun(menuRow);
+    }
+    handleMenuClose();
+  };
+
+  const handleDownloadClick = () => {
+    if (menuRow && onDownload) {
+      onDownload(menuRow);
+    }
+    handleMenuClose();
+  };
+
+  const handleCopyClick = () => {
+    if (menuRow && onCopy) {
+      onCopy(menuRow);
     }
     handleMenuClose();
   };
@@ -249,11 +264,17 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 onClick={(e) => e.stopPropagation()}
               >
                 <IconButton
-                  disableRipple={theme.components?.MuiIconButton?.defaultProps?.disableRipple}
+                  size="small"
                   onClick={(e) => handleMenuOpen(e, row)}
-                  sx={singleTheme.iconButtons}
+                  sx={{
+                    color: "#667085",
+                    padding: "6px",
+                    "&:hover": {
+                      backgroundColor: "#F3F4F6",
+                    },
+                  }}
                 >
-                  <Settings size={20} />
+                  <MoreVertical size={18} />
                 </IconButton>
               </TableCell>
             )}
@@ -262,34 +283,124 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
         })}
       
       {/* Action Menu */}
-      <Menu
-        anchorEl={menuAnchorEl}
+      <Popover
         open={Boolean(menuAnchorEl)}
+        anchorEl={menuAnchorEl}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        slotProps={{
-          paper: {
-            sx: dropDownStyle,
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        sx={{
+          "& .MuiPopover-paper": {
+            minWidth: 140,
+            borderRadius: "4px",
+            border: "1px solid #d0d5dd",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            overflow: "hidden",
+            mt: 0.5,
+            p: 1,
           },
         }}
       >
-        {onRerun && (
-          <MenuItem
-            onClick={handleRerunClick}
-            disabled={menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"}
-          >
-            Rerun
-          </MenuItem>
-        )}
-        {onRemoveModel && (
-          <MenuItem
-            onClick={handleDeleteClick}
-            sx={{ color: "#d32f2f" }}
-          >
-            Delete
-          </MenuItem>
-        )}
-      </Menu>
+        <Stack spacing={1}>
+          {onRerun && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleRerunClick}
+              disabled={menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"}
+              startIcon={<RotateCcw size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+                "&:disabled": {
+                  color: "#9CA3AF",
+                  borderColor: "#E5E7EB",
+                },
+              }}
+            >
+              Rerun
+            </CustomizableButton>
+          )}
+          {onDownload && menuRow?.status === "Completed" && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleDownloadClick}
+              startIcon={<Download size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+              }}
+            >
+              Download JSON
+            </CustomizableButton>
+          )}
+          {onCopy && menuRow?.status === "Completed" && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleCopyClick}
+              startIcon={<Copy size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+              }}
+            >
+              Copy to clipboard
+            </CustomizableButton>
+          )}
+          {onRemoveModel && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleDeleteClick}
+              startIcon={<Trash2 size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#DC2626",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#FEF2F2",
+                  borderColor: "#DC2626",
+                },
+              }}
+            >
+              Delete
+            </CustomizableButton>
+          )}
+        </Stack>
+      </Popover>
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && rowToDelete && (

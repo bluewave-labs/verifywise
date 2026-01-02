@@ -12,7 +12,7 @@ import {
   CircularProgress,
   useTheme,
 } from "@mui/material";
-import { MoreVertical, Eye, Trash2 } from "lucide-react";
+import { MoreVertical, Eye, Trash2, Download, Copy } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ArenaRow } from "./index";
 import ConfirmationModal from "../../Dialogs/ConfirmationModal";
@@ -24,6 +24,8 @@ interface ArenaTableBodyProps {
   rowsPerPage: number;
   onRowClick?: (row: ArenaRow) => void;
   onViewResults?: (row: ArenaRow) => void;
+  onDownload?: (row: ArenaRow) => void;
+  onCopy?: (row: ArenaRow) => void;
   onDelete?: (row: ArenaRow) => void;
   deleting?: string | null;
 }
@@ -104,6 +106,8 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
   rowsPerPage,
   onRowClick,
   onViewResults,
+  onDownload,
+  onCopy,
   onDelete,
   deleting,
 }) => {
@@ -127,6 +131,20 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
   const handleViewResultsClick = () => {
     if (menuRow && onViewResults) {
       onViewResults(menuRow);
+    }
+    handleMenuClose();
+  };
+
+  const handleDownloadClick = () => {
+    if (menuRow && onDownload) {
+      onDownload(menuRow);
+    }
+    handleMenuClose();
+  };
+
+  const handleCopyClick = () => {
+    if (menuRow && onCopy) {
+      onCopy(menuRow);
     }
     handleMenuClose();
   };
@@ -377,6 +395,52 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
               }}
             >
               View results
+            </CustomizableButton>
+          )}
+          {onDownload && menuRow?.status === "completed" && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleDownloadClick}
+              startIcon={<Download size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+              }}
+            >
+              Download JSON
+            </CustomizableButton>
+          )}
+          {onCopy && menuRow?.status === "completed" && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleCopyClick}
+              startIcon={<Copy size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+              }}
+            >
+              Copy to clipboard
             </CustomizableButton>
           )}
           {onDelete && (

@@ -78,6 +78,8 @@ export interface IEvaluationTableBodyProps {
     onConfirm: (id: string) => void;
   };
   onRerun?: (model: IEvaluationRow) => void;
+  onDownload?: (model: IEvaluationRow) => void;
+  onCopy?: (model: IEvaluationRow) => void;
 }
 
 export interface IEvaluationTableProps {
@@ -90,6 +92,8 @@ export interface IEvaluationTableProps {
   setCurrentPagingation: (pageNo: number) => void;
   onShowDetails: (model: IEvaluationRow) => void;
   onRerun?: (model: IEvaluationRow) => void;
+  onDownload?: (model: IEvaluationRow) => void;
+  onCopy?: (model: IEvaluationRow) => void;
   hidePagination?: boolean;
 }
 

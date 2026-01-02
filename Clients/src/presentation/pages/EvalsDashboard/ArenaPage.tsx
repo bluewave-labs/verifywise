@@ -43,6 +43,7 @@ import {
   createArenaComparison,
   listArenaComparisons,
   deleteArenaComparison,
+  getArenaComparisonResults,
   listMyDatasets,
   listDatasets,
   getAllLlmApiKeys,
@@ -365,6 +366,40 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       setTimeout(() => setAlert(null), ALERT_ERROR_DURATION_MS);
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const handleDownloadComparison = async (comparisonId: string, name: string) => {
+    try {
+      const results = await getArenaComparisonResults(comparisonId);
+      const blob = new Blob([JSON.stringify(results, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${name.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_results.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setAlert({ variant: "success", body: "Battle results downloaded" });
+      setTimeout(() => setAlert(null), ALERT_SUCCESS_DURATION_MS);
+    } catch (err) {
+      console.error("Failed to download comparison:", err);
+      setAlert({ variant: "error", body: "Failed to download results" });
+      setTimeout(() => setAlert(null), ALERT_ERROR_DURATION_MS);
+    }
+  };
+
+  const handleCopyComparison = async (comparisonId: string) => {
+    try {
+      const results = await getArenaComparisonResults(comparisonId);
+      await navigator.clipboard.writeText(JSON.stringify(results, null, 2));
+      setAlert({ variant: "success", body: "Results copied to clipboard" });
+      setTimeout(() => setAlert(null), ALERT_SUCCESS_DURATION_MS);
+    } catch (err) {
+      console.error("Failed to copy comparison:", err);
+      setAlert({ variant: "error", body: "Failed to copy results" });
+      setTimeout(() => setAlert(null), ALERT_ERROR_DURATION_MS);
     }
   };
 
@@ -704,6 +739,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             deleting={deleting}
             onRowClick={(row) => row.status === "completed" && handleViewResults(row.id)}
             onViewResults={(row) => handleViewResults(row.id)}
+            onDownload={(row) => handleDownloadComparison(row.id, row.name)}
+            onCopy={(row) => handleCopyComparison(row.id)}
             onDelete={(row) => handleDeleteComparison(row.id)}
           />
         </>

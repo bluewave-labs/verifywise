@@ -42,6 +42,8 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
   setCurrentPagingation,
   onShowDetails,
   onRerun,
+  onDownload,
+  onCopy,
   hidePagination = false,
 }) => {
   const [rowsPerPage, setRowsPerPage] = useState(() =>
@@ -195,6 +197,8 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
                   onRemoveModel={removeModel}
                   onShowDetails={onShowDetails}
                   onRerun={onRerun}
+                  onDownload={onDownload}
+                  onCopy={onCopy}
                   page={hidePagination ? 0 : page}
                   rowsPerPage={hidePagination ? sortedRows.length : rowsPerPage}
                 />

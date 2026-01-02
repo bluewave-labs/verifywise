@@ -1,10 +1,9 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { BackendResponse } from "../../domain/types/ApiTypes";
 
 /**
  * AI Trust Centre Overview data structure
  */
-interface AITrustCentreOverview {
+export interface AITrustCentreOverview {
   id?: number;
   company_name?: string;
   company_description?: string;
@@ -15,7 +14,7 @@ interface AITrustCentreOverview {
 /**
  * AI Trust Centre Resource structure
  */
-interface AITrustCentreResource {
+export interface AITrustCentreResource {
   id: number;
   name: string;
   description: string;
@@ -29,7 +28,7 @@ interface AITrustCentreResource {
 /**
  * AI Trust Centre Subprocessor structure
  */
-interface AITrustCentreSubprocessor {
+export interface AITrustCentreSubprocessor {
   id: number;
   name: string;
   purpose: string;
@@ -48,13 +47,65 @@ interface LogoResponse {
 }
 
 /**
+ * API response wrapper types that match actual backend responses.
+ * The backend wraps data with STATUS_CODE which produces { message, data: { message, ...payload } }
+ */
+interface OverviewResponse {
+  message: string;
+  data: {
+    message: string;
+    overview: AITrustCentreOverview;
+  };
+}
+
+interface ResourcesResponse {
+  message: string;
+  data: {
+    message: string;
+    resources: AITrustCentreResource[];
+  };
+}
+
+interface ResourceResponse {
+  message: string;
+  data: {
+    message: string;
+    resource: AITrustCentreResource;
+  };
+}
+
+interface SubprocessorsResponse {
+  message: string;
+  data: {
+    message: string;
+    subprocessors: AITrustCentreSubprocessor[];
+  };
+}
+
+interface SubprocessorResponse {
+  message: string;
+  data: {
+    message: string;
+    subprocessor: AITrustCentreSubprocessor;
+  };
+}
+
+interface LogoApiResponse {
+  message: string;
+  data: {
+    message: string;
+    logo?: LogoResponse;
+  };
+}
+
+/**
  * Fetches the AI Trust Center overview data.
  *
- * @returns {Promise<BackendResponse<AITrustCentreOverview>>} The AI Trust Center overview data.
+ * @returns {Promise<OverviewResponse>} The AI Trust Center overview data.
  */
-export async function getAITrustCentreOverview(): Promise<BackendResponse<AITrustCentreOverview>> {
+export async function getAITrustCentreOverview(): Promise<OverviewResponse> {
   try {
-    const response = await apiServices.get<BackendResponse<AITrustCentreOverview>>("/aiTrustCentre/overview");
+    const response = await apiServices.get<OverviewResponse>("/aiTrustCentre/overview");
     return response.data;
   } catch (error: unknown) {
     console.error("Error fetching AI Trust Center overview:", error);
@@ -66,13 +117,13 @@ export async function getAITrustCentreOverview(): Promise<BackendResponse<AITrus
  * Updates the AI Trust Center overview.
  *
  * @param {Partial<AITrustCentreOverview>} data - The AI Trust Center overview data to be updated.
- * @returns {Promise<BackendResponse<AITrustCentreOverview>>} The response from the API.
+ * @returns {Promise<OverviewResponse>} The response from the API.
  */
 export async function updateAITrustCentreOverview(
   data: Partial<AITrustCentreOverview>
-): Promise<BackendResponse<AITrustCentreOverview>> {
+): Promise<OverviewResponse> {
   try {
-    const response = await apiServices.put<BackendResponse<AITrustCentreOverview>>("/aiTrustCentre/overview", data);
+    const response = await apiServices.put<OverviewResponse>("/aiTrustCentre/overview", data);
     return response.data;
   } catch (error: unknown) {
     console.error("Error updating AI Trust Center overview:", error);
@@ -84,16 +135,16 @@ export async function updateAITrustCentreOverview(
  * Uploads the AI Trust Center logo.
  *
  * @param {File} logoFile - The logo file to upload.
- * @returns {Promise<BackendResponse<LogoResponse>>} The response from the API.
+ * @returns {Promise<LogoApiResponse>} The response from the API.
  */
 export async function uploadAITrustCentreLogo(
   logoFile: File
-): Promise<BackendResponse<LogoResponse>> {
+): Promise<LogoApiResponse> {
   try {
     const formData = new FormData();
     formData.append('logo', logoFile);
 
-    const response = await apiServices.post<BackendResponse<LogoResponse>>("/aiTrustCentre/logo", formData, {
+    const response = await apiServices.post<LogoApiResponse>("/aiTrustCentre/logo", formData, {
       headers: {
         "Content-Type": "multipart/form-data"
       },
@@ -127,14 +178,14 @@ export async function deleteAITrustCentreLogo(): Promise<null> {
  * @param {string} name - The name of the resource.
  * @param {string} description - The description of the resource.
  * @param {boolean} [visible=true] - Whether the resource is visible (defaults to true).
- * @returns {Promise<BackendResponse<AITrustCentreResource>>} The response from the API.
+ * @returns {Promise<ResourceResponse>} The response from the API.
  */
 export async function createAITrustCentreResource(
   file: File,
   name: string,
   description: string,
   visible: boolean = true
-): Promise<BackendResponse<AITrustCentreResource>> {
+): Promise<ResourceResponse> {
   try {
     const formData = new FormData();
     formData.append('file', file);
@@ -142,7 +193,7 @@ export async function createAITrustCentreResource(
     formData.append('description', description);
     formData.append('visible', visible.toString());
 
-    const response = await apiServices.post<BackendResponse<AITrustCentreResource>>("/aiTrustCentre/resources", formData, {
+    const response = await apiServices.post<ResourceResponse>("/aiTrustCentre/resources", formData, {
       headers: {
         "Content-Type": "multipart/form-data"
       },
@@ -157,11 +208,11 @@ export async function createAITrustCentreResource(
 /**
  * Fetches AI Trust Center resources.
  *
- * @returns {Promise<BackendResponse<AITrustCentreResource[]>>} The AI Trust Center resources.
+ * @returns {Promise<ResourcesResponse>} The AI Trust Center resources.
  */
-export async function getAITrustCentreResources(): Promise<BackendResponse<AITrustCentreResource[]>> {
+export async function getAITrustCentreResources(): Promise<ResourcesResponse> {
   try {
-    const response = await apiServices.get<BackendResponse<AITrustCentreResource[]>>("/aiTrustCentre/resources");
+    const response = await apiServices.get<ResourcesResponse>("/aiTrustCentre/resources");
     return response.data;
   } catch (error: unknown) {
     console.error("Error fetching AI Trust Center resources:", error);
@@ -196,7 +247,7 @@ export async function deleteAITrustCentreResource(
  * @param {boolean} visible - Whether the resource is visible.
  * @param {File} [file] - Optional file to replace the existing one.
  * @param {number} [oldFileId] - The ID of the old file to delete when replacing.
- * @returns {Promise<BackendResponse<AITrustCentreResource>>} The response from the API.
+ * @returns {Promise<ResourceResponse>} The response from the API.
  */
 export async function updateAITrustCentreResource(
   resourceId: number,
@@ -205,7 +256,7 @@ export async function updateAITrustCentreResource(
   visible: boolean,
   file?: File,
   oldFileId?: number
-): Promise<BackendResponse<AITrustCentreResource>> {
+): Promise<ResourceResponse> {
   try {
     const formData = new FormData();
     formData.append('name', name);
@@ -222,7 +273,7 @@ export async function updateAITrustCentreResource(
       formData.append('delete', oldFileId.toString());
     }
 
-    const response = await apiServices.put<BackendResponse<AITrustCentreResource>>(`/aiTrustCentre/resources/${resourceId}`, formData, {
+    const response = await apiServices.put<ResourceResponse>(`/aiTrustCentre/resources/${resourceId}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data"
       },
@@ -237,11 +288,11 @@ export async function updateAITrustCentreResource(
 /**
  * Fetches AI Trust Center subprocessors.
  *
- * @returns {Promise<BackendResponse<AITrustCentreSubprocessor[]>>} The AI Trust Center subprocessors.
+ * @returns {Promise<SubprocessorsResponse>} The AI Trust Center subprocessors.
  */
-export async function getAITrustCentreSubprocessors(): Promise<BackendResponse<AITrustCentreSubprocessor[]>> {
+export async function getAITrustCentreSubprocessors(): Promise<SubprocessorsResponse> {
   try {
-    const response = await apiServices.get<BackendResponse<AITrustCentreSubprocessor[]>>("/aiTrustCentre/subprocessors");
+    const response = await apiServices.get<SubprocessorsResponse>("/aiTrustCentre/subprocessors");
     return response.data;
   } catch (error: unknown) {
     console.error("Error fetching AI Trust Center subprocessors:", error);
@@ -256,16 +307,16 @@ export async function getAITrustCentreSubprocessors(): Promise<BackendResponse<A
  * @param {string} purpose - The purpose of the subprocessor.
  * @param {string} location - The location of the subprocessor.
  * @param {string} url - The URL of the subprocessor.
- * @returns {Promise<BackendResponse<AITrustCentreSubprocessor>>} The response from the API.
+ * @returns {Promise<SubprocessorResponse>} The response from the API.
  */
 export async function createAITrustCentreSubprocessor(
   name: string,
   purpose: string,
   location: string,
   url: string
-): Promise<BackendResponse<AITrustCentreSubprocessor>> {
+): Promise<SubprocessorResponse> {
   try {
-    const response = await apiServices.post<BackendResponse<AITrustCentreSubprocessor>>("/aiTrustCentre/subprocessors", {
+    const response = await apiServices.post<SubprocessorResponse>("/aiTrustCentre/subprocessors", {
       name,
       purpose,
       location,
@@ -290,7 +341,7 @@ export async function createAITrustCentreSubprocessor(
  * @param {string} purpose - The purpose of the subprocessor.
  * @param {string} location - The location of the subprocessor.
  * @param {string} url - The URL of the subprocessor.
- * @returns {Promise<BackendResponse<AITrustCentreSubprocessor>>} The response from the API.
+ * @returns {Promise<SubprocessorResponse>} The response from the API.
  */
 export async function updateAITrustCentreSubprocessor(
   subprocessorId: number,
@@ -298,9 +349,9 @@ export async function updateAITrustCentreSubprocessor(
   purpose: string,
   location: string,
   url: string
-): Promise<BackendResponse<AITrustCentreSubprocessor>> {
+): Promise<SubprocessorResponse> {
   try {
-    const response = await apiServices.put<BackendResponse<AITrustCentreSubprocessor>>(`/aiTrustCentre/subprocessors/${subprocessorId}`, {
+    const response = await apiServices.put<SubprocessorResponse>(`/aiTrustCentre/subprocessors/${subprocessorId}`, {
       name,
       purpose,
       location,
@@ -339,11 +390,11 @@ export async function deleteAITrustCentreSubprocessor(
  * Fetches the AI Trust Center logo for a specific tenant.
  *
  * @param {string} tenantId - The tenant ID to fetch the logo for.
- * @returns {Promise<BackendResponse<LogoResponse>>} The logo data from the API.
+ * @returns {Promise<LogoApiResponse>} The logo data from the API.
  */
-export async function getAITrustCentreLogo(tenantId: string): Promise<BackendResponse<LogoResponse>> {
+export async function getAITrustCentreLogo(tenantId: string): Promise<LogoApiResponse> {
   try {
-    const response = await apiServices.get<BackendResponse<LogoResponse>>(`/aiTrustCentre/${tenantId}/logo`, {
+    const response = await apiServices.get<LogoApiResponse>(`/aiTrustCentre/${tenantId}/logo`, {
       responseType: "json",
     });
     return response.data;

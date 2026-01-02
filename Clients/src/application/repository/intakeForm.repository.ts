@@ -1,4 +1,4 @@
-import { getAuthToken, apiRequest } from "../../infrastructure/api/networkServices";
+import { apiServices } from "../../infrastructure/api/networkServices";
 import {
   IntakeFormStatus,
   IntakeEntityType,
@@ -11,7 +11,7 @@ export { IntakeFormStatus, IntakeEntityType, IntakeSubmissionStatus };
 /**
  * Base URL for intake form API
  */
-const BASE_URL = "/api/intake";
+const BASE_URL = "/intake";
 
 /**
  * Field option interface
@@ -98,31 +98,6 @@ export interface IntakeSubmission {
   updatedAt: Date;
 }
 
-/**
- * API response wrapper
- */
-interface ApiResponse<T> {
-  message: string;
-  data: T;
-}
-
-/**
- * Pagination interface
- */
-interface PaginatedResponse<T> {
-  message: string;
-  data: {
-    forms?: T[];
-    submissions?: T[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-  };
-}
-
 // ============================================================================
 // Admin Form API
 // ============================================================================
@@ -137,9 +112,8 @@ export async function getAllIntakeForms(
     status?: IntakeFormStatus;
     entityType?: IntakeEntityType;
   } = {},
-  signal?: AbortSignal,
-  authToken: string = getAuthToken()
-): Promise<PaginatedResponse<IntakeForm>> {
+  signal?: AbortSignal
+): Promise<{ data: IntakeForm[]; pagination?: { total: number; page: number; limit: number } }> {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append("page", String(params.page));
   if (params.limit) queryParams.append("limit", String(params.limit));
@@ -147,7 +121,8 @@ export async function getAllIntakeForms(
   if (params.entityType) queryParams.append("entityType", params.entityType);
 
   const url = `${BASE_URL}/forms${queryParams.toString() ? `?${queryParams}` : ""}`;
-  return apiRequest<PaginatedResponse<IntakeForm>>("GET", url, undefined, signal, authToken);
+  const response = await apiServices.get(url, { signal });
+  return response.data;
 }
 
 /**
@@ -155,16 +130,10 @@ export async function getAllIntakeForms(
  */
 export async function getIntakeForm(
   formId: number,
-  signal?: AbortSignal,
-  authToken: string = getAuthToken()
-): Promise<ApiResponse<IntakeForm>> {
-  return apiRequest<ApiResponse<IntakeForm>>(
-    "GET",
-    `${BASE_URL}/forms/${formId}`,
-    undefined,
-    signal,
-    authToken
-  );
+  signal?: AbortSignal
+): Promise<{ data: IntakeForm }> {
+  const response = await apiServices.get(`${BASE_URL}/forms/${formId}`, { signal });
+  return response.data;
 }
 
 /**
@@ -181,16 +150,10 @@ export async function createIntakeForm(
     status?: IntakeFormStatus;
     ttlExpiresAt?: Date | null;
   },
-  signal?: AbortSignal,
-  authToken: string = getAuthToken()
-): Promise<ApiResponse<IntakeForm>> {
-  return apiRequest<ApiResponse<IntakeForm>>(
-    "POST",
-    `${BASE_URL}/forms`,
-    data,
-    signal,
-    authToken
-  );
+  signal?: AbortSignal
+): Promise<{ data: IntakeForm }> {
+  const response = await apiServices.post(`${BASE_URL}/forms`, data, { signal });
+  return response.data;
 }
 
 /**
@@ -207,16 +170,10 @@ export async function updateIntakeForm(
     status?: IntakeFormStatus;
     ttlExpiresAt?: Date | null;
   },
-  signal?: AbortSignal,
-  authToken: string = getAuthToken()
-): Promise<ApiResponse<IntakeForm>> {
-  return apiRequest<ApiResponse<IntakeForm>>(
-    "PATCH",
-    `${BASE_URL}/forms/${formId}`,
-    data,
-    signal,
-    authToken
-  );
+  signal?: AbortSignal
+): Promise<{ data: IntakeForm }> {
+  const response = await apiServices.patch(`${BASE_URL}/forms/${formId}`, data, { signal });
+  return response.data;
 }
 
 /**
@@ -224,16 +181,10 @@ export async function updateIntakeForm(
  */
 export async function deleteIntakeForm(
   formId: number,
-  signal?: AbortSignal,
-  authToken: string = getAuthToken()
-): Promise<ApiResponse<null>> {
-  return apiRequest<ApiResponse<null>>(
-    "DELETE",
-    `${BASE_URL}/forms/${formId}`,
-    undefined,
-    signal,
-    authToken
-  );
+  signal?: AbortSignal
+): Promise<{ data: null }> {
+  const response = await apiServices.delete(`${BASE_URL}/forms/${formId}`, { signal });
+  return response.data;
 }
 
 /**
@@ -241,16 +192,10 @@ export async function deleteIntakeForm(
  */
 export async function archiveIntakeForm(
   formId: number,
-  signal?: AbortSignal,
-  authToken: string = getAuthToken()
-): Promise<ApiResponse<IntakeForm>> {
-  return apiRequest<ApiResponse<IntakeForm>>(
-    "POST",
-    `${BASE_URL}/forms/${formId}/archive`,
-    undefined,
-    signal,
-    authToken
-  );
+  signal?: AbortSignal
+): Promise<{ data: IntakeForm }> {
+  const response = await apiServices.post(`${BASE_URL}/forms/${formId}/archive`, undefined, { signal });
+  return response.data;
 }
 
 // ============================================================================
@@ -266,16 +211,16 @@ export async function getPendingSubmissions(
     limit?: number;
     formId?: number;
   } = {},
-  signal?: AbortSignal,
-  authToken: string = getAuthToken()
-): Promise<PaginatedResponse<IntakeSubmission>> {
+  signal?: AbortSignal
+): Promise<{ data: IntakeSubmission[]; pagination?: { total: number; page: number; limit: number } }> {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append("page", String(params.page));
   if (params.limit) queryParams.append("limit", String(params.limit));
   if (params.formId) queryParams.append("formId", String(params.formId));
 
   const url = `${BASE_URL}/submissions${queryParams.toString() ? `?${queryParams}` : ""}`;
-  return apiRequest<PaginatedResponse<IntakeSubmission>>("GET", url, undefined, signal, authToken);
+  const response = await apiServices.get(url, { signal });
+  return response.data;
 }
 
 /**
@@ -283,16 +228,14 @@ export async function getPendingSubmissions(
  */
 export async function approveSubmission(
   submissionId: number,
-  signal?: AbortSignal,
-  authToken: string = getAuthToken()
-): Promise<ApiResponse<{ submission: IntakeSubmission; createdEntity: unknown }>> {
-  return apiRequest<ApiResponse<{ submission: IntakeSubmission; createdEntity: unknown }>>(
-    "POST",
+  signal?: AbortSignal
+): Promise<{ data: { submission: IntakeSubmission; createdEntity: unknown } }> {
+  const response = await apiServices.post(
     `${BASE_URL}/submissions/${submissionId}/approve`,
     undefined,
-    signal,
-    authToken
+    { signal }
   );
+  return response.data;
 }
 
 /**
@@ -301,16 +244,14 @@ export async function approveSubmission(
 export async function rejectSubmission(
   submissionId: number,
   reason: string,
-  signal?: AbortSignal,
-  authToken: string = getAuthToken()
-): Promise<ApiResponse<IntakeSubmission>> {
-  return apiRequest<ApiResponse<IntakeSubmission>>(
-    "POST",
+  signal?: AbortSignal
+): Promise<{ data: IntakeSubmission }> {
+  const response = await apiServices.post(
     `${BASE_URL}/submissions/${submissionId}/reject`,
     { reason },
-    signal,
-    authToken
+    { signal }
   );
+  return response.data;
 }
 
 // ============================================================================
@@ -320,11 +261,9 @@ export async function rejectSubmission(
 /**
  * Get CAPTCHA for public form
  */
-export async function getCaptcha(): Promise<ApiResponse<{ question: string; token: string }>> {
-  return apiRequest<ApiResponse<{ question: string; token: string }>>(
-    "GET",
-    `${BASE_URL}/public/captcha`
-  );
+export async function getCaptcha(): Promise<{ data: { question: string; token: string } }> {
+  const response = await apiServices.get(`${BASE_URL}/public/captcha`);
+  return response.data;
 }
 
 /**
@@ -334,20 +273,8 @@ export async function getPublicForm(
   tenantSlug: string,
   formSlug: string,
   resubmissionToken?: string
-): Promise<ApiResponse<{
-  form: {
-    id: number;
-    name: string;
-    description: string;
-    slug: string;
-    entityType: IntakeEntityType;
-    schema: FormSchema;
-    submitButtonText: string;
-  };
-  previousData?: Record<string, unknown>;
-}>> {
-  const queryParams = resubmissionToken ? `?token=${resubmissionToken}` : "";
-  return apiRequest<ApiResponse<{
+): Promise<{
+  data: {
     form: {
       id: number;
       name: string;
@@ -358,7 +285,11 @@ export async function getPublicForm(
       submitButtonText: string;
     };
     previousData?: Record<string, unknown>;
-  }>>("GET", `${BASE_URL}/public/${tenantSlug}/${formSlug}${queryParams}`);
+  };
+}> {
+  const queryParams = resubmissionToken ? `?token=${resubmissionToken}` : "";
+  const response = await apiServices.get(`${BASE_URL}/public/${tenantSlug}/${formSlug}${queryParams}`);
+  return response.data;
 }
 
 /**
@@ -375,14 +306,13 @@ export async function submitPublicForm(
     captchaAnswer: number;
     resubmissionToken?: string;
   }
-): Promise<ApiResponse<{
-  submissionId: number;
-  resubmissionToken: string;
-  message: string;
-}>> {
-  return apiRequest<ApiResponse<{
+): Promise<{
+  data: {
     submissionId: number;
     resubmissionToken: string;
     message: string;
-  }>>("POST", `${BASE_URL}/public/${tenantSlug}/${formSlug}`, data);
+  };
+}> {
+  const response = await apiServices.post(`${BASE_URL}/public/${tenantSlug}/${formSlug}`, data);
+  return response.data;
 }

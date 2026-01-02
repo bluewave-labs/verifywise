@@ -14,7 +14,6 @@ import {
   IconButton,
   CircularProgress,
   TextField,
-  Divider,
   alpha,
   InputAdornment,
 } from "@mui/material";
@@ -25,10 +24,7 @@ import {
   Target,
   Plus,
   X,
-  Database,
-  Folder,
   Search,
-  Check,
   Info,
 } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";

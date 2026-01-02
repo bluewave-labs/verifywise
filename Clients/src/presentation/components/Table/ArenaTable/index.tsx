@@ -87,7 +87,12 @@ const ArenaTable: React.FC<ArenaTableProps> = ({
     const saved = localStorage.getItem(ARENA_SORTING_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // If saved state is empty, use the default
+        if (!parsed.key || !parsed.direction) {
+          return { key: "createdAt", direction: "desc" };
+        }
+        return parsed;
       } catch {
         return { key: "createdAt", direction: "desc" };
       }

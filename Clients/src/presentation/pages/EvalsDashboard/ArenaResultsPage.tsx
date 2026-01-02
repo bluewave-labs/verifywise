@@ -24,6 +24,8 @@ import {
   Bot,
   ChevronLeft,
   ChevronRight,
+  Download,
+  Copy,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -307,9 +309,65 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
       </Box>
 
       {/* Header */}
-      <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#111827", mb: 4 }}>
-        {results.name}
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+        <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
+          {results.name}
+        </Typography>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <CustomizableButton
+            variant="outlined"
+            onClick={() => {
+              try {
+                const blob = new Blob([JSON.stringify(results, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `arena_${comparisonId}_results.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              } catch (err) {
+                console.error("Failed to download:", err);
+              }
+            }}
+            startIcon={<Download size={14} />}
+            sx={{
+              borderColor: "#d0d5dd",
+              color: "#374151",
+              "&:hover": {
+                borderColor: "#13715B",
+                color: "#13715B",
+                backgroundColor: "#F0FDF4",
+              },
+            }}
+          >
+            Download
+          </CustomizableButton>
+          <CustomizableButton
+            variant="outlined"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(JSON.stringify(results, null, 2));
+              } catch (err) {
+                console.error("Failed to copy:", err);
+              }
+            }}
+            startIcon={<Copy size={14} />}
+            sx={{
+              borderColor: "#d0d5dd",
+              color: "#374151",
+              "&:hover": {
+                borderColor: "#13715B",
+                color: "#13715B",
+                backgroundColor: "#F0FDF4",
+              },
+            }}
+          >
+            Copy
+          </CustomizableButton>
+        </Stack>
+      </Box>
 
       {/* Error State */}
       {isFailed && results.errorMessage && (

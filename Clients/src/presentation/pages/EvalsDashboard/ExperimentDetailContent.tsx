@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
-import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw, AlertTriangle, Download, Copy } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -310,6 +310,9 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     );
   }
 
+  // Extract config from experiment
+  const config = (experiment as unknown as { config?: { model?: { name?: string }; judgeLlm?: { model?: string } } }).config || {};
+
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} isToast onClick={() => setAlert(null)} />}
@@ -335,224 +338,266 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         </Typography>
       </Box>
 
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        {/* Row 1: Experiment Name + Rerun button */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
-          <Box
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 0.5,
-              "&:hover .edit-icon": {
-                opacity: 1,
-              },
-            }}
-          >
-            {isEditingName ? (
-              <>
-                <TextField
-                  value={editedName}
-                  onChange={(e) => setEditedName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSaveName();
-                    if (e.key === "Escape") handleCancelEditName();
-                  }}
-                  variant="outlined"
-                  size="small"
-                  autoFocus
-                  disabled={saving}
-                  sx={{
-                    minWidth: "400px",
-                    "& .MuiOutlinedInput-root": {
-                      fontSize: "18px",
-                      fontWeight: 600,
-                    },
-                  }}
-                />
-                <IconButton
-                  size="small"
-                  onClick={handleSaveName}
-                  disabled={saving || !editedName.trim()}
-                  sx={{ color: "#13715B" }}
-                >
-                  <Check size={18} />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={handleCancelEditName}
-                  disabled={saving}
-                  sx={{ color: "#6B7280" }}
-                >
-                  <X size={18} />
-                </IconButton>
-              </>
-            ) : (
-              <>
-                <Typography variant="h5" sx={{ fontWeight: 600, fontSize: "18px" }}>
-                  {experiment.name}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={handleStartEditName}
-                  className="edit-icon"
-                  sx={{
-                    opacity: 0,
-                    transition: "opacity 0.2s",
-                    color: "#6B7280",
-                    "&:hover": {
-                      color: "#13715B",
-                      backgroundColor: "rgba(19, 113, 91, 0.1)",
-                    },
-                  }}
-                >
-                  <Pencil size={14} />
-                </IconButton>
-              </>
-            )}
-          </Box>
-
-          {/* Rerun button */}
-          <Stack direction="row" spacing={2} alignItems="center">
-            <CustomizableButton
-              variant="contained"
-              onClick={handleRerunExperiment}
-              isDisabled={rerunLoading || experiment.status === "running"}
-              startIcon={<RotateCcw size={14} />}
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                "&:hover": {
-                  backgroundColor: "#0F5A47",
-                  border: "1px solid #0F5A47",
-                },
-              }}
-            >
-              {rerunLoading ? "Starting…" : "Rerun"}
-            </CustomizableButton>
-          </Stack>
+      {/* Header - Title and Actions */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+        <Box
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 0.5,
+            "&:hover .edit-icon": {
+              opacity: 1,
+            },
+          }}
+        >
+          {isEditingName ? (
+            <>
+              <TextField
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveName();
+                  if (e.key === "Escape") handleCancelEditName();
+                }}
+                variant="outlined"
+                size="small"
+                autoFocus
+                disabled={saving}
+                sx={{
+                  minWidth: "400px",
+                  "& .MuiOutlinedInput-root": {
+                    fontSize: "15px",
+                    fontWeight: 700,
+                  },
+                }}
+              />
+              <IconButton
+                size="small"
+                onClick={handleSaveName}
+                disabled={saving || !editedName.trim()}
+                sx={{ color: "#13715B" }}
+              >
+                <Check size={18} />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={handleCancelEditName}
+                disabled={saving}
+                sx={{ color: "#6B7280" }}
+              >
+                <X size={18} />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
+                {experiment.id}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={handleStartEditName}
+                className="edit-icon"
+                sx={{
+                  opacity: 0,
+                  transition: "opacity 0.2s",
+                  color: "#6B7280",
+                  "&:hover": {
+                    color: "#13715B",
+                    backgroundColor: "rgba(19, 113, 91, 0.1)",
+                  },
+                }}
+              >
+                <Pencil size={14} />
+              </IconButton>
+            </>
+          )}
         </Box>
 
-        {/* Row 2: Status, Description, Created date */}
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Chip
-            label={experiment.status}
-            size="small"
-            sx={{
-              backgroundColor:
-                experiment.status === "completed"
-                  ? "#c8e6c9"
-                  : experiment.status === "failed"
-                  ? "#ffebee"
-                  : experiment.status === "running"
-                  ? "#fff3e0"
-                  : "#e0e0e0",
-              color:
-                experiment.status === "completed"
-                  ? "#388e3c"
-                  : experiment.status === "failed"
-                  ? "#c62828"
-                  : experiment.status === "running"
-                  ? "#ef6c00"
-                  : "#616161",
-              fontWeight: 500,
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              borderRadius: "4px",
-              "& .MuiChip-label": {
-                padding: "4px 8px",
-              },
+        {/* Action buttons */}
+        <Stack direction="row" spacing={1} alignItems="center">
+          <CustomizableButton
+            variant="outlined"
+            onClick={async () => {
+              try {
+                const blob = new Blob([JSON.stringify({ experiment, logs }, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${experiment.id}_results.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              } catch (err) {
+                console.error("Failed to download:", err);
+              }
             }}
-          />
-          <Box
+            startIcon={<Download size={14} />}
             sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 0.5,
-              "&:hover .edit-icon": {
-                opacity: 1,
+              borderColor: "#d0d5dd",
+              color: "#374151",
+              "&:hover": {
+                borderColor: "#13715B",
+                color: "#13715B",
+                backgroundColor: "#F0FDF4",
               },
             }}
           >
-            {isEditingDescription ? (
-              <>
-                <TextField
-                  value={editedDescription}
-                  onChange={(e) => setEditedDescription(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSaveDescription();
-                    if (e.key === "Escape") handleCancelEditDescription();
-                  }}
-                  variant="outlined"
-                  size="small"
-                  autoFocus
-                  disabled={saving}
-                  placeholder="Add a description..."
-                  sx={{
-                    minWidth: "300px",
-                    "& .MuiOutlinedInput-root": {
-                      fontSize: "13px",
-                      color: "text.secondary",
-                    },
-                  }}
-                />
-                <IconButton
-                  size="small"
-                  onClick={handleSaveDescription}
-                  disabled={saving}
-                  sx={{ color: "#13715B" }}
-                >
-                  <Check size={16} />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={handleCancelEditDescription}
-                  disabled={saving}
-                  sx={{ color: "#6B7280" }}
-                >
-                  <X size={16} />
-                </IconButton>
-              </>
-            ) : (
-              <>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{
-                    fontSize: "13px",
-                    fontStyle: experiment.description ? "normal" : "italic",
-                    color: experiment.description ? "text.secondary" : "#9CA3AF",
-                  }}
-                >
-                  {experiment.description || "No description"}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={handleStartEditDescription}
-                  className="edit-icon"
-                  sx={{
-                    opacity: 0,
-                    transition: "opacity 0.2s",
-                    color: "#6B7280",
-                    padding: "2px",
-                    "&:hover": {
-                      color: "#13715B",
-                      backgroundColor: "rgba(19, 113, 91, 0.1)",
-                    },
-                  }}
-                >
-                  <Pencil size={12} />
-                </IconButton>
-              </>
-            )}
-          </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
-            •
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
-            Created {new Date(experiment.created_at).toLocaleString()}
-          </Typography>
+            Download
+          </CustomizableButton>
+          <CustomizableButton
+            variant="outlined"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(JSON.stringify({ experiment, logs }, null, 2));
+                setAlert({ variant: "success", body: "Results copied to clipboard" });
+                setTimeout(() => setAlert(null), 3000);
+              } catch (err) {
+                console.error("Failed to copy:", err);
+              }
+            }}
+            startIcon={<Copy size={14} />}
+            sx={{
+              borderColor: "#d0d5dd",
+              color: "#374151",
+              "&:hover": {
+                borderColor: "#13715B",
+                color: "#13715B",
+                backgroundColor: "#F0FDF4",
+              },
+            }}
+          >
+            Copy
+          </CustomizableButton>
+          <CustomizableButton
+            variant="contained"
+            onClick={handleRerunExperiment}
+            isDisabled={rerunLoading || experiment.status === "running"}
+            startIcon={<RotateCcw size={14} />}
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              "&:hover": {
+                backgroundColor: "#0F5A47",
+                border: "1px solid #0F5A47",
+              },
+            }}
+          >
+            {rerunLoading ? "Starting…" : "Rerun"}
+          </CustomizableButton>
+        </Stack>
+      </Box>
+
+      {/* Summary Box - like Arena */}
+      <Box
+        sx={{
+          p: "12px",
+          borderRadius: "4px",
+          background: experiment.status === "completed"
+            ? "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)"
+            : experiment.status === "failed"
+            ? "#fef2f2"
+            : "#f9fafb",
+          border: experiment.status === "completed"
+            ? "1px solid #10b981"
+            : experiment.status === "failed"
+            ? "1px solid #ef4444"
+            : "1px solid #e5e7eb",
+          mb: 3,
+        }}
+      >
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          {/* Status Section */}
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : experiment.status === "failed" ? "#991b1b" : "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                {experiment.status === "completed" ? "Completed" : experiment.status === "failed" ? "Failed" : "Status"}
+              </Typography>
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  "&:hover .edit-icon": { opacity: 1 },
+                }}
+              >
+                {isEditingDescription ? (
+                  <>
+                    <TextField
+                      value={editedDescription}
+                      onChange={(e) => setEditedDescription(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveDescription();
+                        if (e.key === "Escape") handleCancelEditDescription();
+                      }}
+                      variant="outlined"
+                      size="small"
+                      autoFocus
+                      disabled={saving}
+                      placeholder="Add a description..."
+                      sx={{ minWidth: "250px", "& .MuiOutlinedInput-root": { fontSize: "13px" } }}
+                    />
+                    <IconButton size="small" onClick={handleSaveDescription} disabled={saving} sx={{ color: "#13715B" }}>
+                      <Check size={14} />
+                    </IconButton>
+                    <IconButton size="small" onClick={handleCancelEditDescription} disabled={saving} sx={{ color: "#6B7280" }}>
+                      <X size={14} />
+                    </IconButton>
+                  </>
+                ) : (
+                  <>
+                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: experiment.status === "completed" ? "#065f46" : experiment.status === "failed" ? "#991b1b" : "#6b7280" }}>
+                      {experiment.description || `Evaluating ${config.model?.name || "model"} with ${logs.length} prompts`}
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      onClick={handleStartEditDescription}
+                      className="edit-icon"
+                      sx={{ opacity: 0, transition: "opacity 0.2s", color: "#6B7280", padding: "2px", "&:hover": { color: "#13715B" } }}
+                    >
+                      <Pencil size={12} />
+                    </IconButton>
+                  </>
+                )}
+              </Box>
+            </Box>
+          </Stack>
+
+          {/* Info Section */}
+          <Stack direction="row" spacing={3} alignItems="flex-start">
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+                Model
+              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+                {config.model?.name || "—"}
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+                Judge
+              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+                {config.judgeLlm?.model || "—"}
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+                Prompts
+              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+                {logs.length}
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+                Created
+              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+                {new Date(experiment.created_at).toLocaleDateString()}
+              </Typography>
+            </Box>
+          </Stack>
         </Stack>
       </Box>
 
@@ -777,7 +822,6 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         const renderMetricCard = (metric: { key: string; label: string; category: string }) => {
           const entry = metricsSum[metric.label] || metricsSum[`G-Eval (${metric.label})`] || metricsSum[metric.key];
           const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
-          const count = entry ? entry.count : 0;
           const scores = entry?.scores || [];
           const colors = getScoreColor(avgValue, metric.label);
           const delta = getDeltaIndicator(scores);
@@ -857,23 +901,18 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                   )}
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-                  <Box>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontSize: "24px",
-                        fontWeight: 700,
-                        color: colors.text,
-                        lineHeight: 1.2,
-                        fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
-                      }}
-                    >
-                      {avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px", mt: 0.5, display: "block" }}>
-                      {avgValue === undefined ? "No data yet" : `${count} samples`}
-                    </Typography>
-                  </Box>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontSize: "24px",
+                      fontWeight: 700,
+                      color: colors.text,
+                      lineHeight: 1.2,
+                      fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+                    }}
+                  >
+                    {avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`}
+                  </Typography>
                   {scores.length >= 2 && <Sparkline scores={scores} color={colors.icon} />}
                 </Box>
               </CardContent>

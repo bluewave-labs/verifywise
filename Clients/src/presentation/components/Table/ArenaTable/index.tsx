@@ -61,7 +61,6 @@ const columns = [
   { id: "name", label: "BATTLE NAME", sortable: true },
   { id: "contestants", label: "CONTESTANTS", sortable: false },
   { id: "dataset", label: "DATASET", sortable: true },
-  { id: "status", label: "STATUS", sortable: true },
   { id: "winner", label: "WINNER", sortable: true },
   { id: "createdAt", label: "DATE", sortable: true },
   { id: "actions", label: "ACTION", sortable: false },
@@ -131,11 +130,6 @@ const ArenaTable: React.FC<ArenaTableProps> = ({
         case "name":
           aValue = a.name.toLowerCase();
           bValue = b.name.toLowerCase();
-          break;
-
-        case "status":
-          aValue = a.status;
-          bValue = b.status;
           break;
 
         case "winner":

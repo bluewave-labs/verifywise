@@ -1,66 +1,10 @@
 import { useState } from "react";
-import { TableBody, TableRow, TableCell, Chip, IconButton, Typography, Popover, Stack, useTheme } from "@mui/material";
+import { TableBody, TableRow, TableCell, IconButton, Typography, Popover, Stack, useTheme } from "@mui/material";
 import { MoreVertical, RotateCcw, Download, Copy, Trash2 } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
 import CustomizableButton from "../../../Button/CustomizableButton";
 import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../types/interfaces/i.table";
-
-const StatusChip: React.FC<{
-  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" | "Available";
-}> = ({ status }) => {
-  const getStatusStyles = () => {
-    switch (status) {
-      case "In Progress":
-      case "Running":
-        return {
-          backgroundColor: "#fff3e0",
-          color: "#ef6c00",
-        };
-      case "Completed":
-        return {
-          backgroundColor: "#c8e6c9",
-          color: "#388e3c",
-        };
-      case "Failed":
-        return {
-          backgroundColor: "#ffebee",
-          color: "#c62828",
-        };
-      case "Pending":
-        return {
-          backgroundColor: "#e0e0e0",
-          color: "#616161",
-        };
-      case "Available":
-        return {
-          backgroundColor: "#e3f2fd",
-          color: "#1565c0",
-        };
-      default:
-        return {
-          backgroundColor: "#e0e0e0",
-          color: "#616161",
-        };
-    }
-  };
-
-  const style = getStatusStyles();
-
-  return (
-    <Chip
-      label={status}
-      size="small"
-      sx={{
-        ...style,
-        fontWeight: 500,
-        fontSize: "11px",
-        height: "22px",
-        borderRadius: "4px",
-      }}
-    />
-  );
-};
 
 const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   rows,
@@ -152,10 +96,16 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 paddingLeft: "12px",
                 paddingRight: "12px",
                 textTransform: "none",
-                width: "18%",
+                width: "20%",
               }}
             >
-              {isRunning ? "Pending..." : row.id}
+              {isRunning ? (
+                <Typography sx={{ fontSize: 13, color: "#ef6c00", fontStyle: "italic" }}>Running...</Typography>
+              ) : row.status === "Failed" ? (
+                <Typography sx={{ fontSize: 13, color: "#c62828" }}>Failed</Typography>
+              ) : (
+                row.id
+              )}
             </TableCell>
 
             {/* MODEL - center aligned */}
@@ -212,24 +162,10 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 paddingRight: "12px",
                 textTransform: "none",
                 textAlign: "center",
-                width: "12%",
+                width: "14%",
               }}
             >
               {row.dataset}
-            </TableCell>
-
-            {/* STATUS - center aligned */}
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-                textTransform: "none",
-                textAlign: "center",
-                width: "9%",
-              }}
-            >
-              <StatusChip status={row.status} />
             </TableCell>
 
             {/* DATE - center aligned */}

@@ -6,7 +6,6 @@ import {
   IconButton,
   Popover,
   Typography,
-  Chip,
   Stack,
   Box,
   CircularProgress,
@@ -41,57 +40,6 @@ const formatDate = (dateStr?: string | null): string => {
     hour: "2-digit",
     minute: "2-digit",
   });
-};
-
-// Status chip matching EvaluationTable style
-const StatusChip: React.FC<{ status: string }> = ({ status }) => {
-  const getStatusStyles = () => {
-    const normalizedStatus = status.toLowerCase();
-    switch (normalizedStatus) {
-      case "running":
-      case "pending":
-        return {
-          backgroundColor: "#fff3e0",
-          color: "#ef6c00",
-          label: normalizedStatus === "running" ? "Running" : "Pending",
-        };
-      case "completed":
-        return {
-          backgroundColor: "#c8e6c9",
-          color: "#388e3c",
-          label: "Completed",
-        };
-      case "failed":
-        return {
-          backgroundColor: "#ffebee",
-          color: "#c62828",
-          label: "Failed",
-        };
-      default:
-        return {
-          backgroundColor: "#e0e0e0",
-          color: "#616161",
-          label: status,
-        };
-    }
-  };
-
-  const style = getStatusStyles();
-
-  return (
-    <Chip
-      label={style.label}
-      size="small"
-      sx={{
-        backgroundColor: style.backgroundColor,
-        color: style.color,
-        fontWeight: 500,
-        fontSize: "11px",
-        height: "22px",
-        borderRadius: "4px",
-      }}
-    />
-  );
 };
 
 // Helper to get contestant name from string or object
@@ -263,17 +211,6 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
               <Typography sx={{ fontSize: 12, color: "#475569" }}>
                 {row.dataset ? row.dataset.split('/').pop()?.replace('.json', '') || row.dataset : '-'}
               </Typography>
-            </TableCell>
-
-            {/* STATUS - center aligned */}
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                textAlign: "center",
-                textTransform: "none",
-              }}
-            >
-              <StatusChip status={row.status} />
             </TableCell>
 
             {/* WINNER - center aligned */}

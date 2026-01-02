@@ -120,23 +120,6 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
           bValue = b.dataset.toLowerCase();
           break;
 
-        case "status": {
-          // Status order: Completed > Running > In Progress > Pending > Failed
-          const getStatusValue = (status: string) => {
-            switch (status) {
-              case "Completed": return 5;
-              case "Running": return 4;
-              case "In Progress": return 3;
-              case "Pending": return 2;
-              case "Failed": return 1;
-              default: return 0;
-            }
-          };
-          aValue = getStatusValue(a.status);
-          bValue = getStatusValue(b.status);
-          break;
-        }
-
         case "date":
           aValue = a.date ? new Date(a.date).getTime() : 0;
           bValue = b.date ? new Date(b.date).getTime() : 0;

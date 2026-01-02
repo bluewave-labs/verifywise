@@ -63,16 +63,17 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
   - Vendors & vendor risks
   - AI project risks
   - Tasks
-  - Bias & fairness check of LLM systems
+  - LLM Evals
   - Evidence center
   - AI trust center for public view
   - AI literacy training registery
+  - Activity history for each entity
   - Integration with MIT and IBM AI risk repository
   - Model inventory and model risks that keeps a list of models used and risks
   - Policy manager to create and manage internal company AI policies
   - Risk and control mappings for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
   - CE Marking registry
-  - Detailed reports
+  - Detailed reports with PDF and DOCX export
   - Event logs (audits) for enterprise organizations
   - AI incident management
   - Integrations (currently Slack and MLFlow is supported, more on the way)

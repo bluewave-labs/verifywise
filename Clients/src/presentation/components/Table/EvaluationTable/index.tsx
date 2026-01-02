@@ -50,17 +50,17 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
     getPaginationRowCount("evaluation", 10)
   );
 
-  // Initialize sorting state from localStorage
+  // Initialize sorting state from localStorage or default to date desc
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
     const saved = localStorage.getItem(EVALUATION_SORTING_KEY);
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch {
-        return { key: "", direction: null };
+        return { key: "date", direction: "desc" };
       }
     }
-    return { key: "", direction: null };
+    return { key: "date", direction: "desc" };
   });
 
   // Save sorting state to localStorage

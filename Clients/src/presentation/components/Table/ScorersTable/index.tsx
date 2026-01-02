@@ -81,17 +81,17 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
     getPaginationRowCount("scorers", 10)
   );
 
-  // Initialize sorting state from localStorage or default to no sorting
+  // Initialize sorting state from localStorage or default to date desc
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
     const saved = localStorage.getItem(SCORERS_SORTING_KEY);
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch {
-        return { key: "", direction: null };
+        return { key: "createdAt", direction: "desc" };
       }
     }
-    return { key: "", direction: null };
+    return { key: "createdAt", direction: "desc" };
   });
 
   // Save sorting state to localStorage whenever it changes

@@ -18,6 +18,7 @@ import {
   getSubmissionStatsQuery,
   checkRateLimitQuery,
   getTenantHashBySlug,
+  getTenantSlugByHash,
 } from "../utils/intakeForm.utils";
 import { createNewModelInventoryQuery } from "../utils/modelInventory.utils";
 import { createNewProjectQuery } from "../utils/project.utils";
@@ -29,6 +30,12 @@ import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
 import { ModelInventoryModel } from "../domain.layer/models/modelInventory/modelInventory.model";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
+import {
+  sendSubmissionReceivedEmail,
+  sendNewSubmissionAdminNotification,
+  sendSubmissionApprovedEmail,
+  sendSubmissionRejectedEmail,
+} from "../services/intakeFormEmail.service";
 
 // ============================================================================
 // INTAKE FORM CONTROLLERS (Admin - Authenticated)
@@ -521,7 +528,18 @@ export async function approveSubmission(req: Request, res: Response) {
 
     await transaction.commit();
 
-    // TODO: Send email notifications to submitter and admins
+    // Get form name for email
+    const form = await getIntakeFormByIdQuery(submission.formId, req.tenantId!);
+    const formName = form?.name || "Unknown Form";
+
+    // Send approval email to submitter (async, don't block response)
+    sendSubmissionApprovedEmail(
+      submission.submitterEmail,
+      submission.submitterName,
+      formName,
+      submissionId,
+      submission.entityType
+    ).catch((err) => logger.error("Failed to send approval email:", err));
 
     logStructured(
       "successful",
@@ -560,7 +578,8 @@ export async function rejectSubmission(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
 
   try {
-    const { rejectionReason } = req.body;
+    // Accept both 'reason' and 'rejectionReason' for flexibility
+    const rejectionReason = req.body.rejectionReason || req.body.reason;
 
     if (!rejectionReason || !rejectionReason.trim()) {
       await transaction.rollback();
@@ -589,7 +608,35 @@ export async function rejectSubmission(req: Request, res: Response) {
 
     await transaction.commit();
 
-    // TODO: Send email notification to submitter with rejection reason and resubmission link
+    // Get form details and tenant slug for resubmission link
+    const form = await getIntakeFormByIdQuery(submission.formId, req.tenantId!);
+    const formName = form?.name || "Unknown Form";
+    const formSlug = form?.slug || "";
+
+    // Get tenant slug from organization ID
+    // Extract org ID from tenant hash (req.tenantId is the hash)
+    const tenantSlug = await getTenantSlugByHash(req.tenantId!);
+
+    // Generate resubmission token
+    const resubmissionToken = Buffer.from(JSON.stringify({
+      submissionId: submission.id,
+      formId: submission.formId,
+      timestamp: Date.now(),
+    })).toString("base64");
+
+    // Send rejection email to submitter (async, don't block response)
+    if (tenantSlug && formSlug) {
+      sendSubmissionRejectedEmail(
+        submission.submitterEmail,
+        submission.submitterName,
+        formName,
+        submissionId,
+        rejectionReason,
+        resubmissionToken,
+        tenantSlug,
+        formSlug
+      ).catch((err) => logger.error("Failed to send rejection email:", err));
+    }
 
     logStructured(
       "successful",
@@ -819,7 +866,29 @@ export async function submitPublicForm(req: Request, res: Response) {
         timestamp: Date.now(),
       })).toString("base64");
 
-      // TODO: Send email notifications to admins
+      // Send email notifications (async, don't block response)
+      const submissionName = submitterName || submitterEmail.split("@")[0];
+
+      // Send confirmation to submitter
+      sendSubmissionReceivedEmail(
+        submitterEmail,
+        submissionName,
+        form.name,
+        submission.id,
+        newResubmissionToken,
+        tenantSlug,
+        formSlug
+      ).catch((err) => logger.error("Failed to send submission received email:", err));
+
+      // Send notification to admins
+      sendNewSubmissionAdminNotification(
+        tenantInfo.hash,
+        form.name,
+        submissionName,
+        submitterEmail,
+        submission.id,
+        form.entityType
+      ).catch((err) => logger.error("Failed to send admin notification:", err));
 
       logStructured(
         "successful",

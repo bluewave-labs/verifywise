@@ -662,3 +662,27 @@ export async function getTenantHashBySlug(
   const orgId = (result[0] as any).id;
   return { id: orgId, hash: getTenantHash(orgId) };
 }
+
+/**
+ * Get tenant slug from tenant hash
+ */
+export async function getTenantSlugByHash(
+  hash: string
+): Promise<string | null> {
+  // The hash is in format like "a4ayc80OGd" which is derived from org ID
+  // We need to find the org by iterating through orgs and matching hash
+  const { getTenantHash } = require("../tools/getTenantHash");
+
+  const result = await sequelize.query(
+    `SELECT id, slug FROM organizations`,
+    { type: QueryTypes.SELECT }
+  );
+
+  for (const org of result as Array<{ id: number; slug: string }>) {
+    if (getTenantHash(org.id) === hash) {
+      return org.slug;
+    }
+  }
+
+  return null;
+}

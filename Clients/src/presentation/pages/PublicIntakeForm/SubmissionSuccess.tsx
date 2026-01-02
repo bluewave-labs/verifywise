@@ -1,8 +1,6 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Box, Typography, Paper, Button } from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import EditIcon from "@mui/icons-material/Edit";
+import { CheckCircle, Copy, Edit } from "lucide-react";
 import { useState } from "react";
 
 /**
@@ -81,7 +79,7 @@ export function SubmissionSuccess() {
             mb: 3,
           }}
         >
-          <CheckCircleIcon sx={{ fontSize: 48, color: "#16a34a" }} />
+          <CheckCircle size={48} color="#16a34a" />
         </Box>
 
         {/* Title */}
@@ -149,7 +147,7 @@ export function SubmissionSuccess() {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           <Button
             variant="outlined"
-            startIcon={<EditIcon />}
+            startIcon={<Edit size={16} />}
             onClick={handleEditSubmission}
             sx={{
               height: 40,
@@ -167,7 +165,7 @@ export function SubmissionSuccess() {
           </Button>
           <Button
             variant="text"
-            startIcon={<ContentCopyIcon />}
+            startIcon={<Copy size={16} />}
             onClick={handleCopyLink}
             sx={{
               height: 40,

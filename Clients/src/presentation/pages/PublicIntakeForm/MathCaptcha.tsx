@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Box, Typography, TextField, IconButton, Tooltip } from "@mui/material";
-import RefreshIcon from "@mui/icons-material/Refresh";
+import { RefreshCw } from "lucide-react";
 import { getCaptcha } from "../../../application/repository/intakeForm.repository";
 
 /**
@@ -76,7 +76,7 @@ export function MathCaptcha({ value, onChange, error }: MathCaptchaProps) {
               "&:hover": { color: "#13715B" },
             }}
           >
-            <RefreshIcon sx={{ fontSize: 18 }} />
+            <RefreshCw size={18} />
           </IconButton>
         </Tooltip>
       </Box>

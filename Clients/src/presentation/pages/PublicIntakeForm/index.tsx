@@ -11,7 +11,7 @@ import {
   TextField,
   Divider,
 } from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
+import { Send } from "lucide-react";
 import { FormFieldRenderer } from "./FormFieldRenderer";
 import { MathCaptcha } from "./MathCaptcha";
 import {
@@ -373,7 +373,7 @@ export function PublicIntakeForm() {
             variant="contained"
             fullWidth
             disabled={isSubmitting}
-            startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : <SendIcon />}
+            startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : <Send size={16} />}
             sx={{
               height: 44,
               backgroundColor: "#13715B",

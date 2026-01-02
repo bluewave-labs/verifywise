@@ -35,6 +35,7 @@ interface EvalsSidebarProps {
   experimentsCount?: number;
   datasetsCount?: number;
   scorersCount?: number;
+  arenaCount?: number;
   disabled?: boolean;
   recentExperiments?: RecentExperiment[];
   recentProjects?: RecentProject[];
@@ -52,6 +53,7 @@ export default function EvalsSidebar({
   experimentsCount = 0,
   datasetsCount = 0,
   scorersCount = 0,
+  arenaCount = 0,
   disabled = false,
   recentExperiments = [],
   recentProjects = [],
@@ -99,6 +101,7 @@ export default function EvalsSidebar({
       label: "Arena",
       value: "arena",
       icon: <Swords size={16} strokeWidth={1.5} />,
+      count: arenaCount,
       disabled: false, // Always enabled - org-scoped
     },
     {

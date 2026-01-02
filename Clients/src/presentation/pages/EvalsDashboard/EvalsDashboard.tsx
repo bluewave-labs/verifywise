@@ -22,6 +22,7 @@ import {
   getExperiment,
   listMyDatasets,
   listScorers,
+  listArenaComparisons,
   getAllOrgs,
   createOrg,
   setCurrentOrg,
@@ -205,6 +206,7 @@ export default function EvalsDashboard() {
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
   const [scorersCount, setScorersCount] = useState<number>(0);
+  const [arenaCount, setArenaCount] = useState<number>(0);
   const [initialLoading, setInitialLoading] = useState(true);
   const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null);
   const [recentExperiments, setRecentExperiments] = useState<RecentExperiment[]>(() => {
@@ -661,10 +663,15 @@ export default function EvalsDashboard() {
         // Load scorers count
         const scorersData = await listScorers({ org_id: orgId || undefined });
         setScorersCount(scorersData.scorers?.length || 0);
+
+        // Load arena battles count
+        const arenaData = await listArenaComparisons();
+        setArenaCount(arenaData.comparisons?.length || 0);
       } catch (err) {
         console.error("Failed to load counts:", err);
         setDatasetsCount(0);
         setScorersCount(0);
+        setArenaCount(0);
       }
     };
 
@@ -676,6 +683,7 @@ export default function EvalsDashboard() {
     sidebarContext.setExperimentsCount(experimentsCount);
     sidebarContext.setDatasetsCount(datasetsCount);
     sidebarContext.setScorersCount(scorersCount);
+    sidebarContext.setArenaCount(arenaCount);
     sidebarContext.setDisabled(!projectId && !currentProject);
     sidebarContext.setRecentExperiments(recentExperiments);
     sidebarContext.setRecentProjects(recentProjects);
@@ -710,7 +718,7 @@ export default function EvalsDashboard() {
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [experimentsCount, datasetsCount, scorersCount, projectId, recentExperiments, recentProjects, currentProject, allProjects, tab, navigate, location.pathname]);
+  }, [experimentsCount, datasetsCount, scorersCount, arenaCount, projectId, recentExperiments, recentProjects, currentProject, allProjects, tab, navigate, location.pathname]);
 
   // Note: Tab change is now handled via URL hash in ContextSidebar
   // Note: Project change is now handled via context in sidebar project selector

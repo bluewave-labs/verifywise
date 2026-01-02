@@ -2089,109 +2089,123 @@ export default function EvalsDashboard() {
             <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
               Select provider type
             </Typography>
-            <Grid container spacing={1.5}>
+            <Box sx={{ display: "flex", gap: 1.5 }}>
               {/* Ollama */}
-              <Grid size={{ xs: 6 }}>
-                <Card
-                  onClick={() => {
-                    setSelectedLocalProviderType("ollama");
-                    setLocalProviderName("llama3.2");
-                    setLocalProviderUrl("http://localhost:11434");
-                  }}
-                  sx={{
-                    cursor: "pointer",
-                    border: "1px solid",
-                    borderColor: selectedLocalProviderType === "ollama" ? "#13715B" : "#E5E7EB",
-                    backgroundColor: "#FFFFFF",
-                    boxShadow: "none",
-                    transition: "all 0.2s ease",
-                    position: "relative",
-                    "&:hover": {
-                      borderColor: "#13715B",
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                    },
-                  }}
-                >
-                  <CardContent sx={{ textAlign: "center", py: 3, px: 2 }}>
-                    {selectedLocalProviderType === "ollama" && (
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          top: 8,
-                          right: 8,
-                          backgroundColor: "#13715B",
-                          borderRadius: "50%",
-                          width: 20,
-                          height: 20,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Check size={12} color="#FFFFFF" strokeWidth={3} />
-                      </Box>
-                    )}
-                    <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
-                      <OllamaLogo />
+              <Card
+                onClick={() => {
+                  setSelectedLocalProviderType("ollama");
+                  setLocalProviderName("llama3.2");
+                  setLocalProviderUrl("http://localhost:11434");
+                }}
+                sx={{
+                  flex: 1,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderColor: selectedLocalProviderType === "ollama" ? "#13715B" : "#E5E7EB",
+                  backgroundColor: "#FFFFFF",
+                  boxShadow: "none",
+                  transition: "all 0.2s ease",
+                  position: "relative",
+                  "&:hover": {
+                    borderColor: "#13715B",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                  },
+                }}
+              >
+                <CardContent sx={{ 
+                  textAlign: "center", 
+                  py: 3, 
+                  px: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                  {selectedLocalProviderType === "ollama" && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        backgroundColor: "#13715B",
+                        borderRadius: "50%",
+                        width: 20,
+                        height: 20,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Check size={12} color="#FFFFFF" strokeWidth={3} />
                     </Box>
-                    <Typography sx={{ fontSize: "12px", fontWeight: selectedLocalProviderType === "ollama" ? 600 : 500, color: selectedLocalProviderType === "ollama" ? "#13715B" : "#374151" }}>
-                      Ollama
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+                  )}
+                  <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
+                    <OllamaLogo />
+                  </Box>
+                  <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "ollama" ? 600 : 500, color: selectedLocalProviderType === "ollama" ? "#13715B" : "#374151" }}>
+                    Ollama
+                  </Typography>
+                </CardContent>
+              </Card>
 
               {/* Local Endpoint */}
-              <Grid size={{ xs: 6 }}>
-                <Card
-                  onClick={() => {
-                    setSelectedLocalProviderType("local");
-                    setLocalProviderName("Local Endpoint");
-                    setLocalProviderUrl("http://localhost:8000/api/generate");
-                  }}
-                  sx={{
-                    cursor: "pointer",
-                    border: "1px solid",
-                    borderColor: selectedLocalProviderType === "local" ? "#13715B" : "#E5E7EB",
-                    backgroundColor: "#FFFFFF",
-                    boxShadow: "none",
-                    transition: "all 0.2s ease",
-                    position: "relative",
-                    "&:hover": {
-                      borderColor: "#13715B",
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                    },
-                  }}
-                >
-                  <CardContent sx={{ textAlign: "center", py: 3, px: 2 }}>
-                    {selectedLocalProviderType === "local" && (
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          top: 8,
-                          right: 8,
-                          backgroundColor: "#13715B",
-                          borderRadius: "50%",
-                          width: 20,
-                          height: 20,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Check size={12} color="#FFFFFF" strokeWidth={3} />
-                      </Box>
-                    )}
-                    <Box sx={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5, "& svg": { width: 32, height: 32 } }}>
-                      <FolderFilledIcon />
+              <Card
+                onClick={() => {
+                  setSelectedLocalProviderType("local");
+                  setLocalProviderName("Local Endpoint");
+                  setLocalProviderUrl("http://localhost:8000/api/generate");
+                }}
+                sx={{
+                  flex: 1,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderColor: selectedLocalProviderType === "local" ? "#13715B" : "#E5E7EB",
+                  backgroundColor: "#FFFFFF",
+                  boxShadow: "none",
+                  transition: "all 0.2s ease",
+                  position: "relative",
+                  "&:hover": {
+                    borderColor: "#13715B",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                  },
+                }}
+              >
+                <CardContent sx={{ 
+                  textAlign: "center", 
+                  py: 3, 
+                  px: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                  {selectedLocalProviderType === "local" && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        backgroundColor: "#13715B",
+                        borderRadius: "50%",
+                        width: 20,
+                        height: 20,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Check size={12} color="#FFFFFF" strokeWidth={3} />
                     </Box>
-                    <Typography sx={{ fontSize: "12px", fontWeight: selectedLocalProviderType === "local" ? 600 : 500, color: selectedLocalProviderType === "local" ? "#13715B" : "#374151" }}>
-                      Local Endpoint
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+                  )}
+                  <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
+                    <FolderFilledIcon />
+                  </Box>
+                  <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "local" ? 600 : 500, color: selectedLocalProviderType === "local" ? "#13715B" : "#374151" }}>
+                    Local Endpoint
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
           </Box>
 
           {/* Configuration Fields */}

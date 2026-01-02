@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
@@ -68,14 +68,7 @@ export function PublicIntakeForm() {
   const [submitterName, setSubmitterName] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
 
-  // Load form
-  useEffect(() => {
-    if (tenantSlug && formSlug) {
-      loadForm();
-    }
-  }, [tenantSlug, formSlug, resubmissionToken]);
-
-  const loadForm = async () => {
+  const loadForm = useCallback(async () => {
     if (!tenantSlug || !formSlug) return;
 
     setIsLoading(true);
@@ -103,7 +96,14 @@ export function PublicIntakeForm() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tenantSlug, formSlug, resubmissionToken, reset]);
+
+  // Load form
+  useEffect(() => {
+    if (tenantSlug && formSlug) {
+      loadForm();
+    }
+  }, [tenantSlug, formSlug, loadForm]);
 
   const handleCaptchaChange = (value: string, token: string) => {
     setCaptchaValue(value);

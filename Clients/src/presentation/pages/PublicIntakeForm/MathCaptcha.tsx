@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Box, Typography, TextField, IconButton, Tooltip } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { getCaptcha } from "../../../application/repository/intakeForm.repository";
@@ -20,7 +20,7 @@ export function MathCaptcha({ value, onChange, error }: MathCaptchaProps) {
   const [token, setToken] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadCaptcha = async () => {
+  const loadCaptcha = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await getCaptcha();
@@ -35,11 +35,11 @@ export function MathCaptcha({ value, onChange, error }: MathCaptchaProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [onChange]);
 
   useEffect(() => {
     loadCaptcha();
-  }, []);
+  }, [loadCaptcha]);
 
   const handleRefresh = () => {
     loadCaptcha();

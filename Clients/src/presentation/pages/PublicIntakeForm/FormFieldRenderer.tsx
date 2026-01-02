@@ -13,55 +13,7 @@ import {
   OutlinedInput,
 } from "@mui/material";
 import { Controller, Control, FieldErrors } from "react-hook-form";
-
-/**
- * Field type definition
- */
-type FieldType =
-  | "text"
-  | "textarea"
-  | "select"
-  | "multiselect"
-  | "checkbox"
-  | "date"
-  | "email"
-  | "url"
-  | "number";
-
-/**
- * Field option interface
- */
-interface FieldOption {
-  label: string;
-  value: string;
-}
-
-/**
- * Field validation interface
- */
-interface FieldValidation {
-  required?: boolean;
-  minLength?: number;
-  maxLength?: number;
-  min?: number;
-  max?: number;
-  pattern?: string;
-  patternMessage?: string;
-}
-
-/**
- * Form field interface
- */
-interface FormField {
-  id: string;
-  type: FieldType;
-  label: string;
-  placeholder?: string;
-  helpText?: string;
-  validation?: FieldValidation;
-  options?: FieldOption[];
-  defaultValue?: string | number | boolean | string[];
-}
+import { FormField } from "../../IntakeFormBuilder/types";
 
 /**
  * Props for FormFieldRenderer

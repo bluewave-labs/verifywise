@@ -6,7 +6,9 @@
 ![](https://img.shields.io/github/issues/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/issues-pr/bluewave-labs/verifywise)
 
-<img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
+
+<img width="3182" height="2570" alt="github" src="https://github.com/user-attachments/assets/6feb9d3d-19c1-42c2-a9f5-908db8694f8f" />
+
 
 [VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses use the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
@@ -16,6 +18,7 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
 
 - [Join our Discord channel](https://discord.com/invite/d3k3E4uEpR) to ask your questions and get the latest announcemnets.
 - [Need to talk to someone](https://verifywise.ai/contact)? Get with us to see the latest demo, or [click here](https://app.verifywise.ai) to experience the demo yourself.
+- [Read our documentation](https://verifywise.ai/user-guide/) to understand features and capabilities
 
 ## Screenshots
 
@@ -339,7 +342,7 @@ Note: CORS is automatically configured to allow requests from the same host wher
 
 VerifyWise supports multiple email service providers through a provider abstraction layer, enabling administrators to choose the most suitable email service for their organization. The system includes security enhancements such as TLS enforcement, input validation and credential rotation for supported providers.
 
-Below is a list of supported email providers. You can use [this documentation](https://docs.verifywise.ai/settings#email-services) to setup the email service of your choice.
+Below is a list of supported email providers. You can use [this documentation](https://verifywise.ai/user-guide/settings/email-configuration) to setup the email service of your choice.
 
 - **Exchange Online (Office 365)** - Microsoft's cloud email service
 - **On-Premises Exchange** - Self-hosted Exchange servers

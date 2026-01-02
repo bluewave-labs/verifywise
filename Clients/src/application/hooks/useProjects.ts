@@ -16,8 +16,8 @@ export const useProjects = () => {
   return useQuery({
     queryKey: projectQueryKeys.list(),
     queryFn: async (): Promise<Project[]> => {
-      const response = await getAllProjects();
-      return response?.data || [];
+      const projects = await getAllProjects();
+      return projects || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000,   // 10 minutes

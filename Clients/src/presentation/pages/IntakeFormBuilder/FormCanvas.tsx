@@ -4,7 +4,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import AddIcon from "@mui/icons-material/Add";
+import { Plus } from "lucide-react";
 import { FormField } from "./types";
 import { FieldCard } from "./FieldCard";
 
@@ -37,7 +37,7 @@ function EmptyState() {
           mb: 2,
         }}
       >
-        <AddIcon sx={{ fontSize: 40, color: "#9ca3af" }} />
+        <Plus size={40} color="#9ca3af" />
       </Box>
       <Typography
         variant="h6"

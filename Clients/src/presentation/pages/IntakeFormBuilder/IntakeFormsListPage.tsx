@@ -27,14 +27,16 @@ import {
   Tabs,
   Tab,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import ArchiveIcon from "@mui/icons-material/Archive";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import AssignmentIcon from "@mui/icons-material/Assignment";
+import {
+  Plus,
+  MoreVertical,
+  Edit,
+  Trash2,
+  Archive,
+  Eye,
+  Copy,
+  ClipboardList,
+} from "lucide-react";
 import {
   getAllIntakeForms,
   deleteIntakeForm,
@@ -215,7 +217,7 @@ export function IntakeFormsListPage() {
         </Box>
         <Button
           variant="contained"
-          startIcon={<AddIcon />}
+          startIcon={<Plus size={16} />}
           onClick={() => navigate("/intake-forms/new")}
           sx={{
             height: 34,
@@ -287,7 +289,7 @@ export function IntakeFormsListPage() {
             borderRadius: "8px",
           }}
         >
-          <AssignmentIcon sx={{ fontSize: 48, color: "#9ca3af", mb: 2 }} />
+          <ClipboardList size={48} color="#9ca3af" style={{ marginBottom: 16 }} />
           <Typography
             variant="h6"
             sx={{ fontWeight: 600, color: "#1f2937", mb: 1, fontSize: "16px" }}
@@ -305,7 +307,7 @@ export function IntakeFormsListPage() {
           {!searchQuery && (
             <Button
               variant="contained"
-              startIcon={<AddIcon />}
+              startIcon={<Plus size={16} />}
               onClick={() => navigate("/intake-forms/new")}
               sx={{
                 height: 34,
@@ -421,7 +423,7 @@ export function IntakeFormsListPage() {
                       onClick={(e) => handleMenuOpen(e, form)}
                       sx={{ p: 0.5 }}
                     >
-                      <MoreVertIcon sx={{ fontSize: 18 }} />
+                      <MoreVertical size={18} />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -445,7 +447,7 @@ export function IntakeFormsListPage() {
       >
         <MenuItem onClick={handleEdit}>
           <ListItemIcon>
-            <EditIcon sx={{ fontSize: 18 }} />
+            <Edit size={18} />
           </ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
             Edit
@@ -455,7 +457,7 @@ export function IntakeFormsListPage() {
           <>
             <MenuItem onClick={handlePreview}>
               <ListItemIcon>
-                <VisibilityIcon sx={{ fontSize: 18 }} />
+                <Eye size={18} />
               </ListItemIcon>
               <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
                 Preview
@@ -463,7 +465,7 @@ export function IntakeFormsListPage() {
             </MenuItem>
             <MenuItem onClick={handleCopyLink}>
               <ListItemIcon>
-                <ContentCopyIcon sx={{ fontSize: 18 }} />
+                <Copy size={18} />
               </ListItemIcon>
               <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
                 Copy link
@@ -471,7 +473,7 @@ export function IntakeFormsListPage() {
             </MenuItem>
             <MenuItem onClick={handleArchive}>
               <ListItemIcon>
-                <ArchiveIcon sx={{ fontSize: 18 }} />
+                <Archive size={18} />
               </ListItemIcon>
               <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
                 Archive
@@ -481,7 +483,7 @@ export function IntakeFormsListPage() {
         )}
         <MenuItem onClick={handleDeleteClick} sx={{ color: "#ef4444" }}>
           <ListItemIcon>
-            <DeleteOutlineIcon sx={{ fontSize: 18, color: "#ef4444" }} />
+            <Trash2 size={18} color="#ef4444" />
           </ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
             Delete

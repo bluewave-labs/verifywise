@@ -1,31 +1,33 @@
 import { Box, Typography, Paper, Stack } from "@mui/material";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import TextFieldsIcon from "@mui/icons-material/TextFields";
-import NotesIcon from "@mui/icons-material/Notes";
-import EmailIcon from "@mui/icons-material/Email";
-import LinkIcon from "@mui/icons-material/Link";
-import NumbersIcon from "@mui/icons-material/Numbers";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import ArrowDropDownCircleIcon from "@mui/icons-material/ArrowDropDownCircle";
-import ChecklistIcon from "@mui/icons-material/Checklist";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import {
+  Type,
+  FileText,
+  Mail,
+  Link,
+  Hash,
+  Calendar,
+  ChevronDown,
+  ListChecks,
+  CheckSquare,
+  GripVertical,
+} from "lucide-react";
 import { PALETTE_ITEMS, PaletteItem } from "./types";
 
 /**
  * Icon mapping for field types
  */
 const ICON_MAP: Record<string, React.ElementType> = {
-  TextFields: TextFieldsIcon,
-  Notes: NotesIcon,
-  Email: EmailIcon,
-  Link: LinkIcon,
-  Numbers: NumbersIcon,
-  CalendarMonth: CalendarMonthIcon,
-  ArrowDropDownCircle: ArrowDropDownCircleIcon,
-  Checklist: ChecklistIcon,
-  CheckBox: CheckBoxIcon,
+  TextFields: Type,
+  Notes: FileText,
+  Email: Mail,
+  Link: Link,
+  Numbers: Hash,
+  CalendarMonth: Calendar,
+  ArrowDropDownCircle: ChevronDown,
+  Checklist: ListChecks,
+  CheckBox: CheckSquare,
 };
 
 /**
@@ -44,7 +46,7 @@ function DraggablePaletteItem({ item }: DraggablePaletteItemProps) {
     },
   });
 
-  const IconComponent = ICON_MAP[item.icon] || TextFieldsIcon;
+  const IconComponent = ICON_MAP[item.icon] || Type;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -76,8 +78,8 @@ function DraggablePaletteItem({ item }: DraggablePaletteItemProps) {
         },
       }}
     >
-      <DragIndicatorIcon sx={{ color: "#9ca3af", fontSize: 18 }} />
-      <IconComponent sx={{ color: "#13715B", fontSize: 20 }} />
+      <GripVertical size={18} color="#9ca3af" />
+      <IconComponent size={20} color="#13715B" />
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography
           variant="body2"

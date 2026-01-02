@@ -27,12 +27,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import SaveIcon from "@mui/icons-material/Save";
-import PublishIcon from "@mui/icons-material/Publish";
-import ArchiveIcon from "@mui/icons-material/Archive";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { ArrowLeft, Save, Send, Archive, Eye, Copy } from "lucide-react";
 import { FieldPalette } from "./FieldPalette";
 import { FormCanvas } from "./FormCanvas";
 import { FieldEditor } from "./FieldEditor";
@@ -379,7 +374,7 @@ export function IntakeFormBuilder() {
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <IconButton onClick={() => navigate("/intake-forms")} sx={{ p: 0.5 }}>
-              <ArrowBackIcon sx={{ fontSize: 20 }} />
+              <ArrowLeft size={20} />
             </IconButton>
             <Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -469,7 +464,7 @@ export function IntakeFormBuilder() {
               <>
                 <Tooltip title="Copy form link">
                   <IconButton onClick={handleCopyLink} size="small">
-                    <ContentCopyIcon sx={{ fontSize: 18 }} />
+                    <Copy size={18} />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Preview form">
@@ -477,7 +472,7 @@ export function IntakeFormBuilder() {
                     onClick={() => window.open(`/intake/${form.slug}`, "_blank")}
                     size="small"
                   >
-                    <VisibilityIcon sx={{ fontSize: 18 }} />
+                    <Eye size={18} />
                   </IconButton>
                 </Tooltip>
               </>
@@ -486,7 +481,7 @@ export function IntakeFormBuilder() {
               <Button
                 variant="outlined"
                 size="small"
-                startIcon={<ArchiveIcon sx={{ fontSize: 16 }} />}
+                startIcon={<Archive size={16} />}
                 onClick={handleArchive}
                 sx={{
                   height: 34,
@@ -506,7 +501,7 @@ export function IntakeFormBuilder() {
             <Button
               variant="outlined"
               size="small"
-              startIcon={isSaving ? <CircularProgress size={14} /> : <SaveIcon sx={{ fontSize: 16 }} />}
+              startIcon={isSaving ? <CircularProgress size={14} /> : <Save size={16} />}
               onClick={handleSave}
               disabled={isSaving || !isDirty}
               sx={{
@@ -527,7 +522,7 @@ export function IntakeFormBuilder() {
               <Button
                 variant="contained"
                 size="small"
-                startIcon={<PublishIcon sx={{ fontSize: 16 }} />}
+                startIcon={<Send size={16} />}
                 onClick={handlePublish}
                 disabled={isSaving}
                 sx={{

@@ -1,33 +1,35 @@
 import { Box, Typography, IconButton, Tooltip, Chip } from "@mui/material";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import TextFieldsIcon from "@mui/icons-material/TextFields";
-import NotesIcon from "@mui/icons-material/Notes";
-import EmailIcon from "@mui/icons-material/Email";
-import LinkIcon from "@mui/icons-material/Link";
-import NumbersIcon from "@mui/icons-material/Numbers";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import ArrowDropDownCircleIcon from "@mui/icons-material/ArrowDropDownCircle";
-import ChecklistIcon from "@mui/icons-material/Checklist";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import {
+  GripVertical,
+  Trash2,
+  Copy,
+  Type,
+  FileText,
+  Mail,
+  Link,
+  Hash,
+  Calendar,
+  ChevronDown,
+  ListChecks,
+  CheckSquare,
+} from "lucide-react";
 import { FormField, FieldType } from "./types";
 
 /**
  * Icon mapping for field types
  */
 const ICON_MAP: Record<FieldType, React.ElementType> = {
-  text: TextFieldsIcon,
-  textarea: NotesIcon,
-  email: EmailIcon,
-  url: LinkIcon,
-  number: NumbersIcon,
-  date: CalendarMonthIcon,
-  select: ArrowDropDownCircleIcon,
-  multiselect: ChecklistIcon,
-  checkbox: CheckBoxIcon,
+  text: Type,
+  textarea: FileText,
+  email: Mail,
+  url: Link,
+  number: Hash,
+  date: Calendar,
+  select: ChevronDown,
+  multiselect: ListChecks,
+  checkbox: CheckSquare,
 };
 
 /**
@@ -85,7 +87,7 @@ export function FieldCard({
     zIndex: isDragging ? 1000 : 1,
   };
 
-  const IconComponent = ICON_MAP[field.type] || TextFieldsIcon;
+  const IconComponent = ICON_MAP[field.type] || Type;
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -142,13 +144,13 @@ export function FieldCard({
           },
         }}
       >
-        <DragIndicatorIcon sx={{ color: "#9ca3af", fontSize: 20 }} />
+        <GripVertical size={20} color="#9ca3af" />
       </Box>
 
       {/* Field content */}
       <Box sx={{ flex: 1, p: 2, minWidth: 0 }}>
         <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
-          <IconComponent sx={{ color: "#13715B", fontSize: 20, mt: 0.25 }} />
+          <IconComponent size={20} color="#13715B" style={{ marginTop: 2 }} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
               <Typography
@@ -243,7 +245,7 @@ export function FieldCard({
               },
             }}
           >
-            <ContentCopyIcon sx={{ fontSize: 16 }} />
+            <Copy size={16} />
           </IconButton>
         </Tooltip>
         <Tooltip title="Delete field" placement="left">
@@ -259,7 +261,7 @@ export function FieldCard({
               },
             }}
           >
-            <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+            <Trash2 size={16} />
           </IconButton>
         </Tooltip>
       </Box>

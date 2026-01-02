@@ -15,10 +15,7 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import { X, Plus, Trash2, GripVertical } from "lucide-react";
 import {
   FormField,
   FieldOption,
@@ -93,7 +90,7 @@ function OptionsEditor({ options, onChange }: OptionsEditorProps) {
               border: "1px solid #e5e7eb",
             }}
           >
-            <DragIndicatorIcon sx={{ color: "#9ca3af", fontSize: 16 }} />
+            <GripVertical size={16} color="#9ca3af" />
             <TextField
               size="small"
               placeholder="Label"
@@ -130,13 +127,13 @@ function OptionsEditor({ options, onChange }: OptionsEditorProps) {
                 "&:hover": { color: "#ef4444" },
               }}
             >
-              <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+              <Trash2 size={16} />
             </IconButton>
           </Box>
         ))}
       </Stack>
       <Button
-        startIcon={<AddIcon />}
+        startIcon={<Plus size={14} />}
         onClick={handleAddOption}
         size="small"
         sx={{
@@ -228,7 +225,7 @@ export function FieldEditor({ field, entityType, onChange, onClose }: FieldEdito
         </Box>
         <Tooltip title="Close editor">
           <IconButton size="small" onClick={onClose} sx={{ p: 0.5 }}>
-            <CloseIcon sx={{ fontSize: 18 }} />
+            <X size={18} />
           </IconButton>
         </Tooltip>
       </Box>

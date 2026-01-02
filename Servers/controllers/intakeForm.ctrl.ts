@@ -622,6 +622,7 @@ export async function rejectSubmission(req: Request, res: Response) {
 export async function getPublicForm(req: Request, res: Response) {
   const { tenantSlug, formSlug } = req.params;
   const isPreview = req.query.preview === "true";
+  const resubmissionToken = req.query.token as string | undefined;
 
   logStructured(
     "processing",
@@ -648,13 +649,15 @@ export async function getPublicForm(req: Request, res: Response) {
       }
 
       return res.status(200).json(STATUS_CODE[200]({
-        id: form.id,
-        name: form.name,
-        description: form.description,
-        slug: form.slug,
-        entityType: form.entityType,
-        schema: form.schema,
-        submitButtonText: form.submitButtonText,
+        form: {
+          id: form.id,
+          name: form.name,
+          description: form.description,
+          slug: form.slug,
+          entityType: form.entityType,
+          schema: form.schema,
+          submitButtonText: form.submitButtonText,
+        },
         isPreview: true,
       }));
     }
@@ -666,7 +669,34 @@ export async function getPublicForm(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Form not found or not available"));
     }
 
-    return res.status(200).json(STATUS_CODE[200](form));
+    // Check for resubmission token to get previous data
+    let previousData: Record<string, unknown> | undefined;
+    if (resubmissionToken) {
+      try {
+        const decoded = JSON.parse(Buffer.from(resubmissionToken, "base64").toString());
+        if (decoded.submissionId && decoded.formId === form.id) {
+          const previousSubmission = await getSubmissionByIdQuery(decoded.submissionId, tenantInfo.hash);
+          if (previousSubmission && previousSubmission.status !== IntakeSubmissionStatus.APPROVED) {
+            previousData = previousSubmission.data as Record<string, unknown>;
+          }
+        }
+      } catch {
+        // Invalid token, ignore
+      }
+    }
+
+    return res.status(200).json(STATUS_CODE[200]({
+      form: {
+        id: form.id,
+        name: form.name,
+        description: form.description,
+        slug: form.slug,
+        entityType: form.entityType,
+        schema: form.schema,
+        submitButtonText: form.submitButtonText,
+      },
+      previousData,
+    }));
   } catch (error) {
     logStructured(
       "error",
@@ -717,11 +747,11 @@ export async function submitPublicForm(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Form not found or not available"));
     }
 
-    const { submitterEmail, submitterName, data, captchaAnswer, captchaExpected, originalSubmissionId } = req.body;
+    const { submitterEmail, submitterName, formData, captchaToken, captchaAnswer, resubmissionToken } = req.body;
 
     // Validate required fields
-    if (!submitterEmail || !submitterName || !data) {
-      return res.status(400).json(STATUS_CODE[400]("Submitter email, name, and form data are required"));
+    if (!submitterEmail || !formData) {
+      return res.status(400).json(STATUS_CODE[400]("Submitter email and form data are required"));
     }
 
     // Validate email format
@@ -731,8 +761,35 @@ export async function submitPublicForm(req: Request, res: Response) {
     }
 
     // Validate CAPTCHA
-    if (captchaAnswer !== captchaExpected) {
-      return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
+    if (!captchaToken || captchaAnswer === undefined) {
+      return res.status(400).json(STATUS_CODE[400]("CAPTCHA verification required"));
+    }
+
+    try {
+      const decoded = JSON.parse(Buffer.from(captchaToken, "base64").toString());
+      const tokenAge = Date.now() - decoded.timestamp;
+
+      // Token expires after 5 minutes
+      if (tokenAge > 5 * 60 * 1000) {
+        return res.status(400).json(STATUS_CODE[400]("CAPTCHA expired. Please refresh and try again."));
+      }
+
+      if (decoded.answer !== captchaAnswer) {
+        return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
+      }
+    } catch {
+      return res.status(400).json(STATUS_CODE[400]("Invalid CAPTCHA token"));
+    }
+
+    // Handle resubmission - find original submission by token
+    let originalSubmissionId: number | undefined;
+    if (resubmissionToken) {
+      try {
+        const decoded = JSON.parse(Buffer.from(resubmissionToken, "base64").toString());
+        originalSubmissionId = decoded.submissionId;
+      } catch {
+        // Invalid token, ignore and treat as new submission
+      }
     }
 
     // Create submission
@@ -743,10 +800,10 @@ export async function submitPublicForm(req: Request, res: Response) {
         {
           formId: form.id,
           submitterEmail,
-          submitterName,
-          data,
+          submitterName: submitterName || submitterEmail.split("@")[0],
+          data: formData,
           entityType: form.entityType,
-          originalSubmissionId: originalSubmissionId || undefined,
+          originalSubmissionId,
           ipAddress: clientIp,
         },
         tenantInfo.hash,
@@ -754,6 +811,13 @@ export async function submitPublicForm(req: Request, res: Response) {
       );
 
       await transaction.commit();
+
+      // Generate resubmission token
+      const newResubmissionToken = Buffer.from(JSON.stringify({
+        submissionId: submission.id,
+        formId: form.id,
+        timestamp: Date.now(),
+      })).toString("base64");
 
       // TODO: Send email notifications to admins
 
@@ -767,6 +831,7 @@ export async function submitPublicForm(req: Request, res: Response) {
       return res.status(201).json(STATUS_CODE[201]({
         message: "Form submitted successfully. You will receive an email when your submission is reviewed.",
         submissionId: submission.id,
+        resubmissionToken: newResubmissionToken,
       }));
     } catch (error) {
       await transaction.rollback();
@@ -799,16 +864,20 @@ export async function getCaptcha(_req: Request, res: Response) {
 
   if (operator === "+") {
     answer = num1 + num2;
-    question = `What is ${num1} + ${num2}?`;
+    question = `${num1} + ${num2}`;
   } else {
     // Ensure positive result for subtraction
     const larger = Math.max(num1, num2);
     const smaller = Math.min(num1, num2);
     answer = larger - smaller;
-    question = `What is ${larger} - ${smaller}?`;
+    question = `${larger} - ${smaller}`;
   }
 
-  return res.status(200).json(STATUS_CODE[200]({ question, expected: answer }));
+  // Create a simple token that encodes the expected answer
+  // In production, use proper encryption/signing
+  const token = Buffer.from(JSON.stringify({ answer, timestamp: Date.now() })).toString("base64");
+
+  return res.status(200).json(STATUS_CODE[200]({ question, token }));
 }
 
 // ============================================================================

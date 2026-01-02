@@ -309,8 +309,8 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
       </Box>
 
       {/* Header */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
-        <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+        <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>
           {results.name}
         </Typography>
         <Stack direction="row" spacing={1} alignItems="center">

@@ -339,7 +339,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
       </Box>
 
       {/* Header - Title and Actions */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
         <Box
           sx={{
             display: "inline-flex",
@@ -366,7 +366,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 sx={{
                   minWidth: "400px",
                   "& .MuiOutlinedInput-root": {
-                    fontSize: "15px",
+                    fontSize: "18px",
                     fontWeight: 700,
                   },
                 }}
@@ -390,7 +390,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
             </>
           ) : (
             <>
-              <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
+              <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>
                 {experiment.id}
               </Typography>
               <IconButton
@@ -469,6 +469,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           >
             Copy
           </CustomizableButton>
+          <Box sx={{ width: "1px", height: "24px", backgroundColor: "#e5e7eb", mx: 0.5 }} />
           <CustomizableButton
             variant="contained"
             onClick={handleRerunExperiment}

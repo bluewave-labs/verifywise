@@ -13,7 +13,7 @@ import {
   CircularProgress,
   useTheme,
 } from "@mui/material";
-import { Eye, Trash2, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ArenaRow } from "./index";
 import ConfirmationModal from "../../Dialogs/ConfirmationModal";

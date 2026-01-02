@@ -106,9 +106,8 @@ const RegisterUser: React.FC = () => {
 
         // Extract error message from server response
         let errorMessage = "Registration failed. Please check your information and try again.";
-        
-              
-        if (response?.data) {
+
+        if (typeof response?.data === 'string') {
           errorMessage = response.data;
         } else if (response?.response?.data?.data) {
           errorMessage = response.response.data.data;

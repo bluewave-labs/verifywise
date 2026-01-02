@@ -38,6 +38,7 @@ import {
   useCreateVendorRisk,
   useUpdateVendorRisk,
 } from "../../../../application/hooks/useVendorRiskMutations";
+import { CreateVendorRiskInput, VendorRisk } from "../../../../domain/types/VendorRisk";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { History as HistoryIcon } from "lucide-react";
 import HistorySidebar from "../../Common/HistorySidebar";
@@ -295,17 +296,18 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       selectedLikelihood.name as RiskLikelihood,
       selectedSeverity.name as RiskSeverity
     );
-    const _riskDetails = {
-      vendor_id: values.vendor_id,
+    const actionOwnerId = formattedUsers?.find(
+      (user) => String(user._id) === String(values.action_owner)
+    )?._id;
+    const _riskDetails: CreateVendorRiskInput = {
+      vendor_id: values.vendor_id ? Number(values.vendor_id) : undefined,
       risk_description: values.risk_description,
       impact_description: values.impact_description,
-      action_owner: formattedUsers?.find(
-        (user) => String(user._id) === String(values.action_owner)
-      )?._id,
+      action_owner: actionOwnerId ? Number(actionOwnerId) : undefined,
       action_plan: values.action_plan,
-      risk_severity: selectedSeverity.name,
+      risk_severity: selectedSeverity.name as VendorRisk["risk_severity"],
       risk_level: risk_risklevel.level,
-      likelihood: selectedLikelihood.name,
+      likelihood: selectedLikelihood.name as VendorRisk["likelihood"],
     };
     if (existingRisk) {
       await updateRisk(existingRisk.id!, _riskDetails);
@@ -319,7 +321,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
    * @param riskDetails - The vendor details to create
    */
 
-  const createRisk = async (riskDetails: object) => {
+  const createRisk = async (riskDetails: CreateVendorRiskInput) => {
     setIsSubmitting(true);
     try {
       const response = await createVendorRiskMutation.mutateAsync(riskDetails);

@@ -30,7 +30,7 @@ export interface Topic {
   assessmentId: string;
   title: string;
   subtopics: Subtopic[];
-  file?: any;
+  file?: File;
 }
 
 interface ApiQuestion {

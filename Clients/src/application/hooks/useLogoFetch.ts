@@ -52,7 +52,7 @@ export const useLogoFetch = () => {
           });
         }
         return null;
-      } catch (error) {
+      } catch {
         return null;
       }
     },

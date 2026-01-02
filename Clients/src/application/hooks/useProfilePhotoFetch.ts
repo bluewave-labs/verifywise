@@ -1,21 +1,37 @@
 import { useCallback } from "react";
 import { getUserProfilePhoto } from "../repository/user.repository";
+import {
+  ProfilePhotoApiResponse,
+  PhotoData,
+  PhotoContent
+} from "../../domain/types/User";
 
 /**
- * Custom hook for fetching and converting user profile photo data to blob URL
- * Handles different response formats and auto-detects image MIME types
+ * Type guard to check if content has a data property.
+ */
+function hasDataProperty(content: ArrayBuffer | number[] | PhotoContent): content is PhotoContent {
+  return typeof content === 'object' && 'data' in content && content.data !== undefined;
+}
+
+/**
+ * Custom hook for fetching and converting user profile photo data to blob URL.
+ * Handles different response formats and auto-detects image MIME types.
  *
- * @returns Object containing the fetchProfilePhotoAsBlobUrl function
+ * @returns {Object} Object containing the fetchProfilePhotoAsBlobUrl function
+ *
+ * @example
+ * const { fetchProfilePhotoAsBlobUrl } = useProfilePhotoFetch();
+ * const blobUrl = await fetchProfilePhotoAsBlobUrl(userId);
  */
 export const useProfilePhotoFetch = () => {
   const fetchProfilePhotoAsBlobUrl = useCallback(
     async (userId: number | string): Promise<string | null> => {
       try {
         const response = await getUserProfilePhoto(userId);
+        const responseData = response as ProfilePhotoApiResponse;
 
-        const responseData = response as any;
         if (responseData?.data?.photo?.content) {
-          const photoData = responseData.data.photo;
+          const photoData: PhotoData = responseData.data.photo;
           let bufferData: Uint8Array;
           let mimeType: string;
 
@@ -24,9 +40,9 @@ export const useProfilePhotoFetch = () => {
             photoData.content instanceof ArrayBuffer ||
             (Array.isArray(photoData.content) && photoData.content.length > 0)
           ) {
-            bufferData = new Uint8Array(photoData.content);
+            bufferData = new Uint8Array(photoData.content as ArrayBuffer | number[]);
             mimeType = photoData.type || "image/png";
-          } else if (photoData.content.data) {
+          } else if (hasDataProperty(photoData.content) && photoData.content.data) {
             bufferData = new Uint8Array(photoData.content.data);
             mimeType =
               photoData.type ||
@@ -65,7 +81,7 @@ export const useProfilePhotoFetch = () => {
           });
         }
         return null;
-      } catch (error) {
+      } catch {
         return null;
       }
     },

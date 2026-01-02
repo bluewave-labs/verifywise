@@ -52,7 +52,7 @@ export const useCreateAITrustCentreSubprocessorMutation = () => {
       // Invalidate and refetch subprocessors data
       queryClient.invalidateQueries({ queryKey: subprocessorsQueryKey });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Error creating AI Trust Centre subprocessor:', error);
     },
   });
@@ -82,7 +82,7 @@ export const useUpdateAITrustCentreSubprocessorMutation = () => {
       // Invalidate and refetch subprocessors data
       queryClient.invalidateQueries({ queryKey: subprocessorsQueryKey });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Error updating AI Trust Centre subprocessor:', error);
     },
   });
@@ -100,7 +100,7 @@ export const useDeleteAITrustCentreSubprocessorMutation = () => {
       // Invalidate and refetch subprocessors data
       queryClient.invalidateQueries({ queryKey: subprocessorsQueryKey });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Error deleting AI Trust Centre subprocessor:', error);
     },
   });

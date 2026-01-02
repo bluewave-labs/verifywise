@@ -6,15 +6,24 @@ import useUsers from "./useUsers";
 
 interface UseProjectDataParams {
   projectId: string;
-  refreshKey?: any;
+  refreshKey?: number | string | boolean;
 }
+/** Project risk data from the API */
+interface ProjectRisk {
+  id: number;
+  title?: string;
+  description?: string;
+  severity?: string;
+  status?: string;
+}
+
 interface UseProjectDataResult {
   project: Project | null;
   projectOwner: string | null;
   error: string | null;
   isLoading: boolean;
-  projectRisks: any; // Add projectRisks to the return type
-  setProject: (project: Project | null) => void; // Add setProject to the return type
+  projectRisks: ProjectRisk[] | null;
+  setProject: (project: Project | null) => void;
 }
 
 const useProjectData = ({
@@ -25,7 +34,7 @@ const useProjectData = ({
   const [projectOwner, setProjectOwner] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [projectRisks, setProjectRisks] = useState<any>(null); // Add state for projectRisks
+  const [projectRisks, setProjectRisks] = useState<ProjectRisk[] | null>(null);
   const { users } = useUsers();
 
   useEffect(() => {

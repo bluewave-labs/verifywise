@@ -1397,24 +1397,26 @@ export default function EvalsDashboard() {
                   mt: 3,
                 }}
               >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <Typography sx={{ fontWeight: 600, fontSize: 13, color: "#344054" }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3, gap: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: 14, color: "#344054", mb: 0.5 }}>
                       Local providers
                     </Typography>
-                    <Typography sx={{ fontSize: 13, color: "#666666" }}>
-                      — Run models locally without API keys. These will appear as options when creating a new experiment. No API key required.
+                    <Typography sx={{ fontSize: 13, color: "#666666", lineHeight: 1.5 }}>
+                      Run models locally without API keys. These will appear as options when creating a new experiment.
                     </Typography>
-                  </Stack>
+                  </Box>
                   {!ENV_VARs.IS_DEMO_APP && (
                     <CustomizableButton
                       variant="contained"
-                      text="Add local provider"
+                      text="Add provider"
                       icon={<PlusIcon size={16} />}
                       onClick={() => setLocalProviderModalOpen(true)}
                       sx={{
                         backgroundColor: "#13715B",
                         color: "#fff",
+                        whiteSpace: "nowrap",
+                        flexShrink: 0,
                         "&:hover": { backgroundColor: "#0e5c47" },
                       }}
                     />

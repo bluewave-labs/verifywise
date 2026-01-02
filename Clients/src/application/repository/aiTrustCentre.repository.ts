@@ -101,12 +101,12 @@ interface LogoApiResponse {
 /**
  * Fetches the AI Trust Center overview data.
  *
- * @returns {Promise<OverviewResponse>} The AI Trust Center overview data.
+ * @returns {Promise<AITrustCentreOverview>} The AI Trust Center overview data.
  */
-export async function getAITrustCentreOverview(): Promise<OverviewResponse> {
+export async function getAITrustCentreOverview(): Promise<AITrustCentreOverview> {
   try {
     const response = await apiServices.get<OverviewResponse>("/aiTrustCentre/overview");
-    return response.data;
+    return response.data.data.overview;
   } catch (error: unknown) {
     console.error("Error fetching AI Trust Center overview:", error);
     throw error;
@@ -117,14 +117,14 @@ export async function getAITrustCentreOverview(): Promise<OverviewResponse> {
  * Updates the AI Trust Center overview.
  *
  * @param {Partial<AITrustCentreOverview>} data - The AI Trust Center overview data to be updated.
- * @returns {Promise<OverviewResponse>} The response from the API.
+ * @returns {Promise<AITrustCentreOverview>} The response from the API.
  */
 export async function updateAITrustCentreOverview(
   data: Partial<AITrustCentreOverview>
-): Promise<OverviewResponse> {
+): Promise<AITrustCentreOverview> {
   try {
     const response = await apiServices.put<OverviewResponse>("/aiTrustCentre/overview", data);
-    return response.data;
+    return response.data.data.overview;
   } catch (error: unknown) {
     console.error("Error updating AI Trust Center overview:", error);
     throw error;
@@ -208,12 +208,12 @@ export async function createAITrustCentreResource(
 /**
  * Fetches AI Trust Center resources.
  *
- * @returns {Promise<ResourcesResponse>} The AI Trust Center resources.
+ * @returns {Promise<AITrustCentreResource[]>} The AI Trust Center resources.
  */
-export async function getAITrustCentreResources(): Promise<ResourcesResponse> {
+export async function getAITrustCentreResources(): Promise<AITrustCentreResource[]> {
   try {
     const response = await apiServices.get<ResourcesResponse>("/aiTrustCentre/resources");
-    return response.data;
+    return response.data.data.resources;
   } catch (error: unknown) {
     console.error("Error fetching AI Trust Center resources:", error);
     throw error;
@@ -288,12 +288,12 @@ export async function updateAITrustCentreResource(
 /**
  * Fetches AI Trust Center subprocessors.
  *
- * @returns {Promise<SubprocessorsResponse>} The AI Trust Center subprocessors.
+ * @returns {Promise<AITrustCentreSubprocessor[]>} The AI Trust Center subprocessors.
  */
-export async function getAITrustCentreSubprocessors(): Promise<SubprocessorsResponse> {
+export async function getAITrustCentreSubprocessors(): Promise<AITrustCentreSubprocessor[]> {
   try {
     const response = await apiServices.get<SubprocessorsResponse>("/aiTrustCentre/subprocessors");
-    return response.data;
+    return response.data.data.subprocessors;
   } catch (error: unknown) {
     console.error("Error fetching AI Trust Center subprocessors:", error);
     throw error;

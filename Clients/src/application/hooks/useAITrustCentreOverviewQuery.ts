@@ -59,10 +59,8 @@ export const useAITrustCentreOverviewQuery = () => {
   return useQuery({
     queryKey: overviewQueryKey,
     queryFn: async () => {
-      const response = await getAITrustCentreOverview();
-      // Handle nested response structure
-      const overviewData = response?.data?.overview || response?.overview || response;
-      return overviewData as AITrustCentreOverviewData;
+      const overview = await getAITrustCentreOverview();
+      return overview as unknown as AITrustCentreOverviewData;
     },
     // Uses default options from QueryClient
   });
@@ -74,13 +72,13 @@ export const useAITrustCentreOverviewMutation = () => {
 
   return useMutation({
     mutationFn: async (data: Partial<AITrustCentreOverviewData>) => {
-      return await updateAITrustCentreOverview(data);
+      return await updateAITrustCentreOverview(data as Record<string, unknown>);
     },
     onSuccess: () => {
       // Invalidate and refetch overview data
       queryClient.invalidateQueries({ queryKey: overviewQueryKey });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Error updating AI Trust Centre overview:', error);
     },
   });

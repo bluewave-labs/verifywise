@@ -70,18 +70,12 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getAITrustCentreOverview();
-      // debugger;
-      if (response && response.data && response.data.overview) {
-        setData(response.data.overview);
-      } else if (response && response.overview) {
-        setData(response.overview);
-      } else {
-        setData(null);
-      }
-      return response; // Return the response
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch AI Trust Centre overview");
+      const overview = await getAITrustCentreOverview();
+      setData(overview as unknown as AITrustCentreOverviewData);
+      return overview;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to fetch AI Trust Centre overview";
+      setError(errorMessage);
       console.error("Error fetching AI Trust Centre overview:", err);
       throw err;
     } finally {
@@ -94,11 +88,12 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
       setLoading(true);
       setError(null);
       try {
-        await updateAITrustCentreOverview(overviewData);
+        await updateAITrustCentreOverview(overviewData as Record<string, unknown>);
         // Don't refetch immediately - let the component handle the state update
         // await fetchOverview();
-      } catch (err: any) {
-        setError(err.message || "Failed to update AI Trust Centre overview");
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to update AI Trust Centre overview";
+        setError(errorMessage);
         console.error("Error updating AI Trust Centre overview:", err);
         throw err;
       } finally {

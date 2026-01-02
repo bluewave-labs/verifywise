@@ -24,12 +24,7 @@ export const useAITrustCentreResourcesQuery = () => {
   return useQuery({
     queryKey: resourcesQueryKey,
     queryFn: async () => {
-      const response = await getAITrustCentreResources();
-      // Handle nested response structure
-      const resources = response?.data?.data?.resources || 
-                       response?.data?.resources || 
-                       response?.resources || 
-                       [];
+      const resources = await getAITrustCentreResources();
       return resources as AITrustCentreResource[];
     },
     // Uses default options from QueryClient

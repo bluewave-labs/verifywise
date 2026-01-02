@@ -48,19 +48,13 @@ export const useAITrustCentreSubprocessors =
       setLoading(true);
       setError(null);
       try {
-        const response = await getAITrustCentreSubprocessors();
-
-        // Handle the nested response structure: response.data.data.subprocessors
-        const subprocessors =
-          response?.data?.data?.subprocessors ||
-          response?.data?.subprocessors ||
-          response?.subprocessors ||
-          [];
+        const subprocessors = await getAITrustCentreSubprocessors();
         setSubprocessors(subprocessors);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const axiosErr = err as { response?: { data?: { message?: string } }; message?: string };
         const errorMessage =
-          err.response?.data?.message ||
-          err.message ||
+          axiosErr.response?.data?.message ||
+          axiosErr.message ||
           "Failed to fetch AI Trust Centre subprocessors";
         setError(errorMessage);
         console.error("Error fetching AI Trust Centre subprocessors:", err);

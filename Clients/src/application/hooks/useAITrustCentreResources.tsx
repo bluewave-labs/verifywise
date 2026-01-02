@@ -48,19 +48,13 @@ export const useAITrustCentreResources =
       setLoading(true);
       setError(null);
       try {
-        const response = await getAITrustCentreResources();
-
-        // Handle the nested response structure: response.data.data.resources
-        const resources =
-          response?.data?.data?.resources ||
-          response?.data?.resources ||
-          response?.resources ||
-          [];
+        const resources = await getAITrustCentreResources();
         setResources(resources);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const axiosErr = err as { response?: { data?: { message?: string } }; message?: string };
         const errorMessage =
-          err.response?.data?.message ||
-          err.message ||
+          axiosErr.response?.data?.message ||
+          axiosErr.message ||
           "Failed to fetch AI Trust Centre resources";
         setError(errorMessage);
         console.error("Error fetching AI Trust Centre resources:", err);

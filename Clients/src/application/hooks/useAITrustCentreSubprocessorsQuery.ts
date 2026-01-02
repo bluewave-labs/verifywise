@@ -23,12 +23,7 @@ export const useAITrustCentreSubprocessorsQuery = () => {
   return useQuery({
     queryKey: subprocessorsQueryKey,
     queryFn: async () => {
-      const response = await getAITrustCentreSubprocessors();
-      // Handle nested response structure
-      const subprocessors = response?.data?.data?.subprocessors || 
-                           response?.data?.subprocessors || 
-                           response?.subprocessors || 
-                           [];
+      const subprocessors = await getAITrustCentreSubprocessors();
       return subprocessors as AITrustCentreSubprocessor[];
     },
     // Uses default options from QueryClient

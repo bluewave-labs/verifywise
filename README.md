@@ -6,9 +6,7 @@
 ![](https://img.shields.io/github/issues/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/issues-pr/bluewave-labs/verifywise)
 
-
 <img width="3182" height="2570" alt="github" src="https://github.com/user-attachments/assets/6feb9d3d-19c1-42c2-a9f5-908db8694f8f" />
-
 
 [VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses use the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
@@ -166,7 +164,7 @@ Navigate to the EvalServer/src directory and start the server:
 
 ```
 cd EvalServer/src
-uvicorn app:app --reload --port 8000
+python app.py
 ```
 
 Navigate to the Servers directory and start the server in watch mode:

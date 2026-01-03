@@ -39,6 +39,7 @@ import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
 import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
+import PlayGround from "../../presentation/pages/PlayGround";
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -50,6 +51,8 @@ export const createRoutes = (
 ) => [
   // ReactFlow Demo - Development only (must be before dashboard route)
   ...(isDev ? [<Route key="reactflow-demo" path="/reactflow-demo" element={<ReactFlowDemo />} />] : []),
+  // PlayGround - Development only
+  ...(isDev ? [<Route key="playground" path="/playground" element={<PlayGround />} />] : []),
   <Route
     key="dashboard"
     path="/"

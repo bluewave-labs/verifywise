@@ -65,6 +65,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           experimentsCount={evalsSidebarContext?.experimentsCount ?? 0}
           datasetsCount={evalsSidebarContext?.datasetsCount ?? 0}
           scorersCount={evalsSidebarContext?.scorersCount ?? 0}
+          arenaCount={evalsSidebarContext?.arenaCount ?? 0}
           disabled={evalsSidebarContext?.disabled ?? true}
           recentExperiments={evalsSidebarContext?.recentExperiments ?? []}
           recentProjects={evalsSidebarContext?.recentProjects ?? []}

@@ -1,8 +1,11 @@
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import authenticateJWT from "../middleware/auth.middleware";
-import { NextFunction, Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { LLMProvider, VALID_PROVIDERS } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
 import { getDecryptedKeyForProviderQuery } from "../utils/evaluationLlmApiKey.utils";
+
+// JSON body parser for routes that need to inspect/modify the body before proxying
+const jsonParser = express.json({ limit: "50mb" });
 
 function addHeaders(req: Request, _res: Response, next: NextFunction) {
   req.headers["x-organization-id"] = req.organizationId?.toString();
@@ -13,21 +16,75 @@ function addHeaders(req: Request, _res: Response, next: NextFunction) {
 }
 
 /**
- * Middleware to inject API keys for experiment creation
+ * Middleware to inject API keys for experiment creation and arena comparisons
  * Handles both custom scorers and standard judge LLM
  * This modifies req.body before the proxy forwards it
  */
 async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
-  // Only process POST requests to experiments endpoint
-  if (req.method !== "POST" || !req.url.includes("/experiments")) {
+  // Only process POST requests to experiments or arena endpoints
+  const isExperiment = req.method === "POST" && req.url.includes("/experiments");
+  const isArena = req.method === "POST" && req.url.includes("/arena/compare");
+  
+  if (!isExperiment && !isArena) {
     return next();
   }
 
   const evaluationMode = req.body?.config?.evaluationMode || "standard";
 
   try {
-    const body = req.body;
+    const body = req.body || {};
     const tenantId = req.tenantId;
+    
+    // Handle Arena comparisons - inject API keys for contestants and judge
+    if (isArena) {
+      // Ensure body has required fields
+      if (!body || !body.contestants) {
+        return next();
+      }
+      
+      const apiKeys: Record<string, string> = {};
+      
+      // Get providers from contestants
+      const contestants = body.contestants || [];
+      for (const contestant of contestants) {
+        const provider = contestant.hyperparameters?.provider?.toLowerCase();
+        if (provider && VALID_PROVIDERS.includes(provider as LLMProvider) && !apiKeys[provider]) {
+          try {
+            const apiKey = await getDecryptedKeyForProviderQuery(tenantId!, provider as LLMProvider);
+            if (apiKey) {
+              apiKeys[provider] = apiKey;
+            }
+          } catch {
+            // Skip providers without keys
+          }
+        }
+      }
+      
+      // Get provider for judge model (default to openai if not specified)
+      const judgeModel = body.judgeModel || "gpt-4o";
+      let judgeProvider = "openai";
+      if (judgeModel.includes("claude")) judgeProvider = "anthropic";
+      else if (judgeModel.includes("gemini")) judgeProvider = "google";
+      else if (judgeModel.includes("mistral") || judgeModel.includes("magistral")) judgeProvider = "mistral";
+      else if (judgeModel.includes("grok")) judgeProvider = "xai";
+      
+      if (!apiKeys[judgeProvider]) {
+        try {
+          const apiKey = await getDecryptedKeyForProviderQuery(tenantId!, judgeProvider as LLMProvider);
+          if (apiKey) {
+            apiKeys[judgeProvider] = apiKey;
+          }
+        } catch {
+          // Skip if key not found
+        }
+      }
+      
+      if (Object.keys(apiKeys).length > 0) {
+        req.body.apiKeys = apiKeys;
+      }
+      
+      return next();
+    }
 
     // 1. Inject API keys for custom scorers (scorer or both mode)
     // Frontend sends scorerProviders: ["mistral", "openai"] - only the providers actually needed
@@ -164,7 +221,7 @@ function deepEvalRoutes() {
     },
   });
 
-  return [authenticateJWT, addHeaders, injectApiKeys, proxy];
+  return [authenticateJWT, jsonParser, addHeaders, injectApiKeys, proxy];
 }
 
 export default deepEvalRoutes;

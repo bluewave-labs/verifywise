@@ -14,8 +14,8 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
-import ScorersTableHead from "./ScorersTableHead";
-import ScorersTableBody from "./ScorersTableBody";
+import ArenaTableHead from "./ArenaTableHead";
+import ArenaTableBody from "./ArenaTableBody";
 import EmptyState from "../../EmptyState";
 import {
   getPaginationRowCount,
@@ -26,7 +26,7 @@ const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
 );
 
-const SCORERS_SORTING_KEY = "verifywise_scorers_sorting";
+const ARENA_SORTING_KEY = "verifywise_arena_sorting";
 
 export type SortDirection = "asc" | "desc" | null;
 export type SortConfig = {
@@ -34,56 +34,57 @@ export type SortConfig = {
   direction: SortDirection;
 };
 
-export interface ScorerRow {
+export interface ArenaRow {
   id: string;
   name: string;
-  type: string;
-  metricKey: string;
-  enabled: boolean;
-  defaultThreshold?: number | null;
-  config?: {
-    judgeModel?: string | { name?: string; provider?: string; params?: Record<string, unknown> };
-    model?: string | { name?: string };
-    choiceScores?: Array<{ label: string; score: number }>;
-    [key: string]: unknown;
-  };
-  createdAt?: string | null;
-  updatedAt?: string | null;
+  description?: string;
+  status: "pending" | "running" | "completed" | "failed";
+  contestants: string[] | { name?: string }[];
+  winner?: string;
+  dataset?: string;
+  createdAt: string;
+  completedAt?: string;
 }
 
-export interface ScorersTableProps {
-  rows: ScorerRow[];
-  onRowClick?: (scorer: ScorerRow) => void;
-  onEdit?: (scorer: ScorerRow) => void;
-  onDelete?: (scorer: ScorerRow) => void;
+export interface ArenaTableProps {
+  rows: ArenaRow[];
+  onRowClick?: (row: ArenaRow) => void;
+  onViewResults?: (row: ArenaRow) => void;
+  onDownload?: (row: ArenaRow) => void;
+  onCopy?: (row: ArenaRow) => void;
+  onDelete?: (row: ArenaRow) => void;
   loading?: boolean;
+  deleting?: string | null;
 }
 
 const columns = [
-  { id: "name", label: "SCORER", sortable: true },
-  { id: "model", label: "MODEL", sortable: true },
-  { id: "threshold", label: "THRESHOLD", sortable: true },
-  { id: "choiceScores", label: "# CHOICE SCORES", sortable: true },
+  { id: "name", label: "BATTLE NAME", sortable: true },
+  { id: "contestants", label: "CONTESTANTS", sortable: false },
+  { id: "dataset", label: "DATASET", sortable: true },
+  { id: "winner", label: "WINNER", sortable: true },
   { id: "createdAt", label: "DATE", sortable: true },
   { id: "actions", label: "ACTION", sortable: false },
 ];
 
-const ScorersTable: React.FC<ScorersTableProps> = ({
+const ArenaTable: React.FC<ArenaTableProps> = ({
   rows,
   onRowClick,
-  onEdit,
+  onViewResults,
+  onDownload,
+  onCopy,
   onDelete,
   loading = false,
+  deleting,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(() =>
-    getPaginationRowCount("scorers", 10)
+    getPaginationRowCount("arena", 10)
   );
 
   // Initialize sorting state from localStorage or default to date desc
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
-    const saved = localStorage.getItem(SCORERS_SORTING_KEY);
+    const saved = localStorage.getItem(ARENA_SORTING_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -101,7 +102,7 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
 
   // Save sorting state to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem(SCORERS_SORTING_KEY, JSON.stringify(sortConfig));
+    localStorage.setItem(ARENA_SORTING_KEY, JSON.stringify(sortConfig));
   }, [sortConfig]);
 
   // Sorting handler
@@ -118,24 +119,7 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
     });
   }, []);
 
-  // Helper to get model name from scorer
-  const getModelName = (scorer: ScorerRow): string => {
-    if (typeof scorer.config?.judgeModel === "string") {
-      return scorer.config.judgeModel;
-    }
-    if (typeof scorer.config?.judgeModel === "object" && scorer.config.judgeModel?.name) {
-      return scorer.config.judgeModel.name;
-    }
-    if (typeof scorer.config?.model === "string") {
-      return scorer.config.model;
-    }
-    if (typeof scorer.config?.model === "object" && scorer.config.model?.name) {
-      return scorer.config.model.name;
-    }
-    return scorer.metricKey || "Scorer";
-  };
-
-  // Sort the scorers based on current sort configuration
+  // Sort the rows based on current sort configuration
   const sortedRows = useMemo(() => {
     if (!rows || !sortConfig.key || !sortConfig.direction) {
       return rows || [];
@@ -143,9 +127,9 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
 
     const sortableRows = [...rows];
 
-    return sortableRows.sort((a: ScorerRow, b: ScorerRow) => {
-      let aValue: string | number | boolean;
-      let bValue: string | number | boolean;
+    return sortableRows.sort((a: ArenaRow, b: ArenaRow) => {
+      let aValue: string | number;
+      let bValue: string | number;
 
       switch (sortConfig.key) {
         case "name":
@@ -153,19 +137,9 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
           bValue = b.name.toLowerCase();
           break;
 
-        case "model":
-          aValue = getModelName(a).toLowerCase();
-          bValue = getModelName(b).toLowerCase();
-          break;
-
-        case "threshold":
-          aValue = a.defaultThreshold ?? 0;
-          bValue = b.defaultThreshold ?? 0;
-          break;
-
-        case "choiceScores":
-          aValue = a.config?.choiceScores?.length ?? 0;
-          bValue = b.config?.choiceScores?.length ?? 0;
+        case "winner":
+          aValue = a.winner || "";
+          bValue = b.winner || "";
           break;
 
         case "createdAt":
@@ -216,7 +190,7 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount("scorers", newRowsPerPage);
+      setPaginationRowCount("arena", newRowsPerPage);
       setPage(0);
     },
     []
@@ -225,7 +199,7 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
   return (
     <TableContainer>
       <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
-        <ScorersTableHead
+        <ArenaTableHead
           columns={columns}
           sortConfig={sortConfig}
           onSort={handleSort}
@@ -234,24 +208,27 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} sx={{ textAlign: "center", py: 4 }}>
-                <Typography>Loading...</Typography>
+                <Typography>Loading battles...</Typography>
               </TableCell>
             </TableRow>
           </TableBody>
         ) : sortedRows.length !== 0 ? (
-          <ScorersTableBody
+          <ArenaTableBody
             rows={sortedRows}
             page={validPage}
             rowsPerPage={rowsPerPage}
             onRowClick={onRowClick}
-            onEdit={onEdit}
+            onViewResults={onViewResults}
+            onDownload={onDownload}
+            onCopy={onCopy}
             onDelete={onDelete}
+            deleting={deleting}
           />
         ) : (
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                <EmptyState message="No scorers found. Create a scorer to get started." />
+                <EmptyState message="No arena battles found. Create a new battle to get started." />
               </TableCell>
             </TableRow>
           </TableBody>
@@ -276,7 +253,7 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
                     color: theme.palette.text.secondary,
                   }}
                 >
-                  Showing {getRange} of {sortedRows?.length} scorer
+                  Showing {getRange} of {sortedRows?.length} battle
                   {sortedRows?.length !== 1 ? "s" : ""}
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -291,7 +268,7 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
                     ActionsComponent={(props) => (
                       <TablePaginationActions {...props} />
                     )}
-                    labelRowsPerPage="Scorers per page"
+                    labelRowsPerPage="Battles per page"
                     labelDisplayedRows={({ page: p, count }) =>
                       `Page ${p + 1} of ${Math.max(
                         0,
@@ -341,5 +318,5 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
   );
 };
 
-export default ScorersTable;
+export default ArenaTable;
 

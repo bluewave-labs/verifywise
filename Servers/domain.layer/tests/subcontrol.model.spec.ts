@@ -5,13 +5,6 @@ import {
 } from "../exceptions/custom.exception";
 import { numberValidation } from "../validations/number.valid";
 
-// Helper to create a future date that won't become overdue
-const createFutureDate = (daysFromNow: number = 365): Date => {
-  const date = new Date();
-  date.setDate(date.getDate() + daysFromNow);
-  return date;
-};
-
 // Mock sequelize-typescript
 jest.mock("sequelize-typescript", () => ({
   Column: jest.fn(),

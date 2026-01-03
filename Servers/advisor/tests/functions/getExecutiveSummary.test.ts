@@ -15,13 +15,6 @@ import {
 } from "../../mocks/mockRiskData";
 import { createMockTenant } from '../../mocks/mockTenant';
 
-// Helper to create a future date that won't become overdue
-const createFutureDate = (daysFromNow: number = 365): Date => {
-  const date = new Date();
-  date.setDate(date.getDate() + daysFromNow);
-  return date;
-};
-
 const availableTools = {
   ...availableRiskTools,
   ...availableModelInventoryTools,

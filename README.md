@@ -356,9 +356,3 @@ You’ll need to open ports 80 and 443 so VerifyWise can be accessed from the in
 
 If you find a vulnerability, please report it [here](https://github.com/bluewave-labs/verifywise/security/advisories/new).
 
-## VerifyWise product line
-
-VerifyWise also has additional products for end-to-end AI governance and management:
-
-- [MaskWise](https://github.com/bluewave-labs/maskwise), which helps you detect, redact, mask, and anonymize sensitive data across text, images, and structured data in training datasets for LLM systems.
-- [EvalWise](https://github.com/bluewave-labs/evalwise), a developer-friendly platform for LLM evaluation and red teaming that helps test AI models for safety, compliance, and performance issues

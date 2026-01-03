@@ -333,12 +333,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       newErrors.assignee = "Please select an assignee from the dropdown";
     }
 
-     // New validation: reviewer and assignee can't be the same (only if reviewer is provided)
-      if (values.reviewer != null && values.assignee != null && values.reviewer === values.assignee) {
-        newErrors.reviewer = "Reviewer and assignee cannot be the same";
-        newErrors.assignee = "Reviewer and assignee cannot be the same";
-      }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

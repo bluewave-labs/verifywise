@@ -1,9 +1,9 @@
 import {
-  afterEach, 
-  beforeEach, 
-  describe, 
-  expect, 
-  it, 
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
   jest} from '@jest/globals';
 import * as riskUtils from "../../../utils/risk.utils";
 import { availableRiskTools } from "../../functions/riskFunctions";

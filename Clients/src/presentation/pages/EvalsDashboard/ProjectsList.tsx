@@ -83,17 +83,22 @@ export default function ProjectsList() {
     return saved ? parseInt(saved, 10) : 10;
   });
 
-  // Sorting state
+  // Sorting state - default to date desc
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
     const saved = localStorage.getItem(EVALS_PROJECTS_SORTING_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // If saved state is empty, use the default
+        if (!parsed.key || !parsed.direction) {
+          return { key: "created", direction: "desc" };
+        }
+        return parsed;
       } catch {
-        return { key: "", direction: null };
+        return { key: "created", direction: "desc" };
       }
     }
-    return { key: "", direction: null };
+    return { key: "created", direction: "desc" };
   });
 
   // Save preferences to localStorage

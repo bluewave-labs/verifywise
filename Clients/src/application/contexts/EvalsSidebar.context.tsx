@@ -27,6 +27,8 @@ interface EvalsSidebarContextType {
   setDatasetsCount: (count: number) => void;
   scorersCount: number;
   setScorersCount: (count: number) => void;
+  arenaCount: number;
+  setArenaCount: (count: number) => void;
   disabled: boolean;
   setDisabled: (disabled: boolean) => void;
   recentExperiments: RecentExperiment[];
@@ -53,6 +55,7 @@ export const EvalsSidebarProvider: FC<{ children: ReactNode }> = ({ children }) 
   const [experimentsCount, setExperimentsCount] = useState(0);
   const [datasetsCount, setDatasetsCount] = useState(0);
   const [scorersCount, setScorersCount] = useState(0);
+  const [arenaCount, setArenaCount] = useState(0);
   const [disabled, setDisabled] = useState(false);
   const [recentExperiments, setRecentExperiments] = useState<RecentExperiment[]>([]);
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
@@ -73,6 +76,8 @@ export const EvalsSidebarProvider: FC<{ children: ReactNode }> = ({ children }) 
         setDatasetsCount,
         scorersCount,
         setScorersCount,
+        arenaCount,
+        setArenaCount,
         disabled,
         setDisabled,
         recentExperiments,
@@ -96,6 +101,7 @@ export const EvalsSidebarProvider: FC<{ children: ReactNode }> = ({ children }) 
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useEvalsSidebarContext = () => {
   const context = useContext(EvalsSidebarContext);
   if (!context) {
@@ -105,6 +111,7 @@ export const useEvalsSidebarContext = () => {
 };
 
 // Safe version that returns null if not in provider
+// eslint-disable-next-line react-refresh/only-export-components
 export const useEvalsSidebarContextSafe = () => {
   return useContext(EvalsSidebarContext);
 };

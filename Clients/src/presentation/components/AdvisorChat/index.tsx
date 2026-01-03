@@ -86,10 +86,9 @@ const AdvisorChat = ({
     }
 
     // Prevent duplicate loads for the same domain
-    // But still set isReady to true if loading completed
+    // Set isReady to true only when loading is complete
     if (loadAttemptedRef.current === pageContext) {
-      // Check if loading completed while we were waiting
-      if (!conversationContext.isLoading(pageContext)) {
+      if (conversationContext.isLoaded(pageContext)) {
         setIsReady(true);
       }
       return;

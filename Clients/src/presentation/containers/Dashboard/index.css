@@ -23,13 +23,11 @@
 }
 
 .home-layout > div {
-  min-height: calc(100vh - 24px * 2);
   flex: 1;
   min-width: 0; /* Allow flex item to shrink below content size */
   overflow-x: hidden; /* Prevent horizontal overflow */
   padding: 24px;
   padding-left: 24px; /* Gap between sidebar and content */
-  padding-bottom: 40px;
 }
 .home-layout > div:has(> [class*="fallback__"]) .background-pattern-svg {
   position: absolute;

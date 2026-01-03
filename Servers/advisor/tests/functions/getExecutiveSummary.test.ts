@@ -195,7 +195,9 @@ describe("Advisor Functions: getExecutiveSummary", () => {
     });
 
     it("should count zero overdue when all deadlines are in the future", async () => {
-      const futureDate = createFutureDate();
+      // Use a date 1 year in the future to ensure it's never overdue
+      const futureDate = new Date();
+      futureDate.setFullYear(futureDate.getFullYear() + 1);
       const testRisks = [
         createMockRisk({ deadline: futureDate, mitigation_status: "Not Started" }),
         createMockRisk({ deadline: futureDate, mitigation_status: "In Progress" }),

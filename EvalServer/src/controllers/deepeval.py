@@ -16,10 +16,10 @@ from typing import Dict, Any, Optional
 from fastapi import HTTPException, BackgroundTasks, UploadFile
 from fastapi.responses import JSONResponse
 
-# Add BiasAndFairnessModule to path
-bias_fairness_path = str(Path(__file__).parent.parent.parent.parent / "BiasAndFairnessModule")
-if bias_fairness_path not in sys.path:
-    sys.path.insert(0, bias_fairness_path)
+# Add EvaluationModule to path
+eval_module_path = str(Path(__file__).parent.parent.parent.parent / "EvaluationModule" / "src")
+if eval_module_path not in sys.path:
+    sys.path.insert(0, eval_module_path)
 
 from database.redis import get_job_status, set_job_status, delete_job_status
 from database.db import get_db
@@ -154,21 +154,27 @@ async def run_deepeval_evaluation_task(
 ):
     """
     Background task to run DeepEval evaluation.
-    
+
     Args:
         eval_id: Unique evaluation ID
         config_data: Evaluation configuration
         tenant: Tenant ID
     """
     try:
+        # Force use of asyncio event loop (not uvloop)
+        import os
+        os.environ['PYTHONASYNCIODEBUG'] = '1'
+
         # Update status to running
         DEEPEVAL_STATUS[eval_id]["status"] = "running"
         DEEPEVAL_STATUS[eval_id]["updated_at"] = datetime.now().isoformat()
-        
+
         print(f"[DeepEval] Starting evaluation {eval_id} for tenant {tenant}")
-        
+
         # Import DeepEval components
-        from src.deepeval_engine import DeepEvalEvaluator, EvaluationDataset, ModelRunner
+        from deepeval_engine.deepeval_evaluator import DeepEvalEvaluator
+        from deepeval_engine.evaluation_dataset import EvaluationDataset
+        from deepeval_engine.model_runner import ModelRunner
         from deepeval.test_case import LLMTestCase
         
         # Load evaluation dataset
@@ -261,7 +267,25 @@ async def run_deepeval_evaluation_task(
                 continue
         
         print(f"[DeepEval] Generated {len(test_cases_data)} test cases")
-        
+
+        # Extract and set LLM API keys from config for metrics evaluation
+        judge_config = config_data.get("judgeLlm", {})
+        if judge_config and judge_config.get("apiKey"):
+            judge_provider = judge_config.get("provider", "").lower()
+            judge_key = judge_config["apiKey"]
+
+            # Map provider to environment variable name
+            provider_env_map = {
+                "openai": "OPENAI_API_KEY",
+                "anthropic": "ANTHROPIC_API_KEY",
+                "google": "GEMINI_API_KEY",
+                "xai": "XAI_API_KEY",
+            }
+
+            if judge_provider in provider_env_map:
+                os.environ[provider_env_map[judge_provider]] = judge_key
+                print(f"[DeepEval] Set {provider_env_map[judge_provider]} for judge LLM")
+
         # Initialize evaluator
         class SimpleConfig:
             def __init__(self):
@@ -530,8 +554,8 @@ async def get_evaluation_dataset_info_controller() -> JSONResponse:
         JSONResponse with dataset statistics
     """
     try:
-        from src.deepeval_engine import EvaluationDataset
-        
+        from deepeval_engine.evaluation_dataset import EvaluationDataset
+
         dataset = EvaluationDataset()
         stats = dataset.get_statistics()
         

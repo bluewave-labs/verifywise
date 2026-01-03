@@ -17,11 +17,110 @@ import {
   Divider,
   IconButton,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
-import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw } from "lucide-react";
-import DOMPurify from "dompurify";
+import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw, AlertTriangle, Download, Copy } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
+
+// Preprocess LaTeX delimiters to work with remark-math
+const preprocessLatex = (text: string): string => {
+  // Convert \[ \] to $$ $$ (display math)
+  let processed = text.replace(/\\\[/g, '$$').replace(/\\\]/g, '$$');
+  // Convert \( \) to $ $ (inline math)
+  processed = processed.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+  return processed;
+};
+
+// Markdown renderer with LaTeX support
+const MarkdownRenderer = ({ content }: { content: string }) => {
+  if (!content) return null;
+  
+  const processedContent = preprocessLatex(content);
+  
+  return (
+    <Box
+      sx={{
+        fontSize: 12,
+        color: "#374151",
+        lineHeight: 1.7,
+        "& p": { mb: 1, mt: 0 },
+        "& h1": { fontSize: 14, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h2": { fontSize: 13, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h3": { fontSize: 12, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
+        "& h4": { fontSize: 12, fontWeight: 600, color: "#1e293b", mt: 1.5, mb: 0.5 },
+        "& ul, & ol": { pl: 2.5, mb: 1 },
+        "& li": { mb: 0.5 },
+        "& code": {
+          backgroundColor: "#f1f5f9",
+          px: 0.75,
+          py: 0.25,
+          borderRadius: "4px",
+          fontFamily: "'Fira Code', monospace",
+          fontSize: 11,
+          color: "#0f766e",
+        },
+        "& pre": {
+          backgroundColor: "#1e293b",
+          borderRadius: "6px",
+          p: 2,
+          my: 1.5,
+          overflow: "auto",
+          "& code": {
+            backgroundColor: "transparent",
+            color: "#e2e8f0",
+            p: 0,
+          },
+        },
+        "& strong": { fontWeight: 600 },
+        "& em": { fontStyle: "italic" },
+        "& hr": { border: "none", borderTop: "1px solid #e2e8f0", my: 2 },
+        "& blockquote": {
+          borderLeft: "3px solid #e2e8f0",
+          pl: 2,
+          ml: 0,
+          color: "#6b7280",
+          fontStyle: "italic",
+        },
+        "& table": {
+          borderCollapse: "collapse",
+          width: "100%",
+          my: 1,
+          fontSize: 11,
+        },
+        "& th, & td": {
+          border: "1px solid #e2e8f0",
+          px: 1,
+          py: 0.5,
+          textAlign: "left",
+        },
+        "& th": {
+          backgroundColor: "#f8fafc",
+          fontWeight: 600,
+        },
+        // KaTeX math styling
+        "& .katex": {
+          fontSize: "1em",
+        },
+        "& .katex-display": {
+          my: 1,
+          overflow: "auto",
+        },
+      }}
+    >
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+      >
+        {processedContent}
+      </ReactMarkdown>
+    </Box>
+  );
+};
 import {
   getExperiment,
   getLogs,
@@ -211,36 +310,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     );
   }
 
-  // Lightweight Markdown -> HTML converter for common syntax
-  // Uses DOMPurify to sanitize output and prevent XSS attacks
-  const markdownToHtml = (md: string): string => {
-    if (!md) return "";
-    let html = md;
-    // Code blocks
-    html = html.replace(/```([\s\S]*?)```/g, (_m, code) => `<pre style="background:#0F172A;color:#E5E7EB;padding:12px;border-radius:6px;overflow:auto;font-size:12px"><code>${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>`);
-    // Inline code
-    html = html.replace(/`([^`]+)`/g, (_m, code) => `<code style="background:#F3F4F6;padding:2px 4px;border-radius:4px;font-family:monospace;font-size:12px">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code>`);
-    // Headings
-    html = html.replace(/^######\s?(.*)$/gm, '<h6 style="margin:8px 0 4px;font-size:12px;font-weight:600">$1</h6>');
-    html = html.replace(/^#####\s?(.*)$/gm, '<h5 style="margin:8px 0 4px;font-size:12px;font-weight:600">$1</h5>');
-    html = html.replace(/^####\s?(.*)$/gm, '<h4 style="margin:10px 0 6px;font-size:12px;font-weight:600">$1</h4>');
-    html = html.replace(/^###\s?(.*)$/gm, '<h3 style="margin:12px 0 6px;font-size:12px;font-weight:700">$1</h3>');
-    html = html.replace(/^##\s?(.*)$/gm, '<h2 style="margin:14px 0 6px;font-size:13px;font-weight:700">$1</h2>');
-    html = html.replace(/^#\s?(.*)$/gm, '<h1 style="margin:16px 0 8px;font-size:14px;font-weight:700">$1</h1>');
-    // Bold / Italic
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    // Unordered and ordered list items
-    html = html.replace(/^(?:- |\* )(.*)$/gm, '<li>$1</li>');
-    html = html.replace(/^(\d+)\. (.*)$/gm, '<li>$2</li>');
-    // Wrap consecutive li into ul (basic pass)
-    html = html.replace(/(?:<li>.*<\/li>\n?)+/g, (m) => `<ul style="margin:6px 0 6px 18px">${m}</ul>`);
-    // Paragraph breaks
-    html = html.replace(/\n{2,}/g, '</p><p>');
-    html = `<p style="margin:0;line-height:1.6;font-size:12px">${html}</p>`;
-    // Sanitize HTML to prevent XSS attacks
-    return DOMPurify.sanitize(html);
-  };
+  // Extract config from experiment
+  const config = (experiment as unknown as { config?: { model?: { name?: string }; judgeLlm?: { model?: string } } }).config || {};
 
   return (
     <Box>
@@ -267,224 +338,267 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         </Typography>
       </Box>
 
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        {/* Row 1: Experiment Name + Rerun button */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
-          <Box
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 0.5,
-              "&:hover .edit-icon": {
-                opacity: 1,
-              },
-            }}
-          >
-            {isEditingName ? (
-              <>
-                <TextField
-                  value={editedName}
-                  onChange={(e) => setEditedName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSaveName();
-                    if (e.key === "Escape") handleCancelEditName();
-                  }}
-                  variant="outlined"
-                  size="small"
-                  autoFocus
-                  disabled={saving}
-                  sx={{
-                    minWidth: "400px",
-                    "& .MuiOutlinedInput-root": {
-                      fontSize: "18px",
-                      fontWeight: 600,
-                    },
-                  }}
-                />
-                <IconButton
-                  size="small"
-                  onClick={handleSaveName}
-                  disabled={saving || !editedName.trim()}
-                  sx={{ color: "#13715B" }}
-                >
-                  <Check size={18} />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={handleCancelEditName}
-                  disabled={saving}
-                  sx={{ color: "#6B7280" }}
-                >
-                  <X size={18} />
-                </IconButton>
-              </>
-            ) : (
-              <>
-                <Typography variant="h5" sx={{ fontWeight: 600, fontSize: "18px" }}>
-                  {experiment.name}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={handleStartEditName}
-                  className="edit-icon"
-                  sx={{
-                    opacity: 0,
-                    transition: "opacity 0.2s",
-                    color: "#6B7280",
-                    "&:hover": {
-                      color: "#13715B",
-                      backgroundColor: "rgba(19, 113, 91, 0.1)",
-                    },
-                  }}
-                >
-                  <Pencil size={14} />
-                </IconButton>
-              </>
-            )}
-          </Box>
-
-          {/* Rerun button */}
-          <Stack direction="row" spacing={2} alignItems="center">
-            <CustomizableButton
-              variant="contained"
-              onClick={handleRerunExperiment}
-              isDisabled={rerunLoading || experiment.status === "running"}
-              startIcon={<RotateCcw size={14} />}
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                "&:hover": {
-                  backgroundColor: "#0F5A47",
-                  border: "1px solid #0F5A47",
-                },
-              }}
-            >
-              {rerunLoading ? "Starting…" : "Rerun"}
-            </CustomizableButton>
-          </Stack>
+      {/* Header - Title and Actions */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+        <Box
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 0.5,
+            "&:hover .edit-icon": {
+              opacity: 1,
+            },
+          }}
+        >
+          {isEditingName ? (
+            <>
+              <TextField
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveName();
+                  if (e.key === "Escape") handleCancelEditName();
+                }}
+                variant="outlined"
+                size="small"
+                autoFocus
+                disabled={saving}
+                sx={{
+                  minWidth: "400px",
+                  "& .MuiOutlinedInput-root": {
+                    fontSize: "18px",
+                    fontWeight: 700,
+                  },
+                }}
+              />
+              <IconButton
+                size="small"
+                onClick={handleSaveName}
+                disabled={saving || !editedName.trim()}
+                sx={{ color: "#13715B" }}
+              >
+                <Check size={18} />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={handleCancelEditName}
+                disabled={saving}
+                sx={{ color: "#6B7280" }}
+              >
+                <X size={18} />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>
+                {experiment.id}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={handleStartEditName}
+                className="edit-icon"
+                sx={{
+                  opacity: 0,
+                  transition: "opacity 0.2s",
+                  color: "#6B7280",
+                  "&:hover": {
+                    color: "#13715B",
+                    backgroundColor: "rgba(19, 113, 91, 0.1)",
+                  },
+                }}
+              >
+                <Pencil size={14} />
+              </IconButton>
+            </>
+          )}
         </Box>
 
-        {/* Row 2: Status, Description, Created date */}
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Chip
-            label={experiment.status}
-            size="small"
-            sx={{
-              backgroundColor:
-                experiment.status === "completed"
-                  ? "#c8e6c9"
-                  : experiment.status === "failed"
-                  ? "#ffebee"
-                  : experiment.status === "running"
-                  ? "#fff3e0"
-                  : "#e0e0e0",
-              color:
-                experiment.status === "completed"
-                  ? "#388e3c"
-                  : experiment.status === "failed"
-                  ? "#c62828"
-                  : experiment.status === "running"
-                  ? "#ef6c00"
-                  : "#616161",
-              fontWeight: 500,
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              borderRadius: "4px",
-              "& .MuiChip-label": {
-                padding: "4px 8px",
-              },
+        {/* Action buttons */}
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+          <CustomizableButton
+            variant="outlined"
+            onClick={async () => {
+              try {
+                const blob = new Blob([JSON.stringify({ experiment, logs }, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${experiment.id}_results.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              } catch (err) {
+                console.error("Failed to download:", err);
+              }
             }}
-          />
-          <Box
+            startIcon={<Download size={14} />}
             sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 0.5,
-              "&:hover .edit-icon": {
-                opacity: 1,
+              borderColor: "#d0d5dd",
+              color: "#374151",
+              "&:hover": {
+                borderColor: "#13715B",
+                color: "#13715B",
+                backgroundColor: "#F0FDF4",
               },
             }}
           >
-            {isEditingDescription ? (
-              <>
-                <TextField
-                  value={editedDescription}
-                  onChange={(e) => setEditedDescription(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSaveDescription();
-                    if (e.key === "Escape") handleCancelEditDescription();
-                  }}
-                  variant="outlined"
-                  size="small"
-                  autoFocus
-                  disabled={saving}
-                  placeholder="Add a description..."
-                  sx={{
-                    minWidth: "300px",
-                    "& .MuiOutlinedInput-root": {
-                      fontSize: "13px",
-                      color: "text.secondary",
-                    },
-                  }}
-                />
-                <IconButton
-                  size="small"
-                  onClick={handleSaveDescription}
-                  disabled={saving}
-                  sx={{ color: "#13715B" }}
-                >
-                  <Check size={16} />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={handleCancelEditDescription}
-                  disabled={saving}
-                  sx={{ color: "#6B7280" }}
-                >
-                  <X size={16} />
-                </IconButton>
-              </>
-            ) : (
-              <>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{
-                    fontSize: "13px",
-                    fontStyle: experiment.description ? "normal" : "italic",
-                    color: experiment.description ? "text.secondary" : "#9CA3AF",
-                  }}
-                >
-                  {experiment.description || "No description"}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={handleStartEditDescription}
-                  className="edit-icon"
-                  sx={{
-                    opacity: 0,
-                    transition: "opacity 0.2s",
-                    color: "#6B7280",
-                    padding: "2px",
-                    "&:hover": {
-                      color: "#13715B",
-                      backgroundColor: "rgba(19, 113, 91, 0.1)",
-                    },
-                  }}
-                >
-                  <Pencil size={12} />
-                </IconButton>
-              </>
-            )}
-          </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
-            •
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
-            Created {new Date(experiment.created_at).toLocaleString()}
-          </Typography>
+            Download
+          </CustomizableButton>
+          <CustomizableButton
+            variant="outlined"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(JSON.stringify({ experiment, logs }, null, 2));
+                setAlert({ variant: "success", body: "Results copied to clipboard" });
+                setTimeout(() => setAlert(null), 3000);
+              } catch (err) {
+                console.error("Failed to copy:", err);
+              }
+            }}
+            startIcon={<Copy size={14} />}
+            sx={{
+              borderColor: "#d0d5dd",
+              color: "#374151",
+              "&:hover": {
+                borderColor: "#13715B",
+                color: "#13715B",
+                backgroundColor: "#F0FDF4",
+              },
+            }}
+          >
+            Copy
+          </CustomizableButton>
+          <Box sx={{ width: "1px", height: "24px", backgroundColor: "#e5e7eb", mx: 0.5 }} />
+          <CustomizableButton
+            variant="contained"
+            onClick={handleRerunExperiment}
+            isDisabled={rerunLoading || experiment.status === "running"}
+            startIcon={<RotateCcw size={14} />}
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              "&:hover": {
+                backgroundColor: "#0F5A47",
+                border: "1px solid #0F5A47",
+              },
+            }}
+          >
+            {rerunLoading ? "Starting…" : "Rerun"}
+          </CustomizableButton>
+        </Stack>
+      </Box>
+
+      {/* Summary Box - like Arena */}
+      <Box
+        sx={{
+          p: "12px",
+          borderRadius: "4px",
+          background: experiment.status === "completed"
+            ? "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)"
+            : experiment.status === "failed"
+            ? "#fef2f2"
+            : "#f9fafb",
+          border: experiment.status === "completed"
+            ? "1px solid #10b981"
+            : experiment.status === "failed"
+            ? "1px solid #ef4444"
+            : "1px solid #e5e7eb",
+          mb: 3,
+        }}
+      >
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          {/* Status Section */}
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : experiment.status === "failed" ? "#991b1b" : "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                {experiment.status === "completed" ? "Completed" : experiment.status === "failed" ? "Failed" : "Status"}
+              </Typography>
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  "&:hover .edit-icon": { opacity: 1 },
+                }}
+              >
+                {isEditingDescription ? (
+                  <>
+                    <TextField
+                      value={editedDescription}
+                      onChange={(e) => setEditedDescription(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveDescription();
+                        if (e.key === "Escape") handleCancelEditDescription();
+                      }}
+                      variant="outlined"
+                      size="small"
+                      autoFocus
+                      disabled={saving}
+                      placeholder="Add a description..."
+                      sx={{ minWidth: "250px", "& .MuiOutlinedInput-root": { fontSize: "13px" } }}
+                    />
+                    <IconButton size="small" onClick={handleSaveDescription} disabled={saving} sx={{ color: "#13715B" }}>
+                      <Check size={14} />
+                    </IconButton>
+                    <IconButton size="small" onClick={handleCancelEditDescription} disabled={saving} sx={{ color: "#6B7280" }}>
+                      <X size={14} />
+                    </IconButton>
+                  </>
+                ) : (
+                  <>
+                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: experiment.status === "completed" ? "#065f46" : experiment.status === "failed" ? "#991b1b" : "#6b7280" }}>
+                      {experiment.description || `Evaluating ${config.model?.name || "model"} with ${logs.length} prompts`}
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      onClick={handleStartEditDescription}
+                      className="edit-icon"
+                      sx={{ opacity: 0, transition: "opacity 0.2s", color: "#6B7280", padding: "2px", "&:hover": { color: "#13715B" } }}
+                    >
+                      <Pencil size={12} />
+                    </IconButton>
+                  </>
+                )}
+              </Box>
+            </Box>
+          </Stack>
+
+          {/* Info Section */}
+          <Stack direction="row" spacing={3} alignItems="flex-start">
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+                Model
+              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+                {config.model?.name || "—"}
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+                Judge
+              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+                {config.judgeLlm?.model || "—"}
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+                Prompts
+              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+                {logs.length}
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+                Created
+              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+                {new Date(experiment.created_at).toLocaleDateString()}
+              </Typography>
+            </Box>
+          </Stack>
         </Stack>
       </Box>
 
@@ -579,8 +693,21 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         };
 
         // Get score color based on value thresholds
-        const getScoreColor = (score: number | undefined) => {
+        // For inverse metrics (bias, toxicity), lower is better
+        const getScoreColor = (score: number | undefined, metricKey?: string) => {
           if (score === undefined) return { bg: "#F3F4F6", text: "#6B7280", icon: "#6B7280" };
+          
+          // Check if this is an inverse metric (lower is better)
+          const isInverse = metricKey && (metricKey.toLowerCase() === "bias" || metricKey.toLowerCase() === "toxicity");
+          
+          if (isInverse) {
+            // For inverse metrics: low = good (green), high = bad (red)
+            if (score <= 0.3) return { bg: "#D1FAE5", text: "#065F46", icon: "#10B981" };
+            if (score <= 0.6) return { bg: "#FEF3C7", text: "#92400E", icon: "#F59E0B" };
+            return { bg: "#FEE2E2", text: "#991B1B", icon: "#EF4444" };
+          }
+          
+          // Normal metrics: high = good (green), low = bad (red)
           if (score >= 0.7) return { bg: "#D1FAE5", text: "#065F46", icon: "#10B981" };
           if (score >= 0.4) return { bg: "#FEF3C7", text: "#92400E", icon: "#F59E0B" };
           return { bg: "#FEE2E2", text: "#991B1B", icon: "#EF4444" };
@@ -696,9 +823,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         const renderMetricCard = (metric: { key: string; label: string; category: string }) => {
           const entry = metricsSum[metric.label] || metricsSum[`G-Eval (${metric.label})`] || metricsSum[metric.key];
           const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
-          const count = entry ? entry.count : 0;
           const scores = entry?.scores || [];
-          const colors = getScoreColor(avgValue);
+          const colors = getScoreColor(avgValue, metric.label);
           const delta = getDeltaIndicator(scores);
           const BackgroundIcon = getMetricIcon(metric.key);
 
@@ -776,23 +902,18 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                   )}
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-                  <Box>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontSize: "24px",
-                        fontWeight: 700,
-                        color: colors.text,
-                        lineHeight: 1.2,
-                        fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
-                      }}
-                    >
-                      {avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px", mt: 0.5, display: "block" }}>
-                      {avgValue === undefined ? "No data yet" : `${count} samples`}
-                    </Typography>
-                  </Box>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontSize: "24px",
+                      fontWeight: 700,
+                      color: colors.text,
+                      lineHeight: 1.2,
+                      fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+                    }}
+                  >
+                    {avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`}
+                  </Typography>
                   {scores.length >= 2 && <Sparkline scores={scores} color={colors.icon} />}
                 </Box>
               </CardContent>
@@ -860,6 +981,48 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
       <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
         All samples
       </Typography>
+      {/* Extract unique metric names from all logs */}
+      {(() => {
+        const allMetricNames = new Set<string>();
+        logs.forEach(log => {
+          if (log.metadata?.metric_scores) {
+            Object.keys(log.metadata.metric_scores).forEach(name => {
+              // Clean up metric name for display
+              const cleanName = name.replace(/^G-Eval\s*\((.+)\)$/i, "$1");
+              allMetricNames.add(cleanName);
+            });
+          }
+        });
+        const metricColumns = Array.from(allMetricNames);
+        
+        // Helper to get metric score from log
+        const getMetricScore = (log: EvaluationLog, metricName: string): number | null => {
+          if (!log.metadata?.metric_scores) return null;
+          // Try exact match first
+          const scores = log.metadata.metric_scores as Record<string, number | { score?: number }>;
+          if (scores[metricName] !== undefined) {
+            const data = scores[metricName];
+            return typeof data === "number" ? data : data?.score ?? null;
+          }
+          // Try G-Eval format
+          const gevalKey = `G-Eval (${metricName})`;
+          if (scores[gevalKey] !== undefined) {
+            const data = scores[gevalKey];
+            return typeof data === "number" ? data : data?.score ?? null;
+          }
+          // Try case-insensitive match
+          const key = Object.keys(scores).find(k => 
+            k.toLowerCase() === metricName.toLowerCase() ||
+            k.replace(/^G-Eval\s*\((.+)\)$/i, "$1").toLowerCase() === metricName.toLowerCase()
+          );
+          if (key) {
+            const data = scores[key];
+            return typeof data === "number" ? data : data?.score ?? null;
+          }
+          return null;
+        };
+
+        return (
       <Card sx={{ overflow: "hidden", border: "1px solid #d0d5dd", borderRadius: "4px" }} elevation={0}>
         <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
           <Box sx={{
@@ -871,21 +1034,41 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           }}>
             {/* Left: Samples List */}
             <Box sx={{ display: "flex", flexDirection: "column", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
-              <Box sx={{ overflowY: "auto", overflowX: "hidden", maxHeight: "calc(100vh - 360px)" }}>
-                <TableContainer>
-              <Table stickyHeader size="small">
+              <Box sx={{ overflowY: "auto", overflowX: "auto", maxHeight: "calc(100vh - 360px)" }}>
+                <TableContainer sx={{ overflowX: "auto" }}>
+              <Table stickyHeader size="small" sx={{ minWidth: 800, tableLayout: "auto" }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "12px", width: "5%" }}>#</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "12px", width: "45%" }}>Input</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "12px", width: "45%" }}>Output</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "12px", width: "5%" }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", width: 40, textAlign: "center", padding: "8px 6px" }}>#</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 200, textAlign: "left", padding: "8px 12px" }}>Input</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 200, textAlign: "left", padding: "8px 12px" }}>Output</TableCell>
+                    {metricColumns.map(metric => {
+                      // Capitalize first letter of each word
+                      const capitalizedMetric = metric
+                        .split(" ")
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                        .join(" ");
+                      return (
+                        <TableCell 
+                          key={metric} 
+                          sx={{ 
+                            fontWeight: 600, 
+                            fontSize: "11px", 
+                            textAlign: "center",
+                            padding: "8px 8px",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {capitalizedMetric}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {logs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center">
+                      <TableCell colSpan={3 + metricColumns.length} align="center">
                         <Box py={4}>
                           <Typography variant="body2" color="text.secondary">
                             No samples found
@@ -908,57 +1091,82 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                           },
                         }}
                       >
-                        <TableCell sx={{ fontSize: "12px", color: "#6B7280" }}>
+                        <TableCell sx={{ fontSize: "12px", color: "#6B7280", textAlign: "center", padding: "8px 6px" }}>
                           {index + 1}
                         </TableCell>
-                        <TableCell sx={{ fontSize: "12px" }}>
+                        <TableCell sx={{ fontSize: "12px", textAlign: "left", padding: "8px 12px", maxWidth: 200 }}>
                           <Typography
                             variant="body2"
                             sx={{
                               fontSize: "12px",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
-                              display: "-webkit-box",
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: "vertical",
+                              whiteSpace: "nowrap",
+                              display: "block",
                             }}
                           >
                             {log.input_text || "-"}
                           </Typography>
                         </TableCell>
-                        <TableCell sx={{ fontSize: "12px" }}>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontSize: "12px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              display: "-webkit-box",
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: "vertical",
-                            }}
-                          >
-                            {log.output_text || "-"}
-                          </Typography>
+                        <TableCell sx={{ fontSize: "12px", textAlign: "left", padding: "8px 12px", maxWidth: 200 }}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, overflow: "hidden" }}>
+                            {log.status && log.status !== "success" && (
+                              <Tooltip title={`Status: ${log.status}`} arrow>
+                                <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+                                  <AlertTriangle size={14} color="#dc2626" />
+                                </Box>
+                              </Tooltip>
+                            )}
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontSize: "12px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {log.output_text || "-"}
+                            </Typography>
+                          </Box>
                         </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={log.status || "success"}
-                            size="small"
-                            sx={{
-                              backgroundColor: log.status === "success" || !log.status ? "#c8e6c9" : "#ffebee",
-                              color: log.status === "success" || !log.status ? "#388e3c" : "#c62828",
-                              fontWeight: 500,
-                              fontSize: "11px",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.5px",
-                              borderRadius: "4px",
-                              "& .MuiChip-label": {
-                                padding: "4px 8px",
-                              },
-                            }}
-                          />
-                        </TableCell>
+                        {/* Metric score columns */}
+                        {metricColumns.map(metric => {
+                          const score = getMetricScore(log, metric);
+                          // For bias and toxicity, lower is better (0 = good, 1 = bad)
+                          const isInverseMetric = metric.toLowerCase() === "bias" || metric.toLowerCase() === "toxicity";
+                          const passed = score !== null && (isInverseMetric ? score < 0.5 : score >= 0.5);
+                          return (
+                            <TableCell key={metric} sx={{ textAlign: "center", padding: "8px 8px" }}>
+                              {score !== null ? (
+                                <Box
+                                  sx={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    px: 1,
+                                    py: 0.25,
+                                    borderRadius: "4px",
+                                    backgroundColor: passed ? "#ecfdf5" : "#fef2f2",
+                                    border: `1px solid ${passed ? "#a7f3d0" : "#fecaca"}`,
+                                  }}
+                                >
+                                  <Typography
+                                    sx={{
+                                      fontSize: "11px",
+                                      fontWeight: 600,
+                                      color: passed ? "#059669" : "#dc2626",
+                                    }}
+                                  >
+                                    {(score * 100).toFixed(0)}%
+                                  </Typography>
+                                </Box>
+                              ) : (
+                                <Typography sx={{ fontSize: "11px", color: "#9ca3af" }}>-</Typography>
+                              )}
+                            </TableCell>
+                          );
+                        })}
                       </TableRow>
                     ))
                   )}
@@ -1122,10 +1330,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                                 >
                                   {isUser ? "User" : "Assistant"}
                                 </Typography>
-                                <Box
-                                  sx={{ fontSize: "12px", color: "#374151" }}
-                                  dangerouslySetInnerHTML={{ __html: markdownToHtml(turn.content || "") }}
-                                />
+                                <MarkdownRenderer content={turn.content || ""} />
                               </Box>
                             </Box>
                           );
@@ -1151,10 +1356,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                         Input
                       </Typography>
                       <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
-                        <Box
-                          sx={{ fontSize: "12px" }}
-                          dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedLog.input_text || "No input") }}
-                        />
+                        <MarkdownRenderer content={selectedLog.input_text || "No input"} />
                       </Paper>
                     </Box>
 
@@ -1164,10 +1366,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                         Output
                       </Typography>
                       <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
-                        <Box
-                          sx={{ fontSize: "12px" }}
-                          dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedLog.output_text || "No output") }}
-                        />
+                        <MarkdownRenderer content={selectedLog.output_text || "No output"} />
                       </Paper>
                     </Box>
                   </>
@@ -1266,6 +1465,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           </Box>
         </CardContent>
       </Card>
+        );
+      })()}
     </Box>
   );
 }

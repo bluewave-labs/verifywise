@@ -1,13 +1,16 @@
 import { LinkPlugin } from "@platejs/link/react";
 import { insertLink as plateInsertLink, wrapLink, unwrapLink } from "@platejs/link";
 import { Range } from "slate";
+import { useExternalLinkWarning } from "../../../application/contexts/ExternalLinkWarning.context";
 
 /**
- * Custom LinkElement component for rendering links in the editor
+ * Custom LinkElement component for rendering links in the editor.
+ * Uses ExternalLinkWarningProvider to show warnings for untrusted external links.
  */
 export const LinkElement = (props: any) => {
   const { attributes, children, element } = props;
   const url = element.url || element.href || "";
+  const { openLink } = useExternalLinkWarning();
 
   return (
     <a
@@ -22,11 +25,9 @@ export const LinkElement = (props: any) => {
         cursor: "pointer",
       }}
       onClick={(e) => {
-        // Let CMD/CTRL-click open in a new tab, but prevent full reload otherwise
-        if (!e.metaKey && !e.ctrlKey) {
-          e.preventDefault();
-          window.open(url, "_blank", "noopener,noreferrer");
-        }
+        e.preventDefault();
+        // Use the external link warning system for all links
+        openLink(url);
       }}
     >
       {children}

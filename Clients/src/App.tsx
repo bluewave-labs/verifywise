@@ -29,6 +29,7 @@ import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
 import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
 import { AdvisorConversationProvider } from './application/contexts/AdvisorConversation.context';
+import { ExternalLinkWarningProvider } from './application/contexts/ExternalLinkWarning.context';
 
 // Auth routes where the helper sidebar should not be shown
 const AUTH_ROUTES = [
@@ -243,6 +244,7 @@ function App() {
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
             <UserGuideSidebarProvider>
+              <ExternalLinkWarningProvider>
               <ConditionalThemeWrapper>
                 {alert && (
                   <Alert
@@ -274,6 +276,7 @@ function App() {
                   <UserGuideSidebarContainer />
                 </AdvisorConversationProvider>
               </ConditionalThemeWrapper>
+              </ExternalLinkWarningProvider>
             </UserGuideSidebarProvider>
           </VerifyWiseContext.Provider>
         </PersistGate>

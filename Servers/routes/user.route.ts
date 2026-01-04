@@ -161,7 +161,7 @@ router.post("/reset-password", resetPasswordMiddleware, resetPassword);
  */
 router.patch("/:id", authenticateJWT, updateUserById);
 
-router.patch("/chng-pass/:id", ChangePassword);
+router.patch("/chng-pass/:id", authenticateJWT, ChangePassword);
 
 /**
  * DELETE /users/:id

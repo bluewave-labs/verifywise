@@ -1,1 +1,3 @@
 artifacts/
+src/artifacts/
+**/artifacts/

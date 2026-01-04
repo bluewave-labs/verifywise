@@ -50,7 +50,11 @@ export const useExternalLinkWarning = (): ExternalLinkWarningContextType => {
  */
 const isDangerousProtocol = (url: string): boolean => {
   const lowerUrl = url.toLowerCase().trim();
-  return lowerUrl.startsWith("javascript:") || lowerUrl.startsWith("data:");
+  return (
+    lowerUrl.startsWith("javascript:") ||
+    lowerUrl.startsWith("data:") ||
+    lowerUrl.startsWith("vbscript:")
+  );
 };
 
 /**

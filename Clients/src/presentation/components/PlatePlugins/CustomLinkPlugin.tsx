@@ -25,6 +25,10 @@ export const LinkElement = (props: any) => {
         cursor: "pointer",
       }}
       onClick={(e) => {
+        // Allow CMD/CTRL+click to use native browser behavior
+        if (e.metaKey || e.ctrlKey) {
+          return;
+        }
         e.preventDefault();
         // Use the external link warning system for all links
         openLink(url);

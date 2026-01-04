@@ -46,11 +46,24 @@ export const useExternalLinkWarning = (): ExternalLinkWarningContextType => {
 };
 
 /**
+ * Check if a URL uses a dangerous protocol that should be blocked.
+ */
+const isDangerousProtocol = (url: string): boolean => {
+  const lowerUrl = url.toLowerCase().trim();
+  return lowerUrl.startsWith("javascript:") || lowerUrl.startsWith("data:");
+};
+
+/**
  * Check if a URL is internal or from a trusted domain.
  */
 const isInternalOrTrusted = (url: string): boolean => {
   try {
     const parsed = new URL(url, window.location.origin);
+
+    // Block dangerous protocols
+    if (isDangerousProtocol(url)) {
+      return false;
+    }
 
     // Internal link (same hostname)
     if (parsed.hostname === window.location.hostname) {
@@ -87,6 +100,12 @@ export const ExternalLinkWarningProvider: React.FC<ExternalLinkWarningProviderPr
 
   const openLink = useCallback((url: string) => {
     if (!url) return;
+
+    // Block dangerous protocols entirely
+    if (isDangerousProtocol(url)) {
+      console.warn("Blocked dangerous URL protocol:", url);
+      return;
+    }
 
     // For internal or trusted domains, open directly
     if (isInternalOrTrusted(url)) {

@@ -1,7 +1,7 @@
 import { UploadedFile } from "./question.utils";
 import { sequelize } from "../database/db";
 import { FileModel } from "../domain.layer/models/file/file.model";
-import { Transaction } from "sequelize";
+import { Transaction, QueryTypes } from "sequelize";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 
 /**
@@ -118,6 +118,46 @@ export const getFileById = async (id: number, tenant: string) => {
     model: FileModel,
   });
   return result[0];
+};
+
+/**
+ * Check if a user has access to a file.
+ * Access is granted if:
+ * - User is Admin
+ * - User uploaded the file
+ * - User has access to the project the file belongs to (owner or member)
+ */
+export const canUserAccessFile = async (
+  fileId: number,
+  userId: number,
+  role: string,
+  tenant: string
+): Promise<boolean> => {
+  // Admins can access all files
+  if (role === "Admin") {
+    return true;
+  }
+
+  const query = `
+    SELECT f.id
+    FROM ${escapePgIdentifier(tenant)}.files f
+    LEFT JOIN ${escapePgIdentifier(tenant)}.projects p ON f.project_id = p.id
+    LEFT JOIN ${escapePgIdentifier(tenant)}.projects_members pm ON p.id = pm.project_id
+    WHERE f.id = :fileId
+      AND (
+        f.uploaded_by = :userId
+        OR p.owner = :userId
+        OR pm.user_id = :userId
+      )
+    LIMIT 1
+  `;
+
+  const result = await sequelize.query(query, {
+    replacements: { fileId, userId },
+    type: QueryTypes.SELECT,
+  });
+
+  return result.length > 0;
 };
 
 export const getFileMetadataByProjectId = async (

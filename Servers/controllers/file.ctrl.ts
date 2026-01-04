@@ -5,6 +5,7 @@ import {
   getFileById,
   getFileMetadataByProjectId,
   uploadFile,
+  canUserAccessFile,
 } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { FileType } from "../domain.layer/models/file/file.model";
@@ -22,6 +23,8 @@ export async function getFileContentById(
   res: Response
 ): Promise<any> {
   const fileId = parseInt(req.params.id);
+  const userId = req.userId!;
+  const role = req.role || "";
 
   logProcessing({
     description: `starting getFileContentById for ID ${fileId}`,
@@ -30,6 +33,19 @@ export async function getFileContentById(
   });
 
   try {
+    // Authorization check: verify user has access to this file
+    const hasAccess = await canUserAccessFile(fileId, userId, role, req.tenantId!);
+    if (!hasAccess) {
+      await logFailure({
+        eventType: "Read",
+        description: `Access denied to file ID ${fileId} for user ${userId}`,
+        functionName: "getFileContentById",
+        fileName: "file.ctrl.ts",
+        error: new Error("Forbidden"),
+      });
+      return res.status(403).json({ message: "Access denied" });
+    }
+
     const file = await getFileById(fileId, req.tenantId!);
     if (file) {
       await logSuccess({

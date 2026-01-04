@@ -17,15 +17,37 @@ export function isValidSQLIdentifier(value: string): boolean {
 
 /**
  * Validates tenant hash format
- * Tenant hashes should be base64-like strings
+ * Tenant hashes are exactly 10 alphanumeric characters produced by getTenantHash
  *
  * @param tenantId - The tenant ID to validate
  * @returns true if valid tenant hash format
  */
 export function isValidTenantHash(tenantId: string): boolean {
-  // getTenantHash produces base64-like strings, typically 10-20 chars
-  // Allow alphanumeric characters only (base64 without special chars)
-  return /^[a-zA-Z0-9]{8,64}$/.test(tenantId);
+  // getTenantHash produces exactly 10 alphanumeric characters
+  // from base64 hash with special chars removed
+  return /^[a-zA-Z0-9]{10}$/.test(tenantId);
+}
+
+/**
+ * Validates and returns a safe tenant schema name for use in SQL queries.
+ * Throws an error if the tenant hash format is invalid.
+ *
+ * This is a defense-in-depth measure - tenant values come from signed JWTs
+ * and are validated in auth middleware, but this provides an additional
+ * layer of protection against SQL injection.
+ *
+ * @param tenant - The tenant hash to validate
+ * @throws Error if tenant format is invalid
+ * @returns The validated tenant hash
+ */
+export function validateTenantSchema(tenant: string): string {
+  if (!tenant || typeof tenant !== 'string') {
+    throw new Error('Tenant schema is required');
+  }
+  if (!isValidTenantHash(tenant)) {
+    throw new Error('Invalid tenant schema format');
+  }
+  return tenant;
 }
 
 /**

@@ -22,9 +22,19 @@ export async function getFileContentById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const fileId = parseInt(req.params.id);
-  const userId = req.userId!;
+  const fileId = parseInt(req.params.id, 10);
+
+  // Validate authentication - these should be set by authenticateJWT middleware
+  if (!req.userId) {
+    return res.status(401).json({ message: "Unauthenticated" });
+  }
+  if (!req.tenantId) {
+    return res.status(400).json({ message: "Missing tenant" });
+  }
+
+  const userId = req.userId;
   const role = req.role || "";
+  const tenantId = req.tenantId;
 
   logProcessing({
     description: `starting getFileContentById for ID ${fileId}`,
@@ -34,19 +44,19 @@ export async function getFileContentById(
 
   try {
     // Authorization check: verify user has access to this file
-    const hasAccess = await canUserAccessFile(fileId, userId, role, req.tenantId!);
+    const hasAccess = await canUserAccessFile(fileId, userId, role, tenantId);
     if (!hasAccess) {
       await logFailure({
         eventType: "Read",
         description: `Access denied to file ID ${fileId} for user ${userId}`,
         functionName: "getFileContentById",
         fileName: "file.ctrl.ts",
-        error: new Error("Forbidden"),
+        error: new Error(`User ${userId} with role '${role}' denied access to file ${fileId}`),
       });
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const file = await getFileById(fileId, req.tenantId!);
+    const file = await getFileById(fileId, tenantId);
     if (file) {
       await logSuccess({
         eventType: "Read",

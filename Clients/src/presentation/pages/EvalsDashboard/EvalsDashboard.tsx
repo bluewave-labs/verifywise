@@ -1694,6 +1694,27 @@ export default function EvalsDashboard() {
                               </Typography>
                             </Box>
                           }
+                          sx={{ alignItems: "flex-start", mb: 1.5 }}
+                        />
+                        <FormControlLabel
+                          value="agent"
+                          control={
+                            <Radio
+                              sx={{
+                                color: "#d0d5dd",
+                                "&.Mui-checked": { color: "#13715B" },
+                                "& .MuiSvgIcon-root": { fontSize: 20 },
+                              }}
+                            />
+                          }
+                          label={
+                            <Box>
+                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Agent</Typography>
+                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                                Evaluate AI agents for planning, tool usage, task completion, and step efficiency.
+                              </Typography>
+                            </Box>
+                          }
                           sx={{ alignItems: "flex-start" }}
                         />
                       </RadioGroup>
@@ -1773,6 +1794,13 @@ export default function EvalsDashboard() {
                 title="Chatbot"
                 description="Evaluate conversational experiences for coherence, correctness and safety"
               />
+              <SelectableCard
+                isSelected={newProject.useCase === "agent"}
+                onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
+                icon={<Workflow size={14} color={newProject.useCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                title="Agent"
+                description="Evaluate AI agents for planning, tool usage, and task completion"
+              />
             </Stack>
           </Box>
         </Stack>
@@ -1816,6 +1844,13 @@ export default function EvalsDashboard() {
                 icon={<Bot size={16} color={onboardingProjectUseCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
                 title="Chatbot"
                 description="Evaluate conversational experiences"
+              />
+              <SelectableCard
+                isSelected={onboardingProjectUseCase === "agent"}
+                onClick={() => setOnboardingProjectUseCase("agent")}
+                icon={<Workflow size={16} color={onboardingProjectUseCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                title="Agent"
+                description="Evaluate AI agents for planning and tool usage"
               />
             </Stack>
           </Box>

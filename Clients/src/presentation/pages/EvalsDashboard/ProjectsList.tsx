@@ -15,12 +15,9 @@ import {
   TablePagination,
   TableFooter,
   IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
+  Popover,
 } from "@mui/material";
-import { Plus, Pencil, Trash2, FileSearch, MessageSquare, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, FileSearch, MessageSquare, Bot, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
 import SelectableCard from "../../components/SelectableCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
@@ -780,45 +777,73 @@ export default function ProjectsList() {
       )}
 
       {/* Action Menu */}
-      <Menu
-        anchorEl={menuAnchorEl}
+      <Popover
         open={Boolean(menuAnchorEl)}
+        anchorEl={menuAnchorEl}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        PaperProps={{
-          sx: {
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        sx={{
+          "& .MuiPopover-paper": {
             minWidth: 140,
-            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-            borderRadius: "8px",
-            border: "1px solid #E5E7EB",
+            borderRadius: "4px",
+            border: "1px solid #d0d5dd",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            overflow: "hidden",
+            mt: 0.5,
+            p: 1,
           },
         }}
       >
-        {canEditProject && (
-          <MenuItem onClick={handleMenuEdit} sx={{ fontSize: "13px", py: 1 }}>
-            <ListItemIcon sx={{ minWidth: 32 }}>
-              <Pencil size={16} color="#6B7280" />
-            </ListItemIcon>
-            <ListItemText primary="Edit" primaryTypographyProps={{ fontSize: "13px" }} />
-          </MenuItem>
-        )}
-        {canDeleteProject && (
-          <MenuItem onClick={handleMenuDelete} sx={{ fontSize: "13px", py: 1, color: "#DC2626" }}>
-            <ListItemIcon sx={{ minWidth: 32 }}>
-              <Trash2 size={16} color="#DC2626" />
-            </ListItemIcon>
-            <ListItemText primary="Delete" primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }} />
-          </MenuItem>
-        )}
-      </Menu>
+        <Stack spacing={1}>
+          {canEditProject && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleMenuEdit}
+              startIcon={<Pencil size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+              }}
+            >
+              Edit
+            </CustomizableButton>
+          )}
+          {canDeleteProject && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleMenuDelete}
+              startIcon={<Trash2 size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#DC2626",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#FEF2F2",
+                  borderColor: "#DC2626",
+                },
+              }}
+            >
+              Delete
+            </CustomizableButton>
+          )}
+        </Stack>
+      </Popover>
 
       {/* Create Project Modal */}
       <StandardModal
@@ -858,6 +883,13 @@ export default function ProjectsList() {
                 icon={<MessageSquare size={16} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
                 title="Chatbots"
                 description="Evaluate conversational experiences for coherence, correctness and safety."
+              />
+              <SelectableCard
+                isSelected={newProject.useCase === "agent"}
+                onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
+                icon={<Bot size={16} color={newProject.useCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                title="Agent"
+                description="Evaluate AI agents for planning, tool usage, and task completion."
               />
             </Stack>
           </Box>

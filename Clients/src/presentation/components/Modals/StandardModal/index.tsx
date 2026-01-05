@@ -159,17 +159,20 @@ const StandardModal: React.FC<StandardModalProps> = ({
           onClose();
         }
       }}
-      sx={{ overflowY: "scroll" }}
+      sx={{ 
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+        overflowY: "auto",
+      }}
     >
       <Stack
         sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
           width: maxWidth,
           minWidth: "600px",
           maxWidth: "calc(100vw - 48px)",
+          maxHeight: "calc(100vh - 48px)",
           backgroundColor: "#FFFFFF",
           borderRadius: "8px",
           overflow: "hidden",
@@ -256,13 +259,14 @@ const StandardModal: React.FC<StandardModalProps> = ({
           <Box
             sx={{
               padding: "20px",
-              flex: "0 1 auto",
+              flex: "1 1 auto",
               overflow: "auto",
+              minHeight: 0,
               maxHeight: fitContent
                 ? "calc(90vh - 180px)"
                 : expandedHeight
                   ? "min(740px, calc(90vh - 180px))"
-                  : "660px",
+                  : "calc(100vh - 240px)",
               border: "1px solid #E0E4E9",
               borderRadius: "16px",
               backgroundColor: "#FFFFFF",

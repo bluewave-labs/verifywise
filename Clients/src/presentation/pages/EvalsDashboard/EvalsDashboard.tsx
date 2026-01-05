@@ -1585,14 +1585,14 @@ export default function EvalsDashboard() {
                     projectId={projectId || ""}
                     onBack={() => setSelectedExperimentId(null)}
                   />
-                ) : (
+                ) : currentProject?.useCase ? (
                   <ProjectExperiments
                     projectId={projectId}
                     orgId={orgId}
                     onViewExperiment={(experimentId) => setSelectedExperimentId(experimentId)}
-                    useCase={currentProject?.useCase as "chatbot" | "rag" | "agent" | undefined}
+                    useCase={currentProject.useCase as "chatbot" | "rag" | "agent"}
                   />
-                )
+                ) : null
               )}
 
               {tab === "datasets" && (

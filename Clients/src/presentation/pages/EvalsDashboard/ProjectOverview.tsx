@@ -516,15 +516,17 @@ export default function ProjectOverview({
         </Box>
       </Box>
 
-      {/* New Experiment Modal */}
-      <NewExperimentModal
-        isOpen={newExperimentModalOpen}
-        onClose={() => setNewExperimentModalOpen(false)}
-        projectId={projectId}
-        orgId={orgId}
-        onSuccess={handleExperimentSuccess}
-        useCase={project?.useCase as "chatbot" | "rag" | "agent" | undefined}
-      />
+      {/* New Experiment Modal - only render when project useCase is available */}
+      {project?.useCase && (
+        <NewExperimentModal
+          isOpen={newExperimentModalOpen}
+          onClose={() => setNewExperimentModalOpen(false)}
+          projectId={projectId}
+          orgId={orgId}
+          onSuccess={handleExperimentSuccess}
+          useCase={project.useCase as "chatbot" | "rag" | "agent"}
+        />
+      )}
     </Box>
   );
 }

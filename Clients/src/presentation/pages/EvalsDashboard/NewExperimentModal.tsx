@@ -637,7 +637,7 @@ export default function NewExperimentModal({
     setJudgeMode("standard");
     setSelectedScorer(null);
     setConfig({
-      taskType: "chatbot",
+      taskType: useCase,
       model: {
         name: "",
         accessMethod: "",

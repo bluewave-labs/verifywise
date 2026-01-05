@@ -42,6 +42,14 @@ async def create_project_controller(
         async with get_db() as db:
             # Create project with name, description, and use case
             # Model configs, datasets, metrics will be part of eval runs
+            # useCase is required from the frontend
+            use_case = project_data.get("useCase")
+            if not use_case:
+                raise HTTPException(
+                    status_code=400,
+                    detail="useCase is required (chatbot, rag, or agent)"
+                )
+            
             project = await create_project(
                 project_id=project_id,
                 name=project_data.get("name"),
@@ -50,7 +58,7 @@ async def create_project_controller(
                 tenant=tenant,
                 created_by=project_data.get("createdBy") or "",
                 db=db,
-                use_case=project_data.get("useCase", "chatbot")
+                use_case=use_case
             )
             
             await db.commit()

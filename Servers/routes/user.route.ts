@@ -160,7 +160,7 @@ router.post("/reset-password", authLimiter, resetPasswordMiddleware, resetPasswo
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.patch("/chng-pass/:id", authenticateJWT, ChangePassword);
+router.patch("/chng-pass/:id", authLimiter, authenticateJWT, ChangePassword);
 
 /**
  * PATCH /users/:id
@@ -175,8 +175,6 @@ router.patch("/chng-pass/:id", authenticateJWT, ChangePassword);
  * @param {express.Response} res - Express response object
  */
 router.patch("/:id", authenticateJWT, updateUserById);
-
-router.patch("/chng-pass/:id", authLimiter, authenticateJWT, ChangePassword);
 
 /**
  * DELETE /users/:id

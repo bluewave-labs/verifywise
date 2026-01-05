@@ -200,6 +200,7 @@ export default function EvalsDashboard() {
   const [allProjects, setAllProjects] = useState<DeepEvalProject[]>([]);
   const [createProjectModalOpen, setCreateProjectModalOpen] = useState(false);
   const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({ name: "", description: "", useCase: "chatbot" });
+  const [createProjectError, setCreateProjectError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
@@ -898,7 +899,7 @@ export default function EvalsDashboard() {
       setNewProject({ name: "", description: "", useCase: "chatbot" });
     } catch (err) {
       console.error("Failed to create project:", err);
-      alert("Failed to create project");
+      setCreateProjectError("Failed to create project. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -1758,6 +1759,7 @@ export default function EvalsDashboard() {
         onClose={() => {
           setCreateProjectModalOpen(false);
           setNewProject({ name: "", description: "", useCase: "chatbot" });
+          setCreateProjectError(null);
         }}
         title="Create project"
         description="Create a new project to organize your LLM evaluations"
@@ -1766,10 +1768,17 @@ export default function EvalsDashboard() {
         isSubmitting={loading || !newProject.name}
       >
         <Stack spacing={3}>
+          {createProjectError && (
+            <Alert variant="error" body={createProjectError} />
+          )}
+          
           <Field
             label="Project name"
             value={newProject.name}
-            onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+            onChange={(e) => {
+              setNewProject({ ...newProject, name: e.target.value });
+              setCreateProjectError(null); // Clear error when user starts typing
+            }}
             placeholder="e.g., Coding Tasks Evaluation"
             isRequired
           />

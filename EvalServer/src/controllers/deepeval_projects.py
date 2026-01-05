@@ -40,7 +40,7 @@ async def create_project_controller(
         
         # Get database session
         async with get_db() as db:
-            # Create simplified project - only name and description
+            # Create project with name, description, and use case
             # Model configs, datasets, metrics will be part of eval runs
             project = await create_project(
                 project_id=project_id,
@@ -49,7 +49,8 @@ async def create_project_controller(
                 org_id=project_data.get("orgId"),
                 tenant=tenant,
                 created_by=project_data.get("createdBy") or "",
-                db=db
+                db=db,
+                use_case=project_data.get("useCase", "chatbot")
             )
             
             await db.commit()
@@ -161,13 +162,14 @@ async def update_project_controller(
     """
     try:
         async with get_db() as db:
-            # Update project in database (only name and description)
+            # Update project in database
             project = await update_project(
                 project_id=project_id,
                 name=project_data.get("name"),
                 description=project_data.get("description"),
                 tenant=tenant,
-                db=db
+                db=db,
+                use_case=project_data.get("useCase")
             )
             
             await db.commit()

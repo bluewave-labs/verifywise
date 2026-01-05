@@ -32,6 +32,8 @@ interface ProjectExperimentsProps {
   projectId: string;
   orgId?: string | null;
   onViewExperiment?: (experimentId: string) => void;
+  /** Project's use case for the experiment modal (required) */
+  useCase: "chatbot" | "rag" | "agent";
 }
 
 interface ExperimentWithMetrics extends Experiment {
@@ -56,7 +58,7 @@ function shortenModelName(modelName: string): string {
   return modelName.replace(/-\d{8}$/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '');
 }
 
-export default function ProjectExperiments({ projectId, orgId, onViewExperiment }: ProjectExperimentsProps) {
+export default function ProjectExperiments({ projectId, orgId, onViewExperiment, useCase }: ProjectExperimentsProps) {
   const navigate = useNavigate();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
   const [, setLoading] = useState(true);
@@ -700,6 +702,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
           loadExperiments();
         }}
         onStarted={handleStarted}
+        useCase={useCase}
       />
     </Box>
   );

@@ -257,6 +257,13 @@ const StandardModal: React.FC<StandardModalProps> = ({
         {/* Content Section - only render if children exist */}
         {children && (
           <Box
+            component="form"
+            onSubmit={(e: React.FormEvent) => {
+              e.preventDefault();
+              if (onSubmit && !isSubmitting) {
+                onSubmit();
+              }
+            }}
             sx={{
               padding: "20px",
               flex: "1 1 auto",
@@ -288,6 +295,8 @@ const StandardModal: React.FC<StandardModalProps> = ({
             }}
           >
             {children}
+            {/* Hidden submit button for Enter key support */}
+            <button type="submit" style={{ display: "none" }} aria-hidden="true" />
           </Box>
         )}
 

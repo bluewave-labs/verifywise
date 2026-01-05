@@ -18,7 +18,7 @@ import {
   FormHelperText,
   Chip as MuiChip,
 } from "@mui/material";
-import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
+import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown, FileSearch, MessageSquare, Bot } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import SelectableCard from "../../components/SelectableCard";
 import Field from "../../components/Inputs/Field";
@@ -59,6 +59,8 @@ interface NewExperimentModalProps {
   orgId?: string | null;
   onSuccess: () => void;
   onStarted?: (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => void;
+  /** Project's use case - determines default metrics and datasets (required) */
+  useCase: "chatbot" | "rag" | "agent";
 }
 
 const steps = ["Model", "Dataset", "Scorer / Judge", "Metrics"];
@@ -70,6 +72,7 @@ export default function NewExperimentModal({
   orgId,
   onSuccess,
   onStarted,
+  useCase,
 }: NewExperimentModalProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -114,10 +117,10 @@ export default function NewExperimentModal({
   const [loadingApiKeys, setLoadingApiKeys] = useState(true);
   
 
-  // Configuration state
+  // Configuration state - taskType initialized from project's useCase prop
   const [config, setConfig] = useState({
-    // High-level task type for builtin dataset presets
-    taskType: "chatbot" as "chatbot" | "rag" | "agent",
+    // High-level task type for builtin dataset presets - synced with project use case
+    taskType: useCase as "chatbot" | "rag" | "agent",
     // Step 1: Model to be evaluated
     model: {
       name: "",
@@ -313,6 +316,14 @@ export default function NewExperimentModal({
       }
     });
   }, [config.taskType]);
+
+  // Sync taskType with useCase prop when modal opens
+  useEffect(() => {
+    if (isOpen && useCase !== config.taskType) {
+      setConfig(prev => ({ ...prev, taskType: useCase }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, useCase]);
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
@@ -2347,6 +2358,38 @@ export default function NewExperimentModal({
         canProceed={canProceed}
         submitButtonText="Start Experiment"
         maxWidth="700px"
+        headerBadge={
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.5,
+              px: 1,
+              py: 0.25,
+              borderRadius: "4px",
+              backgroundColor: config.taskType === "agent" ? "#EDE9FE" : config.taskType === "rag" ? "#FEF3C7" : "#DCFCE7",
+              border: `1px solid ${config.taskType === "agent" ? "#C4B5FD" : config.taskType === "rag" ? "#FCD34D" : "#86EFAC"}`,
+            }}
+          >
+            {config.taskType === "agent" ? (
+              <Bot size={12} color="#7C3AED" />
+            ) : config.taskType === "rag" ? (
+              <FileSearch size={12} color="#D97706" />
+            ) : (
+              <MessageSquare size={12} color="#16A34A" />
+            )}
+            <Typography
+              sx={{
+                fontSize: "11px",
+                fontWeight: 600,
+                color: config.taskType === "agent" ? "#7C3AED" : config.taskType === "rag" ? "#D97706" : "#16A34A",
+                textTransform: "capitalize",
+              }}
+            >
+              {config.taskType}
+            </Typography>
+          </Box>
+        }
       >
         {renderStepContent()}
       </StepperModal>

@@ -523,6 +523,7 @@ export default function ProjectOverview({
         projectId={projectId}
         orgId={orgId}
         onSuccess={handleExperimentSuccess}
+        useCase={project?.useCase as "chatbot" | "rag" | "agent" | undefined}
       />
     </Box>
   );

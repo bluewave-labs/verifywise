@@ -1590,6 +1590,7 @@ export default function EvalsDashboard() {
                     projectId={projectId}
                     orgId={orgId}
                     onViewExperiment={(experimentId) => setSelectedExperimentId(experimentId)}
+                    useCase={currentProject?.useCase as "chatbot" | "rag" | "agent" | undefined}
                   />
                 )
               )}

@@ -24,6 +24,11 @@ export async function getFileContentById(
 ): Promise<any> {
   const fileId = parseInt(req.params.id, 10);
 
+  // Validate fileId is a valid number
+  if (isNaN(fileId)) {
+    return res.status(400).json({ message: "Invalid file ID" });
+  }
+
   // Validate authentication - these should be set by authenticateJWT middleware
   if (!req.userId) {
     return res.status(401).json({ message: "Unauthenticated" });

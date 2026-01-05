@@ -113,7 +113,7 @@ async def get_all_projects(tenant: str, db: AsyncSession) -> List[Dict[str, Any]
             "name": row["name"],
             "description": row["description"],
             "orgId": row["org_id"],
-            "useCase": row.get("use_case", "chatbot"),
+            "useCase": row["use_case"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
             "createdBy": row["created_by"]
@@ -154,7 +154,7 @@ async def get_project_by_id(
             "name": row["name"],
             "description": row["description"],
             "orgId": row.get("org_id"),
-            "useCase": row.get("use_case", "chatbot"),
+            "useCase": row["use_case"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
             "createdBy": row["created_by"]
@@ -224,7 +224,7 @@ async def update_project(
             "name": row["name"],
             "description": row["description"],
             "orgId": row.get("org_id"),
-            "useCase": row.get("use_case", "chatbot"),
+            "useCase": row["use_case"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
             "createdBy": row["created_by"]

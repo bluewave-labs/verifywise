@@ -33,6 +33,7 @@ const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
 import rateLimit from "express-rate-limit";
+import { authLimiter } from "../middleware/rateLimit.middleware";
 
 import {
   checkUserExists,
@@ -108,7 +109,7 @@ router.get("/:id", authenticateJWT, getUserById);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.post("/register", registerJWT, createNewUser);
+router.post("/register", authLimiter, registerJWT, createNewUser);
 
 /**
  * POST /users/login
@@ -131,7 +132,7 @@ const loginLimiter = rateLimit({
 });
 router.post("/login", loginLimiter, loginUser);
 
-router.post("/refresh-token", refreshAccessToken);
+router.post("/refresh-token", authLimiter, refreshAccessToken);
 
 /**
  * POST /users/reset-password
@@ -145,7 +146,7 @@ router.post("/refresh-token", refreshAccessToken);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.post("/reset-password", resetPasswordMiddleware, resetPassword);
+router.post("/reset-password", authLimiter, resetPasswordMiddleware, resetPassword);
 
 /**
  * PATCH /users/chng-pass/:id
@@ -174,6 +175,8 @@ router.patch("/chng-pass/:id", authenticateJWT, ChangePassword);
  * @param {express.Response} res - Express response object
  */
 router.patch("/:id", authenticateJWT, updateUserById);
+
+router.patch("/chng-pass/:id", authLimiter, authenticateJWT, ChangePassword);
 
 /**
  * DELETE /users/:id

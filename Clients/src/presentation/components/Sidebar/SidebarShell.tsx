@@ -747,16 +747,18 @@ const SidebarShell: FC<SidebarShellProps> = ({
               transformOrigin={{ vertical: "top", horizontal: "left" }}
               sx={{
                 "& .MuiPopover-paper": {
-                  minWidth: 200,
-                  maxHeight: 300,
-                  boxShadow: theme.boxShadow,
-                  borderRadius: theme.shape.borderRadius,
+                  minWidth: 220,
+                  maxWidth: 280,
+                  maxHeight: 360,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                  borderRadius: "8px",
+                  border: "1px solid #e5e7eb",
                   mt: 1,
                   overflow: "hidden",
                 },
               }}
             >
-              <Box>
+              <Box sx={{ py: 1 }}>
                 {/* All projects option */}
                 <Box
                   onClick={() => {
@@ -767,108 +769,131 @@ const SidebarShell: FC<SidebarShellProps> = ({
                     display: "flex",
                     alignItems: "center",
                     fontSize: "13px",
-                    py: 1,
+                    py: 1.25,
                     px: 2,
                     mx: 1,
-                    my: 0.5,
-                    borderRadius: theme.shape.borderRadius,
-                    color: theme.palette.text.tertiary,
+                    borderRadius: "6px",
+                    color: theme.palette.text.secondary,
                     cursor: "pointer",
-                    transition: "color 0.2s ease, background-color 0.2s ease",
+                    transition: "all 0.15s ease",
                     "&:hover": {
-                      backgroundColor: theme.palette.background.accent,
-                      color: "#13715B",
+                      backgroundColor: "#f3f4f6",
+                      color: theme.palette.text.primary,
                     },
                   }}
                 >
-                  <LayoutGrid size={14} style={{ marginRight: 8 }} />
+                  <LayoutGrid size={15} style={{ marginRight: 10, opacity: 0.7 }} />
                   All projects
                 </Box>
+
+                {/* Projects section */}
+                {projectSelector.allProjects.length > 0 && (
+                  <>
+                    <Box
+                      sx={{
+                        borderTop: "1px solid #e5e7eb",
+                        mx: 2,
+                        my: 1,
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        color: theme.palette.text.tertiary,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        px: 3,
+                        py: 0.75,
+                      }}
+                    >
+                      Projects
+                    </Typography>
+                    <Box sx={{ maxHeight: 160, overflowY: "auto" }}>
+                      {projectSelector.allProjects.map((project) => {
+                        const isSelected =
+                          project.id === projectSelector.currentProject?.id;
+                        return (
+                          <Box
+                            key={project.id}
+                            onClick={() => {
+                              projectSelector.onProjectChange(project.id);
+                              setProjectMenuAnchor(null);
+                            }}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              fontSize: "13px",
+                              py: 1.25,
+                              px: 2,
+                              mx: 1,
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                              backgroundColor: isSelected ? "#f0fdf4" : "transparent",
+                              borderLeft: isSelected ? "3px solid #13715B" : "3px solid transparent",
+                              color: theme.palette.text.primary,
+                              fontWeight: isSelected ? 500 : 400,
+                              transition: "all 0.15s ease",
+                              "&:hover": {
+                                backgroundColor: isSelected ? "#f0fdf4" : "#f3f4f6",
+                              },
+                            }}
+                          >
+                            <FolderKanban 
+                              size={15} 
+                              style={{ 
+                                marginRight: 10, 
+                                opacity: isSelected ? 1 : 0.6,
+                                color: isSelected ? "#13715B" : "inherit"
+                              }} 
+                            />
+                            <Box sx={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {project.name}
+                            </Box>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </>
+                )}
+
+                {/* New project option */}
                 {projectSelector.allProjects.length > 0 && (
                   <Box
                     sx={{
-                      borderTop: `1px solid ${
-                        theme.palette.border?.light || "#e0e0e0"
-                      }`,
-                      my: 0.5,
+                      borderTop: "1px solid #e5e7eb",
+                      mx: 2,
+                      mt: 1,
+                      mb: 0.5,
                     }}
                   />
                 )}
-                {projectSelector.allProjects.map((project) => {
-                  const isSelected =
-                    project.id === projectSelector.currentProject?.id;
-                  return (
-                    <Box
-                      key={project.id}
-                      onClick={() => {
-                        projectSelector.onProjectChange(project.id);
-                        setProjectMenuAnchor(null);
-                      }}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        fontSize: "13px",
-                        py: 1,
-                        px: 2,
-                        mx: 1,
-                        my: 0.5,
-                        borderRadius: theme.shape.borderRadius,
-                        cursor: "pointer",
-                        backgroundColor: isSelected
-                          ? theme.palette.background.accent
-                          : "transparent",
-                        color: isSelected
-                          ? "#13715B"
-                          : theme.palette.text.primary,
-                        transition:
-                          "color 0.2s ease, background-color 0.2s ease",
-                        "&:hover": {
-                          backgroundColor: theme.palette.background.accent,
-                          color: "#13715B",
-                        },
-                      }}
-                    >
-                      <FolderKanban size={14} style={{ marginRight: 8 }} />
-                      {project.name}
-                    </Box>
-                  );
-                })}
-                {projectSelector.allProjects.length > 0 && (
-                  <Box
-                    sx={{
-                      borderTop: `1px solid ${
-                        theme.palette.border?.light || "#e0e0e0"
-                      }`,
-                      my: 0.5,
-                    }}
-                  >
-                    <Box
-                      onClick={() => {
-                        projectSelector.onProjectChange("create_new");
-                        setProjectMenuAnchor(null);
-                      }}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        fontSize: "13px",
-                        py: 1,
-                        px: 2,
-                        mx: 1,
-                        my: 0.5,
-                        borderRadius: theme.shape.borderRadius,
-                        color: "#13715B",
-                        cursor: "pointer",
-                        transition: "background-color 0.2s ease",
-                        "&:hover": {
-                          backgroundColor: theme.palette.background.accent,
-                        },
-                      }}
-                    >
-                      <Plus size={14} style={{ marginRight: 8 }} />
-                      New project
-                    </Box>
-                  </Box>
-                )}
+                <Box
+                  onClick={() => {
+                    projectSelector.onProjectChange("create_new");
+                    setProjectMenuAnchor(null);
+                  }}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    py: 1.25,
+                    px: 2,
+                    mx: 1,
+                    mt: projectSelector.allProjects.length === 0 ? 0.5 : 0,
+                    borderRadius: "6px",
+                    color: "#13715B",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      backgroundColor: "#f0fdf4",
+                    },
+                  }}
+                >
+                  <Plus size={15} style={{ marginRight: 10 }} />
+                  New project
+                </Box>
               </Box>
             </Popover>
           </Box>

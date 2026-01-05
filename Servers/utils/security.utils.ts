@@ -17,15 +17,15 @@ export function isValidSQLIdentifier(value: string): boolean {
 
 /**
  * Validates tenant hash format
- * Tenant hashes should be base64-like strings
+ * Tenant hashes are exactly 10 alphanumeric characters produced by getTenantHash
  *
  * @param tenantId - The tenant ID to validate
  * @returns true if valid tenant hash format
  */
 export function isValidTenantHash(tenantId: string): boolean {
-  // getTenantHash produces base64-like strings, typically 10-20 chars
-  // Allow alphanumeric characters only (base64 without special chars)
-  return /^[a-zA-Z0-9]{8,64}$/.test(tenantId);
+  // getTenantHash produces exactly 10 alphanumeric characters
+  // from base64 hash with special chars removed
+  return /^[a-zA-Z0-9]{10}$/.test(tenantId);
 }
 
 /**

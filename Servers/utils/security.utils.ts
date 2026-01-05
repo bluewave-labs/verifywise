@@ -29,28 +29,6 @@ export function isValidTenantHash(tenantId: string): boolean {
 }
 
 /**
- * Validates and returns a safe tenant schema name for use in SQL queries.
- * Throws an error if the tenant hash format is invalid.
- *
- * This is a defense-in-depth measure - tenant values come from signed JWTs
- * and are validated in auth middleware, but this provides an additional
- * layer of protection against SQL injection.
- *
- * @param tenant - The tenant hash to validate
- * @throws Error if tenant format is invalid
- * @returns The validated tenant hash
- */
-export function validateTenantSchema(tenant: string): string {
-  if (!tenant || typeof tenant !== 'string') {
-    throw new Error('Tenant schema is required');
-  }
-  if (!isValidTenantHash(tenant)) {
-    throw new Error('Invalid tenant schema format');
-  }
-  return tenant;
-}
-
-/**
  * Validates resource type against allowed values
  *
  * @param resourceType - The resource type to validate

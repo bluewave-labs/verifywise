@@ -162,11 +162,17 @@ export default function NewExperimentModal({
       contextPrecision: false,
       contextRecall: false,
       faithfulness: false,
-      // Agent-specific (requires tools)
+      // Agent-specific - Reasoning Layer (requires tools)
+      planQuality: false,
+      planAdherence: false,
+      // Agent-specific - Action Layer (requires tools)
       toolSelection: false,
       toolCorrectness: false,
+      argumentCorrectness: false,
+      // Agent-specific - Execution (requires tools)
       actionRelevance: false,
       planningQuality: false,
+      stepEfficiency: false,
       // Conversational metrics (multi-turn datasets)
       turnRelevancy: true,
       knowledgeRetention: true,
@@ -187,10 +193,14 @@ export default function NewExperimentModal({
       contextPrecision: 0.5,
       contextRecall: 0.5,
       faithfulness: 0.5,
+      planQuality: 0.5,
+      planAdherence: 0.5,
       toolSelection: 0.5,
       toolCorrectness: 0.5,
+      argumentCorrectness: 0.5,
       actionRelevance: 0.5,
       planningQuality: 0.5,
+      stepEfficiency: 0.5,
       turnRelevancy: 0.5,
       knowledgeRetention: 0.5,
       conversationCoherence: 0.5,

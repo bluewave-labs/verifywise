@@ -122,6 +122,37 @@ export class UserModel extends Model<UserModel> {
   profile_photo_id?: number;
 
   /**
+   * Super admin flag - grants platform-wide administrative privileges
+   * Super admins can manage all organizations and workspaces
+   */
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  is_super_admin?: boolean;
+
+  /**
+   * OIDC subject identifier from external identity provider
+   * Used for audit logging and SSO user tracking
+   */
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: true,
+  })
+  oidc_subject?: string;
+
+  /**
+   * OIDC issuer URL from external identity provider
+   * Used for audit logging and SSO user tracking
+   */
+  @Column({
+    type: DataType.STRING(512),
+    allowNull: true,
+  })
+  oidc_issuer?: string;
+
+  /**
    * Creates a new user with validation and password hashing
    *
    * Factory method that creates a UserModel instance with validated data and hashed password.
@@ -643,6 +674,40 @@ export class UserModel extends Model<UserModel> {
   }
 
   /**
+   * Check if user is a super admin (platform-wide administrative privileges)
+   */
+  isSuperAdmin(): boolean {
+    return this.is_super_admin === true;
+  }
+
+  /**
+   * Check if user has any administrative privileges (admin or super admin)
+   */
+  hasAdminPrivileges(): boolean {
+    return this.isAdmin() || this.isSuperAdmin();
+  }
+
+  /**
+   * Check if user was authenticated via OIDC
+   */
+  isOidcUser(): boolean {
+    return !!this.oidc_subject && !!this.oidc_issuer;
+  }
+
+  /**
+   * Get OIDC identity information for audit logging
+   */
+  getOidcIdentity(): { subject: string; issuer: string } | null {
+    if (!this.isOidcUser()) {
+      return null;
+    }
+    return {
+      subject: this.oidc_subject!,
+      issuer: this.oidc_issuer!,
+    };
+  }
+
+  /**
    * Update last login timestamp
    */
   updateLastLogin(): void {
@@ -669,6 +734,9 @@ export class UserModel extends Model<UserModel> {
       created_at: this.created_at?.toISOString(),
       last_login: this.last_login?.toISOString(),
       is_demo: this.is_demo,
+      is_super_admin: this.is_super_admin,
+      oidc_subject: this.oidc_subject,
+      oidc_issuer: this.oidc_issuer,
     };
   }
 

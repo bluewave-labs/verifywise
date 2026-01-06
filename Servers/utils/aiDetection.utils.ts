@@ -21,6 +21,23 @@ import {
 import { ICreateModelSecurityFindingInput } from "../domain.layer/interfaces/i.modelSecurity";
 
 // ============================================================================
+// Tenant ID Validation (Defense-in-depth for SQL injection prevention)
+// ============================================================================
+
+/**
+ * Validates tenant ID format to prevent SQL injection.
+ * Tenant IDs from getTenantHash() should only contain alphanumeric chars and underscores.
+ *
+ * @param tenantId - The tenant schema identifier
+ * @throws Error if tenant ID format is invalid
+ */
+function validateTenantId(tenantId: string): void {
+  if (!tenantId || !/^[a-zA-Z0-9_]+$/.test(tenantId)) {
+    throw new Error(`Invalid tenant identifier format: ${tenantId}`);
+  }
+}
+
+// ============================================================================
 // Scan Queries
 // ============================================================================
 
@@ -37,6 +54,7 @@ export async function createScanQuery(
   tenantId: string,
   transaction: Transaction
 ): Promise<IScan> {
+  validateTenantId(tenantId);
   const query = `
     INSERT INTO "${tenantId}".ai_detection_scans (
       repository_url,
@@ -83,6 +101,7 @@ export async function getScanByIdQuery(
   scanId: number,
   tenantId: string
 ): Promise<IScan | null> {
+  validateTenantId(tenantId);
   const query = `
     SELECT *
     FROM "${tenantId}".ai_detection_scans
@@ -108,6 +127,7 @@ export async function getScanWithUserQuery(
   scanId: number,
   tenantId: string
 ): Promise<(IScan & { triggered_by_user: { id: number; name: string; surname?: string } }) | null> {
+  validateTenantId(tenantId);
   const query = `
     SELECT
       s.*,
@@ -144,6 +164,7 @@ export async function updateScanProgressQuery(
   tenantId: string,
   transaction?: Transaction
 ): Promise<IScan | null> {
+  validateTenantId(tenantId);
   // Build SET clause dynamically based on provided fields
   const setClauses: string[] = ["updated_at = NOW()"];
   const replacements: Record<string, unknown> = { scanId };
@@ -216,6 +237,7 @@ export async function getScansListQuery(
   limit: number = 20,
   status?: ScanStatus
 ): Promise<{ scans: (IScan & { triggered_by_user: { id: number; name: string; surname?: string } })[]; total: number }> {
+  validateTenantId(tenantId);
   const offset = (page - 1) * limit;
   const replacements: Record<string, unknown> = { limit, offset };
   let whereClause = "";
@@ -270,6 +292,7 @@ export async function deleteScanQuery(
   tenantId: string,
   transaction: Transaction
 ): Promise<boolean> {
+  validateTenantId(tenantId);
   // Findings are deleted via CASCADE
   const query = `
     DELETE FROM "${tenantId}".ai_detection_scans
@@ -298,6 +321,7 @@ export async function getActiveScanForRepoQuery(
   repoName: string,
   tenantId: string
 ): Promise<IScan | null> {
+  validateTenantId(tenantId);
   const query = `
     SELECT *
     FROM "${tenantId}".ai_detection_scans
@@ -333,6 +357,7 @@ export async function createFindingQuery(
   tenantId: string,
   transaction: Transaction
 ): Promise<IFinding> {
+  validateTenantId(tenantId);
   const query = `
     INSERT INTO "${tenantId}".ai_detection_findings (
       scan_id,
@@ -397,6 +422,7 @@ export async function createFindingsBatchQuery(
   tenantId: string,
   transaction: Transaction
 ): Promise<number> {
+  validateTenantId(tenantId);
   if (inputs.length === 0) return 0;
 
   // Final deduplication safety check - PostgreSQL ON CONFLICT fails if same row appears twice in batch
@@ -519,6 +545,7 @@ export async function createModelSecurityFindingsBatchQuery(
   tenantId: string,
   transaction: Transaction
 ): Promise<number> {
+  validateTenantId(tenantId);
   if (inputs.length === 0) return 0;
 
   // Use single INSERT with multiple VALUES
@@ -595,6 +622,7 @@ export async function getFindingsForScanQuery(
   confidence?: string,
   findingType?: string
 ): Promise<{ findings: IFinding[]; total: number }> {
+  validateTenantId(tenantId);
   const offset = (page - 1) * limit;
   const replacements: Record<string, unknown> = { scanId, limit, offset };
   let whereClause = "WHERE scan_id = :scanId";
@@ -665,6 +693,7 @@ export async function getFindingsSummaryQuery(
     agent: number;
   };
 }> {
+  validateTenantId(tenantId);
   const confidenceQuery = `
     SELECT
       confidence,
@@ -758,6 +787,7 @@ export async function deleteFindingsForScanQuery(
   tenantId: string,
   transaction: Transaction
 ): Promise<void> {
+  validateTenantId(tenantId);
   const query = `
     DELETE FROM "${tenantId}".ai_detection_findings
     WHERE scan_id = :scanId;
@@ -785,6 +815,7 @@ export async function getScansWithCacheQuery(
   tenantId: string,
   olderThanDays: number = 7
 ): Promise<{ id: number; cache_path: string }[]> {
+  validateTenantId(tenantId);
   // Validate olderThanDays to prevent SQL injection
   const sanitizedDays = Math.max(1, Math.min(365, Math.floor(Number(olderThanDays) || 7)));
 
@@ -814,6 +845,7 @@ export async function clearScanCachePathQuery(
   scanId: number,
   tenantId: string
 ): Promise<void> {
+  validateTenantId(tenantId);
   const query = `
     UPDATE "${tenantId}".ai_detection_scans
     SET cache_path = NULL, updated_at = NOW()
@@ -847,6 +879,7 @@ export async function updateFindingGovernanceStatusQuery(
   userId: number,
   tenantId: string
 ): Promise<IFinding | null> {
+  validateTenantId(tenantId);
   const query = `
     UPDATE "${tenantId}".ai_detection_findings
     SET
@@ -887,6 +920,7 @@ export async function getGovernanceSummaryQuery(
   flagged: number;
   unreviewed: number;
 }> {
+  validateTenantId(tenantId);
   const query = `
     SELECT
       COUNT(*) as total,
@@ -948,6 +982,7 @@ export interface IAIDetectionStats {
 export async function getAIDetectionStatsQuery(
   tenantId: string
 ): Promise<IAIDetectionStats> {
+  validateTenantId(tenantId);
   // Total and completed scans
   const scansQuery = `
     SELECT

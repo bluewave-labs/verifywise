@@ -272,6 +272,8 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
     setProgress(null);
     setResult(null);
 
+    // Abort any existing operation before starting new one
+    abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
 
     // Normalize the URL (convert owner/repo to full GitHub URL)

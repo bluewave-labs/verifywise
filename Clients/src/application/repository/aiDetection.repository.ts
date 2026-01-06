@@ -312,14 +312,59 @@ export async function pollScanStatus(
   signal?: AbortSignal
 ): Promise<ScanStatusResponse> {
   return new Promise((resolve, reject) => {
-    const poll = async () => {
-      if (signal?.aborted) {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let isSettled = false;
+
+    const cleanup = () => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const settle = (
+      resolver: (value: ScanStatusResponse) => void,
+      value: ScanStatusResponse
+    ) => {
+      if (isSettled) return;
+      isSettled = true;
+      cleanup();
+      resolver(value);
+    };
+
+    const settleError = (error: Error) => {
+      if (isSettled) return;
+      isSettled = true;
+      cleanup();
+      reject(error);
+    };
+
+    // Handle abort signal
+    if (signal) {
+      if (signal.aborted) {
         reject(new Error("Polling aborted"));
+        return;
+      }
+      signal.addEventListener(
+        "abort",
+        () => settleError(new Error("Polling aborted")),
+        { once: true }
+      );
+    }
+
+    const poll = async () => {
+      if (isSettled || signal?.aborted) {
         return;
       }
 
       try {
         const status = await getScanStatus(scanId, signal);
+
+        // Check again after async operation
+        if (isSettled || signal?.aborted) {
+          return;
+        }
+
         onProgress?.(status);
 
         if (
@@ -327,12 +372,12 @@ export async function pollScanStatus(
           status.status === "failed" ||
           status.status === "cancelled"
         ) {
-          resolve(status);
+          settle(resolve, status);
         } else {
-          setTimeout(poll, pollInterval);
+          timeoutId = setTimeout(poll, pollInterval);
         }
       } catch (error) {
-        reject(error);
+        settleError(error instanceof Error ? error : new Error(String(error)));
       }
     };
 

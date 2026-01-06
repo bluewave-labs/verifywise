@@ -17,6 +17,23 @@ import {
 } from "../domain.layer/interfaces/i.aiDetection";
 
 // ============================================================================
+// Tenant ID Validation (Defense-in-depth for SQL injection prevention)
+// ============================================================================
+
+/**
+ * Validates tenant ID format to prevent SQL injection.
+ * Tenant IDs from getTenantHash() should only contain alphanumeric chars and underscores.
+ *
+ * @param tenantId - The tenant schema identifier
+ * @throws Error if tenant ID format is invalid
+ */
+function validateTenantId(tenantId: string): void {
+  if (!tenantId || !/^[a-zA-Z0-9_]+$/.test(tenantId)) {
+    throw new Error(`Invalid tenant identifier format: ${tenantId}`);
+  }
+}
+
+// ============================================================================
 // Database Query Functions
 // ============================================================================
 
@@ -26,6 +43,7 @@ import {
  * @param tenantId - The tenant schema hash
  */
 async function ensureGitHubTokensTableExists(tenantId: string): Promise<void> {
+  validateTenantId(tenantId);
   try {
     // Check if table exists
     const [result] = await sequelize.query<{ exists: boolean }>(
@@ -235,6 +253,7 @@ export async function getDecryptedGitHubToken(
 export async function updateGitHubTokenLastUsed(
   tenantId: string
 ): Promise<void> {
+  validateTenantId(tenantId);
   await sequelize.query(
     `UPDATE "${tenantId}".github_tokens
      SET last_used_at = NOW(), updated_at = NOW()`,

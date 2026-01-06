@@ -1052,17 +1052,16 @@ async function executeScan(
     const MAX_MODEL_FILE_SIZE = 500 * 1024 * 1024; // 500MB local limit (more generous than API)
 
     // Filter model files from all files
-    const modelFiles = allFiles.filter((file) =>
-      isModelFileExtension(
-        file.path.substring(file.path.lastIndexOf(".")).toLowerCase()
-      )
-    );
+    const modelFiles = allFiles.filter((file) => {
+      const ext = path.extname(file.path || "").toLowerCase();
+      return isModelFileExtension(ext);
+    });
 
     // Scan model files for security threats
     for (const modelFile of modelFiles) {
       if (signal?.aborted) break;
 
-      const extension = modelFile.path.substring(modelFile.path.lastIndexOf(".")).toLowerCase();
+      const extension = path.extname(modelFile.path || "").toLowerCase();
 
       // Check file size limit
       if (modelFile.size > MAX_MODEL_FILE_SIZE) {

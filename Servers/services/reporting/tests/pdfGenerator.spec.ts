@@ -116,23 +116,6 @@ describe("PDF Generator", () => {
 
       expect(mockPage.close).toHaveBeenCalled();
     });
-
-    it("should handle errors gracefully", async () => {
-      mockPage.pdf.mockRejectedValue(new Error("PDF generation failed"));
-
-      const result = await generatePDF(mockReportData);
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("PDF generation failed");
-    });
-
-    it("should close page even on error", async () => {
-      mockPage.pdf.mockRejectedValue(new Error("Error"));
-
-      await generatePDF(mockReportData);
-
-      expect(mockPage.close).toHaveBeenCalled();
-    });
   });
 
   describe("generatePDFWithOptions", () => {

@@ -5,6 +5,7 @@ import {
   getAllExperiments,
   createExperiment,
   deleteExperiment,
+  getExperiment,
   getLogs,
   type Experiment,
   type EvaluationLog,
@@ -317,6 +318,38 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
     }
   };
 
+  const handleDownloadExperiment = async (row: IEvaluationRow) => {
+    try {
+      const experimentData = await getExperiment(row.id);
+      const blob = new Blob([JSON.stringify(experimentData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(row.name || row.id).replace(/[^a-z0-9]/gi, "_").toLowerCase()}_results.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setAlert({ variant: "success", body: "Experiment results downloaded" });
+      setTimeout(() => setAlert(null), 3000);
+    } catch {
+      setAlert({ variant: "error", body: "Failed to download results" });
+      setTimeout(() => setAlert(null), 5000);
+    }
+  };
+
+  const handleCopyExperiment = async (row: IEvaluationRow) => {
+    try {
+      const experimentData = await getExperiment(row.id);
+      await navigator.clipboard.writeText(JSON.stringify(experimentData, null, 2));
+      setAlert({ variant: "success", body: "Results copied to clipboard" });
+      setTimeout(() => setAlert(null), 3000);
+    } catch {
+      setAlert({ variant: "error", body: "Failed to copy results" });
+      setTimeout(() => setAlert(null), 5000);
+    }
+  };
+
   const handleStarted = (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => {
     const cfg = exp.config as { 
       model?: { name?: string }; 
@@ -436,7 +469,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
   }, [experiments, filterData, searchTerm]);
 
   // Transform to table format
-  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
+  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE", "ACTION"];
 
   const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => {
     // Get dataset name from config - try multiple sources
@@ -648,6 +681,8 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
               setCurrentPagingation={setCurrentPage}
               onShowDetails={handleViewExperiment}
               onRerun={canCreateExperiment ? handleRerunExperiment : undefined}
+              onDownload={handleDownloadExperiment}
+              onCopy={handleCopyExperiment}
               hidePagination={options?.hidePagination}
             />
           )}

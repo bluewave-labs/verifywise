@@ -86,12 +86,6 @@ const LABEL_TO_VARIANT: Record<string, ChipVariant> = {
   open: "error",
   closed: "info",
 
-  // Scan status
-  cloning: "info",
-  scanning: "info",
-  failed: "error",
-  cancelled: "warning",
-
   // Lifecycle stages (MLFlow)
   production: "success",
   staging: "warning",

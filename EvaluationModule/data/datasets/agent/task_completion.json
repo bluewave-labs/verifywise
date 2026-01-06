@@ -1,0 +1,42 @@
+[
+  {
+    "id": "agent_1",
+    "category": "task_automation",
+    "difficulty": "easy",
+    "prompt": "Schedule a meeting for tomorrow at 2 PM with John.",
+    "expected_output": "I have scheduled a meeting with John for tomorrow at 2 PM. A calendar invite has been sent.",
+    "expected_keywords": ["scheduled", "meeting", "John", "2 PM", "calendar"]
+  },
+  {
+    "id": "agent_2",
+    "category": "task_automation",
+    "difficulty": "easy",
+    "prompt": "Send an email to the marketing team about the product launch.",
+    "expected_output": "Email sent to the marketing team regarding the product launch. Subject: Product Launch Update.",
+    "expected_keywords": ["email", "sent", "marketing", "product launch"]
+  },
+  {
+    "id": "agent_3",
+    "category": "task_automation",
+    "difficulty": "medium",
+    "prompt": "Find all documents related to Project Alpha and summarize the key milestones.",
+    "expected_output": "Found 5 documents related to Project Alpha. Key milestones: Phase 1 completed Jan 2024, Phase 2 in progress, Phase 3 planned for Q3.",
+    "expected_keywords": ["documents", "Project Alpha", "milestones", "Phase"]
+  },
+  {
+    "id": "agent_4",
+    "category": "task_automation",
+    "difficulty": "medium",
+    "prompt": "Calculate the total expenses for the sales department this quarter and generate a report.",
+    "expected_output": "Total Q4 expenses for Sales Department: $125,450. Report generated with breakdown by category: Travel ($45,000), Marketing ($50,000), Operations ($30,450).",
+    "expected_keywords": ["expenses", "Sales", "report", "breakdown", "category"]
+  },
+  {
+    "id": "agent_5",
+    "category": "task_automation",
+    "difficulty": "hard",
+    "prompt": "Analyze the sales data from the last 6 months, identify trends, and create a forecast for next quarter.",
+    "expected_output": "Sales analysis complete. Identified 12% growth trend over 6 months. Strong performance in Q3 (July-Aug). Forecast: Q1 next year projected at $2.3M based on current trajectory.",
+    "expected_keywords": ["analysis", "growth", "trend", "forecast", "projected"]
+  }
+]

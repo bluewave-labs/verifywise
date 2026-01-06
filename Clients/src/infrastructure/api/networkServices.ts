@@ -101,7 +101,7 @@ export const apiServices = {
     params: RequestParams = {}
   ): Promise<ApiResponse<T>> {
     // Extract special config options that should not be query params
-    const { signal, responseType, headers, ...queryParams } = params;
+    const { signal, responseType, ...queryParams } = params;
 
     logRequest("get", endpoint, queryParams);
     try {
@@ -109,7 +109,6 @@ export const apiServices = {
         params: queryParams,
         responseType: responseType ?? "json",
         signal,
-        headers,
       });
 
       logResponse("get", endpoint, response);

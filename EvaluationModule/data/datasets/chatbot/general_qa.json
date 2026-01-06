@@ -1,0 +1,42 @@
+[
+  {
+    "id": "chatbot_1",
+    "category": "general",
+    "difficulty": "easy",
+    "prompt": "What is the capital of France?",
+    "expected_output": "The capital of France is Paris.",
+    "expected_keywords": ["Paris", "capital", "France"]
+  },
+  {
+    "id": "chatbot_2",
+    "category": "general",
+    "difficulty": "easy",
+    "prompt": "What is 2 + 2?",
+    "expected_output": "2 + 2 equals 4.",
+    "expected_keywords": ["4", "four"]
+  },
+  {
+    "id": "chatbot_3",
+    "category": "general",
+    "difficulty": "medium",
+    "prompt": "Explain the difference between machine learning and deep learning.",
+    "expected_output": "Machine learning is a subset of AI that uses algorithms to learn from data. Deep learning is a subset of machine learning that uses neural networks with multiple layers to learn complex patterns.",
+    "expected_keywords": ["neural", "networks", "algorithms", "AI", "learning"]
+  },
+  {
+    "id": "chatbot_4",
+    "category": "general",
+    "difficulty": "medium",
+    "prompt": "What are the benefits of regular exercise?",
+    "expected_output": "Regular exercise improves cardiovascular health, strengthens muscles, boosts mental health, helps maintain a healthy weight, and improves sleep quality.",
+    "expected_keywords": ["health", "cardiovascular", "mental", "weight", "muscles"]
+  },
+  {
+    "id": "chatbot_5",
+    "category": "coding",
+    "difficulty": "easy",
+    "prompt": "How do you print 'Hello World' in Python?",
+    "expected_output": "In Python, you can print 'Hello World' using: print('Hello World')",
+    "expected_keywords": ["print", "Hello World", "Python"]
+  }
+]

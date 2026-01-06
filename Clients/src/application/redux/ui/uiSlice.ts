@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type AppModule = "main" | "evals" | "gateway" | "ai-detection";
+export type AppModule = "main" | "evals" | "gateway";
 
 const initialState = {
   sidebar: {

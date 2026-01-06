@@ -1,0 +1,42 @@
+[
+  {
+    "id": "support_1",
+    "category": "customer_support",
+    "difficulty": "easy",
+    "prompt": "How do I reset my password?",
+    "expected_output": "To reset your password, click on 'Forgot Password' on the login page, enter your email address, and follow the instructions sent to your inbox.",
+    "expected_keywords": ["password", "reset", "email", "forgot"]
+  },
+  {
+    "id": "support_2",
+    "category": "customer_support",
+    "difficulty": "easy",
+    "prompt": "What are your business hours?",
+    "expected_output": "Our customer support is available Monday through Friday from 9 AM to 5 PM EST.",
+    "expected_keywords": ["hours", "Monday", "Friday", "support"]
+  },
+  {
+    "id": "support_3",
+    "category": "customer_support",
+    "difficulty": "medium",
+    "prompt": "I received a damaged product. What should I do?",
+    "expected_output": "We apologize for the inconvenience. Please contact our support team with your order number and photos of the damage. We will arrange a replacement or refund.",
+    "expected_keywords": ["replacement", "refund", "photos", "order number", "damage"]
+  },
+  {
+    "id": "support_4",
+    "category": "customer_support",
+    "difficulty": "medium",
+    "prompt": "Can I cancel my subscription?",
+    "expected_output": "Yes, you can cancel your subscription at any time from your account settings. Navigate to Subscription and click Cancel. Your access will continue until the end of the billing period.",
+    "expected_keywords": ["cancel", "subscription", "account", "billing"]
+  },
+  {
+    "id": "support_5",
+    "category": "customer_support",
+    "difficulty": "hard",
+    "prompt": "I was charged twice for the same order. How can I get a refund?",
+    "expected_output": "We apologize for the billing error. Please provide your order number and payment details. Our billing team will investigate and process a refund for the duplicate charge within 3-5 business days.",
+    "expected_keywords": ["refund", "billing", "duplicate", "order number", "business days"]
+  }
+]

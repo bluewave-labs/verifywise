@@ -465,23 +465,6 @@ export const validateReviewDateConsistency = (
   return { isValid: true };
 };
 
-/**
- * Validates that assignee and reviewer are different people
- */
-export const validateAssigneeReviewerDifference = (
-  assignee: number,
-  reviewer: number
-): ValidationResult => {
-  if (assignee === reviewer) {
-    return {
-      isValid: false,
-      message: "Assignee and reviewer must be different people",
-      code: "SAME_ASSIGNEE_REVIEWER",
-    };
-  }
-
-  return { isValid: true };
-};
 
 /**
  * Validates website accessibility (placeholder for future implementation)
@@ -515,23 +498,6 @@ export const validateCompleteVendorWithBusinessRules = (
 
   // Add business rule validations if basic validation passes
   if (errors.length === 0) {
-    // Check assignee and reviewer are different
-    if (data.assignee && data.reviewer) {
-      const assigneeReviewerCheck = validateAssigneeReviewerDifference(
-        data.assignee,
-        data.reviewer
-      );
-
-      if (!assigneeReviewerCheck.isValid) {
-        errors.push({
-          field: "reviewer",
-          message:
-            assigneeReviewerCheck.message || "Assignee and reviewer conflict",
-          code: assigneeReviewerCheck.code || "BUSINESS_RULE_VIOLATION",
-        });
-      }
-    }
-
     // Check review date consistency
     if (data.review_status && data.review_date) {
       const reviewDateCheck = validateReviewDateConsistency(
@@ -575,28 +541,6 @@ export const validateUpdateVendorWithBusinessRules = (
           field: "review_status",
           message: statusProgression.message || "Invalid status progression",
           code: statusProgression.code || "BUSINESS_RULE_VIOLATION",
-        });
-      }
-    }
-
-    // Check assignee and reviewer difference
-    const newAssignee =
-      data.assignee !== undefined ? data.assignee : currentVendor.assignee;
-    const newReviewer =
-      data.reviewer !== undefined ? data.reviewer : currentVendor.reviewer;
-
-    if (newAssignee && newReviewer) {
-      const assigneeReviewerCheck = validateAssigneeReviewerDifference(
-        newAssignee,
-        newReviewer
-      );
-
-      if (!assigneeReviewerCheck.isValid) {
-        errors.push({
-          field: data.reviewer !== undefined ? "reviewer" : "assignee",
-          message:
-            assigneeReviewerCheck.message || "Assignee and reviewer conflict",
-          code: assigneeReviewerCheck.code || "BUSINESS_RULE_VIOLATION",
         });
       }
     }

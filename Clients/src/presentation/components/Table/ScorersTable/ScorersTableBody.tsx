@@ -4,15 +4,14 @@ import {
   TableRow,
   TableCell,
   IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
+  Popover,
+  Stack,
   Typography,
 } from "@mui/material";
 import { Pencil, Trash2, MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ScorerRow } from "./index";
+import CustomizableButton from "../../Button/CustomizableButton";
 
 interface ScorersTableBodyProps {
   rows: ScorerRow[];
@@ -189,50 +188,73 @@ const ScorersTableBody: React.FC<ScorersTableBodyProps> = ({
         ))}
 
       {/* Action Menu */}
-      <Menu
-        anchorEl={menuAnchorEl}
+      <Popover
         open={Boolean(menuAnchorEl)}
+        anchorEl={menuAnchorEl}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        PaperProps={{
-          elevation: 2,
-          sx: {
-            minWidth: 160,
-            borderRadius: "8px",
-            border: "1px solid #E5E7EB",
-            "& .MuiMenuItem-root": {
-              fontSize: "13px",
-              py: 1,
-              px: 2,
-            },
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        sx={{
+          "& .MuiPopover-paper": {
+            minWidth: 120,
+            borderRadius: "4px",
+            border: "1px solid #d0d5dd",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            overflow: "hidden",
+            mt: 0.5,
+            p: 1,
           },
         }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        {onEdit && (
-          <MenuItem onClick={handleEditClick}>
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <Pencil size={16} color="#13715B" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Edit"
-              primaryTypographyProps={{ fontSize: "13px" }}
-            />
-          </MenuItem>
-        )}
-        {onDelete && (
-          <MenuItem onClick={handleDeleteClick}>
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <Trash2 size={16} color="#DC2626" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Delete"
-              primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }}
-            />
-          </MenuItem>
-        )}
-      </Menu>
+        <Stack spacing={1}>
+          {onEdit && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleEditClick}
+              startIcon={<Pencil size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+              }}
+            >
+              Edit
+            </CustomizableButton>
+          )}
+          {onDelete && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleDeleteClick}
+              startIcon={<Trash2 size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#DC2626",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#FEF2F2",
+                  borderColor: "#DC2626",
+                },
+              }}
+            >
+              Delete
+            </CustomizableButton>
+          )}
+        </Stack>
+      </Popover>
     </TableBody>
   );
 };

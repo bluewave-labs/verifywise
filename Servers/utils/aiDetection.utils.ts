@@ -670,6 +670,97 @@ export async function getFindingsForScanQuery(
 }
 
 /**
+ * Maximum findings to fetch in a single batch for exports
+ */
+const EXPORT_BATCH_SIZE = 500;
+
+/**
+ * Maximum total findings to fetch for exports (to prevent memory exhaustion)
+ */
+const MAX_EXPORT_FINDINGS = 10000;
+
+/**
+ * Get all findings for a scan with pagination (for exports)
+ *
+ * Fetches findings in batches to avoid memory issues with large scans.
+ * Use this for exports (AI-BOM, dependency graph) instead of hardcoded limits.
+ *
+ * @param scanId - Scan ID
+ * @param tenantId - Tenant schema hash
+ * @param excludeTypes - Optional finding types to exclude (e.g., ['secret', 'model_security'])
+ * @returns All findings for the scan
+ */
+export async function getAllFindingsForExportQuery(
+  scanId: number,
+  tenantId: string,
+  excludeTypes?: string[]
+): Promise<IFinding[]> {
+  validateTenantId(tenantId);
+
+  // First, get the total count
+  let whereClause = "WHERE scan_id = :scanId";
+  const replacements: Record<string, unknown> = { scanId };
+
+  if (excludeTypes && excludeTypes.length > 0) {
+    whereClause += ` AND finding_type NOT IN (${excludeTypes.map((_, i) => `:excludeType${i}`).join(", ")})`;
+    excludeTypes.forEach((type, i) => {
+      replacements[`excludeType${i}`] = type;
+    });
+  }
+
+  const countQuery = `
+    SELECT COUNT(*) as total
+    FROM "${tenantId}".ai_detection_findings
+    ${whereClause};
+  `;
+
+  const [countResults] = await sequelize.query(countQuery, {
+    replacements,
+    type: QueryTypes.SELECT,
+  });
+  const total = parseInt((countResults as { total: string }).total, 10);
+
+  // If count exceeds max, throw an error with helpful message
+  if (total > MAX_EXPORT_FINDINGS) {
+    throw new Error(
+      `Scan has ${total} findings, which exceeds the maximum export limit of ${MAX_EXPORT_FINDINGS}. ` +
+      `Consider filtering findings or exporting in smaller batches.`
+    );
+  }
+
+  // Fetch findings in batches
+  const allFindings: IFinding[] = [];
+  let offset = 0;
+
+  while (offset < total) {
+    const batchQuery = `
+      SELECT *
+      FROM "${tenantId}".ai_detection_findings
+      ${whereClause}
+      ORDER BY
+        CASE confidence
+          WHEN 'high' THEN 1
+          WHEN 'medium' THEN 2
+          WHEN 'low' THEN 3
+        END,
+        file_count DESC,
+        name ASC
+      LIMIT :limit OFFSET :offset;
+    `;
+
+    const batchResults = await sequelize.query(batchQuery, {
+      replacements: { ...replacements, limit: EXPORT_BATCH_SIZE, offset },
+      type: QueryTypes.SELECT,
+    });
+
+    allFindings.push(...(batchResults as IFinding[]));
+    offset += EXPORT_BATCH_SIZE;
+  }
+
+  return allFindings;
+}
+
+/**
  * Get findings summary for a scan
  *
  * @param scanId - Scan ID

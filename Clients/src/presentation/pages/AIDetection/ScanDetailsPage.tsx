@@ -1348,7 +1348,7 @@ export default function ScanDetailsPage({
             <Tooltip title="Export AI Bill of Materials (AI-BOM)" arrow placement="top">
               <span>
                 <CustomizableButton
-                  text={isExporting ? "Exporting..." : "Export AI-BOM"}
+                  text="Export AI-BOM"
                   onClick={handleExportAIBOM}
                   variant="outlined"
                   startIcon={<Download size={16} />}

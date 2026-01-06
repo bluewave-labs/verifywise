@@ -50,6 +50,7 @@ import {
   createFindingsBatchQuery,
   createModelSecurityFindingsBatchQuery,
   getFindingsForScanQuery,
+  getAllFindingsForExportQuery,
   getFindingsSummaryQuery,
   updateFindingGovernanceStatusQuery,
   getGovernanceSummaryQuery,
@@ -84,6 +85,12 @@ import {
 import { QueryTypes } from "sequelize";
 import { isModelFileExtension } from "../config/modelSecurityPatterns";
 import { getLicenseForFinding } from "../utils/licenseDetection.utils";
+import {
+  cacheAside,
+  buildTenantCacheKey,
+  deleteByPattern,
+  CACHE_KEYS,
+} from "../utils/cache.utils";
 
 // ============================================================================
 // Types
@@ -1354,6 +1361,11 @@ async function executeScan(
 
       progressState.status = "completed";
       progressState.progress = 100;
+
+      // Invalidate stats cache after successful scan completion
+      invalidateAIDetectionStatsCache(ctx.tenantId).catch(() => {
+        // Silently ignore cache invalidation errors
+      });
     } catch (error) {
       await transaction.rollback();
       throw error;
@@ -1704,6 +1716,11 @@ export async function deleteScan(
     await deleteScanQuery(scanId, ctx.tenantId, transaction);
     await transaction.commit();
 
+    // Invalidate stats cache after successful deletion
+    invalidateAIDetectionStatsCache(ctx.tenantId).catch(() => {
+      // Silently ignore cache invalidation errors
+    });
+
     return { message: "Scan deleted successfully" };
   } catch (error) {
     await transaction.rollback();
@@ -1998,8 +2015,14 @@ export async function getGovernanceSummary(
 // Statistics Operations
 // ============================================================================
 
+// Cache TTL for AI Detection stats (2 minutes)
+const AI_DETECTION_STATS_CACHE_TTL = 120;
+
 /**
  * Get overall AI Detection statistics
+ *
+ * Uses caching to avoid expensive aggregation queries on every request.
+ * Cache is invalidated when scans are created, completed, or deleted.
  *
  * @param ctx - Service context with tenant info
  * @returns Aggregated statistics
@@ -2007,7 +2030,29 @@ export async function getGovernanceSummary(
 export async function getAIDetectionStats(
   ctx: IServiceContext
 ): Promise<IAIDetectionStats> {
-  return getAIDetectionStatsQuery(ctx.tenantId);
+  const cacheKey = buildTenantCacheKey(CACHE_KEYS.AI_DETECTION_STATS, ctx.tenantId);
+
+  return cacheAside(
+    cacheKey,
+    () => getAIDetectionStatsQuery(ctx.tenantId),
+    AI_DETECTION_STATS_CACHE_TTL
+  );
+}
+
+/**
+ * Invalidate AI Detection stats cache for a tenant
+ *
+ * Call this when data changes that would affect stats:
+ * - Scan created/completed/deleted
+ * - Findings added/modified
+ *
+ * @param tenantId - Tenant identifier
+ */
+export async function invalidateAIDetectionStatsCache(
+  tenantId: string
+): Promise<void> {
+  const pattern = `${CACHE_KEYS.AI_DETECTION_STATS}:${tenantId}`;
+  await deleteByPattern(pattern);
 }
 
 // ============================================================================
@@ -2113,17 +2158,11 @@ export async function exportScanAsAIBOM(
   }
 
   // Get all findings for the scan (library, api_call, model_ref, rag_component, agent)
-  // Exclude secrets and model_security from AI-BOM
-  const findingsResponse = await getFindingsForScanQuery(
+  // Exclude secrets and model_security from AI-BOM using batched query
+  const relevantFindings = await getAllFindingsForExportQuery(
     scanId,
     ctx.tenantId,
-    1,
-    1000 // Get all findings
-  );
-
-  // Filter out secrets and model_security findings
-  const relevantFindings = findingsResponse.findings.filter(
-    (f) => !["secret", "model_security"].includes(f.finding_type)
+    ["secret", "model_security"] // Exclude these types
   );
 
   // Transform findings to AI-BOM components
@@ -2400,16 +2439,15 @@ export async function getDependencyGraph(
     throw new NotFoundException(`Scan with ID ${scanId} not found`);
   }
 
-  // Get all findings for the scan
-  const findingsResponse = await getFindingsForScanQuery(
+  // Get all findings for the scan using batched query
+  const allFindings = await getAllFindingsForExportQuery(
     scanId,
-    ctx.tenantId,
-    1,
-    1000 // Get all findings
+    ctx.tenantId
+    // No exclusions - include all finding types in graph
   );
 
   // Transform findings to graph nodes
-  const nodes: DependencyGraphNode[] = findingsResponse.findings.map((finding) => ({
+  const nodes: DependencyGraphNode[] = allFindings.map((finding) => ({
     id: `finding-${finding.id}`,
     findingId: finding.id!,
     type: findingTypeToNodeType(finding.finding_type),
@@ -2532,12 +2570,11 @@ export async function getComplianceMapping(
     );
   }
 
-  // Get all findings for the scan (no pagination - need all for mapping)
-  const { findings } = await getFindingsForScanQuery(
+  // Get all findings for the scan using batched query
+  const findings = await getAllFindingsForExportQuery(
     scanId,
-    ctx.tenantId,
-    1,
-    1000 // Get up to 1000 findings
+    ctx.tenantId
+    // No exclusions - include all finding types for compliance mapping
   );
 
   // Map each finding to compliance requirements

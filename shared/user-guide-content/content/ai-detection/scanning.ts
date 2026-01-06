@@ -99,7 +99,20 @@ export const scanningContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Scan results are organized into four tabs: **Libraries** for detected AI/ML frameworks, **API Calls** for direct provider integrations, **Secrets** for hardcoded credentials, and **Security** for model file vulnerabilities.',
+      text: 'Scan results are organized into eight tabs covering different aspects of AI/ML usage in your codebase:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Libraries', text: 'Detected AI/ML frameworks and packages' },
+        { bold: 'API calls', text: 'Direct integrations with AI provider APIs' },
+        { bold: 'Models', text: 'References to AI/ML model files and pre-trained models' },
+        { bold: 'RAG', text: 'Retrieval-Augmented Generation components and vector databases' },
+        { bold: 'Agents', text: 'AI agent frameworks and autonomous system components' },
+        { bold: 'Secrets', text: 'Hardcoded API keys and credentials' },
+        { bold: 'Security', text: 'Model file vulnerabilities and security issues' },
+        { bold: 'Compliance', text: 'EU AI Act compliance mapping and checklist' },
+      ],
     },
     {
       type: 'heading',
@@ -249,6 +262,112 @@ export const scanningContent: ArticleContent = {
       src: '/images/user-guide/ai-detection-security-tab.png',
       alt: 'Security tab showing model file vulnerabilities with severity levels',
       caption: 'Security findings with severity, CWE references, and OWASP ML Top 10 mappings',
+    },
+    {
+      type: 'heading',
+      id: 'models-tab',
+      level: 3,
+      text: 'Models tab',
+    },
+    {
+      type: 'paragraph',
+      text: 'The Models tab displays references to AI/ML model files detected in your codebase. This includes pre-trained models, model checkpoints, and model loading patterns.',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Pre-trained models', text: 'References to Hugging Face models, OpenAI models, and other hosted models' },
+        { bold: 'Local model files', text: 'Model weights stored in the repository (.pt, .h5, .onnx, etc.)' },
+        { bold: 'Model loading code', text: 'Code that loads or initializes ML models' },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'rag-tab',
+      level: 3,
+      text: 'RAG tab',
+    },
+    {
+      type: 'paragraph',
+      text: 'The RAG (Retrieval-Augmented Generation) tab identifies components used for building RAG systems. These systems combine retrieval mechanisms with generative AI models.',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Vector databases', text: 'Integrations with Pinecone, Qdrant, Chroma, Weaviate, and other vector stores' },
+        { bold: 'Embedding models', text: 'Code that generates embeddings for documents or queries' },
+        { bold: 'Retrieval pipelines', text: 'LangChain retrievers, LlamaIndex query engines, and similar patterns' },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'agents-tab',
+      level: 3,
+      text: 'Agents tab',
+    },
+    {
+      type: 'paragraph',
+      text: 'The Agents tab shows AI agent frameworks and autonomous system components. AI agents can execute multi-step tasks, use tools, and make decisions independently.',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Agent frameworks', text: 'LangChain agents, CrewAI, AutoGPT, and similar frameworks' },
+        { bold: 'Tool usage', text: 'Code that defines or uses tools for AI agents' },
+        { bold: 'Planning components', text: 'Task planning and execution orchestration code' },
+      ],
+    },
+    {
+      type: 'callout',
+      variant: 'info',
+      text: 'AI agents may have elevated access to external systems and data. Review agent implementations carefully for security and compliance implications.',
+    },
+    {
+      type: 'heading',
+      id: 'compliance-tab',
+      level: 3,
+      text: 'Compliance tab',
+    },
+    {
+      type: 'paragraph',
+      text: 'The Compliance tab maps your scan findings to EU AI Act requirements and generates a compliance checklist. This helps identify regulatory obligations based on the AI technologies detected in your codebase.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The compliance mapping covers key requirement categories:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Transparency', text: 'Requirements for disclosing AI system usage and capabilities' },
+        { bold: 'Data governance', text: 'Requirements for data quality, bias prevention, and privacy' },
+        { bold: 'Documentation', text: 'Technical documentation and record-keeping obligations' },
+        { bold: 'Human oversight', text: 'Requirements for human supervision of AI systems' },
+        { bold: 'Security', text: 'Cybersecurity and resilience requirements' },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'export-options',
+      level: 2,
+      text: 'Export and visualization',
+    },
+    {
+      type: 'paragraph',
+      text: 'Completed scans offer two additional features for analysis and reporting:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'View graph', text: 'Opens an interactive dependency graph showing relationships between AI components. Nodes represent findings and edges show inferred dependencies based on shared files and providers.' },
+        { bold: 'Export AI-BOM', text: 'Downloads the scan results as an AI Bill of Materials (AI-BOM) in JSON format. The AI-BOM follows a CycloneDX-inspired structure and includes all detected components, their providers, risk levels, and file locations.' },
+      ],
+    },
+    {
+      type: 'callout',
+      variant: 'tip',
+      title: 'AI-BOM for compliance',
+      text: 'The AI-BOM export provides a structured inventory of AI components suitable for regulatory submissions, vendor assessments, and internal governance documentation.',
     },
     {
       type: 'heading',

@@ -1999,9 +1999,24 @@ export const createNewTenant = async (
         documentation_url VARCHAR(500),
         file_count INTEGER DEFAULT 1,
         file_paths JSONB,
+        -- Governance columns
         governance_status VARCHAR(20) DEFAULT NULL,
         governance_updated_at TIMESTAMP WITH TIME ZONE,
         governance_updated_by INTEGER,
+        -- License columns
+        license_id VARCHAR(100),
+        license_name VARCHAR(255),
+        license_risk VARCHAR(20),
+        license_source VARCHAR(50),
+        -- Model security scanning columns (Phase 2)
+        severity VARCHAR(20),
+        cwe_id VARCHAR(20),
+        cwe_name VARCHAR(200),
+        owasp_ml_id VARCHAR(20),
+        owasp_ml_name VARCHAR(200),
+        threat_type VARCHAR(50),
+        operator_name VARCHAR(100),
+        module_name VARCHAR(100),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         UNIQUE(scan_id, name, provider)
       );`,
@@ -2015,7 +2030,24 @@ export const createNewTenant = async (
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_provider_idx" ON "${tenantHash}".ai_detection_findings(provider);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_risk_level_idx" ON "${tenantHash}".ai_detection_findings(risk_level);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_governance_idx" ON "${tenantHash}".ai_detection_findings(governance_status);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_severity_idx" ON "${tenantHash}".ai_detection_findings(severity);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_type_idx" ON "${tenantHash}".ai_detection_findings(finding_type);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_license_risk_idx" ON "${tenantHash}".ai_detection_findings(license_risk);`,
     ].map((query) => sequelize.query(query, { transaction })));
+
+    // Create github_tokens table (for private repository access)
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".github_tokens (
+        id SERIAL PRIMARY KEY,
+        encrypted_token TEXT NOT NULL,
+        token_name VARCHAR(100) DEFAULT 'GitHub Personal Access Token',
+        created_by INTEGER NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        last_used_at TIMESTAMP WITH TIME ZONE
+      );`,
+      { transaction }
+    );
 
     console.log(`✅ AI Detection tables created successfully for tenant: ${tenantHash}`);
   } catch (error) {

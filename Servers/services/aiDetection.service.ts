@@ -507,6 +507,38 @@ function getCodeContext(lines: string[], matchLineIndex: number, contextLines: n
 }
 
 /**
+ * Common placeholder patterns used in documentation and example files
+ * These should not be flagged as actual secrets
+ */
+const PLACEHOLDER_PATTERNS = [
+  /your[_-]?(api[_-]?)?key[_-]?here/i,
+  /your[_-]?key[_-]?here/i,
+  /your[_-]?token[_-]?here/i,
+  /your[_-]?secret[_-]?here/i,
+  /replace[_-]?with[_-]?your/i,
+  /insert[_-]?your[_-]?key/i,
+  /add[_-]?your[_-]?key/i,
+  /xxx+/i,
+  /placeholder/i,
+  /example[_-]?key/i,
+  /test[_-]?key/i,
+  /dummy[_-]?key/i,
+  /fake[_-]?key/i,
+  /sample[_-]?key/i,
+  /^["']?sk-[x]{10,}["']?$/i, // sk-xxxxxxxxxxxx
+  /^["']?your[_-]?/i,
+  /\.\.\./,  // Ellipsis placeholder
+  /<[^>]+>/,  // <your-key-here> style placeholders
+];
+
+/**
+ * Check if a matched line contains a placeholder value rather than a real secret
+ */
+function isPlaceholderSecret(line: string): boolean {
+  return PLACEHOLDER_PATTERNS.some(pattern => pattern.test(line));
+}
+
+/**
  * Scan file content for AI patterns
  */
 function scanFileForPatterns(
@@ -595,6 +627,10 @@ function scanFileForPatterns(
             const line = lines[i];
             const match = line.match(regex);
             if (match) {
+              // Skip placeholder values (e.g., your_key_here, xxx, <your-api-key>)
+              if (isPlaceholderSecret(line)) {
+                continue;
+              }
               // Use code context with secret masking enabled
               matches.push({
                 pattern,

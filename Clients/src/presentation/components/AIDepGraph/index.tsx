@@ -417,10 +417,11 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
             <ToggleButtonGroup
               value={visibleTypes}
               onChange={handleTypeChange}
+              orientation="vertical"
               size="small"
               sx={{
                 display: "flex",
-                flexWrap: "wrap",
+                flexDirection: "column",
                 gap: 0.5,
                 "& .MuiToggleButton-root": {
                   border: "1px solid #d0d5dd",
@@ -429,6 +430,7 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
                   fontSize: 10,
                   py: 0.25,
                   px: 1,
+                  justifyContent: "flex-start",
                   "&.Mui-selected": {
                     backgroundColor: "#f0fdf4",
                     borderColor: "#13715B",

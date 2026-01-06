@@ -532,10 +532,40 @@ const PLACEHOLDER_PATTERNS = [
 ];
 
 /**
+ * Patterns that indicate this is NOT a secret (import statements, dependency declarations, etc.)
+ * These are code structure patterns that should never be flagged as secrets
+ */
+const NOT_SECRET_PATTERNS = [
+  // Python/JS import statements
+  /^import\s+/,
+  /^from\s+\w+\s+import/,
+  /require\s*\(/,
+  // Dependency declarations (requirements.txt, package.json)
+  /^[a-zA-Z][a-zA-Z0-9_-]*[=<>~!]=?\d/,  // package>=1.0.0, package==1.0.0
+  /^\s*["'][a-zA-Z@][^"']*["']\s*:\s*["']\^?~?[\d*]/,  // "package": "^1.0.0"
+  // Function/method calls that aren't assignments
+  /^\s*\w+\s*=\s*\w+\.\w+\(/,  // result = client.method(
+  /^\s*return\s+/,
+  /^\s*await\s+/,
+  // Comments
+  /^\s*#/,
+  /^\s*\/\//,
+  /^\s*\/\*/,
+  /^\s*\*/,
+];
+
+/**
  * Check if a matched line contains a placeholder value rather than a real secret
  */
 function isPlaceholderSecret(line: string): boolean {
   return PLACEHOLDER_PATTERNS.some(pattern => pattern.test(line));
+}
+
+/**
+ * Check if a line is definitely not a secret (import, dependency, etc.)
+ */
+function isDefinitelyNotSecret(line: string): boolean {
+  return NOT_SECRET_PATTERNS.some(pattern => pattern.test(line.trim()));
 }
 
 /**
@@ -629,6 +659,10 @@ function scanFileForPatterns(
             if (match) {
               // Skip placeholder values (e.g., your_key_here, xxx, <your-api-key>)
               if (isPlaceholderSecret(line)) {
+                continue;
+              }
+              // Skip lines that are clearly not secrets (imports, dependencies, function calls)
+              if (isDefinitelyNotSecret(line)) {
                 continue;
               }
               // Use code context with secret masking enabled

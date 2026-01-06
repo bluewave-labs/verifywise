@@ -422,7 +422,8 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
               sx={{
                 display: "flex",
                 flexDirection: "column",
-                gap: 0.5,
+                gap: "8px",
+                alignItems: "flex-start",
                 "& .MuiToggleButton-root": {
                   border: "1px solid #d0d5dd",
                   borderRadius: "4px !important",
@@ -430,7 +431,8 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
                   fontSize: 10,
                   py: 0.25,
                   px: 1,
-                  justifyContent: "flex-start",
+                  width: "auto",
+                  minWidth: 0,
                   "&.Mui-selected": {
                     backgroundColor: "#f0fdf4",
                     borderColor: "#13715B",

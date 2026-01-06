@@ -5,12 +5,7 @@ import {
     stepDetailValueStyle,
     stepDetailValueWithWrapStyle
 } from './style';
-
-interface DetailFieldProps {
-    label: string;
-    value: string | string[];
-    withWrap?: boolean;
-}
+import { DetailFieldProps } from 'src/domain/interfaces/i.ApprovalForkflow';
 
 const DetailField: React.FC<DetailFieldProps> = ({ label, value, withWrap = false }) => {
     const displayValue = Array.isArray(value) ? value.join(", ") : value;

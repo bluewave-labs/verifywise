@@ -41,46 +41,7 @@ import dayjs from "dayjs";
 import DualButtonModal from "../../Dialogs/ConfirmationModal";
 import { getMenuGroups } from './mockData';
 import Field from "../../Inputs/Field";
-import { IMenuItem } from "../../../types/interfaces/i.menu";
-
-
-export interface IRequestorApprovalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    isRequestor: boolean;
-}
-
-export interface ITimelineStep {
-    id: number;
-    stepNumber: number;
-    title: string;
-    status: 'completed' | 'pending' | 'rejected';
-    approverName?: string;
-    date?: string;
-    comment?: string;
-    showDetailsLink?: boolean;
-    approvalResult?: "approved" | 'rejected' | 'pending';
-}
-
-export interface IStepDetails {
-    stepId: number;
-    owner: string;
-    teamMembers: string[];
-    location: string;
-    startDate: string;
-    targetIndustry: string;
-    description: string;
-}
-
-export interface IMenuGroupExtended {
-    name: string;
-    items: IMenuItemExtended[];
-}
-
-interface IMenuItemExtended extends IMenuItem {
-    id: number;
-    status: 'approved' | 'rejected' | 'pending';
-}
+import { IMenuItemExtended, IRequestorApprovalProps, IStepDetails, ITimelineStep } from "src/domain/interfaces/i.ApprovalForkflow";
 
 
 const getWorkflowChipProps = (value: string) => {

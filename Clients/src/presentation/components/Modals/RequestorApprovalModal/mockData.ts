@@ -1,5 +1,4 @@
-
-import { IMenuGroupExtended, IStepDetails, ITimelineStep } from ".";
+import { IMenuGroupExtended, IStepDetails, ITimelineStep } from "src/domain/interfaces/i.ApprovalForkflow";
 
 export const getMenuGroups = (): IMenuGroupExtended[] => [
     {

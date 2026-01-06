@@ -23,34 +23,7 @@ import {
 import { ApprovalWorkflowStepModel } from "../../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
 import { entities, conditions } from "./arrays";
 import { APPROVERS } from "./mockData";
-
-interface NewApprovalWorkflowFormErrors {
-    workflow_title?: string;
-    entity?: string;
-    steps: NewApprovalWorkflowStepFormErrors[];
-}
-
-interface NewApprovalWorkflowStepFormErrors {
-    step_name?: string;
-    approver?: string;
-    conditions?: string;
-}
-
-interface ICreateApprovalWorkflowProps {
-    isOpen: boolean;
-    setIsOpen: () => void;
-    initialData?: {
-        workflow_title: string;
-        entity: number;
-        steps: ApprovalWorkflowStepModel[];
-    }
-    isEdit?: boolean;
-    onSuccess?: (data: {
-        workflow_title: string;
-        entity: number;
-        steps: ApprovalWorkflowStepModel[];
-    }) => void;
-}
+import { ICreateApprovalWorkflowProps, NewApprovalWorkflowFormErrors } from "src/domain/interfaces/i.ApprovalForkflow";
 
 const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
     isOpen,

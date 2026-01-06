@@ -1,14 +1,8 @@
 import React from 'react';
 import { Stack } from '@mui/material';
 import StandardModal from '../StandardModal';
-import { IStepDetails } from '.';
 import DetailField from './DetailField';
-
-interface IStepDetailsModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    stepDetails: IStepDetails | null;
-}
+import { IStepDetailsModalProps } from 'src/domain/interfaces/i.ApprovalForkflow';
 
 const StepDetailsModal: React.FC<IStepDetailsModalProps> = ({
     isOpen,

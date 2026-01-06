@@ -1,5 +1,5 @@
 aiohappyeyeballs==2.6.1
-aiohttp==3.13.2
+aiohttp==3.13.3
 aiosignal==1.4.0
 alembic==1.17.1
 annotated-doc==0.0.3
@@ -95,7 +95,7 @@ tabulate==0.9.0
 tenacity==9.1.2
 threadpoolctl==3.6.0
 tokenizers==0.22.1
-torch==2.5.1
+torch==2.8.0
 tqdm==4.67.1
 transformers==4.57.1
 typer==0.20.0

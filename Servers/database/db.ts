@@ -86,6 +86,8 @@ import { EntityGraphAnnotationsModel } from "../domain.layer/models/entityGraphA
 import { EntityGraphViewsModel } from "../domain.layer/models/entityGraphViews/entityGraphViews.model";
 import { EntityGraphGapRulesModel } from "../domain.layer/models/entityGraphGapRules/entityGraphGapRules.model";
 import { PolicyLinkedObjectsModel } from "../domain.layer/models/policy/policy_linked_objects.model";
+import { WorkspaceModel } from "../domain.layer/models/workspace/workspace.model";
+import { UserWorkspaceModel } from "../domain.layer/models/userWorkspace/userWorkspace.model";
 
 dotenv.config();
 
@@ -181,6 +183,8 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     EntityGraphViewsModel,
     EntityGraphGapRulesModel,
     PolicyLinkedObjectsModel,
+    WorkspaceModel,
+    UserWorkspaceModel,
   ],
 }) as Sequelize;
 

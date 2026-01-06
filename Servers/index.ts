@@ -62,6 +62,7 @@ import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
 import policyLinkedObjects from "./routes/policyLinkedObjects.route";
+import workspaceRoutes from "./routes/workspace.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -153,6 +154,7 @@ try {
   app.use("/api/frameworks", frameworks);
   app.use("/api/eu-ai-act", euRouter); // **
   app.use("/api/organizations", organizationRoutes);
+  app.use("/api/workspaces", workspaceRoutes);
   app.use("/api/iso-42001", isoRoutes); // **
   app.use("/api/iso-27001", iso27001Routes); // **
   app.use("/api/training", trainingRoutes);

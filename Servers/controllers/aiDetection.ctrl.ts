@@ -637,7 +637,7 @@ export async function exportAIBOMController(
       fileName: FILE_NAME,
     });
 
-    return res.status(200).json(aibom);
+    return res.status(200).json(STATUS_CODE[200](aibom));
   } catch (error) {
     await logError({
       error: error as Error,

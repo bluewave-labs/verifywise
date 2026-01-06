@@ -33,3 +33,6 @@ scripts/sync-docs-to-website.sh
 
 nulGateway/data/config.json
 Gateway/data/config.json.bak
+
+# Node modules
+node_modules/

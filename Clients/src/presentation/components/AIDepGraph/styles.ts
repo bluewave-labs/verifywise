@@ -217,6 +217,10 @@ export const filePathSx: SxProps<Theme> = {
   fontSize: 12,
   color: COLORS.primary,
   cursor: "pointer",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  display: "block",
   "&:hover": {
     textDecoration: "underline",
   },

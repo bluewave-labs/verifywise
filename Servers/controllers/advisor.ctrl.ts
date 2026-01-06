@@ -72,7 +72,7 @@ export async function runAdvisor(req: Request, res: Response) {
     }
 
     logger.debug(
-      `Running advisor for tenant: ${tenantId}, user: ${userId}, llmKeyId: ${llmKeyId}, prompt: ${prompt.substring(0, 100)}...`,
+      `Running advisor for tenant: ${tenantId}, user: ${userId}, llmKeyId: ${llmKeyId}`,
     );
 
     const clients = await getLLMKeysWithKeyQuery(tenantId);

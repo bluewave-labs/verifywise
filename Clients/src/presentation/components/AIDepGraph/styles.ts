@@ -163,11 +163,41 @@ export const sidebarTitleSx: SxProps<Theme> = {
 export const sidebarContentSx: SxProps<Theme> = {
   flex: 1,
   overflow: "auto",
-  p: 2,
+  p: "8px",
 };
 
 export const sidebarSectionSx: SxProps<Theme> = {
   mb: 2,
+};
+
+// Table styles for metadata display
+export const sidebarTableSx: SxProps<Theme> = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "1px",
+  backgroundColor: COLORS.borderLight,
+  border: `1px solid ${COLORS.borderLight}`,
+  borderRadius: "4px",
+  overflow: "hidden",
+  mb: 2,
+};
+
+export const sidebarTableCellSx: SxProps<Theme> = {
+  backgroundColor: "white",
+  p: "8px 12px",
+};
+
+export const sidebarTableLabelSx: SxProps<Theme> = {
+  fontSize: 11,
+  fontWeight: 600,
+  color: COLORS.textSecondary,
+  textTransform: "uppercase",
+  mb: "4px",
+};
+
+export const sidebarTableValueSx: SxProps<Theme> = {
+  fontSize: 13,
+  color: COLORS.textPrimary,
 };
 
 export const sidebarLabelSx: SxProps<Theme> = {

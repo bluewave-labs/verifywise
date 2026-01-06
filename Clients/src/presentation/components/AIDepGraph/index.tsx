@@ -62,6 +62,10 @@ import {
   sidebarLabelSx,
   sidebarValueSx,
   filePathSx,
+  sidebarTableSx,
+  sidebarTableCellSx,
+  sidebarTableLabelSx,
+  sidebarTableValueSx,
 } from "./styles";
 
 // Register custom node types
@@ -462,46 +466,53 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
             </IconButton>
           </Box>
           <Box sx={sidebarContentSx}>
-            <Box sx={sidebarSectionSx}>
-              <Typography sx={sidebarLabelSx}>Type</Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Box sx={colorDotSx(NODE_TYPE_COLORS[selectedNode.nodeType])} />
-                <Typography sx={sidebarValueSx}>
-                  {NODE_TYPE_LABELS[selectedNode.nodeType]}
+            {/* Metadata Table */}
+            <Box sx={sidebarTableSx}>
+              {/* Type */}
+              <Box sx={sidebarTableCellSx}>
+                <Typography sx={sidebarTableLabelSx}>Type</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box sx={colorDotSx(NODE_TYPE_COLORS[selectedNode.nodeType])} />
+                  <Typography sx={sidebarTableValueSx}>
+                    {NODE_TYPE_LABELS[selectedNode.nodeType]}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Provider */}
+              <Box sx={sidebarTableCellSx}>
+                <Typography sx={sidebarTableLabelSx}>Provider</Typography>
+                <Typography sx={sidebarTableValueSx}>{selectedNode.provider}</Typography>
+              </Box>
+
+              {/* Confidence */}
+              <Box sx={sidebarTableCellSx}>
+                <Typography sx={sidebarTableLabelSx}>Confidence</Typography>
+                <Typography
+                  sx={{ ...sidebarTableValueSx, textTransform: "capitalize" }}
+                >
+                  {selectedNode.confidence}
                 </Typography>
               </Box>
-            </Box>
 
-            <Box sx={sidebarSectionSx}>
-              <Typography sx={sidebarLabelSx}>Provider</Typography>
-              <Typography sx={sidebarValueSx}>{selectedNode.provider}</Typography>
-            </Box>
-
-            <Box sx={sidebarSectionSx}>
-              <Typography sx={sidebarLabelSx}>Confidence</Typography>
-              <Typography
-                sx={{ ...sidebarValueSx, textTransform: "capitalize" }}
-              >
-                {selectedNode.confidence}
-              </Typography>
-            </Box>
-
-            <Box sx={sidebarSectionSx}>
-              <Typography sx={sidebarLabelSx}>Risk level</Typography>
-              <Typography
-                sx={{
-                  ...sidebarValueSx,
-                  color:
-                    selectedNode.riskLevel === "high"
-                      ? "#ef4444"
-                      : selectedNode.riskLevel === "medium"
-                      ? "#f59e0b"
-                      : "#10b981",
-                  textTransform: "capitalize",
-                }}
-              >
-                {selectedNode.riskLevel}
-              </Typography>
+              {/* Risk level */}
+              <Box sx={sidebarTableCellSx}>
+                <Typography sx={sidebarTableLabelSx}>Risk level</Typography>
+                <Typography
+                  sx={{
+                    ...sidebarTableValueSx,
+                    color:
+                      selectedNode.riskLevel === "high"
+                        ? "#ef4444"
+                        : selectedNode.riskLevel === "medium"
+                        ? "#f59e0b"
+                        : "#10b981",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {selectedNode.riskLevel}
+                </Typography>
+              </Box>
             </Box>
 
             {selectedNode.governanceStatus && (

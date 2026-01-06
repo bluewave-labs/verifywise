@@ -149,6 +149,20 @@ router.post("/refresh-token", authLimiter, refreshAccessToken);
 router.post("/reset-password", authLimiter, resetPasswordMiddleware, resetPassword);
 
 /**
+ * PATCH /users/chng-pass/:id
+ *
+ * Changes a user's password.
+ *
+ * @name patch/chng-pass/:id
+ * @function
+ * @memberof module:routes/user.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ */
+router.patch("/chng-pass/:id", authLimiter, authenticateJWT, ChangePassword);
+
+/**
  * PATCH /users/:id
  *
  * Updates a user's information by their ID.
@@ -161,8 +175,6 @@ router.post("/reset-password", authLimiter, resetPasswordMiddleware, resetPasswo
  * @param {express.Response} res - Express response object
  */
 router.patch("/:id", authenticateJWT, updateUserById);
-
-router.patch("/chng-pass/:id", authLimiter, authenticateJWT, ChangePassword);
 
 /**
  * DELETE /users/:id

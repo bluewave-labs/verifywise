@@ -12,7 +12,14 @@ import { queryClient } from './application/config/queryClient';
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
-    <PersistGate loading={null} persistor={persistor}>
+    <PersistGate
+      loading={
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          Loading...
+        </div>
+      }
+      persistor={persistor}
+    >
       <QueryClientProvider client={queryClient}>
         <Router>
           <App />

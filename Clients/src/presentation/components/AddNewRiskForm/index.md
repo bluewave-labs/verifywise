@@ -133,7 +133,7 @@ The component uses centralized validation limits:
 
 ```typescript
 const VALIDATION_LIMITS = {
-  RISK_NAME: { MIN: 3, MAX: 50 },
+  RISK_NAME: { MIN: 3, MAX: 255 },
   RISK_DESCRIPTION: { MIN: 1, MAX: 256 },
   POTENTIAL_IMPACT: { MIN: 1, MAX: 256 },
   REVIEW_NOTES: { MIN: 0, MAX: 1024 },

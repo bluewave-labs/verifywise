@@ -1,6 +1,6 @@
 import { UploadedFile } from "./question.utils";
 import { sequelize } from "../database/db";
-import { FileModel } from "../domain.layer/models/file/file.model";
+import { FileModel, FileSource } from "../domain.layer/models/file/file.model";
 import { Transaction, QueryTypes } from "sequelize";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 
@@ -29,27 +29,14 @@ export const uploadFile = async (
   file: UploadedFile,
   user_id: number,
   project_id: number | null,
-  source:
-    | "Assessment tracker group"
-    | "Compliance tracker group"
-    | "Project risks report"
-    | "Compliance tracker report"
-    | "Assessment tracker report"
-    | "Vendors and risks report"
-    | "All reports"
-    | "Management system clauses group"
-    | "Reference controls group"
-    | "Clauses and annexes report"
-    | "AI trust center group"
-    | "Main clauses group"
-    | "Annex controls group"
-    | "ISO 27001 report"
-    | "Models and risks report"
-    | "Training registry report"
-    | "Policy manager report"
-    | "File Manager", // Standalone file uploads via File Manager
+  source: FileSource,
   tenant: string,
-  transaction: Transaction | null = null
+  transaction: Transaction | null = null,
+  options?: {
+    org_id?: number;
+    model_id?: number;
+    file_path?: string;
+  }
 ) => {
   let is_demo = false;
   if (project_id) {
@@ -66,10 +53,10 @@ export const uploadFile = async (
   }
   const query = `INSERT INTO ${escapePgIdentifier(tenant)}.files
     (
-      filename, content, type, project_id, uploaded_by, uploaded_time, is_demo, source
+      filename, content, type, project_id, uploaded_by, uploaded_time, is_demo, source, size, file_path, org_id, model_id
     )
     VALUES (
-      :filename, :content, :type, :project_id, :uploaded_by, :uploaded_time, :is_demo, :source
+      :filename, :content, :type, :project_id, :uploaded_by, :uploaded_time, :is_demo, :source, :size, :file_path, :org_id, :model_id
     ) RETURNING *`;
   const result = await sequelize.query(query, {
     replacements: {
@@ -81,10 +68,13 @@ export const uploadFile = async (
       uploaded_time: new Date().toISOString(),
       is_demo,
       source,
+      size: file.size || null,
+      file_path: options?.file_path || sanitizeFilename(file.originalname),
+      org_id: options?.org_id || null,
+      model_id: options?.model_id || null,
     },
     mapToModel: true,
     model: FileModel,
-    // type: QueryTypes.INSERT
     ...(transaction && { transaction }),
   });
   // result[0] is an array of model instances, get the first one
@@ -125,19 +115,22 @@ export const getFileById = async (id: number, tenant: string) => {
  * Access is granted if:
  * - User is Admin
  * - User uploaded the file
- * - User has access to the project the file belongs to (owner or member)
+ * - For project files: User has access to the project (owner or member)
+ * - For org-level files: User belongs to the same organization
  */
 export const canUserAccessFile = async (
   fileId: number,
   userId: number,
   role: string,
-  tenant: string
+  tenant: string,
+  userOrgId?: number
 ): Promise<boolean> => {
   // Admins can access all files
   if (role === "Admin") {
     return true;
   }
 
+  // Query that handles both project-level and org-level files
   const query = `
     SELECT f.id
     FROM ${escapePgIdentifier(tenant)}.files f
@@ -148,12 +141,13 @@ export const canUserAccessFile = async (
         f.uploaded_by = :userId
         OR p.owner = :userId
         OR pm.user_id = :userId
+        OR (f.project_id IS NULL AND f.org_id = :userOrgId)
       )
     LIMIT 1
   `;
 
   const result = await sequelize.query(query, {
-    replacements: { fileId, userId },
+    replacements: { fileId, userId, userOrgId: userOrgId || null },
     type: QueryTypes.SELECT,
   });
 

@@ -240,7 +240,7 @@ export async function updateNISTAIRMFSubcategoryById(
     let uploadedFiles: {
       id: string;
       fileName: string;
-      project_id: number;
+      project_id?: number;
       uploaded_by: number;
       uploaded_time: string;
       type: string;

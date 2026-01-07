@@ -17,6 +17,7 @@ import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import logger from "../utils/logger/fileLogger";
 import {
   IScan,
   IServiceContext,
@@ -182,7 +183,7 @@ async function checkRepositorySize(
   owner: string,
   repo: string,
   githubToken?: string
-): Promise<{ sizeKB: number; sizeMB: number }> {
+): Promise<void> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github.v3+json",
     "User-Agent": "VerifyWise-Scanner",
@@ -192,29 +193,42 @@ async function checkRepositorySize(
     headers.Authorization = `Bearer ${githubToken}`;
   }
 
-  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-    headers,
-  });
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-  if (!response.ok) {
-    // Don't fail here - let the clone handle auth/not-found errors
-    // Just skip the size check if we can't get repo info
-    return { sizeKB: 0, sizeMB: 0 };
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      // Don't fail here - let the clone handle auth/not-found errors
+      // Just skip the size check if we can't get repo info
+      logger.warn(`Could not fetch repo info for size check: ${response.status} ${response.statusText}`);
+      return;
+    }
+
+    const data = await response.json();
+    const sizeKB = data.size || 0;
+    const sizeGB = (sizeKB / 1024 / 1024).toFixed(2);
+
+    if (sizeKB > MAX_REPO_SIZE_KB) {
+      throw new ValidationException(
+        `Repository size (${sizeGB} GB) exceeds the maximum allowed size of 2.5 GB. Please scan a smaller repository.`,
+        "repository_url"
+      );
+    }
+  } catch (error) {
+    // Re-throw validation errors (repo too large)
+    if (error instanceof ValidationException) {
+      throw error;
+    }
+    // Log and skip size check on network/timeout errors
+    logger.warn(`Size check failed, proceeding with clone: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
-
-  const data = await response.json();
-  const sizeKB = data.size || 0;
-  const sizeMB = Math.round(sizeKB / 1024);
-  const sizeGB = (sizeKB / 1024 / 1024).toFixed(2);
-
-  if (sizeKB > MAX_REPO_SIZE_KB) {
-    throw new ValidationException(
-      `Repository size (${sizeGB} GB) exceeds the maximum allowed size of 2.5 GB. Please scan a smaller repository.`,
-      "repository_url"
-    );
-  }
-
-  return { sizeKB, sizeMB };
 }
 
 /**

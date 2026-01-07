@@ -7,7 +7,6 @@
  */
 
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 import {
   Scan,
   ScanStatusResponse,
@@ -45,7 +44,6 @@ const BASE_URL = "/ai-detection";
 export async function startScan(
   repositoryUrl: string,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<Scan> {
   const response = await apiServices.post<{ data: Scan }>(
     `${BASE_URL}/scans`,
@@ -68,7 +66,6 @@ export async function startScan(
 export async function getScanStatus(
   scanId: number,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<ScanStatusResponse> {
   const response = await apiServices.get<{ data: ScanStatusResponse }>(
     `${BASE_URL}/scans/${scanId}/status`,
@@ -90,7 +87,6 @@ export async function getScanStatus(
 export async function getScan(
   scanId: number,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<ScanResponse> {
   const response = await apiServices.get<{ data: ScanResponse }>(
     `${BASE_URL}/scans/${scanId}`,
@@ -114,7 +110,6 @@ export async function getScanFindings(
   scanId: number,
   params: GetFindingsParams = {},
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<FindingsResponse> {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append("page", params.page.toString());
@@ -144,7 +139,6 @@ export async function getScanSecurityFindings(
   scanId: number,
   params: GetSecurityFindingsParams = {},
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<SecurityFindingsResponse> {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append("page", params.page.toString());
@@ -171,7 +165,6 @@ export async function getScanSecurityFindings(
 export async function getScanSecuritySummary(
   scanId: number,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<SecuritySummary> {
   const response = await apiServices.get<{ data: SecuritySummary }>(
     `${BASE_URL}/scans/${scanId}/security-summary`,
@@ -193,7 +186,6 @@ export async function getScanSecuritySummary(
 export async function getScans(
   params: GetScansParams = {},
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<ScansResponse> {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append("page", params.page.toString());
@@ -220,7 +212,6 @@ export async function getScans(
 export async function cancelScan(
   scanId: number,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<{ id: number; status: "cancelled"; message: string }> {
   const response = await apiServices.post<{
     data: { id: number; status: "cancelled"; message: string };
@@ -245,7 +236,6 @@ export async function cancelScan(
 export async function deleteScan(
   scanId: number,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<{ message: string }> {
   const response = await apiServices.delete<{ data: { message: string } }>(
     `${BASE_URL}/scans/${scanId}`,
@@ -266,7 +256,6 @@ export async function deleteScan(
  */
 export async function getActiveScan(
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<Scan | null> {
   // Use the dedicated active scan endpoint for efficiency (single API call)
   const url = `${BASE_URL}/scans/active`;
@@ -394,7 +383,6 @@ export async function updateFindingGovernanceStatus(
   findingId: number,
   governanceStatus: GovernanceStatus | null,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<UpdateGovernanceStatusResponse> {
   const response = await apiServices.patch<{ data: UpdateGovernanceStatusResponse }>(
     `${BASE_URL}/scans/${scanId}/findings/${findingId}/governance`,
@@ -417,7 +405,6 @@ export async function updateFindingGovernanceStatus(
 export async function getGovernanceSummary(
   scanId: number,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<GovernanceSummary> {
   const response = await apiServices.get<{ data: GovernanceSummary }>(
     `${BASE_URL}/scans/${scanId}/governance-summary`,
@@ -441,7 +428,6 @@ export async function getGovernanceSummary(
  */
 export async function getAIDetectionStats(
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<AIDetectionStats> {
   const response = await apiServices.get<{ data: AIDetectionStats }>(
     `${BASE_URL}/stats`,
@@ -467,7 +453,6 @@ export async function getAIDetectionStats(
 export async function exportAIBOM(
   scanId: number,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<unknown> {
   const response = await apiServices.get<{ data: unknown }>(
     `${BASE_URL}/scans/${scanId}/export/ai-bom`,
@@ -493,7 +478,6 @@ export async function exportAIBOM(
 export async function getDependencyGraph(
   scanId: number,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<DependencyGraphResponse> {
   const response = await apiServices.get<{ data: DependencyGraphResponse }>(
     `${BASE_URL}/scans/${scanId}/dependency-graph`,
@@ -519,7 +503,6 @@ export async function getDependencyGraph(
 export async function getComplianceMapping(
   scanId: number,
   signal?: AbortSignal,
-  authToken: string = getAuthToken()
 ): Promise<ComplianceMappingResponse> {
   const response = await apiServices.get<{ data: ComplianceMappingResponse }>(
     `${BASE_URL}/scans/${scanId}/compliance`,

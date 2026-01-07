@@ -1,5 +1,4 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 import { ITask } from "../../domain/interfaces/i.task";
 import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
 
@@ -14,7 +13,6 @@ import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
  */
 export async function getAllTasks({
   signal,
-  authToken = getAuthToken(),
   status,
   priority,
   category,
@@ -96,7 +94,6 @@ export async function getAllTasks({
 export async function getTaskById({
   id,
   signal,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   signal?: AbortSignal;
@@ -124,7 +121,6 @@ export async function getTaskById({
  */
 export async function createTask({
   body,
-  authToken = getAuthToken(),
 }: {
   body: Partial<ITask>;
   authToken?: string;
@@ -151,7 +147,6 @@ export async function createTask({
 export async function updateTask({
   id,
   body,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   body: Partial<ITask>;
@@ -177,7 +172,6 @@ export async function updateTask({
  */
 export async function deleteTask({
   id,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   authToken?: string;
@@ -204,7 +198,6 @@ export async function deleteTask({
 export async function updateTaskStatus({
   id,
   status,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   status: TaskStatus;
@@ -233,7 +226,6 @@ export async function updateTaskStatus({
  */
 export async function restoreTask({
   id,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   authToken?: string;
@@ -258,7 +250,6 @@ export async function restoreTask({
  */
 export async function hardDeleteTask({
   id,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   authToken?: string;

@@ -305,14 +305,31 @@ export const createNewTenant = async (
       is_demo boolean NOT NULL DEFAULT false,
       source enum_files_source NOT NULL,
       type character varying(255) NOT NULL,
+      size bigint,
+      file_path character varying(500),
+      org_id integer,
+      model_id integer,
       CONSTRAINT files_pkey PRIMARY KEY (id),
       CONSTRAINT files_project_id_fkey FOREIGN KEY (project_id)
         REFERENCES "${tenantHash}".projects (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL,
       CONSTRAINT files_uploaded_by_fkey FOREIGN KEY (uploaded_by)
         REFERENCES public.users (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE SET NULL
+        ON UPDATE NO ACTION ON DELETE SET NULL,
+      CONSTRAINT files_org_id_fkey FOREIGN KEY (org_id)
+        REFERENCES public.organizations (id) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE CASCADE
     );`,
+      { transaction }
+    );
+
+    // Indexes for files table to optimize org-level file queries
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_org_id ON "${tenantHash}".files(org_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_uploaded_time ON "${tenantHash}".files(uploaded_time DESC);`,
       { transaction }
     );
 
@@ -1225,28 +1242,12 @@ export const createNewTenant = async (
       { transaction }
     );
 
-    await sequelize.query(
-      `CREATE TABLE "${tenantHash}".file_manager (
-      id SERIAL PRIMARY KEY,
-      filename VARCHAR(255) NOT NULL,
-      size BIGINT NOT NULL,
-      mimetype VARCHAR(255) NOT NULL,
-      file_path VARCHAR(500),
-      content BYTEA,
-      uploaded_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE SET NULL,
-      upload_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-      model_id INTEGER NULL,
-      org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-      is_demo BOOLEAN NOT NULL DEFAULT FALSE,
-      source public.enum_file_manager_source DEFAULT 'file_manager'
-    );`,
-      { transaction }
-    );
+    // Note: file_manager table removed - all files now stored in unified 'files' table
 
     await sequelize.query(
       `CREATE TABLE "${tenantHash}".file_access_logs (
       id SERIAL PRIMARY KEY,
-      file_id INTEGER NOT NULL REFERENCES "${tenantHash}".file_manager(id) ON DELETE CASCADE,
+      file_id INTEGER NOT NULL REFERENCES "${tenantHash}".files(id) ON DELETE CASCADE,
       accessed_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
       access_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       action VARCHAR(20) NOT NULL CHECK (action IN ('download', 'view')),

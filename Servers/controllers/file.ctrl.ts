@@ -49,7 +49,8 @@ export async function getFileContentById(
 
   try {
     // Authorization check: verify user has access to this file
-    const hasAccess = await canUserAccessFile(fileId, userId, role, tenantId);
+    const orgId = req.organizationId ? Number(req.organizationId) : undefined;
+    const hasAccess = await canUserAccessFile(fileId, userId, role, tenantId, orgId);
     if (!hasAccess) {
       await logFailure({
         eventType: "Read",

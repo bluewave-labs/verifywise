@@ -17,6 +17,8 @@ import {
 
 @Table({
   tableName: "subcontrols",
+  timestamps: true,
+  underscored: true,
 })
 export class SubcontrolModel
   extends Model<SubcontrolModel>
@@ -133,8 +135,15 @@ export class SubcontrolModel
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create a new subcontrol with comprehensive validation
@@ -559,6 +568,7 @@ export class SubcontrolModel
       control_id: this.control_id,
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
+      updated_at: this.updated_at?.toISOString(),
       progressPercentage: this.getProgressPercentage(),
       isOverdue: this.isOverdue(),
     };

@@ -13,6 +13,7 @@ import { ValidationException } from "../../exceptions/custom.exception";
 @Table({
   tableName: "assessments",
   timestamps: true,
+  underscored: true,
 })
 export class AssessmentModel
   extends Model<AssessmentModel>
@@ -41,8 +42,15 @@ export class AssessmentModel
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create a new assessment with validation

@@ -9,6 +9,8 @@ import {
 
 @Table({
   tableName: "project_scopes",
+  timestamps: true,
+  underscored: true,
 })
 export class ProjectScopeModel
   extends Model<ProjectScopeModel>
@@ -84,8 +86,15 @@ export class ProjectScopeModel
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create a new project scope with comprehensive validation

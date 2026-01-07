@@ -31,7 +31,9 @@ import { IRoleAttributes } from "../../interfaces/i.role";
 import { ValidationException } from "../../exceptions/custom.exception";
 
 @Table({
-  tableName: "roles"
+  tableName: "roles",
+  timestamps: true,
+  underscored: true,
 })
 export class RoleModel extends Model<RoleModel> implements IRoleAttributes {
 
@@ -60,9 +62,16 @@ export class RoleModel extends Model<RoleModel> implements IRoleAttributes {
   is_demo?: boolean;
 
   @Column({
-    type: DataType.DATE
+    type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Creates a new role with validation

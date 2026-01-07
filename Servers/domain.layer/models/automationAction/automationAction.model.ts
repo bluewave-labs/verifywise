@@ -5,7 +5,8 @@ import { ValidationException } from "../../exceptions/custom.exception";
 @Table({
   tableName: "automation_actions",
   schema: "public",
-  timestamps: false,
+  timestamps: true,
+  underscored: true,
 })
 export class AutomationActionModel extends Model<AutomationActionModel> implements IAutomationAction {
   @Column({
@@ -40,6 +41,18 @@ export class AutomationActionModel extends Model<AutomationActionModel> implemen
     defaultValue: {},
   })
   default_params?: Record<string, any>;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Factory method to create a new automation action
@@ -145,6 +158,8 @@ export class AutomationActionModel extends Model<AutomationActionModel> implemen
       label: this.label,
       description: this.description,
       default_params: this.default_params,
+      created_at: this.created_at,
+      updated_at: this.updated_at,
     };
   }
 }

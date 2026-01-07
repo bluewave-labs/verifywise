@@ -167,6 +167,57 @@ interface LocalFileItem {
 const CLONE_TIMEOUT_MS = 120000;
 
 /**
+ * Maximum repository size allowed for scanning (2.5 GB in KB - GitHub API returns size in KB)
+ */
+const MAX_REPO_SIZE_KB = 2.5 * 1024 * 1024; // 2.5 GB
+
+/**
+ * Check repository size before cloning
+ * @param owner - Repository owner
+ * @param repo - Repository name
+ * @param githubToken - Optional GitHub token for private repositories
+ * @throws ValidationException if repo is too large
+ */
+async function checkRepositorySize(
+  owner: string,
+  repo: string,
+  githubToken?: string
+): Promise<{ sizeKB: number; sizeMB: number }> {
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github.v3+json",
+    "User-Agent": "VerifyWise-Scanner",
+  };
+
+  if (githubToken) {
+    headers.Authorization = `Bearer ${githubToken}`;
+  }
+
+  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    // Don't fail here - let the clone handle auth/not-found errors
+    // Just skip the size check if we can't get repo info
+    return { sizeKB: 0, sizeMB: 0 };
+  }
+
+  const data = await response.json();
+  const sizeKB = data.size || 0;
+  const sizeMB = Math.round(sizeKB / 1024);
+  const sizeGB = (sizeKB / 1024 / 1024).toFixed(2);
+
+  if (sizeKB > MAX_REPO_SIZE_KB) {
+    throw new ValidationException(
+      `Repository size (${sizeGB} GB) exceeds the maximum allowed size of 2.5 GB. Please scan a smaller repository.`,
+      "repository_url"
+    );
+  }
+
+  return { sizeKB, sizeMB };
+}
+
+/**
  * Clone a GitHub repository to a temporary directory
  *
  * @param owner - Repository owner
@@ -1012,6 +1063,9 @@ async function executeScan(
 
     // Fetch GitHub token for private repository support
     const githubToken = await getDecryptedGitHubToken(ctx.tenantId);
+
+    // Check repository size before cloning (max 2.5 GB)
+    await checkRepositorySize(owner, repo, githubToken || undefined);
 
     // Clone the repository (with token if available)
     clonedRepoPath = await cloneRepository(owner, repo, signal, githubToken || undefined);

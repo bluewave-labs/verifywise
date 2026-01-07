@@ -8,7 +8,6 @@
  */
 
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 
 const BASE_URL = "/integrations/github";
 
@@ -41,7 +40,6 @@ export async function getGitHubTokenStatus(
   const response = await apiServices.get<{ data: GitHubTokenStatus }>(
     `${BASE_URL}/token`,
     {
-      headers: { Authorization: `Bearer ${getAuthToken()}` },
       signal,
     }
   );
@@ -63,7 +61,6 @@ export async function saveGitHubToken(
     `${BASE_URL}/token`,
     { token, token_name: tokenName },
     {
-      headers: { Authorization: `Bearer ${getAuthToken()}` },
       signal,
     }
   );
@@ -79,7 +76,6 @@ export async function deleteGitHubToken(
   const response = await apiServices.delete<{ data: { message: string } }>(
     `${BASE_URL}/token`,
     {
-      headers: { Authorization: `Bearer ${getAuthToken()}` },
       signal,
     }
   );
@@ -99,7 +95,6 @@ export async function testGitHubToken(
     `${BASE_URL}/token/test`,
     { token },
     {
-      headers: { Authorization: `Bearer ${getAuthToken()}` },
       signal,
     }
   );

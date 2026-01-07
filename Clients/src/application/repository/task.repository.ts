@@ -73,7 +73,6 @@ export async function getAllTasks({
     const url = `/tasks${queryString ? `?${queryString}` : ""}`;
 
     const response = await apiServices.get(url, {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     });
 
@@ -105,7 +104,6 @@ export async function getTaskById({
 }): Promise<any> {
   try {
     const response = await apiServices.get(`/tasks/${id}`, {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     });
     return response.data;
@@ -132,9 +130,7 @@ export async function createTask({
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.post("/tasks", body, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.post("/tasks", body);
     return response.data;
   } catch (error) {
     console.error("Error creating task:", error);
@@ -162,9 +158,7 @@ export async function updateTask({
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.put(`/tasks/${id}`, body, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.put(`/tasks/${id}`, body);
     return response.data;
   } catch (error) {
     console.error("Error updating task:", error);
@@ -189,9 +183,7 @@ export async function deleteTask({
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.delete(`/tasks/${id}`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.delete(`/tasks/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting task:", error);
@@ -221,10 +213,7 @@ export async function updateTaskStatus({
   try {
     const response = await apiServices.put(
       `/tasks/${id}`,
-      { status },
-      {
-        headers: { Authorization: `Bearer ${authToken}` },
-      }
+      { status }
     );
     return response.data;
   } catch (error) {
@@ -250,9 +239,7 @@ export async function restoreTask({
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.put(`/tasks/${id}/restore`, {}, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.put(`/tasks/${id}/restore`, {});
     return response.data;
   } catch (error) {
     console.error("Error restoring task:", error);
@@ -277,9 +264,7 @@ export async function hardDeleteTask({
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.delete(`/tasks/${id}/hard`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.delete(`/tasks/${id}/hard`);
     return response.data;
   } catch (error) {
     console.error("Error permanently deleting task:", error);

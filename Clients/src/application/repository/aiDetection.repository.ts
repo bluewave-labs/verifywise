@@ -51,7 +51,6 @@ export async function startScan(
     `${BASE_URL}/scans`,
     { repository_url: repositoryUrl } as StartScanRequest,
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -74,7 +73,6 @@ export async function getScanStatus(
   const response = await apiServices.get<{ data: ScanStatusResponse }>(
     `${BASE_URL}/scans/${scanId}/status`,
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -97,7 +95,6 @@ export async function getScan(
   const response = await apiServices.get<{ data: ScanResponse }>(
     `${BASE_URL}/scans/${scanId}`,
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -129,7 +126,6 @@ export async function getScanFindings(
   const url = `${BASE_URL}/scans/${scanId}/findings${queryString ? `?${queryString}` : ""}`;
 
   const response = await apiServices.get<{ data: FindingsResponse }>(url, {
-    headers: { Authorization: `Bearer ${authToken}` },
     signal,
   });
   return response.data.data;
@@ -159,7 +155,6 @@ export async function getScanSecurityFindings(
   const url = `${BASE_URL}/scans/${scanId}/security-findings${queryString ? `?${queryString}` : ""}`;
 
   const response = await apiServices.get<{ data: SecurityFindingsResponse }>(url, {
-    headers: { Authorization: `Bearer ${authToken}` },
     signal,
   });
   return response.data.data;
@@ -181,7 +176,6 @@ export async function getScanSecuritySummary(
   const response = await apiServices.get<{ data: SecuritySummary }>(
     `${BASE_URL}/scans/${scanId}/security-summary`,
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -210,7 +204,6 @@ export async function getScans(
   const url = `${BASE_URL}/scans${queryString ? `?${queryString}` : ""}`;
 
   const response = await apiServices.get<{ data: ScansResponse }>(url, {
-    headers: { Authorization: `Bearer ${authToken}` },
     signal,
   });
   return response.data.data;
@@ -235,7 +228,6 @@ export async function cancelScan(
     `${BASE_URL}/scans/${scanId}/cancel`,
     {},
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -258,7 +250,6 @@ export async function deleteScan(
   const response = await apiServices.delete<{ data: { message: string } }>(
     `${BASE_URL}/scans/${scanId}`,
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -282,7 +273,6 @@ export async function getActiveScan(
 
   try {
     const response = await apiServices.get<{ data: Scan | null }>(url, {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     });
     return response.data.data;
@@ -410,7 +400,6 @@ export async function updateFindingGovernanceStatus(
     `${BASE_URL}/scans/${scanId}/findings/${findingId}/governance`,
     { governance_status: governanceStatus },
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -433,7 +422,6 @@ export async function getGovernanceSummary(
   const response = await apiServices.get<{ data: GovernanceSummary }>(
     `${BASE_URL}/scans/${scanId}/governance-summary`,
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -458,7 +446,6 @@ export async function getAIDetectionStats(
   const response = await apiServices.get<{ data: AIDetectionStats }>(
     `${BASE_URL}/stats`,
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -485,7 +472,6 @@ export async function exportAIBOM(
   const response = await apiServices.get<{ data: unknown }>(
     `${BASE_URL}/scans/${scanId}/export/ai-bom`,
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -512,7 +498,6 @@ export async function getDependencyGraph(
   const response = await apiServices.get<{ data: DependencyGraphResponse }>(
     `${BASE_URL}/scans/${scanId}/dependency-graph`,
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );
@@ -539,7 +524,6 @@ export async function getComplianceMapping(
   const response = await apiServices.get<{ data: ComplianceMappingResponse }>(
     `${BASE_URL}/scans/${scanId}/compliance`,
     {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     }
   );

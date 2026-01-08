@@ -536,17 +536,27 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           res
         );
 
+        // Get workspace information for redirect
+        const { setupLoginWorkspace } = await import("../services/workspaceSession.service");
+        const loginResponse = await setupLoginWorkspace(accessToken, {
+          id: user.id!,
+          email: email,
+          name: user.name,
+          surname: user.surname,
+          role_name: (userData as any).role_name,
+          organization_id: (userData as any).organization_id,
+          is_super_admin: user.is_super_admin,
+        });
+
         logStructured(
           "successful",
-          `login successful for ${email}`,
+          `login successful for ${email}${loginResponse.workspace ? ` (workspace: ${loginResponse.workspace.slug})` : ''}`,
           "loginUser",
           "user.ctrl.ts"
         );
 
         return res.status(202).json(
-          STATUS_CODE[202]({
-            token: accessToken,
-          })
+          STATUS_CODE[202](loginResponse)
         );
       } else {
         logStructured(

@@ -134,6 +134,15 @@ const authSlice = createSlice({
 			state.success = true;
 			state.message = "Logged out successfully";
 			state.expirationDate = null;
+			
+			// Clear workspace session data from localStorage
+			// Import is avoided here by accessing localStorage directly
+			localStorage.removeItem("currentWorkspaceId");
+			localStorage.removeItem("currentWorkspaceSlug");
+			localStorage.removeItem("currentWorkspaceName");
+			localStorage.removeItem("currentWorkspaceRole");
+			localStorage.removeItem("userWorkspaces");
+			// Note: We keep "lastWorkspaceSlug" for next login
 		},
 		setAuthToken: (state, action: PayloadAction<string>) => {
 			state.authToken = action.payload;

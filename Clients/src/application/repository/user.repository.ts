@@ -157,11 +157,46 @@ export async function checkUserExists(): Promise<UserExistsResponse> {
 }
 
 /**
+ * Workspace info returned on login
+ */
+interface LoginWorkspaceInfo {
+  id: number;
+  slug: string;
+  name: string;
+  role: string;
+  schema_name?: string;
+}
+
+/**
+ * User workspace membership info
+ */
+interface UserWorkspaceInfo {
+  workspace_id: number;
+  slug: string;
+  name: string;
+  role: string;
+  is_default: boolean;
+  schema_name?: string;
+}
+
+/**
  * Login response with nested data structure
  */
 interface LoginResponse {
   data: {
     token: string;
+    user?: {
+      id: number;
+      email: string;
+      name?: string;
+      surname?: string;
+      role_name?: string;
+      organization_id?: number;
+      is_super_admin?: boolean;
+    };
+    workspace?: LoginWorkspaceInfo;
+    workspaces?: UserWorkspaceInfo[];
+    redirectUrl?: string;
   };
 }
 

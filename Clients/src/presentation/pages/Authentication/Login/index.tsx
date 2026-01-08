@@ -149,7 +149,8 @@ const Login: React.FC = () => {
         setValues(initialState);
 
         if (response.status === 202) {
-          const token = response.data.data.token;
+          const responseData = response.data.data;
+          const token = responseData.token;
 
           if (values.rememberMe) {
             const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
@@ -162,14 +163,30 @@ const Login: React.FC = () => {
 
           localStorage.setItem("root_version", __APP_VERSION__);
 
+          // Store workspace information for session persistence
+          if (responseData.workspace) {
+            localStorage.setItem("currentWorkspaceId", String(responseData.workspace.id));
+            localStorage.setItem("currentWorkspaceSlug", responseData.workspace.slug);
+            localStorage.setItem("currentWorkspaceName", responseData.workspace.name);
+            localStorage.setItem("currentWorkspaceRole", responseData.workspace.role);
+          }
+
+          // Store all available workspaces for workspace switcher
+          if (responseData.workspaces && responseData.workspaces.length > 0) {
+            localStorage.setItem("userWorkspaces", JSON.stringify(responseData.workspaces));
+          }
+
           logEngine({
             type: "info",
-            message: "Login successful.",
+            message: `Login successful.${responseData.workspace ? ` Workspace: ${responseData.workspace.slug}` : ''}`,
           });
+
+          // Determine redirect URL - use workspace URL if available
+          const redirectUrl = responseData.redirectUrl || "/";
 
           setTimeout(() => {
             setIsSubmitting(false);
-            navigate("/");
+            navigate(redirectUrl);
           }, 3000);
         }
       })

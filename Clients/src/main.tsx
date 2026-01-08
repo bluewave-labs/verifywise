@@ -9,6 +9,10 @@ import { PersistGate } from "redux-persist/integration/react";
 import { BrowserRouter as Router } from "react-router-dom";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './application/config/queryClient';
+import { initializePostHog } from './application/utils/posthog';
+
+// Initialize PostHog analytics
+initializePostHog();
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>

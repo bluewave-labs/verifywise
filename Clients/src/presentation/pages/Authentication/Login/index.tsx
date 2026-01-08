@@ -20,6 +20,7 @@ import {
 } from "../../../../application/tools/googleAuth";
 import { GoogleSignIn } from "../../../components/GoogleSignIn";
 import { identifyUser } from "../../../../application/utils/posthog";
+import { startSession } from "../../../../application/utils/posthog-advanced";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 
 // Animated loading component specifically for login
@@ -183,7 +184,7 @@ const Login: React.FC = () => {
             dispatch(setExpiration(null));
           }
 
-          // Identify user in PostHog
+          // Identify user and start session in PostHog
           const userToken = extractUserToken(token);
           if (userToken) {
             identifyUser(
@@ -192,6 +193,7 @@ const Login: React.FC = () => {
               userToken.roleName || "user",
               userToken.organizationId
             );
+            startSession(userToken.id);
           }
 
           localStorage.setItem("root_version", __APP_VERSION__);
@@ -355,7 +357,7 @@ const Login: React.FC = () => {
                       dispatch(setAuthToken(token));
                       dispatch(setExpiration(expirationDate));
 
-                      // Identify user in PostHog
+                      // Identify user and start session in PostHog
                       const userToken = extractUserToken(token);
                       if (userToken) {
                         identifyUser(
@@ -364,6 +366,7 @@ const Login: React.FC = () => {
                           userToken.roleName || "user",
                           userToken.organizationId
                         );
+                        startSession(userToken.id);
                       }
 
                       localStorage.setItem('root_version', __APP_VERSION__);

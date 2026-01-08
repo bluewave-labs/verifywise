@@ -25,6 +25,7 @@ import { store } from "../../application/redux/store";
 import { ENV_VARs } from "../../../env.vars";
 import { clearAuthState, setAuthToken } from "../../application/redux/auth/authSlice";
 import { AlertProps } from "../../domain/interfaces/i.alert";
+import { trackApiError } from "../../application/utils/posthog-advanced";
 
 const performLogout = () => {
   store.dispatch(clearAuthState());
@@ -107,6 +108,13 @@ CustomAxios.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     const responseData = (error.response?.data as { message?: string })
+
+    // Track API errors (skip auth-related endpoints to avoid noise)
+    const endpoint = originalRequest?.url || 'unknown';
+    const statusCode = error.response?.status || 0;
+    if (statusCode >= 400 && !endpoint.includes('/refresh-token')) {
+      trackApiError(endpoint, statusCode, responseData?.message || error.message);
+    }
     // Don't transform 404 errors - let them through as AxiosErrors so status is preserved
     // This allows downstream code to handle 404s differently (e.g., as empty state vs error)
     // if (error.response?.status === 404) {

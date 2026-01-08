@@ -29,7 +29,7 @@ import {
 import { TextAlignPlugin } from "@platejs/basic-styles/react";
 import { insertTable } from "@platejs/table";
 import { tablePlugin, tableRowPlugin, tableCellPlugin, tableCellHeaderPlugin } from "../PlatePlugins/CustomTablePlugin";
-import { serializeHtml } from "platejs";
+import { serializeHtml } from "@platejs/core/static";
 import {
   Underline,
   Bold,

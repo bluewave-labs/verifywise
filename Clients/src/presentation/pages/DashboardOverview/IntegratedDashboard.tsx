@@ -33,7 +33,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
+import { Responsive, WidthProvider } from "react-grid-layout/legacy";
+import type { Layout, ResponsiveLayouts as Layouts } from "react-grid-layout";
 import { useDashboard } from "../../../application/hooks/useDashboard";
 import { useDashboardMetrics } from "../../../application/hooks/useDashboardMetrics";
 import { cardStyles } from "../../themes";

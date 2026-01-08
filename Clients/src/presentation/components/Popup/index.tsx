@@ -1,7 +1,6 @@
-import { Button, Typography, useTheme, Stack } from "@mui/material";
+import { Button, Typography, useTheme, Stack, Box } from "@mui/material";
 import { X as ClearIcon } from "lucide-react";
 import { FC } from "react";
-import { Unstable_Popup as BasePopup } from "@mui/base/Unstable_Popup";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 import { IPopupProps } from "../../../domain/interfaces/i.widget";
 
@@ -84,47 +83,51 @@ const Popup: FC<IPopupProps> = ({
       >
         {openPopupButtonName}
       </Button>
-      <BasePopup
-        className="Popup"
-        id={id}
-        open={open}
-        anchor={anchor}
-        style={{
-          position: "fixed",
-          transform: "none",
-          left: 0,
-          top: 0,
-          width: "100%",
-          height: "100%",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Stack sx={styles.popupContent} className="PopupContent">
-          <Typography
-            variant="h1"
-            component="div"
-            sx={{ color: "#344054", fontSize: 16, fontWeight: 600, mb: 3.5 }}
+      {open && (
+        <Box
+          className="Popup"
+          sx={{
+            position: "fixed",
+            left: 0,
+            top: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1300,
+          }}
+          onClick={handleOpenOrClose}
+        >
+          <Stack
+            sx={styles.popupContent}
+            className="PopupContent"
+            onClick={(e) => e.stopPropagation()}
           >
-            {popupTitle}
-          </Typography>
-          {popupSubtitle && (
             <Typography
-              variant="subtitle1"
+              variant="h1"
               component="div"
-              sx={{ color: "#344054", fontSize: 13 }}
+              sx={{ color: "#344054", fontSize: 16, fontWeight: 600, mb: 3.5 }}
             >
-              {popupSubtitle}
+              {popupTitle}
             </Typography>
-          )}
-          <Button onClick={handleOpenOrClose} sx={styles.closePopupButton}>
-            <ClearIcon size={20} />
-          </Button>
-          {popupContent}
-        </Stack>
-      </BasePopup>
+            {popupSubtitle && (
+              <Typography
+                variant="subtitle1"
+                component="div"
+                sx={{ color: "#344054", fontSize: 13 }}
+              >
+                {popupSubtitle}
+              </Typography>
+            )}
+            <Button onClick={handleOpenOrClose} sx={styles.closePopupButton}>
+              <ClearIcon size={20} />
+            </Button>
+            {popupContent}
+          </Stack>
+        </Box>
+      )}
     </>
   );
 };

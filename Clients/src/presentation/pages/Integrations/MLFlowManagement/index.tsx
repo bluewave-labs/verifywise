@@ -5,6 +5,8 @@ import {
   IconButton,
   Stack,
   Typography,
+  Chip,
+  useTheme,
 } from '@mui/material';
 import {
   Eye as VisibilityIcon,
@@ -21,8 +23,6 @@ import Field from '../../../components/Inputs/Field';
 import Select from '../../../components/Inputs/Select';
 import PageBreadcrumbs from '../../../components/Breadcrumbs/PageBreadcrumbs';
 import HeaderCard from '../../../components/Cards/DashboardHeaderCard';
-import Chip from '@mui/material/Chip';
-import useTheme from '@mui/material/styles/useTheme';
 import { apiServices } from '../../../../infrastructure/api/networkServices';
 
 type AuthMethod = 'none' | 'basic' | 'token';

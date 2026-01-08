@@ -19,6 +19,8 @@ import {
   deleteKeyQuery,
 } from '../utils/evaluationLlmApiKey.utils';
 import { sequelize } from '../database/db';
+import { logSuccess } from '../utils/logger/logHelper';
+import { log } from 'console';
 
 /**
  * Get all LLM API keys for the authenticated user's organization
@@ -73,7 +75,13 @@ export const addKey = async (req: Request, res: Response) => {
       transaction
     );
 
-    console.log(`LLM API key added for provider: ${provider} by user: ${req.userId}`);
+    await logSuccess({
+      eventType: 'Create',
+      description: `Added LLM API key for provider: ${provider} by user: ${req.userId}`,
+      functionName: 'addKey',
+      fileName: 'evaluationLlmApiKey.ctrl.ts',
+      userId: req.userId,
+    });
 
     await transaction.commit();
     return res.status(201).json({
@@ -300,7 +308,13 @@ export const deleteKey = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`LLM API key deleted for provider: ${provider} by user: ${req.userId}`);
+    logSuccess({
+      eventType: 'Delete',
+      description: `LLM API key deleted for provider: ${provider} by user: ${req.userId}`,
+      functionName: 'deleteKey',
+      fileName: 'evaluationLlmApiKey.ctrl.ts',
+      userId: req.userId,
+    });
 
     return res.status(200).json({
       success: true,

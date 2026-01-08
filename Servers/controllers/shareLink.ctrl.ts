@@ -14,6 +14,7 @@ import {
   sanitizeErrorMessage,
   safeSQLIdentifier,
 } from "../utils/security.utils";
+import { logProcessing, logSuccess } from "../utils/logger/logHelper";
 
 /**
  * Create a new share link
@@ -304,7 +305,12 @@ export const updateShareLink = async (req: Request, res: Response) => {
 
   logStructured('processing', `updating share link ${id} with body: ${JSON.stringify(req.body)}`, 'updateShareLink', 'shareLink.ctrl.ts');
   logger.debug(`🛠️ Updating share link: ${id} in tenant ${tenantId}`);
-  console.log(`[UPDATE DEBUG] ID: ${id}, is_enabled: ${is_enabled} (type: ${typeof is_enabled}), settings: ${JSON.stringify(settings)}`);
+  logProcessing({
+    description: `UPDATE DEBUG | ID=${id}, is_enabled=${is_enabled} (type=${typeof is_enabled}), settings=${JSON.stringify(settings)}`,
+    functionName: 'updateShareLink',
+    fileName: 'shareLink.ctrl.ts',
+  });
+  
 
   try {
     // Validate tenant hash format
@@ -335,7 +341,11 @@ export const updateShareLink = async (req: Request, res: Response) => {
     }
 
     const shareLink = result[0];
-    console.log(`[UPDATE DEBUG] Current state before update - ID: ${shareLink.id}, is_enabled: ${shareLink.is_enabled}`);
+    logProcessing({
+      description: `[UPDATE DEBUG] Current state before update - ID: ${shareLink.id}, is_enabled: ${shareLink.is_enabled}`,
+      functionName: 'updateShareLink',
+      fileName: 'shareLink.ctrl.ts',
+    });
 
     // Check if user owns this share link
     if (shareLink.created_by !== req.userId) {
@@ -387,7 +397,13 @@ export const updateShareLink = async (req: Request, res: Response) => {
 
     const updatedLink = updateResult[0][0];
 
-    console.log(`[UPDATE DEBUG] After update - ID: ${updatedLink.id}, is_enabled: ${updatedLink.is_enabled} (type: ${typeof updatedLink.is_enabled})`);
+    logSuccess({
+      eventType: 'Update',
+      description: `[UPDATE DEBUG] After update - ID: ${updatedLink.id}, is_enabled: ${updatedLink.is_enabled} (type: ${typeof updatedLink.is_enabled})`,
+      functionName: 'updateShareLink',
+      fileName: 'shareLink.ctrl.ts',
+      userId: req.userId,
+    });
     logStructured('successful', `updated share link ${id} - new is_enabled: ${updatedLink.is_enabled}`, 'updateShareLink', 'shareLink.ctrl.ts');
     logger.debug(`✅ Updated share link: ${id}`);
 
@@ -647,20 +663,44 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
     // Apply settings-based filtering
     const settings = shareLink.settings || {};
 
-    console.log(`[SHARE VIEW DEBUG] Settings from DB:`, JSON.stringify(settings));
-    console.log(`[SHARE VIEW DEBUG] shareAllFields value:`, settings.shareAllFields, `(type: ${typeof settings.shareAllFields})`);
-    console.log(`[SHARE VIEW DEBUG] Resource data sample (first record):`, Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]) : 'no data');
+    logProcessing({
+      description: `[SHARE VIEW DEBUG] Settings from DB: ${JSON.stringify(settings)}`,
+      functionName: 'getSharedDataByToken',
+      fileName: 'shareLink.ctrl.ts',
+    });
+
+    logProcessing({
+      description: `[SHARE VIEW DEBUG] shareAllFields value: ${settings.shareAllFields} (type: ${typeof settings.shareAllFields})`,
+      functionName: 'getSharedDataByToken',
+      fileName: 'shareLink.ctrl.ts',
+    });
+
+    logProcessing({
+      description: `[SHARE VIEW DEBUG] Resource data sample (first record): ${
+        JSON.stringify(Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]) : "no data")
+      }`,
+      functionName: 'getSharedDataByToken',
+      fileName: 'shareLink.ctrl.ts',
+    });
 
     // If shareAllFields is false, filter fields shown
     let filteredData;
 
     if (settings.shareAllFields === true) {
       // Show all fields
-      console.log(`[SHARE VIEW DEBUG] Showing ALL fields (shareAllFields is true)`);
+      logProcessing({
+        description: `[SHARE VIEW DEBUG] Showing ALL fields (shareAllFields is true)`,
+        functionName: 'getSharedDataByToken',
+        fileName: 'shareLink.ctrl.ts',
+      })
       filteredData = resourceData;
     } else {
       // Show only essential fields based on resource type
-      console.log(`[SHARE VIEW DEBUG] Filtering to essential fields (shareAllFields is ${settings.shareAllFields})`);
+      logProcessing({
+        description: `[SHARE VIEW DEBUG] Filtering to essential fields (shareAllFields is ${settings.shareAllFields})`,
+        functionName: 'getSharedDataByToken',
+        fileName: 'shareLink.ctrl.ts',
+      });
       const getEssentialFields = (record: any, resourceType: string) => {
         // Resource-specific essential fields
         switch (resourceType) {
@@ -716,8 +756,23 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
       }
     }
 
-    console.log(`[SHARE VIEW DEBUG] Filtered data sample (first record):`, Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]) : 'no data');
-    console.log(`[SHARE VIEW DEBUG] Column count - Original: ${Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]).length : 0}, Filtered: ${Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]).length : 0}`);
+    logProcessing({
+      description: `[SHARE VIEW DEBUG] Filtered data sample (first record): ${
+        JSON.stringify(Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]) : "no data")
+      }`,
+      functionName: 'getSharedDataByToken',
+      fileName: 'shareLink.ctrl.ts',
+    });
+    
+    logProcessing({
+      description: `[SHARE VIEW DEBUG] Column count - Original: ${
+        Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]).length : 0
+      }, Filtered: ${
+        Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]).length : 0
+      }`,
+      functionName: 'getSharedDataByToken',
+      fileName: 'shareLink.ctrl.ts',
+    });
 
     // Post-process: For models, consolidate provider_model and replace approver ID
     if (resourceType === 'model' && filteredData) {
@@ -760,7 +815,15 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
         filteredData = processRecord(filteredData);
       }
 
-      console.log(`[SHARE VIEW DEBUG] After approver name replacement, sample:`, Array.isArray(filteredData) && filteredData[0] ? filteredData[0] : filteredData);
+      logProcessing({
+        description: `[SHARE VIEW DEBUG] After approver name replacement, sample: ${
+          JSON.stringify(
+            Array.isArray(filteredData) && filteredData[0] ? filteredData[0] : filteredData
+          )
+        }`,
+        functionName: 'getSharedDataByToken',
+        fileName: 'shareLink.ctrl.ts',
+      });
     }
 
     logStructured('successful', `fetched shared data for ${resourceType} ${resourceId}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');

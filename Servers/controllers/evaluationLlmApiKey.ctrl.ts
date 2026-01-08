@@ -20,7 +20,6 @@ import {
 } from '../utils/evaluationLlmApiKey.utils';
 import { sequelize } from '../database/db';
 import { logSuccess } from '../utils/logger/logHelper';
-import { log } from 'console';
 
 /**
  * Get all LLM API keys for the authenticated user's organization

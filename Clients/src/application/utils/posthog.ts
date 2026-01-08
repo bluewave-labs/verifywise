@@ -41,6 +41,16 @@ export const initializePostHog = () => {
             console.log('PostHog [MOCK]: User reset')
           }
         },
+        setPersonProperties: (properties: Record<string, any>) => {
+          if (import.meta.env.DEV) {
+            console.log('PostHog [MOCK]: Person properties set', properties)
+          }
+        },
+        group: (groupType: string, groupKey: string, properties?: Record<string, any>) => {
+          if (import.meta.env.DEV) {
+            console.log('PostHog [MOCK]: Group set', { groupType, groupKey, properties })
+          }
+        },
         __loaded: true,
         config: { token: POSTHOG_API_KEY },
       } as any

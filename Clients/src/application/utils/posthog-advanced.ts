@@ -203,9 +203,13 @@ export const setUserProperties = (properties: Record<string, any>) => {
 
   try {
     client.setPersonProperties(properties)
-    console.log('PostHog: User properties set', properties)
+    if (import.meta.env.DEV) {
+      console.log('PostHog: User properties set', properties)
+    }
   } catch (error) {
-    console.warn('PostHog: Failed to set user properties', error)
+    if (import.meta.env.DEV) {
+      console.warn('PostHog: Failed to set user properties', error)
+    }
   }
 }
 
@@ -215,8 +219,12 @@ export const setGroupProperties = (groupType: string, groupKey: string, properti
 
   try {
     client.group(groupType, groupKey, properties)
-    console.log('PostHog: Group properties set', { groupType, groupKey, properties })
+    if (import.meta.env.DEV) {
+      console.log('PostHog: Group properties set', { groupType, groupKey, properties })
+    }
   } catch (error) {
-    console.warn('PostHog: Failed to set group properties', error)
+    if (import.meta.env.DEV) {
+      console.warn('PostHog: Failed to set group properties', error)
+    }
   }
 }

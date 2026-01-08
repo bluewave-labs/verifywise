@@ -1,10 +1,11 @@
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
 import { clearAuthState } from "../redux/auth/authSlice";
+import { resetUser } from "../utils/posthog";
 
 /**
  * Custom hook for handling user logout
- * 
+ *
  * @returns {Function} A function that handles the logout process
  */
 const useLogout = () => {
@@ -16,6 +17,9 @@ const useLogout = () => {
    * Clears the authentication state and navigates to the login page
    */
   const logout = async () => {
+    // Reset PostHog user identification
+    resetUser();
+
     // Clear the authentication token by dispatching the logout action
     dispatch(clearAuthState());
 

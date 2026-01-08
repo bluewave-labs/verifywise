@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { trackEvent, trackFeatureUsage, trackFormInteraction } from '../utils/posthog'
+import { trackEvent, trackFeatureUsage, trackFormInteraction, trackError as trackErrorUtil } from '../utils/posthog'
 import {
   trackUserJourney,
   trackFunnelStep,
@@ -40,8 +40,7 @@ export const usePostHog = () => {
 
   // Error tracking
   const trackError = useCallback((error: Error | string, context?: Record<string, any>) => {
-    // Simple error tracking without PostHog for now
-    console.error('Tracked error:', error, context)
+    trackErrorUtil(error, context)
   }, [])
 
   // Common feature tracking methods

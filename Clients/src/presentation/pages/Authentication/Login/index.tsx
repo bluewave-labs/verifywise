@@ -13,12 +13,14 @@ import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
 import { loginUser, loginWithGoogle } from "../../../../application/repository/user.repository";
-import { 
+import {
   decodeGoogleToken,
   GoogleAuthResponse,
-  initializeGoogleSignIn, 
+  initializeGoogleSignIn,
 } from "../../../../application/tools/googleAuth";
 import { GoogleSignIn } from "../../../components/GoogleSignIn";
+import { identifyUser } from "../../../../application/utils/posthog";
+import { extractUserToken } from "../../../../application/tools/extractToken";
 
 // Animated loading component specifically for login
 const LoginLoadingOverlay: React.FC = () => {
@@ -181,6 +183,17 @@ const Login: React.FC = () => {
             dispatch(setExpiration(null));
           }
 
+          // Identify user in PostHog
+          const userToken = extractUserToken(token);
+          if (userToken) {
+            identifyUser(
+              userToken.id,
+              userToken.email || values.email,
+              userToken.roleName || "user",
+              userToken.organizationId
+            );
+          }
+
           localStorage.setItem("root_version", __APP_VERSION__);
 
           logEngine({
@@ -341,6 +354,17 @@ const Login: React.FC = () => {
                       const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
                       dispatch(setAuthToken(token));
                       dispatch(setExpiration(expirationDate));
+
+                      // Identify user in PostHog
+                      const userToken = extractUserToken(token);
+                      if (userToken) {
+                        identifyUser(
+                          userToken.id,
+                          userToken.email || googleUser.email,
+                          userToken.roleName || "user",
+                          userToken.organizationId
+                        );
+                      }
 
                       localStorage.setItem('root_version', __APP_VERSION__);
 

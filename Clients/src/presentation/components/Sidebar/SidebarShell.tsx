@@ -11,6 +11,7 @@ import {
   Typography,
   Chip,
   Popover,
+  Link as MuiLink,
 } from "@mui/material";
 import { useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
@@ -33,6 +34,8 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { useLogoFetch } from "../../../application/hooks/useLogoFetch";
 import { getAuthToken } from "../../../application/redux/auth/getAuthToken";
 import { extractUserToken } from "../../../application/tools/extractToken";
+
+declare const __APP_VERSION__: string;
 
 // Types for menu items
 export interface SidebarMenuItem {
@@ -571,16 +574,19 @@ const SidebarShell: FC<SidebarShellProps> = ({
         pb={theme.spacing(12)}
         sx={{
           position: "relative",
-          pl: theme.spacing(8),
+          pl: delayedCollapsed
+            ? theme.spacing(8)
+            : `calc(${theme.spacing(8)} + ${theme.spacing(4)})`,
           pr: theme.spacing(8),
         }}
       >
         <Stack
           direction="row"
           alignItems="center"
-          justifyContent="center"
+          justifyContent={delayedCollapsed ? "center" : (organizationLogoUrl && !logoError ? "center" : "flex-start")}
+          gap={theme.spacing(2)}
           className="app-title"
-          sx={{ position: "relative", height: collapsed ? "32px" : "40px" }}
+          sx={{ position: "relative", height: "20px" }}
         >
           {!delayedCollapsed && (
             <Box
@@ -589,10 +595,6 @@ const SidebarShell: FC<SidebarShellProps> = ({
                 position: "relative",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-                maxWidth: "160px",
-                height: "100%",
               }}
             >
               {/* Heart Icon Easter Egg */}
@@ -652,20 +654,14 @@ const SidebarShell: FC<SidebarShellProps> = ({
               )}
               <RouterLink
                 to="/"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "100%",
-                  height: "100%",
-                }}
+                style={{ display: "flex", alignItems: "center" }}
               >
                 {logoLoading ? (
                   <Box
                     sx={{
                       width: "120px",
                       height: "32px",
-                      backgroundColor: "#f0f0f0",
+                      backgroundColor: theme.palette.grey[200],
                       borderRadius: "4px",
                       position: "relative",
                       zIndex: 1,
@@ -691,21 +687,49 @@ const SidebarShell: FC<SidebarShellProps> = ({
                 ) : (
                   <img
                     src={Logo}
-                    alt="VerifyWise Logo"
-                    style={{
-                      maxWidth: "32px",
-                      maxHeight: "32px",
-                      width: "auto",
-                      height: "auto",
-                      position: "relative",
-                      zIndex: 1,
-                      display: "block",
-                      objectFit: "contain",
-                    }}
+                    alt="Logo"
+                    width={20}
+                    height={20}
+                    style={{ position: "relative", zIndex: 1, display: "block" }}
                   />
                 )}
               </RouterLink>
             </Box>
+          )}
+          {!delayedCollapsed && !organizationLogoUrl && !logoLoading && (
+            <MuiLink
+              component={RouterLink}
+              to="/"
+              sx={{
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Typography
+                component="span"
+                sx={{
+                  opacity: 0.8,
+                  fontWeight: 500,
+                  fontSize: "13px",
+                  lineHeight: 1,
+                }}
+                className="app-title"
+              >
+                Verify
+                <span style={{ color: "#0f604d" }}>Wise</span>
+                <span
+                  style={{
+                    fontSize: "8px",
+                    marginLeft: "4px",
+                    opacity: 0.6,
+                    fontWeight: 400,
+                  }}
+                >
+                  {__APP_VERSION__}
+                </span>
+              </Typography>
+            </MuiLink>
           )}
           {/* Sidebar Toggle Button */}
           <IconButton

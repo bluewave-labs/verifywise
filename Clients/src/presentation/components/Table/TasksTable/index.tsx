@@ -12,7 +12,6 @@ import {
   Typography,
   TableFooter,
   Box,
-  Chip as MuiChip,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -27,7 +26,7 @@ import DaysChip from "../../Chip/DaysChip";
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../types/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
-import CategoryChip from "../../Chip/CategoryChip";
+import CategoryChip from "../../Chip/CategoryChip/CategoryChip";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />

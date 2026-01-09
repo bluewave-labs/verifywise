@@ -14,7 +14,7 @@ module.exports = {
         { transaction }
       );
 
-      // Add approval_workflow_id column to projects table in each tenant schema
+      // Add columns to projects table in each tenant schema
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
 
@@ -30,18 +30,28 @@ module.exports = {
         }
 
         try {
+          // Add pending_frameworks column (JSONB array to store framework IDs)
           await queryInterface.sequelize.query(
             `ALTER TABLE "${tenantHash}".projects
-             ADD COLUMN IF NOT EXISTS approval_workflow_id INTEGER REFERENCES "${tenantHash}".approval_workflows(id) ON DELETE SET NULL`,
+             ADD COLUMN IF NOT EXISTS pending_frameworks JSONB DEFAULT NULL`,
             { transaction }
           );
-          console.log(`Added approval_workflow_id column to ${tenantHash}.projects`);
+
+          // Add enable_ai_data_insertion column
+          await queryInterface.sequelize.query(
+            `ALTER TABLE "${tenantHash}".projects
+             ADD COLUMN IF NOT EXISTS enable_ai_data_insertion BOOLEAN DEFAULT FALSE`,
+            { transaction }
+          );
+
+          console.log(`Added pending_frameworks and enable_ai_data_insertion columns to ${tenantHash}.projects`);
         } catch (error) {
-          console.error(`Error adding approval_workflow_id to ${tenantHash}.projects:`, error.message);
+          console.error(`Error adding columns to ${tenantHash}.projects:`, error.message);
         }
       }
 
       await transaction.commit();
+      console.log('✅ Added pending_frameworks and enable_ai_data_insertion columns to projects table in all tenant schemas');
     } catch (error) {
       await transaction.rollback();
       throw error;
@@ -58,7 +68,7 @@ module.exports = {
         { transaction }
       );
 
-      // Remove approval_workflow_id column from projects table in each tenant schema
+      // Remove columns from projects table in each tenant schema
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
 
@@ -75,16 +85,24 @@ module.exports = {
         try {
           await queryInterface.sequelize.query(
             `ALTER TABLE "${tenantHash}".projects
-             DROP COLUMN IF EXISTS approval_workflow_id`,
+             DROP COLUMN IF EXISTS pending_frameworks`,
             { transaction }
           );
-          console.log(`Removed approval_workflow_id column from ${tenantHash}.projects`);
+
+          await queryInterface.sequelize.query(
+            `ALTER TABLE "${tenantHash}".projects
+             DROP COLUMN IF EXISTS enable_ai_data_insertion`,
+            { transaction }
+          );
+
+          console.log(`Removed pending_frameworks and enable_ai_data_insertion columns from ${tenantHash}.projects`);
         } catch (error) {
-          console.error(`Error removing approval_workflow_id from ${tenantHash}.projects:`, error.message);
+          console.error(`Error removing columns from ${tenantHash}.projects:`, error.message);
         }
       }
 
       await transaction.commit();
+      console.log('✅ Removed pending_frameworks and enable_ai_data_insertion columns from projects table in all tenant schemas');
     } catch (error) {
       await transaction.rollback();
       throw error;

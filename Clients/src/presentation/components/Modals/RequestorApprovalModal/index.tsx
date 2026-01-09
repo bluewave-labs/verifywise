@@ -47,7 +47,7 @@ import StepDetailsModal from './StepDetailsModal';
 import dayjs from "dayjs";
 import DualButtonModal from "../../Dialogs/ConfirmationModal";
 import Field from "../../Inputs/Field";
-import { IMenuItemExtended, IRequestorApprovalProps, IStepDetails, ITimelineStep } from "src/domain/interfaces/i.ApprovalForkflow";
+import { IMenuItemExtended, IRequestorApprovalProps, IStepDetails, ITimelineStep } from "src/domain/interfaces/i.approvalForkflow";
 import TabBar, { TabItem } from "../../TabBar";
 import {
     getPendingApprovals,
@@ -118,6 +118,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         "COMPLETED": false,
     });
     const [activeTab, setActiveTab] = useState<string>("approvals");
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const [requestsToApprove, setRequestsToApprove] = useState<IMenuItemExtended[]>([]);
     const [myPendingRequests, setMyPendingRequests] = useState<IMenuItemExtended[]>([]);
@@ -129,12 +130,12 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     // Tab configuration
     const tabs: TabItem[] = [
         {
-            label: "Requests to approve",
+            label: "Pending my approval",
             value: "approvals",
             count: requestsToApprove.filter(r => r.status === 'pending').length,
         },
         {
-            label: "My requests",
+            label: "My submissions",
             value: "pending",
             count: myPendingRequests.length,
         },
@@ -166,8 +167,12 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     };
 
     const handleApprove = async () => {
-        if (!selectedItem?.id) return;
+        if (!selectedItem?.id || isProcessing) {
+            return;
+        }
 
+        const approvedRequestId = selectedItem.id;
+        setIsProcessing(true);
         try {
             await approveRequest({
                 id: selectedItem.id,
@@ -179,19 +184,33 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 message: "Request approved successfully!",
             });
 
-            fetchRequestsData();
+            // Clear selected item before refreshing data so the auto-select picks the next item
+            setSelectedItem(null);
+            await fetchRequestsData();
             setComment("");
+
+            // Check if the request is still pending after approval
+            // If not, it means all steps are completed and we should close the modal
+            const response = await getApprovalRequestById({ id: approvedRequestId });
+            const requestStatus = response?.data?.status?.toLowerCase();
+
+            if (requestStatus === 'approved') {
+                onClose();
+            }
         } catch (error) {
             logEngine({
                 type: "error",
                 message: `Failed to approve request: ${error}`,
             });
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     const handleReject = async () => {
-        if (!selectedItem?.id) return;
+        if (!selectedItem?.id || isProcessing) return;
 
+        setIsProcessing(true);
         try {
             await rejectRequest({
                 id: selectedItem.id,
@@ -211,12 +230,15 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 type: "error",
                 message: `Failed to reject request: ${error}`,
             });
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     const handleWithdraw = async () => {
-        if (!selectedItem?.id) return;
+        if (!selectedItem?.id || isProcessing) return;
 
+        setIsProcessing(true);
         try {
             setIsWithdrawConfirmationOpen(false);
 
@@ -234,6 +256,8 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 type: "error",
                 message: `Failed to withdraw request: ${error}`,
             });
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -342,17 +366,24 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     };
 
     const renderCustomFooter = () => {
-        if (!selectedItem) {
+        if (!selectedItem && !isProcessing) {
             return null;
         }
 
         // For "My Requests" tab - show withdraw button only for pending requests
         if (activeTab === "pending") {
-            if (selectedItem.status === 'pending') {
+            if (selectedItem?.status === 'pending') {
                 return (
                     <>
                         <Box />
-                        <Button onClick={handleWithdrawClick} color="error" variant="contained">Withdraw</Button>
+                        <Button
+                            onClick={handleWithdrawClick}
+                            color="error"
+                            variant="contained"
+                            disabled={isProcessing}
+                        >
+                            Withdraw
+                        </Button>
                     </>
                 );
             }
@@ -360,7 +391,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         }
 
         // For "Requests to Approve" tab - show approve/reject buttons only for pending requests
-        if (activeTab === "approvals" && selectedItem.status === 'pending') {
+        if (activeTab === "approvals" && selectedItem?.status === 'pending') {
             return (
                 <Stack
                     direction="row"
@@ -369,8 +400,22 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                     alignItems="center"
                     width="100%"
                 >
-                    <Button onClick={handleReject} color="error" variant="contained">Reject</Button>
-                    <Button onClick={handleApprove} color="primary" variant="contained">Approve</Button>
+                    <Button
+                        onClick={handleReject}
+                        color="error"
+                        variant="contained"
+                        disabled={isProcessing}
+                    >
+                        Reject
+                    </Button>
+                    <Button
+                        onClick={handleApprove}
+                        color="primary"
+                        variant="contained"
+                        disabled={isProcessing}
+                    >
+                        {isProcessing ? "Processing..." : "Approve"}
+                    </Button>
                 </Stack>
             );
         }
@@ -390,7 +435,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         if (currentList.length > 0 && !selectedItem) {
             setSelectedItem(currentList[0]);
         }
-    }, [activeTab, requestsToApprove, myPendingRequests]);
+    }, [activeTab, requestsToApprove, myPendingRequests, selectedItem]);
 
     useEffect(() => {
         if (selectedItem?.id) {
@@ -405,7 +450,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     const getCurrentMenuGroups = () => {
         const currentList = activeTab === "approvals" ? requestsToApprove : myPendingRequests;
 
-        // For "Requests to approve" tab - only show pending
+        // For "Pending my approval" tab - only show pending
         if (activeTab === "approvals") {
             const pending = currentList.filter(item => item.status === 'pending');
             return pending.length > 0 ? [{
@@ -414,7 +459,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             }] : [];
         }
 
-        // For "My requests" tab - group by status
+        // For "My submissions" tab - group by status
         const pending = currentList.filter(item => item.status === 'pending');
         const completed = currentList.filter(item => ['approved', 'rejected', 'withdrawn'].includes(item.status));
 
@@ -472,7 +517,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                     ) : (
                     <Stack direction="row" spacing={12} sx={{ height: "100%", flex: 1 }}>
                 <Box
-                    width="280px"
+                    width="240px"
                     sx={{
                         ...sidebarContainer,
                         height: "100%",
@@ -571,7 +616,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                                     <ListItemText
                                                                         sx={listItemTextStyle}
                                                                         primary={
-                                                                            <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                                                                            <Stack direction="row" alignItems="center" spacing={1}>
                                                                                 <Typography
                                                                                     sx={{
                                                                                         fontSize: "13px",
@@ -579,7 +624,6 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                                                         overflow: "hidden",
                                                                                         textOverflow: "ellipsis",
                                                                                         whiteSpace: "nowrap",
-                                                                                        flex: 1,
                                                                                     }}
                                                                                 >
                                                                                     {item.name}

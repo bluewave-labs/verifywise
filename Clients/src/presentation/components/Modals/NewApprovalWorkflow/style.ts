@@ -32,7 +32,7 @@ export const entitySelectStyle = (theme: Theme) => ({
     backgroundColor: theme.palette.background.main,
 })
 
-export const stepContainerStyle = (stepIndex: number) => ({
+export const stepContainerStyle = () => ({
     pt: 0
 })
 

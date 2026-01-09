@@ -108,7 +108,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
         displayEmpty
         IconComponent={ChevronDown}
         sx={{
-          ...getSelectStyles(theme, !!error),
+          ...getSelectStyles(theme, { hasError: !!error }),
           ...sxWithoutLayoutProps,
         }}
         MenuProps={{

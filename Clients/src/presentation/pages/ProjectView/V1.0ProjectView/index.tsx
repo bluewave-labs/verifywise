@@ -147,8 +147,19 @@ const VWProjectView = () => {
     }
   };
 
-  // Check if project has pending approval
-  const hasPendingApproval = project && (project as any).has_pending_approval;
+  // Check approval status
+  const approvalStatus = project && (project as any).approval_status;
+  const isApprovalBlocked = approvalStatus === 'pending' || approvalStatus === 'rejected';
+
+  // Determine tooltip message based on approval status
+  const getDisabledTooltip = () => {
+    if (approvalStatus === 'rejected') {
+      return "This use case has been rejected. All tabs are disabled as the use case is no longer usable.";
+    } else if (approvalStatus === 'pending') {
+      return "This use case has a pending approval request. All tabs are disabled until the request is approved.";
+    }
+    return "This tab is currently unavailable.";
+  };
 
   return (
     <Stack className="vw-project-view">
@@ -186,6 +197,7 @@ const VWProjectView = () => {
                 label: "Overview",
                 value: "overview",
                 icon: "LayoutDashboard",
+                disabled: isApprovalBlocked,
               },
               {
                 label: "Use case risks",
@@ -193,7 +205,7 @@ const VWProjectView = () => {
                 icon: "AlertTriangle",
                 count: projectRisksCount,
                 isLoading: isLoadingRisks,
-                disabled: hasPendingApproval,
+                disabled: isApprovalBlocked,
               },
               {
                 label: "Linked models",
@@ -201,36 +213,36 @@ const VWProjectView = () => {
                 icon: "Box",
                 count: linkedModelsCount,
                 isLoading: isLoadingModels,
-                disabled: hasPendingApproval,
+                disabled: isApprovalBlocked,
               },
               {
                 label: "Frameworks/regulations",
                 value: "frameworks",
                 icon: "Shield",
-                disabled: hasPendingApproval,
+                disabled: isApprovalBlocked,
               },
               {
                 label: "CE Marking",
                 value: "ce-marking",
                 icon: "Award",
-                disabled: hasPendingApproval,
+                disabled: isApprovalBlocked,
               },
               {
                 label: "Activity",
                 value: "activity",
                 icon: "History",
-                disabled: hasPendingApproval,
+                disabled: isApprovalBlocked,
               },
               {
                 label: "Settings",
                 value: "settings",
                 icon: "Settings",
-                disabled: !allowedRoles.projects.edit.includes(userRoleName),
+                disabled: isApprovalBlocked || !allowedRoles.projects.edit.includes(userRoleName),
               },
             ]}
             activeTab={value}
             onChange={handleChange}
-            disabledTabTooltip="This tab is unavailable because the use case has a pending approval request. You can view Overview and edit Settings."
+            disabledTabTooltip={getDisabledTooltip()}
           />
 
           <TabPanel value="overview" sx={tabPanelStyle}>
@@ -279,7 +291,9 @@ const VWProjectView = () => {
                     ? 2
                     : framework === "eu-ai-act"
                     ? 1
-                    : project.framework[0].framework_id
+                    : project.framework && project.framework.length > 0
+                    ? project.framework[0].framework_id
+                    : 1
                 }
               />
             ) : (

@@ -143,7 +143,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
   const { userRoleName } = useAuth();
   const { users } = useUsers();
-  const { data: projects } = useProjects();
+  const { approvedProjects } = useProjects();
   const queryClient = useQueryClient();
 
   // TanStack Query hooks
@@ -164,13 +164,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   }));
 
   const formattedProjects = useMemo(() => {
-    return Array.isArray(projects)
-      ? projects?.map((project: any) => ({
+    return Array.isArray(approvedProjects)
+      ? approvedProjects.map((project: any) => ({
           _id: project.id,
           name: project.project_title,
         }))
       : [];
-  }, [projects]);
+  }, [approvedProjects]);
 
   useEffect(() => {
     if (!isOpen) {

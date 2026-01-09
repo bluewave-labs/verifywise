@@ -2,7 +2,7 @@ import React from 'react';
 import { Stack } from '@mui/material';
 import StandardModal from '../StandardModal';
 import DetailField from './DetailField';
-import { IStepDetailsModalProps } from 'src/domain/interfaces/i.ApprovalForkflow';
+import { IStepDetailsModalProps } from 'src/domain/interfaces/i.approvalForkflow';
 
 const StepDetailsModal: React.FC<IStepDetailsModalProps> = ({
     isOpen,

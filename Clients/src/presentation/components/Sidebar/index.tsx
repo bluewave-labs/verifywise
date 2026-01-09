@@ -14,7 +14,6 @@ import {
   FolderTree,
   Layers,
   AlertCircle,
-  Workflow,
 } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";

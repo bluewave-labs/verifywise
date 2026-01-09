@@ -243,7 +243,7 @@ export const countAnswersByProjectId = async (
 };
 
 export const createNewProjectQuery = async (
-  project: Partial<ProjectModel>,
+  project: Partial<ProjectModel> & { enable_ai_data_insertion?: boolean },
   members: number[],
   frameworks: number[],
   tenant: string,
@@ -279,13 +279,19 @@ export const createNewProjectQuery = async (
   console.log("project.approval_workflow_id:", project.approval_workflow_id);
   console.log("project object:", JSON.stringify(project, null, 2));
 
+  // If approval workflow is assigned, store frameworks for later creation
+  const pendingFrameworks = project.approval_workflow_id ? frameworks : null;
+  const enableAiDataInsertion = project.approval_workflow_id ? (project.enable_ai_data_insertion || false) : false;
+
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".projects (
       uc_id, project_title, owner, start_date, geography, target_industry, description, ai_risk_classification,
-      type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational, approval_workflow_id
+      type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational, approval_workflow_id,
+      pending_frameworks, enable_ai_data_insertion
     ) VALUES (
       :uc_id, :project_title, :owner, :start_date, :geography, :target_industry, :description, :ai_risk_classification,
-      :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational, :approval_workflow_id
+      :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational, :approval_workflow_id,
+      :pending_frameworks, :enable_ai_data_insertion
     ) RETURNING *`,
     {
       replacements: {
@@ -305,6 +311,8 @@ export const createNewProjectQuery = async (
         is_demo: isDemo,
         is_organizational: project.is_organizational || false,
         approval_workflow_id: project.approval_workflow_id || null,
+        pending_frameworks: pendingFrameworks ? JSON.stringify(pendingFrameworks) : null,
+        enable_ai_data_insertion: enableAiDataInsertion,
       },
       mapToModel: true,
       model: ProjectModel,
@@ -334,21 +342,24 @@ export const createNewProjectQuery = async (
     (createdProject.dataValues as any)["members"].push(member);
   }
   (createdProject.dataValues as any)["framework"] = [];
-  for (let framework of frameworks) {
-    await sequelize.query(
-      `INSERT INTO "${tenant}".projects_frameworks (project_id, framework_id, is_demo) VALUES (:project_id, :framework_id, :is_demo) RETURNING *`,
-      {
-        replacements: {
-          project_id: createdProject.id,
-          framework_id: framework,
-          is_demo: isDemo,
-        },
-        mapToModel: true,
+  // Only create projects_frameworks records if NO approval workflow is assigned
+  if (!project.approval_workflow_id) {
+    for (let framework of frameworks) {
+      await sequelize.query(
+        `INSERT INTO "${tenant}".projects_frameworks (project_id, framework_id, is_demo) VALUES (:project_id, :framework_id, :is_demo) RETURNING *`,
+        {
+          replacements: {
+            project_id: createdProject.id,
+            framework_id: framework,
+            is_demo: isDemo,
+          },
+          mapToModel: true,
         model: ProjectFrameworksModel,
         transaction,
       }
     );
-    (createdProject.dataValues as any)["framework"].push(framework);
+      (createdProject.dataValues as any)["framework"].push(framework);
+    }
   }
 
   const automations = (await sequelize.query(

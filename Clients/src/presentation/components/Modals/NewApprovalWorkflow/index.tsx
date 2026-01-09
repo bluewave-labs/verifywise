@@ -24,7 +24,7 @@ import {
 } from "./style";
 import { ApprovalWorkflowStepModel } from "../../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
 import { entities, conditions } from "./arrays";
-import { ICreateApprovalWorkflowProps, NewApprovalWorkflowFormErrors } from "src/domain/interfaces/i.ApprovalForkflow";
+import { ICreateApprovalWorkflowProps, NewApprovalWorkflowFormErrors } from "src/domain/interfaces/i.approvalForkflow";
 import { getAllUsers } from "../../../../application/repository/user.repository";
 import { User } from "../../../../domain/types/User";
 
@@ -199,7 +199,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                     <Stack key={stepIndex} spacing={8}>
                         {/* STEPS */}
                         <Stack spacing={4}
-                            sx={stepContainerStyle(stepIndex)}>
+                            sx={stepContainerStyle()}>
                             <Stack direction="row" spacing={8} alignItems="center">
                                 <Box sx={stepNumberStyle}>{stepIndex + 1}</Box>
                                 <Typography sx={stepTitleStyle}>

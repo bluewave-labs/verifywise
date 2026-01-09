@@ -1,6 +1,6 @@
 import { Box, Button } from "@mui/material";
 import { approvalButtonStyle, approvalCountBadgeStyle } from "./style";
-import { ApprovalButtonProps } from "src/domain/interfaces/i.ApprovalForkflow";
+import { ApprovalButtonProps } from "src/domain/interfaces/i.approvalForkflow";
 
 const ApprovalButton: React.FC<ApprovalButtonProps> = ({ label, count, onClick }) => (
     <Button

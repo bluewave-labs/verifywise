@@ -9,7 +9,6 @@ export const asideMenu = {
 export const verticalDividerStyle = (theme: Theme) => ({
   borderColor: theme.palette.border.light,
   mx: 4,
-  mr: 16,
   my: theme.spacing(16)
 })
 
@@ -40,6 +39,8 @@ export const listStyle = (theme: Theme) => ({
   flex: 1,
   overflowY: "auto",
   overflowX: "hidden",
+  maxWidth: "240px",
+  width: "100%",
   "&::-webkit-scrollbar": {
     width: "4px",
   },
@@ -140,8 +141,7 @@ export const listItemTextStyle = {
 export const horizontalDividerStyle = (theme: Theme) => ({
   borderColor: theme.palette.border.light,
   mx: 4,
-  mr: 16,
-  width: '248px',
+  width: '208px',
   mb: theme.spacing(12)
 })
 

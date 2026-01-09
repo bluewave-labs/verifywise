@@ -73,6 +73,33 @@ export async function getAllProjects(
       req.tenantId!
     )) as IProjectAttributes[];
 
+    // Add approval status fields to each project
+    const { getApprovalStatusQuery } = require("../utils/approvalRequest.utils");
+
+    await Promise.all(
+      projects.map(async (project) => {
+        if (project.id) {
+          // Check if project has a pending approval request
+          const hasPendingApproval = await hasPendingApprovalQuery(
+            project.id,
+            "use_case",
+            req.tenantId!
+          );
+
+          // Get the approval status (pending, rejected, or null)
+          const approvalStatus = await getApprovalStatusQuery(
+            project.id,
+            "use_case",
+            req.tenantId!
+          );
+
+          // Add approval status to project response
+          ((project as any).dataValues as any).has_pending_approval = hasPendingApproval;
+          ((project as any).dataValues as any).approval_status = approvalStatus;
+        }
+      })
+    );
+
     await logSuccess({
       eventType: "Read",
       description: "Retrieved all projects",
@@ -117,9 +144,18 @@ export async function getProjectById(
         req.tenantId!
       );
 
-      // Add pending approval status to project response
+      // Get the approval status (pending, rejected, or null)
+      const { getApprovalStatusQuery } = require("../utils/approvalRequest.utils");
+      const approvalStatus = await getApprovalStatusQuery(
+        projectId,
+        "use_case",
+        req.tenantId!
+      );
+
+      // Add approval status to project response
       // Must add to dataValues for Sequelize model serialization
       ((project as any).dataValues as any).has_pending_approval = hasPendingApproval;
+      ((project as any).dataValues as any).approval_status = approvalStatus;
 
       await logSuccess({
         eventType: "Read",
@@ -180,41 +216,52 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       req.userId!,
       transaction
     );
+
+    // Only create frameworks immediately if NO approval workflow is assigned
+    // Otherwise, store frameworks for creation after approval
     const frameworks: { [key: string]: Object } = {};
-    for (const framework of newProject.framework) {
-      if (framework === 1) {
-        const eu = await createEUFrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction
-        );
-        frameworks["eu"] = eu;
-      } else if (framework === 2) {
-        const iso42001 = await createISOFrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction
-        );
-        frameworks["iso42001"] = iso42001;
-      } else if (framework === 3) {
-        const iso27001 = await createISO27001FrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction
-        );
-        frameworks["iso27001"] = iso27001;
-      } else if (framework === 4) {
-        const nist = await createNISTAI_RMFFrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction
-        );
-        frameworks["nist_ai_rmf"] = nist;
+    if (!createdProject.approval_workflow_id) {
+      // No approval workflow - create frameworks immediately
+      for (const framework of newProject.framework) {
+        if (framework === 1) {
+          const eu = await createEUFrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction
+          );
+          frameworks["eu"] = eu;
+        } else if (framework === 2) {
+          const iso42001 = await createISOFrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction
+          );
+          frameworks["iso42001"] = iso42001;
+        } else if (framework === 3) {
+          const iso27001 = await createISO27001FrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction
+          );
+          frameworks["iso27001"] = iso27001;
+        } else if (framework === 4) {
+          const nist = await createNISTAI_RMFFrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction
+          );
+          frameworks["nist_ai_rmf"] = nist;
+        }
       }
+    } else {
+      // Approval workflow assigned - defer framework creation until approval
+      console.log("Approval workflow detected - deferring framework creation until approval");
+      console.log("Pending frameworks:", newProject.framework);
+      console.log("enable_ai_data_insertion:", newProject.enable_ai_data_insertion);
     }
 
     if (createdProject) {
@@ -268,7 +315,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         if (workflow && workflowSteps && workflowSteps.length > 0) {
           console.log("Creating approval request...");
           const approvalRequestData = {
-            request_name: `Approval for Use Case: ${createdProject.project_title}`,
+            request_name: `Use Case: ${createdProject.project_title}`,
             workflow_id: createdProject.approval_workflow_id,
             entity_id: createdProject.id,
             entity_type: "use_case",

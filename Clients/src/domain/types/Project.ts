@@ -30,6 +30,7 @@ export type Project = {
   is_organizational?: boolean;
   status?: "Not started" | "In progress" | "Under review" | "Completed" | "Closed" | "On hold" | "Rejected";
   has_pending_approval?: boolean;
+  approval_status?: 'pending' | 'rejected' | null;
   // vendors: string[];
 
   // statistical fields

@@ -264,8 +264,8 @@ const ProjectSettings = React.memo(
     );
     useEffect(() => {
       setShowCustomizableSkeleton(true);
-      if (project && monitoredFrameworks.length > 0) {
-        const frameworksForProject = monitoredFrameworks.map(
+      if (project) {
+        const frameworksForProject = monitoredFrameworks.length > 0 ? monitoredFrameworks.map(
           (fw: Framework) => {
             const projectFramework = project.framework?.find(
               (pf) => Number(pf.framework_id) === Number(fw.id),
@@ -278,7 +278,7 @@ const ProjectSettings = React.memo(
               framework_id: Number(fw.id),
             };
           },
-        );
+        ) : [];
 
         const returnedData: FormValues = {
           ...initialState,
@@ -640,18 +640,21 @@ const ProjectSettings = React.memo(
         newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
       }
 
-      const monitoredRegulationsAndStandards = selectValidation(
-        "Applicable regulations",
-        values.monitoredRegulationsAndStandards.length,
-      );
-      if (!monitoredRegulationsAndStandards.accepted) {
-        newErrors.monitoredRegulationsAndStandards =
-          monitoredRegulationsAndStandards.message;
+      // Skip framework validation if use-case has pending approval (no frameworks created yet)
+      if (!hasPendingApproval) {
+        const monitoredRegulationsAndStandards = selectValidation(
+          "Applicable regulations",
+          values.monitoredRegulationsAndStandards.length,
+        );
+        if (!monitoredRegulationsAndStandards.accepted) {
+          newErrors.monitoredRegulationsAndStandards =
+            monitoredRegulationsAndStandards.message;
+        }
       }
 
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
-    }, [values]);
+    }, [values, hasPendingApproval]);
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
       event.preventDefault();

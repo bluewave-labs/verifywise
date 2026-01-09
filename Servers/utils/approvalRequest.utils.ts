@@ -337,39 +337,27 @@ export const processApprovalQuery = async (
 
   const requiresAllApprovers = workflowStep ? (workflowStep as any).requires_all_approvers : true;
 
-  // Check if all approvers for this step have responded
-  const pendingApprovals = await sequelize.query(
-    `SELECT COUNT(*) as count
+  // Get ALL approvals for this step AFTER the update
+  // Query them directly instead of using COUNT to avoid transaction visibility issues
+  const allApprovals = await sequelize.query(
+    `SELECT approver_id, approval_result
      FROM "${tenantId}".approval_request_step_approvals
-     WHERE request_step_id = :requestStepId
-       AND approval_result = :pending`,
+     WHERE request_step_id = :requestStepId`,
     {
       replacements: {
         requestStepId: (requestStep as any).id,
-        pending: ApprovalResult.PENDING,
       },
       type: "SELECT",
+      transaction,
     }
-  );
+  ) as any[];
 
-  const hasPending = (pendingApprovals[0] as any).count > 0;
+  // Count in code instead of SQL to ensure we see the updated values
+  const pendingCount = allApprovals.filter((a: any) => a.approval_result === ApprovalResult.PENDING).length;
+  const approvedCount = allApprovals.filter((a: any) => a.approval_result === ApprovalResult.APPROVED).length;
 
-  // Check if at least one approver has approved (for "Any" condition)
-  const approvedCount = await sequelize.query(
-    `SELECT COUNT(*) as count
-     FROM "${tenantId}".approval_request_step_approvals
-     WHERE request_step_id = :requestStepId
-       AND approval_result = :approved`,
-    {
-      replacements: {
-        requestStepId: (requestStep as any).id,
-        approved: ApprovalResult.APPROVED,
-      },
-      type: "SELECT",
-    }
-  );
-
-  const hasApproved = (approvedCount[0] as any).count > 0;
+  const hasPending = pendingCount > 0;
+  const hasApproved = approvedCount > 0;
 
   // Determine if step should be completed based on requires_all_approvers setting
   const shouldComplete = requiresAllApprovers
@@ -458,6 +446,108 @@ export const processApprovalQuery = async (
           transaction,
         }
       );
+
+      // ===== FRAMEWORK CREATION AFTER APPROVAL =====
+      // Get the entity (use-case/project) to check if it has pending frameworks
+      const entityId = (request as any).entity_id;
+      const entityType = (request as any).entity_type;
+
+      if (entityType === "use_case" && entityId) {
+        console.log("=== APPROVAL COMPLETE - CREATING FRAMEWORKS ===");
+        console.log("Entity ID:", entityId);
+
+        // Get project details with pending frameworks
+        const [projectData] = await sequelize.query(
+          `SELECT id, pending_frameworks, enable_ai_data_insertion
+           FROM "${tenantId}".projects
+           WHERE id = :entityId`,
+          {
+            replacements: { entityId },
+            type: "SELECT",
+            transaction,
+          }
+        );
+
+        if (projectData && (projectData as any).pending_frameworks) {
+          const pendingFrameworks = (projectData as any).pending_frameworks as number[];
+          const enableAiDataInsertion = (projectData as any).enable_ai_data_insertion || false;
+
+          console.log("Pending frameworks:", pendingFrameworks);
+          console.log("Enable AI data insertion:", enableAiDataInsertion);
+
+          // Import framework creation utilities
+          const { createEUFrameworkQuery } = require("./eu.utils");
+          const { createISOFrameworkQuery } = require("./iso42001.utils");
+          const { createISO27001FrameworkQuery } = require("./iso27001.utils");
+          const { createNISTAI_RMFFrameworkQuery } = require("./nistAiRmfCorrect.utils");
+
+          // Create frameworks
+          for (const frameworkId of pendingFrameworks) {
+            console.log(`Creating framework ${frameworkId} for project ${entityId}...`);
+
+            // Create project_framework record FIRST (required by framework creation functions)
+            await sequelize.query(
+              `INSERT INTO "${tenantId}".projects_frameworks (project_id, framework_id, is_demo)
+               VALUES (:project_id, :framework_id, false)`,
+              {
+                replacements: {
+                  project_id: entityId,
+                  framework_id: frameworkId,
+                },
+                transaction,
+              }
+            );
+
+            // Create framework-specific records
+            if (frameworkId === 1) {
+              await createEUFrameworkQuery(
+                entityId,
+                enableAiDataInsertion,
+                tenantId,
+                transaction
+              );
+            } else if (frameworkId === 2) {
+              await createISOFrameworkQuery(
+                entityId,
+                enableAiDataInsertion,
+                tenantId,
+                transaction
+              );
+            } else if (frameworkId === 3) {
+              await createISO27001FrameworkQuery(
+                entityId,
+                enableAiDataInsertion,
+                tenantId,
+                transaction
+              );
+            } else if (frameworkId === 4) {
+              await createNISTAI_RMFFrameworkQuery(
+                entityId,
+                enableAiDataInsertion,
+                tenantId,
+                transaction
+              );
+            }
+
+            console.log(`Framework ${frameworkId} created successfully`);
+          }
+
+          // Clear pending frameworks after creation
+          await sequelize.query(
+            `UPDATE "${tenantId}".projects
+             SET pending_frameworks = NULL, enable_ai_data_insertion = FALSE
+             WHERE id = :entityId`,
+            {
+              replacements: { entityId },
+              transaction,
+            }
+          );
+
+          console.log("All frameworks created and pending_frameworks cleared");
+        } else {
+          console.log("No pending frameworks to create");
+        }
+      }
     }
   }
 };
@@ -545,4 +635,48 @@ export const hasPendingApprovalQuery = async (
 
   const hasPending = (results[0] as any).count > 0;
   return hasPending;
+};
+
+/**
+ * Get the approval status for a use-case
+ * Returns 'pending', 'rejected', or null if no pending/rejected approval
+ */
+export const getApprovalStatusQuery = async (
+  entityId: number,
+  entityType: string,
+  tenantId: string,
+  transaction?: Transaction
+): Promise<'pending' | 'rejected' | null> => {
+  const results = await sequelize.query(
+    `SELECT status
+     FROM "${tenantId}".approval_requests
+     WHERE entity_id = :entityId
+       AND entity_type = :entityType
+       AND status IN (:pendingStatus, :rejectedStatus)
+     ORDER BY updated_at DESC
+     LIMIT 1`,
+    {
+      replacements: {
+        entityId,
+        entityType,
+        pendingStatus: ApprovalRequestStatus.PENDING,
+        rejectedStatus: ApprovalRequestStatus.REJECTED,
+      },
+      type: "SELECT",
+      transaction,
+    }
+  ) as any[];
+
+  if (results.length === 0 || !results[0]) {
+    return null;
+  }
+
+  const status = (results[0] as any).status;
+  if (status === ApprovalRequestStatus.PENDING) {
+    return 'pending';
+  } else if (status === ApprovalRequestStatus.REJECTED) {
+    return 'rejected';
+  }
+
+  return null;
 };

@@ -5,7 +5,7 @@ export interface Command {
   keywords?: string[]
   group: CommandGroup
   action: CommandAction
-  icon?: React.ComponentType<any>
+  icon?: React.ComponentType<Record<string, unknown>>
   shortcut?: string[]
   requiredRole?: string[]
   scope?: string

@@ -4,13 +4,12 @@ import singleTheme from "../../../../themes/v1SingleTheme";
 
 // Column width definitions for consistent spacing
 const columnWidths: Record<string, string> = {
-  "EXPERIMENT ID": "18%",
-  "MODEL": "10%",
+  "EXPERIMENT ID": "20%",
+  "MODEL": "12%",
   "JUDGE/SCORER": "16%",
-  "# PROMPTS": "7%",
-  "DATASET": "12%",
-  "STATUS": "9%",
-  "DATE": "14%",
+  "# PROMPTS": "8%",
+  "DATASET": "14%",
+  "DATE": "16%",
   "ACTION": "60px",
 };
 
@@ -21,7 +20,6 @@ const columnSortKeys: Record<string, string> = {
   "JUDGE/SCORER": "judge",
   "# PROMPTS": "prompts",
   "DATASET": "dataset",
-  "STATUS": "status",
   "DATE": "date",
 };
 
@@ -40,7 +38,7 @@ interface TableHeaderProps {
 const TableHeader = ({ columns, sortConfig, onSort }: TableHeaderProps) => {
   const theme = useTheme();
   // Columns that should be center-aligned
-  const centerAlignedColumns = ["MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
+  const centerAlignedColumns = ["MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE", "ACTION"];
 
   return (
     <TableHead

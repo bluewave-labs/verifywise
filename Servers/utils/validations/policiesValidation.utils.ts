@@ -403,17 +403,6 @@ export const validatePolicyCreationBusinessRules = (data: any): ValidationError[
     }
   }
 
-  // Validate author and reviewer separation
-  if (data.author_id && data.assigned_reviewer_ids && Array.isArray(data.assigned_reviewer_ids)) {
-    if (data.assigned_reviewer_ids.includes(data.author_id)) {
-      errors.push({
-        field: 'assigned_reviewer_ids',
-        message: 'Policy author cannot be assigned as a reviewer for the same policy',
-        code: 'AUTHOR_REVIEWER_CONFLICT'
-      });
-    }
-  }
-
   return errors;
 };
 

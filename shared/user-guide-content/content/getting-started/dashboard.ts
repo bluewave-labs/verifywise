@@ -23,58 +23,208 @@ export const dashboardContent: ArticleContent = {
     },
     {
       type: 'heading',
-      id: 'use-case-cards',
+      id: 'dashboard-views',
       level: 2,
-      text: 'Use case cards',
+      text: 'Dashboard views',
     },
     {
       type: 'paragraph',
-      text: 'The main area of the dashboard displays cards for each of your AI use cases. Each card gives you a quick view of that use case\'s governance status.',
-    },
-    {
-      type: 'info-box',
-      icon: 'FolderKanban',
-      title: 'What each use case card shows',
-      items: [
-        'Use case name and description',
-        'Compliance status as a percentage',
-        'Assessment progress (completed / total)',
-        'Control completion metrics',
-        'Last updated timestamp',
-      ],
-    },
-    {
-      type: 'paragraph',
-      text: 'Click on any use case card to open that use case and view its full details, including assessments, controls, risks, and evidence.',
-    },
-    {
-      type: 'heading',
-      id: 'org-metrics',
-      level: 2,
-      text: 'Organization metrics',
-    },
-    {
-      type: 'paragraph',
-      text: "Above the use case cards, you'll find summary metrics that aggregate data across your entire organization. These give you an at-a-glance view of your overall AI governance posture.",
+      text: 'The dashboard offers two viewing modes to suit different needs: Operations view and Executive view. You can switch between them using the toggle in the top-right corner of the dashboard.',
     },
     {
       type: 'grid-cards',
       items: [
         {
-          icon: 'Gauge',
-          title: 'Overall compliance',
-          description: 'Average compliance percentage across all active use cases',
+          icon: 'Settings',
+          title: 'Operations view',
+          description: 'Focuses on actionable items like tasks, incidents, and day-to-day metrics. Best for team members managing ongoing governance activities.',
         },
         {
-          icon: 'CheckCircle',
-          title: 'Assessments completed',
-          description: 'Number of assessments finished vs. total required',
+          icon: 'BarChart3',
+          title: 'Executive view',
+          description: 'Prioritizes organizational frameworks and compliance status. Best for leadership reviewing overall governance posture.',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: 'Your view preference is saved automatically, so the dashboard will remember your choice the next time you log in.',
+    },
+    {
+      type: 'heading',
+      id: 'header-cards',
+      level: 2,
+      text: 'Header cards',
+    },
+    {
+      type: 'paragraph',
+      text: 'At the top of the dashboard, you\'ll find summary cards that provide quick access to key areas of the platform:',
+    },
+    {
+      type: 'grid-cards',
+      items: [
+        {
+          icon: 'Brain',
+          title: 'Models',
+          description: 'Total number of AI models in your inventory. Click to access model inventory.',
         },
         {
-          icon: 'FolderKanban',
-          title: 'Control completion',
-          description: 'Controls and sub-controls implemented across use cases',
+          icon: 'Building2',
+          title: 'Vendors',
+          description: 'Number of vendors you work with. Click to access vendor management.',
         },
+        {
+          icon: 'ScrollText',
+          title: 'Policies',
+          description: 'Total policies and pending reviews. Click to access policy management.',
+        },
+        {
+          icon: 'GraduationCap',
+          title: 'Training',
+          description: 'Training sessions and completion status. Click to access training management.',
+        },
+        {
+          icon: 'AlertCircle',
+          title: 'Incidents',
+          description: 'Open incidents requiring attention. Click to access incident management.',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'framework-cards',
+      level: 2,
+      text: 'Organizational framework cards',
+    },
+    {
+      type: 'paragraph',
+      text: 'If your organization has enabled compliance frameworks (ISO 42001, ISO 27001, or NIST AI RMF), you\'ll see dedicated cards showing your progress against each framework.',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'ISO 42001 and ISO 27001', text: 'Use the arrow buttons in the card header to switch between viewing clauses and annexes progress.' },
+        { bold: 'NIST AI RMF', text: 'Shows a breakdown of control implementation status across all functions.' },
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: 'Click on any framework card to navigate to the detailed framework management page.',
+    },
+    {
+      type: 'heading',
+      id: 'risk-cards',
+      level: 2,
+      text: 'Risk overview cards',
+    },
+    {
+      type: 'paragraph',
+      text: 'The dashboard displays risk distribution across three categories:',
+    },
+    {
+      type: 'grid-cards',
+      items: [
+        {
+          icon: 'AlertTriangle',
+          title: 'Use case and framework risks',
+          description: 'Risks identified in your AI use cases and compliance assessments.',
+        },
+        {
+          icon: 'Building2',
+          title: 'Vendor risks',
+          description: 'Risks associated with third-party vendors and their AI systems.',
+        },
+        {
+          icon: 'Brain',
+          title: 'Model risks',
+          description: 'Risks specific to AI models in your inventory.',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: 'Each card shows a donut chart with the distribution of risk levels (critical, high, medium, low). Click on any card to navigate to the corresponding risk management page.',
+    },
+    {
+      type: 'heading',
+      id: 'task-radar',
+      level: 2,
+      text: 'Task radar',
+    },
+    {
+      type: 'paragraph',
+      text: 'The task radar card helps you stay on top of your governance tasks by showing:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Overdue', text: 'Tasks that have passed their due date and need immediate attention.' },
+        { bold: 'Due soon', text: 'Tasks due within the next 7 days.' },
+        { bold: 'Upcoming', text: 'Tasks scheduled for more than 7 days from now.' },
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: 'Click on the task radar card to navigate to the full tasks page where you can manage all your pending items.',
+    },
+    {
+      type: 'heading',
+      id: 'metrics-cards',
+      level: 2,
+      text: 'Metrics cards',
+    },
+    {
+      type: 'paragraph',
+      text: 'Additional dashboard cards provide insights into various aspects of your governance program:',
+    },
+    {
+      type: 'grid-cards',
+      items: [
+        {
+          icon: 'GraduationCap',
+          title: 'Training completion',
+          description: 'Shows planned, in-progress, and completed training sessions.',
+        },
+        {
+          icon: 'ScrollText',
+          title: 'Policy status',
+          description: 'Distribution of policies by status: published, approved, under review, draft, and archived.',
+        },
+        {
+          icon: 'AlertCircle',
+          title: 'Incident status',
+          description: 'Breakdown of incidents: open, investigating, mitigated, and closed.',
+        },
+        {
+          icon: 'FileCheck',
+          title: 'Evidence coverage',
+          description: 'Percentage of models with supporting evidence and total evidence items.',
+        },
+        {
+          icon: 'Brain',
+          title: 'Model lifecycle',
+          description: 'Distribution of models by approval status: approved, pending, restricted, and blocked.',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'use-cases-table',
+      level: 2,
+      text: 'Recent use cases',
+    },
+    {
+      type: 'paragraph',
+      text: 'The recent use cases table shows your most recently updated AI use cases with key information at a glance:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Use case name', text: 'The name of the AI use case.' },
+        { bold: 'Framework', text: 'The compliance framework(s) applied to this use case.' },
+        { bold: 'Progress', text: 'Overall completion percentage of sub-controls.' },
+        { bold: 'Status', text: 'Current status of the use case.' },
+        { bold: 'Updated', text: 'When the use case was last modified.' },
       ],
     },
     {
@@ -108,12 +258,6 @@ export const dashboardContent: ArticleContent = {
       ],
     },
     {
-      type: 'image',
-      src: '/images/user-guide/sidebar-navigation.png',
-      alt: 'VerifyWise sidebar navigation showing Dashboard, Tasks, Discovery, Assurance, and Governance sections with expandable menus',
-      caption: 'The sidebar provides access to all platform features organized by category.',
-    },
-    {
       type: 'paragraph',
       text: "At the bottom of the sidebar, you'll find your user profile section with access to account settings and support resources.",
     },
@@ -125,14 +269,16 @@ export const dashboardContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The dashboard header includes buttons for common actions you might want to take:',
+      text: 'The dashboard header includes the "Add new" button for quick access to common actions:',
     },
     {
       type: 'bullet-list',
       items: [
-        { bold: 'Integrations', text: 'Connect VerifyWise with external tools (admin only)' },
-        { bold: 'Automations', text: 'Set up automated workflows and triggers' },
-        { bold: 'New use case', text: 'Register a new AI use case in the system' },
+        { bold: 'New use case', text: 'Register a new AI use case in the system.' },
+        { bold: 'New vendor', text: 'Add a new vendor to your vendor registry.' },
+        { bold: 'New model', text: 'Add a new AI model to your inventory.' },
+        { bold: 'New policy', text: 'Create a new governance policy.' },
+        { bold: 'New incident', text: 'Report a new AI-related incident.' },
       ],
     },
     {

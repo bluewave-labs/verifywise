@@ -42,23 +42,30 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
   setCurrentPagingation,
   onShowDetails,
   onRerun,
+  onDownload,
+  onCopy,
   hidePagination = false,
 }) => {
   const [rowsPerPage, setRowsPerPage] = useState(() =>
     getPaginationRowCount("evaluation", 10)
   );
 
-  // Initialize sorting state from localStorage
+  // Initialize sorting state from localStorage or default to date desc
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
     const saved = localStorage.getItem(EVALUATION_SORTING_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // If saved state is empty, use the default
+        if (!parsed.key || !parsed.direction) {
+          return { key: "date", direction: "desc" };
+        }
+        return parsed;
       } catch {
-        return { key: "", direction: null };
+        return { key: "date", direction: "desc" };
       }
     }
-    return { key: "", direction: null };
+    return { key: "date", direction: "desc" };
   });
 
   // Save sorting state to localStorage
@@ -117,23 +124,6 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
           aValue = a.dataset.toLowerCase();
           bValue = b.dataset.toLowerCase();
           break;
-
-        case "status": {
-          // Status order: Completed > Running > In Progress > Pending > Failed
-          const getStatusValue = (status: string) => {
-            switch (status) {
-              case "Completed": return 5;
-              case "Running": return 4;
-              case "In Progress": return 3;
-              case "Pending": return 2;
-              case "Failed": return 1;
-              default: return 0;
-            }
-          };
-          aValue = getStatusValue(a.status);
-          bValue = getStatusValue(b.status);
-          break;
-        }
 
         case "date":
           aValue = a.date ? new Date(a.date).getTime() : 0;
@@ -195,6 +185,8 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
                   onRemoveModel={removeModel}
                   onShowDetails={onShowDetails}
                   onRerun={onRerun}
+                  onDownload={onDownload}
+                  onCopy={onCopy}
                   page={hidePagination ? 0 : page}
                   rowsPerPage={hidePagination ? sortedRows.length : rowsPerPage}
                 />

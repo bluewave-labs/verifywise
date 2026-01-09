@@ -60,6 +60,7 @@ export interface UploadedFile {
   originalname: string;
   mimetype: string;
   buffer: Buffer;
+  size?: number;
 }
 
 export type RequestWithFile = Omit<Request, "file" | "files"> & {

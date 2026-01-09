@@ -2,15 +2,20 @@
  * @fileoverview File Manager Routes
  *
  * Defines HTTP routes for file manager operations.
+ * These routes handle organization-level files (files without project association).
+ *
+ * Note: All file manager operations now use the unified 'files' table
+ * with project_id = NULL to distinguish org-level files from project files.
  *
  * Routes:
  * - POST   /file-manager       - Upload file (Admin, Reviewer, Editor only)
  * - GET    /file-manager       - List all files (All authenticated users)
  * - GET    /file-manager/:id   - Download file (All authenticated users)
+ * - DELETE /file-manager/:id   - Delete file (Admin, Reviewer, Editor only)
  *
  * Access Control:
  * - All routes require JWT authentication
- * - Upload restricted to Admin, Reviewer, Editor (enforced by authorize middleware)
+ * - Upload/Delete restricted to Admin, Reviewer, Editor (enforced by authorize middleware)
  * - List and Download available to all authenticated users
  *
  * @module routes/fileManager

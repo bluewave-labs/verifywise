@@ -47,6 +47,12 @@ const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
     message:
       "Too many authentication attempts from this IP, please try again after 15 minutes",
   },
+  aiDetectionScan: {
+    windowMinutes: 60,
+    maxRequests: 10,
+    message:
+      "Too many AI detection scan requests from this IP, please try again after 60 minutes",
+  },
 };
 
 /**
@@ -102,3 +108,11 @@ export const generalApiLimiter = createRateLimiter(
  * Very restrictive to prevent brute force attacks
  */
 export const authLimiter = createRateLimiter(RATE_LIMIT_CONFIGS.auth);
+
+/**
+ * Rate limiter for AI Detection scan operations
+ * Moderate limits as scans are resource-intensive
+ */
+export const aiDetectionScanLimiter = createRateLimiter(
+  RATE_LIMIT_CONFIGS.aiDetectionScan
+);

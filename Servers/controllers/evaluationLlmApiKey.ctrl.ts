@@ -130,6 +130,151 @@ export const getDecryptedKeys = async (req: Request, res: Response) => {
 };
 
 /**
+ * Verify an LLM API key by making a test call to the provider
+ *
+ * This endpoint allows the frontend to verify API keys without CORS issues.
+ * The backend makes the request to the provider API on behalf of the client.
+ *
+ * Request body:
+ * - provider: string (openai, anthropic, google, xai, mistral, huggingface, openrouter)
+ * - apiKey: string (plain text API key to verify)
+ */
+export const verifyKey = async (req: Request, res: Response) => {
+  try {
+    const { provider, apiKey } = req.body;
+
+    if (!provider) {
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        message: 'Provider is required',
+      });
+    }
+
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        message: 'API key is required',
+      });
+    }
+
+    // Provider-specific verification endpoints
+    const endpoints: Record<string, { url: string; headers: Record<string, string>; method?: string }> = {
+      openai: {
+        url: 'https://api.openai.com/v1/models',
+        headers: { Authorization: `Bearer ${apiKey}` },
+      },
+      anthropic: {
+        url: 'https://api.anthropic.com/v1/models',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+      },
+      google: {
+        url: `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`,
+        headers: {},
+      },
+      xai: {
+        url: 'https://api.x.ai/v1/models',
+        headers: { Authorization: `Bearer ${apiKey}` },
+      },
+      mistral: {
+        url: 'https://api.mistral.ai/v1/models',
+        headers: { Authorization: `Bearer ${apiKey}` },
+      },
+      huggingface: {
+        url: 'https://huggingface.co/api/whoami',
+        headers: { Authorization: `Bearer ${apiKey}` },
+      },
+      openrouter: {
+        url: 'https://openrouter.ai/api/v1/auth/key',
+        headers: { Authorization: `Bearer ${apiKey}` },
+      },
+    };
+
+    const config = endpoints[provider];
+    if (!config) {
+      // Unknown provider, skip verification
+      return res.status(200).json({
+        success: true,
+        valid: true,
+        message: 'Provider not configured for verification, assuming valid',
+      });
+    }
+
+    try {
+      const response = await fetch(config.url, {
+        method: config.method || 'GET',
+        headers: {
+          ...config.headers,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        return res.status(200).json({
+          success: true,
+          valid: true,
+          message: 'API key verified successfully',
+        });
+      } else if (response.status === 401 || response.status === 403) {
+        return res.status(200).json({
+          success: true,
+          valid: false,
+          message: 'Invalid API key - authentication failed',
+        });
+      } else if (response.status === 400) {
+        let errorMsg = 'Invalid API key';
+        try {
+          const data = await response.json();
+          errorMsg = data?.error?.message || data?.message || errorMsg;
+        } catch {
+          // Ignore JSON parse errors
+        }
+        return res.status(200).json({
+          success: true,
+          valid: false,
+          message: errorMsg,
+        });
+      } else if (response.status === 429) {
+        // Rate limited - key might be valid
+        return res.status(200).json({
+          success: true,
+          valid: true,
+          message: 'Rate limited, but key appears valid',
+        });
+      } else {
+        // Other errors - give benefit of doubt
+        console.warn('API key verification got status', response.status, 'for provider:', provider);
+        return res.status(200).json({
+          success: true,
+          valid: true,
+          message: 'Could not verify key, assuming valid',
+        });
+      }
+    } catch (fetchError: any) {
+      console.error('Error verifying API key for provider:', provider, '-', fetchError.message);
+      // Network errors - give benefit of doubt
+      return res.status(200).json({
+        success: true,
+        valid: true,
+        message: 'Network error during verification, assuming valid',
+      });
+    }
+  } catch (error: any) {
+    console.error('Error in verifyKey controller:', error);
+    return res.status(500).json({
+      success: false,
+      valid: false,
+      message: 'Failed to verify API key',
+      error: error.message,
+    });
+  }
+};
+
+/**
  * Delete an LLM API key
  *
  * URL params:

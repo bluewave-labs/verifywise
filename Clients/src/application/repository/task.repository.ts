@@ -1,5 +1,4 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 import { ITask } from "../../domain/interfaces/i.task";
 import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
 
@@ -14,7 +13,6 @@ import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
  */
 export async function getAllTasks({
   signal,
-  authToken = getAuthToken(),
   status,
   priority,
   category,
@@ -73,7 +71,6 @@ export async function getAllTasks({
     const url = `/tasks${queryString ? `?${queryString}` : ""}`;
 
     const response = await apiServices.get(url, {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     });
 
@@ -97,7 +94,6 @@ export async function getAllTasks({
 export async function getTaskById({
   id,
   signal,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   signal?: AbortSignal;
@@ -105,7 +101,6 @@ export async function getTaskById({
 }): Promise<any> {
   try {
     const response = await apiServices.get(`/tasks/${id}`, {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     });
     return response.data;
@@ -126,15 +121,12 @@ export async function getTaskById({
  */
 export async function createTask({
   body,
-  authToken = getAuthToken(),
 }: {
   body: Partial<ITask>;
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.post("/tasks", body, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.post("/tasks", body);
     return response.data;
   } catch (error) {
     console.error("Error creating task:", error);
@@ -155,16 +147,13 @@ export async function createTask({
 export async function updateTask({
   id,
   body,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   body: Partial<ITask>;
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.put(`/tasks/${id}`, body, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.put(`/tasks/${id}`, body);
     return response.data;
   } catch (error) {
     console.error("Error updating task:", error);
@@ -183,15 +172,12 @@ export async function updateTask({
  */
 export async function deleteTask({
   id,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.delete(`/tasks/${id}`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.delete(`/tasks/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting task:", error);
@@ -212,7 +198,6 @@ export async function deleteTask({
 export async function updateTaskStatus({
   id,
   status,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   status: TaskStatus;
@@ -221,10 +206,7 @@ export async function updateTaskStatus({
   try {
     const response = await apiServices.put(
       `/tasks/${id}`,
-      { status },
-      {
-        headers: { Authorization: `Bearer ${authToken}` },
-      }
+      { status }
     );
     return response.data;
   } catch (error) {
@@ -244,15 +226,12 @@ export async function updateTaskStatus({
  */
 export async function restoreTask({
   id,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.put(`/tasks/${id}/restore`, {}, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.put(`/tasks/${id}/restore`, {});
     return response.data;
   } catch (error) {
     console.error("Error restoring task:", error);
@@ -271,15 +250,12 @@ export async function restoreTask({
  */
 export async function hardDeleteTask({
   id,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.delete(`/tasks/${id}/hard`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.delete(`/tasks/${id}/hard`);
     return response.data;
   } catch (error) {
     console.error("Error permanently deleting task:", error);

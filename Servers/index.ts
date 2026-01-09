@@ -64,6 +64,8 @@ import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.ro
 import policyLinkedObjects from "./routes/policyLinkedObjects.route";
 import approvalWorkflowRoutes from "./routes/approvalWorkflow.route";
 import approvalRequestRoutes from "./routes/approvalRequest.route";
+import aiDetectionRoutes from "./routes/aiDetection.route";
+import githubIntegrationRoutes from "./routes/githubIntegration.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -123,9 +125,9 @@ try {
       // Let the proxy handle the raw body for bias/fairness
       return next();
     }
-    // For deepeval experiment creation, we need to parse body to inject API keys
+    // For deepeval experiment creation and arena comparisons, we need to parse body to inject API keys
     // For other deepeval routes, let proxy handle raw body
-    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments")) {
+    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments") && !req.url.includes("/arena/compare")) {
       return next();
     }
     express.json()(req, res, next);
@@ -206,6 +208,8 @@ try {
   app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
   app.use("/api/approval-workflows", approvalWorkflowRoutes);
   app.use("/api/approval-requests", approvalRequestRoutes);
+  app.use("/api/ai-detection", aiDetectionRoutes);
+  app.use("/api/integrations/github", githubIntegrationRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

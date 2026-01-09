@@ -462,6 +462,7 @@ const IntegratedDashboard: React.FC = () => {
                     key={framework.projectFrameworkId}
                     title={framework.frameworkName}
                     navigateTo="/framework"
+                    actionPosition="center"
                     action={
                       hasMultipleViews ? (
                         <Stack
@@ -476,19 +477,19 @@ const IntegratedDashboard: React.FC = () => {
                               handlePrevView(framework.projectFrameworkId, views.length);
                             }}
                             sx={{
-                              padding: "2px",
+                              padding: "4px",
                               color: "#667085",
                               "&:hover": { backgroundColor: "#F3F4F6" },
                             }}
                           >
-                            <ChevronLeft size={14} />
+                            <ChevronLeft size={18} />
                           </IconButton>
                           <Typography
                             sx={{
-                              fontSize: 11,
+                              fontSize: 13,
                               fontWeight: 500,
                               color: "#667085",
-                              minWidth: 50,
+                              minWidth: 55,
                               textAlign: "center",
                             }}
                           >
@@ -501,12 +502,12 @@ const IntegratedDashboard: React.FC = () => {
                               handleNextView(framework.projectFrameworkId, views.length);
                             }}
                             sx={{
-                              padding: "2px",
+                              padding: "4px",
                               color: "#667085",
                               "&:hover": { backgroundColor: "#F3F4F6" },
                             }}
                           >
-                            <ChevronRight size={14} />
+                            <ChevronRight size={18} />
                           </IconButton>
                         </Stack>
                       ) : undefined
@@ -862,6 +863,7 @@ const IntegratedDashboard: React.FC = () => {
                     key={framework.projectFrameworkId}
                     title={framework.frameworkName}
                     navigateTo="/framework"
+                    actionPosition="center"
                     action={
                       hasMultipleViews ? (
                         <Stack
@@ -876,19 +878,19 @@ const IntegratedDashboard: React.FC = () => {
                               handlePrevView(framework.projectFrameworkId, views.length);
                             }}
                             sx={{
-                              padding: "2px",
+                              padding: "4px",
                               color: "#667085",
                               "&:hover": { backgroundColor: "#F3F4F6" },
                             }}
                           >
-                            <ChevronLeft size={14} />
+                            <ChevronLeft size={18} />
                           </IconButton>
                           <Typography
                             sx={{
-                              fontSize: 11,
+                              fontSize: 13,
                               fontWeight: 500,
                               color: "#667085",
-                              minWidth: 50,
+                              minWidth: 55,
                               textAlign: "center",
                             }}
                           >
@@ -901,12 +903,12 @@ const IntegratedDashboard: React.FC = () => {
                               handleNextView(framework.projectFrameworkId, views.length);
                             }}
                             sx={{
-                              padding: "2px",
+                              padding: "4px",
                               color: "#667085",
                               "&:hover": { backgroundColor: "#F3F4F6" },
                             }}
                           >
-                            <ChevronRight size={14} />
+                            <ChevronRight size={18} />
                           </IconButton>
                         </Stack>
                       ) : undefined

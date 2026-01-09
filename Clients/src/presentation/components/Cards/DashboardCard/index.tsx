@@ -7,6 +7,7 @@ interface DashboardCardProps {
   title: string;
   children: React.ReactNode;
   action?: React.ReactNode;
+  actionPosition?: "right" | "center";
   navigateTo?: string;
 }
 
@@ -14,6 +15,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   title,
   children,
   action,
+  actionPosition = "right",
   navigateTo,
 }) => {
   const navigate = useNavigate();
@@ -47,11 +49,16 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
           alignItems="center"
           mb="16px"
         >
-          <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1F2937" }}>
+          <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1F2937", flex: actionPosition === "center" ? 1 : undefined }}>
             {title}
           </Typography>
-          <Stack direction="row" alignItems="center" gap={1}>
-            {action}
+          {actionPosition === "center" && action && (
+            <Stack direction="row" alignItems="center" justifyContent="center" sx={{ flex: 1 }}>
+              {action}
+            </Stack>
+          )}
+          <Stack direction="row" alignItems="center" gap={1} sx={{ flex: actionPosition === "center" ? 1 : undefined, justifyContent: actionPosition === "center" ? "flex-end" : undefined }}>
+            {actionPosition === "right" && action}
             {navigateTo && (
               <ChevronRight
                 size={16}

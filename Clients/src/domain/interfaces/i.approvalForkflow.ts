@@ -50,7 +50,6 @@ export interface IStepDetailsModalProps {
 export interface IRequestorApprovalProps {
     isOpen: boolean;
     onClose: () => void;
-    isRequestor: boolean;
 }
 
 export interface ITimelineStep {
@@ -82,5 +81,5 @@ export interface IMenuGroupExtended {
 
 export interface IMenuItemExtended extends IMenuItem {
     id: number;
-    status: 'approved' | 'rejected' | 'pending';
+    status: 'approved' | 'rejected' | 'pending' | 'withdrawn';
 }

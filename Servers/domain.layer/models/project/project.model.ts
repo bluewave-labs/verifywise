@@ -114,6 +114,12 @@ export class ProjectModel
   })
   status!: ProjectStatus;
 
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  approval_workflow_id?: number;
+
   static async CreateNewProject(
     projectAttributes: Partial<IProjectAttributes>
   ) {

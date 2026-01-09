@@ -21,6 +21,7 @@ export interface IProjectAttributes {
   framework?: IProjectFramework[];
   is_organizational?: boolean;
   status?: ProjectStatus;
+  approval_workflow_id?: number;
 
   // Statistical fields
   doneSubcontrols?: number;

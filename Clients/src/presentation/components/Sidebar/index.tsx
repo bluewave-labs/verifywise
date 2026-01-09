@@ -170,12 +170,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           icon: <AlertCircle size={16} strokeWidth={1.5} />,
           path: "/ai-incident-managements",
         },
-        {
-          id: "approval-workflows",
-          label: "Approval Workflows",
-          icon: <Workflow size={16} strokeWidth={1.5} />,
-          path: "/approval-workflows",
-        },
+        // {
+        //   id: "approval-workflows",
+        //   label: "Approval Workflows",
+        //   icon: <Workflow size={16} strokeWidth={1.5} />,
+        //   path: "/approval-workflows",
+        // },
       ],
     },
   ];

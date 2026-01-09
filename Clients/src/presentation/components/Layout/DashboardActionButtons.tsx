@@ -1,12 +1,18 @@
 import React, { useMemo, memo, useCallback, useEffect } from 'react';
-import { Stack, IconButton } from '@mui/material';
+import { Stack, IconButton, ListItemIcon } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Puzzle, Zap } from 'lucide-react';
+import { Search, Puzzle, Zap, Workflow } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
 import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
 import ApprovalButton from './ApprovalButton';
+import {
+  getPendingApprovals,
+  getMyApprovalRequests,
+} from '../../../application/repository/approvalRequest.repository';
+import Button from '../Button';
+import { approvalButtonStyle } from './style';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -87,8 +93,6 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   }, []);
 
   const [isRequestModalOpen, setIsRequestModalOpen] = React.useState(false);
-  const [isRequestor, setIsRequestor] = React.useState(false);
-
 
   // Check if we're on the main dashboard - memoized to prevent unnecessary re-renders
   const isMainDashboard = useMemo(
@@ -115,14 +119,27 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     transition: 'all 0.2s ease',
   };
 
-  const [approvalRequestsCount, setApprovalRequestsCount] = React.useState(0);
-  const [requestorRequestsCount, setRequestorRequestsCount] = React.useState(0);
+  const [totalApprovalCount, setTotalApprovalCount] = React.useState(0);
 
   useEffect(() => {
-    // Fetch counts from API or state management
-    // For demonstration, we'll set static values
-    setApprovalRequestsCount(5);
-    setRequestorRequestsCount(3);
+    const fetchApprovalCounts = async () => {
+      try {
+        const [approvalsResponse, myRequestsResponse] = await Promise.all([
+          getPendingApprovals(),
+          getMyApprovalRequests(),
+        ]);
+
+        const approvalsCount = approvalsResponse?.data?.length || 0;
+        const myRequestsCount = myRequestsResponse?.data?.length || 0;
+
+        setTotalApprovalCount(approvalsCount + myRequestsCount);
+      } catch (error) {
+        console.error("Failed to fetch approval counts:", error);
+        setTotalApprovalCount(0);
+      }
+    };
+
+    fetchApprovalCounts();
   }, []);
 
 
@@ -145,15 +162,30 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         </IconButton>
       </VWTooltip>
 
+      <>
+        {isAdmin && <Button
+          variant="contained"
+          size="small"
+          onClick={() => navigate('/approval-workflows')}
+          sx={approvalButtonStyle}
+        >
+          {<ListItemIcon
+            sx={{
+              minWidth: '20px',
+              color: 'inherit',
+            }}
+            >
+              {<Workflow size={16} strokeWidth={1.5} />}
+            </ListItemIcon>}
+          Approval workflows
+        </Button>
+      }
+      </>
+
       <ApprovalButton
         label="Approval requests"
-        count={approvalRequestsCount}
-        onClick={() => { setIsRequestModalOpen(true); setIsRequestor(false); }}
-      />
-      <ApprovalButton
-        label="Requestor requests"
-        count={requestorRequestsCount}
-        onClick={() => { setIsRequestModalOpen(true); setIsRequestor(true); }}
+        count={totalApprovalCount}
+        onClick={() => setIsRequestModalOpen(true)}
       />
 
       {/* Integrations */}
@@ -185,7 +217,6 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
 
       <RequestorApprovalModal
         isOpen={isRequestModalOpen}
-        isRequestor={isRequestor}
         onClose={() => setIsRequestModalOpen(false)} />
     </Stack>
   );

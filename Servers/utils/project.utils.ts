@@ -275,13 +275,17 @@ export const createNewProjectQuery = async (
 
   const ucId = await generateNextUcId(tenant, transaction);
 
+  console.log("=== CREATING PROJECT ===");
+  console.log("project.approval_workflow_id:", project.approval_workflow_id);
+  console.log("project object:", JSON.stringify(project, null, 2));
+
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".projects (
       uc_id, project_title, owner, start_date, geography, target_industry, description, ai_risk_classification,
-      type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational
+      type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational, approval_workflow_id
     ) VALUES (
       :uc_id, :project_title, :owner, :start_date, :geography, :target_industry, :description, :ai_risk_classification,
-      :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational
+      :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational, :approval_workflow_id
     ) RETURNING *`,
     {
       replacements: {
@@ -300,6 +304,7 @@ export const createNewProjectQuery = async (
         last_updated_by: userId,
         is_demo: isDemo,
         is_organizational: project.is_organizational || false,
+        approval_workflow_id: project.approval_workflow_id || null,
       },
       mapToModel: true,
       model: ProjectModel,
@@ -308,6 +313,8 @@ export const createNewProjectQuery = async (
     }
   );
   const createdProject = result[0];
+  console.log("Project created with ID:", createdProject.id);
+  console.log("createdProject.approval_workflow_id:", (createdProject as any).approval_workflow_id);
   (createdProject.dataValues as any)["members"] = [];
   for (let member of members) {
     await sequelize.query(

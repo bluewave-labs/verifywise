@@ -20,7 +20,6 @@ import {
     workflowPaginationMenu,
     workflowPaginationSelect,
     workflowPagination,
-    tableContainerStyle,
     headerCellEntityStyle,
     headerCellStepsStyle,
     headerCellDateStyle,
@@ -34,12 +33,11 @@ import {
     bodyCellStepsStyle,
     bodyCellDateStyle,
     bodyCellActionsStyle,
-    emptyTableCellStyle,
 } from "./style";
 
 import CustomIconButton from "../../components/IconButton";
 import { singleTheme } from "../../themes";
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
@@ -48,6 +46,7 @@ import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWor
 import TablePaginationActions from "../../components/TablePagination";
 import { entities } from "./arrays";
 import { TABLE_COLUMNS } from "./arrays";
+import EmptyState from "../../components/EmptyState";
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -64,8 +63,8 @@ type SortConfig = {
 interface ApprovalWorkflowTableProps {
     data: ApprovalWorkflowModel[];
     isLoading?: boolean;
-    onEdit?: (id: string, mode: string) => void;
-    onArchive?: (id: string, mode: string) => void;
+    onEdit?: (id: string) => void;
+    onArchive?: (id: string) => void;
     archivedId?: string | null;
 }
 
@@ -136,7 +135,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
     }, []);
 
     // Sort the workflow data based on current sort configuration
-    const sortedData = useMemo(() => {
+    const getSortedData = () => {
         if (!data || !sortConfig.key || !sortConfig.direction) {
             return data || [];
         }
@@ -179,90 +178,92 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
             if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
             return 0;
         });
-    }, [data, sortConfig]);
+    };
 
-    const tableHeader = useMemo(
-        () => (
-            <TableHead
-                sx={{
-                    backgroundColor:
-                        singleTheme.tableStyles.primary.header.backgroundColors,
-                }}
-            >
-                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                    {TABLE_COLUMNS.map((column) => {
-                        const isLastColumn = column.id === "actions";
-                        const sortable = !["actions"].includes(column.id);
-
-                        return (
-                            <TableCell
-                                component="td"
-                                key={column.id}
-                                sx={{
-                                    ...singleTheme.tableStyles.primary.header.cell,
-                                    ...(column.id === "entity_name" && headerCellEntityStyle),
-                                    ...(column.id === "steps" && headerCellStepsStyle),
-                                    ...(column.id === "date_updated" && headerCellDateStyle),
-                                    ...(column.id === "actions" && headerCellActionsStyle(singleTheme.tableStyles.primary.header.backgroundColors)),
-                                    ...(!isLastColumn && sortable && sortableHeaderStyle),
-                                }}
-                                onClick={() => sortable && handleSort(column.label)}
-                            >
-                                <Box sx={headerContentBoxStyle(theme)}>
-                                    <Box sx={headerLabelStyle(sortConfig.key === column.label)}>
-                                        {column.label}
-                                    </Box>
-                                    {sortable && (
-                                        <Box sx={sortIconBoxStyle(sortConfig.key === column.label)}>
-                                            {sortConfig.key === column.label && sortConfig.direction === "asc" && (
-                                                <ChevronUp size={16} />
-                                            )}
-                                            {sortConfig.key === column.label && sortConfig.direction === "desc" && (
-                                                <ChevronDown size={16} />
-                                            )}
-                                            {sortConfig.key !== column.label && (
-                                                <ChevronsUpDown size={16} />
-                                            )}
-                                        </Box>
-                                    )}
-                                </Box>
-                            </TableCell>
-                        );
-                    })}
-                </TableRow>
-            </TableHead>
-        ),
-        [sortConfig, handleSort, theme]
-    );
+    const sortedData = getSortedData();
 
     // Paginate the sorted data
-    const paginatedData = useMemo(() => {
-        const startIndex = page * rowsPerPage;
-        const endIndex = startIndex + rowsPerPage;
-        return sortedData.slice(startIndex, endIndex);
-    }, [sortedData, page, rowsPerPage]);
+    const startIndex = page * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const paginatedData = sortedData.slice(startIndex, endIndex);
 
     // Calculate display range for "Showing X-Y of Z"
-    const getRange = useMemo(() => {
+    const getRange = () => {
         if (!sortedData || sortedData.length === 0) return "0-0";
         const start = page * rowsPerPage + 1;
         const end = Math.min((page + 1) * rowsPerPage, sortedData.length);
         return `${start}-${end}`;
-    }, [page, rowsPerPage, sortedData]);
+    };
 
-    const tableBody = useMemo(
-        () => (
-            <TableBody>
-                {paginatedData?.length > 0 ? (
-                    paginatedData.map((workflow) => (
+    // Return early with just EmptyState if no data (consistent with other tables)
+    if (!sortedData || sortedData.length === 0) {
+        return <EmptyState message="There is currently no data in this table." />;
+    }
+
+    return (
+        <TableContainer sx={{ overflowX: "auto" }}>
+            <Table sx={singleTheme.tableStyles.primary.frame}>
+                <TableHead
+                    sx={{
+                        backgroundColor:
+                            singleTheme.tableStyles.primary.header.backgroundColors,
+                    }}
+                >
+                    <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                        {TABLE_COLUMNS.map((column) => {
+                            const isLastColumn = column.id === "actions";
+                            const sortable = !["actions"].includes(column.id);
+
+                            return (
+                                <TableCell
+                                    component="td"
+                                    key={column.id}
+                                    sx={{
+                                        ...singleTheme.tableStyles.primary.header.cell,
+                                        ...(column.id === "entity_name" && headerCellEntityStyle),
+                                        ...(column.id === "steps" && headerCellStepsStyle),
+                                        ...(column.id === "date_updated" && headerCellDateStyle),
+                                        ...(column.id === "actions" && headerCellActionsStyle(singleTheme.tableStyles.primary.header.backgroundColors)),
+                                        ...(!isLastColumn && sortable && sortableHeaderStyle),
+                                    }}
+                                    onClick={() => sortable && handleSort(column.label)}
+                                >
+                                    <Box sx={headerContentBoxStyle(theme)}>
+                                        <Box sx={headerLabelStyle(sortConfig.key === column.label)}>
+                                            {column.label}
+                                        </Box>
+                                        {sortable && (
+                                            <Box sx={sortIconBoxStyle(sortConfig.key === column.label)}>
+                                                {sortConfig.key === column.label && sortConfig.direction === "asc" && (
+                                                    <ChevronUp size={16} />
+                                                )}
+                                                {sortConfig.key === column.label && sortConfig.direction === "desc" && (
+                                                    <ChevronDown size={16} />
+                                                )}
+                                                {sortConfig.key !== column.label && (
+                                                    <ChevronsUpDown size={16} />
+                                                )}
+                                            </Box>
+                                        )}
+                                    </Box>
+                                </TableCell>
+                            );
+                        })}
+                    </TableRow>
+                </TableHead>
+
+                <TableBody>
+                    {paginatedData.map((workflow) => (
                         <TableRow
                             key={workflow.id}
+                            onClick={() => onEdit?.(workflow.id.toString())}
                             sx={{
                                 ...singleTheme.tableStyles.primary.body.row,
                                 ...workflowRowHover,
                                 ...(archivedId ===
                                     workflow.id?.toString() &&
                                     workflowTableRowDeletingStyle),
+                                cursor: "pointer",
                             }}
                         >
                             <TableCell
@@ -291,6 +292,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             </TableCell>
                             <TableCell
                                 sx={bodyCellActionsStyle(cellStyle)}
+                                onClick={(e) => e.stopPropagation()}
                             >
                                 <Stack direction="row" spacing={1}>
                                     <CustomIconButton
@@ -298,12 +300,12 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                         type="workflow"
                                         onEdit={() =>
                                             onEdit?.(
-                                                workflow.id.toString(), "edit"
+                                                workflow.id.toString()
                                             )
                                         }
                                         onDelete={() =>
                                             onArchive?.(
-                                                workflow.id.toString(), "archive"
+                                                workflow.id.toString()
                                             )
                                         }
                                         onMouseEvent={() => { }}
@@ -313,32 +315,13 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                 </Stack>
                             </TableCell>
                         </TableRow>
-                    ))
-                ) : (
-                    <TableRow>
-                        <TableCell
-                            colSpan={TABLE_COLUMNS.length}
-                            align="center"
-                            sx={emptyTableCellStyle}
-                        >
-                            No approval workflow data available.
-                        </TableCell>
-                    </TableRow>
-                )}
-            </TableBody>
-        ),
-        [paginatedData, archivedId, onEdit, onArchive, sortConfig]
-    );
+                    ))}
+                </TableBody>
 
-    return (
-        <TableContainer sx={tableContainerStyle}>
-            <Table sx={singleTheme.tableStyles.primary.frame}>
-                {tableHeader}
-                {tableBody}
                 <TableFooter>
                     <TableRow sx={workflowFooterRow(theme)}>
-                        <TableCell colSpan={3} sx={workflowShowingText(theme)}>
-                            Showing {getRange} of {sortedData?.length} workflow(s)
+                        <TableCell sx={workflowShowingText(theme)}>
+                            Showing {getRange()} of {sortedData?.length} workflow(s)
                         </TableCell>
                         <TablePagination
                             count={sortedData?.length ?? 0}
@@ -364,7 +347,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                 },
                             }}
                             sx={workflowPagination(theme)}
-                            colSpan={3}
+                            colSpan={4}
                         />
                     </TableRow>
                 </TableFooter>

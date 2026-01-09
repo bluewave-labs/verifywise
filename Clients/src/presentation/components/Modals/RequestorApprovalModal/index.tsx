@@ -1,9 +1,17 @@
 import {
     Check,
     ChevronRight,
+    User,
+    Calendar,
+    FileText,
+    Briefcase,
+    Target,
+    PackageOpen,
 } from "lucide-react";
 
 import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typography, Chip, Link, AccordionSummary, Accordion, AccordionDetails, Button } from "@mui/material";
+import TabContext from "@mui/lab/TabContext";
+import TabPanel from "@mui/lab/TabPanel";
 import {
     sidebarContainer,
     sidebarMenuStyle,
@@ -36,12 +44,22 @@ import type { FC } from "react";
 import React, { useEffect, useState } from "react";
 import { ApprovalStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum";
 import StepDetailsModal from './StepDetailsModal';
-import { stepDetailsMap, timelineDataMap } from './mockData';
 import dayjs from "dayjs";
 import DualButtonModal from "../../Dialogs/ConfirmationModal";
-import { getMenuGroups } from './mockData';
 import Field from "../../Inputs/Field";
 import { IMenuItemExtended, IRequestorApprovalProps, IStepDetails, ITimelineStep } from "src/domain/interfaces/i.ApprovalForkflow";
+import TabBar, { TabItem } from "../../TabBar";
+import {
+    getPendingApprovals,
+    getMyApprovalRequests,
+    getApprovalRequestById,
+    approveRequest,
+    rejectRequest,
+    withdrawRequest,
+} from "../../../../application/repository/approvalRequest.repository";
+import { logEngine } from "../../../../application/tools/log.engine";
+import EmptyState from "../../EmptyState";
+import DetailField from "./DetailField";
 
 
 const getWorkflowChipProps = (value: string) => {
@@ -55,6 +73,10 @@ const getWorkflowChipProps = (value: string) => {
             color: "#C62828",
         },
         [ApprovalStatus.PENDING]: {
+            bg: "#FFF9E6",
+            color: "#F57C00",
+        },
+        "withdrawn": {
             bg: "#F5F5F5",
             color: "#616161",
         },
@@ -63,41 +85,27 @@ const getWorkflowChipProps = (value: string) => {
     const style = styles[value] || { bg: "#F5F5F5", color: "#616161" };
 
     return {
-        label: value,
+        label: value.charAt(0).toUpperCase() + value.slice(1),
         size: "small" as const,
         sx: {
             backgroundColor: style.bg,
             color: style.color,
-            fontWeight: 500,
+            fontWeight: 600,
             fontSize: "11px",
             textTransform: "uppercase",
             letterSpacing: "0.5px",
             borderRadius: "4px",
+            height: "22px",
             "& .MuiChip-label": {
-                padding: "4px 8px",
+                padding: "0 8px",
             },
         },
     };
 };
 
-const getTimelineData = (itemId?: number): ITimelineStep[] => {
-    if (itemId === undefined || itemId === null) {
-        return [];
-    }
-    return timelineDataMap[itemId] || [];
-};
-
-const getStepDetails = (stepId: number): IStepDetails | null => {
-    // This will be populated with mock data in the next step
-    return stepDetailsMap[stepId] || null;
-};
-
-
-
 const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     isOpen,
     onClose,
-    isRequestor
 }) => {
 
     const [isStepDetailsModalOpen, setIsStepDetailsModalOpen] = useState(false);
@@ -106,14 +114,39 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     const [comment, setComment] = useState<string>("");
     const [isWithdrawConfirmationOpen, setIsWithdrawConfirmationOpen] = useState(false);
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-        "WAITING FOR APPROVAL": true,
-        "APPROVED REQUESTS": false
+        "PENDING": true,
+        "COMPLETED": false,
     });
+    const [activeTab, setActiveTab] = useState<string>("approvals");
+
+    const [requestsToApprove, setRequestsToApprove] = useState<IMenuItemExtended[]>([]);
+    const [myPendingRequests, setMyPendingRequests] = useState<IMenuItemExtended[]>([]);
+    const [timelineData, setTimelineData] = useState<ITimelineStep[]>([]);
+    const [requestDetails, setRequestDetails] = useState<any>(null);
 
     const theme = useTheme();
-    const menuGroups = getMenuGroups();
 
-    const getOverallStatus = (): 'approved' | 'rejected' | 'pending' => {
+    // Tab configuration
+    const tabs: TabItem[] = [
+        {
+            label: "Requests to approve",
+            value: "approvals",
+            count: requestsToApprove.filter(r => r.status === 'pending').length,
+        },
+        {
+            label: "My requests",
+            value: "pending",
+            count: myPendingRequests.length,
+        },
+    ];
+
+    const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+        setActiveTab(newValue);
+        setSelectedItem(null);
+        setComment("");
+    };
+
+    const getOverallStatus = (): 'approved' | 'rejected' | 'pending' | 'withdrawn' => {
         if (selectedItem === undefined || selectedItem === null) {
             return 'pending';
         }
@@ -127,34 +160,81 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         }));
     };
 
-    const handleSeeDetailsClick = (stepId: number) => {
-        const stepDetails = getStepDetails(stepId);
-        if (stepDetails) {
-            setSelectedStepDetails(stepDetails);
-            setIsStepDetailsModalOpen(true);
+    const handleSeeDetailsClick = (_stepId: number) => {
+        setSelectedStepDetails(null);
+        setIsStepDetailsModalOpen(true);
+    };
+
+    const handleApprove = async () => {
+        if (!selectedItem?.id) return;
+
+        try {
+            await approveRequest({
+                id: selectedItem.id,
+                body: { comments: comment },
+            });
+
+            logEngine({
+                type: "info",
+                message: "Request approved successfully!",
+            });
+
+            fetchRequestsData();
+            setComment("");
+        } catch (error) {
+            logEngine({
+                type: "error",
+                message: `Failed to approve request: ${error}`,
+            });
         }
     };
 
-    const handleApprove = () => {
-        // TODO: API call to approve the request
-        console.log("Approve clicked with comment:", comment);
+    const handleReject = async () => {
+        if (!selectedItem?.id) return;
 
-        onClose();
+        try {
+            await rejectRequest({
+                id: selectedItem.id,
+                body: { comments: comment },
+            });
+
+            logEngine({
+                type: "info",
+                message: "Request rejected successfully!",
+            });
+
+            fetchRequestsData();
+            setComment("");
+            onClose();
+        } catch (error) {
+            logEngine({
+                type: "error",
+                message: `Failed to reject request: ${error}`,
+            });
+        }
     };
 
-    const handleReject = () => {
-        // TODO: API call to reject the request
-        console.log("Reject clicked with comment:", comment);
+    const handleWithdraw = async () => {
+        if (!selectedItem?.id) return;
 
-        onClose();
-    };
+        try {
+            setIsWithdrawConfirmationOpen(false);
 
-    const handleWithdraw = () => {
-        // TODO: API call to withdraw the request
-        setIsWithdrawConfirmationOpen(false);
-        console.log("Withdraw confirmed - API call will be made here");
+            await withdrawRequest({ id: selectedItem.id });
 
-        onClose();
+            logEngine({
+                type: "info",
+                message: "Request withdrawn successfully!",
+            });
+
+            fetchRequestsData();
+            onClose();
+        } catch (error) {
+            logEngine({
+                type: "error",
+                message: `Failed to withdraw request: ${error}`,
+            });
+        }
     };
 
     const handleWithdrawClick = () => {
@@ -165,15 +245,122 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         setIsWithdrawConfirmationOpen(false);
     }
 
-    const renderCustomFooter = () => {
-        if (isRequestor) {
-            return (
-                <>
-                    <Box />
-                    <Button onClick={handleWithdrawClick} color="error" variant="contained">Withdraw</Button>
-                </>
+    const fetchRequestsData = async () => {
+        try {
+            // Fetch requests to approve
+            const approvalsResponse = await getPendingApprovals();
+            const approvals = approvalsResponse?.data || [];
+            setRequestsToApprove(
+                approvals.map((req: any) => ({
+                    id: req.id,
+                    name: req.request_name,
+                    path: `/approval-requests/${req.id}`,
+                    status: req.status?.toLowerCase() || 'pending',
+                }))
             );
-        } else {
+
+            // Fetch my pending requests
+            const myRequestsResponse = await getMyApprovalRequests();
+            const myRequests = myRequestsResponse?.data || [];
+            setMyPendingRequests(
+                myRequests.map((req: any) => ({
+                    id: req.id,
+                    name: req.request_name,
+                    path: `/approval-requests/${req.id}`,
+                    status: req.status?.toLowerCase() || 'pending',
+                }))
+            );
+        } catch (error) {
+            logEngine({
+                type: "error",
+                message: `Failed to fetch approval requests: ${error}`,
+            });
+        }
+    };
+
+    const fetchTimelineData = async (requestId: number) => {
+        try {
+            const response = await getApprovalRequestById({ id: requestId });
+            const requestData = response?.data;
+
+            if (requestData) {
+                // Build requester name
+                const requesterName = requestData.requester_name && requestData.requester_surname
+                    ? `${requestData.requester_name} ${requestData.requester_surname}`
+                    : requestData.requester_name || requestData.requester_surname;
+
+                // Build owner name
+                const ownerName = requestData.owner_name && requestData.owner_surname
+                    ? `${requestData.owner_name} ${requestData.owner_surname}`
+                    : requestData.owner_name || requestData.owner_surname;
+
+                // Store request details with use-case information
+                const details = {
+                    // Basic info
+                    entityName: requestData.project_title,
+                    entityId: requestData.uc_id,
+                    requester: requesterName,
+                    requesterEmail: requestData.requester_email,
+                    dateCreated: requestData.created_at,
+                    workflowName: requestData.workflow_name,
+
+                    // Use-case details
+                    projectDescription: requestData.project_description,
+                    owner: ownerName,
+                    ownerEmail: requestData.owner_email,
+                    projectStatus: requestData.project_status,
+                    goal: requestData.goal,
+                    targetIndustry: requestData.target_industry,
+                    aiRiskClassification: requestData.ai_risk_classification,
+                    typeOfHighRiskRole: requestData.type_of_high_risk_role,
+                    startDate: requestData.start_date,
+                    geography: requestData.geography,
+                };
+
+                setRequestDetails(details);
+
+                if (requestData.steps) {
+                    const timeline: ITimelineStep[] = requestData.steps.map((step: any, index: number) => ({
+                        id: step.id,
+                        title: step.step_name || `Step ${index + 1}`,
+                        date: step.date_completed || step.date_assigned,
+                        status: step.status?.toLowerCase() === 'completed' ? 'completed' : 'pending',
+                        approverName: step.approvals?.map((a: any) => `${a.name} ${a.surname}`).join(', '),
+                        approvalResult: step.approvals?.[0]?.approval_result,
+                        comment: step.approvals?.[0]?.comments,
+                        showDetailsLink: step.approvals && step.approvals.length > 1,
+                    }));
+                    setTimelineData(timeline);
+                }
+            }
+        } catch (error) {
+            logEngine({
+                type: "error",
+                message: `Failed to fetch timeline data: ${error}`,
+            });
+        }
+    };
+
+    const renderCustomFooter = () => {
+        if (!selectedItem) {
+            return null;
+        }
+
+        // For "My Requests" tab - show withdraw button only for pending requests
+        if (activeTab === "pending") {
+            if (selectedItem.status === 'pending') {
+                return (
+                    <>
+                        <Box />
+                        <Button onClick={handleWithdrawClick} color="error" variant="contained">Withdraw</Button>
+                    </>
+                );
+            }
+            return null;
+        }
+
+        // For "Requests to Approve" tab - show approve/reject buttons only for pending requests
+        if (activeTab === "approvals" && selectedItem.status === 'pending') {
             return (
                 <Stack
                     direction="row"
@@ -187,32 +374,111 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 </Stack>
             );
         }
+
+        return null;
     };
 
     useEffect(() => {
-        const firstGroup = menuGroups[0];
-        if (firstGroup && firstGroup.items.length > 0) {
-            const firstItem = firstGroup.items[0];
-
-            if (firstItem.id !== undefined) {
-                setSelectedItem(firstItem);
-            }
+        if (isOpen) {
+            fetchRequestsData();
         }
-    }, []);
+    }, [isOpen]);
+
+    useEffect(() => {
+        // Auto-select first item when data is loaded
+        const currentList = activeTab === "approvals" ? requestsToApprove : myPendingRequests;
+        if (currentList.length > 0 && !selectedItem) {
+            setSelectedItem(currentList[0]);
+        }
+    }, [activeTab, requestsToApprove, myPendingRequests]);
+
+    useEffect(() => {
+        if (selectedItem?.id) {
+            fetchTimelineData(selectedItem.id);
+        } else {
+            setRequestDetails(null);
+            setTimelineData([]);
+        }
+    }, [selectedItem]);
+
+    // Get current list based on active tab
+    const getCurrentMenuGroups = () => {
+        const currentList = activeTab === "approvals" ? requestsToApprove : myPendingRequests;
+
+        // For "Requests to approve" tab - only show pending
+        if (activeTab === "approvals") {
+            const pending = currentList.filter(item => item.status === 'pending');
+            return pending.length > 0 ? [{
+                name: "PENDING APPROVALS",
+                items: pending,
+            }] : [];
+        }
+
+        // For "My requests" tab - group by status
+        const pending = currentList.filter(item => item.status === 'pending');
+        const completed = currentList.filter(item => ['approved', 'rejected', 'withdrawn'].includes(item.status));
+
+        const groups = [];
+
+        if (pending.length > 0) {
+            groups.push({
+                name: "PENDING",
+                items: pending,
+            });
+        }
+        if (completed.length > 0) {
+            groups.push({
+                name: "COMPLETED",
+                items: completed,
+            });
+        }
+
+        return groups;
+    };
+
+    const menuGroups = getCurrentMenuGroups();
+
+    // Check if current tab has any data
+    const currentList = activeTab === "approvals" ? requestsToApprove : myPendingRequests;
+    const hasNoData = currentList.length === 0 || menuGroups.length === 0;
 
     return (
         <StandardModal
             isOpen={isOpen}
             onClose={onClose}
-            maxWidth="900px"
-            title={isRequestor ? "Approval requests" : "Approval requests"}
-            description="Manage and review your requestor approvals."
+            maxWidth="1000px"
+            title="Approval requests"
+            description="Review and manage approval requests for use cases"
             customFooter={renderCustomFooter()}
+            expandedHeight={true}
         >
-            <Stack direction="row" spacing={12} >
+            <TabContext value={activeTab}>
+                <TabBar
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onChange={handleTabChange}
+                />
+                <TabPanel value={activeTab} sx={{
+                    padding: "24px 0 0 0",
+                    height: "480px",
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden"
+                }}>
+                    {hasNoData ? (
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
+                            <EmptyState message="No approval requests found." />
+                        </Box>
+                    ) : (
+                    <Stack direction="row" spacing={12} sx={{ height: "100%", flex: 1 }}>
                 <Box
-                    width="250px"
-                    sx={sidebarContainer}
+                    width="280px"
+                    sx={{
+                        ...sidebarContainer,
+                        height: "100%",
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                    }}
                 >
                     <Stack>
                         <Stack
@@ -261,17 +527,16 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                             variant="overline"
                                                             sx={groupTypographyStyle(theme)}
                                                         >
-                                                            {group.name}
+                                                            {group.name} ({group.items.length})
                                                         </Typography>
                                                     </AccordionSummary>
                                                     <AccordionDetails>
-                                                        {/* Group items */}
                                                         {group.items.map((item) => (
                                                             <Tooltip
                                                                 sx={tooltipStyle}
                                                                 key={item.path}
                                                                 placement="right"
-                                                                title={""}
+                                                                title={item.name}
                                                                 slotProps={{
                                                                     popper: {
                                                                         modifiers: [
@@ -297,25 +562,50 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                                             : "unselected"
                                                                     }
                                                                     onClick={() => {
-                                                                        // Set selected item ID (integer)
                                                                         if (item.id !== undefined) {
                                                                             setSelectedItem(item);
                                                                         }
                                                                     }}
                                                                     sx={listItemButtonStyle(theme, item.id !== undefined && selectedItem?.id === item.id)}
                                                                 >
-
                                                                     <ListItemText
                                                                         sx={listItemTextStyle}
-                                                                    >
-                                                                        {item.name}
-                                                                    </ListItemText>
+                                                                        primary={
+                                                                            <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                                                                                <Typography
+                                                                                    sx={{
+                                                                                        fontSize: "13px",
+                                                                                        fontWeight: 500,
+                                                                                        overflow: "hidden",
+                                                                                        textOverflow: "ellipsis",
+                                                                                        whiteSpace: "nowrap",
+                                                                                        flex: 1,
+                                                                                    }}
+                                                                                >
+                                                                                    {item.name}
+                                                                                </Typography>
+                                                                                {item.status !== 'pending' && (
+                                                                                    <Chip
+                                                                                        {...(getWorkflowChipProps(item.status) || {})}
+                                                                                        size="small"
+                                                                                        sx={{
+                                                                                            height: "18px",
+                                                                                            fontSize: "9px",
+                                                                                            "& .MuiChip-label": {
+                                                                                                padding: "0 6px",
+                                                                                            },
+                                                                                        }}
+                                                                                    />
+                                                                                )}
+                                                                            </Stack>
+                                                                        }
+                                                                    />
                                                                 </ListItemButton>
                                                             </Tooltip>
                                                         ))}
                                                     </AccordionDetails>
                                                 </Accordion>
-                                                {index === 0 && (
+                                                {index < menuGroups.length - 1 && (
                                                     <Divider
                                                         orientation="horizontal"
                                                         flexItem
@@ -335,26 +625,166 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                     flexItem
                     sx={verticalDividerStyle(theme)}
                 />
-                <Stack spacing={8} direction="column"
-                    sx={timelineContainer}>
+                <Stack flex={1} spacing={12} direction="column" sx={{
+                    ...timelineContainer,
+                    height: "100%",
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                }}>
+                    {/* Header with status */}
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography fontWeight={600} fontSize={16} mb={2}>
-                            Approval timeline
+                        <Typography fontWeight={600} fontSize={18}>
+                            Request details
                         </Typography>
-
-                        <Chip
-                            {...(getWorkflowChipProps(
-                                getOverallStatus()
-                            ) || {})}
-                        />
+                        <Chip {...(getWorkflowChipProps(getOverallStatus()) || {})} />
                     </Stack>
 
+                    {/* Request metadata */}
+                    {requestDetails && (
+                        <>
+                            <Stack spacing={8} sx={{
+                                backgroundColor: "#F9FAFB",
+                                border: "1px solid #E5E7EB",
+                                borderRadius: "8px",
+                                padding: "16px",
+                            }}>
+                                <Typography fontWeight={600} fontSize={14} color="#374151" mb={2}>
+                                    Request Information
+                                </Typography>
+                                {requestDetails.entityName && (
+                                    <DetailField
+                                        icon={<FileText size={14} />}
+                                        label="Use case"
+                                        value={requestDetails.entityName}
+                                    />
+                                )}
+                                {requestDetails.entityId && (
+                                    <DetailField
+                                        icon={<FileText size={14} />}
+                                        label="Use case ID"
+                                        value={requestDetails.entityId}
+                                    />
+                                )}
+                                {requestDetails.requester && (
+                                    <DetailField
+                                        icon={<User size={14} />}
+                                        label="Requested by"
+                                        value={requestDetails.requester}
+                                    />
+                                )}
+                                {requestDetails.dateCreated && (
+                                    <DetailField
+                                        icon={<Calendar size={14} />}
+                                        label="Created"
+                                        value={dayjs(requestDetails.dateCreated).format("YYYY-MM-DD, HH:mm")}
+                                    />
+                                )}
+                            </Stack>
+
+                            {/* Use-case details */}
+                            <Stack spacing={8} sx={{
+                                backgroundColor: "#F9FAFB",
+                                border: "1px solid #E5E7EB",
+                                borderRadius: "8px",
+                                padding: "16px",
+                            }}>
+                                <Typography fontWeight={600} fontSize={14} color="#374151" mb={2}>
+                                    Use Case Details
+                                </Typography>
+                                {!requestDetails.entityName ? (
+                                    <Typography fontSize={13} color="#C62828" fontStyle="italic" sx={{
+                                        backgroundColor: "#FDECEA",
+                                        padding: "12px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #F5C6CB"
+                                    }}>
+                                        The use-case associated with this request has been deleted.
+                                    </Typography>
+                                ) : (
+                                    <>
+                                        {requestDetails.owner && (
+                                            <DetailField
+                                                icon={<User size={14} />}
+                                                label="Owner"
+                                                value={requestDetails.owner}
+                                            />
+                                        )}
+                                        {requestDetails.projectStatus && (
+                                            <DetailField
+                                                icon={<FileText size={14} />}
+                                                label="Status"
+                                                value={requestDetails.projectStatus}
+                                            />
+                                        )}
+                                        {requestDetails.aiRiskClassification && (
+                                            <DetailField
+                                                icon={<Briefcase size={14} />}
+                                                label="AI Risk Classification"
+                                                value={requestDetails.aiRiskClassification}
+                                            />
+                                        )}
+                                        {requestDetails.typeOfHighRiskRole && (
+                                            <DetailField
+                                                icon={<PackageOpen size={14} />}
+                                                label="High Risk Role"
+                                                value={requestDetails.typeOfHighRiskRole}
+                                            />
+                                        )}
+                                        {requestDetails.goal && (
+                                            <DetailField
+                                                icon={<Target size={14} />}
+                                                label="Goal"
+                                                value={requestDetails.goal}
+                                                withWrap
+                                            />
+                                        )}
+                                        {requestDetails.targetIndustry && (
+                                            <DetailField
+                                                icon={<Briefcase size={14} />}
+                                                label="Target Industry"
+                                                value={requestDetails.targetIndustry}
+                                            />
+                                        )}
+                                        {requestDetails.startDate && (
+                                            <DetailField
+                                                icon={<Calendar size={14} />}
+                                                label="Start Date"
+                                                value={dayjs(requestDetails.startDate).format("YYYY-MM-DD")}
+                                            />
+                                        )}
+                                        {requestDetails.projectDescription && (
+                                            <DetailField
+                                                icon={<FileText size={14} />}
+                                                label="Description"
+                                                value={requestDetails.projectDescription}
+                                                withWrap
+                                            />
+                                        )}
+                                        {!requestDetails.owner && !requestDetails.projectStatus && !requestDetails.goal &&
+                                         !requestDetails.targetIndustry && !requestDetails.aiRiskClassification && !requestDetails.projectDescription && (
+                                            <Typography fontSize={13} color="#6B7280" fontStyle="italic">
+                                                No additional use case details available
+                                            </Typography>
+                                        )}
+                                    </>
+                                )}
+                            </Stack>
+                        </>
+                    )}
+
+                    <Divider />
+
+                    {/* Timeline header */}
+                    <Typography fontWeight={600} fontSize={16}>
+                        Approval workflow
+                    </Typography>
+
                     {/* STEPS */}
-                    <Stack>
-                        {getTimelineData(selectedItem?.id || undefined).map((step, stepIndex, steps) => (
+                    <Stack spacing={6}>
+                        {timelineData.map((step, stepIndex, steps) => (
                             <React.Fragment key={step.id}>
-                                <Box key={step.id} mb={12}>
-                                    <Stack direction="row" spacing={8} justifyContent="center" alignItems="flex-start">
+                                <Box>
+                                    <Stack direction="row" spacing={8} alignItems="flex-start">
                                         <Box
                                             sx={stepCircleStyle(theme, step.status === 'completed')}
                                         >
@@ -364,39 +794,38 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                 <Check size={12} color="#CCCCCC" strokeWidth={3} />
                                             )}
                                         </Box>
-                                        <Stack direction="column" sx={stepContainerStyle} >
+                                        <Stack direction="column" sx={stepContainerStyle} flex={1}>
                                             <Stack direction="row" justifyContent="space-between" alignItems="center">
                                                 <Typography sx={stepTitleStyle}>
-                                                    {step.approvalResult
-                                                        ? `${step.title} - ${step.approvalResult}`
-                                                        : step.title
-                                                    }
+                                                    {step.title}
                                                 </Typography>
                                                 {step.date && (
                                                     <Typography sx={stepDateStyle}>
-                                                        {dayjs(step.date).format("YYYY-MM-DD, HH:mm")}
+                                                        {dayjs(step.date).format("MMM DD, YYYY HH:mm")}
                                                     </Typography>
                                                 )}
                                             </Stack>
+                                            {step.approvalResult && (
+                                                <Chip
+                                                    {...(getWorkflowChipProps(step.approvalResult.toLowerCase()) || {})}
+                                                    sx={{ mt: 4, alignSelf: "flex-start" }}
+                                                />
+                                            )}
                                         </Stack>
                                     </Stack>
                                     <Stack direction="row" alignItems="stretch">
-                                        {stepIndex < steps.length && (
+                                        {stepIndex < steps.length - 1 && (
                                             <Divider
                                                 orientation="vertical"
                                                 flexItem
                                                 sx={stepDividerStyle}
                                             />
                                         )}
-                                        <Stack sx={stepDetailsStack} spacing={6} ml={2}>
+                                        <Stack sx={stepDetailsStack} spacing={4} ml={2}>
                                             {step.approverName && (
-                                                <Stack
-                                                    direction="row"
-                                                    spacing={4}
-                                                    alignItems="center"
-                                                    gap={2}>
+                                                <Stack direction="row" spacing={4} alignItems="center">
                                                     <Typography sx={approverNameStyle}>
-                                                        {step.approverName}
+                                                        Approver: {step.approverName}
                                                     </Typography>
                                                 </Stack>
                                             )}
@@ -428,13 +857,15 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                             </React.Fragment>
                         ))}
                     </Stack>
-                    {!isRequestor && (
+
+                    {activeTab === "approvals" && selectedItem?.status === 'pending' && (
                         <Stack spacing={0}>
+                            <Divider sx={{ mb: 8 }} />
                             <Field
-                                label="Comment"
-                                rows={2}
+                                label="Add comment (optional)"
+                                rows={3}
                                 type="description"
-                                placeholder="Add comment"
+                                placeholder="Provide additional context or feedback..."
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 sx={commentFieldStyle}
@@ -443,7 +874,10 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                     )}
                 </Stack>
 
-            </Stack>
+                    </Stack>
+                    )}
+                </TabPanel>
+            </TabContext>
             <StepDetailsModal
                 isOpen={isStepDetailsModalOpen}
                 onClose={() => {
@@ -472,4 +906,4 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     )
 }
 
-export default RequestorApprovalModal; 
+export default RequestorApprovalModal;

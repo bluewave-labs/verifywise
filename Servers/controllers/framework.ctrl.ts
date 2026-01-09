@@ -15,6 +15,7 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import { hasPendingApprovalQuery } from "../utils/approvalRequest.utils";
 
 export async function getAllFrameworks(
   req: Request,
@@ -133,6 +134,28 @@ export async function addFrameworkToProject(
     );
     logger.debug(`🔗 Adding framework ${frameworkId} to project ${projectId}`);
 
+    // Check if project has a pending approval request
+    const hasPendingApproval = await hasPendingApprovalQuery(
+      projectId,
+      "use_case",
+      req.tenantId!
+    );
+
+    if (hasPendingApproval) {
+      logStructured(
+        "error",
+        `project ${projectId} has pending approval request`,
+        "addFrameworkToProject",
+        "framework.ctrl.ts"
+      );
+      await transaction.rollback();
+      return res.status(403).json(
+        STATUS_CODE[403](
+          "This use case has a pending approval request and cannot be modified until the approval process is complete."
+        )
+      );
+    }
+
     // Validate framework exists
     const framework = await FrameworkModel.findByIdWithValidation(frameworkId);
     if (!framework) {
@@ -235,6 +258,32 @@ export async function deleteFrameworkFromProject(
     logger.debug(
       `🔗 Removing framework ${frameworkId} from project ${projectId}`
     );
+
+    // Check if project has a pending approval request
+    console.log("=== deleteFrameworkFromProject - Checking pending approval ===");
+    console.log("projectId:", projectId);
+    console.log("tenantId:", req.tenantId);
+
+    const hasPendingApproval = await hasPendingApprovalQuery(
+      projectId,
+      "use_case",
+      req.tenantId!
+    );
+
+    if (hasPendingApproval) {
+      logStructured(
+        "error",
+        `project ${projectId} has pending approval request`,
+        "deleteFrameworkFromProject",
+        "framework.ctrl.ts"
+      );
+      await transaction.rollback();
+      return res.status(403).json(
+        STATUS_CODE[403](
+          "This use case has a pending approval request and cannot be modified until the approval process is complete."
+        )
+      );
+    }
 
     // Validate framework exists
     const framework = await FrameworkModel.findByIdWithValidation(frameworkId);

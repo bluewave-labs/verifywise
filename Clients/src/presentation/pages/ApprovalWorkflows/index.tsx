@@ -14,7 +14,13 @@ import { ApprovalStatus } from "../../../domain/enums/aiApprovalWorkflow.enum";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { SearchBox } from "../../components/Search";
-import { MOCK_WORKFLOWS } from "./mockData";
+import {
+    getAllApprovalWorkflows,
+    getApprovalWorkflowById,
+    createApprovalWorkflow,
+    updateApprovalWorkflow,
+    deleteApprovalWorkflow,
+} from "../../../application/repository/approvalWorkflow.repository";
 
 const ApprovalWorkflows: React.FC = () => {
 
@@ -23,6 +29,7 @@ const ApprovalWorkflows: React.FC = () => {
     const [selectWorkflow, setSelectWorkflow] = useState<ApprovalWorkflowModel | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
+    const [archivedId, setArchivedId] = useState<string | null>(null);
 
 
     // FilterBy - Filter columns configuration
@@ -94,11 +101,9 @@ const ApprovalWorkflows: React.FC = () => {
     const fetchApprovalWorkflowData = async (showLoading = true) => {
         if (showLoading) setIsLoading(true);
         try {
-            if (!workflowData || workflowData.length === 0) {
-                setWorkflowData(MOCK_WORKFLOWS);
-            }
-            //TO-DO: fetch approval workflows from API
-
+            const response = await getAllApprovalWorkflows();
+            const workflows = response?.data || [];
+            setWorkflowData(workflows.map((w: any) => new ApprovalWorkflowModel(w)));
         } catch (error) {
             logEngine({
                 type: "error",
@@ -115,22 +120,30 @@ const ApprovalWorkflows: React.FC = () => {
         try {
             setIsLoading(true);
 
+            // First check if workflow is already in state
             const workflowFromState = workflowData.find(w => w.id?.toString() === id);
             if (workflowFromState) {
                 setSelectWorkflow(workflowFromState);
+                setIsLoading(false);
                 return workflowFromState;
             }
 
-            const mockWorkflow = MOCK_WORKFLOWS.find(w => w.id?.toString() === id);
-            if (mockWorkflow) {
-                setSelectWorkflow(mockWorkflow);
-                return mockWorkflow;
+            // Fetch from API if not in state
+            const response = await getApprovalWorkflowById({ id: parseInt(id, 10) });
+            const fetchedWorkflow = response?.data;
+
+            if (fetchedWorkflow) {
+                const workflow = new ApprovalWorkflowModel(fetchedWorkflow);
+                setSelectWorkflow(workflow);
+                setIsLoading(false);
+                return workflow;
             }
 
             logEngine({
                 type: "error",
                 message: "No workflow data found for this ID.",
             });
+            setIsLoading(false);
             return null;
         }
         catch (error) {
@@ -138,10 +151,8 @@ const ApprovalWorkflows: React.FC = () => {
                 type: "error",
                 message: `Failed to fetch workflow by ID: ${error}`,
             });
-            return null;
-        }
-        finally {
             setIsLoading(false);
+            return null;
         }
     };
 
@@ -154,10 +165,9 @@ const ApprovalWorkflows: React.FC = () => {
     const handleNewWorkflowClick = () => setIsNewWorkflowModalOpen(true);
 
     const handleEditWorkflowClick = async (id: string) => {
-        const workflow = await fetchWorkflowDataById(id);
-        if (workflow) {
-            setIsNewWorkflowModalOpen(true);
-        }
+        await fetchWorkflowDataById(id);
+        // Open modal even if workflow fetch has issues - the modal will show error state
+        setIsNewWorkflowModalOpen(true);
     }
 
     const handleWorkflowSuccess = async (formData: {
@@ -167,46 +177,38 @@ const ApprovalWorkflows: React.FC = () => {
     }) => {
         try {
             if (selectWorkflow) {
-                logEngine({
-                    type: "info",
-                    message: `Would update workflow ${selectWorkflow.id} with: ${JSON.stringify(formData)}`,
+                await updateApprovalWorkflow({
+                    id: selectWorkflow.id!,
+                    body: {
+                        workflow_title: formData.workflow_title,
+                        entity_type: formData.entity === 1 ? "use_case" : "project",
+                        steps: formData.steps.map(step => ({
+                            step_name: step.step_name,
+                            description: step.description,
+                            approver_ids: step.approver_ids || [],
+                            requires_all_approvers: step.requires_all_approvers ?? false,
+                        })),
+                    },
                 });
-
-                //TO-DO: call API to update workflow
-                const updatedWorkflow = new ApprovalWorkflowModel({
-                    ...selectWorkflow,
-                    workflow_title: formData.workflow_title,
-                    entity: formData.entity,
-                    steps: formData.steps.map(step => new ApprovalWorkflowStepModel(step)),
-                    date_updated: new Date(),
-                });
-
-                setWorkflowData(prev => prev.map(w => w.id === selectWorkflow.id ? updatedWorkflow : w)
-                );
 
                 logEngine({
                     type: "info",
                     message: "Workflow updated successfully!",
                 });
             } else {
-                logEngine({
-                    type: "info",
-                    message: `Would create new workflow with: ${JSON.stringify(formData)}`,
+                await createApprovalWorkflow({
+                    body: {
+                        workflow_title: formData.workflow_title,
+                        entity_type: formData.entity === 1 ? "use_case" : "project",
+                        steps: formData.steps.map(step => ({
+                            step_name: step.step_name,
+                            description: step.description,
+                            approver_ids: step.approver_ids || [],
+                            requires_all_approvers: step.requires_all_approvers ?? false,
+                        })),
+                    },
                 });
 
-                const newWorkflow = new ApprovalWorkflowModel({
-                    id: workflowData.length > 0
-                        ? Math.max(...workflowData.map(w => w.id || 0)) + 1
-                        : 1,
-                    type: "approval",
-                    workflow_title: formData.workflow_title,
-                    entity: formData.entity,
-                    steps: formData.steps.map(step => new ApprovalWorkflowStepModel(step)),
-                    approval_status: ApprovalStatus.PENDING,
-                    date_updated: new Date(),
-                });
-
-                setWorkflowData(prev => [...prev, newWorkflow]);
                 logEngine({
                     type: "info",
                     message: "Workflow created successfully!",
@@ -226,6 +228,33 @@ const ApprovalWorkflows: React.FC = () => {
         setIsNewWorkflowModalOpen(false);
         setSelectWorkflow(null);
     }
+
+    const handleArchiveWorkflow = async (id: string) => {
+        try {
+            setArchivedId(id);
+
+            await deleteApprovalWorkflow({ id: parseInt(id, 10) });
+
+            logEngine({
+                type: "info",
+                message: "Workflow archived successfully!",
+            });
+
+            // Remove from local state after successful deletion
+            setTimeout(() => {
+                setWorkflowData(prev => prev.filter(w => w.id?.toString() !== id));
+                setArchivedId(null);
+            }, 500);
+
+            await fetchApprovalWorkflowData(false);
+        } catch (error) {
+            setArchivedId(null);
+            logEngine({
+                type: "error",
+                message: `Failed to archive workflow: ${error}`,
+            });
+        }
+    };
 
     /** -------------------- RENDER -------------------- */
     return (
@@ -275,6 +304,8 @@ const ApprovalWorkflows: React.FC = () => {
                     data={filteredData}
                     isLoading={isLoading}
                     onEdit={handleEditWorkflowClick}
+                    onArchive={handleArchiveWorkflow}
+                    archivedId={archivedId}
                 />
             </Stack>
             <CreateNewApprovalWorkflow

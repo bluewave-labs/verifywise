@@ -1,4 +1,4 @@
-import { Box, Divider, Link, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Divider, Stack, Typography, useTheme, Autocomplete, TextField, Button } from "@mui/material";
 import { FC, useEffect, useState } from "react";
 import StandardModal from "../StandardModal";
 import Field from "../../Inputs/Field";
@@ -6,6 +6,8 @@ import { fieldStyle } from "../../Reporting/GenerateReport/GenerateReportFrom/st
 import SelectComponent from "../../Inputs/Select";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-dark_grey.svg";
+import { ChevronDown } from "lucide-react";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
 import {
     addNewStep,
     stepNumberStyle,
@@ -13,17 +15,18 @@ import {
     stepContainerStyle,
     stepTitleStyle,
     removeStepLinkContainer,
-    removeStepLinkStyle,
+    removeStepButtonStyle,
     verticalStepDividerStyle,
     stepFieldsContainer,
-    approverSelectStyle,
+    approverAutocompleteStyle,
     conditionsSelectStyle,
     descriptionFieldStyle,
 } from "./style";
 import { ApprovalWorkflowStepModel } from "../../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
 import { entities, conditions } from "./arrays";
-import { APPROVERS } from "./mockData";
 import { ICreateApprovalWorkflowProps, NewApprovalWorkflowFormErrors } from "src/domain/interfaces/i.ApprovalForkflow";
+import { getAllUsers } from "../../../../application/repository/user.repository";
+import { User } from "../../../../domain/types/User";
 
 const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
     isOpen,
@@ -41,15 +44,37 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
     const [workflowTitle, setWorkflowTitle] = useState("");
     const [entity, setEntity] = useState(0);
     const [workflowSteps, setWorkflowSteps] = useState<ApprovalWorkflowStepModel[]>([]);
+    const [users, setUsers] = useState<Array<{ _id: number; name: string; surname?: string }>>([]);
+
+    // Fetch users on mount
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await getAllUsers();
+                const usersData = response?.data || [];
+                setUsers(
+                    usersData.map((user: User) => ({
+                        _id: user.id,
+                        name: user.name,
+                        surname: user.surname,
+                    }))
+                );
+            } catch (error) {
+                console.error("Failed to fetch users:", error);
+                setUsers([]);
+            }
+        };
+
+        fetchUsers();
+    }, []);
 
     useEffect(() => {
         if (initialData && isEdit) {
             setWorkflowTitle(initialData.workflow_title || "");
             setEntity(initialData.entity);
             if (initialData.steps && initialData.steps.length > 0) {
-                setWorkflowSteps(initialData.steps.map(step =>
-                    new ApprovalWorkflowStepModel(step)
-                ));
+                // Steps are already ApprovalWorkflowStepModel instances, just use them directly
+                setWorkflowSteps([...initialData.steps]);
                 setStepsCount(initialData.steps.length)
             } else {
                 setWorkflowSteps([new ApprovalWorkflowStepModel()]);
@@ -88,11 +113,11 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                 newErrors.steps[i].step_name = "Step name is required.";
                 hasErrors = true;
             }
-            if (!step.approver) {
-                newErrors.steps[i].approver = "Approver is required.";
+            if (!step.approver_ids || step.approver_ids.length === 0) {
+                newErrors.steps[i].approver = "At least one approver is required.";
                 hasErrors = true;
             }
-            if (!step.conditions) {
+            if (step.requires_all_approvers === undefined || step.requires_all_approvers === null) {
                 newErrors.steps[i].conditions = "Conditions are required.";
                 hasErrors = true;
             }
@@ -110,8 +135,8 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                 steps: workflowSteps.map(
                     step => new ApprovalWorkflowStepModel({
                         step_name: step.step_name?.trim() || "",
-                        approver: step.approver,
-                        conditions: step.conditions,
+                        approver_ids: step.approver_ids || [],
+                        requires_all_approvers: step.requires_all_approvers ?? false,
                         description: step.description?.trim() || ""
                     })),
             };
@@ -175,19 +200,19 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                         {/* STEPS */}
                         <Stack spacing={4}
                             sx={stepContainerStyle(stepIndex)}>
-                            <Stack direction="row" spacing={8}>
+                            <Stack direction="row" spacing={8} alignItems="center">
                                 <Box sx={stepNumberStyle}>{stepIndex + 1}</Box>
                                 <Typography sx={stepTitleStyle}>
                                     {"STEP " + (stepIndex + 1)}
                                 </Typography>
                                 <Box sx={removeStepLinkContainer}>
-                                    <Link
-                                        component="button"
+                                    <Button
+                                        variant="text"
                                         onClick={() => removeStep(stepIndex)}
-                                        sx={removeStepLinkStyle(stepIndex === 0)}
+                                        sx={removeStepButtonStyle(stepIndex === 0)}
                                     >
                                         Remove step
-                                    </Link>
+                                    </Button>
                                 </Box>
                             </Stack>
                             <Stack direction="row" alignItems="flex-start" >
@@ -215,36 +240,127 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                         }}
                                     />
                                     <Stack direction="row" spacing={6}>
-                                        <SelectComponent
-                                            items={APPROVERS}
-                                            value={step.approver || ""}
-                                            sx={approverSelectStyle(theme)}
-                                            id={`approver-${stepIndex}`}
-                                            label="Approver"
-                                            isRequired
-                                            error={errors.steps[stepIndex]?.approver}
-                                            onChange={(e: any) => {
-                                                const newSteps = [...workflowSteps];
-                                                newSteps[stepIndex].approver = Number(e.target.value);
-                                                setWorkflowSteps(newSteps);
-                                            }}
-                                            placeholder="Select approver"
-                                        />
-                                        <SelectComponent
-                                            items={conditions}
-                                            value={step.conditions || ""}
-                                            sx={conditionsSelectStyle(theme)}
-                                            id={`conditions-${stepIndex}`}
-                                            label="Conditions"
-                                            isRequired
-                                            error={errors.steps[stepIndex]?.conditions}
-                                            onChange={(e: any) => {
-                                                const newSteps = [...workflowSteps];
-                                                newSteps[stepIndex].conditions = Number(e.target.value);
-                                                setWorkflowSteps(newSteps);
-                                            }}
-                                            placeholder="Select conditions"
-                                        />
+                                        <Stack gap={theme.spacing(2)} sx={{ width: "50%" }}>
+                                            <Typography
+                                                component="p"
+                                                variant="body1"
+                                                color={theme.palette.text.secondary}
+                                                fontWeight={500}
+                                                fontSize={"13px"}
+                                                sx={{
+                                                    margin: 0,
+                                                    height: '22px',
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                Approvers
+                                                <Typography
+                                                    component="span"
+                                                    ml={theme.spacing(1)}
+                                                    color={theme.palette.error.text}
+                                                >
+                                                    *
+                                                </Typography>
+                                            </Typography>
+                                            <Autocomplete
+                                                multiple
+                                                id={`approver-${stepIndex}`}
+                                                size="small"
+                                                value={users.filter(u => (step.approver_ids || []).includes(u._id))}
+                                                options={users}
+                                                onChange={(_event, newValue) => {
+                                                    const newSteps = [...workflowSteps];
+                                                    newSteps[stepIndex].approver_ids = newValue.map(u => u._id);
+                                                    setWorkflowSteps(newSteps);
+                                                }}
+                                                getOptionLabel={(user) => `${user.name}${user.surname ? ` ${user.surname}` : ""}`}
+                                                renderOption={(props, option) => (
+                                                    <Box component="li" {...props}>
+                                                        <Typography sx={{ fontSize: "13px", color: "#1c2130" }}>
+                                                            {option.name}{option.surname ? ` ${option.surname}` : ""}
+                                                        </Typography>
+                                                    </Box>
+                                                )}
+                                                filterSelectedOptions
+                                                noOptionsText={
+                                                    (step.approver_ids || []).length === users.length
+                                                        ? "All approvers selected"
+                                                        : "No options"
+                                                }
+                                                popupIcon={<ChevronDown size={20} />}
+                                                renderInput={(params) => (
+                                                    <TextField
+                                                        {...params}
+                                                        placeholder="Select approvers"
+                                                        error={!!errors.steps[stepIndex]?.approver}
+                                                        sx={{
+                                                            "& .MuiOutlinedInput-root": {
+                                                                paddingTop: "3.8px !important",
+                                                                paddingBottom: "3.8px !important",
+                                                            },
+                                                            "& ::placeholder": {
+                                                                fontSize: "13px",
+                                                            },
+                                                        }}
+                                                    />
+                                                )}
+                                                slotProps={{
+                                                    paper: {
+                                                        sx: {
+                                                            "& .MuiAutocomplete-listbox": {
+                                                                "& .MuiAutocomplete-option": {
+                                                                    fontSize: "13px",
+                                                                    color: "#1c2130",
+                                                                    paddingLeft: "9px",
+                                                                    paddingRight: "9px",
+                                                                },
+                                                                "& .MuiAutocomplete-option.Mui-focused": {
+                                                                    background: "#f9fafb",
+                                                                },
+                                                            },
+                                                            "& .MuiAutocomplete-noOptions": {
+                                                                fontSize: "13px",
+                                                                paddingLeft: "9px",
+                                                                paddingRight: "9px",
+                                                            },
+                                                        },
+                                                    },
+                                                }}
+                                                sx={{
+                                                    ...getAutocompleteStyles(theme, { hasError: !!errors.steps[stepIndex]?.approver }),
+                                                    ...approverAutocompleteStyle(theme),
+                                                }}
+                                            />
+                                            {errors.steps[stepIndex]?.approver && (
+                                                <Typography
+                                                    variant="caption"
+                                                    sx={{
+                                                        color: theme.palette.error.main,
+                                                        fontSize: "var(--env-var-font-size-small)",
+                                                    }}
+                                                >
+                                                    {errors.steps[stepIndex]?.approver}
+                                                </Typography>
+                                            )}
+                                        </Stack>
+                                        <Box sx={{ width: "50%" }}>
+                                            <SelectComponent
+                                                items={conditions}
+                                                value={step.requires_all_approvers === true ? 1 : step.requires_all_approvers === false ? 2 : ""}
+                                                sx={conditionsSelectStyle(theme)}
+                                                id={`conditions-${stepIndex}`}
+                                                label="Conditions"
+                                                isRequired
+                                                error={errors.steps[stepIndex]?.conditions}
+                                                onChange={(e: any) => {
+                                                    const newSteps = [...workflowSteps];
+                                                    newSteps[stepIndex].requires_all_approvers = Number(e.target.value) === 1;
+                                                    setWorkflowSteps(newSteps);
+                                                }}
+                                                placeholder="Select conditions"
+                                            />
+                                        </Box>
                                     </Stack>
                                     <Field
                                         id={`description_${stepIndex}`}

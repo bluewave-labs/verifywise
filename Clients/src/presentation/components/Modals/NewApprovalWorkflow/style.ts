@@ -33,7 +33,7 @@ export const entitySelectStyle = (theme: Theme) => ({
 })
 
 export const stepContainerStyle = (stepIndex: number) => ({
-    pt: stepIndex > 0 ? 8 : 0
+    pt: 0
 })
 
 export const stepTitleStyle = {
@@ -47,14 +47,19 @@ export const removeStepLinkContainer = {
     justifyContent: "flex-start",
 }
 
-export const removeStepLinkStyle = (isFirstStep: boolean) => ({
-    color: "#13715B",
-    textDecoration: "underline",
-    cursor: "pointer",
+export const removeStepButtonStyle = (isFirstStep: boolean) => ({
+    color: "#D92D20",
+    backgroundColor: "#FEF3F2",
+    border: "1px solid #D92D20",
+    textTransform: "none" as const,
     fontSize: 13,
     fontWeight: 500,
+    padding: "4px 12px",
+    minWidth: "auto",
+    borderRadius: "6px",
     "&:hover": {
-        color: "#0F5A47",
+        backgroundColor: "#FEE4E2",
+        border: "1px solid #D92D20",
     },
     visibility: isFirstStep ? "hidden" : "visible",
 })
@@ -72,13 +77,29 @@ export const stepFieldsContainer = {
     flex: 1
 }
 
-export const approverSelectStyle = (theme: Theme) => ({
-    width: "48%",
+export const approverAutocompleteStyle = (theme: Theme) => ({
     backgroundColor: theme.palette.background.main,
+    "& .MuiOutlinedInput-root": {
+        borderRadius: "3px",
+        paddingTop: "3.8px !important",
+        paddingBottom: "3.8px !important",
+        "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "none",
+        },
+        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#888",
+            borderWidth: "1px",
+        },
+    },
+    "& .MuiChip-root": {
+        borderRadius: "4px",
+        height: "24px",
+        fontSize: "13px",
+    },
 })
 
 export const conditionsSelectStyle = (theme: Theme) => ({
-    width: "52%",
+    width: "100%",
     backgroundColor: theme.palette.background.main,
 })
 

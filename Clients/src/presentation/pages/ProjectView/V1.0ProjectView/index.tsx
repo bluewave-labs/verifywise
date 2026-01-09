@@ -147,6 +147,9 @@ const VWProjectView = () => {
     }
   };
 
+  // Check if project has pending approval
+  const hasPendingApproval = project && (project as any).has_pending_approval;
+
   return (
     <Stack className="vw-project-view">
       <PageBreadcrumbs
@@ -190,6 +193,7 @@ const VWProjectView = () => {
                 icon: "AlertTriangle",
                 count: projectRisksCount,
                 isLoading: isLoadingRisks,
+                disabled: hasPendingApproval,
               },
               {
                 label: "Linked models",
@@ -197,21 +201,25 @@ const VWProjectView = () => {
                 icon: "Box",
                 count: linkedModelsCount,
                 isLoading: isLoadingModels,
+                disabled: hasPendingApproval,
               },
               {
                 label: "Frameworks/regulations",
                 value: "frameworks",
                 icon: "Shield",
+                disabled: hasPendingApproval,
               },
               {
                 label: "CE Marking",
                 value: "ce-marking",
                 icon: "Award",
+                disabled: hasPendingApproval,
               },
               {
                 label: "Activity",
                 value: "activity",
                 icon: "History",
+                disabled: hasPendingApproval,
               },
               {
                 label: "Settings",
@@ -222,6 +230,7 @@ const VWProjectView = () => {
             ]}
             activeTab={value}
             onChange={handleChange}
+            disabledTabTooltip="This tab is unavailable because the use case has a pending approval request. You can view Overview and edit Settings."
           />
 
           <TabPanel value="overview" sx={tabPanelStyle}>

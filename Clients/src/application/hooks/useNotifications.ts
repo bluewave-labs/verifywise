@@ -83,9 +83,8 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
    * Display notification using existing alert system
    */
   const displayNotification = useCallback((notification: Notification) => {
-    // Skip "connected" type - it's just for debugging
+    // Skip "connected" type - it's just for internal handshake
     if (notification.type === "connected") {
-      console.log("📡 SSE connection established");
       return;
     }
 
@@ -117,7 +116,6 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
   const connect = useCallback(async () => {
     // Don't connect if disabled or no auth token
     if (!enabled || !authToken) {
-      console.log("⏸️ Notifications not enabled or no auth token");
       return;
     }
 
@@ -139,8 +137,6 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       abortControllerRef.current = abortController;
       isManuallyDisconnectedRef.current = false;
 
-      console.log("🔌 Connecting to SSE endpoint with Authorization header...");
-
       // Use fetch() instead of EventSource to send custom headers
       const response = await fetch(url, {
         method: 'GET',
@@ -160,7 +156,6 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       }
 
       isConnectedRef.current = true;
-      console.log("✅ SSE connection established");
 
       // Read the stream
       const reader = response.body.getReader();
@@ -172,7 +167,6 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
         const { done, value } = await reader.read();
 
         if (done) {
-          console.log("📡 SSE stream ended");
           break;
         }
 
@@ -202,10 +196,9 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
           if (data) {
             try {
               const notification: Notification = JSON.parse(data);
-              console.log("📬 Received notification:", notification);
               displayNotification(notification);
             } catch (error) {
-              console.error("❌ Error parsing notification:", error);
+              // Silently ignore parsing errors
             }
           }
         }
@@ -214,7 +207,6 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       // Stream ended, reconnect if not manually disconnected
       isConnectedRef.current = false;
       if (autoReconnect && !isManuallyDisconnectedRef.current) {
-        console.log(`🔄 Reconnecting in ${reconnectDelay}ms...`);
         reconnectTimeoutRef.current = setTimeout(() => {
           connect();
         }, reconnectDelay);
@@ -222,17 +214,13 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
     } catch (error: any) {
       isConnectedRef.current = false;
 
-      // Don't log error if manually aborted
+      // Don't reconnect if manually aborted
       if (error.name === 'AbortError') {
-        console.log("🔌 SSE connection aborted");
         return;
       }
 
-      console.error("❌ SSE connection error:", error);
-
       // Auto-reconnect if enabled and not manually disconnected
       if (autoReconnect && !isManuallyDisconnectedRef.current) {
-        console.log(`🔄 Reconnecting in ${reconnectDelay}ms...`);
         reconnectTimeoutRef.current = setTimeout(() => {
           connect();
         }, reconnectDelay);
@@ -244,7 +232,6 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
    * Disconnect from SSE endpoint
    */
   const disconnect = useCallback(() => {
-    console.log("🔌 Disconnecting from SSE endpoint...");
     isManuallyDisconnectedRef.current = true;
     isConnectedRef.current = false;
 

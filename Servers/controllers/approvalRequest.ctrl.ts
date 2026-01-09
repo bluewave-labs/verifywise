@@ -482,7 +482,7 @@ export async function withdrawRequest(
     }
 
     // Verify user is the requestor
-    const request = await getApprovalRequestByIdQuery(requestId, tenantId);
+    const request = await getApprovalRequestByIdQuery(requestId, tenantId, transaction);
     if (!request || request.requested_by !== userId) {
       await transaction.rollback();
       return res

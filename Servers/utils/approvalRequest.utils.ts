@@ -34,14 +34,7 @@ export const createApprovalRequestQuery = async (
   tenantId: string,
   transaction: Transaction
 ): Promise<ApprovalRequestModel> => {
-  console.log("=== createApprovalRequestQuery START ===");
-  console.log("tenantId:", tenantId);
-  console.log("requestData:", JSON.stringify(requestData, null, 2));
-  console.log("workflowSteps count:", workflowSteps.length);
-  console.log("workflowSteps:", JSON.stringify(workflowSteps, null, 2));
-
   // Create request
-  console.log("Creating approval request in database...");
   const [request] = await sequelize.query(
     `INSERT INTO "${tenantId}".approval_requests
      (request_name, workflow_id, entity_id, entity_type, entity_data, status, requested_by, current_step, created_at, updated_at)
@@ -63,14 +56,8 @@ export const createApprovalRequestQuery = async (
     }
   );
 
-  console.log("Approval request created with ID:", (request as any).id);
-  console.log("Request object:", JSON.stringify(request, null, 2));
-
   // Create request steps from workflow steps
-  console.log(`Creating ${workflowSteps.length} request steps...`);
   for (const workflowStep of workflowSteps) {
-    console.log(`Processing workflow step:`, JSON.stringify(workflowStep, null, 2));
-
     const [requestStep] = await sequelize.query(
       `INSERT INTO "${tenantId}".approval_request_steps
        (request_id, step_number, step_name, status, date_assigned, created_at)
@@ -89,18 +76,12 @@ export const createApprovalRequestQuery = async (
       }
     );
 
-    console.log(`Request step created with ID:`, (requestStep as any).id);
-    console.log(`Request step object:`, JSON.stringify(requestStep, null, 2));
-
     // Create approval records for each approver
     // Get approvers from the Sequelize model properly
     const approvers = workflowStep.get ? workflowStep.get('approvers') : workflowStep.approvers;
-    console.log(`Creating ${approvers?.length || 0} approver records for step ${workflowStep.step_number}...`);
-    console.log(`Approvers:`, JSON.stringify(approvers, null, 2));
 
     if (approvers && approvers.length > 0) {
       for (const approver of approvers) {
-        console.log(`  Creating approval record for approver ${approver.approver_id}`);
         await sequelize.query(
           `INSERT INTO "${tenantId}".approval_request_step_approvals
            (request_step_id, approver_id, approval_result, created_at)
@@ -114,15 +95,9 @@ export const createApprovalRequestQuery = async (
             transaction,
           }
         );
-        console.log(`  Approval record created for approver ${approver.approver_id}`);
       }
-    } else {
-      console.log(`  WARNING: No approvers found for step ${workflowStep.step_number}!`);
     }
   }
-
-  console.log("All approval request steps and approver records created successfully!");
-  console.log("=== createApprovalRequestQuery END ===");
 
   return request as ApprovalRequestModel;
 };
@@ -132,7 +107,8 @@ export const createApprovalRequestQuery = async (
  */
 export const getPendingApprovalsQuery = async (
   userId: number,
-  tenantId: string
+  tenantId: string,
+  transaction: Transaction | null = null
 ): Promise<any[]> => {
   const requests = await sequelize.query(
     `SELECT DISTINCT
@@ -159,6 +135,7 @@ export const getPendingApprovalsQuery = async (
         status: ApprovalRequestStatus.PENDING,
       },
       type: "SELECT",
+      ...(transaction && { transaction }),
     }
   );
 
@@ -170,7 +147,8 @@ export const getPendingApprovalsQuery = async (
  */
 export const getMyApprovalRequestsQuery = async (
   userId: number,
-  tenantId: string
+  tenantId: string,
+  transaction: Transaction | null = null
 ): Promise<any[]> => {
   const requests = await sequelize.query(
     `SELECT * FROM "${tenantId}".approval_requests
@@ -180,6 +158,7 @@ export const getMyApprovalRequestsQuery = async (
       replacements: { userId },
       mapToModel: true,
       model: ApprovalRequestModel,
+      ...(transaction && { transaction }),
     }
   );
 
@@ -191,7 +170,8 @@ export const getMyApprovalRequestsQuery = async (
  */
 export const getApprovalRequestByIdQuery = async (
   requestId: number,
-  tenantId: string
+  tenantId: string,
+  transaction: Transaction | null = null
 ): Promise<any | null> => {
   // Get approval request with project/use-case details and workflow info
   const [requestData] = await sequelize.query(
@@ -224,6 +204,7 @@ export const getApprovalRequestByIdQuery = async (
     {
       replacements: { requestId },
       type: "SELECT",
+      ...(transaction && { transaction }),
     }
   );
 
@@ -242,6 +223,7 @@ export const getApprovalRequestByIdQuery = async (
       replacements: { requestId },
       mapToModel: true,
       model: ApprovalRequestStepModel,
+      ...(transaction && { transaction }),
     }
   );
 
@@ -255,6 +237,7 @@ export const getApprovalRequestByIdQuery = async (
       {
         replacements: { stepId: (step as any).id },
         type: "SELECT",
+        ...(transaction && { transaction }),
       }
     );
     (step as any).approvals = approvals;
@@ -492,9 +475,6 @@ export const processApprovalQuery = async (
       const entityType = (request as any).entity_type;
 
       if (entityType === "use_case" && entityId) {
-        console.log("=== APPROVAL COMPLETE - CREATING FRAMEWORKS ===");
-        console.log("Entity ID:", entityId);
-
         // Get project details with pending frameworks
         const [projectData] = await sequelize.query(
           `SELECT id, pending_frameworks, enable_ai_data_insertion
@@ -511,9 +491,6 @@ export const processApprovalQuery = async (
           const pendingFrameworks = (projectData as any).pending_frameworks as number[];
           const enableAiDataInsertion = (projectData as any).enable_ai_data_insertion || false;
 
-          console.log("Pending frameworks:", pendingFrameworks);
-          console.log("Enable AI data insertion:", enableAiDataInsertion);
-
           // Import framework creation utilities
           const { createEUFrameworkQuery } = require("./eu.utils");
           const { createISOFrameworkQuery } = require("./iso42001.utils");
@@ -522,8 +499,6 @@ export const processApprovalQuery = async (
 
           // Create frameworks
           for (const frameworkId of pendingFrameworks) {
-            console.log(`Creating framework ${frameworkId} for project ${entityId}...`);
-
             // Create project_framework record FIRST (required by framework creation functions)
             await sequelize.query(
               `INSERT INTO "${tenantId}".projects_frameworks (project_id, framework_id, is_demo)
@@ -567,8 +542,6 @@ export const processApprovalQuery = async (
                 transaction
               );
             }
-
-            console.log(`Framework ${frameworkId} created successfully`);
           }
 
           // Clear pending frameworks after creation
@@ -581,10 +554,6 @@ export const processApprovalQuery = async (
               transaction,
             }
           );
-
-          console.log("All frameworks created and pending_frameworks cleared");
-        } else {
-          console.log("No pending frameworks to create");
         }
       }
 
@@ -626,7 +595,7 @@ export const getPendingApprovalRequestIdQuery = async (
   entityId: number,
   entityType: string,
   tenantId: string,
-  transaction?: Transaction
+  transaction: Transaction | null = null
 ): Promise<number | null> => {
   const results = await sequelize.query(
     `SELECT id
@@ -642,7 +611,7 @@ export const getPendingApprovalRequestIdQuery = async (
         status: ApprovalRequestStatus.PENDING,
       },
       type: "SELECT",
-      transaction,
+      ...(transaction && { transaction }),
     }
   );
 
@@ -659,7 +628,7 @@ export const hasPendingApprovalQuery = async (
   entityId: number,
   entityType: string,
   tenantId: string,
-  transaction?: Transaction
+  transaction: Transaction | null = null
 ): Promise<boolean> => {
   const results = await sequelize.query(
     `SELECT COUNT(*) as count
@@ -674,7 +643,7 @@ export const hasPendingApprovalQuery = async (
         status: ApprovalRequestStatus.PENDING,
       },
       type: "SELECT",
-      transaction,
+      ...(transaction && { transaction }),
     }
   );
 
@@ -690,7 +659,7 @@ export const getApprovalStatusQuery = async (
   entityId: number,
   entityType: string,
   tenantId: string,
-  transaction?: Transaction
+  transaction: Transaction | null = null
 ): Promise<'pending' | 'rejected' | null> => {
   const results = await sequelize.query(
     `SELECT status
@@ -708,7 +677,7 @@ export const getApprovalStatusQuery = async (
         rejectedStatus: ApprovalRequestStatus.REJECTED,
       },
       type: "SELECT",
-      transaction,
+      ...(transaction && { transaction }),
     }
   ) as any[];
 

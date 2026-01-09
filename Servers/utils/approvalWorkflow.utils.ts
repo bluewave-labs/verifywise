@@ -10,14 +10,14 @@ import { EntityType } from "../domain.layer/enums/approval-workflow.enum";
  */
 export const getAllApprovalWorkflowsQuery = async (
   tenantId: string,
-  transaction?: Transaction
+  transaction: Transaction | null = null
 ): Promise<ApprovalWorkflowModel[]> => {
   const workflows = await sequelize.query(
     `SELECT * FROM "${tenantId}".approval_workflows WHERE is_active = true ORDER BY created_at DESC`,
     {
       mapToModel: true,
       model: ApprovalWorkflowModel,
-      transaction,
+      ...(transaction && { transaction }),
     }
   );
 
@@ -36,37 +36,29 @@ export const getAllApprovalWorkflowsQuery = async (
 export const getApprovalWorkflowByIdQuery = async (
   workflowId: number,
   tenantId: string,
-  transaction?: Transaction
+  transaction: Transaction | null = null
 ): Promise<ApprovalWorkflowModel | null> => {
-  console.log(`getApprovalWorkflowByIdQuery called for workflow ${workflowId}, transaction:`, !!transaction);
-
   const workflows = await sequelize.query(
     `SELECT * FROM "${tenantId}".approval_workflows WHERE id = :workflowId`,
     {
       replacements: { workflowId },
       mapToModel: true,
       model: ApprovalWorkflowModel,
-      transaction,
+      ...(transaction && { transaction }),
     }
   );
 
   if (!workflows || workflows.length === 0) {
-    console.log(`No workflow found with ID ${workflowId}`);
     return null;
   }
 
   const workflow = workflows[0];
-  console.log(`Workflow fetched, ID: ${(workflow as any).id}`);
 
   // Load steps
   const steps = await getWorkflowStepsQuery(workflowId, tenantId, transaction);
-  console.log(`Steps loaded: ${steps.length} steps`);
 
   // Set steps on workflow instance
   workflow.setDataValue('steps', steps);
-  console.log(`After setDataValue, workflow.steps:`, (workflow as any).steps);
-  console.log(`After setDataValue, workflow.get('steps'):`, workflow.get('steps'));
-  console.log(`After setDataValue, workflow.toJSON():`, JSON.stringify(workflow.toJSON(), null, 2));
 
   return workflow;
 };
@@ -77,10 +69,8 @@ export const getApprovalWorkflowByIdQuery = async (
 export const getWorkflowStepsQuery = async (
   workflowId: number,
   tenantId: string,
-  transaction?: Transaction
+  transaction: Transaction | null = null
 ): Promise<ApprovalWorkflowStepModel[]> => {
-  console.log(`getWorkflowStepsQuery called for workflow ${workflowId}`);
-
   const steps = await sequelize.query(
     `SELECT * FROM "${tenantId}".approval_workflow_steps
      WHERE workflow_id = :workflowId
@@ -89,11 +79,9 @@ export const getWorkflowStepsQuery = async (
       replacements: { workflowId },
       mapToModel: true,
       model: ApprovalWorkflowStepModel,
-      transaction,
+      ...(transaction && { transaction }),
     }
   );
-
-  console.log(`Found ${steps.length} steps for workflow ${workflowId}`);
 
   // Load approvers for each step
   for (const step of steps) {
@@ -103,14 +91,12 @@ export const getWorkflowStepsQuery = async (
         replacements: { stepId: step.id },
         mapToModel: true,
         model: ApprovalStepApproversModel,
-        transaction,
+        ...(transaction && { transaction }),
       }
     );
-    console.log(`  Step ${step.step_number}: ${approvers.length} approvers`);
     step.setDataValue('approvers', approvers);
   }
 
-  console.log(`Returning ${steps.length} steps with approvers loaded`);
   return steps;
 };
 

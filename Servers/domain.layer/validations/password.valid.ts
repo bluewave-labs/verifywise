@@ -30,17 +30,5 @@ export function passwordValidation(password: string): {
   // Password is valid if it has lowercase, uppercase, digit, and meets minimum length
   const isValid = hasLowercase && hasUppercase && hasDigit && isMinLength;
 
-  // Debug logging for failed validations
-  if (!isValid) {
-    console.log("🔍 Password validation failed:", {
-      passwordLength: password.length,
-      hasLowercase,
-      hasUppercase,
-      hasDigit,
-      isMinLength,
-      isMaxLength,
-    });
-  }
-
   return { isValid, hasSpecialChar, isMinLength, isMaxLength };
 }

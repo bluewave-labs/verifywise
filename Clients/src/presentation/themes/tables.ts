@@ -39,6 +39,9 @@ export const tableStyles = {
         borderBottom: "1px solid #d0d5dd",
         backgroundColor: "white",
         transition: "background-color 0.3s ease-in-out",
+        "&:last-child": {
+          borderBottom: "none", // Prevent double border with table frame
+        },
         "&:hover td": {
           backgroundColor: "#f5f5f5", // Also defined in singleTheme.tableColors.rowHover
         },

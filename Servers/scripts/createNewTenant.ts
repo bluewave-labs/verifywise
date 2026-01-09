@@ -1947,6 +1947,110 @@ export const createNewTenant = async (
         UNIQUE(user_id, domain)
       );`, { transaction }
     );
+
+    // ========================================
+    // AI DETECTION TABLES
+    // ========================================
+    console.log(`🔍 Creating AI Detection tables for tenant: ${tenantHash}`);
+
+    // Create ai_detection_scans table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ai_detection_scans (
+        id SERIAL PRIMARY KEY,
+        repository_url VARCHAR(500) NOT NULL,
+        repository_owner VARCHAR(255) NOT NULL,
+        repository_name VARCHAR(255) NOT NULL,
+        default_branch VARCHAR(100) DEFAULT 'main',
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        findings_count INTEGER DEFAULT 0,
+        files_scanned INTEGER DEFAULT 0,
+        total_files INTEGER,
+        started_at TIMESTAMP WITH TIME ZONE,
+        completed_at TIMESTAMP WITH TIME ZONE,
+        duration_ms INTEGER,
+        error_message TEXT,
+        triggered_by INTEGER NOT NULL,
+        cache_path VARCHAR(255),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for ai_detection_scans
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_status_idx" ON "${tenantHash}".ai_detection_scans(status);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_triggered_by_idx" ON "${tenantHash}".ai_detection_scans(triggered_by);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_created_at_idx" ON "${tenantHash}".ai_detection_scans(created_at DESC);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_repo_idx" ON "${tenantHash}".ai_detection_scans(repository_owner, repository_name);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // Create ai_detection_findings table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ai_detection_findings (
+        id SERIAL PRIMARY KEY,
+        scan_id INTEGER NOT NULL REFERENCES "${tenantHash}".ai_detection_scans(id) ON DELETE CASCADE,
+        finding_type VARCHAR(100) NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        provider VARCHAR(100),
+        confidence VARCHAR(20) NOT NULL,
+        risk_level VARCHAR(20) DEFAULT 'medium',
+        description TEXT,
+        documentation_url VARCHAR(500),
+        file_count INTEGER DEFAULT 1,
+        file_paths JSONB,
+        -- Governance columns
+        governance_status VARCHAR(20) DEFAULT NULL,
+        governance_updated_at TIMESTAMP WITH TIME ZONE,
+        governance_updated_by INTEGER,
+        -- License columns
+        license_id VARCHAR(100),
+        license_name VARCHAR(255),
+        license_risk VARCHAR(20),
+        license_source VARCHAR(50),
+        -- Model security scanning columns (Phase 2)
+        severity VARCHAR(20),
+        cwe_id VARCHAR(20),
+        cwe_name VARCHAR(200),
+        owasp_ml_id VARCHAR(20),
+        owasp_ml_name VARCHAR(200),
+        threat_type VARCHAR(50),
+        operator_name VARCHAR(100),
+        module_name VARCHAR(100),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE(scan_id, name, provider)
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for ai_detection_findings
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_scan_idx" ON "${tenantHash}".ai_detection_findings(scan_id);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_confidence_idx" ON "${tenantHash}".ai_detection_findings(confidence);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_provider_idx" ON "${tenantHash}".ai_detection_findings(provider);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_risk_level_idx" ON "${tenantHash}".ai_detection_findings(risk_level);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_governance_idx" ON "${tenantHash}".ai_detection_findings(governance_status);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_severity_idx" ON "${tenantHash}".ai_detection_findings(severity);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_type_idx" ON "${tenantHash}".ai_detection_findings(finding_type);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_findings_license_risk_idx" ON "${tenantHash}".ai_detection_findings(license_risk);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // Create github_tokens table (for private repository access)
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".github_tokens (
+        id SERIAL PRIMARY KEY,
+        encrypted_token TEXT NOT NULL,
+        token_name VARCHAR(100) DEFAULT 'GitHub Personal Access Token',
+        created_by INTEGER NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        last_used_at TIMESTAMP WITH TIME ZONE
+      );`,
+      { transaction }
+    );
+
+    console.log(`✅ AI Detection tables created successfully for tenant: ${tenantHash}`);
   } catch (error) {
     throw error;
   }

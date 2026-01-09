@@ -62,6 +62,8 @@ import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
 import policyLinkedObjects from "./routes/policyLinkedObjects.route";
+import aiDetectionRoutes from "./routes/aiDetection.route";
+import githubIntegrationRoutes from "./routes/githubIntegration.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -202,6 +204,8 @@ try {
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
   app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
   app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
+  app.use("/api/ai-detection", aiDetectionRoutes);
+  app.use("/api/integrations/github", githubIntegrationRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

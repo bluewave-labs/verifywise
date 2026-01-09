@@ -1,4 +1,4 @@
-import { GetRequestParams, RequestParams } from "../../domain/interfaces/iRequestParams";
+import { GetRequestParams, RequestParams } from "../../domain/interfaces/i.requestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 /**

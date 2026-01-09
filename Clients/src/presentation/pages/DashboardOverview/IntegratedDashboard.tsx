@@ -462,62 +462,60 @@ const IntegratedDashboard: React.FC = () => {
                     key={framework.projectFrameworkId}
                     title={framework.frameworkName}
                     navigateTo="/framework"
+                    action={
+                      hasMultipleViews ? (
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          gap={0.5}
+                        >
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePrevView(framework.projectFrameworkId, views.length);
+                            }}
+                            sx={{
+                              padding: "2px",
+                              color: "#667085",
+                              "&:hover": { backgroundColor: "#F3F4F6" },
+                            }}
+                          >
+                            <ChevronLeft size={14} />
+                          </IconButton>
+                          <Typography
+                            sx={{
+                              fontSize: 11,
+                              fontWeight: 500,
+                              color: "#667085",
+                              minWidth: 50,
+                              textAlign: "center",
+                            }}
+                          >
+                            {currentView.label}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleNextView(framework.projectFrameworkId, views.length);
+                            }}
+                            sx={{
+                              padding: "2px",
+                              color: "#667085",
+                              "&:hover": { backgroundColor: "#F3F4F6" },
+                            }}
+                          >
+                            <ChevronRight size={14} />
+                          </IconButton>
+                        </Stack>
+                      ) : undefined
+                    }
                   >
                     {currentView.total === 0 ? (
                       <EmptyStateMessage message="No data available" />
                     ) : (
-                      <Box>
-                        {hasMultipleViews && (
-                          <Stack
-                            direction="row"
-                            alignItems="center"
-                            justifyContent="center"
-                            gap={1}
-                            sx={{ mb: 1 }}
-                          >
-                            <IconButton
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handlePrevView(framework.projectFrameworkId, views.length);
-                              }}
-                              sx={{
-                                padding: "2px",
-                                color: "#667085",
-                                "&:hover": { backgroundColor: "#F3F4F6" },
-                              }}
-                            >
-                              <ChevronLeft size={16} />
-                            </IconButton>
-                            <Typography
-                              sx={{
-                                fontSize: 12,
-                                fontWeight: 500,
-                                color: "#374151",
-                                minWidth: 60,
-                                textAlign: "center",
-                              }}
-                            >
-                              {currentView.label}
-                            </Typography>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleNextView(framework.projectFrameworkId, views.length);
-                              }}
-                              sx={{
-                                padding: "2px",
-                                color: "#667085",
-                                "&:hover": { backgroundColor: "#F3F4F6" },
-                              }}
-                            >
-                              <ChevronRight size={16} />
-                            </IconButton>
-                          </Stack>
-                        )}
-                        <RiskDonutWithLegend data={currentView.data} total={currentView.total} />
-                      </Box>
+                      <RiskDonutWithLegend data={currentView.data} total={currentView.total} />
                     )}
                   </DashboardCard>
                 );
@@ -864,62 +862,60 @@ const IntegratedDashboard: React.FC = () => {
                     key={framework.projectFrameworkId}
                     title={framework.frameworkName}
                     navigateTo="/framework"
+                    action={
+                      hasMultipleViews ? (
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          gap={0.5}
+                        >
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePrevView(framework.projectFrameworkId, views.length);
+                            }}
+                            sx={{
+                              padding: "2px",
+                              color: "#667085",
+                              "&:hover": { backgroundColor: "#F3F4F6" },
+                            }}
+                          >
+                            <ChevronLeft size={14} />
+                          </IconButton>
+                          <Typography
+                            sx={{
+                              fontSize: 11,
+                              fontWeight: 500,
+                              color: "#667085",
+                              minWidth: 50,
+                              textAlign: "center",
+                            }}
+                          >
+                            {currentView.label}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleNextView(framework.projectFrameworkId, views.length);
+                            }}
+                            sx={{
+                              padding: "2px",
+                              color: "#667085",
+                              "&:hover": { backgroundColor: "#F3F4F6" },
+                            }}
+                          >
+                            <ChevronRight size={14} />
+                          </IconButton>
+                        </Stack>
+                      ) : undefined
+                    }
                   >
                     {currentView.total === 0 ? (
                       <EmptyStateMessage message="No data available" />
                     ) : (
-                      <Box>
-                        {hasMultipleViews && (
-                          <Stack
-                            direction="row"
-                            alignItems="center"
-                            justifyContent="center"
-                            gap={1}
-                            sx={{ mb: 1 }}
-                          >
-                            <IconButton
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handlePrevView(framework.projectFrameworkId, views.length);
-                              }}
-                              sx={{
-                                padding: "2px",
-                                color: "#667085",
-                                "&:hover": { backgroundColor: "#F3F4F6" },
-                              }}
-                            >
-                              <ChevronLeft size={16} />
-                            </IconButton>
-                            <Typography
-                              sx={{
-                                fontSize: 12,
-                                fontWeight: 500,
-                                color: "#374151",
-                                minWidth: 60,
-                                textAlign: "center",
-                              }}
-                            >
-                              {currentView.label}
-                            </Typography>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleNextView(framework.projectFrameworkId, views.length);
-                              }}
-                              sx={{
-                                padding: "2px",
-                                color: "#667085",
-                                "&:hover": { backgroundColor: "#F3F4F6" },
-                              }}
-                            >
-                              <ChevronRight size={16} />
-                            </IconButton>
-                          </Stack>
-                        )}
-                        <RiskDonutWithLegend data={currentView.data} total={currentView.total} />
-                      </Box>
+                      <RiskDonutWithLegend data={currentView.data} total={currentView.total} />
                     )}
                   </DashboardCard>
                 );

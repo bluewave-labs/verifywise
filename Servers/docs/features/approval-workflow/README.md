@@ -104,6 +104,8 @@ POST /api/approval-requests/14/approve
 - **Improved alert consistency**: Notifications now use standard alert styling
 - **Improved transaction handling**: Updated all READ queries to use proper optional transaction pattern (`transaction: Transaction | null = null` with conditional spread)
 - **Removed debug logging**: Cleaned up all console.log statements from frontend and backend for production-ready code
+- **Fixed final approval notification**: Parse SQL COUNT results as integers to ensure proper type comparison when determining if all steps are completed
+- **Fixed CodeQL security alert**: Removed console.log statements with user-controlled format strings (externally-controlled format string vulnerability)
 
 ## Related Features
 

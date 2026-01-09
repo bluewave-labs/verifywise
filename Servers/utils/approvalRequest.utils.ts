@@ -417,10 +417,11 @@ export const processApprovalQuery = async (
       {
         replacements: { requestId },
         type: "SELECT",
+        transaction,
       }
     );
 
-    const stepCount = (totalSteps[0] as any).count;
+    const stepCount = parseInt((totalSteps[0] as any).count, 10);
 
     if (currentStep < stepCount) {
       // Move to next step
@@ -647,8 +648,8 @@ export const hasPendingApprovalQuery = async (
     }
   );
 
-  const hasPending = (results[0] as any).count > 0;
-  return hasPending;
+  const count = parseInt((results[0] as any).count, 10);
+  return count > 0;
 };
 
 /**

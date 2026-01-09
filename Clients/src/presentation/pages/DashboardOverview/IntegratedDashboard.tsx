@@ -46,6 +46,15 @@ import EmptyStateMessage from "../../components/EmptyStateMessage";
 import ActivityItem from "../../components/ActivityItem";
 import ButtonToggle from "../../components/ButtonToggle";
 import { OrganizationalFrameworkData } from "../../../application/hooks/useDashboardMetrics";
+import {
+  COLORS,
+  navIconButtonSx,
+  getRiskLevelData,
+  getVendorRiskData,
+  getModelRiskData,
+  getNistStatusData,
+  getCompletionData,
+} from "./constants";
 
 type DashboardView = "executive" | "operations";
 
@@ -178,15 +187,8 @@ const IntegratedDashboard: React.FC = () => {
   // Calculate use case / framework risk data
   const useCaseRiskData = useMemo(() => {
     const distribution = riskMetrics?.distribution || { high: 0, medium: 0, low: 0 };
-
-    const data = [
-      { label: "High", value: distribution.high || 0, color: "#EF4444" },
-      { label: "Medium", value: distribution.medium || 0, color: "#F59E0B" },
-      { label: "Low", value: distribution.low || 0, color: "#10B981" },
-    ];
-
     return {
-      data,
+      data: getRiskLevelData(distribution),
       total: riskMetrics?.total || 0,
     };
   }, [riskMetrics]);
@@ -194,23 +196,10 @@ const IntegratedDashboard: React.FC = () => {
   // Calculate vendor risk data
   const vendorRiskData = useMemo(() => {
     const distribution = vendorRiskMetrics?.distribution || {
-      veryHigh: 0,
-      high: 0,
-      medium: 0,
-      low: 0,
-      veryLow: 0,
+      veryHigh: 0, high: 0, medium: 0, low: 0, veryLow: 0,
     };
-
-    const data = [
-      { label: "Very High", value: distribution.veryHigh || 0, color: "#DC2626" },
-      { label: "High", value: distribution.high || 0, color: "#EF4444" },
-      { label: "Medium", value: distribution.medium || 0, color: "#F59E0B" },
-      { label: "Low", value: distribution.low || 0, color: "#22C55E" },
-      { label: "Very Low", value: distribution.veryLow || 0, color: "#10B981" },
-    ];
-
     return {
-      data,
+      data: getVendorRiskData(distribution),
       total: vendorRiskMetrics?.total || 0,
     };
   }, [vendorRiskMetrics]);
@@ -218,21 +207,10 @@ const IntegratedDashboard: React.FC = () => {
   // Calculate model risk data
   const modelRiskData = useMemo(() => {
     const distribution = modelRiskMetrics?.distribution || {
-      critical: 0,
-      high: 0,
-      medium: 0,
-      low: 0,
+      critical: 0, high: 0, medium: 0, low: 0,
     };
-
-    const data = [
-      { label: "Critical", value: distribution.critical || 0, color: "#DC2626" },
-      { label: "High", value: distribution.high || 0, color: "#EF4444" },
-      { label: "Medium", value: distribution.medium || 0, color: "#F59E0B" },
-      { label: "Low", value: distribution.low || 0, color: "#10B981" },
-    ];
-
     return {
-      data,
+      data: getModelRiskData(distribution),
       total: modelRiskMetrics?.total || 0,
     };
   }, [modelRiskMetrics]);
@@ -242,17 +220,7 @@ const IntegratedDashboard: React.FC = () => {
   const getFrameworkStatusViews = useCallback((framework: OrganizationalFrameworkData) => {
     // For NIST AI RMF, use the status breakdown (single view)
     if (framework.nistStatusBreakdown) {
-      const breakdown = framework.nistStatusBreakdown;
-      const data = [
-        { label: "Implemented", value: breakdown.implemented || 0, color: "#13715B" },
-        { label: "In Progress", value: breakdown.inProgress || 0, color: "#F59E0B" },
-        { label: "Awaiting Review", value: breakdown.awaitingReview || 0, color: "#3B82F6" },
-        { label: "Awaiting Approval", value: breakdown.awaitingApproval || 0, color: "#8B5CF6" },
-        { label: "Draft", value: breakdown.draft || 0, color: "#D1D5DB" },
-        { label: "Needs Rework", value: breakdown.needsRework || 0, color: "#EA580C" },
-        { label: "Not Started", value: breakdown.notStarted || 0, color: "#9CA3AF" },
-      ].filter(item => item.value > 0);
-
+      const data = getNistStatusData(framework.nistStatusBreakdown).filter(item => item.value > 0);
       const total = data.reduce((sum, item) => sum + item.value, 0);
       return [{ label: "Status", data, total }];
     }
@@ -263,40 +231,28 @@ const IntegratedDashboard: React.FC = () => {
 
     const totalClauses = clauseProgress.totalSubclauses || 0;
     const doneClauses = clauseProgress.doneSubclauses || 0;
-    const pendingClauses = totalClauses - doneClauses;
 
-    // Calculate annex items
     const totalAnnex = (annexProgress.totalAnnexControls || 0) + (annexProgress.totalAnnexcategories || 0);
     const doneAnnex = (annexProgress.doneAnnexControls || 0) + (annexProgress.doneAnnexcategories || 0);
-    const pendingAnnex = totalAnnex - doneAnnex;
 
     const views = [];
 
-    // Clauses view
     if (totalClauses > 0) {
       views.push({
         label: "Clauses",
-        data: [
-          { label: "Completed", value: doneClauses, color: "#13715B" },
-          { label: "Pending", value: pendingClauses, color: "#9CA3AF" },
-        ].filter(item => item.value > 0),
+        data: getCompletionData(doneClauses, totalClauses - doneClauses).filter(item => item.value > 0),
         total: totalClauses,
       });
     }
 
-    // Annexes view
     if (totalAnnex > 0) {
       views.push({
         label: "Annexes",
-        data: [
-          { label: "Completed", value: doneAnnex, color: "#13715B" },
-          { label: "Pending", value: pendingAnnex, color: "#9CA3AF" },
-        ].filter(item => item.value > 0),
+        data: getCompletionData(doneAnnex, totalAnnex - doneAnnex).filter(item => item.value > 0),
         total: totalAnnex,
       });
     }
 
-    // If no data, return empty view
     if (views.length === 0) {
       views.push({ label: "Status", data: [], total: 0 });
     }
@@ -356,7 +312,7 @@ const IntegratedDashboard: React.FC = () => {
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 400, fontSize: "20px" }}>
-            <Box component="span" sx={{ color: "#13715B" }}>
+            <Box component="span" sx={{ color: COLORS.primary }}>
               {greeting.greetingText}
             </Box>
             <Box component="span" sx={{ color: theme.palette.text.primary }}>
@@ -476,11 +432,7 @@ const IntegratedDashboard: React.FC = () => {
                               e.stopPropagation();
                               handlePrevView(framework.projectFrameworkId, views.length);
                             }}
-                            sx={{
-                              padding: "4px",
-                              color: "#667085",
-                              "&:hover": { backgroundColor: "#E5E7EB", color: "#1F2937" },
-                            }}
+                            sx={navIconButtonSx}
                           >
                             <ChevronLeft size={18} />
                           </IconButton>
@@ -501,11 +453,7 @@ const IntegratedDashboard: React.FC = () => {
                               e.stopPropagation();
                               handleNextView(framework.projectFrameworkId, views.length);
                             }}
-                            sx={{
-                              padding: "4px",
-                              color: "#667085",
-                              "&:hover": { backgroundColor: "#E5E7EB", color: "#1F2937" },
-                            }}
+                            sx={navIconButtonSx}
                           >
                             <ChevronRight size={18} />
                           </IconButton>
@@ -877,11 +825,7 @@ const IntegratedDashboard: React.FC = () => {
                               e.stopPropagation();
                               handlePrevView(framework.projectFrameworkId, views.length);
                             }}
-                            sx={{
-                              padding: "4px",
-                              color: "#667085",
-                              "&:hover": { backgroundColor: "#E5E7EB", color: "#1F2937" },
-                            }}
+                            sx={navIconButtonSx}
                           >
                             <ChevronLeft size={18} />
                           </IconButton>
@@ -902,11 +846,7 @@ const IntegratedDashboard: React.FC = () => {
                               e.stopPropagation();
                               handleNextView(framework.projectFrameworkId, views.length);
                             }}
-                            sx={{
-                              padding: "4px",
-                              color: "#667085",
-                              "&:hover": { backgroundColor: "#E5E7EB", color: "#1F2937" },
-                            }}
+                            sx={navIconButtonSx}
                           >
                             <ChevronRight size={18} />
                           </IconButton>

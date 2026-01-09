@@ -6,7 +6,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
-import { ReactComponent as RightArrowBlack } from "../../../assets/icons/right-arrow-black.svg";
+import { ChevronRight } from "lucide-react";
 import VWISO42001AnnexDrawerDialog from "../../../components/Drawer/AnnexDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
 import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
@@ -15,7 +15,7 @@ import { GetAnnexCategoriesById } from "../../../../application/repository/annex
 import { AnnexCategoryStructISO } from "../../../../domain/types/AnnexCategoryStructISO";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 import Alert from "../../../components/Alert";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../types/alert.types";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";
@@ -201,7 +201,8 @@ const ISO42001Annex = ({
                   sx={styles.accordion}
                 >
                   <AccordionSummary sx={styles.accordionSummary}>
-                    <RightArrowBlack
+                    <ChevronRight
+                      size={16}
                       style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
                     />
                     {annex.title}

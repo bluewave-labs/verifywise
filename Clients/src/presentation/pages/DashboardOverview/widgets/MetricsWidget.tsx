@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import {
   Box,
@@ -7,24 +8,13 @@ import {
   Skeleton,
   useTheme,
 } from '@mui/material';
+import type { GridProps } from '@mui/material';
 import {
   TrendingUp,
   TrendingDown,
   Minus,
 } from 'lucide-react';
-
-interface MetricData {
-  label: string;
-  value: number | string;
-  change?: number;
-  unit?: string;
-  color?: string;
-}
-
-interface MetricsWidgetProps {
-  loading?: boolean;
-  data?: MetricData[];
-}
+import { MetricData, MetricsWidgetProps } from '../../../types/interfaces/i.dashboard';
 
 export const MetricsWidget: React.FC<MetricsWidgetProps> = ({
   loading = false,
@@ -54,11 +44,22 @@ export const MetricsWidget: React.FC<MetricsWidgetProps> = ({
     return theme.palette.error.main;
   };
 
+  const loadingGridItemProps = {
+    item: true,
+    xs: 6,
+  } as GridProps & { item: boolean; xs: number };
+
+  const gridItemProps = {
+    item: true,
+    xs: 12,
+    sm: 6,
+  } as GridProps & { item: boolean; xs: number; sm: number };
+
   if (loading) {
     return (
       <Grid container spacing={2}>
         {[1, 2, 3, 4].map((i) => (
-          <Grid item xs={6} key={i}>
+          <Grid {...loadingGridItemProps} key={i}>
             <Box>
               <Skeleton variant="text" width="60%" height={20} />
               <Skeleton variant="text" width="80%" height={40} />
@@ -73,7 +74,7 @@ export const MetricsWidget: React.FC<MetricsWidgetProps> = ({
   return (
     <Grid container spacing={2}>
       {metrics.map((metric, index) => (
-        <Grid item xs={12} sm={6} key={index}>
+        <Grid {...gridItemProps} key={index}>
           <Paper
             elevation={0}
             sx={{

@@ -4,14 +4,15 @@
 
 import { Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
-import { ReactComponent as Email } from "../../../assets/icons/email.svg";
-import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
+import { Mail as Email } from "lucide-react";
+import { ArrowLeft as LeftArrowLong } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, lazy, Suspense } from "react";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { sendPasswordResetEmail } from "../../../../application/repository/auth.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../types/alert.types";
 import singleTheme from "../../../themes/v1SingleTheme";
+import Field from "../../../components/Inputs/Field";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -33,20 +34,35 @@ const ResetPassword = () => {
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
 
+  const handleChange =
+    (field: keyof FormValues) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, [field]: event.target.value });
+    };
+
   const resendEmail = async () => {
+    // Validate email before sending
+    if (!values.email || !values.email.trim()) {
+      handleAlert({
+        variant: "error",
+        body: "Please enter an email address",
+        setAlert,
+      });
+      return;
+    }
+
     const formData = {
       to: values.email,
       email: values.email,
       name: values.email,
     };
-    const response = await apiServices.post("/mail/reset-password", formData);
+    const response = await sendPasswordResetEmail(formData);
     handleAlert({
       variant: response.status === 200 ? "success" : "error",
       body:
-        response.status === 200 ? "Email sent successfully" : "Email failed",
+        response.status === 200 ? "If an account exists with this email, we'll send a password reset link" : "Request failed",
       setAlert,
     });
-    setValues(initialState);
   };
 
   return (
@@ -102,16 +118,25 @@ const ResetPassword = () => {
             gap: theme.spacing(12),
           }}
         >
-          <Email />
+          <Email size={24} />
         </Stack>
         <Stack sx={{ gap: theme.spacing(6), textAlign: "center" }}>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
             Check your email
           </Typography>
           <Typography fontSize={13} color={"#475467"}>
-            We sent a password reset link to{" "}
-            <span style={{ fontWeight: 500 }}>{values.email}</span>
+            If an account exists with this email, we'll send a password reset link
           </Typography>
+        </Stack>
+        <Stack sx={{ width: "100%", gap: theme.spacing(6) }}>
+          <Field
+            label="Email"
+            isRequired
+            placeholder="Enter your email"
+            type="email"
+            value={values.email}
+            onChange={handleChange("email")}
+          />
         </Stack>
         <Stack sx={{ gap: theme.spacing(12) }} onClick={resendEmail}>
           <Typography sx={{ fontSize: 13, color: "#475467" }}>
@@ -146,7 +171,7 @@ const ResetPassword = () => {
               navigate("/login");
             }}
           >
-            <LeftArrowLong />
+            <LeftArrowLong size={16} />
             <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
               Back to log in
             </Typography>

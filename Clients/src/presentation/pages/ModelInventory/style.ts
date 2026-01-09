@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Theme, SxProps } from "@mui/material/styles";
-import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
 // Main page styles (index.tsx)
 export const mainStackStyle = {
@@ -23,10 +23,14 @@ export const statusFilterSelectStyle = {
   minHeight: "34px",
 };
 
+export const evidenceTypeFilterSelectStyle = {
+  width: "200px",
+  minHeight: "34px",
+};
+
 export const addNewModelButtonStyle = {
   backgroundColor: "#13715B",
   border: "1px solid #13715B",
-  gap: "20px",
 };
 
 // Summary component styles (ModelInventorySummary.tsx)
@@ -66,44 +70,6 @@ export const summaryCardLabelStyle = (theme: Theme) => ({
 });
 
 // Table component styles (modelInventoryTable.tsx)
-export const statusBadgeStyle = (status: ModelInventoryStatus) => {
-  const statusStyles = {
-    [ModelInventoryStatus.APPROVED]: { bg: "#E6F4EA", color: "#138A5E" },
-    [ModelInventoryStatus.PENDING]: { bg: "#FFF8E1", color: "#795548" }, // Brown-ish
-    [ModelInventoryStatus.RESTRICTED]: { bg: "#FFE5D0", color: "#E64A19" },
-    [ModelInventoryStatus.BLOCKED]: { bg: "#FFD6D6", color: "#D32F2F" },
-  };
-
-  const style = statusStyles[status] || { bg: "#E0E0E0", color: "#424242" };
-
-  return {
-    backgroundColor: style.bg,
-    color: style.color,
-    padding: "4px 8px",
-    borderRadius: 12,
-    fontWeight: 500,
-    fontSize: 11,
-    textTransform: "uppercase" as const,
-    display: "inline-block" as const,
-  };
-};
-
-export const securityAssessmentBadgeStyle = (assessment: boolean) => {
-  const style = assessment
-    ? { bg: "#E6F4EA", color: "#138A5E" }
-    : { bg: "#FFD6D6", color: "#D32F2F" };
-
-  return {
-    backgroundColor: style.bg,
-    color: style.color,
-    padding: "4px 8px",
-    borderRadius: 12,
-    fontWeight: 500,
-    fontSize: 11,
-    textTransform: "uppercase" as const,
-    display: "inline-block" as const,
-  };
-};
 
 // Capabilities chips
 export const capabilitiesChipContainerStyle = {
@@ -152,6 +118,7 @@ export const emptyStateContainerStyle = (_: Theme) => ({
   padding: "60px 20px 80px 20px",
   gap: "20px",
   minHeight: 200,
+  backgroundColor: "#FFFFFF", // Ensure white background
 });
 
 export const emptyStateTextStyle = {
@@ -174,6 +141,18 @@ export const showingTextCellStyle = (theme: Theme) => ({
   opacity: 0.7,
   fontWeight: 400,
 });
+
+export const showingTextCellStyleForPolicyLinked = (theme: Theme) => ({
+    paddingX: theme.spacing(2),
+    fontSize: 11,
+    opacity: 0.7,
+    fontWeight: 400,
+
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+});
+
 
 export const paginationMenuProps = (theme: Theme) => ({
   keepMounted: true,
@@ -232,6 +211,7 @@ export const searchBoxStyle =
     width: isSearchBarVisible ? "50%" : "auto",
     transition: "all 0.3s ease",
     mb: 9,
+    minHeight: "34px",
   });
 
 export const inputStyle = (isSearchBarVisible: boolean): SxProps<Theme> => ({

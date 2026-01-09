@@ -17,7 +17,9 @@ export const getSSOConfigQuery = async (provider: SSOProvider) => {
   return result[0][0];
 }
 
-export const getAzureADConfigQuery = async (): Promise<{ client_id: string; client_secret: string; tenant_id: string }> => {
+export const getAzureADConfigQuery = async (
+  transaction: Transaction | null = null
+): Promise<{ client_id: string; client_secret: string; tenant_id: string }> => {
   const [[{ organization_id }]] = await sequelize.query(
     `SELECT id AS organization_id FROM public.organizations LIMIT 1`,
   ) as [{ organization_id: number }[], number];
@@ -25,6 +27,7 @@ export const getAzureADConfigQuery = async (): Promise<{ client_id: string; clie
     `SELECT config_data FROM sso_configurations WHERE organization_id = :organizationId AND provider = 'AzureAD'`,
     {
       replacements: { organizationId: organization_id },
+      ...(transaction ? { transaction } : {}),
     }
   ) as [{ config_data: { client_id: string; client_secret: string; tenant_id: string } }[], number];
   if (result[0].length === 0) {

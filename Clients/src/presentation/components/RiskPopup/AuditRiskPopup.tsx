@@ -2,17 +2,9 @@ import { Stack, Typography } from "@mui/material";
 import CustomizableButton from "../Button/CustomizableButton";
 import { AuditRiskTable } from "../Table/AuditRiskTable/AuditRiskTable";
 import { useState } from "react";
+import { IAuditRiskModalProps } from "../../../domain/interfaces/i.riskForm";
 
-interface AuditRiskModalProps {
-  onClose: () => void;
-  risks: number[];
-  _deletedRisks: number[];
-  _setDeletedRisks: (deletedRisks: number[]) => void;
-  _selectedRisks: number[];
-  _setSelectedRisks: (selectedRisks: number[]) => void;
-}
-
-export const AuditRiskPopup: React.FC<AuditRiskModalProps> = ({
+export const AuditRiskPopup: React.FC<IAuditRiskModalProps> = ({
   onClose,
   risks,
   _deletedRisks,
@@ -23,8 +15,8 @@ export const AuditRiskPopup: React.FC<AuditRiskModalProps> = ({
   const [checkedRows, setCheckedRows] = useState<number[]>([]);
 
   const handleUnlinkRisk = () => {
-    let newSelectedRisks = new Set(_selectedRisks);
-    let newDeletedRisks = [..._deletedRisks];
+    const newSelectedRisks = new Set(_selectedRisks);
+    const newDeletedRisks = [..._deletedRisks];
 
     for (const riskId of checkedRows) {
       if (_selectedRisks.includes(riskId)) {

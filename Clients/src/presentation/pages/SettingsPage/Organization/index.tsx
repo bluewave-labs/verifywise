@@ -2,16 +2,14 @@ import {
   Stack,
   useTheme,
   Box,
-  Divider,
   CircularProgress,
   Typography,
   Button as MUIButton,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
   CreateMyOrganization,
   GetMyOrganization,
@@ -19,7 +17,7 @@ import {
 } from "../../../../application/repository/organization.repository";
 import Alert from "../../../components/Alert";
 import allowedRoles from "../../../../application/constants/permissions";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import {
   uploadAITrustCentreLogo,
   deleteAITrustCentreLogo,
@@ -28,6 +26,7 @@ import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useLogoFetch } from "../../../../application/hooks/useLogoFetch";
+import { OrganizationModel } from "../../../../domain/models/Common/organization/organization.model";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -104,7 +103,8 @@ const Organization = () => {
         routeUrl: `/organizations/${organizationId}`,
       });
       const org = organizations.data.data;
-      setOrganizationName(org.name || "");
+      const organizationModel = OrganizationModel.fromApiData(org);
+      setOrganizationName(organizationModel.name || "");
       setOrganizationExists(true);
       setHasChanges(false);
 
@@ -127,7 +127,6 @@ const Organization = () => {
             }
           }
         } catch (error) {
-          console.log("No existing logo found or error fetching logo:", error);
           setLogoLoadError(true);
         } finally {
           setLogoLoading(false);
@@ -148,15 +147,17 @@ const Organization = () => {
       setOrganizationName(value);
       setHasChanges(true);
 
-      const validation = checkStringValidation(
-        "Organization name",
-        value,
-        2,
-        50,
-        false,
-        false
+      const tempOrganization = OrganizationModel.createNewOrganization({
+        name: value,
+        logo: "",
+      } as OrganizationModel);
+
+      const validation = tempOrganization.validateName();
+      setOrganizationNameError(
+        validation.accepted
+          ? null
+          : validation.message || "Invalid organization name"
       );
-      setOrganizationNameError(validation.accepted ? null : validation.message);
       setIsSaveDisabled(!value.trim() || !validation.accepted);
     },
     []
@@ -168,15 +169,10 @@ const Organization = () => {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      // Validate file
-      if (!file.type.startsWith("image/")) {
-        showAlert("error", "Invalid File", "Please select a valid image file");
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        showAlert("error", "File Too Large", "File size must be less than 5MB");
+      // Validate file using OrganizationModel business logic
+      const validation = OrganizationModel.validateLogoFile(file);
+      if (!validation.isValid) {
+        showAlert("error", "Invalid File", validation.errorMessage!);
         return;
       }
 
@@ -290,15 +286,22 @@ const Organization = () => {
   // Organization CRUD handlers
   const handleCreate = useCallback(async () => {
     if (!organizationName.trim() || organizationNameError) {
-      console.log("Validation error: Organization name is required or invalid");
+      console.error(
+        "Validation error: Organization name is required or invalid"
+      );
       return;
     }
 
     setIsLoading(true);
     try {
+      const organizationData = OrganizationModel.createNewOrganization({
+        name: organizationName,
+        logo: "",
+      } as OrganizationModel);
+
       const response = await CreateMyOrganization({
         routeUrl: "/organizations",
-        body: { name: organizationName },
+        body: { name: organizationData.name },
       });
 
       showAlert(
@@ -307,8 +310,8 @@ const Organization = () => {
         "The organization was created successfully."
       );
 
-      if (response && response.id) {
-        setOrganizationName(response.name || "");
+      if (response?.data && response.data.id) {
+        setOrganizationName(response.data.name || "");
         setOrganizationExists(true);
         setHasChanges(false);
       }
@@ -322,7 +325,7 @@ const Organization = () => {
 
   const handleUpdate = useCallback(async () => {
     if (!organizationName.trim() || organizationNameError || !organizationId) {
-      console.log(
+      console.error(
         "Validation error: Organization name is required, invalid, or no organization ID"
       );
       return;
@@ -330,9 +333,15 @@ const Organization = () => {
 
     setIsLoading(true);
     try {
+      const organizationData = OrganizationModel.createNewOrganization({
+        id: organizationId,
+        name: organizationName,
+        logo: "",
+      } as OrganizationModel);
+
       const response = await UpdateMyOrganization({
         routeUrl: `/organizations/${organizationId}`,
-        body: { name: organizationName },
+        body: { name: organizationData.name },
       });
 
       showAlert(
@@ -369,6 +378,7 @@ const Organization = () => {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   // Cleanup function to revoke object URLs when component unmounts
@@ -428,7 +438,7 @@ const Organization = () => {
                 isLoading ? (
                   <CircularProgress size={20} />
                 ) : (
-                  <SaveIconSVGWhite />
+                  <SaveIcon size={16} />
                 )
               }
               onClick={organizationExists ? handleUpdate : handleCreate}
@@ -572,7 +582,7 @@ const Organization = () => {
                     Loading...
                   </>
                 ) : (
-                  "Update"
+                  "Change"
                 )}
                 <input
                   type="file"
@@ -593,17 +603,17 @@ const Organization = () => {
                 lineHeight: 1.4,
               }}
             >
-              Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF, SVG
+              Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF,
+              SVG
             </Typography>
           </Stack>
         </Box>
-        <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
       </Stack>
 
       {/* Remove Logo Confirmation Modal */}
       {isRemoveLogoModalOpen && (
-        <DualButtonModal
-          title="Confirm Logo Removal"
+        <ConfirmationModal
+          title="Confirm logo removal"
           body={
             <Typography fontSize={13}>
               Are you sure you want to remove the organization logo? This action

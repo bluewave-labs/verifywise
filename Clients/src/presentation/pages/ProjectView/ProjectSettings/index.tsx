@@ -1,6 +1,5 @@
 import {
   SelectChangeEvent,
-  Link,
   Stack,
   Typography,
   useTheme,
@@ -8,7 +7,8 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { VWLink } from "../../../components/Link";
+import { ChevronDown } from "lucide-react";
 import React, {
   useState,
   useCallback,
@@ -24,7 +24,7 @@ import Select from "../../../components/Inputs/Select";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import {
   assignFrameworkToProject,
   deleteEntityById,
@@ -34,8 +34,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { ReactComponent as DeleteIconWhite } from "../../../assets/icons/trash-filled-white.svg";
+import { Save as SaveIcon, Trash2 as DeleteIcon } from "lucide-react";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
@@ -50,11 +49,24 @@ import {
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
+import RiskAnalysisModal from "../RiskAnalysisModal";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
+import { useStyles } from "./styles";
 
 const riskClassificationItems = [
-  { _id: 1, name: AiRiskClassification.HIGH_RISK },
-  { _id: 2, name: AiRiskClassification.LIMITED_RISK },
-  { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
+  { _id: 1, name: AiRiskClassification.PROHIBITED },
+  { _id: 2, name: AiRiskClassification.HIGH_RISK },
+  { _id: 3, name: AiRiskClassification.LIMITED_RISK },
+  { _id: 4, name: AiRiskClassification.MINIMAL_RISK },
+];
+
+const geographyItems = [
+  { _id: 1, name: "Global" },
+  { _id: 2, name: "Europe" },
+  { _id: 3, name: "North America" },
+  { _id: 4, name: "South America" },
+  { _id: 5, name: "Asia" },
+  { _id: 6, name: "Africa" },
 ];
 
 const highRiskRoleItems = [
@@ -95,6 +107,9 @@ interface FormValues {
   startDate: string;
   riskClassification: number;
   typeOfHighRiskRole: number;
+  geography: number;
+  targetIndustry: string;
+  description: string;
   monitoredRegulationsAndStandards: {
     _id: number;
     name: string;
@@ -113,6 +128,9 @@ interface FormErrors {
   riskClassification?: string;
   typeOfHighRiskRole?: string;
   monitoredRegulationsAndStandards?: string;
+  geography?: string;
+  targetIndustry?: string;
+  description?: string;
 }
 
 const initialState: FormValues = {
@@ -124,6 +142,9 @@ const initialState: FormValues = {
   startDate: "",
   riskClassification: 0,
   typeOfHighRiskRole: 0,
+  geography: 1,
+  targetIndustry: "",
+  description: "",
   monitoredRegulationsAndStandards: [{ _id: 1, name: "EU AI Act" }],
 };
 
@@ -138,9 +159,11 @@ const ProjectSettings = React.memo(
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
+    const styles = useStyles();
     const [isChangeOwnerModalOpen, setIsChangeOwnerModalOpen] = useState(false);
     const [pendingOwnerId, setPendingOwnerId] = useState<User | null>(null);
     const [removedOwner, setRemovedOwner] = useState<User | null>(null);
+    const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
 
     const { project } = useProjectData({ projectId });
     const navigate = useNavigate();
@@ -181,14 +204,17 @@ const ProjectSettings = React.memo(
         values.riskClassification !==
           initialValuesRef.current.riskClassification ||
         values.typeOfHighRiskRole !==
-          initialValuesRef.current.typeOfHighRiskRole;
+          initialValuesRef.current.typeOfHighRiskRole ||
+        values.geography !== initialValuesRef.current.geography ||
+        values.targetIndustry !== initialValuesRef.current.targetIndustry ||
+        values.description !== initialValuesRef.current.description;
 
       // Only consider framework changes if we're not in the middle of a framework operation
       const frameworksModified =
         !isFrameworkOperationInProgress &&
         JSON.stringify(values.monitoredRegulationsAndStandards) !==
           JSON.stringify(
-            initialValuesRef.current.monitoredRegulationsAndStandards
+            initialValuesRef.current.monitoredRegulationsAndStandards,
           );
 
       return basicFieldsModified || frameworksModified;
@@ -200,7 +226,7 @@ const ProjectSettings = React.memo(
       if (!isModified) return true;
 
       const hasErrors = Object.values(errors).some(
-        (error) => error && error.length > 0
+        (error) => error && error.length > 0,
       );
 
       return hasErrors;
@@ -230,7 +256,7 @@ const ProjectSettings = React.memo(
     // Filter frameworks to only show non-organizational ones
     const nonOrganizationalFrameworks = useMemo(
       () => allFrameworks.filter((fw: Framework) => !fw.is_organizational),
-      [allFrameworks]
+      [allFrameworks],
     );
     useEffect(() => {
       setShowCustomizableSkeleton(true);
@@ -238,7 +264,7 @@ const ProjectSettings = React.memo(
         const frameworksForProject = monitoredFrameworks.map(
           (fw: Framework) => {
             const projectFramework = project.framework?.find(
-              (pf) => Number(pf.framework_id) === Number(fw.id)
+              (pf) => Number(pf.framework_id) === Number(fw.id),
             );
             return {
               _id: Number(fw.id),
@@ -247,7 +273,7 @@ const ProjectSettings = React.memo(
                 projectFramework?.project_framework_id || Number(fw.id),
               framework_id: Number(fw.id),
             };
-          }
+          },
         );
 
         const returnedData: FormValues = {
@@ -258,7 +284,7 @@ const ProjectSettings = React.memo(
             projectStatusItems.find(
               (item) =>
                 item.name.toLowerCase() ===
-                (project.status || "Not started").toLowerCase()
+                (project.status || "Not started").toLowerCase(),
             )?._id || 1,
           owner: project.owner ?? 0,
           startDate: project.start_date
@@ -269,14 +295,17 @@ const ProjectSettings = React.memo(
             riskClassificationItems.find(
               (item) =>
                 item.name.toLowerCase() ===
-                project.ai_risk_classification.toLowerCase()
+                project.ai_risk_classification.toLowerCase(),
             )?._id || 0,
           typeOfHighRiskRole:
             highRiskRoleItems.find(
               (item) =>
                 item.name.toLowerCase() ===
-                project.type_of_high_risk_role.toLowerCase()
+                project.type_of_high_risk_role.toLowerCase(),
             )?._id || 0,
+          geography: project.geography ?? 1,
+          targetIndustry: project.target_industry ?? "",
+          description: project.description ?? "",
           monitoredRegulationsAndStandards: frameworksForProject,
         };
         initialValuesRef.current = returnedData;
@@ -303,7 +332,7 @@ const ProjectSettings = React.memo(
             if (values.members.includes(selectedValue)) {
               let oldOwner = null;
               let newOwnerId = null;
-              for (let user of users) {
+              for (const user of users) {
                 if (user.id === selectedValue) {
                   newOwnerId = user;
                 }
@@ -320,7 +349,7 @@ const ProjectSettings = React.memo(
           setValues({ ...values, [prop]: selectedValue });
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
-      [users, values]
+      [users, values],
     );
 
     const handleOwnershipChangeAcknowledge = () => {
@@ -329,7 +358,7 @@ const ProjectSettings = React.memo(
         ...prevValues,
         owner: pendingOwnerId.id,
         members: values.members.filter(
-          (member) => member !== pendingOwnerId.id
+          (member) => member !== pendingOwnerId.id,
         ),
       }));
       setErrors((prevErrors) => ({ ...prevErrors, owner: "" }));
@@ -351,7 +380,7 @@ const ProjectSettings = React.memo(
           }));
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
-      []
+      [],
     );
 
     const handleOnMultiSelect = useCallback(
@@ -364,14 +393,14 @@ const ProjectSettings = React.memo(
             ) {
               const removedFramework =
                 values.monitoredRegulationsAndStandards.find(
-                  (fw) => !newValue.some((nv) => nv._id === fw._id)
+                  (fw) => !newValue.some((nv) => nv._id === fw._id),
                 );
               setRemovedFramework(prop === "monitoredRegulationsAndStandards");
               if (removedFramework) {
                 setIsFrameworkOperationInProgress(true);
                 setFrameworkToRemove(removedFramework);
                 setIsFrameworkRemoveModalOpen(
-                  values.monitoredRegulationsAndStandards.length > 1
+                  values.monitoredRegulationsAndStandards.length > 1,
                 );
                 // Don't update values state yet
                 return;
@@ -384,8 +413,8 @@ const ProjectSettings = React.memo(
               const addedFramework = newValue.find(
                 (nv) =>
                   !values.monitoredRegulationsAndStandards.some(
-                    (fw) => fw._id === nv._id
-                  )
+                    (fw) => fw._id === nv._id,
+                  ),
               );
 
               if (addedFramework) {
@@ -468,7 +497,7 @@ const ProjectSettings = React.memo(
             setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
           }
         },
-      [values.monitoredRegulationsAndStandards, projectId, triggerRefresh]
+      [values.monitoredRegulationsAndStandards, projectId, triggerRefresh],
     );
 
     const handleFrameworkRemoveConfirm = useCallback(async () => {
@@ -482,7 +511,7 @@ const ProjectSettings = React.memo(
 
         if (response.status === 200) {
           const newFrameworks = values.monitoredRegulationsAndStandards.filter(
-            (fw) => fw._id !== frameworkToRemove._id
+            (fw) => fw._id !== frameworkToRemove._id,
           );
 
           // Update both values and initialValuesRef
@@ -558,10 +587,10 @@ const ProjectSettings = React.memo(
       const newErrors: FormErrors = {};
 
       const projectTitle = checkStringValidation(
-        "Project title",
+        "Use case title",
         values.projectTitle,
         1,
-        64
+        64,
       );
       if (!projectTitle.accepted) {
         newErrors.projectTitle = projectTitle.message;
@@ -570,17 +599,22 @@ const ProjectSettings = React.memo(
       if (!goal.accepted) {
         newErrors.goal = goal.message;
       }
-      const status = selectValidation("Project status", values.status);
+      const status = selectValidation("Use case status", values.status);
       if (!status.accepted) {
         newErrors.status = status.message;
       }
       const startDate = checkStringValidation(
         "Start date",
         values.startDate,
-        1
+        1,
       );
       if (!startDate.accepted) {
         newErrors.startDate = startDate.message;
+      }
+
+      const geography = selectValidation("Geography", values.geography);
+      if (!geography.accepted) {
+        newErrors.geography = geography.message;
       }
 
       const owner = selectValidation("Owner", values.owner);
@@ -589,22 +623,22 @@ const ProjectSettings = React.memo(
       }
       const riskClassification = selectValidation(
         "AI risk classification",
-        values.riskClassification
+        values.riskClassification,
       );
       if (!riskClassification.accepted) {
         newErrors.riskClassification = riskClassification.message;
       }
       const typeOfHighRiskRole = selectValidation(
         "Type of high risk role",
-        values.typeOfHighRiskRole
+        values.typeOfHighRiskRole,
       );
       if (!typeOfHighRiskRole.accepted) {
         newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
       }
 
       const monitoredRegulationsAndStandards = selectValidation(
-        "Monitored regulations and standards",
-        values.monitoredRegulationsAndStandards.length
+        "Applicable regulations",
+        values.monitoredRegulationsAndStandards.length,
       );
       if (!monitoredRegulationsAndStandards.accepted) {
         newErrors.monitoredRegulationsAndStandards =
@@ -639,7 +673,7 @@ const ProjectSettings = React.memo(
           padding: "0 14px",
         },
       }),
-      [theme.palette.background.main]
+      [theme.palette.background.main],
     );
 
     const handleOpenDeleteDialog = useCallback((): void => {
@@ -653,16 +687,21 @@ const ProjectSettings = React.memo(
     const handleSaveConfirm = useCallback(async () => {
       const selectedRiskClass =
         riskClassificationItems.find(
-          (item) => item._id === values.riskClassification
+          (item) => item._id === values.riskClassification,
         )?.name || "";
       const selectedHighRiskRole =
         highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
           ?.name || "";
       const selectedStatus =
-        projectStatusItems.find((item) => item._id === values.status)?.name || "";
+        projectStatusItems.find((item) => item._id === values.status)?.name ||
+        "";
       const selectedRegulations = values.monitoredRegulationsAndStandards.map(
-        (reg) => reg.name
+        (reg) => reg.name,
       );
+
+      const selectedGeography = geographyItems.find(
+        (item) => item._id === values.geography
+      )?._id || "";
 
       await updateProject({
         id: Number(projectId),
@@ -675,6 +714,9 @@ const ProjectSettings = React.memo(
           ai_risk_classification: selectedRiskClass,
           type_of_high_risk_role: selectedHighRiskRole,
           goal: values.goal,
+          geography: selectedGeography,
+          target_industry: values.targetIndustry,
+          description: values.description,
           status: selectedStatus,
           monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
@@ -733,9 +775,9 @@ const ProjectSettings = React.memo(
         });
         if (!isError) {
           setProjects((prevProjects) =>
-            prevProjects.filter((project) => project.id !== Number(projectId))
+            prevProjects.filter((project) => project.id !== Number(projectId)),
           );
-          navigate("/");
+          navigate("/overview");
           setTimeout(() => {
             setAlert(null);
           }, 3000);
@@ -781,505 +823,701 @@ const ProjectSettings = React.memo(
             height={200}
           />
         ) : (
-          <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
-            <Field
-              id="project-title-input"
-              label="Project title"
-              width={458}
-              value={values.projectTitle}
-              onChange={handleOnTextFieldChange("projectTitle")}
-              sx={fieldStyle}
-              error={errors.projectTitle}
-              isRequired
-            />
-            <Field
-              id="goal-input"
-              label="Goal"
-              width={458}
-              type="description"
-              value={values.goal}
-              onChange={handleOnTextFieldChange("goal")}
-              sx={{
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.goal}
-              isRequired
-            />
-            <Select
-              id="project-status"
-              label="Project status"
-              value={values.status || 1}
-              onChange={handleOnSelectChange("status")}
-              items={projectStatusItems}
-              sx={{
-                width: 357,
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.status}
-              isRequired
-            />
-            <Select
-              id="owner"
-              label="Owner"
-              value={values.owner || ""}
-              onChange={handleOnSelectChange("owner")}
-              items={
-                users?.map((user) => ({
-                  _id: user.id,
-                  name: `${user.name} ${user.surname}`,
-                  email: user.email,
-                })) || []
-              }
-              sx={{
-                width: 357,
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.owner}
-              isRequired
-            />
-            {isChangeOwnerModalOpen && (
-              <DualButtonModal
-                title="Confirm owner change"
-                body={
-                  <Typography fontSize={13}>
-                    You setting ownership from{" "}
-                    <strong>
-                      {removedOwner?.name} {removedOwner?.surname}
-                    </strong>{" "}
-                    to{" "}
-                    <strong>
-                      {pendingOwnerId?.name} {pendingOwnerId?.surname}
-                    </strong>
-                    . We will remove{" "}
-                    <strong>
-                      {pendingOwnerId?.name} {pendingOwnerId?.surname}
-                    </strong>{" "}
-                    from the members list.
-                  </Typography>
-                }
-                cancelText="Cancel"
-                proceedText="I understand"
-                onCancel={handleCloseOwnerChangeDialog}
-                onProceed={handleOwnershipChangeAcknowledge}
-                proceedButtonColor="primary"
-                proceedButtonVariant="contained"
-                TitleFontSize={0}
-              />
-            )}
-
-            {/* Only render the monitored regulations and standards section if frameworks are loaded */}
-            {monitoredFrameworks.length > 0 && (
-              <Stack gap="5px" sx={{ mt: "6px" }}>
-                <Typography
-                  sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-                >
-                  Monitored regulations and standards *
-                </Typography>
-                <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                  Add all monitored regulations and standards of the project.
-                </Typography>
-                <Autocomplete
-                  multiple
-                  id="monitored-regulations-and-standards-input"
-                  size="small"
-                  value={values.monitoredRegulationsAndStandards}
-                  options={nonOrganizationalFrameworks.map((fw: Framework) => ({
-                    _id: Number(fw.id),
-                    name: fw.name,
-                  }))}
-                  onChange={handleOnMultiSelect(
-                    "monitoredRegulationsAndStandards"
-                  )}
-                  getOptionLabel={(item: { _id: number; name: string }) =>
-                    item.name
-                  }
-                  noOptionsText={
-                    values.monitoredRegulationsAndStandards.length ===
-                    nonOrganizationalFrameworks.length
-                      ? "All regulations selected"
-                      : "No options"
-                  }
-                  renderOption={(
-                    props: any,
-                    option: { _id: number; name: string }
-                  ) => {
-                    const isComingSoon = option.name.includes("coming soon");
-                    return (
-                      <Box
-                        component="li"
-                        {...props}
-                        sx={{
-                          opacity: isComingSoon ? 0.5 : 1,
-                          cursor: isComingSoon ? "not-allowed" : "pointer",
-                          "&:hover": {
-                            backgroundColor: isComingSoon
-                              ? "transparent"
-                              : undefined,
-                          },
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontSize: "13px",
-                            color: isComingSoon
-                              ? "text.secondary"
-                              : "text.primary",
-                          }}
-                        >
-                          {option.name}
-                        </Typography>
-                      </Box>
-                    );
+          <Box sx={styles.root}>
+            <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
+              {/* Use Case Overview Card */}
+              <Box sx={styles.card}>
+                <Typography sx={styles.sectionTitle}>Use Case Overview</Typography>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "220px 1fr",
+                    rowGap: "25px",
+                    columnGap: "250px",
+                    alignItems: "center",
+                    mt: 2,
                   }}
-                  isOptionEqualToValue={(
-                    option: { _id: number },
-                    value: { _id: number }
-                  ) => option._id === value._id}
-                  getOptionDisabled={(option: { name: string }) =>
-                    option.name.includes("coming soon")
-                  }
-                  filterSelectedOptions
-                  popupIcon={<GreyDownArrowIcon />}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder="Select regulations and standards"
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          paddingTop: "3.8px !important",
-                          paddingBottom: "3.8px !important",
-                        },
-                        "& ::placeholder": {
-                          fontSize: "13px",
-                        },
-                      }}
+                >
+                  {/* Use case title Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Use case title
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      A concise name for your AI use case
+                    </Typography>
+                  </Box>
+                  <Field
+                    id="project-title-input"
+                    label=""
+                    width={400}
+                    value={values.projectTitle}
+                    onChange={handleOnTextFieldChange("projectTitle")}
+                    sx={fieldStyle}
+                    error={errors.projectTitle}
+                    isRequired
+                  />
+
+                  {/* Description Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Description
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      Overview of this use case
+                    </Typography>
+                  </Box>
+                  <Field
+                    id="description-input"
+                    label=""
+                    width={400}
+                    type="description"
+                    value={values.description}
+                    onChange={handleOnTextFieldChange("description")}
+                    sx={{
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.description}
+                  />
+
+                  {/* Goal Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Goal
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      What you aim to achieve
+                    </Typography>
+                  </Box>
+                  <Field
+                    id="goal-input"
+                    label=""
+                    width={400}
+                    type="description"
+                    value={values.goal}
+                    onChange={handleOnTextFieldChange("goal")}
+                    sx={{
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.goal}
+                    isRequired
+                  />
+
+                  {/* Target industry Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Target industry
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      Industry sector for this use case
+                    </Typography>
+                  </Box>
+                  <Field
+                    id="target-industry-input"
+                    label=""
+                    width={400}
+                    type="description"
+                    value={values.targetIndustry}
+                    onChange={handleOnTextFieldChange("targetIndustry")}
+                    sx={{
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.targetIndustry}
+                  />
+                </Box>
+              </Box>
+
+              {/* Project Details Card */}
+              <Box sx={styles.card}>
+                <Typography sx={styles.sectionTitle}>Project Details</Typography>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "220px 1fr",
+                    rowGap: "25px",
+                    columnGap: "250px",
+                    alignItems: "center",
+                    mt: 2,
+                  }}
+                >
+                  {/* Owner Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Owner
+                    </Typography>
+                  </Box>
+                  <Select
+                    id="owner"
+                    label=""
+                    value={values.owner || ""}
+                    onChange={handleOnSelectChange("owner")}
+                    items={
+                      users?.map((user) => ({
+                        _id: user.id,
+                        name: `${user.name} ${user.surname}`,
+                        email: user.email,
+                      })) || []
+                    }
+                    sx={{
+                      width: 400,
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.owner}
+                    isRequired
+                  />
+                  {isChangeOwnerModalOpen && (
+                    <ConfirmationModal
+                      title="Confirm owner change"
+                      body={
+                        <Typography fontSize={13}>
+                          You setting ownership from{" "}
+                          <strong>
+                            {removedOwner?.name} {removedOwner?.surname}
+                          </strong>{" "}
+                          to{" "}
+                          <strong>
+                            {pendingOwnerId?.name} {pendingOwnerId?.surname}
+                          </strong>
+                          . We will remove{" "}
+                          <strong>
+                            {pendingOwnerId?.name} {pendingOwnerId?.surname}
+                          </strong>{" "}
+                          from the members list.
+                        </Typography>
+                      }
+                      cancelText="Cancel"
+                      proceedText="I understand"
+                      onCancel={handleCloseOwnerChangeDialog}
+                      onProceed={handleOwnershipChangeAcknowledge}
+                      proceedButtonColor="primary"
+                      proceedButtonVariant="contained"
+                      TitleFontSize={0}
                     />
                   )}
+
+                  {/* Start date Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Start date
+                    </Typography>
+                  </Box>
+                  <DatePicker
+                    label=""
+                    date={values.startDate ? dayjs(values.startDate) : null}
+                    handleDateChange={handleDateChange}
+                    sx={{
+                      width: "130px",
+                      "& input": { width: "85px" },
+                    }}
+                    isRequired
+                    error={errors.startDate}
+                  />
+
+                  {/* Geography Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Geography
+                    </Typography>
+                  </Box>
+                  <Select
+                    id="geography-type-input"
+                    label=""
+                    value={values.geography}
+                    onChange={handleOnSelectChange("geography")}
+                    items={geographyItems}
+                    sx={{ width: "150px", backgroundColor: theme.palette.background.main }}
+                    isRequired
+                  />
+
+                  {/* Use case status Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Use case status
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      Development stage of this use case
+                    </Typography>
+                  </Box>
+                  <Select
+                    id="project-status"
+                    label=""
+                    value={values.status || 1}
+                    onChange={handleOnSelectChange("status")}
+                    items={projectStatusItems}
+                    sx={{
+                      width: 400,
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.status}
+                    isRequired
+                  />
+                </Box>
+              </Box>
+
+              {/* Team & Compliance Card */}
+              <Box sx={styles.card}>
+                <Typography sx={styles.sectionTitle}>Team & Compliance</Typography>
+                <Box
                   sx={{
-                    width: "458px",
-                    backgroundColor: theme.palette.background.main,
-                    ".MuiAutocomplete-clearIndicator": {
-                      display: "none",
-                    },
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "5px",
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#777",
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#888",
-                        borderWidth: "1px",
-                      },
-                    },
-                    "& .MuiChip-root": {
-                      borderRadius: "4px",
-                      "& .MuiChip-deleteIcon": {
-                        display:
-                          values.monitoredRegulationsAndStandards.length === 1
-                            ? "none"
-                            : "flex",
-                      },
-                    },
+                    display: "grid",
+                    gridTemplateColumns: "220px 1fr",
+                    rowGap: "25px",
+                    columnGap: "250px",
+                    alignItems: "center",
+                    mt: 2,
                   }}
-                  slotProps={{
-                    paper: {
-                      sx: {
-                        "& .MuiAutocomplete-listbox": {
-                          "& .MuiAutocomplete-option": {
+                >
+                  {/* Only render the monitored regulations and standards section if frameworks are loaded */}
+                  {monitoredFrameworks.length > 0 && (
+                    <>
+                      {/* Applicable regulations Row */}
+                      <Box>
+                        <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                          Applicable regulations *
+                        </Typography>
+                        <Typography
+                          sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
+                        >
+                          Add all monitored regulations and standards of the use case.
+                        </Typography> 
+                      </Box>
+                      <Stack>
+                        <Autocomplete
+                          multiple
+                          id="monitored-regulations-and-standards-input"
+                          size="small"
+                          value={values.monitoredRegulationsAndStandards}
+                          options={nonOrganizationalFrameworks.map((fw: Framework) => ({
+                            _id: Number(fw.id),
+                            name: fw.name,
+                          }))}
+                          onChange={handleOnMultiSelect(
+                            "monitoredRegulationsAndStandards",
+                          )}
+                          getOptionLabel={(item: { _id: number; name: string }) =>
+                            item.name
+                          }
+                          noOptionsText={
+                            values.monitoredRegulationsAndStandards.length ===
+                            nonOrganizationalFrameworks.length
+                              ? "All regulations selected"
+                              : "No options"
+                          }
+                          renderOption={(
+                            props: any,
+                            option: { _id: number; name: string },
+                          ) => {
+                            const isComingSoon = option.name.includes("coming soon");
+                            return (
+                              <Box
+                                component="li"
+                                {...props}
+                                sx={{
+                                  opacity: isComingSoon ? 0.5 : 1,
+                                  cursor: isComingSoon ? "not-allowed" : "pointer",
+                                  "&:hover": {
+                                    backgroundColor: isComingSoon
+                                      ? "transparent"
+                                      : undefined,
+                                  },
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontSize: "13px",
+                                    color: isComingSoon
+                                      ? "text.secondary"
+                                      : "text.primary",
+                                  }}
+                                >
+                                  {option.name}
+                                </Typography>
+                              </Box>
+                            );
+                          }}
+                          isOptionEqualToValue={(
+                            option: { _id: number },
+                            value: { _id: number },
+                          ) => option._id === value._id}
+                          getOptionDisabled={(option: { name: string }) =>
+                            option.name.includes("coming soon")
+                          }
+                          filterSelectedOptions
+                          popupIcon={
+                            <ChevronDown
+                              size={16}
+                              color={theme.palette.text.tertiary}
+                            />
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              placeholder="Select regulations and standards"
+                              sx={{
+                                "& .MuiOutlinedInput-root": {
+                                  height: "34px",
+                                  padding: "0 10px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                },
+                                "& .MuiInputBase-root": {
+                                  height: "34px !important",
+                                  padding: "0 10px !important",
+                                  display: "flex !important",
+                                  alignItems: "center !important",
+                                  justifyContent: "flex-start !important",
+                                },
+                                "& .MuiInputBase-input": {
+                                  padding: "0 !important",
+                                  margin: "0 !important",
+                                  fontSize: "13px",
+                                  lineHeight: "1 !important",
+                                },
+                                "& ::placeholder": {
+                                  fontSize: "13px",
+                                },
+                              }}
+                            />
+                          )}
+                          sx={{
+                            ...getAutocompleteStyles(theme, { hasError: !!errors.monitoredRegulationsAndStandards }),
+                            width: "400px",
+                            backgroundColor: theme.palette.background.main,
+                            ".MuiAutocomplete-clearIndicator": {
+                              display: "none",
+                            },
+                            "& .MuiOutlinedInput-root": {
+                              ...getAutocompleteStyles(theme, { hasError: !!errors.monitoredRegulationsAndStandards })["& .MuiOutlinedInput-root"],
+                              borderRadius: "4px",
+                            },
+                            "& .MuiChip-root": {
+                              borderRadius: "4px",
+                              "& .MuiChip-deleteIcon": {
+                                display:
+                                  values.monitoredRegulationsAndStandards.length === 1
+                                    ? "none"
+                                    : "flex",
+                              },
+                            },
+                          }}
+                          slotProps={{
+                            paper: {
+                              sx: {
+                                "& .MuiAutocomplete-listbox": {
+                                  "& .MuiAutocomplete-option": {
+                                    fontSize: "13px",
+                                    color: "#1c2130",
+                                    paddingLeft: "9px",
+                                    paddingRight: "9px",
+                                  },
+                                  "& .MuiAutocomplete-option.Mui-focused": {
+                                    background: "#f9fafb",
+                                  },
+                                },
+                                "& .MuiAutocomplete-noOptions": {
+                                  fontSize: "13px",
+                                  paddingLeft: "9px",
+                                  paddingRight: "9px",
+                                },
+                              },
+                            },
+                          }}
+                        />
+                        {removedFramework &&
+                          values.monitoredRegulationsAndStandards.length === 1 && (
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "warning.main", fontWeight: 300, mt: 1 }}
+                            >
+                              Framework cannot be empty.
+                            </Typography>
+                          )}
+                      </Stack>
+                    </>
+                  )}
+
+                  {/* Team members Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Team members
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
+                    >
+                      Add all team members of the use case.<br />Only those who are added
+                      will be able to see the use case.
+                    </Typography>
+                  </Box>
+                  <Autocomplete
+                    multiple
+                    readOnly={
+                      !allowedRoles.projects.editTeamMembers.includes(userRoleName)
+                    }
+                    id="users-input"
+                    size="small"
+                    value={users.filter((user) =>
+                      values.members.includes(Number(user.id)),
+                    )}
+                    options={
+                      users
+                        ?.filter(
+                          (user) =>
+                            user.id !== values.owner &&
+                            !values.members.includes(Number(user.id)),
+                        )
+                        .map((user) => ({
+                          id: user.id,
+                          name: user.name,
+                          surname: user.surname,
+                          email: user.email,
+                        })) || []
+                    }
+                    getOptionLabel={(member) => `${member.name} ${member.surname}`}
+                    renderOption={(props, option) => {
+                      const { key, ...optionProps } = props;
+                      const userEmail =
+                        option.email.length > 30
+                          ? `${option.email.slice(0, 30)}...`
+                          : option.email;
+                      return (
+                        <Box component="li" key={key} {...optionProps}>
+                          <Typography sx={{ fontSize: "13px" }}>
+                            {option.name} {option.surname}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: "11px",
+                              color: "rgb(157, 157, 157)",
+                              position: "absolute",
+                              right: "9px",
+                            }}
+                          >
+                            {userEmail}
+                          </Typography>
+                        </Box>
+                      );
+                    }}
+                    noOptionsText={
+                      values.members.length === users.length
+                        ? "All members selected"
+                        : "No options"
+                    }
+                    onChange={handleOnMultiSelect("members")}
+                    popupIcon={
+                      <ChevronDown size={16} color={theme.palette.text.tertiary} />
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Select users"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            height: "34px",
+                            padding: "0 10px",
+                            display: "flex",
+                            alignItems: "center",
+                          },
+                          "& .MuiInputBase-root": {
+                            height: "34px !important",
+                            padding: "0 10px !important",
+                            display: "flex !important",
+                            alignItems: "center !important",
+                            justifyContent: "flex-start !important",
+                          },
+                          "& .MuiInputBase-input": {
+                            padding: "0 !important",
+                            margin: "0 !important",
                             fontSize: "13px",
-                            color: "#1c2130",
+                            lineHeight: "1 !important",
+                          },
+                          "& ::placeholder": {
+                            fontSize: "13px",
+                          },
+                        }}
+                      />
+                    )}
+                    sx={{
+                      ...getAutocompleteStyles(theme, { hasError: !!errors.members }),
+                      width: "400px",
+                      backgroundColor: theme.palette.background.main,
+                      "& .MuiOutlinedInput-root": {
+                        ...getAutocompleteStyles(theme, { hasError: !!errors.members })["& .MuiOutlinedInput-root"],
+                        borderRadius: "4px",
+                      },
+                      "& .MuiChip-root": {
+                        borderRadius: "4px",
+                      },
+                    }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          "& .MuiAutocomplete-listbox": {
+                            "& .MuiAutocomplete-option": {
+                              fontSize: "13px",
+                              color: "#1c2130",
+                              paddingLeft: "9px",
+                              paddingRight: "9px",
+                            },
+                            "& .MuiAutocomplete-option.Mui-focused": {
+                              background: "#f9fafb",
+                            },
+                          },
+                          "& .MuiAutocomplete-noOptions": {
+                            fontSize: "13px",
                             paddingLeft: "9px",
                             paddingRight: "9px",
                           },
-                          "& .MuiAutocomplete-option.Mui-focused": {
-                            background: "#f9fafb",
-                          },
-                        },
-                        "& .MuiAutocomplete-noOptions": {
-                          fontSize: "13px",
-                          paddingLeft: "9px",
-                          paddingRight: "9px",
                         },
                       },
-                    },
-                  }}
-                />
-                {removedFramework &&
-                  values.monitoredRegulationsAndStandards.length === 1 && (
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "warning.main", fontWeight: 300 }}
-                    >
-                      Framework cannot be empty.
-                    </Typography>
-                  )}
-              </Stack>
-            )}
+                    }}
+                  />
 
-            <DatePicker
-              label="Start date"
-              date={values.startDate ? dayjs(values.startDate) : null}
-              handleDateChange={handleDateChange}
-              sx={{
-                width: "130px",
-                "& input": { width: "85px" },
-              }}
-              isRequired
-              error={errors.startDate}
-            />
-            <Stack gap="5px" sx={{ mt: "6px" }}>
-              <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-              >
-                Team members
-              </Typography>
-              <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                Add all team members of the project. Only those who are added
-                will be able to see the project.
-              </Typography>
-            </Stack>
-
-            <Autocomplete
-              multiple
-              readOnly={
-                !allowedRoles.projects.editTeamMembers.includes(userRoleName)
-              }
-              id="users-input"
-              size="small"
-              value={users.filter((user) =>
-                values.members.includes(Number(user.id))
-              )}
-              options={
-                users
-                  ?.filter(
-                    (user) =>
-                      user.id !== values.owner &&
-                      !values.members.includes(Number(user.id))
-                  )
-                  .map((user) => ({
-                    id: user.id,
-                    name: user.name,
-                    surname: user.surname,
-                    email: user.email,
-                  })) || []
-              }
-              getOptionLabel={(member) => `${member.name} ${member.surname}`}
-              renderOption={(props, option) => {
-                const { key, ...optionProps } = props;
-                const userEmail =
-                  option.email.length > 30
-                    ? `${option.email.slice(0, 30)}...`
-                    : option.email;
-                return (
-                  <Box component="li" key={key} {...optionProps}>
-                    <Typography sx={{ fontSize: "13px" }}>
-                      {option.name} {option.surname}
+                  {/* AI risk classification Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      AI risk classification
                     </Typography>
                     <Typography
-                      sx={{
-                        fontSize: "11px",
-                        color: "rgb(157, 157, 157)",
-                        position: "absolute",
-                        right: "9px",
-                      }}
+                      sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
                     >
-                      {userEmail}
+                      Not sure about your risk level?&nbsp;
+                      <VWLink onClick={() => setIsRiskModalOpen(true)}>
+                        Calculate your AI risk classification
+                      </VWLink>
                     </Typography>
                   </Box>
-                );
-              }}
-              noOptionsText={
-                values.members.length === users.length
-                  ? "All members selected"
-                  : "No options"
-              }
-              onChange={handleOnMultiSelect("members")}
-              popupIcon={<GreyDownArrowIcon />}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Select Users"
+                  <Stack gap={1}>
+                    <Select
+                      id="risk-classification-input"
+                      label=""
+                      value={values?.riskClassification || 1}
+                      onChange={handleOnSelectChange("riskClassification")}
+                      items={riskClassificationItems}
+                      sx={{
+                        width: 400,
+                        backgroundColor: theme.palette.background.main,
+                      }}
+                      error={errors.riskClassification}
+                      isRequired
+                    />
+                  </Stack>
+
+                  {/* Type of high risk role Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Type of high risk role
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
+                    >
+                      If you are not sure about the high risk role,&nbsp;
+                      <VWLink
+                        url="https://artificialintelligenceact.eu/high-level-summary/"
+                        openInNewTab={true}
+                      >
+                        please see this link
+                      </VWLink>
+                    </Typography>
+                  </Box>
+                  <Select
+                    id="risk-classification-input"
+                    label=""
+                    value={values?.typeOfHighRiskRole || 1}
+                    onChange={handleOnSelectChange("typeOfHighRiskRole")}
+                    items={highRiskRoleItems}
+                    sx={{
+                      width: 400,
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.typeOfHighRiskRole}
+                    isRequired
+                  />
+                </Box>
+              </Box>
+
+              {/* Save Button Row */}
+              <Stack sx={{ width: "100%" }}>
+                <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
+                  <CustomizableButton
+                    sx={{
+                      ...styles.saveButton,
+                      backgroundColor: isSaveDisabled
+                        ? "#ccc"
+                        : "#13715B",
+                      border: isSaveDisabled
+                        ? "1px solid rgba(0, 0, 0, 0.26)"
+                        : "1px solid #13715B",
+                    }}
+                    icon={<SaveIcon size={16} />}
+                    variant="contained"
+                    onClick={(event: any) => {
+                      handleSubmit(event);
+                    }}
+                    isDisabled={isSaveDisabled}
+                    text="Save"
+                  />
+                </Box>
+
+                {/* divider for seperation */}
+                <Box sx={{ mt: 6, borderTop: "1px solid #E0E0E0", pt: 8, width: "100%" }} />
+                <Typography
                   sx={{
-                    "& .MuiOutlinedInput-root": {
-                      paddingTop: "3.8px !important",
-                      paddingBottom: "3.8px !important",
-                    },
-                    "& ::placeholder": {
-                      fontSize: "13px",
-                    },
+                    fontSize: theme.typography.fontSize,
+                    fontWeight: 600,
+                    mb: 4,
                   }}
+                >
+                  Delete use case
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: theme.typography.fontSize,
+                    color: "#667085",
+                    mb: 8,
+                  }}
+                >
+                  Note that deleting a use case will remove all data related to
+                  that use case from your system. This is permanent and
+                  non-recoverable.
+                </Typography>
+                <CustomizableButton
+                  sx={{
+                    width: { xs: "100%", sm: theme.spacing(80) },
+                    mb: theme.spacing(4),
+                    backgroundColor: "#DB504A",
+                    color: "#fff",
+                    border: "1px solid #DB504A",
+                    gap: 2,
+                  }}
+                  icon={<DeleteIcon size={16} />}
+                  variant="contained"
+                  onClick={handleOpenDeleteDialog}
+                  text="Delete use case"
+                  isDisabled={
+                    !allowedRoles.projects.delete.includes(userRoleName)
+                  }
                 />
-              )}
-              sx={{
-                width: "458px",
-                backgroundColor: theme.palette.background.main,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "5px",
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#777",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#888",
-                    borderWidth: "1px",
-                  },
-                },
-                "& .MuiChip-root": {
-                  borderRadius: "4px",
-                },
-              }}
-              slotProps={{
-                paper: {
-                  sx: {
-                    "& .MuiAutocomplete-listbox": {
-                      "& .MuiAutocomplete-option": {
-                        fontSize: "13px",
-                        color: "#1c2130",
-                        paddingLeft: "9px",
-                        paddingRight: "9px",
-                      },
-                      "& .MuiAutocomplete-option.Mui-focused": {
-                        background: "#f9fafb",
-                      },
-                    },
-                    "& .MuiAutocomplete-noOptions": {
-                      fontSize: "13px",
-                      paddingLeft: "9px",
-                      paddingRight: "9px",
-                    },
-                  },
-                },
-              }}
-            />
-
-            <Stack gap="5px" sx={{ mt: "6px" }}>
-              <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-              >
-                AI risk classification
-              </Typography>
-              <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                To define the AI risk classification,&nbsp;
-                <Link
-                  href="https://artificialintelligenceact.eu/high-level-summary/"
-                  target="_blank"
-                  rel="noopener"
-                  color={theme.palette.text.secondary}
-                >
-                  please see this link
-                </Link>
-              </Typography>
+              </Stack>
             </Stack>
-            <Select
-              id="risk-classification-input"
-              value={values?.riskClassification || 1}
-              onChange={handleOnSelectChange("riskClassification")}
-              items={riskClassificationItems}
-              sx={{
-                width: 357,
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.riskClassification}
-              isRequired
-            />
-            <Stack gap="5px" sx={{ mt: "6px" }}>
-              <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-              >
-                Type of high risk role
-              </Typography>
-              <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                If you are not sure about the high risk role,&nbsp;
-                <Link
-                  href="https://artificialintelligenceact.eu/high-level-summary/"
-                  target="_blank"
-                  rel="noopener"
-                  color={theme.palette.text.secondary}
-                >
-                  please see this link
-                </Link>
-              </Typography>
-            </Stack>
-            <Select
-              id="risk-classification-input"
-              value={values?.typeOfHighRiskRole || 1}
-              onChange={handleOnSelectChange("typeOfHighRiskRole")}
-              items={highRiskRoleItems}
-              sx={{
-                width: 357,
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.typeOfHighRiskRole}
-              isRequired
-            />
-            <Stack sx={{ width: "100%", maxWidth: 800 }}>
-              <CustomizableButton
-                sx={{
-                  alignSelf: "flex-end",
-                  width: "fit-content",
-                  backgroundColor: "#13715B",
-                  border: isSaveDisabled
-                    ? "1px solid rgba(0, 0, 0, 0.26)"
-                    : "1px solid #13715B",
-                  gap: 2,
-                }}
-                icon={<SaveIconSVGWhite />}
-                variant="contained"
-                onClick={(event: any) => {
-                  handleSubmit(event);
-                }}
-                isDisabled={isSaveDisabled}
-                text="Save"
-              />
-
-              {/* divider for seperation */}
-              <Stack sx={{ mt: 6, borderTop: "1px solid #E0E0E0", pt: 8 }} />
-              <Typography
-                sx={{
-                  fontSize: theme.typography.fontSize,
-                  fontWeight: 600,
-                  mb: 4,
-                }}
-              >
-                Delete project
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: theme.typography.fontSize,
-                  color: "#667085",
-                  mb: 8,
-                }}
-              >
-                Note that deleting a project will remove all data related to
-                that project from our system. This is permanent and
-                non-recoverable.
-              </Typography>
-              <CustomizableButton
-                sx={{
-                  width: { xs: "100%", sm: theme.spacing(80) },
-                  mb: theme.spacing(4),
-                  backgroundColor: "#DB504A",
-                  color: "#fff",
-                  border: "1px solid #DB504A",
-                  gap: 2,
-                }}
-                icon={<DeleteIconWhite />}
-                variant="contained"
-                onClick={handleOpenDeleteDialog}
-                text="Delete project"
-                isDisabled={
-                  !allowedRoles.projects.delete.includes(userRoleName)
-                }
-              />
-            </Stack>
-          </Stack>
+          </Box>
         )}
 
         {isDeleteModalOpen && (
-          <DualButtonModal
-            title="Confirm Delete"
+          <ConfirmationModal
+            title="Confirm delete"
             body={
               <Typography fontSize={13}>
-                Are you sure you want to delete the project?
+                Are you sure you want to delete the use case?
               </Typography>
             }
             cancelText="Cancel"
@@ -1293,12 +1531,12 @@ const ProjectSettings = React.memo(
         )}
 
         {isFrameworkRemoveModalOpen && (
-          <DualButtonModal
-            title="Confirm Framework Removal"
+          <ConfirmationModal
+            title="Confirm framework removal"
             body={
               <Typography fontSize={13}>
                 Are you sure you want to remove {frameworkToRemove?.name} from
-                the project?
+                the use case?
               </Typography>
             }
             cancelText="Cancel"
@@ -1310,9 +1548,30 @@ const ProjectSettings = React.memo(
             TitleFontSize={0}
           />
         )}
+
+        {/* EU AI Act Risk Analysis Modal */}
+        <RiskAnalysisModal
+          isOpen={isRiskModalOpen}
+          setIsOpen={setIsRiskModalOpen}
+          projectId={projectId}
+          setAlert={setAlert}
+          updateClassification={(classification: string) => {
+            const match = riskClassificationItems.find(
+              (item) => item.name === classification,
+            ); 
+            if(!match) {
+              console.error(`Unknown classification: ${classification}`);
+              return;
+            }
+            setValues({
+              ...values,
+              riskClassification: match._id,
+            })
+          }}
+        />
       </Stack>
     );
-  }
+  },
 );
 
 export default ProjectSettings;

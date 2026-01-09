@@ -1,5 +1,49 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiServices } from "../../infrastructure/api/networkServices";
 
+// Type definitions for API responses
+export interface FileMetadata {
+  id: string;
+  filename: string;
+  size: number;
+  mimetype: string;
+  upload_date: string;
+  uploaded_by: string;
+  uploader_name?: string;
+  uploader_surname?: string;
+  source?: string;
+  project_title?: string;
+  project_id?: string | number;
+  parent_id?: number;
+  sub_id?: number;
+  meta_id?: number;
+  is_evidence?: boolean;
+}
+
+export interface FileManagerResponse {
+  success: boolean;
+  data: {
+    files: FileMetadata[];
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+    };
+  };
+}
+
+export interface FileUploadResponse {
+  message: string;
+  data: {
+    id: number;
+    filename: string;
+    size: number;
+    mimetype: string;
+    upload_date: string;
+    uploaded_by: number;
+    modelId?: string; // optional
+  };
+}
 
 export async function getFileById({
   id,
@@ -9,8 +53,8 @@ export async function getFileById({
   id: string;
   signal?: AbortSignal;
   responseType?: string;
-}): Promise<any> {
-  const response = await apiServices.get(`/files/${id}`, {
+}): Promise<Blob | ArrayBuffer> {
+  const response = await apiServices.get<any>(`/files/${id}`, {
     signal,
     responseType,
   });
@@ -18,15 +62,164 @@ export async function getFileById({
 }
 
 
+/**
+ * Get all files metadata for the current user's organization
+ *
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<FileMetadata[]>} Array of file metadata
+ */
 export async function getUserFilesMetaData({
   signal,
 }: {
   signal?: AbortSignal;
-} = {}): Promise<any> {
-  const response = await apiServices.get("/files", {
+} = {}): Promise<FileMetadata[]> {
+    const [fileManageResponse, fileResponse] = await Promise.all([
+      apiServices.get<FileManagerResponse>("/file-manager", { signal }),
+      apiServices.get<any[]>("/files", { signal })
+    ]);
+
+    // Extract and return all file data from API
+    // Keep all fields intact so transformFileData can process them
+    const rawFiles = [...(fileManageResponse.data?.data?.files ?? []), ...(fileResponse.data ?? [])];
+
+    return rawFiles.map((f: any) => ({
+        id: String(f.id),
+        filename: f.filename,
+        size: f?.size,
+        mimetype: f?.mimetype,
+        upload_date: f?.upload_date || f?.uploaded_time,
+        uploaded_by: String(f?.uploaded_by),
+        uploader_name: f?.uploader_name,         // Include uploader name
+        uploader_surname: f?.uploader_surname,   // Include uploader surname
+        source: f?.source,
+        project_title: f?.project_title,
+        project_id: f?.project_id,
+        parent_id: f?.parent_id,
+        sub_id: f?.sub_id,
+        meta_id: f?.meta_id,
+        is_evidence: f?.is_evidence,
+    })) as FileMetadata[];
+}
+
+
+
+/**
+ * Upload a file to the file manager
+ *
+ * @param {File} file - The file to upload
+ * @param {string} model_id - Optional model ID to associate with the file
+ * @param {string} source - Optional source identifier (e.g., "policy_editor", "evidence")
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<FileUploadResponse>} Upload response with file metadata
+ */
+export async function uploadFileToManager({
+  file,
+  model_id,
+  source,
+  signal,
+}: {
+  file: File;
+  model_id?: string | number | undefined | null;
+  source?: string;
+  signal?: AbortSignal;
+}): Promise<FileUploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  // Append model_id only if it's defined and valid
+  formData.append("model_id", model_id ? String(model_id) : "");
+
+  // Append source to identify where the file was uploaded from
+  if (source) {
+    formData.append("source", source);
+  }
+
+  // Delete Content-Type header to let axios auto-detect and set the proper boundary
+  const response = await apiServices.post<FileUploadResponse>("/file-manager", formData, {
     signal,
+    headers: {
+      "Content-Type": undefined,
+    },
+  });
+
+  return response.data;
+}
+
+
+/**
+ * Download a file from the file manager
+ *
+ * @param {string} id - The file ID to download
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<Blob>} File blob response
+ */
+export async function downloadFileFromManager({
+  id,
+  signal,
+}: {
+  id: string;
+  signal?: AbortSignal;
+}): Promise<Blob> {
+  const response = await apiServices.get<Blob>(`/file-manager/${id}`, {
+    signal,
+    responseType: "blob",
   });
   return response.data;
 }
 
 
+/**
+ * Delete a file from the file manager
+ *
+ * @param {string} id - The file ID to delete
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<any>} Delete response
+ */
+export async function deleteFileFromManager({
+  id,
+  signal,
+}: {
+  id: string;
+  signal?: AbortSignal;
+}): Promise<any> {
+  const response = await apiServices.delete<any>(`/file-manager/${id}`, {
+    signal,
+  });
+  return response.data;
+}
+
+/**
+ * Delete question evidence file(s) using multipart form data
+ *
+ * @param {number[]} deleteFileIds - Array of file IDs to delete
+ * @param {string} questionId - The question ID
+ * @param {string} userId - The user ID
+ * @param {string} projectId - The project ID (optional)
+ * @returns {Promise<any>} Delete response
+ */
+export async function deleteQuestionEvidenceFiles({
+  deleteFileIds,
+  questionId,
+  userId,
+  projectId,
+}: {
+  deleteFileIds: number[];
+  questionId: string;
+  userId: string;
+  projectId?: string;
+}): Promise<any> {
+  const formData = new FormData();
+  formData.append("delete", JSON.stringify(deleteFileIds));
+  formData.append("question_id", questionId);
+  formData.append("user_id", userId);
+  if (projectId) {
+    formData.append("project_id", projectId);
+  }
+
+  const response = await apiServices.post("/files", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response;
+}

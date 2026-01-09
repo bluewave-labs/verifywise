@@ -5,7 +5,6 @@ export const smallStatsCardStyle = {
   pt: "15px",
   minWidth: 300,
   width: "100%",
-  maxWidth: "1400px",
   gap: 5,
 };
 

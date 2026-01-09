@@ -21,10 +21,12 @@ const checkVersionAndClearIfNeeded = () => {
         }
       });
       localStorage.setItem(`${STORAGE_KEY}_version`, APP_VERSION);
-      console.log(`🔄 App version updated to ${APP_VERSION}, cleared cache`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔄 App version updated to ${APP_VERSION}, cleared cache`);
+      }
     }
-  } catch (error) {
-    console.error('Error checking app version:', error);
+  } catch {
+    // Silently fail in production - localStorage may not be available
   }
 };
 
@@ -62,3 +64,7 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+
+// Export RootState type for use in selectors
+export type RootState = ReturnType<typeof rootReducer>;
+export type AppDispatch = typeof store.dispatch;

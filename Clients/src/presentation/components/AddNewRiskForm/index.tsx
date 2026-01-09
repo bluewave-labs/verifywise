@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, {
   FC,
   useState,
@@ -10,8 +11,7 @@ import React, {
 import { useSearchParams } from "react-router-dom";
 import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
-import { ReactComponent as UpdateIconSVGWhite } from "../../assets/icons/update-white.svg";
+import { Save as SaveIcon, RotateCcw as UpdateIconSVGWhite } from "lucide-react";
 import dayjs from "dayjs";
 
 import { Likelihood, Severity } from "../RiskLevel/constants";
@@ -31,11 +31,11 @@ import {
   likelihoodItems,
   riskSeverityItems,
 } from "./projectRiskValue";
-import { AddNewRiskFormProps } from "../../../domain/interfaces/iRiskForm";
-import { ApiResponse } from "../../../domain/interfaces/iResponse";
+import { AddNewRiskFormProps } from "../../types/riskForm.types";
+import { ApiResponse } from "../../../domain/interfaces/i.response";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
-import { apiServices } from "../../../infrastructure/api/networkServices";
+import { createProjectRisk, updateProjectRisk } from "../../../application/repository/projectRisk.repository";
 import useUsers from "../../../application/hooks/useUsers";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -58,10 +58,13 @@ const COMPONENT_CONSTANTS = {
   TAB_GAP: "34px",
   MIN_TAB_HEIGHT: "20px",
   BORDER_RADIUS: 2,
+  // Match the form content widths from RisksSection/MitigationSection
+  CONTENT_WIDTH: 985, // 323 * 3 + 8 * 2
+  COMPACT_CONTENT_WIDTH: 970, // Account for scrollbar (~17px)
 } as const;
 
 const VALIDATION_LIMITS = {
-  RISK_NAME: { MIN: 3, MAX: 50 },
+  RISK_NAME: { MIN: 3, MAX: 255 },
   RISK_DESCRIPTION: { MIN: 1, MAX: 256 },
   POTENTIAL_IMPACT: { MIN: 1, MAX: 256 },
   REVIEW_NOTES: { MIN: 0, MAX: 1024 },
@@ -128,6 +131,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   initialMitigationValues = mitigationInitialState,
   users: usersProp,
   usersLoading: usersLoadingProp,
+  onSubmitRef,
+  compactMode = false,
 }) => {
   const theme = useTheme();
   const disableRipple =
@@ -163,14 +168,24 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const usersLoading = usersLoadingProp !== undefined ? usersLoadingProp : hookData.loading;
 
   // Get inputValues from context
-  const { inputValues } = useContext(VerifyWiseContext) as {
-    inputValues: any;
-  };
+  const { inputValues } = useContext(VerifyWiseContext);
 
   const isEditingDisabled =
     !allowedRoles.projectRisks.edit.includes(userRoleName);
   const isCreatingDisabled =
     !allowedRoles.projectRisks.create.includes(userRoleName);
+
+  // Expose submit function via ref for StandardModal pattern
+  useEffect(() => {
+    if (onSubmitRef) {
+      onSubmitRef.current = riskFormSubmitHandler;
+    }
+    return () => {
+      if (onSubmitRef) {
+        onSubmitRef.current = null;
+      }
+    };
+  });
 
   useEffect(() => {
     if (popupStatus === "edit" && !usersLoading && users?.length) {
@@ -178,29 +193,31 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       const currentRiskData: RiskFormValues = {
         ...riskInitialState,
         riskName: inputValues.risk_name ?? "",
-        actionOwner: inputValues.risk_owner,
+        actionOwner: typeof inputValues.risk_owner === 'number' ? inputValues.risk_owner : parseInt(String(inputValues.risk_owner)) || 0,
         riskDescription: inputValues.risk_description ?? "",
         aiLifecyclePhase:
           aiLifecyclePhase.find(
             (item) => item.name === inputValues.ai_lifecycle_phase
           )?._id ?? 1,
-        riskCategory: inputValues.risk_category.map(
-          (category: string) =>
-            riskCategoryItems.find((item) => item.name === category)?._id ?? 1
-        ),
+        riskCategory: Array.isArray(inputValues.risk_category)
+          ? inputValues.risk_category.map(
+              (category: string) =>
+                riskCategoryItems.find((item) => item.name === category)?._id ?? 1
+            )
+          : [1],
         potentialImpact: inputValues.impact ?? "",
-        assessmentMapping: inputValues.assessment_mapping,
-        controlsMapping: inputValues.controlsMapping,
+        assessmentMapping: inputValues.assessment_mapping ?? 0,
+        controlsMapping: inputValues.controlsMapping ?? 0,
         likelihood:
           likelihoodItems.find((item) => item.name === inputValues.likelihood)
             ?._id ?? 1,
         riskSeverity:
           riskSeverityItems.find((item) => item.name === inputValues.severity)
             ?._id ?? 1,
-        riskLevel: inputValues.riskLevel,
+        riskLevel: typeof inputValues.riskLevel === 'number' ? inputValues.riskLevel : 0,
         reviewNotes: inputValues.review_notes ?? "",
-        applicableProjects: inputValues.projects || [],
-        applicableFrameworks: inputValues.frameworks || [],
+        applicableProjects: Array.isArray(inputValues.projects) ? inputValues.projects : [],
+        applicableFrameworks: Array.isArray(inputValues.frameworks) ? inputValues.frameworks : [],
       };
 
       const currentMitigationData: MitigationFormValues = {
@@ -209,16 +226,16 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           mitigationStatusItems.find(
             (item) => item.name === inputValues.mitigation_status
           )?._id ?? 1,
-        mitigationPlan: inputValues.mitigation_plan,
+        mitigationPlan: inputValues.mitigation_plan ?? "",
         currentRiskLevel:
           riskLevelItems.find(
             (item) => item.name === inputValues.current_risk_level
           )?._id ?? 1,
-        implementationStrategy: inputValues.implementation_strategy,
-        deadline: inputValues.deadline
+        implementationStrategy: inputValues.implementation_strategy ?? "",
+        deadline: inputValues.deadline && (typeof inputValues.deadline === 'string' || inputValues.deadline instanceof Date)
           ? dayjs(inputValues.deadline).toISOString()
           : "",
-        doc: inputValues.mitigation_evidence_document,
+        doc: inputValues.mitigation_evidence_document ?? "",
         likelihood:
           likelihoodItems.find(
             (item) => item.name === inputValues.likelihood_mitigation
@@ -227,12 +244,12 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           riskSeverityItems.find(
             (item) => item.name === inputValues.risk_severity
           )?._id ?? 1,
-        approver: inputValues.risk_approval,
+        approver: inputValues.risk_approval ?? 0,
         approvalStatus:
           approvalStatusItems.find(
             (item) => item.name === inputValues.approval_status
           )?._id ?? 1,
-        dateOfAssessment: inputValues.date_of_assessment
+        dateOfAssessment: inputValues.date_of_assessment && (typeof inputValues.date_of_assessment === 'string' || inputValues.date_of_assessment instanceof Date)
           ? dayjs(inputValues.date_of_assessment).toISOString()
           : "",
       };
@@ -288,11 +305,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         if (!reviewNotes.accepted) {
           errors.reviewNotes = reviewNotes.message;
         }
-      }
-
-      const actionOwner = selectValidation("Action owner", values.actionOwner);
-      if (!actionOwner.accepted) {
-        errors.actionOwner = actionOwner.message;
       }
 
       const aiLifecyclePhase = selectValidation(
@@ -429,20 +441,19 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   ]);
 
   // Helper function to get only changed fields for UPDATE requests
-  const getChangedFields = useCallback((
-    original: RiskFormValues & MitigationFormValues,
-    current: RiskFormValues & MitigationFormValues
-  ) => {
-    const changedFields: any = {};
+  const getChangedFields = useCallback(<T extends Record<string, any>>(original: Partial<T>, current: Partial<T>) => {
+    const changedFields: Record<string, any> = {};
 
     // Check each field for changes
     Object.keys(current).forEach((key) => {
-      const originalValue = original[key as keyof (RiskFormValues & MitigationFormValues)];
-      const currentValue = current[key as keyof (RiskFormValues & MitigationFormValues)];
+      const originalValue = original[key as keyof T];
+      const currentValue = current[key as keyof T];
 
-      // For arrays, do deep comparison
+      // For arrays, do deep comparison (use copies to avoid mutating originals)
       if (Array.isArray(originalValue) && Array.isArray(currentValue)) {
-        if (JSON.stringify(originalValue.sort()) !== JSON.stringify(currentValue.sort())) {
+        const originalArr = [...(originalValue as any[])].sort();
+        const currentArr = [...(currentValue as any[])].sort();
+        if (JSON.stringify(originalArr) !== JSON.stringify(currentArr)) {
           changedFields[key] = currentValue;
         }
       }
@@ -522,49 +533,55 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         const updateData: any = {};
 
         // Map frontend field names to backend field names and include only changed fields
+        // Note: Fields are now prefixed with 'risk_' or 'mitigation_' to distinguish their source
         const fieldMapping: Record<string, string> = {
-          riskName: 'risk_name',
-          actionOwner: 'risk_owner',
-          aiLifecyclePhase: 'ai_lifecycle_phase',
-          riskDescription: 'risk_description',
-          riskCategory: 'risk_category',
-          potentialImpact: 'impact',
-          assessmentMapping: 'assessment_mapping',
-          controlsMapping: 'controls_mapping',
-          likelihood: 'likelihood',
-          riskSeverity: 'severity',
-          riskLevel: 'risk_level_autocalculated',
-          reviewNotes: 'review_notes',
-          mitigationStatus: 'mitigation_status',
-          currentRiskLevel: 'current_risk_level',
-          deadline: 'deadline',
-          mitigationPlan: 'mitigation_plan',
-          implementationStrategy: 'implementation_strategy',
-          doc: 'mitigation_evidence_document',
-          approver: 'risk_approval',
-          approvalStatus: 'approval_status',
-          dateOfAssessment: 'date_of_assessment',
-          applicableProjects: 'projects',
-          applicableFrameworks: 'frameworks',
+          // Risk tab fields
+          risk_riskName: 'risk_name',
+          risk_actionOwner: 'risk_owner',
+          risk_aiLifecyclePhase: 'ai_lifecycle_phase',
+          risk_riskDescription: 'risk_description',
+          risk_riskCategory: 'risk_category',
+          risk_potentialImpact: 'impact',
+          risk_assessmentMapping: 'assessment_mapping',
+          risk_controlsMapping: 'controls_mapping',
+          risk_likelihood: 'likelihood',
+          risk_riskSeverity: 'severity',
+          risk_riskLevel: 'risk_level_autocalculated',
+          risk_reviewNotes: 'review_notes',
+          risk_applicableProjects: 'projects',
+          risk_applicableFrameworks: 'frameworks',
+
+          // Mitigation tab fields
+          mitigation_mitigationStatus: 'mitigation_status',
+          mitigation_currentRiskLevel: 'current_risk_level',
+          mitigation_deadline: 'deadline',
+          mitigation_mitigationPlan: 'mitigation_plan',
+          mitigation_implementationStrategy: 'implementation_strategy',
+          mitigation_doc: 'mitigation_evidence_document',
+          mitigation_likelihood: 'likelihood_mitigation',
+          mitigation_riskSeverity: 'risk_severity',
+          mitigation_approver: 'risk_approval',
+          mitigation_approvalStatus: 'approval_status',
+          mitigation_dateOfAssessment: 'date_of_assessment',
         };
 
         Object.keys(changedFields).forEach(frontendField => {
           const backendField = fieldMapping[frontendField];
-          if (backendField && fullData.hasOwnProperty(backendField)) {
+          if (backendField && Object.prototype.hasOwnProperty.call(fullData, backendField)) {
             updateData[backendField] = fullData[backendField as keyof typeof fullData];
           }
         });
 
         // Always include calculated risk levels if any risk-related field changed
         if (Object.keys(changedFields).some(field =>
-          ['likelihood', 'riskSeverity', 'riskName', 'riskDescription', 'potentialImpact'].includes(field)
+          ['risk_likelihood', 'risk_riskSeverity', 'risk_riskName', 'risk_riskDescription', 'risk_potentialImpact'].includes(field)
         )) {
           updateData.risk_level_autocalculated = riskLevel;
         }
 
         // Always include mitigation risk level if any mitigation-related field changed
         if (Object.keys(changedFields).some(field =>
-          ['mitigationStatus', 'currentRiskLevel', 'mitigationPlan', 'implementationStrategy'].includes(field)
+          ['mitigation_likelihood', 'mitigation_riskSeverity', 'mitigation_mitigationStatus', 'mitigation_currentRiskLevel', 'mitigation_mitigationPlan', 'mitigation_implementationStrategy'].includes(field)
         )) {
           updateData.final_risk_level = mitigationRiskLevel;
         }
@@ -626,10 +643,18 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       let formData;
 
       if (popupStatus !== "new") {
-        // For updates, get only changed fields
-        const combinedOriginal = { ...originalRiskValues, ...originalMitigationValues };
-        const combinedCurrent = { ...riskValues, ...mitigationValues };
-        const changedFields = getChangedFields(combinedOriginal, combinedCurrent);
+        // For updates, get only changed fields separately for risk and mitigation
+        const changedRiskFields = getChangedFields(originalRiskValues, riskValues);
+        const changedMitigationFields = getChangedFields(originalMitigationValues, mitigationValues);
+
+        // Combine with prefixes to distinguish risk vs mitigation fields
+        const changedFields: any = {};
+        Object.keys(changedRiskFields).forEach(key => {
+          changedFields[`risk_${key}`] = changedRiskFields[key];
+        });
+        Object.keys(changedMitigationFields).forEach(key => {
+          changedFields[`mitigation_${key}`] = changedMitigationFields[key];
+        });
 
         formData = buildFormData(
           risk_risklevel.level,
@@ -638,20 +663,18 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         );
 
         // Add boolean flags for deleted/emptied linked projects and frameworks
-        if (changedFields.hasOwnProperty('applicableProjects')) {
+        if (Object.prototype.hasOwnProperty.call(changedFields, 'risk_applicableProjects')) {
           const originalProjects = originalRiskValues?.applicableProjects || [];
           const currentProjects = riskValues.applicableProjects || [];
           formData.deletedLinkedProject = originalProjects.length > 0 && currentProjects.length === 0;
         }
 
-        if (changedFields.hasOwnProperty('applicableFrameworks')) {
+        if (Object.prototype.hasOwnProperty.call(changedFields, 'risk_applicableFrameworks')) {
           const originalFrameworks = originalRiskValues?.applicableFrameworks || [];
           const currentFrameworks = riskValues.applicableFrameworks || [];
           formData.deletedLinkedFrameworks = originalFrameworks.length > 0 && currentFrameworks.length === 0;
         }
 
-        console.log('Changed fields:', changedFields);
-        console.log('Sending only:', formData);
       } else {
         // For creates, send all fields
         formData = buildFormData(
@@ -663,8 +686,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       try {
         const response =
           popupStatus !== "new"
-            ? await apiServices.put("/projectRisks/" + inputValues.id, formData)
-            : await apiServices.post("/projectRisks", formData);
+            ? await updateProjectRisk({ id: Number(inputValues.id), body: formData })
+            : await createProjectRisk({ body: formData });
 
         if (response && response.status === 201) {
           // risk create success
@@ -695,18 +718,15 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         // Handle CustomException from networkServices
         if (error instanceof Error && error.name === "CustomException") {
           const customError = error as any; // Cast to access custom properties
-          console.log("CustomException response:", customError.response);
           
           let errorMessage = error.message || "Unknown error occurred";
           
           // Handle validation errors from CustomException response
           if (customError.response && customError.response.errors && Array.isArray(customError.response.errors)) {
-            console.log("Processing validation errors:", customError.response.errors);
             const fieldErrors = customError.response.errors.map((err: any) => 
               `• ${err.message}`
             ).join('\n');
             errorMessage = `${errorMessage}:\n${fieldErrors}`;
-            console.log("Final error message:", errorMessage);
           }
           
           onError(errorMessage);
@@ -733,10 +753,15 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     );
   }
 
+  // Calculate tab bar width based on compactMode
+  const tabBarWidth = compactMode
+    ? COMPONENT_CONSTANTS.COMPACT_CONTENT_WIDTH
+    : COMPONENT_CONSTANTS.CONTENT_WIDTH;
+
   return (
     <Stack className="AddNewRiskForm">
       <TabContext value={value}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider", width: `${tabBarWidth}px` }}>
           <TabList
             onChange={handleChange}
             aria-label="Add new risk tabs"
@@ -769,7 +794,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             value="risks"
             sx={{
               p: COMPONENT_CONSTANTS.TAB_PADDING,
-              maxHeight: COMPONENT_CONSTANTS.MAX_HEIGHT,
+              // Only set maxHeight when not in StandardModal (no onSubmitRef)
+              ...(onSubmitRef ? {} : { maxHeight: COMPONENT_CONSTANTS.MAX_HEIGHT }),
             }}
           >
             <RiskSection
@@ -777,13 +803,16 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               setRiskValues={setRiskValues}
               riskErrors={riskErrors}
               userRoleName={userRoleName}
+              disableInternalScroll={!!onSubmitRef}
+              compactMode={compactMode}
             />
           </TabPanel>
           <TabPanel
             value="mitigation"
             sx={{
               p: COMPONENT_CONSTANTS.TAB_PADDING,
-              maxHeight: COMPONENT_CONSTANTS.MAX_HEIGHT,
+              // Only set maxHeight when not in StandardModal (no onSubmitRef)
+              ...(onSubmitRef ? {} : { maxHeight: COMPONENT_CONSTANTS.MAX_HEIGHT }),
             }}
           >
             <MitigationSection
@@ -791,41 +820,46 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               setMitigationValues={setMitigationValues}
               mitigationErrors={mitigationErrors}
               userRoleName={userRoleName}
+              disableInternalScroll={!!onSubmitRef}
+              compactMode={compactMode}
             />
           </TabPanel>
         </Suspense>
-        <Box sx={{ display: "flex" }}>
-          <CustomizableButton
-            sx={{
-              alignSelf: "flex-end",
-              width: "fit-content",
-              backgroundColor: COMPONENT_CONSTANTS.PRIMARY_COLOR,
-              border: `1px solid ${COMPONENT_CONSTANTS.PRIMARY_COLOR}`,
-              gap: 2,
-              borderRadius: COMPONENT_CONSTANTS.BORDER_RADIUS,
-              maxHeight: COMPONENT_CONSTANTS.BUTTON_HEIGHT,
-              textTransform: "inherit",
-              boxShadow: "none",
-              ml: "auto",
-              mr: 0,
-              mt: COMPONENT_CONSTANTS.TAB_MARGIN_TOP,
-              "&:hover": { boxShadow: "none" },
-            }}
-            icon={
-              popupStatus === "new" ? (
-                <SaveIconSVGWhite />
-              ) : (
-                <UpdateIconSVGWhite />
-              )
-            }
-            variant="contained"
-            onClick={riskFormSubmitHandler}
-            text={popupStatus === "new" ? "Save" : "Update"}
-            isDisabled={
-              popupStatus === "new" ? isCreatingDisabled : isEditingDisabled
-            }
-          />
-        </Box>
+        {/* Only show internal button when not using StandardModal pattern (no onSubmitRef) */}
+        {!onSubmitRef && (
+          <Box sx={{ display: "flex" }}>
+            <CustomizableButton
+              sx={{
+                alignSelf: "flex-end",
+                width: "fit-content",
+                backgroundColor: COMPONENT_CONSTANTS.PRIMARY_COLOR,
+                border: `1px solid ${COMPONENT_CONSTANTS.PRIMARY_COLOR}`,
+                gap: 2,
+                borderRadius: COMPONENT_CONSTANTS.BORDER_RADIUS,
+                maxHeight: COMPONENT_CONSTANTS.BUTTON_HEIGHT,
+                textTransform: "inherit",
+                boxShadow: "none",
+                ml: "auto",
+                mr: 0,
+                mt: COMPONENT_CONSTANTS.TAB_MARGIN_TOP,
+                "&:hover": { boxShadow: "none" },
+              }}
+              icon={
+                popupStatus === "new" ? (
+                  <SaveIcon size={16} />
+                ) : (
+                  <UpdateIconSVGWhite size={16} />
+                )
+              }
+              variant="contained"
+              onClick={riskFormSubmitHandler}
+              text={popupStatus === "new" ? "Save" : "Update"}
+              isDisabled={
+                popupStatus === "new" ? isCreatingDisabled : isEditingDisabled
+              }
+            />
+          </Box>
+        )}
       </TabContext>
     </Stack>
   );

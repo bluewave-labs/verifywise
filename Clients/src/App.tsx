@@ -1,9 +1,7 @@
 import { Routes } from "react-router-dom";
 import "./App.css";
 import { ThemeProvider } from "@emotion/react";
-import { useSelector } from "react-redux";
 import light from "./presentation/themes/light";
-import dark from "./presentation/themes/dark";
 import { CssBaseline } from "@mui/material";
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
 import { useCallback, useMemo, useState, useEffect } from "react";
@@ -15,10 +13,9 @@ import { useAuth } from "./application/hooks/useAuth";
 import { Project } from "./domain/types/Project";
 import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
-import { DashboardState } from "./application/interfaces/appStates";
-import { AppState } from "./application/interfaces/appStates";
+import { DashboardState, UIValues, AuthValues, InputValues } from "./application/interfaces/appStates";
 import { ComponentVisible } from "./application/interfaces/ComponentVisible";
-import { AlertProps } from "./domain/interfaces/iAlert";
+import { AlertProps } from "./presentation/types/alert.types";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
@@ -28,12 +25,49 @@ import { DeploymentManager } from "./application/utils/deploymentHelpers";
 import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
+import useUserPreferences from "./application/hooks/useUserPreferences";
+import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
+import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
+import { AdvisorConversationProvider } from './application/contexts/AdvisorConversation.context';
+
+// Auth routes where the helper sidebar should not be shown
+const AUTH_ROUTES = [
+  '/login',
+  '/admin-reg',
+  '/user-reg',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/set-new-password',
+  '/reset-password-continue',
+];
+
+// Component for User Guide Sidebar that uses the context
+const UserGuideSidebarContainer = () => {
+  const location = useLocation();
+  const userGuideSidebar = useUserGuideSidebarContext();
+
+  // Don't show the helper sidebar on auth pages
+  const isAuthPage = AUTH_ROUTES.some(route => location.pathname === route);
+  if (isAuthPage) {
+    return null;
+  }
+
+  return (
+    <SidebarWrapper
+      isOpen={userGuideSidebar.isOpen}
+      onClose={userGuideSidebar.close}
+      onOpen={userGuideSidebar.open}
+      initialPath={userGuideSidebar.currentPath}
+    />
+  );
+};
 
 // Component to conditionally apply theme based on route
-const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode; mode: string }) => {
+const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isAITrustCentreRoute = location.pathname.includes('/aiTrustCentre');
-  
+
   // For aiTrustCentre routes, don't apply theme (like /public route)
   if (isAITrustCentreRoute) {
     return (
@@ -43,10 +77,10 @@ const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode
       </>
     );
   }
-  
-  // For other routes, apply theme normally
+
+  // For other routes, apply light theme
   return (
-    <ThemeProvider theme={mode === "light" ? light : dark}>
+    <ThemeProvider theme={light}>
       <CssBaseline />
       {children}
     </ThemeProvider>
@@ -54,11 +88,35 @@ const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode
 };
 
 function App() {
-  const mode = useSelector((state: AppState) => state.ui?.mode || "light");
+  const location = useLocation();
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
+  const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
+  const { completeOnboarding, state, isLoading: isOnboardingLoading } = useOnboarding();
+
+  // Onboarding should ONLY show on the dashboard (/) route
+  const isDashboardRoute = location.pathname === '/';
+
+  // Derive modal visibility from onboarding state and current route
+  // Only show modal if:
+  // 1. User is authenticated (has token and userId)
+  // 2. Onboarding state is loaded (not loading)
+  // 3. Onboarding is not complete (first login)
+  // 4. Currently on dashboard route (/)
+  const showModal = useMemo(
+    () => token && userId && !isOnboardingLoading && !state.isComplete && isDashboardRoute,
+    [token, userId, isOnboardingLoading, state.isComplete, isDashboardRoute]
+  );
+
+  const handleOnboardingComplete = useCallback(() => {
+    completeOnboarding();
+  }, [completeOnboarding]);
+
+  const handleOnboardingSkip = useCallback(() => {
+    completeOnboarding();
+  }, [completeOnboarding]);
 
   useEffect(() => {
     setShowAlertCallback((alertProps: AlertProps) => {
@@ -72,16 +130,23 @@ function App() {
     return () => setShowAlertCallback(() => {});
   }, []);
 
-  const [uiValues, setUiValues] = useState<unknown | undefined>({});
-  const [authValues, setAuthValues] = useState<unknown | undefined>({});
+  useEffect(() => {
+    if (userPreferences) {
+      localStorage.setItem("verifywise_preferences", JSON.stringify(userPreferences));
+    }
+  }, [userPreferences]);
+
+  const [uiValues, setUiValues] = useState<UIValues>({});
+  const [authValues, setAuthValues] = useState<AuthValues>({});
   const [dashboardValues, setDashboardValues] = useState<DashboardState>({
     dashboard: {},
     projects: {},
     compliance: {},
     assessments: {},
     vendors: [],
+    users: [],
   });
-  const [inputValues, setInputValues] = useState<unknown | undefined>({});
+  const [inputValues, setInputValues] = useState<InputValues>({});
   const [projects, setProjects] = useState<Project[]>([]);
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
@@ -109,6 +174,8 @@ function App() {
     []
   );
 
+  const [photoRefreshFlag, setPhotoRefreshFlag] = useState(false);
+
   const contextValues = useMemo(
     () => ({
       uiValues,
@@ -133,7 +200,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     }),
     [
       uiValues,
@@ -150,7 +219,7 @@ function App() {
       errorFetchingProjectStatus,
       currentProjectId,
       setCurrentProjectId,
-      userIdForProject,
+      userId,
       projects,
       setProjects,
       componentsVisible,
@@ -158,7 +227,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     ]
   );
 
@@ -171,26 +242,39 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
-            <ConditionalThemeWrapper mode={mode}>
-              {alert && (
-                <Alert
-                  variant={alert.variant}
-                  title={alert.title}
-                  body={alert.body}
-                  isToast={true}
-                  onClick={() => setAlert(null)}
-                />
-              )}
-              <CommandPaletteErrorBoundary>
-                <CommandPalette
-                  open={commandPalette.isOpen}
-                  onOpenChange={commandPalette.close}
-                />
-              </CommandPaletteErrorBoundary>
-              <Routes>
-                {createRoutes(triggerSidebar, triggerSidebarReload)}
-              </Routes>
-            </ConditionalThemeWrapper>
+            <UserGuideSidebarProvider>
+              <ConditionalThemeWrapper>
+                {alert && (
+                  <Alert
+                    variant={alert.variant}
+                    title={alert.title}
+                    body={alert.body}
+                    isToast={true}
+                    onClick={() => setAlert(null)}
+                  />
+                )}
+                <CommandPaletteErrorBoundary>
+                  <CommandPalette
+                    open={commandPalette.isOpen}
+                    onOpenChange={commandPalette.close}
+                  />
+                </CommandPaletteErrorBoundary>
+                {showModal && (
+                  <OnboardingModal
+                    onComplete={handleOnboardingComplete}
+                    onSkip={handleOnboardingSkip}
+                  />
+                )}
+                <Routes>
+                  {createRoutes(triggerSidebar, triggerSidebarReload)}
+                </Routes>
+
+                {/* User Guide Sidebar with Advisor Conversation persistence */}
+                <AdvisorConversationProvider>
+                  <UserGuideSidebarContainer />
+                </AdvisorConversationProvider>
+              </ConditionalThemeWrapper>
+            </UserGuideSidebarProvider>
           </VerifyWiseContext.Provider>
         </PersistGate>
       </Provider>

@@ -4,7 +4,7 @@ import {
   StyledDialogContent,
 } from "../../FileUpload/FileUpload.styles";
 import { FileUploadProps } from "../../FileUpload/types";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
+import { X as CloseGreyIcon } from "lucide-react";
 import { IconButton } from "@mui/material";
 import FileUploadComponent from "../../FileUpload";
 
@@ -31,7 +31,7 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({ uploadProps }) => {
           }}
           disableRipple
         >
-          <CloseGreyIcon />
+          <CloseGreyIcon size={16} />
         </IconButton>
 
         <FileUploadComponent

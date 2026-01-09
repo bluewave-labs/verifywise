@@ -67,9 +67,12 @@ CREATE TABLE projects (
   project_title VARCHAR(255),
   owner INTEGER REFERENCES users(id),
   start_date DATE,
+  geography INTEGER,
   ai_risk_classification VARCHAR(255),
   type_of_high_risk_role VARCHAR(255),
   goal VARCHAR(255),
+  target_industry VARCHAR(255),
+  description VARCHAR(255),
   last_updated DATE,
   last_updated_by INTEGER REFERENCES users(id),
   is_demo BOOLEAN

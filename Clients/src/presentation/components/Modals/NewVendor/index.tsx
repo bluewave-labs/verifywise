@@ -18,16 +18,20 @@ import {
   Autocomplete,
   AutocompleteRenderInputParams,
   Box,
-  Modal,
+  IconButton,
   Stack,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import { ReactComponent as Close } from "../../../assets/icons/close.svg";
+import { ChevronDown, ChevronUp, History as HistoryIcon } from "lucide-react";
+import HistorySidebar from "../../Common/HistorySidebar";
+import { useEntityChangeHistory } from "../../../../application/hooks/useEntityChangeHistory";
+import { useQueryClient } from "@tanstack/react-query";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Alert from "../../Alert";
@@ -37,71 +41,81 @@ import { useProjects } from "../../../../application/hooks/useProjects";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
-import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import StandardModal from "../StandardModal";
+import EnhancedTooltip from "../../EnhancedTooltip";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
   useCreateVendor,
   useUpdateVendor,
 } from "../../../../application/hooks/useVendors";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
-
-export interface VendorDetails {
-  id?: number;
-  vendor_name: string;
-  vendor_provides: string;
-  website: string;
-  vendor_contact_person: string;
-  review_result: string;
-  review_status: string;
-  reviewer: string;
-  review_date: string;
-  assignee: string;
-  projects: number[];
-}
-
-interface FormErrors {
-  vendorName?: string;
-  vendorProvides?: string;
-  website?: string;
-  projectIds?: string;
-  vendorContactPerson?: string;
-  reviewStatus?: string;
-  assignee?: string;
-  reviewer?: string;
-  reviewResult?: string;
-}
+import { User } from "../../../../domain/types/User";
+import { AddNewVendorProps, VendorFormErrors } from "../../../../domain/interfaces/i.vendor";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
+import { 
+  DataSensitivity,
+  BusinessCriticality,
+  PastIssues,
+  RegulatoryExposure
+} from "../../../../domain/enums/status.enum";
+import { calculateVendorRiskScore, getRiskScoreColor } from "../../../../domain/utils/vendorScorecard.utils";
 
 const initialState = {
-  vendorDetails: {
-    vendorName: "",
-    website: "",
-    projectIds: [] as number[],
-    vendorProvides: "",
-    vendorContactPerson: "",
-    reviewStatus: "",
-    reviewer: "",
-    reviewResult: "",
-    assignee: "",
-    reviewDate: new Date().toISOString(),
-  },
+  vendorName: "",
+  website: "",
+  projectIds: [] as number[],
+  vendorProvides: "",
+  vendorContactPerson: "",
+  reviewStatus: "",
+  reviewer: null as number | null,
+  reviewResult: "",
+  assignee: null as number | null,
+  reviewDate: new Date().toISOString(),
+  // Scorecard fields
+  dataSensitivity: "",
+  businessCriticality: "",
+  pastIssues: "",
+  regulatoryExposure: "",
 };
-
-interface AddNewVendorProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  value: string;
-  onSuccess: () => void;
-  existingVendor?: VendorDetails | null;
-  onChange?: () => void;
-}
 
 const REVIEW_STATUS_OPTIONS = [
   { _id: "notStarted", name: "Not started" },
   { _id: "inReview", name: "In review" },
   { _id: "reviewed", name: "Reviewed" },
   { _id: "requiresFollowUp", name: "Requires follow-up" },
+];
+
+const DATA_SENSITIVITY_OPTIONS = [
+  { _id: DataSensitivity.None, name: "None" },
+  { _id: DataSensitivity.InternalOnly, name: "Internal only" },
+  { _id: DataSensitivity.PII, name: "Personally identifiable information (PII)" },
+  { _id: DataSensitivity.FinancialData, name: "Financial data" },
+  { _id: DataSensitivity.HealthData, name: "Health data (e.g. HIPAA)" },
+  { _id: DataSensitivity.ModelWeights, name: "Model weights or AI assets" },
+  { _id: DataSensitivity.OtherSensitive, name: "Other sensitive data" },
+];
+
+const BUSINESS_CRITICALITY_OPTIONS = [
+  { _id: BusinessCriticality.Low, name: "Low (vendor supports non-core functions)" },
+  { _id: BusinessCriticality.Medium, name: "Medium (affects operations but is replaceable)" },
+  { _id: BusinessCriticality.High, name: "High (critical to core services or products)" },
+];
+
+const PAST_ISSUES_OPTIONS = [
+  { _id: PastIssues.None, name: "None" },
+  { _id: PastIssues.MinorIncident, name: "Minor incident (e.g. small delay, minor bug)" },
+  { _id: PastIssues.MajorIncident, name: "Major incident (e.g. data breach, legal issue)" },
+];
+
+const REGULATORY_EXPOSURE_OPTIONS = [
+  { _id: RegulatoryExposure.None, name: "None" },
+  { _id: RegulatoryExposure.GDPR, name: "GDPR (EU)" },
+  { _id: RegulatoryExposure.HIPAA, name: "HIPAA (US)" },
+  { _id: RegulatoryExposure.SOC2, name: "SOC 2" },
+  { _id: RegulatoryExposure.ISO27001, name: "ISO 27001" },
+  { _id: RegulatoryExposure.EUAIAct, name: "EU AI act" },
+  { _id: RegulatoryExposure.CCPA, name: "CCPA (california)" },
+  { _id: RegulatoryExposure.Other, name: "Other" },
 ];
 
 const AddNewVendor: React.FC<AddNewVendorProps> = ({
@@ -114,7 +128,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 }) => {
   const theme = useTheme();
   const [values, setValues] = useState(initialState);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<VendorFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectsLoaded, setProjectsLoaded] = useState(false); // Track if projects are loaded
   const [alert, setAlert] = useState<{
@@ -125,17 +139,26 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [projectOptions, setProjectOptions] = useState<
     { _id: number; name: string }[]
   >([]);
+  const [isScorecardExpanded, setIsScorecardExpanded] = useState(false);
+  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
   const { userRoleName } = useAuth();
   const { users } = useUsers();
   const { data: projects } = useProjects();
+  const queryClient = useQueryClient();
 
   // TanStack Query hooks
   const createVendorMutation = useCreateVendor();
   const updateVendorMutation = useUpdateVendor();
 
+  // Prefetch history data when modal opens in edit mode
+  useEntityChangeHistory(
+    "vendor",
+    existingVendor?.id
+  );
+
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
 
-  const formattedUsers = users?.map((user: any) => ({
+  const formattedUsers = users?.map((user: User) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
@@ -152,7 +175,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   useEffect(() => {
     if (!isOpen) {
       setValues(initialState);
-      setErrors({} as FormErrors);
+      setErrors({} as VendorFormErrors);
     }
   }, [isOpen]);
 
@@ -170,29 +193,31 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     if (existingVendor) {
       setValues((prevValues) => ({
         ...prevValues,
-        vendorDetails: {
-          ...prevValues.vendorDetails,
-          vendorName: existingVendor.vendor_name,
-          website: existingVendor.website,
-          projectIds: existingVendor.projects || [],
-          vendorProvides: existingVendor.vendor_provides,
-          vendorContactPerson: existingVendor.vendor_contact_person,
-          reviewStatus:
-            REVIEW_STATUS_OPTIONS?.find(
-              (s) => s.name === existingVendor.review_status
-            )?._id || "",
-          reviewer:
-            formattedUsers?.find(
-              (user: any) => user._id === existingVendor.reviewer
-            )?._id || "",
-          reviewResult: existingVendor.review_result,
-          assignee:
-            formattedUsers?.find(
-              (user: any) => user._id === existingVendor.assignee
-            )?._id || "",
-          reviewDate: existingVendor.review_date,
-        },
+        vendorName: existingVendor.vendor_name,
+        website: existingVendor.website,
+        projectIds: existingVendor.projects || [],
+        vendorProvides: existingVendor.vendor_provides,
+        vendorContactPerson: existingVendor.vendor_contact_person,
+        reviewStatus:
+          REVIEW_STATUS_OPTIONS?.find(
+            (s) => s.name === existingVendor.review_status
+          )?._id || "",
+        reviewer: existingVendor.reviewer || null,
+        reviewResult: existingVendor.review_result,
+        assignee: existingVendor.assignee || null,
+        reviewDate: existingVendor.review_date && dayjs(existingVendor.review_date).isValid()
+          ? dayjs(existingVendor.review_date).toISOString()
+          : "",
+        dataSensitivity: existingVendor.data_sensitivity || "",
+        businessCriticality: existingVendor.business_criticality || "",
+        pastIssues: existingVendor.past_issues || "",
+        regulatoryExposure: existingVendor.regulatory_exposure || "",
       }));
+      // Expand scorecard if any scorecard fields have values
+      if (existingVendor.data_sensitivity || existingVendor.business_criticality || 
+          existingVendor.past_issues || existingVendor.regulatory_exposure) {
+        setIsScorecardExpanded(true);
+      }
     }
   }, [existingVendor]);
 
@@ -219,10 +244,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     if (newDate?.isValid()) {
       setValues((prevValues) => ({
         ...prevValues,
-        vendorDetails: {
-          ...prevValues.vendorDetails,
-          reviewDate: newDate ? newDate.toISOString() : "",
-        },
+        reviewDate: newDate && newDate.isValid() ? newDate.toISOString() : "",
       }));
     }
   };
@@ -236,10 +258,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const handleOnChange = (field: string, value: string | number | number[]) => {
     setValues((prevValues) => ({
       ...prevValues,
-      vendorDetails: {
-        ...prevValues.vendorDetails,
-        [field]: value,
-      },
+      [field]: value,
     }));
     setErrors({ ...errors, [field]: "" });
   };
@@ -249,10 +268,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    * @returns boolean indicating if form is valid
    */
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+    const newErrors: VendorFormErrors = {};
     const vendorName = checkStringValidation(
       "Vendor Name",
-      values.vendorDetails.vendorName,
+      values.vendorName,
       1,
       64
     );
@@ -261,31 +280,34 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     }
     const vendorWebsite = checkStringValidation(
       "Vendor Website",
-      values.vendorDetails.website,
+      values.website,
       1,
       64
     );
     if (!vendorWebsite.accepted) {
       newErrors.website = vendorWebsite.message;
     }
-    const vendorReviewResult = checkStringValidation(
-      "Vendor review result",
-      values.vendorDetails.reviewResult,
-      1,
-      256
-    );
-    if (!vendorReviewResult.accepted) {
-      newErrors.reviewResult = vendorReviewResult.message;
+    // Review result is now optional
+    if (values.reviewResult) {
+      const vendorReviewResult = checkStringValidation(
+        "Vendor review result",
+        values.reviewResult,
+        1,
+        256
+      );
+      if (!vendorReviewResult.accepted) {
+        newErrors.reviewResult = vendorReviewResult.message;
+      }
     }
     if (
-      !values.vendorDetails.projectIds ||
-      Number(values.vendorDetails.projectIds.length) === 0
+      !values.projectIds ||
+      Number(values.projectIds.length) === 0
     ) {
-      newErrors.projectIds = "Please select a project from the dropdown";
+      newErrors.projectIds = "Please select a use case from the dropdown";
     }
     const vendorProvides = checkStringValidation(
       "Vendor Provides",
-      values.vendorDetails.vendorProvides,
+      values.vendorProvides,
       1,
       256
     );
@@ -294,7 +316,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     }
     const vendorContactPerson = checkStringValidation(
       "Vendor Contact Person",
-      values.vendorDetails.vendorContactPerson,
+      values.vendorContactPerson,
       1,
       64,
       undefined,
@@ -306,34 +328,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     if (!vendorContactPerson.accepted) {
       newErrors.vendorContactPerson = vendorContactPerson.message;
     }
-    if (
-      !values.vendorDetails.reviewStatus ||
-      Number(values.vendorDetails.reviewStatus) === 0
-    ) {
-      newErrors.reviewStatus = "Please select a status from the dropdown";
-    }
-    if (
-      !values.vendorDetails.reviewer ||
-      Number(values.vendorDetails.reviewer) === 0
-    ) {
-      newErrors.reviewer = "Please select a reviewer from the dropdown";
-    }
-    if (
-      !values.vendorDetails.assignee ||
-      Number(values.vendorDetails.assignee) === 0
-    ) {
+    // Review status, reviewer, and review date are now optional
+    if (values.assignee === null) {
       newErrors.assignee = "Please select an assignee from the dropdown";
     }
-
-     // New validation: reviewer and assignee can't be the same
-      if (
-        values.vendorDetails.reviewer &&
-        values.vendorDetails.assignee &&
-        Number(values.vendorDetails.reviewer) === Number(values.vendorDetails.assignee)
-      ) {
-        newErrors.reviewer = "Reviewer and assignee cannot be the same";
-        newErrors.assignee = "Reviewer and assignee cannot be the same";
-      }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -345,33 +343,44 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    */
   const handleOnSave = async () => {
      // Ensure website starts with http:// or https://
-  let formattedWebsite = values.vendorDetails.website?.trim() || "";
-  if (
-    formattedWebsite &&
-    !/^https?:\/\//i.test(formattedWebsite)
-  ) {
-    formattedWebsite = `http://${formattedWebsite}`;
-  }
+    let formattedWebsite = values.website?.trim() || "";
+    if (
+      formattedWebsite &&
+      !/^https?:\/\//i.test(formattedWebsite)
+    ) {
+      formattedWebsite = `http://${formattedWebsite}`;
+    }
+    // Calculate risk score if any scorecard fields are provided
+    const riskScore = (values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) 
+      ? calculateVendorRiskScore({
+          data_sensitivity: values.dataSensitivity || undefined,
+          business_criticality: values.businessCriticality || undefined,
+          past_issues: values.pastIssues || undefined,
+          regulatory_exposure: values.regulatoryExposure || undefined,
+        })
+      : undefined;
+
     const _vendorDetails = {
-      projects: values.vendorDetails.projectIds,
-      vendor_name: values.vendorDetails.vendorName,
-      assignee: formattedUsers?.find(
-        (user: any) => user._id === values.vendorDetails.assignee
-      )?._id,
-      vendor_provides: values.vendorDetails.vendorProvides,
+      projects: values.projectIds,
+      vendor_name: values.vendorName,
+      assignee: values.assignee ?? undefined,
+      vendor_provides: values.vendorProvides,
       website: formattedWebsite,
-      vendor_contact_person: values.vendorDetails.vendorContactPerson,
-      review_result: values.vendorDetails.reviewResult,
+      vendor_contact_person: values.vendorContactPerson,
+      review_result: values.reviewResult,
       review_status:
         REVIEW_STATUS_OPTIONS?.find(
-          (s) => s._id === values.vendorDetails.reviewStatus
+          (s) => s._id === values.reviewStatus
         )?.name || "",
-      reviewer: formattedUsers?.find(
-        (user: any) => user._id === values.vendorDetails.reviewer
-      )?._id,
-      review_date: values.vendorDetails.reviewDate
+      reviewer: values.reviewer ?? undefined,
+      review_date: values.reviewDate,
+      // Scorecard fields
+      data_sensitivity: values.dataSensitivity || undefined,
+      business_criticality: values.businessCriticality || undefined,
+      past_issues: values.pastIssues || undefined,
+      regulatory_exposure: values.regulatoryExposure || undefined,
+      risk_score: riskScore,
     };
-     console.log("response", _vendorDetails)
     if (existingVendor) {
       await updateVendor(existingVendor.id!, _vendorDetails);
     } else {
@@ -407,7 +416,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         }, 3000);
       }
     } catch (error) {
-      // console.error("API Error:", error);
       logEngine({
         type: "error",
         message: "Unexpected response. Please try again.",
@@ -459,7 +467,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         setTimeout(() => setAlert(null), 3000);
       }
     } catch (error) {
-      // console.error("API Error:", error);
       logEngine({
         type: "error",
         message: "Unexpected response. Please try again.",
@@ -479,231 +486,205 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   };
 
   const vendorDetailsPanel = (
-    <TabPanel value="1" sx={{ paddingTop: theme.spacing(15), paddingX: 8 }}>
+    <TabPanel value="1" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 0 }}>
+      <Stack spacing={6}>
       <Stack
         direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-        gap={theme.spacing(8)}
+        spacing={6}
       >
-        <Stack>
-          <Field // vendorName
-            label="Vendor name"
-            width={220}
-            value={values?.vendorDetails?.vendorName}
-            onChange={(e) => handleOnChange("vendorName", e.target.value)}
-            error={errors.vendorName}
-            isRequired
+        <Field // vendorName
+          label="Vendor name"
+          width={220}
+          value={values?.vendorName}
+          onChange={(e) => handleOnChange("vendorName", e.target.value)}
+          error={errors.vendorName}
+          isRequired
+          disabled={isEditingDisabled}
+        />
+        <Stack sx={{ width: 454 }}>
+          <Typography
+            sx={{
+              fontSize: theme.typography.fontSize,
+              fontWeight: 500,
+              mb: 2,
+            }}
+          >
+            Use cases*
+          </Typography>
+          <Autocomplete
+            multiple
+            id="projects-input"
+            size="small"
             disabled={isEditingDisabled}
-          />
-          <Box mt={theme.spacing(8)}>
-            <Field // website
-              label="Website"
-              width={220}
-              value={values.vendorDetails.website}
-              onChange={(e) => handleOnChange("website", e.target.value)}
-              error={errors.website}
-              isRequired
-              disabled={isEditingDisabled}
-            />
-          </Box>
-        </Stack>
-        <Stack sx={{ flex: 1 }}>
-          <Stack>
-            <Typography
-              sx={{
-                fontSize: theme.typography.fontSize,
-                fontWeight: 500,
-                mb: 2,
-              }}
-            >
-              Projects*
-            </Typography>
-            <Autocomplete
-              multiple
-              id="projects-input"
-              size="small"
-              disabled={isEditingDisabled}
-              value={
-                projectOptions?.filter((project) =>
-                  values.vendorDetails.projectIds?.includes(project._id)
-                ) || []
-              }
-              options={projectOptions || []}
-              noOptionsText={
-                values?.vendorDetails?.projectIds?.length ===
-                projectOptions?.length
-                  ? "All projects are selected"
-                  : "No options"
-              }
-              onChange={(_event, newValue: { _id: number; name: string }[]) => {
-                handleOnChange(
-                  "projectIds",
-                  newValue.map((project) => project._id)
-                );
-              }}
-              getOptionLabel={(project: { _id: number; name: string }) =>
-                project.name
-              }
-              renderOption={(props, option: { _id: number; name: string }) => {
-                const { key, ...optionProps } = props;
-                return (
-                  <Box key={option._id} component="li" {...optionProps}>
-                    <Typography sx={{ fontSize: "13px" }}>
-                      {option.name}
-                    </Typography>
-                  </Box>
-                );
-              }}
-              filterSelectedOptions
-              popupIcon={<GreyDownArrowIcon />}
-              renderInput={(params: AutocompleteRenderInputParams) => (
-                <TextField
-                  {...params}
-                  placeholder="Select projects"
-                  required
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      minHeight: "34px",
-                      height: "auto",
-                      alignItems: "flex-start",
-                      paddingY: "3px !important",
-                      flexWrap: "wrap",
-                      gap: "2px",
-                    },
-                    "& ::placeholder": {
-                      fontSize: "13px",
-                    },
-                  }}
-                />
-              )}
-              sx={{
-                width: "100%",
-                backgroundColor: theme.palette.background.main,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "3px",
-                  overflowY: "auto",
-                  flexWrap: "wrap",
-                  maxHeight: "115px",
-                  alignItems: "flex-start",
-                  "&:hover": {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      border: "none",
-                    },
+            value={
+              projectOptions?.filter((project) =>
+                values.projectIds?.includes(project._id)
+              ) || []
+            }
+            options={projectOptions || []}
+            noOptionsText={
+              values?.projectIds?.length ===
+              projectOptions?.length
+                ? "All use cases are selected"
+                : "No options"
+            }
+            onChange={(_event, newValue: { _id: number; name: string }[]) => {
+              handleOnChange(
+                "projectIds",
+                newValue.map((project) => project._id)
+              );
+            }}
+            getOptionLabel={(project: { _id: number; name: string }) =>
+              project.name
+            }
+            renderOption={(props, option: { _id: number; name: string }) => {
+              const { key, ...optionProps } = props;
+              return (
+                <Box key={`${option._id}-${key}`} component="li" {...optionProps}>
+                  <Typography sx={{ fontSize: "13px" }}>
+                    {option.name}
+                  </Typography>
+                </Box>
+              );
+            }}
+            filterSelectedOptions
+            popupIcon={<ChevronDown size={16} />}
+            renderInput={(params: AutocompleteRenderInputParams) => (
+              <TextField
+                {...params}
+                placeholder="Select use cases"
+                required
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    minHeight: "34px",
+                    height: "auto",
+                    alignItems: "flex-start",
+                    paddingY: "3px !important",
+                    flexWrap: "wrap",
+                    gap: "2px",
                   },
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    border: "none",
+                  "& ::placeholder": {
+                    fontSize: "13px",
                   },
-                  "&.Mui-focused": {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      border: "none",
-                    },
-                  },
-                },
-                "& .MuiAutocomplete-tag": {
-                  margin: "2px",
-                  maxWidth: "calc(100% - 25px)",
-                  "& .MuiChip-label": {
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  },
-                },
-                "& .MuiChip-root": {
-                  borderRadius: "4px",
-                },
-                border: errors.projectIds
-                  ? `1px solid #f04438`
-                  : `1px solid ${theme.palette.border.dark}`,
+                }}
+              />
+            )}
+            sx={{
+              ...getAutocompleteStyles(theme, { hasError: !!errors.projectIds }),
+              width: "100%",
+              backgroundColor: theme.palette.background.main,
+              "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.projectIds })["& .MuiOutlinedInput-root"],
                 borderRadius: "3px",
-                opacity: errors.projectIds ? 0.8 : 1,
-              }}
-              slotProps={{
-                paper: {
-                  sx: {
-                    "& .MuiAutocomplete-listbox": {
-                      "& .MuiAutocomplete-option": {
-                        fontSize: "13px",
-                        color: "#1c2130",
-                        paddingLeft: "9px",
-                        paddingRight: "9px",
-                      },
-                      "& .MuiAutocomplete-option.Mui-focused": {
-                        background: "#f9fafb",
-                      },
-                    },
-                    "& .MuiAutocomplete-noOptions": {
+                overflowY: "auto",
+                flexWrap: "wrap",
+                maxHeight: "115px",
+                alignItems: "flex-start",
+              },
+              "& .MuiAutocomplete-tag": {
+                margin: "2px",
+                maxWidth: "calc(100% - 25px)",
+                "& .MuiChip-label": {
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                },
+              },
+              "& .MuiChip-root": {
+                borderRadius: "4px",
+              },
+              borderRadius: "3px",
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  "& .MuiAutocomplete-listbox": {
+                    "& .MuiAutocomplete-option": {
                       fontSize: "13px",
+                      color: "#1c2130",
                       paddingLeft: "9px",
                       paddingRight: "9px",
                     },
+                    "& .MuiAutocomplete-option.Mui-focused": {
+                      background: "#f9fafb",
+                    },
+                  },
+                  "& .MuiAutocomplete-noOptions": {
+                    fontSize: "13px",
+                    paddingLeft: "9px",
+                    paddingRight: "9px",
                   },
                 },
-              }}
-            />
-            {errors.projectIds && (
-              <Typography
-                color="error"
-                variant="caption"
-                sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
-              >
-                {errors.projectIds}
-              </Typography>
-            )}
-          </Stack>
-          <Stack
-            direction={"row"}
-            justifyContent={"space-between"}
-            gap={theme.spacing(8)}
-            mt={theme.spacing(8)}
-          >
-            <Field // vendorContactPerson
-              label="Vendor contact person"
-              width={220}
-              value={values.vendorDetails.vendorContactPerson}
-              onChange={(e) =>
-                handleOnChange("vendorContactPerson", e.target.value)
-              }
-              error={errors.vendorContactPerson}
-              isRequired
-              disabled={isEditingDisabled}
-            />
-            <Select // assignee (not in the server model!)
-              items={formattedUsers}
-              label="Assignee"
-              placeholder="Select person"
-              isHidden={false}
-              id=""
-              onChange={(e) => handleOnChange("assignee", e.target.value)}
-              value={values.vendorDetails.assignee}
-              sx={{
-                width: 220,
-              }}
-              error={errors.assignee}
-              isRequired
-              disabled={isEditingDisabled}
-            />
-          </Stack>
+              },
+            }}
+          />
+          {errors.projectIds && (
+            <Typography
+              color="error"
+              variant="caption"
+              sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
+            >
+              {errors.projectIds}
+            </Typography>
+          )}
         </Stack>
-      </Stack>
-      <Stack marginBottom={theme.spacing(8)}>
-        <Field // vendorProvides
-          label="What does the vendor provide?"
-          width={"100%"}
-          type="description"
-          value={values.vendorDetails.vendorProvides}
-          onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
-          error={errors.vendorProvides}
-          isRequired
-          disabled={isEditingDisabled}
-          placeholder="Describe the products or services this vendor delivers (e.g., cloud hosting, legal advisory, AI APIs)."
-          rows={2}
-        />
       </Stack>
       <Stack
         direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
+        spacing={6}
+      >
+        <Field // website
+          label="Website"
+          width={220}
+          value={values.website}
+          onChange={(e) => handleOnChange("website", e.target.value)}
+          error={errors.website}
+          isRequired
+          disabled={isEditingDisabled}
+          placeholder="Enter vendor website"
+        />
+        <Field // vendorContactPerson
+          label="Vendor contact person"
+          width={220}
+          value={values.vendorContactPerson}
+          onChange={(e) =>
+            handleOnChange("vendorContactPerson", e.target.value)
+          }
+          error={errors.vendorContactPerson}
+          isRequired
+          disabled={isEditingDisabled}
+        />
+        <Select // assignee (not in the server model!)
+          items={formattedUsers}
+          label="Assignee"
+          placeholder="Select person"
+          isHidden={false}
+          id=""
+          onChange={(e) => handleOnChange("assignee", Number(e.target.value))}
+          value={values.assignee !== null ? values.assignee : ""}
+          sx={{
+            width: 220,
+          }}
+          error={errors.assignee}
+          isRequired
+          disabled={isEditingDisabled}
+        />
+      </Stack>
+      <Field // vendorProvides
+        label="What does the vendor provide?"
+        width={686}
+        type="description"
+        value={values.vendorProvides}
+        onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
+        error={errors.vendorProvides}
+        isRequired
+        disabled={isEditingDisabled}
+        placeholder="Describe the products or services this vendor delivers (e.g., cloud hosting, legal advisory, AI APIs)."
+        rows={2}
+      />
+      <Stack
+        direction={"row"}
+        spacing={6}
       >
         <Select // reviewStatus
           items={REVIEW_STATUS_OPTIONS}
@@ -712,12 +693,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           isHidden={false}
           id=""
           onChange={(e) => handleOnChange("reviewStatus", e.target.value)}
-          value={values.vendorDetails.reviewStatus}
+          value={values.reviewStatus}
           sx={{
             width: 220,
           }}
           error={errors.reviewStatus}
-          isRequired
           disabled={isEditingDisabled}
         />
         <Select // reviewer
@@ -726,48 +706,242 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           placeholder="Select reviewer"
           isHidden={false}
           id=""
-          onChange={(e) => handleOnChange("reviewer", e.target.value)}
-          value={values.vendorDetails.reviewer}
+          onChange={(e) => handleOnChange("reviewer", Number(e.target.value))}
+          value={values.reviewer !== null ? values.reviewer : ""}
           error={errors.reviewer}
           sx={{
             width: 220,
           }}
-          isRequired
           disabled={isEditingDisabled}
         />
-        <DatePicker // reviewDate
-          label="Review date"
-          sx={{
-            width: 220,
-          }}
-          date={
-            values.vendorDetails.reviewDate
-              ? dayjs(values.vendorDetails.reviewDate)
-              : dayjs(new Date())
-          }
-          handleDateChange={handleDateChange}
-          isRequired
-          disabled={isEditingDisabled}
-        />
+        <Stack sx={{ width: 220 }}>
+          <DatePicker // reviewDate
+            label="Review date"
+            sx={{
+              width: "100%",
+            }}
+            date={
+              values.reviewDate
+                ? dayjs(values.reviewDate)
+                : dayjs(new Date())
+            }
+            handleDateChange={handleDateChange}
+            disabled={isEditingDisabled}
+          />
+        </Stack>
       </Stack>
-      <Stack
-        display={"flex"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-        flexDirection={"row"}
-      >
-        <Field // reviewResult
-          label="Review result"
-          width={"100%"}
-          type="description"
-          value={values.vendorDetails.reviewResult}
-          error={errors.reviewResult}
-          onChange={(e) => handleOnChange("reviewResult", e.target.value)}
-          isRequired
-          disabled={isEditingDisabled}
-          placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
-          rows={2}
-        />
+      <Field // reviewResult
+        label="Review result"
+        width={686}
+        type="description"
+        value={values.reviewResult}
+        error={errors.reviewResult}
+        onChange={(e) => handleOnChange("reviewResult", e.target.value)}
+        disabled={isEditingDisabled}
+        placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
+        rows={2}
+      />
+      
+      {/* Vendor Scorecard Section */}
+      <Stack spacing={2} sx={{ width: 686 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            cursor: "pointer",
+            padding: theme.spacing(2),
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: "4px",
+            backgroundColor: theme.palette.grey[50],
+            "&:hover": {
+              backgroundColor: theme.palette.grey[100],
+            },
+          }}
+          onClick={() => setIsScorecardExpanded(!isScorecardExpanded)}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Vendor scorecard (advanced)
+            </Typography>
+            <EnhancedTooltip
+              title="Vendor Risk Score Calculation"
+              content={
+                <>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "rgba(255, 255, 255, 0.85)",
+                      fontSize: "13px",
+                      lineHeight: 1.6,
+                      mb: 2,
+                    }}
+                  >
+                    The risk score is calculated using a weighted formula:
+                  </Typography>
+                  <Box
+                    sx={{
+                      backgroundColor: "rgba(255, 255, 255, 0.05)",
+                      borderRadius: "4px",
+                      padding: "12px",
+                      mb: 2,
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: "#16C784",
+                        fontSize: "12px",
+                        lineHeight: 1.8,
+                      }}
+                    >
+                      Risk Score = <br />
+                      &nbsp;&nbsp;(Data Sensitivity × 30%) +<br />
+                      &nbsp;&nbsp;(Business Criticality × 30%) +<br />
+                      &nbsp;&nbsp;(Past Issues × 20%) +<br />
+                      &nbsp;&nbsp;(Regulatory Exposure × 20%)
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "rgba(255, 255, 255, 0.7)",
+                      fontSize: "12px",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Each factor is normalized to a 0-1 scale before applying weights. The final score ranges from 0% (lowest risk) to 100% (highest risk).
+                  </Typography>
+                </>
+              }
+            >
+              <Typography
+                component="span"
+                onClick={(e) => e.stopPropagation()}
+                sx={{
+                  fontSize: "12px",
+                  color: theme.palette.primary.main,
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  ml: "auto",
+                  mr: 2,
+                  "&:hover": {
+                    color: theme.palette.primary.dark,
+                  },
+                }}
+              >
+                How is this calculated?
+              </Typography>
+            </EnhancedTooltip>
+            {(values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) && (() => {
+              const riskScore = calculateVendorRiskScore({
+                data_sensitivity: values.dataSensitivity || undefined,
+                business_criticality: values.businessCriticality || undefined,
+                past_issues: values.pastIssues || undefined,
+                regulatory_exposure: values.regulatoryExposure || undefined,
+              });
+              const riskColor = getRiskScoreColor(riskScore);
+              
+              return (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    backgroundColor: `${riskColor}20`,
+                    border: `1px solid ${riskColor}`,
+                    minWidth: "50px",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      backgroundColor: riskColor,
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ fontSize: "11px", fontWeight: 500, color: riskColor }}>
+                    {riskScore}%
+                  </Typography>
+                </Box>
+              );
+            })()}
+          </Box>
+          {isScorecardExpanded ? (
+            <ChevronUp size={16} style={{ color: theme.palette.text.tertiary }} />
+          ) : (
+            <ChevronDown size={16} style={{ color: theme.palette.text.tertiary }} />
+          )}
+        </Box>
+        
+        {isScorecardExpanded && (
+          <Stack spacing={6}>
+            <Stack direction="row" spacing={6}>
+              <Box sx={{ flex: 1 }}>
+                <Select
+                  items={DATA_SENSITIVITY_OPTIONS}
+                  label="Data sensitivity"
+                  placeholder="Select data sensitivity level"
+                  isHidden={false}
+                  id="dataSensitivity"
+                  onChange={(e) => handleOnChange("dataSensitivity", e.target.value)}
+                  value={values.dataSensitivity}
+                  sx={{ width: "100%" }}
+                  error={errors.dataSensitivity}
+                  disabled={isEditingDisabled}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Select
+                  items={BUSINESS_CRITICALITY_OPTIONS}
+                  label="Business criticality"
+                  placeholder="Select business criticality"
+                  isHidden={false}
+                  id="businessCriticality"
+                  onChange={(e) => handleOnChange("businessCriticality", e.target.value)}
+                  value={values.businessCriticality}
+                  sx={{ width: "100%" }}
+                  error={errors.businessCriticality}
+                  disabled={isEditingDisabled}
+                />
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={6}>
+              <Box sx={{ flex: 1 }}>
+                <Select
+                  items={PAST_ISSUES_OPTIONS}
+                  label="Past issues"
+                  placeholder="Select past issues level"
+                  isHidden={false}
+                  id="pastIssues"
+                  onChange={(e) => handleOnChange("pastIssues", e.target.value)}
+                  value={values.pastIssues}
+                  sx={{ width: "100%" }}
+                  error={errors.pastIssues}
+                  disabled={isEditingDisabled}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Select
+                  items={REGULATORY_EXPOSURE_OPTIONS}
+                  label="Regulatory exposure"
+                  placeholder="Select regulatory exposure"
+                  isHidden={false}
+                  id="regulatoryExposure"
+                  onChange={(e) => handleOnChange("regulatoryExposure", e.target.value)}
+                  value={values.regulatoryExposure}
+                  sx={{ width: "100%" }}
+                  error={errors.regulatoryExposure}
+                  disabled={isEditingDisabled}
+                />
+              </Box>
+            </Stack>
+          </Stack>
+        )}
+      </Stack>
       </Stack>
     </TabPanel>
   );
@@ -788,92 +962,81 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-      <Modal
-        open={isOpen}
-        onClose={(_event, reason) => {
-          if (reason !== "backdropClick") {
-            setValues(initialState);
-            setIsOpen(false);
+      <StandardModal
+        isOpen={isOpen}
+        onClose={() => {
+          setValues(initialState);
+          setIsHistorySidebarOpen(false);
+          // Invalidate history cache to get fresh data on next open
+          if (existingVendor?.id) {
+            queryClient.invalidateQueries({ queryKey: ["changeHistory", "vendor", existingVendor.id] });
           }
+          setIsOpen(false);
         }}
-        sx={{ overflowY: "scroll" }}
+        title={existingVendor ? "Edit vendor" : "Add new vendor"}
+        description={
+          existingVendor
+            ? "Update vendor details including products/services provided, contact information, and review status."
+            : "Use this form to register a new vendor. Include details about what they provide, who is responsible, and the outcome of your review. Provide enough details so your team can assess risks, responsibilities, and compliance requirements."
+        }
+        onSubmit={handleSave}
+        submitButtonText="Save"
+        isSubmitting={isSubmitting || isEditingDisabled}
+        maxWidth={isHistorySidebarOpen ? "1074px" : "734px"}
+        headerActions={
+          existingVendor ? (
+            <Tooltip title="View activity history" arrow>
+              <IconButton
+                onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
+                size="small"
+                sx={{
+                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
+                  "&:hover": {
+                    backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
+                  },
+                }}
+              >
+                <HistoryIcon size={20} />
+              </IconButton>
+            </Tooltip>
+          ) : undefined
+        }
       >
         <Stack
-          gap={theme.spacing(2)}
-          color={theme.palette.text.secondary}
-          onClick={(e) => e.stopPropagation()}
+          direction="row"
           sx={{
-            backgroundColor: "#D9D9D9",
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 800,
-            maxHeight: "80vh",
-            display: "flex",
-            flexDirection: "column",
-            bgcolor: theme.palette.background.modal,
-            border: 1,
-            borderColor: theme.palette.border,
-            borderRadius: theme.shape.borderRadius,
-            boxShadow: 24,
-            p: theme.spacing(15),
-            "&:focus": {
-              outline: "none",
-            },
+            width: "100%",
+            minHeight: 0,
+            alignItems: "flex-start",
+            overflow: "hidden",
+            position: "relative"
           }}
         >
-          <Stack
-            display={"flex"}
-            flexDirection={"row"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-          >
-            <Typography
-              fontSize={16}
-              fontWeight={600}
-              marginBottom={theme.spacing(5)}
-            >
-              {existingVendor ? "Edit vendor" : "Add new vendor"}
-            </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
-          </Stack>
-          {!existingVendor && (
-            <Typography
-              fontSize={13}
-              color={theme.palette.text.secondary}
-              marginBottom={theme.spacing(4)}
-              sx={{ lineHeight: 1.4 }}
-            >
-              Use this form to register a new vendor. Include details about what they provide, who is responsible, and the outcome of your review. Provide enough details so your team can assess risks, responsibilities, and compliance requirements.
-            </Typography>
-          )}
-          <Box
-            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(4) }}
-          >
+          {/* Main Content */}
+          <Box sx={{
+            flex: 1,
+            minWidth: 0,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "auto"
+          }}>
             <TabContext value={value}>{vendorDetailsPanel}</TabContext>
           </Box>
-          <Stack
-            sx={{
-              alignItems: "flex-end",
-              marginTop: "auto",
-            }}
-          >
-            <CustomizableButton
-              variant="contained"
-              text="Save"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleSave}
-              icon={<SaveIconSVGWhite />}
-              isDisabled={isEditingDisabled}
+
+          {/* History Sidebar - Embedded */}
+          {existingVendor && (
+            <HistorySidebar
+              isOpen={isHistorySidebarOpen}
+              entityType="vendor"
+              entityId={existingVendor.id!}
             />
-          </Stack>
+          )}
         </Stack>
-      </Modal>
+      </StandardModal>
     </Stack>
   );
 };

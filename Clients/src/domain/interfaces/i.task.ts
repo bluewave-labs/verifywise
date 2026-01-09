@@ -39,3 +39,20 @@ export interface TaskFilters {
   assignee: "all" | string;
   category: "all" | string;
 }
+
+export interface ICreateTaskFormValues {
+  title: string;
+  description: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  due_date: string;
+  assignees: Array<{
+    id: number;
+    name: string;
+    surname: string;
+    email: string;
+  }>;
+  categories: string[];
+}
+
+// Note: ICreateTaskProps and ICreateTaskFormErrors have been moved to: presentation/types/interfaces/i.task.ts

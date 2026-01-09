@@ -78,7 +78,6 @@ export const modalDoneButtonStyle: SxProps<Theme> = {
   backgroundColor: '#13715B',
   color: '#fff',
   border: '1px solid #13715B',
-  fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
   '&:hover': {
     backgroundColor: '#10614d',
   },

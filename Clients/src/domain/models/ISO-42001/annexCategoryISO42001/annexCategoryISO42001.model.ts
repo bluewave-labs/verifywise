@@ -5,7 +5,7 @@ export class AnnexCategoryISO42001Model {
   is_applicable?: boolean;
   justification_for_exclusion?: string;
   implementation_description?: string;
-  evidence_links?: Object[];
+  evidence_links?: object[];
   status?: Status;
   owner?: number;
   reviewer?: number;

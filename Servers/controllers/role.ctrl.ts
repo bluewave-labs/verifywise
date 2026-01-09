@@ -38,10 +38,11 @@ import {
 import { sequelize } from "../database/db";
 import { RoleModel } from "../domain.layer/models/role/role.model";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
-import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import {
-  validateRoleIdParam
-} from '../utils/validations/roleValidation.utils';
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
 
 /**
  * Retrieves all roles from the system
@@ -66,7 +67,7 @@ import {
  *   ]
  * }
  */
-export async function getAllRoles(req: Request, res: Response): Promise<any> {
+export async function getAllRoles(_req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllRoles",
     functionName: "getAllRoles",
@@ -127,23 +128,6 @@ export async function getAllRoles(req: Request, res: Response): Promise<any> {
  */
 export async function getRoleById(req: Request, res: Response): Promise<any> {
   const roleId = parseInt(req.params.id);
-
-  // Validate role ID parameter
-  const roleIdValidation = validateRoleIdParam(roleId);
-  if (!roleIdValidation.isValid) {
-    await logFailure({
-      eventType: "Read",
-      description: `Invalid role ID parameter: ${req.params.id}`,
-      functionName: "getRoleById",
-      fileName: "role.ctrl.ts",
-      error: new Error(roleIdValidation.message || 'Invalid role ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: roleIdValidation.message || 'Invalid role ID',
-      code: roleIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logProcessing({
     description: `starting getRoleById for ID ${roleId}`,
@@ -230,7 +214,10 @@ export async function createRole(req: Request, res: Response): Promise<any> {
   try {
     const newRole = req.body;
 
-    const roleObj = await RoleModel.createRole(newRole.name, newRole.description);
+    const roleObj = await RoleModel.createRole(
+      newRole.name,
+      newRole.description
+    );
     const createdRole = await createNewRoleQuery(roleObj, transaction);
 
     if (createdRole) {
@@ -251,7 +238,7 @@ export async function createRole(req: Request, res: Response): Promise<any> {
       description: "Role creation returned null",
       functionName: "createRole",
       fileName: "role.ctrl.ts",
-      error: new Error("Role creation returned null")
+      error: new Error("Role creation returned null"),
     });
 
     return res.status(503).json(STATUS_CODE[503]({}));
@@ -312,7 +299,10 @@ export async function createRole(req: Request, res: Response): Promise<any> {
  *   }
  * }
  */
-export async function updateRoleById(req: Request, res: Response): Promise<any> {
+export async function updateRoleById(
+  req: Request,
+  res: Response
+): Promise<any> {
   const transaction = await sequelize.transaction();
   const roleId = parseInt(req.params.id);
 
@@ -398,7 +388,10 @@ export async function updateRoleById(req: Request, res: Response): Promise<any> 
  *   }
  * }
  */
-export async function deleteRoleById(req: Request, res: Response): Promise<any> {
+export async function deleteRoleById(
+  req: Request,
+  res: Response
+): Promise<any> {
   const transaction = await sequelize.transaction();
   const roleId = parseInt(req.params.id);
 

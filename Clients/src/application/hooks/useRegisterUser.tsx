@@ -39,16 +39,19 @@ const useRegisterUser = () => {
     values: FormValues;
     user: RegisterUser;
     setIsSubmitting: (value: boolean) => void;
-  }) => {
+  }, userToken: string | null) => {
     try {
        const response = await createNewUser({
         userData: { ...values, role_id: user.roleId || 1 },
+      }, {
+        Authorization: `Bearer ${userToken || ""}`,
       });
       handleApiResponse({ response, user, setIsSubmitting });
       return {
         isSuccess: response.status,
+        response: response,
       };
-    } catch (error) {
+    } catch (error: any) {
       logEngine({
         type: "error",
         message: `An error occurred: ${
@@ -57,7 +60,8 @@ const useRegisterUser = () => {
       });
       setIsSubmitting(false);
       return {
-        isSuccess: false,
+        isSuccess: error.status || false,
+        response: error,
       };
     }
   };

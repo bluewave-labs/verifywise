@@ -1,0 +1,35 @@
+name: Security Incident Report
+description: Log and track a security incident
+title: "[Incident]: <brief description>"
+labels: ["security", "incident"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened and how it was detected?
+  - type: input
+    id: detected_at
+    attributes:
+      label: Detection Time
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Low
+        - Medium
+        - High
+  - type: textarea
+    id: actions
+    attributes:
+      label: Containment Actions
+  - type: textarea
+    id: resolution
+    attributes:
+      label: Resolution and Recovery Steps
+  - type: textarea
+    id: lessons
+    attributes:
+      label: Lessons Learned / Preventive Measures
+  

@@ -4,8 +4,9 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker as MuiDatePicker } from "@mui/x-date-pickers/DatePicker";
 import "./index.css";
 import dayjs from "dayjs";
-import { DatePickerProps } from "../../../../domain/interfaces/iWidget";
+import { DatePickerProps } from "../../../types/widget.types";
 import { DatePickerStyle } from "./style";
+import { getDatePickerStyles } from "../../../utils/inputStyles";
 
 const DatePicker = ({
   label,
@@ -20,27 +21,25 @@ const DatePicker = ({
 }: DatePickerProps) => {
   const theme = useTheme();
 
+  // Extract width, flexGrow, minWidth, maxWidth from sx prop to apply to wrapper Stack
+  const extractedLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? {
+        width: (sx as any).width,
+        flexGrow: (sx as any).flexGrow,
+        minWidth: (sx as any).minWidth,
+        maxWidth: (sx as any).maxWidth,
+      }
+    : {};
+
+  // Create a copy of sx without layout props to pass to MuiDatePicker
+  const sxWithoutLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? Object.fromEntries(Object.entries(sx).filter(([key]) => !['width', 'flexGrow', 'minWidth', 'maxWidth'].includes(key)))
+    : sx;
+
   return (
     <Stack
       gap={theme.spacing(2)}
-      sx={{
-        "& fieldset": {
-          borderColor: theme.palette.border.dark,
-          borderRadius: theme.shape.borderRadius,
-        },
-        "&:not(:has(.Mui-disabled)):not(:has(.input-error)) .MuiOutlinedInput-root:hover:not(:has(input:focus)):not(:has(textarea:focus)) fieldset":
-          {
-            borderColor: theme.palette.border.dark,
-          },
-        "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
-          border: error
-            ? `1px solid ${theme.palette.status.error.border}!important`
-            : `1px solid ${theme.palette.border.dark}!important`,
-        },
-        ".Mui-focused .MuiOutlinedInput-notchedOutline": {
-          border: `1px solid ${theme.palette.border.dark}!important`,
-        },
-      }}
+      sx={extractedLayoutProps}
     >
       {label && (
         <Typography
@@ -79,11 +78,15 @@ const DatePicker = ({
         </Typography>
       )}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <MuiDatePicker        
+        <MuiDatePicker
           className="mui-date-picker"
           sx={{
             ...DatePickerStyle,
-            ...sx,
+            ...getDatePickerStyles(theme, { hasError: !!error }),
+            '& .MuiInputBase-root': {
+              cursor: 'pointer',
+            },
+            ...sxWithoutLayoutProps,
           }}
           value={date ? dayjs(date) : null}
           onChange={(value) => handleDateChange(value)}

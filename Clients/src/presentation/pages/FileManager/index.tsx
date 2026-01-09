@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Stack, Box, Typography } from "@mui/material";
+import { Upload as UploadIcon } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -8,12 +9,31 @@ import CustomizableSkeleton from "../../components/Skeletons";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
 import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
+import { getUserFilesMetaData } from "../../../application/repository/file.repository";
+import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
-import Select from "../../components/Inputs/Select";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
+import { FileModel } from "../../../domain/models/Common/file/file.model";
 import PageHeader from "../../components/Layout/PageHeader";
+import CustomizableButton from "../../components/Button/CustomizableButton";
+import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
+import { secureLogError } from "../../../application/utils/secureLogger.utils"; // SECURITY: No PII
+import { useAuth } from "../../../application/hooks/useAuth"; // RBAC
+import TipBox from "../../components/TipBox";
+import { SearchBox } from "../../components/Search";
+import { GroupBy } from "../../components/Table/GroupBy";
+import {
+  useTableGrouping,
+  useGroupByState,
+} from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
+
+// Constants (DRY + Maintainability)
+const FILE_MANAGER_CONTEXT = "FileManager";
+const AUDITOR_ROLE = "Auditor"; // Role that cannot upload files
 
 const COLUMN_NAMES = [
   "File",
@@ -46,29 +66,214 @@ const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [runFileTour, setRunFileTour] = useState(false);
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  // Fetch projects for the dropdown
+  // Fetch projects for the dropdown options
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
 
-  // State for selected project
-  const [selectedProject, setSelectedProject] = useState<
-    string | number | null
-  >("all");
+  // Use hook for initial data load (keeps hook unchanged as requested)
+  const { filesData: initialFilesData, loading: initialLoading } =
+    useUserFilesMetaData();
 
-  // Fetch files based on selected project
-  const { filesData, loading: loadingFiles } = useUserFilesMetaData();
+  // Local state to manage files (allows manual refresh)
+  const [filesData, setFilesData] = useState<FileModel[]>([]);
+  const [loadingFiles, setLoadingFiles] = useState(initialLoading);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  // Sync initial data from hook to local state (always sync, even if empty)
+  useEffect(() => {
+    setFilesData(initialFilesData);
+    setLoadingFiles(initialLoading);
+  }, [initialFilesData, initialLoading]);
+
+  // RBAC: Get user role for permission checks
+  const { userRoleName } = useAuth();
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // REQUIREMENT: "Upload allowed for all users except Auditors"
+  // SECURITY: Default-deny - require authenticated role that is not Auditor
+  // Note: Server-side must also enforce this to prevent authorization bypass via direct API calls
+  const isUploadAllowed =
+    Boolean(userRoleName) && userRoleName !== AUDITOR_ROLE;
+
+  // Manual refetch function (KISS: direct repository call with shared transform utility - DRY)
+  const refetch = useCallback(async () => {
+    try {
+      setLoadingFiles(true);
+      const response = await getUserFilesMetaData();
+      setFilesData(transformFilesData(response));
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      // SECURITY FIX: Use secure logger (no PII leak) instead of logEngine
+      //  includes user ID/email/name which violates GDPR/compliance
+      secureLogError("Error refetching files", FILE_MANAGER_CONTEXT);
+      setFilesData([]);
+    } finally {
+      setLoadingFiles(false);
+    }
+  }, []);
+
+  // Handle upload button click (Defensive: Check permissions)
+  const handleUploadClick = useCallback(() => {
+    // Defensive: Double-check permission before opening modal
+    if (!isUploadAllowed) {
+      console.warn(
+        "[FileManager] Upload attempt by unauthorized role:",
+        userRoleName
+      );
+      return;
+    }
+    setIsUploadModalOpen(true);
+  }, [isUploadAllowed, userRoleName]);
+
+  // Handle upload success - refetch files
+  const handleUploadSuccess = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // Handle file deleted - refetch files
+  const handleFileDeleted = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // FilterBy - Dynamic options generators
+  const getUniqueProjects = useCallback(() => {
+    const projectIds = new Set<string>();
+    filesData.forEach((file) => {
+      if (file.projectId) {
+        projectIds.add(file.projectId.toString());
+      }
+    });
+    return Array.from(projectIds)
+      .map((projectId) => {
+        const project = projects.find(
+          (p: Project) => p.id.toString() === projectId
+        );
+        return {
+          value: projectId,
+          label: project?.project_title || `Project ${projectId}`,
+        };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [filesData, projects]);
+
+  const getUniqueUploaders = useCallback(() => {
+    const uploaders = new Set<string>();
+    filesData.forEach((file) => {
+      if (file.uploaderName || file.uploader) {
+        uploaders.add(file.uploaderName || file.uploader || "");
+      }
+    });
+    return Array.from(uploaders)
+      .filter(Boolean)
+      .sort()
+      .map((uploader) => ({
+        value: uploader,
+        label: uploader,
+      }));
+  }, [filesData]);
+
+  // FilterBy - Filter columns configuration
+  const fileFilterColumns: FilterColumn[] = useMemo(
+    () => [
+      {
+        id: "fileName",
+        label: "File name",
+        type: "text" as const,
+      },
+      {
+        id: "projectId",
+        label: "Use case",
+        type: "select" as const,
+        options: getUniqueProjects(),
+      },
+      {
+        id: "uploader",
+        label: "Uploader",
+        type: "select" as const,
+        options: getUniqueUploaders(),
+      },
+      {
+        id: "uploadDate",
+        label: "Upload date",
+        type: "date" as const,
+      },
+    ],
+    [getUniqueProjects, getUniqueUploaders]
+  );
+
+  // FilterBy - Field value getter
+  const getFileFieldValue = useCallback(
+    (
+      item: FileModel,
+      fieldId: string
+    ): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case "fileName":
+          return item.fileName;
+        case "projectId":
+          return item.projectId?.toString();
+        case "uploader":
+          return item.uploaderName || item.uploader;
+        case "uploadDate":
+          return item.uploadDate;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook
+  const {
+    filterData: filterFileData,
+    handleFilterChange: handleFileFilterChange,
+  } = useFilterBy<FileModel>(getFileFieldValue);
+
+  // Filter files using FilterBy and search
   const filteredFiles = useMemo(() => {
-    if (selectedProject === "all" || selectedProject === null) {
-      return filesData;
+    // First apply FilterBy conditions
+    let result = filterFileData(filesData);
+
+    // Apply search filter last
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      result = result.filter((file) =>
+        file.fileName?.toLowerCase().includes(query)
+      );
     }
 
-    return filesData.filter((file) => file.projectId === selectedProject);
-  }, [filesData, selectedProject]);
+    return result;
+  }, [filterFileData, filesData, searchTerm]);
+
+  // Define how to get the group key for each file
+  const getFileGroupKey = useCallback(
+    (file: FileModel, field: string): string => {
+      switch (field) {
+        case "project":
+          return file.projectTitle || "No Project";
+        case "uploader":
+          return file.uploaderName || file.uploader || "Unknown";
+        default:
+          return "Other";
+      }
+    },
+    []
+  );
+
+  // Apply grouping to filtered files
+  const groupedFiles = useTableGrouping({
+    data: filteredFiles,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getFileGroupKey,
+  });
 
   const boxStyles = useMemo(
     () => ({
@@ -98,42 +303,8 @@ const FileManager: React.FC = (): JSX.Element => {
         }}
         tourKey="file-tour"
       />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Evidences & documents"
-        description="Centralize compliance documentation and audit evidence management"
-        whatItDoes="Store and organize all **governance documentation**, *audit evidence*, and **compliance artifacts**. Track *document versions*, maintain **chain of custody**, and ensure easy retrieval during audits."
-        whyItMatters="Proper **evidence management** is critical for demonstrating *compliance* during **audits** and *regulatory reviews*. It provides a **single source of truth** for documentation and ensures *evidence integrity* throughout its lifecycle."
-        quickActions={[
-          {
-            label: "Upload Evidence",
-            description: "Add new compliance documents or audit evidence to the repository",
-            primary: true
-          },
-          {
-            label: "Download Reports",
-            description: "Export evidence packages for auditors and stakeholders"
-          }
-        ]}
-        useCases={[
-          "**Audit evidence collection** including *policies*, *procedures*, and **control test results**",
-          "**Compliance certificates** and *third-party assessment reports* from vendors"
-        ]}
-        keyFeatures={[
-          "**Secure document storage** with *version control* and **access tracking**",
-          "**Metadata tagging** for easy *search and retrieval* during audits",
-          "**Integration** with project management for *context-aware evidence organization*"
-        ]}
-        tips={[
-          "Maintain **consistent naming conventions** to simplify *evidence retrieval*",
-          "Tag documents with *relevant frameworks* and **controls** for better organization",
-          "**Regular archival** of outdated documents helps maintain a *clean repository*"
-        ]}
-      />
-      <FileManagerHeader
-        onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-      />
+      <FileManagerHeader />
+      <TipBox entityName="file-manager" />
       {/* Project filter dropdown */}
       {loadingProjects || loadingFiles ? (
         <>
@@ -145,30 +316,73 @@ const FileManager: React.FC = (): JSX.Element => {
         </>
       ) : (
         <Stack gap={"16px"}>
-          <Box sx={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
-            <Select
-              id="project-filter"
-              value={selectedProject || "all"}
-              items={[
-                { _id: "all", name: "All projects" },
-                ...projects.map((project: Project) => ({
-                  _id: project.id.toString(),
-                  name: project.project_title,
-                }))
-              ]}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              sx={{
-                width: "fit-content",
-                minWidth: "200px",
-                height: "34px",
-                bgcolor: "#fff",
-              }}
-            />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+              gap: 2,
+            }}
+          >
+            <Box
+              sx={{ display: "flex", gap: 2, flex: 1, alignItems: "center" }}
+            >
+              <FilterBy
+                columns={fileFilterColumns}
+                onFilterChange={handleFileFilterChange}
+              />
+              <GroupBy
+                options={[
+                  { id: "project", label: "Project" },
+                  { id: "uploader", label: "Uploader" },
+                ]}
+                onGroupChange={handleGroupChange}
+              />
+              <SearchBox
+                placeholder="Search files by name..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                inputProps={{ "aria-label": "Search files" }}
+                fullWidth={false}
+              />
+            </Box>
+            {/* RBAC: Only show upload button for non-Auditors */}
+            {isUploadAllowed && (
+              <CustomizableButton
+                variant="contained"
+                text="Upload new file"
+                sx={{
+                  gap: 2,
+                }}
+                icon={<UploadIcon size={16} />}
+                onClick={handleUploadClick}
+              />
+            )}
           </Box>
           <Box sx={boxStyles}>
-            <FileTable cols={COLUMNS} files={filteredFiles} />
+            <GroupedTableView
+              groupedData={groupedFiles}
+              ungroupedData={filteredFiles}
+              renderTable={(data, options) => (
+                <FileTable
+                  cols={COLUMNS}
+                  files={data}
+                  onFileDeleted={handleFileDeleted}
+                  hidePagination={options?.hidePagination}
+                />
+              )}
+            />
           </Box>
         </Stack>
+      )}
+      {/* Upload Modal */}
+      {isUploadModalOpen && (
+        <FileManagerUploadModal
+          open={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          onSuccess={handleUploadSuccess}
+        />
       )}
     </Stack>
   );
@@ -178,18 +392,15 @@ const FileManager: React.FC = (): JSX.Element => {
  * Header component for the FileManager.
  * Uses React.forwardRef to handle the ref passed from the parent component.
  */
-interface FileManagerHeaderProps {
-  onHelperClick?: () => void;
-}
-
-const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
-  onHelperClick,
-}) => (
+const FileManagerHeader: React.FC = () => (
   <PageHeader
-    title="Evidences & documents"
+    title="Evidence & documents"
     description="This table lists all the files uploaded to the system."
     rightContent={
-      onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />
+      <HelperIcon
+        articlePath="ai-governance/evidence-collection"
+        size="small"
+      />
     }
   />
 );

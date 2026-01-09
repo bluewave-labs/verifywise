@@ -1,22 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
   TableCell,
   Stack,
   CircularProgress,
-  SxProps,
-  Theme,
 } from "@mui/material";
 import Toggle from "../../../components/Inputs/Toggle";
 import IconButtonComponent from "../../../components/IconButton";
 import { useStyles } from "./styles";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { Modal, IconButton } from "@mui/material";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
+import StandardModal from "../../../components/Modals/StandardModal";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { useTheme } from "@mui/material/styles";
 import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
 import Alert from "../../../components/Alert";
@@ -32,17 +30,11 @@ import {
 } from "../../../../application/hooks/useAITrustCentreSubprocessorsQuery";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
-import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
-
+import { Subprocessor } from "../../../../domain/interfaces/i.aiTrustCenter";
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
-
-interface Subprocessor {
-  id: number;
-  name: string;
-  purpose: string;
-  location: string;
-  url: string;
-}
+import { GroupBy } from "../../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../../components/Table/GroupedTableView";
 
 interface FormData {
   info?: {
@@ -55,7 +47,11 @@ const SubprocessorTableRow: React.FC<{
   subprocessor: Subprocessor;
   onDelete: (id: number) => void;
   onEdit: (id: number) => void;
-}> = ({ subprocessor, onDelete, onEdit }) => {
+  sortConfig?: {
+    key: string;
+    direction: "asc" | "desc" | null;
+  };
+}> = ({ subprocessor, onDelete, onEdit, sortConfig }) => {
   const theme = useTheme();
   const styles = useStyles(theme);
 
@@ -66,23 +62,57 @@ const SubprocessorTableRow: React.FC<{
 
   return (
     <>
-      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: "pointer",
+          textTransform: "none !important",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("company name") ? "#e8e8e8" : "#fafafa",
+          maxWidth: "200px",
+          width: "200px",
+        }}
+      >
         <Typography sx={styles.tableDataCell}>{subprocessor.name}</Typography>
       </TableCell>
-      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: "pointer",
+          textTransform: "none !important",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("url") ? "#f5f5f5" : "inherit",
+        }}
+      >
         <Typography sx={styles.tableDataCell}>{subprocessor.url.replace(/^https?:\/\//, "")}</Typography>
       </TableCell>
-      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: "pointer",
+          textTransform: "none !important",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("purpose") ? "#f5f5f5" : "inherit",
+        }}
+      >
         <Typography sx={styles.tableDataCell}>
           {subprocessor.purpose}
         </Typography>
       </TableCell>
-      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer" , textTransform: "none !important",}}>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: "pointer",
+          textTransform: "none !important",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("location") ? "#f5f5f5" : "inherit",
+        }}
+      >
         <Typography sx={styles.tableDataCell}>
           {subprocessor.location}
         </Typography>
       </TableCell>
-      <TableCell>
+      <TableCell
+        sx={{
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("action") ? "#f5f5f5" : "inherit",
+        }}
+      >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconButtonComponent
             id={subprocessor.id}
@@ -116,6 +146,8 @@ const ModalField: React.FC<{
 );
 
 const AITrustCenterSubprocessors: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const {
     data: overviewData,
     isLoading: overviewLoading,
@@ -135,6 +167,9 @@ const AITrustCenterSubprocessors: React.FC = () => {
     useDeleteAITrustCentreSubprocessorMutation();
   const theme = useTheme();
   const styles = useStyles(theme);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   // State management
   const [formData, setFormData] = useState<FormData | null>(null);
@@ -176,6 +211,17 @@ const AITrustCenterSubprocessors: React.FC = () => {
       setFormData(overviewData);
     }
   }, [overviewData]);
+
+  // Handle subprocessorId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const subprocessorId = searchParams.get("subprocessorId");
+    if (subprocessorId && !hasProcessedUrlParam.current && subprocessors && subprocessors.length > 0) {
+      hasProcessedUrlParam.current = true;
+      // Use existing handleEdit function which opens the modal
+      handleEdit(parseInt(subprocessorId, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, subprocessors, setSearchParams]);
 
   // Handle field change and auto-save
   const handleFieldChange = (
@@ -265,17 +311,6 @@ const AITrustCenterSubprocessors: React.FC = () => {
     setNewSubprocessor((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Add modal key handling for ESC key support
-  useModalKeyHandling({
-    isOpen: addModalOpen,
-    onClose: handleCloseAddModal,
-  });
-
-  useModalKeyHandling({
-    isOpen: editModalOpen,
-    onClose: handleCloseEditModal,
-  });
-
   // Subprocessor operations
   const handleAddSubprocessor = async () => {
     if (
@@ -296,7 +331,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
       }
 
       // Validate URL (accept without http/https)
-      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w-]*)*(\?.*)?(#.*)?)$/i;
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+(\/[^\s?#]*)?(\?.*)?(#.*)?)$/i;
       if (!urlPattern.test(newSubprocessor.url)) {
         setEditSubprocessorError("Subprocessor URL must be a valid URL");
         return;
@@ -347,7 +382,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
       }
 
        // Validate URL (accept without http/https)
-      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w-]*)*(\?.*)?(#.*)?)$/i;
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+(\/[\w\-]*)*(\?.*)?(#.*)?)$/i;
       if (!urlPattern.test(form.url)) {
         setEditSubprocessorError("Subprocessor URL must be a valid URL");
         return;
@@ -409,6 +444,26 @@ const AITrustCenterSubprocessors: React.FC = () => {
     }
   };
 
+  // Define how to get the group key for each subprocessor
+  const getSubprocessorGroupKey = useCallback((subprocessor: Subprocessor, field: string): string => {
+    switch (field) {
+      case 'location':
+        return subprocessor.location || 'Unknown';
+      case 'purpose':
+        return subprocessor.purpose || 'Unknown';
+      default:
+        return 'Other';
+    }
+  }, []);
+
+  // Apply grouping to subprocessors
+  const groupedSubprocessors = useTableGrouping({
+    data: subprocessors || [],
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getSubprocessorGroupKey,
+  });
+
   // Show loading state
   if (overviewLoading || subprocessorsLoading) {
     return (
@@ -467,184 +522,157 @@ const AITrustCenterSubprocessors: React.FC = () => {
       <Box sx={styles.container}>
         <Box sx={styles.subprocessorsHeader}>
           <Box sx={styles.headerControls}>
-            <CustomizableButton
-              sx={styles.addButton}
-              variant="contained"
-              onClick={handleOpenAddModal}
-              isDisabled={!formData?.info?.subprocessor_visible}
-              text="Add new subprocessor"
-              icon={<AddCircleOutlineIcon />}
-            />
-            <Box sx={styles.toggleRow}>
-              <Typography sx={styles.toggleLabel}>
-                Enabled and visible
-              </Typography>
-              <Toggle
-                checked={formData?.info?.subprocessor_visible ?? false}
-                onChange={(_, checked) =>
-                  handleFieldChange("info", "subprocessor_visible", checked)
-                }
+            <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <GroupBy
+                options={[
+                  { id: 'location', label: 'Location' },
+                  { id: 'purpose', label: 'Purpose' },
+                ]}
+                onGroupChange={handleGroupChange}
+              />
+            </Box>
+            <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <Box sx={styles.toggleRow}>
+                <Typography sx={styles.toggleLabel}>
+                  Enabled and visible
+                </Typography>
+                <Toggle
+                  checked={formData?.info?.subprocessor_visible ?? false}
+                  onChange={(_, checked) =>
+                    handleFieldChange("info", "subprocessor_visible", checked)
+                  }
+                />
+              </Box>
+              <CustomizableButton
+                sx={styles.addButton}
+                variant="contained"
+                onClick={handleOpenAddModal}
+                isDisabled={!formData?.info?.subprocessor_visible}
+                text="Add new subprocessor"
+                icon={<AddCircleOutlineIcon size={16} />}
               />
             </Box>
           </Box>
         </Box>
         <Box sx={styles.tableWrapper}>
-          <AITrustCenterTable
-            data={subprocessors || []}
-            columns={TABLE_COLUMNS}
-            isLoading={subprocessorsLoading}
-            paginated={true}
-            disabled={!formData?.info?.subprocessor_visible}
-            emptyStateText="No subprocessors found. Add your first subprocessor to get started."
-            renderRow={(subprocessor) => (
-              <SubprocessorTableRow
-                key={subprocessor.id}
-                subprocessor={subprocessor}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
+          <GroupedTableView
+            groupedData={groupedSubprocessors}
+            ungroupedData={subprocessors || []}
+            renderTable={(data, options) => (
+              <AITrustCenterTable
+                data={data}
+                columns={TABLE_COLUMNS}
+                isLoading={subprocessorsLoading}
+                paginated={true}
+                disabled={!formData?.info?.subprocessor_visible}
+                emptyStateText="No subprocessors found. Add your first subprocessor to get started."
+                renderRow={(subprocessor, sortConfig) => (
+                  <SubprocessorTableRow
+                    key={subprocessor.id}
+                    subprocessor={subprocessor}
+                    onDelete={handleDelete}
+                    onEdit={handleEdit}
+                    sortConfig={sortConfig}
+                  />
+                )}
+                tableId="subprocessors-table"
+                hidePagination={options?.hidePagination}
               />
             )}
-            tableId="subprocessors-table"
           />
         </Box>
 
         {/* Edit Subprocessor Modal */}
-        <Modal
-          open={editModalOpen}
-          onClose={(_event, reason) => {
-            if (reason === "backdropClick") {
-              return; // block closing on backdrop click
-            }
-            handleCloseEditModal();
-          }}
+        <StandardModal
+          isOpen={editModalOpen}
+          onClose={handleCloseEditModal}
+          title="Edit subprocessor"
+          description="Update subprocessor company details"
+          onSubmit={handleEditSave}
+          submitButtonText="Save"
+          isSubmitting={
+            !formData?.info?.subprocessor_visible ||
+            !form.name ||
+            !form.purpose ||
+            !form.url ||
+            !form.location
+          }
         >
-          <Box sx={styles.modal}>
-            <Box sx={styles.modalHeader}>
-              <Typography sx={styles.modalTitle}>Edit subprocessor</Typography>
-              <IconButton onClick={handleCloseEditModal} sx={{ p: 0 }}>
-                <CloseGreyIcon />
-              </IconButton>
-            </Box>
-            <Stack spacing={3}>
-              <ModalField
-                label="Company name"
-                value={form.name}
-                onChange={(value) => handleFormChange("name", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="Purpose"
-                value={form.purpose}
-                onChange={(value) => handleFormChange("purpose", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="URL"
-                value={form.url}
-                onChange={(value) => handleFormChange("url", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="Location"
-                value={form.location}
-                onChange={(value) => handleFormChange("location", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <CustomizableButton
-                sx={
-                  {
-                    ...styles.modalButton,
-                    ...(formData?.info?.subprocessor_visible
-                      ? {}
-                      : styles.modalButtonDisabled),
-                  } as SxProps<Theme>
-                }
-                variant="contained"
-                onClick={handleEditSave}
-                isDisabled={
-                  !formData?.info?.subprocessor_visible ||
-                  !form.name ||
-                  !form.purpose ||
-                  !form.url ||
-                  !form.location
-                }
-                text="Edit subprocessor"
-              />
-            </Stack>
-          </Box>
-        </Modal>
+          <Stack spacing={6}>
+            <ModalField
+              label="Company name"
+              value={form.name}
+              onChange={(value) => handleFormChange("name", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="Purpose"
+              value={form.purpose}
+              onChange={(value) => handleFormChange("purpose", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="URL"
+              value={form.url}
+              onChange={(value) => handleFormChange("url", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="Location"
+              value={form.location}
+              onChange={(value) => handleFormChange("location", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+          </Stack>
+        </StandardModal>
 
         {/* Add Subprocessor Modal */}
-        <Modal
-          open={addModalOpen}
-          onClose={(_event, reason) => {
-            if (reason === "backdropClick") {
-              return; // block closing on backdrop click
-            }
-            handleCloseAddModal();
-          }}
+        <StandardModal
+          isOpen={addModalOpen}
+          onClose={handleCloseAddModal}
+          title="Add new subprocessor"
+          description="Add a new subprocessor company to your AI Trust Center"
+          onSubmit={handleAddSubprocessor}
+          submitButtonText="Add subprocessor"
+          isSubmitting={
+            !formData?.info?.subprocessor_visible ||
+            !newSubprocessor.name ||
+            !newSubprocessor.purpose ||
+            !newSubprocessor.url ||
+            !newSubprocessor.location
+          }
         >
-          <Box sx={styles.modal}>
-            <Box sx={styles.modalHeader}>
-              <Typography sx={styles.modalTitle}>
-                Add new subprocessor
-              </Typography>
-              <IconButton onClick={handleCloseAddModal} sx={{ p: 0 }}>
-                <CloseGreyIcon />
-              </IconButton>
-            </Box>
-            <Stack spacing={3}>
-              <ModalField
-                label="Company name"
-                value={newSubprocessor.name}
-                onChange={(value) => handleNewSubprocessorChange("name", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="Purpose"
-                value={newSubprocessor.purpose}
-                onChange={(value) =>
-                  handleNewSubprocessorChange("purpose", value)
-                }
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="URL"
-                value={newSubprocessor.url}
-                onChange={(value) => handleNewSubprocessorChange("url", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="Location"
-                value={newSubprocessor.location}
-                onChange={(value) =>
-                  handleNewSubprocessorChange("location", value)
-                }
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <CustomizableButton
-                sx={
-                  {
-                    ...styles.modalButton,
-                    ...(formData?.info?.subprocessor_visible
-                      ? {}
-                      : styles.modalButtonDisabled),
-                  } as SxProps<Theme>
-                }
-                variant="contained"
-                onClick={handleAddSubprocessor}
-                isDisabled={
-                  !formData?.info?.subprocessor_visible ||
-                  !newSubprocessor.name ||
-                  !newSubprocessor.purpose ||
-                  !newSubprocessor.url ||
-                  !newSubprocessor.location
-                }
-                text="Add subprocessor"
-              />
-            </Stack>
-          </Box>
-        </Modal>
+          <Stack spacing={6}>
+            <ModalField
+              label="Company name"
+              value={newSubprocessor.name}
+              onChange={(value) => handleNewSubprocessorChange("name", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="Purpose"
+              value={newSubprocessor.purpose}
+              onChange={(value) =>
+                handleNewSubprocessorChange("purpose", value)
+              }
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="URL"
+              value={newSubprocessor.url}
+              onChange={(value) => handleNewSubprocessorChange("url", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="Location"
+              value={newSubprocessor.location}
+              onChange={(value) =>
+                handleNewSubprocessorChange("location", value)
+              }
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+          </Stack>
+        </StandardModal>
       </Box>
 
       {alert && (

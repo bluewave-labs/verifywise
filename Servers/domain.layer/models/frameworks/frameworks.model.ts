@@ -2,7 +2,6 @@ import { Model, Column, DataType, Table } from "sequelize-typescript";
 import { IFramework } from "../../interfaces/i.framework";
 import {
   ValidationException,
-  BusinessLogicException,
   NotFoundException,
 } from "../../exceptions/custom.exception";
 

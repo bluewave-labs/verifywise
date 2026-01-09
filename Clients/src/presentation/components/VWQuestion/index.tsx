@@ -1,6 +1,14 @@
-import { Box, Chip, Stack, Tooltip, Typography, Dialog, useTheme } from "@mui/material";
+import {
+  Box,
+  Chip,
+  Stack,
+  Tooltip,
+  Typography,
+  Dialog,
+  useTheme,
+} from "@mui/material";
 import { Question } from "../../../domain/types/Question";
-import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
+import { Info as GreyCircleInfoIcon } from "lucide-react";
 import {
   priorities,
   PriorityLevel,
@@ -10,9 +18,9 @@ import { useCallback, useMemo, useState, useEffect, Suspense } from "react";
 import UppyUploadFile from "../Inputs/FileUpload";
 import createUppy from "../../../application/tools/createUppy";
 import Alert from "../Alert";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../types/alert.types";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import { apiServices } from "../../../infrastructure/api/networkServices";
+import { deleteQuestionEvidenceFiles } from "../../../application/repository/file.repository";
 import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
 import Button from "../Button";
@@ -22,12 +30,7 @@ import LinkedRisksPopup from "../LinkedRisks";
 import AuditRiskPopup from "../RiskPopup/AuditRiskPopup";
 import { updateEUAIActAnswerById } from "../../../application/repository/question.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-
-interface QuestionProps {
-  question: Question;
-  setRefreshKey: () => void;
-  currentProjectId: number;
-}
+import { IQuestionProps } from "../../../domain/interfaces/i.question";
 
 /**
  * QuestionFrame Component
@@ -48,7 +51,7 @@ const QuestionFrame = ({
   question,
   setRefreshKey,
   currentProjectId,
-}: QuestionProps) => {
+}: IQuestionProps) => {
   const theme = useTheme();
   const { userRoleName, userId } = useAuth();
   const [values, setValues] = useState<Question>({
@@ -178,7 +181,6 @@ const QuestionFrame = ({
   };
 
   const handleRemoveFile = async (fileId: string) => {
-    const formData = new FormData();
     const fileIdNumber = parseInt(fileId);
     if (isNaN(fileIdNumber)) {
       handleAlert({
@@ -188,17 +190,12 @@ const QuestionFrame = ({
       });
       return;
     }
-    formData.append("delete", JSON.stringify([fileIdNumber]));
-    formData.append("question_id", question.question_id?.toString() || "");
-    formData.append("user_id", String(userId || ""));
-    if (currentProjectId) {
-      formData.append("project_id", currentProjectId.toString());
-    }
     try {
-      const response = await apiServices.post("/files", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const response = await deleteQuestionEvidenceFiles({
+        deleteFileIds: [fileIdNumber],
+        questionId: question.question_id?.toString() || "",
+        userId: String(userId || ""),
+        projectId: currentProjectId?.toString(),
       });
 
       if (response.status === 201 && response.data) {
@@ -259,9 +256,12 @@ const QuestionFrame = ({
                   },
                 }}
               >
-                <Box component="span" sx={{ display: "inline-flex", cursor: "pointer" }}>
-          <GreyCircleInfoIcon />
-        </Box>
+                <Box
+                  component="span"
+                  sx={{ display: "inline-flex", cursor: "pointer" }}
+                >
+                  <GreyCircleInfoIcon size={16} />
+                </Box>
               </Tooltip>
             </Box>
           )}
@@ -391,7 +391,7 @@ const QuestionFrame = ({
               onClick={() => setIsLinkedRisksModalOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add/Remove risks
+              Add/remove risks
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography

@@ -12,8 +12,9 @@ import {
   Chip,
   Box,
 } from "@mui/material";
+import { useState } from "react";
 import "./index.css";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown } from "lucide-react";
 
 
 interface CustomizableMultiSelectProps {
@@ -52,11 +53,33 @@ const CustomizableMultiSelect = ({
   sx,
 }: CustomizableMultiSelectProps) => {
   const theme = useTheme();
+  const [open, setOpen] = useState(false);
+
   const itemStyles = {
     fontSize: "var(--env-var-font-size-medium)",
     color: theme.palette.text.tertiary,
     borderRadius: theme.shape.borderRadius,
     margin: theme.spacing(2),
+  };
+
+  const handleChipDelete = (id: string | number) => {
+    const idStr = String(id);
+    const current = (Array.isArray(value) ? value : [value]).filter(
+      (v) => String(v) !== idStr
+    ) as (string | number)[];
+    const syntheticEvent = {
+      target: { value: current, name: "vw-multi-select" },
+    } as unknown as SelectChangeEvent<(string | number)[]>;
+    onChange(syntheticEvent, null);
+  };
+
+  const handleChange = (
+    event: SelectChangeEvent<string | number | (string | number)[]>,
+    child: React.ReactNode
+  ) => {
+    onChange(event, child);
+    // Close the dropdown after selection
+    setOpen(false);
   };
 
   const renderValue = (value: unknown) => {
@@ -65,18 +88,53 @@ const CustomizableMultiSelect = ({
       selected.includes(getOptionValue ? getOptionValue(item) : item._id)
     );
     return (
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-        {selectedItems.map((item) => (
-          <Chip
-            key={getOptionValue ? getOptionValue(item) : item._id}
-            label={item.name + (item.surname ? " " + item.surname : "")}
-            sx={{
-              borderRadius: theme.shape.borderRadius,
-              height: 24,
-              fontSize: 12,
-            }}
-          />
-        ))}
+      <Box sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 0.5,
+        alignItems: 'flex-start',
+        maxHeight: '90px',
+        overflowY: 'auto',
+        width: '100%',
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'transparent',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'rgba(0, 0, 0, 0.2)',
+          borderRadius: '3px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: 'rgba(0, 0, 0, 0.3)',
+        },
+      }}>
+        {selectedItems.map((item) => {
+          const idVal = getOptionValue ? getOptionValue(item) : item._id;
+          return (
+            <Chip
+              key={idVal}
+              label={item.name + (item.surname ? " " + item.surname : "")}
+              onDelete={() => handleChipDelete(idVal)}
+              onMouseDown={(e) => {
+                // prevent Select from toggling when interacting with chips
+                e.stopPropagation();
+              }}
+              sx={{
+                borderRadius: 4,
+                height: 24,
+                fontSize: 12,
+                backgroundColor: theme.palette.background.accent,
+                color: theme.palette.text.primary,
+                '& .MuiChip-deleteIcon': {
+                  color: theme.palette.action.focus,
+                  fontSize: 20,
+                },
+              }}
+            />
+          );
+        })}
       </Box>
     );
   };
@@ -107,15 +165,16 @@ const CustomizableMultiSelect = ({
         >
           {label}
           {required && (
-            <Typography
+            <Box
+              component="span"
               className="required"
               sx={{
                 ml: theme.spacing(1),
-                color: `${theme.palette.error.text}`,
+                color: theme.palette.error.text,
               }}
             >
               *
-            </Typography>
+            </Box>
           )}
         </Typography>
       )}
@@ -123,12 +182,22 @@ const CustomizableMultiSelect = ({
         id="vw-multi-select"
         className="select-component"
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
+        open={open}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
         multiple
         displayEmpty
         renderValue={renderValue}
-        IconComponent={GreyDownArrowIcon}
+        IconComponent={() => <ChevronDown size={16} />}
         error={!!error}
+        sx={{
+          ...sx,
+          '& .MuiOutlinedInput-input': {
+            paddingTop: '16.5px',
+            paddingBottom: '16.5px',
+          }
+        }}
         MenuProps={{
           disableScrollLock: true,
           PaperProps: {
@@ -139,13 +208,16 @@ const CustomizableMultiSelect = ({
               "& .MuiMenuItem-root": {
                 fontSize: 13,
                 color: theme.palette.text.primary,
+                transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
+                  color: "#13715B",
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,
                   "&:hover": {
                     backgroundColor: theme.palette.background.accent,
+                    color: "#13715B",
                   },
                 },
                 "& .MuiTouchRipple-root": {
@@ -155,7 +227,6 @@ const CustomizableMultiSelect = ({
             },
           },
         }}
-        sx={sx}
       >
         {placeholder && (
           <MenuItem
@@ -170,37 +241,43 @@ const CustomizableMultiSelect = ({
             {placeholder}
           </MenuItem>
         )}
-        {items.map(
-          (item: {
-            _id: string | number;
-            name: string;
-            email?: string;
-            surname?: string;
-          }) => (
-            <MenuItem
-              value={getOptionValue ? getOptionValue(item) : item._id}
-              key={`${item._id}`}
-              sx={{
-                display: "flex",
-                ...itemStyles,
-                justifyContent: "space-between",
-                flexDirection: "row",
-                gap: 1,
-              }}
-            >
-              <span style={{ marginRight: 1 }}>{`${item.name} ${
-                item.surname ? item.surname : ""
-              }`}</span>
-              {item.email && (
-                <span
-                  style={{ fontSize: 11, color: "#9d9d9d", marginLeft: "4px" }}
-                >
-                  {`${item.email}`}
-                </span>
-              )}
-            </MenuItem>
-          )
-        )}
+        {items
+          .filter((item) => {
+            const itemValue = getOptionValue ? getOptionValue(item) : item._id;
+            const selectedValues = Array.isArray(value) ? value : [value];
+            return !selectedValues.map(v => String(v)).includes(String(itemValue));
+          })
+          .map(
+            (item: {
+              _id: string | number;
+              name: string;
+              email?: string;
+              surname?: string;
+            }) => (
+              <MenuItem
+                value={getOptionValue ? getOptionValue(item) : item._id}
+                key={`${item._id}`}
+                sx={{
+                  display: "flex",
+                  ...itemStyles,
+                  justifyContent: "space-between",
+                  flexDirection: "row",
+                  gap: 1,
+                }}
+              >
+                <span style={{ marginRight: 1 }}>{`${item.name} ${
+                  item.surname ? item.surname : ""
+                }`}</span>
+                {item.email && (
+                  <span
+                    style={{ fontSize: 11, color: "#9d9d9d", marginLeft: "4px" }}
+                  >
+                    {`${item.email}`}
+                  </span>
+                )}
+              </MenuItem>
+            )
+          )}
       </MuiSelect>
       {error && (
         <Typography

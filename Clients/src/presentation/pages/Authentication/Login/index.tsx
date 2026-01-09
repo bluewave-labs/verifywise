@@ -1,5 +1,5 @@
-import { Button, Divider, Stack, Typography, useTheme } from "@mui/material";
-import React, { Suspense, useState, useEffect } from "react";
+import { Button, Stack, Typography, useTheme, Box, Divider } from "@mui/material";
+import React, { Suspense, useEffect, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
@@ -9,13 +9,93 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/redux/auth/authSlice";
 import { setExpiration } from "../../../../application/redux/auth/authSlice";
-import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
 import { loginUser } from "../../../../application/repository/user.repository";
 import { MicrosoftSignIn } from "../../../components/MicrosoftSignIn";
 import { GetSsoConfig } from "../../../../application/repository/ssoConfig.repository";
+
+// Animated loading component specifically for login
+const LoginLoadingOverlay: React.FC = () => {
+  const theme = useTheme();
+  const text = "Processing your request. Please wait...";
+  const words = text.split(" ");
+
+  return (
+    <Stack
+      sx={{
+        width: "100%",
+        maxWidth: "100%",
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 9999,
+        backdropFilter: "blur(8px)",
+        background: "rgba(255, 255, 255, 0.37)",
+      }}
+    >
+      <Stack
+        sx={{
+          border: 1,
+          borderColor: theme.palette.border.light,
+          borderRadius: theme.shape.borderRadius,
+          backgroundColor: theme.palette.background.main,
+          width: "fit-content",
+          height: "fit-content",
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 9999,
+          padding: "20px 40px",
+          fontSize: 13,
+        }}
+      >
+        <Box sx={{ display: "inline-block" }}>
+          {words.map((word, wordIndex) => (
+            <React.Fragment key={wordIndex}>
+              {word.split("").map((char, charIndex) => {
+                const totalIndex =
+                  words.slice(0, wordIndex).join(" ").length +
+                  (wordIndex > 0 ? 1 : 0) +
+                  charIndex;
+
+                return (
+                  <Box
+                    key={`${wordIndex}-${charIndex}`}
+                    component="span"
+                    sx={{
+                      display: "inline-block",
+                      animation: `colorWave 2s ease-in-out infinite`,
+                      animationDelay: `${totalIndex * 0.1}s`,
+                      "@keyframes colorWave": {
+                        "0%, 100%": {
+                          color: "#6b7280",
+                        },
+                        "50%": {
+                          color: "#13715B",
+                        },
+                      },
+                    }}
+                  >
+                    {char}
+                  </Box>
+                );
+              })}
+              {wordIndex < words.length - 1 && <span> </span>}
+            </React.Fragment>
+          ))}
+        </Box>
+      </Stack>
+    </Stack>
+  );
+};
 
 const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
 
@@ -98,7 +178,7 @@ const Login: React.FC = () => {
       body: values,
     })
       .then((response) => {
-        setValues(initialState); // Extract `userData` from API response
+        setValues(initialState);
 
         if (response.status === 202) {
           const token = response.data.data.token;
@@ -112,7 +192,7 @@ const Login: React.FC = () => {
             dispatch(setExpiration(null));
           }
 
-          localStorage.setItem('root_version', __APP_VERSION__);
+          localStorage.setItem("root_version", __APP_VERSION__);
 
           logEngine({
             type: "info",
@@ -123,60 +203,54 @@ const Login: React.FC = () => {
             setIsSubmitting(false);
             navigate("/");
           }, 3000);
-        } else if (response.status === 404) {
-          logEngine({
-            type: "event",
-            message: "User not found. Please try again.",
-          });
-
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "User not found. Please try again.",
-          });
-          setTimeout(() => setAlert(null), 3000);
-        } else if (response.status === 403) {
-          logEngine({
-            type: "event",
-            message: "Invalid password. Please try again.",
-          });
-
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "Invalid password. Please try again.",
-          });
-          setTimeout(() => setAlert(null), 3000);
-        } else {
-          logEngine({
-            type: "error",
-            message: "Unexpected response. Please try again.",
-          });
-
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "Unexpected response. Please try again.",
-          });
-          setTimeout(() => setAlert(null), 3000);
         }
       })
       .catch((error) => {
-        console.error("Error submitting form:", error);
+        setIsSubmitting(false);
 
-        logEngine({
-          type: "error",
-          message: `An error occurred: ${error.message}`,
-        });
+        let message = "An error occurred. Please try again.";
+        const status = error.status || error.response?.status;
+        const responseData = error.response?.data;
 
-        let message = "Error submitting form";
-        if (error.message === "Not Found") {
-          message = "User not found. Please try again.";
+        if (status === 401 || status === 429) {
+          // Expected user errors - no logging needed, just show the message
+          message = error.message || "Invalid email or password";
+        } else if (status === 500) {
+          // Backend returns: { message: "Internal Server Error", error: <error message> }
+          const errorMessage = responseData?.error || responseData?.message;
+          message = errorMessage
+            ? `Server error: ${errorMessage}`
+            : "Internal server error. Please try again later.";
+
+          logEngine({
+            type: "error",
+            message: `Server error during login: ${
+              errorMessage || "Unknown error"
+            }`,
+          });
+        } else if (error.message === "Network Error" || !error.response) {
+          message =
+            "Network error. Please check your connection and try again.";
+
+          logEngine({
+            type: "error",
+            message: "Network error during login.",
+          });
+        } else {
+          // Handle other unexpected status codes - these are worth logging
+          const errorMessage =
+            responseData?.message || responseData?.error || error.message;
+          message =
+            errorMessage || "An unexpected error occurred. Please try again.";
+
+          logEngine({
+            type: "error",
+            message: `Unexpected error during login: ${errorMessage}`,
+          });
         }
 
-        setIsSubmitting(false);
         setAlert({ variant: "error", body: message });
-        setTimeout(() => setAlert(null), 3000);
+        setTimeout(() => setAlert(null), 5000);
       });
   };
 
@@ -207,9 +281,7 @@ const Login: React.FC = () => {
         </Suspense>
       )}
 
-      {isSubmitting && (
-        <CustomizableToast title="Processing your request. Please wait..." />
-      )}
+      {isSubmitting && <LoginLoadingOverlay />}
       <Background
         style={{
           position: "absolute",

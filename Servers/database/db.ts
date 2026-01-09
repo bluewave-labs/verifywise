@@ -63,6 +63,29 @@ import { SubscriptionModel } from "../domain.layer/models/subscriptions/subscrip
 import { TasksModel } from "../domain.layer/models/tasks/tasks.model";
 import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { SlackWebhookModel } from "../domain.layer/models/slackNotification/slackWebhook.model";
+import { AutomationModel } from "../domain.layer/models/automation/automation.model";
+import { AutomationActionModel } from "../domain.layer/models/automationAction/automationAction.model";
+import { AutomationTriggerModel } from "../domain.layer/models/automationTrigger/automationTrigger.model";
+import { AutomationTriggerActionModel } from "../domain.layer/models/automationTriggerAction/automationTriggerAction.model";
+import { AIIncidentManagementModel } from "../domain.layer/models/incidentManagement/incidemtManagement.model";
+import { MLFlowIntegrationModel } from "../domain.layer/models/mlflowIntegration/mlflowIntegration.model";
+import { MLFlowModelRecordModel } from "../domain.layer/models/mlflowModelRecord/mlflowModelRecord.model";
+import { AutomationExecutionLogModel } from "../domain.layer/models/automationExecutionLog/automationExecutionLog.model";
+import { ModelInventoryHistoryModel } from "../domain.layer/models/modelInventoryHistory/modelInventoryHistory.model";
+import { RiskHistoryModel } from "../domain.layer/models/riskHistory/riskHistory.model";
+import { UserPreferencesModel } from "../domain.layer/models/userPreferences/userPreferences.model";
+import { NISTAIMRFFunctionModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_function.model";
+import { NISTAIMRFSubcategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_subcategory.model";
+import { NISTAIMRFCategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_category.model";
+import { EvidenceHubModel } from "../domain.layer/models/evidenceHub/evidenceHub.model";
+import { LLMKeyModel } from "../domain.layer/models/llmKey/llmKey.model";
+import { ShareLinkModel } from "../domain.layer/models/shareLink/shareLink.model";
+import { EvaluationLlmApiKeyModel } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
+import { NotesModel } from "../domain.layer/models/notes/notes.model";
+import { EntityGraphAnnotationsModel } from "../domain.layer/models/entityGraphAnnotations/entityGraphAnnotations.model";
+import { EntityGraphViewsModel } from "../domain.layer/models/entityGraphViews/entityGraphViews.model";
+import { EntityGraphGapRulesModel } from "../domain.layer/models/entityGraphGapRules/entityGraphGapRules.model";
+import { PolicyLinkedObjectsModel } from "../domain.layer/models/policy/policy_linked_objects.model";
 
 dotenv.config();
 
@@ -135,6 +158,29 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     TasksModel,
     TaskAssigneesModel,
     SlackWebhookModel,
+    AutomationModel,
+    AutomationActionModel,
+    AutomationTriggerModel,
+    AutomationTriggerActionModel,
+    AIIncidentManagementModel,
+    EvidenceHubModel,
+    MLFlowIntegrationModel,
+    MLFlowModelRecordModel,
+    AutomationExecutionLogModel,
+    ModelInventoryHistoryModel,
+    RiskHistoryModel,
+    UserPreferencesModel,
+    NISTAIMRFFunctionModel,
+    NISTAIMRFCategoryModel,
+    NISTAIMRFSubcategoryModel,
+    LLMKeyModel,
+    ShareLinkModel,
+    EvaluationLlmApiKeyModel,
+    NotesModel,
+    EntityGraphAnnotationsModel,
+    EntityGraphViewsModel,
+    EntityGraphGapRulesModel,
+    PolicyLinkedObjectsModel,
   ],
 }) as Sequelize;
 

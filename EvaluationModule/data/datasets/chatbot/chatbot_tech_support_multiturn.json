@@ -1,0 +1,39 @@
+[
+  {
+    "scenario": "User troubleshooting software installation error",
+    "expected_outcome": "Guide user through successful installation",
+    "turns": [
+      { "role": "user", "content": "I keep getting error code 0x80070005 when trying to install your software." },
+      { "role": "assistant", "content": "That error typically indicates a permissions issue. Let's resolve this step by step. Are you running the installer as Administrator? You can do this by right-clicking the installer and selecting 'Run as administrator'." },
+      { "role": "user", "content": "I just tried that but still getting the same error." },
+      { "role": "assistant", "content": "Okay, let's try disabling your antivirus temporarily, as it might be blocking the installation. Please also check that you have at least 2GB of free disk space. What antivirus software are you using?" },
+      { "role": "user", "content": "I'm using Windows Defender. I disabled it and now it's installing!" },
+      { "role": "assistant", "content": "Excellent! Once installation completes, you can re-enable Windows Defender. I'd also recommend adding our software folder to the Defender exclusions list to prevent future conflicts. Would you like me to walk you through that?" }
+    ]
+  },
+  {
+    "scenario": "User experiencing app crashes",
+    "expected_outcome": "Diagnose and resolve crash issue",
+    "turns": [
+      { "role": "user", "content": "Your app keeps crashing every time I try to export a file." },
+      { "role": "assistant", "content": "I'm sorry you're experiencing crashes. Let's diagnose this together. Can you tell me: 1) What file format are you exporting to? 2) What's the approximate file size? 3) What version of the app are you running?" },
+      { "role": "user", "content": "Exporting to PDF, files are around 50MB, and I'm on version 2.3.1" },
+      { "role": "assistant", "content": "Thank you. Version 2.3.1 has a known issue with large PDF exports. We released a fix in version 2.4.0. Would you like me to guide you through updating the app? It should only take a few minutes." },
+      { "role": "user", "content": "Yes please, how do I update?" },
+      { "role": "assistant", "content": "Go to Help > Check for Updates in the app menu. It will download version 2.4.2 (the latest). Click 'Install and Restart' when prompted. Your settings and files will be preserved. Let me know once it's done and we can verify the export works!" }
+    ]
+  },
+  {
+    "scenario": "User setting up API integration",
+    "expected_outcome": "Successfully guide API setup",
+    "turns": [
+      { "role": "user", "content": "I'm trying to integrate your API but my requests keep returning 401 Unauthorized." },
+      { "role": "assistant", "content": "A 401 error means there's an authentication issue. Let's verify your setup. Are you including the API key in the Authorization header as 'Bearer YOUR_API_KEY'? Also, could you confirm which endpoint you're calling?" },
+      { "role": "user", "content": "I'm calling /api/v2/data and I put the key in the header as 'API-Key: xxx'" },
+      { "role": "assistant", "content": "I see the issue. Our API uses Bearer token format, not API-Key. Please change your header to: 'Authorization: Bearer YOUR_API_KEY'. Also, the /api/v2/data endpoint requires a POST request. Are you using POST or GET?" },
+      { "role": "user", "content": "I was using GET. Let me try POST with Bearer token... It worked! Thanks!" },
+      { "role": "assistant", "content": "You're welcome! For future reference, our API documentation at docs.example.com/api has request examples for all endpoints. Feel free to reach out if you run into any other integration questions." }
+    ]
+  }
+]
+

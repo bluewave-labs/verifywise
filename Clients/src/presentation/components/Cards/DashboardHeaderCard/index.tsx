@@ -1,13 +1,24 @@
 import { Stack, Typography, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { ReactComponent as RightArrow } from "../../../assets/icons/right-arrow.svg";
-import { useState } from "react";
+import { ArrowRight as RightArrow } from "lucide-react";
+import { useState, ReactNode } from "react";
 
-const HeaderCard = ({ title, count }: { title: string; count: number }) => {
+interface HeaderCardProps {
+  title: string;
+  count: ReactNode;
+  disableNavigation?: boolean;
+  icon?: ReactNode;
+  navigateTo?: string;
+}
+
+const HeaderCard = ({ title, count, disableNavigation = false, icon, navigateTo }: HeaderCardProps) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
   const getNavigationPath = (cardTitle: string): string | null => {
+    // If navigateTo is provided, use it directly
+    if (navigateTo) return navigateTo;
+
     switch (cardTitle) {
       case "Trainings":
         return "/training";
@@ -21,7 +32,7 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
   };
 
   const navigationPath = getNavigationPath(title);
-  const isClickable = navigationPath !== null;
+  const isClickable = navigationPath !== null && !disableNavigation;
 
   const handleClick = () => {
     if (navigationPath) {
@@ -32,10 +43,9 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
   return (
     <Stack
       sx={{
-        border: "1px solid #eaecf0",
+        border: "1px solid #d0d5dd",
         borderRadius: 2,
-        backgroundColor: "#FFFFFF",
-        minWidth: 228,
+        background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
         width: "100%",
         padding: "8px 36px 14px 14px",
         cursor: isClickable ? "pointer" : "default",
@@ -44,8 +54,8 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
         transition: "all 0.2s ease",
         "&:hover": isClickable
           ? {
-            backgroundColor: "#F9FAFB",
-            borderColor: "#D1D5DB",
+            background: "linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%)",
+            borderColor: "#d0d5dd",
           }
           : {},
       }}
@@ -68,15 +78,29 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
 
       <Typography
         sx={{
-          fontSize: 13,
-          color: "#2D3748",
-          textAlign: "justify",
+          mt: 1,
+          minHeight: 32,
+          fontWeight: 600,
+          fontSize: 15,
+          color: "#1f2937",
+          wordBreak: "break-word",
         }}
       >
         {count}
       </Typography>
 
-      {isClickable && (
+      {icon ? (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            color: "#A9B3C5",
+          }}
+        >
+          {icon}
+        </Box>
+      ) : isClickable ? (
         <Box
           sx={{
             position: "absolute",
@@ -86,18 +110,11 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
             transition: "opacity 0.2s ease",
           }}
         >
-          <RightArrow />
+          <RightArrow size={16} />
         </Box>
-      )}
+      ) : null}
     </Stack>
   );
 };
 
 export default HeaderCard;
-
-
-
-
-
-
-

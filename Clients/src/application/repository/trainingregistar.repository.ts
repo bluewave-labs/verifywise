@@ -5,8 +5,7 @@ import { apiServices } from "../../infrastructure/api/networkServices";
  * Adds a new training registry entry to the database.
  *
  * @param {any} data - The training data to be saved.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function createTraining(
   routeUrl: string,

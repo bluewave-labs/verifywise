@@ -1,4 +1,4 @@
-import {useState, useMemo, useCallback, lazy, Suspense} from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -8,56 +8,250 @@ import {
   TableRow,
   Typography,
   useTheme,
-  TableFooter
+  TableFooter,
+  TableHead,
+  Box,
 } from "@mui/material";
-import singleTheme from '../../../themes/v1SingleTheme';
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
-import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg'
-import TablePaginationActions from '../../TablePagination';
-import TableHeader from '../TableHead';
-const ReportTableBody = lazy(() => import("./TableBody"))
-import {styles, tableWrapper, emptyData, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
-import { getPaginationRowCount, setPaginationRowCount } from '../../../../application/utils/paginationStorage';
+import singleTheme from "../../../themes/v1SingleTheme";
+import EmptyState from "../../EmptyState";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import TablePaginationActions from "../../TablePagination";
+const ReportTableBody = lazy(() => import("./TableBody"));
+import {
+  tableWrapper,
+  pagniationStatus,
+  paginationStyle,
+  paginationDropdown,
+  paginationSelect,
+} from "./styles";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../../application/utils/paginationStorage";
+import { IReportTablePropsExtended } from "../../../types/interfaces/i.table";
 
-interface ReportTableProps {
+const REPORTS_SORTING_KEY = "verifywise_reports_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
+
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
+
+// Sortable Table Header Component
+const SortableTableHead: React.FC<{
   columns: any[];
-  rows: any[];
-  removeReport: (id: number) => void;
-  page: number,
-  setCurrentPagingation: (pageNo: number) => void;
-}
-
-const ReportTable: React.FC<ReportTableProps> = ({
-    columns,
-    rows,
-    removeReport,
-    page,
-    setCurrentPagingation
-  }) => {
+  sortConfig: SortConfig;
+  onSort: (columnId: string) => void;
+}> = ({ columns, sortConfig, onSort }) => {
   const theme = useTheme();
-  const [rowsPerPage, setRowsPerPage] = useState(() => 
-    getPaginationRowCount('reporting', 10)
+
+  return (
+    <TableHead
+      sx={{
+        backgroundColor:
+          singleTheme.tableStyles.primary.header.backgroundColors,
+      }}
+    >
+      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+        {columns.map((column, index) => {
+          const isLastColumn = index === columns.length - 1;
+          const columnName = column.toString().toLowerCase();
+          const sortable = !["actions", "action"].includes(columnName);
+
+          return (
+            <TableCell
+              key={index}
+              sx={{
+                ...singleTheme.tableStyles.primary.header.cell,
+                ...(!isLastColumn && sortable
+                  ? {
+                      cursor: "pointer",
+                      userSelect: "none",
+                      "&:hover": {
+                        backgroundColor: "rgba(0, 0, 0, 0.04)",
+                      },
+                    }
+                  : {}),
+              }}
+              onClick={() => sortable && onSort(column)}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: theme.spacing(2),
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 500,
+                    color: sortConfig.key === column ? "primary.main" : "inherit",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {column.toString()}
+                </Typography>
+                {sortable && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      color: sortConfig.key === column ? "primary.main" : "#9CA3AF",
+                    }}
+                  >
+                    {sortConfig.key === column && sortConfig.direction === "asc" && (
+                      <ChevronUp size={16} />
+                    )}
+                    {sortConfig.key === column && sortConfig.direction === "desc" && (
+                      <ChevronDown size={16} />
+                    )}
+                    {sortConfig.key !== column && (
+                      <ChevronsUpDown size={16} />
+                    )}
+                  </Box>
+                )}
+              </Box>
+            </TableCell>
+          );
+        })}
+      </TableRow>
+    </TableHead>
   );
+};
+
+const ReportTable: React.FC<IReportTablePropsExtended> = ({
+  columns,
+  rows,
+  removeReport,
+  page,
+  setCurrentPagingation,
+  hidePagination = false,
+}) => {
+  const theme = useTheme();
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("reporting", 10)
+  );
+
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(REPORTS_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(REPORTS_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
+  // Sort the rows based on current sort configuration
+  const sortedRows = useMemo(() => {
+    if (!rows || !sortConfig.key || !sortConfig.direction) {
+      return rows || [];
+    }
+
+    const sortableData = [...rows];
+
+    return sortableData.sort((a: any, b: any) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      // Use exact column name matching - case insensitive
+      const sortKey = sortConfig.key.trim().toLowerCase();
+
+      // Handle different column types for reports
+      if (sortKey.includes("file") || sortKey.includes("name")) {
+        aValue = a.filename?.toLowerCase() || "";
+        bValue = b.filename?.toLowerCase() || "";
+      } else if (sortKey.includes("source")) {
+        aValue = a.source?.toLowerCase() || "";
+        bValue = b.source?.toLowerCase() || "";
+      } else if (sortKey.includes("project")) {
+        aValue = a.project_title?.toLowerCase() || "";
+        bValue = b.project_title?.toLowerCase() || "";
+      } else if (sortKey.includes("date") || sortKey.includes("upload") || sortKey.includes("time")) {
+        aValue = new Date(a.uploaded_time).getTime();
+        bValue = new Date(b.uploaded_time).getTime();
+      } else if (sortKey.includes("uploader")) {
+        aValue = `${a.uploader_name || ""} ${a.uploader_surname || ""}`.toLowerCase().trim();
+        bValue = `${b.uploader_name || ""} ${b.uploader_surname || ""}`.toLowerCase().trim();
+      } else {
+        // Try to handle unknown columns by checking if they're properties of the row
+        if (sortKey && sortKey in a && sortKey in b) {
+          const aVal = (a as Record<string, unknown>)[sortKey];
+          const bVal = (b as Record<string, unknown>)[sortKey];
+          aValue = String(aVal).toLowerCase();
+          bValue = String(bVal).toLowerCase();
+          const comparison = aValue.localeCompare(bValue);
+          return sortConfig.direction === "asc" ? comparison : -comparison;
+        }
+        return 0;
+      }
+
+      // Handle string comparisons
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      // Handle number comparisons
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [rows, sortConfig]);
 
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
-    const end = Math.min(page * rowsPerPage + rowsPerPage, rows?.length ?? 0);
+    const end = Math.min(page * rowsPerPage + rowsPerPage, sortedRows?.length ?? 0);
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, rows?.length ?? 0]);
+  }, [page, rowsPerPage, sortedRows?.length ?? 0]);
 
-  const handleChangePage = useCallback((_: unknown, newPage: number) => {
-    setCurrentPagingation(newPage);
-  }, [setCurrentPagingation]);
+  const handleChangePage = useCallback(
+    (_: unknown, newPage: number) => {
+      setCurrentPagingation(newPage);
+    },
+    [setCurrentPagingation]
+  );
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount('reporting', newRowsPerPage);
+      setPaginationRowCount("reporting", newRowsPerPage);
       setCurrentPagingation(0);
     },
     [setRowsPerPage, setCurrentPagingation]
   );
+
+  // Sorting handlers
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
 
   return (
     <>
@@ -66,74 +260,91 @@ const ReportTable: React.FC<ReportTableProps> = ({
           <Table
             sx={{
               ...singleTheme.tableStyles.primary.frame,
-              ...tableWrapper
+              ...tableWrapper,
             }}
           >
-            <TableHeader columns={columns} />
-            {rows.length !== 0 ? 
+            <SortableTableHead
+              columns={columns}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+            />
+            {sortedRows.length !== 0 ? (
               <>
-                <ReportTableBody 
-                  rows={rows} 
+                <ReportTableBody
+                  rows={sortedRows}
                   onRemoveReport={removeReport}
-                  page={page}
-                  rowsPerPage={rowsPerPage} 
-                /> 
-                <TableFooter>
-                  <TableRow sx={{
-                    '& .MuiTableCell-root.MuiTableCell-footer': {
-                      paddingX: theme.spacing(8),
-                      paddingY: theme.spacing(4),
-                    }}}>
-                    <TableCell sx={pagniationStatus}>
-                      Showing {getRange} of {rows?.length} project report(s)
-                    </TableCell>
-                    <TablePagination
-                      count={rows?.length}
-                      page={page}
-                      onPageChange={handleChangePage}
-                      rowsPerPage={rowsPerPage}
-                      rowsPerPageOptions={[5, 10, 15, 20, 25]}
-                      onRowsPerPageChange={handleChangeRowsPerPage}
-                      ActionsComponent={(props) => <TablePaginationActions {...props} />}
-                      labelRowsPerPage="Reports per page"
-                      labelDisplayedRows={({ page, count }) =>
-                        `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
-                      }
-                      sx={paginationStyle}
-                      slotProps={{
-                        select: {
-                          MenuProps: {
-                            keepMounted: true,
-                            PaperProps: {
-                              className: "pagination-dropdown",
-                              sx: paginationDropdown,
-                            },
-                            transformOrigin: { vertical: "bottom", horizontal: "left" },
-                            anchorOrigin: { vertical: "top", horizontal: "left" },
-                            sx: { mt: theme.spacing(-2) },
-                          },
-                          inputProps: { id: "pagination-dropdown" },
-                          IconComponent: SelectorVertical,
-                          sx: paginationSelect,
+                  page={hidePagination ? 0 : page}
+                  rowsPerPage={hidePagination ? sortedRows.length : rowsPerPage}
+                  sortConfig={sortConfig}
+                />
+                {!hidePagination && (
+                  <TableFooter>
+                    <TableRow
+                      sx={{
+                        "& .MuiTableCell-root.MuiTableCell-footer": {
+                          paddingX: theme.spacing(8),
+                          paddingY: theme.spacing(4),
                         },
                       }}
-                    />
-                  </TableRow>
-                </TableFooter>
+                    >
+                      <TableCell sx={pagniationStatus}>
+                        Showing {getRange} of {sortedRows?.length} project report(s)
+                      </TableCell>
+                      <TablePagination
+                        count={sortedRows?.length}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        rowsPerPage={rowsPerPage}
+                        rowsPerPageOptions={[5, 10, 15, 20, 25]}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        ActionsComponent={(props) => (
+                          <TablePaginationActions {...props} />
+                        )}
+                        labelRowsPerPage="Reports per page"
+                        labelDisplayedRows={({ page, count }) =>
+                          `Page ${page + 1} of ${Math.max(
+                            0,
+                            Math.ceil(count / rowsPerPage)
+                          )}`
+                        }
+                        sx={paginationStyle}
+                        slotProps={{
+                          select: {
+                            MenuProps: {
+                              keepMounted: true,
+                              PaperProps: {
+                                className: "pagination-dropdown",
+                                sx: paginationDropdown,
+                              },
+                              transformOrigin: {
+                                vertical: "bottom",
+                                horizontal: "left",
+                              },
+                              anchorOrigin: {
+                                vertical: "top",
+                                horizontal: "left",
+                              },
+                              sx: { mt: theme.spacing(-2) },
+                            },
+                            inputProps: { id: "pagination-dropdown" },
+                            IconComponent: SelectorVertical,
+                            sx: paginationSelect,
+                          },
+                        }}
+                      />
+                    </TableRow>
+                  </TableFooter>
+                )}
               </>
-            : (
+            ) : (
               <>
                 <TableBody>
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      align="center"
-                      sx={emptyData}
+                      sx={{ border: "none", p: 0 }}
                     >
-                      <img src={placeholderImage} alt="Placeholder" />
-                      <Typography sx={styles.textBase}>
-                        There is currently no data in this table.
-                      </Typography>
+                      <EmptyState message="There is currently no data in this table." />
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -143,7 +354,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
         </Suspense>
       </TableContainer>
     </>
-  )
-}
+  );
+};
 
-export default ReportTable
+export default ReportTable;

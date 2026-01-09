@@ -1,10 +1,14 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+export type AppModule = "main" | "evals" | "gateway" | "ai-detection";
 
 const initialState = {
   sidebar: {
     collapsed: false,
   },
-  mode: "light",
+  appModule: {
+    active: "main" as AppModule,
+  },
   modelInventory: {
     statusFilter: "all",
   },
@@ -23,11 +27,15 @@ const uiSlice = createSlice({
     toggleSidebar: (state) => {
       state.sidebar.collapsed = !state.sidebar.collapsed;
     },
-    setMode: (state, action) => {
-      state.mode = action.payload;
-    },
     setModelInventoryStatusFilter: (state, action) => {
       state.modelInventory.statusFilter = action.payload;
+    },
+    setActiveModule: (state, action: PayloadAction<AppModule>) => {
+      if (!state.appModule) {
+        state.appModule = { active: action.payload };
+      } else {
+        state.appModule.active = action.payload;
+      }
     },
   },
 });
@@ -36,6 +44,6 @@ export default uiSlice.reducer;
 export const {
   setRowsPerPage,
   toggleSidebar,
-  setMode,
   setModelInventoryStatusFilter,
+  setActiveModule,
 } = uiSlice.actions;

@@ -1,127 +1,104 @@
+import React, { useState } from "react";
 import { Box, Stack, Typography } from "@mui/material";
-import { ReactComponent as CalendarIcon } from "../../../assets/icons/calendar-check.svg";
-import { ReactComponent as ClockIcon } from "../../../assets/icons/clock.svg";
-import { ReactComponent as AlertIcon } from "../../../assets/icons/alert-circle.svg";
+import { ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const TaskRadar = ({ overdue, due, upcoming }: { overdue: number; due: number; upcoming: number }) => {
+interface TaskRadarCardProps {
+  overdue: number;
+  due: number;
+  upcoming: number;
+}
+
+const TaskRadarCard: React.FC<TaskRadarCardProps> = ({
+  overdue,
+  due,
+  upcoming,
+}) => {
+  const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
+  const max = Math.max(overdue, due, upcoming, 1);
+  const barHeight = 80;
+
+  const items = [
+    { label: "Overdue", value: overdue, color: "#EF4444" },
+    { label: "Due soon", value: due, color: "#F59E0B" },
+    { label: "Upcoming", value: upcoming, color: "#10B981" },
+  ];
+
   return (
-    <Stack sx={{
-      border: `1px solid #eaecf0`,
-      borderRadius: 2,
-      backgroundColor: "#FFFFFF",
-      minWidth: 228,
-      width: "100%",
-      padding: "8px 14px 14px 14px",
-    }}>
-      <Typography sx={{
-        fontSize: 13,
-        color: "#8594AC",
-        pb: "2px",
-        textWrap: "wrap",
-      }}>
-        Task radar
-      </Typography>
+    <Stack
+      sx={{
+        border: "1px solid #d0d5dd",
+        borderRadius: "4px",
+        background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+        width: "100%",
+        padding: "16px",
+        height: "100%",
+        boxSizing: "border-box",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        "&:hover": {
+          background: "linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%)",
+          borderColor: "#98A2B3",
+        },
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => navigate("/tasks")}
+    >
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        mb="16px"
+      >
+        <Typography
+          sx={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#1F2937",
+          }}
+        >
+          Task radar
+        </Typography>
+        <ChevronRight
+          size={16}
+          style={{
+            opacity: isHovered ? 1 : 0.3,
+            transition: "opacity 0.2s ease",
+            color: "#667085",
+          }}
+        />
+      </Stack>
 
       <Stack
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 3,
-        }}
+        direction="row"
+        justifyContent="space-around"
+        alignItems="flex-end"
+        sx={{ height: barHeight + 40, flex: 1 }}
       >
-
-        <Stack sx={{
-          backgroundColor: "#FEE2E2",
-          borderRadius: 2,
-          padding: "6px 12px",
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-        }}>
-          <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "6px" }}>
-            <AlertIcon />
-            <Typography
-              sx={{
-                fontSize: 13,
-                color: "#344054",
-                textAlign: "justify",
-              }}
-            >
-              Overdue
+        {items.map((item) => (
+          <Stack key={item.label} alignItems="center" gap={0.5}>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1F2937" }}>
+              {item.value}
             </Typography>
-          </Box>
-          <Typography sx={{
-            fontSize: 13,
-            textAlign: "justify",
-            color: "#A65E5E",
-            fontWeight: "bold",
-          }}>
-            {overdue}
-          </Typography>
-        </Stack>
-
-        <Stack sx={{
-          backgroundColor: "#FEF3C7",
-          borderRadius: 2,
-          padding: "6px 12px",
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-        }}>
-          <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "6px" }}>
-            <ClockIcon />
-            <Typography
+            <Box
               sx={{
-                fontSize: 13,
-                color: "#344054",
-                textAlign: "justify",
+                width: 40,
+                height: (item.value / max) * barHeight || 4,
+                backgroundColor: item.color,
+                borderRadius: "4px 4px 0 0",
+                minHeight: 4,
               }}
-            >
-              Due ≤ 7 days
+            />
+            <Typography sx={{ fontSize: 11, color: "#667085", textAlign: "center" }}>
+              {item.label}
             </Typography>
-          </Box>
-          <Typography sx={{
-            fontSize: 13,
-            textAlign: "justify",
-            color: "#917D30",
-            fontWeight: "bold",
-          }}>
-            {due}
-          </Typography>
-        </Stack>
-
-        <Stack sx={{
-          backgroundColor: "#DCFCE7",
-          borderRadius: 2,
-          padding: "6px 12px",
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-        }}>
-          <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "6px" }}>
-            <CalendarIcon />
-            <Typography
-              sx={{
-                fontSize: 13,
-                color: "#344054",
-                textAlign: "justify",
-              }}
-            >
-              Upcoming
-            </Typography>
-          </Box>
-          <Typography sx={{
-            fontSize: 13,
-            textAlign: "justify",
-            color: "#56946C",
-            fontWeight: "bold",
-          }}>
-            {upcoming}
-          </Typography>
-        </Stack>
+          </Stack>
+        ))}
       </Stack>
     </Stack>
   );
 };
 
-export default TaskRadar;
+export default TaskRadarCard;

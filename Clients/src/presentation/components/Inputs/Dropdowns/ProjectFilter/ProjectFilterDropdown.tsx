@@ -1,9 +1,10 @@
 import React from "react";
 import { Select, MenuItem, FormControl, useTheme } from "@mui/material";
 import { dropdownStyles, inputStyles } from "./style";
-import { ProjectFilterDropdownProps } from "../../../../../domain/interfaces/iDropdown";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../../assets/icons/chevron-down-grey.svg";
+import { ProjectFilterDropdownProps } from "../../../../types/interfaces/i.dropdown";
+import { ChevronDown } from "lucide-react";
 
+const GreyDownArrowIcon = () => <ChevronDown size={16} />;
 
 const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
   projects,

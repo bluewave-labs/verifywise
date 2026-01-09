@@ -3,8 +3,8 @@ import { Status } from "../../../types/Status";
 export class SubClauseISO42001Model {
   id?: number;
   implementation_description!: string;
-  evidence_links!: Object[];
-  staus!: Status;
+  evidence_links!: object[];
+  status!: Status;
   owner!: number;
   reviewer!: number;
   approver!: number;
@@ -19,7 +19,7 @@ export class SubClauseISO42001Model {
     this.id = data.id;
     this.implementation_description = data.implementation_description;
     this.evidence_links = data.evidence_links;
-    this.staus = data.staus;
+    this.status = data.status;
     this.owner = data.owner;
     this.reviewer = data.reviewer;
     this.approver = data.approver;

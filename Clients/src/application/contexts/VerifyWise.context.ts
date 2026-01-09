@@ -1,18 +1,19 @@
 import React, { createContext } from "react";
-import { defaultProjectStatus, ProjectStatus } from "../hooks/useProjectStatus";
+import { defaultProjectStatus, ProjectStatus } from "../../domain/types/projectStatus.types";
 import { Project } from "../../domain/types/Project";
 import { ComponentVisible } from "../../application/interfaces/ComponentVisible";
 import { User } from "../../domain/types/User";
+import { UIValues, AuthValues, InputValues, DashboardState } from "../interfaces/appStates";
 
 interface VerifyWiseContextProps {
-  uiValues: any;
-  setUiValues: (values: any) => void;
-  authValues: any;
-  setAuthValues: (values: any) => void;
-  dashboardValues: any;
-  setDashboardValues: (values: any) => void;
-  inputValues: any;
-  setInputValues: (values: any) => void;
+  uiValues: UIValues;
+  setUiValues: (values: UIValues | React.SetStateAction<UIValues>) => void;
+  authValues: AuthValues;
+  setAuthValues: (values: AuthValues | React.SetStateAction<AuthValues>) => void;
+  dashboardValues: DashboardState;
+  setDashboardValues: (values: DashboardState | React.SetStateAction<DashboardState>) => void;
+  inputValues: InputValues;
+  setInputValues: (values: InputValues | React.SetStateAction<InputValues>) => void;
   token: string | null;
   projectStatus: ProjectStatus;
   loadingProjectStatus: string | boolean;
@@ -31,6 +32,8 @@ interface VerifyWiseContextProps {
   refreshUsers: () => void;
   userRoleName: string;
   organizationId: number | null;
+  photoRefreshFlag: boolean;
+  setPhotoRefreshFlag: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -38,7 +41,14 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   setUiValues: () => {},
   authValues: {},
   setAuthValues: () => {},
-  dashboardValues: {},
+  dashboardValues: {
+    dashboard: {},
+    projects: {},
+    compliance: {},
+    assessments: {},
+    vendors: [],
+    users: []
+  },
   setDashboardValues: () => {},
   inputValues: {},
   setInputValues: () => {},
@@ -57,6 +67,8 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   refreshUsers: () => {},
   userRoleName: "",
   organizationId: null,
+  photoRefreshFlag: false,
+  setPhotoRefreshFlag: () => {},
 });
 
 export { VerifyWiseContext };

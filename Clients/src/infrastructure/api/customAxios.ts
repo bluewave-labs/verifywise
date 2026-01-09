@@ -5,7 +5,7 @@
  *
  * The custom Axios instance is configured with:
  * - A base URL that defaults to "http://localhost:3000" but can be overridden by the environment variable `REACT_APP_BASE_URL`.
- * - A timeout limit of 10,000 milliseconds for requests.
+ * - A timeout limit of 120,000 milliseconds for requests.
  * - Default headers for "Content-Type" and "Accept" set to "application/json".
  *
  * The request interceptor:
@@ -24,7 +24,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { store } from "../../application/redux/store";
 import { ENV_VARs } from "../../../env.vars";
 import { clearAuthState, setAuthToken } from "../../application/redux/auth/authSlice";
-import { AlertProps } from "../../domain/interfaces/iAlert";
+import { AlertProps } from "../../presentation/types/alert.types";
 
 const performLogout = () => {
   store.dispatch(clearAuthState());
@@ -39,10 +39,17 @@ export const setShowAlertCallback = (callback: (alert: AlertProps) => void) => {
   showAlertCallback = callback;
 };
 
+// Function to show an alert using the callback
+export const showAlert = (alert: AlertProps) => {
+  if (showAlertCallback) {
+    showAlertCallback(alert);
+  }
+};
+
 // Create an instance of axios with default configurations
 const CustomAxios = axios.create({
   baseURL: `${ENV_VARs.URL}/api`,
-  timeout: 20000,
+  timeout: 120000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -76,7 +83,7 @@ CustomAxios.interceptors.request.use(
     // Add authorization token
     const state = store.getState();
     const token = state.auth.authToken;
-    if (token) {
+    if (token && !(config.url?.includes('/users/reset-password') || config.url?.includes('/users/register'))) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -100,10 +107,12 @@ CustomAxios.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     const responseData = (error.response?.data as { message?: string })
-    if (error.response?.status === 404) {
-      const errorMessage = responseData?.message || 'Not found';
-      return Promise.reject(new Error(errorMessage));
-    }
+    // Don't transform 404 errors - let them through as AxiosErrors so status is preserved
+    // This allows downstream code to handle 404s differently (e.g., as empty state vs error)
+    // if (error.response?.status === 404) {
+    //   const errorMessage = responseData?.message || 'Not found';
+    //   return Promise.reject(new Error(errorMessage));
+    // }
 
     if (
       error.response?.status === 403 &&

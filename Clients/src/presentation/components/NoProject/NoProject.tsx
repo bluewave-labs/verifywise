@@ -1,6 +1,5 @@
-import { Box, Typography, useTheme } from "@mui/material";
 import { NoProjectBox } from "../../pages/Home/styles";
-import emptyState from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../EmptyState";
 
 interface NoProjectProps {
   message: string;
@@ -17,23 +16,10 @@ interface NoProjectProps {
  */
 
 const NoProject = ({ message }: NoProjectProps) => {
-  const theme = useTheme();
 
   return (
     <NoProjectBox>
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <img src={emptyState} alt="Empty project state" />
-      </Box>
-      <Typography
-        sx={{
-          textAlign: "center",
-          mt: 13.5,
-          color: theme.palette.text.tertiary,
-          textWrap: "balance",
-        }}
-      >
-        {message}
-      </Typography>
+      <EmptyState message={message} />
     </NoProjectBox>
   );
 };

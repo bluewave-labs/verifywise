@@ -5,98 +5,110 @@ import path from "path";
 import { generateToken } from "../utils/jwt.utils";
 import { frontEndUrl } from "../config/constants";
 import { invite } from "../controllers/vwmailer.ctrl";
-import {
-  validateCompletePasswordResetEmail
-} from "../utils/validations/mailValidation.utils";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
+import rateLimit from "express-rate-limit";
+import { getUserByEmailQuery } from "../utils/user.utils";
 
 const router = express.Router();
 
-router.post("/invite", async (req, res) => {
+// Rate limiter: max 5 requests per minute per IP for password reset
+const resetPasswordLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,    // 1 minute
+  max: 5,                     // limit each IP to 5 requests per windowMs
+  message: {
+    error: "Too many password reset requests from this IP, please try again later."
+  }
+});
+
+// Rate limiter: max 5 requests per minute per IP for invite route
+const inviteLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,    // 1 minute
+  max: 5,                     // limit each IP to 5 requests per windowMs
+  message: {
+    error: "Too many invite requests from this IP, please try again later."
+  }
+});
+
+router.post("/invite", inviteLimiter, async (req, res) => {
   await invite(req, res, req.body);
 });
 
-router.post("/reset-password", async (req, res) => {
-  // Validation for password reset
-  const validationErrors = validateCompletePasswordResetEmail(req.body);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: "Create",
-      description: `Password reset email validation failed for ${req.body.to}`,
-      functionName: "reset-password",
-      fileName: "vwmailer.route.ts",
-      error: new Error('Password reset email validation failed')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Password reset email validation failed',
-      errors: validationErrors.map(err => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
+router.post("/reset-password", resetPasswordLimiter, async (req, res) => {
   const { to, name, email } = req.body;
 
   logProcessing({
-    description: `starting password reset email for user: ${to}`,
+    description: `starting password reset request for: ${to}`,
     functionName: "reset-password",
     fileName: "vwmailer.route.ts",
   });
 
   try {
-    // Read the MJML template file
-    const templatePath = path.resolve(
-      __dirname,
-      "../templates/password-reset-email.mjml"
-    );
-    const template = fs.readFileSync(templatePath, "utf8");
+    // Check if user exists in the database
+    const userData = await getUserByEmailQuery(to);
 
-    const token = generateToken({
-      name,
-      email: to
-    }) as string
+    // Only send email if user exists
+    if (userData) {
+      // Read the MJML template file
+      const templatePath = path.resolve(
+        __dirname,
+        "../templates/password-reset-email.mjml"
+      );
+      const template = fs.readFileSync(templatePath, "utf8");
 
-    // Data to be replaced in the template
-    const url = `${frontEndUrl}/set-new-password?${new URLSearchParams(
-      { token }
-    ).toString()}`
+      const token = generateToken({
+        name: name,
+        email: to
+      }) as string
 
-    const data = { name, email, url };
+      // Data to be replaced in the template
+      const url = `${frontEndUrl}/set-new-password?${new URLSearchParams(
+        { token }
+      ).toString()}`
 
-    // Send the email
-    const info = await sendEmail(
-      to,
-      "Password reset request",
-      // "Please use the link to reset your password.",
-      template,
-      data
-    );
+      const data = { name: name, email, url };
 
-    console.log("Message sent");
+      // Send the email
+      await sendEmail(
+        to,
+        "Password reset request",
+        template,
+        data
+      );
 
-    await logSuccess({
-      eventType: "Create",
-      description: `Successfully sent password reset email to ${to}`,
-      functionName: "reset-password",
-      fileName: "vwmailer.route.ts",
-    });
+      console.log("Password reset email sent");
 
-    return res.status(200).json({ message: "Email sent successfully" });
+      await logSuccess({
+        eventType: "Create",
+        description: `Successfully sent password reset email to ${to}`,
+        functionName: "reset-password",
+        fileName: "vwmailer.route.ts",
+      });
+    } else {
+      // User doesn't exist, but don't reveal this information
+      console.log(`Password reset requested for non-existent user: ${to}`);
+
+      await logSuccess({
+        eventType: "Create",
+        description: `Password reset requested for non-existent user: ${to}`,
+        functionName: "reset-password",
+        fileName: "vwmailer.route.ts",
+      });
+    }
+
+    // Always return the same response regardless of whether user exists
+    return res.status(200).json({ message: "If an account exists with this email, we'll send a password reset link" });
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error processing password reset:", error);
 
     await logFailure({
       eventType: "Create",
-      description: `Failed to send password reset email to ${to}`,
+      description: `Failed to process password reset request for ${to}`,
       functionName: "reset-password",
       fileName: "vwmailer.route.ts",
       error: error as Error,
     });
 
-    return res.status(500).json({ error: "Failed to send email", details: (error as Error).message });
+    return res.status(500).json({ error: "Failed to process request", details: (error as Error).message });
   }
 });
 

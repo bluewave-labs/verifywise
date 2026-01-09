@@ -1,18 +1,22 @@
-import { TableBody, TableCell, TableRow, Chip, Dialog } from "@mui/material";
+import { TableBody, TableCell, TableRow, Dialog, useTheme, Typography, Stack } from "@mui/material";
+import { VWLink } from "../../Link";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Suspense, useContext, useEffect, useState } from "react";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { getMitigationStatusColor } from "../../../constants/statusColors";
-import RiskChip from "../../RiskLevel/RiskChip";
 import IconButton from "../../IconButton";
-import { formatDate } from "../../../tools/isoDateToString";
+import ViewRelationshipsButton from "../../ViewRelationshipsButton";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useSearchParams } from "react-router-dom";
-import CustomizableButton from "../../Button/CustomizableButton";
 import { ProjectRiskMitigation } from "../../ProjectRiskMitigation/ProjectRiskMitigation";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { IVWProjectRisksTableRow } from "../../../types/interfaces/i.risk";
+import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
+import { User } from "../../../../domain/types/User";
+import Chip from "../../Chip";
+import ProjectRiskLinkedPolicies from "../../../components/ProjectRiskMitigation/ProjectRiskLinkedPolicies";
 
 function getDummyEvent() {
   const realEvent = new Event("click", { bubbles: true, cancelable: true });
@@ -51,36 +55,49 @@ const VWProjectRisksTableBody = ({
   setAnchor,
   onDeleteRisk,
   flashRow,
-}: {
-  rows: any[];
-  page: number;
-  rowsPerPage: number;
-  setSelectedRow: any;
-  setAnchor: any;
-  onDeleteRisk: (id: number) => void;
-  flashRow: number | null;
-}) => {
+  sortConfig,
+}: IVWProjectRisksTableRow) => {
+  const theme = useTheme();
   const { setInputValues } = useContext(VerifyWiseContext);
   const { userRoleName } = useAuth();
   const { users } = useUsers();
   const isDeletingAllowed =
     allowedRoles.projectRisks.delete.includes(userRoleName);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
-  const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
+  
+  const getCellStyle = (row: RiskModel) => ({
+    ...cellStyle,
+    ...(row.is_deleted && {
+      textDecoration: 'line-through',
+    })
+  });
+  const handleEditRisk = (row: RiskModel, event?: React.SyntheticEvent) => {
     setSelectedRow(row);
-    setInputValues(row);
-    setAnchor(event?.currentTarget);
+    setInputValues({
+      ...row,
+      assessment_mapping: row.assessment_mapping ? Number(row.assessment_mapping) : 0
+    });
+    // ensure the anchor is an HTMLElement or null to satisfy the setter type
+    const anchorEl = (event?.currentTarget as unknown as HTMLElement) ?? null;
+    setAnchor(anchorEl);
   };
   const [showMitigations, setShowMitigations] = useState(false);
   const [showMitigationProjectRisk, setShowMitigationProjectRisk] =
     useState<ProjectRisk | null>(null);
 
+
+  const [showLinkedPoliciesToRisk, setShowLinkedPoliciesToRisk] = useState(false);
+
   const [searchParams] = useSearchParams();
   const riskId = searchParams.get("riskId");
 
+  const [selectedRiskId, setSelectedRiskId] = useState<number | null>(null);
+
+
+
   useEffect(() => {
     if (riskId) {
-      const risk = rows.find((r: ProjectRisk) => r.id === parseInt(riskId));
+      const risk = rows.find((r: RiskModel) => r.id === parseInt(riskId));
       if (risk) {
         handleEditRisk(risk, getDummyEvent());
       }
@@ -88,20 +105,30 @@ const VWProjectRisksTableBody = ({
   }, []);
 
   const toggleMitigations = (
-    risk: ProjectRisk,
+    risk: RiskModel,
     e: React.MouseEvent<HTMLElement>
   ) => {
     e.stopPropagation();
     setShowMitigations((prev) => !prev);
-    setShowMitigationProjectRisk(risk);
+    const riskMitigation: ProjectRisk = {
+      ...risk,
+      risk_owner: risk.risk_owner?.toString(),
+      risk_approval: risk.risk_approval !== undefined && risk.risk_approval !== null ? String(risk.risk_approval) : "",
+    } as unknown as ProjectRisk;
+    setShowMitigationProjectRisk(riskMitigation);
   };
 
   const handleDeleteRisk = async (riskId: number) => {
     onDeleteRisk(riskId);
   };
 
+  const handleViewLinkedPolicies = async (riskId: number) => {
+    setSelectedRiskId(riskId)
+    setShowLinkedPoliciesToRisk(true);
+  };
+
   const displayUserFullName = (userId: number) => {
-    const currentUser = users.find((user: any) => user.id === userId);
+    const currentUser = users.find((user: User) => user.id === userId);
     const fullName = currentUser
       ? `${currentUser.name} ${currentUser.surname}`
       : "";
@@ -114,16 +141,26 @@ const VWProjectRisksTableBody = ({
         {rows &&
           rows
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: ProjectRisk, index: number) => (
+            .map((row: RiskModel, index: number) => (
               <TableRow
                 key={index}
-                sx={singleTheme.tableStyles.primary.body.row}
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.row,
+                  ...(row.is_deleted && {
+                    opacity: 0.7,
+                    backgroundColor: theme.palette.action?.hover || '#fafafa',
+                  })
+                }}
                 onClick={(e) => handleEditRisk(row, e)}
               >
                 <TableCell
-                  sx={cellStyle}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? singleTheme.flashColors.background
+                      : sortConfig.key === "risk_name"
+                      ? "#e8e8e8"
+                      : "#fafafa",
                   }}
                 >
                   {row.risk_name
@@ -133,9 +170,13 @@ const VWProjectRisksTableBody = ({
                     : "-"}
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? singleTheme.flashColors.background
+                      : sortConfig.key === "risk_owner"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
                   {row.risk_owner
@@ -143,102 +184,122 @@ const VWProjectRisksTableBody = ({
                     : "-"}
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? singleTheme.flashColors.background
+                      : sortConfig.key === "severity"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
-                  <RiskChip label={row.severity} />
-                </TableCell>
-                <TableCell
-                  sx={cellStyle}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
-                  }}
-                >
-                  {row.likelihood ? row.likelihood : "-"}
-                </TableCell>
-                <TableCell
-                  sx={cellStyle}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
-                  }}
-                >
-                  {row.mitigation_status ? (
-                    <Chip
-                      label={row.mitigation_status}
-                      size="small"
-                      sx={{
-                        backgroundColor: getMitigationStatusColor(
-                          row.mitigation_status
-                        ),
-                        color: "white",
-                        fontWeight: 500,
-                        borderRadius: 12,
-                        height: 24,
-                      }}
-                    />
+                  {row.severity ? (
+                    <Chip label={row.severity} />
                   ) : (
                     "-"
                   )}
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? singleTheme.flashColors.background
+                      : sortConfig.key === "mitigation_status"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
-                  <RiskChip label={row.risk_level_autocalculated} />
+                  {row.mitigation_status ? (
+                    <Chip label={row.mitigation_status} />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? singleTheme.flashColors.background
+                      : sortConfig.key === "risk_level_autocalculated"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
-                  {row.deadline ? formatDate(row.deadline.toString()) : "NA"}
+                  {row.risk_level_autocalculated ? (
+                    <Chip label={row.risk_level_autocalculated} />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? singleTheme.flashColors.background
+                      : sortConfig.key === "deadline"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
-                  <CustomizableButton
-                    sx={{
-                      backgroundColor: "#13715B",
-                      color: "#fff",
-                      border: "1px solid #13715B",
-                    }}
-                    variant="contained"
-                    text="View controls"
+                  {row.deadline ? displayFormattedDate(row.deadline.toString()) : "NA"}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? singleTheme.flashColors.background
+                      : sortConfig.key === "controls_mapping"
+                      ? "#f5f5f5"
+                      : "",
+                  }}
+                >
+                  <VWLink
                     onClick={(e: React.MouseEvent<HTMLElement>) =>
                       toggleMitigations(row, e)
                     }
-                  />
+                  >
+                    View controls
+                  </VWLink>
                 </TableCell>
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
-                    minWidth: "50px",
-                  }}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                    minWidth: "80px",
+                    backgroundColor: flashRow === row.id
+                      ? singleTheme.flashColors.background
+                      : sortConfig.key === "actions"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
-                  {isDeletingAllowed && (
-                    <IconButton
-                      id={row.id}
-                      type="risk"
-                      onMouseEvent={(e) => handleEditRisk(row, e)}
-                      onDelete={() => handleDeleteRisk(row.id)}
-                      onEdit={() => handleEditRisk(row)}
-                      warningTitle="Delete this project risk?"
-                      warningMessage="Are you sure you want to delete this project risk. This action is non-recoverable."
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <ViewRelationshipsButton
+                      entityId={(row.id || 0) + 100000}
+                      entityType="risk"
+                      entityLabel={row.risk_name?.substring(0, 30) || undefined}
                     />
-                  )}
+                    {isDeletingAllowed && (
+                      <IconButton
+                        id={row.id!}
+                        type="risk"
+                        onMouseEvent={(e) => handleEditRisk(row, e)}
+                        onDelete={() => handleDeleteRisk(row.id!)}
+                        onEdit={() => handleEditRisk(row)}
+                        openLinkedPolicies={() => handleViewLinkedPolicies(row.id!)}
+                        warningTitle="Delete this project risk?"
+                        warningMessage={
+                          <Stack gap={2}>
+                            <Typography fontSize={13} color="#344054">
+                              Are you sure you want to delete this project risk?
+                            </Typography>
+                            <Typography fontSize={13} color="#344054">
+                              This action is non-recoverable.
+                            </Typography>
+                          </Stack>
+                        }
+                      />
+                    )}
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}
@@ -304,6 +365,21 @@ const VWProjectRisksTableBody = ({
           </Suspense>
         </Dialog>
       )}
+
+      {
+        showLinkedPoliciesToRisk && (
+          <ProjectRiskLinkedPolicies 
+            type = "risk"
+            riskId = {selectedRiskId}
+            isOpen = {showLinkedPoliciesToRisk}
+            onClose={() => {
+              setShowLinkedPoliciesToRisk(false);
+            }}/>
+  
+        )
+      }
+
+
     </>
   );
 };

@@ -6,7 +6,7 @@ export const SectionPaper = styled(Box)(({ theme }) => ({
   padding: theme.spacing(8),
   borderRadius: theme.shape.borderRadius,
   background: theme.palette.background.paper,
-  border: `1.5px solid ${theme.palette.border.light}`,
+  border: `1px solid ${theme.palette.border.dark}`,
 }));
 
 export const CardActive = styled(Card)(() => ({

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * IconButton component that renders a custom-styled Material-UI IconButton with a settings icon.
  * It includes a dropdown menu with options to edit or remove a vendor, and modals for adding or removing vendors.
@@ -12,14 +13,15 @@ import {
   IconButton as MuiIconButton,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
+import { Settings } from "lucide-react";
 import { useState } from "react";
-import BasicModal from "../Modals/Basic";
+import ConfirmationModal from "../Dialogs/ConfirmationModal";
+import { Typography } from "@mui/material";
 import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
-import { IconButtonProps } from "../../../domain/interfaces/iWidget";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { IconButtonProps } from "../../types/widget.types";
+import { AlertProps } from "../../types/alert.types";
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,
@@ -35,12 +37,26 @@ const IconButton: React.FC<IconButtonProps> = ({
   canDelete,
   checkForRisks,
   onDeleteWithRisks,
+  onView,
+  openLinkedPolicies,
+  onSendTest,
+  onToggleEnable,
+  // Task-specific props
+  isArchived,
+  onRestore,
+  onHardDelete,
+  onLinkedObjects,
+  hardDeleteWarningTitle,
+  hardDeleteWarningMessage,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
-  const [actions, setActions] = useState({});
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_, setActions] = useState({});
   const [isOpenRemoveModal, setIsOpenRemoveModal] = useState(false);
-  const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] = useState(false);
+  const [isOpenHardDeleteModal, setIsOpenHardDeleteModal] = useState(false);
+  const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] =
+    useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
@@ -58,7 +74,6 @@ const IconButton: React.FC<IconButtonProps> = ({
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setActions({ id: id, url: url });
-    console.log(actions);
   };
 
   /**
@@ -118,7 +133,26 @@ const IconButton: React.FC<IconButtonProps> = ({
     onEdit();
     if (e) {
       closeDropDownMenu(e);
-      onMouseEvent(e);
+      onMouseEvent?.(e);
+    }
+  };
+
+  const handleView = (e?: React.SyntheticEvent) => {
+    if (onView) {
+      onView();
+      if (e) {
+        closeDropDownMenu(e);
+        onMouseEvent?.(e); // optional chaining just in case
+      }
+    }
+  };
+
+  const handleOpenLinkedPolicies = (e?: React.SyntheticEvent) => {
+    if (openLinkedPolicies) {
+      openLinkedPolicies();
+      if (e) {
+        closeDropDownMenu(e);
+      }
     }
   };
 
@@ -140,6 +174,52 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
+  const handleSendTestNotification = async (e?: React.SyntheticEvent) => {
+    if (onSendTest) {
+      await onSendTest();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleToggleStatus = async (e?: React.SyntheticEvent) => {
+    if (onToggleEnable) {
+      await onToggleEnable();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleRestore = (e?: React.SyntheticEvent) => {
+    if (onRestore) {
+      onRestore();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleLinkedObjects = (e?: React.SyntheticEvent) => {
+    if (onLinkedObjects) {
+      onLinkedObjects();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleHardDelete = (e?: React.SyntheticEvent) => {
+    if (onHardDelete) {
+      onHardDelete();
+    }
+    setIsOpenHardDeleteModal(false);
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
   function handleCancle(e?: React.SyntheticEvent) {
     setIsOpenRemoveModal(false);
     if (e) {
@@ -150,39 +230,102 @@ const IconButton: React.FC<IconButtonProps> = ({
   /**
    * List of context-specific dropdown actions used to render menu items.
    *
-   * - For type "evidence", the menu item will be "download".
+   * - For type "evidence", the menu item will be "download","remove".
    * - For type "report", the menu item will be "download", "remove".
    * - For type "Resource", the menu item will be "edit", "make visible", "download", "remove".
+   * - For type "integration" (e.g., Slack), the menu item will be "Send Test", "Activate/Deactivate" "remove".
+   * - For type "Task" (active), the menu item will be "edit", "archive", "delete".
+   * - For type "Task" (archived), the menu item will be "restore", "delete".
    * - For other types (e.g. "Vendor"), the menu item will be "edit", "remove".
    */
-  const getListOfButtons = () => {
-    if (type === "report") {
-      return ["download", "remove"];
-    } else if (type === "evidence") {
-      return ["download"];
-    } else if (type === "Resource") {
-      return ["edit", "make visible", "download", "remove"];
-    } else if (type === "Vendor") {
-      return canDelete ? ["edit", "remove"] : ["edit"]; //  conditional delete
-    } else {
-      return ["edit", "remove"];
-    }
-  };
 
+  type ButtonType =
+  | "report"
+  | "evidence"
+  | "resource"
+  | "incident"
+  | "integration"
+  | "policy"
+  | "linkedobjectstype"
+  | "risk";
+
+  const BUTTONS_BY_TYPE: Record<ButtonType, string[]> = {
+    report: ["download", "linked_policies", "remove"],
+    evidence: ["download", "remove"],
+    resource: ["edit", "make visible", "download", "remove"],
+    incident: ["edit", "view", "archive"],
+    integration: ["Send Test", "Activate/Deactivate", "remove"],
+    policy: ["edit", "link_objects", "remove"],
+    linkedobjectstype: ["remove"],
+    risk: ["edit", "linked_policies", "remove"],
+  };
+  
+
+
+  const getListOfButtons = () => {
+    const normalizedType = type?.toLowerCase();
+
+    if (normalizedType === "task") {
+      return isArchived
+        ? ["restore", "delete"]
+        : ["edit", "archive", "delete"];
+    }
+
+    if (normalizedType === "vendor") {
+      return canDelete ? ["edit", "remove"] : ["edit"];
+    }
+
+    if (normalizedType && normalizedType in BUTTONS_BY_TYPE) {
+      return BUTTONS_BY_TYPE[normalizedType as ButtonType];
+    }
+
+    return ["edit", "remove"];
+  };
+  
   const listOfButtons = getListOfButtons();
 
   /**
    * Gets the display text for menu items, with special handling for visibility toggle
    */
+
   const getMenuItemText = (item: string) => {
+    const normalizedType = type?.toLowerCase();
+  
+    // Dynamic case stays explicit
     if (item === "make visible") {
-      return isVisible ? "Make Hidden" : "Make Visible";
+      return isVisible ? "Make hidden" : "Make visible";
     }
-    if (item === "remove" && type === "Task") {
-      return "Archive";
+  
+    const LABELS_BY_TYPE: Record<string, Record<string, string>> = {
+      incident: {
+        archive: "Archive incident",
+      },
+      task: {
+        archive: "Archive task",
+        delete: "Delete permanently",
+        restore: "Restore task",
+      },
+    };
+  
+    const COMMON_ITEM_LABELS: Record<string, string> = {
+      link_objects: "Linked objects",
+      linked_policies: "Linked policies",
+    };
+  
+    // Type-specific
+    const typeLabel = normalizedType ? LABELS_BY_TYPE[normalizedType]?.[item] : undefined;
+    if (typeLabel) {
+      return typeLabel;
+    }
+  
+    // Shared labels across multiple types
+    if (COMMON_ITEM_LABELS[item]) {
+      return COMMON_ITEM_LABELS[item];
     }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
+  
+
 
   /**
    * Renders a dropdown menu with dynamic options (e.g., Edit, Download, Remove)
@@ -212,7 +355,9 @@ const IconButton: React.FC<IconButtonProps> = ({
     >
       {listOfButtons.map((item) => {
         // For resources, disable edit, download, and remove when not visible
-        const isResourceAction = (type === "Resource" || type === "resource") && item !== "make visible";
+        const isResourceAction =
+          (type === "Resource" || type === "resource") &&
+          item !== "make visible";
         const isDisabled = isResourceAction && !isVisible;
 
         return (
@@ -231,7 +376,37 @@ const IconButton: React.FC<IconButtonProps> = ({
                 await handleDownload(e);
               } else if (item === "make visible") {
                 handleMakeVisible(e);
-              } else if (item === "remove") {
+              } else if (item === "view") {
+                handleView(e);
+              } else if (item === "Send Test") {
+                await handleSendTestNotification(e);
+              } else if (item === "Activate/Deactivate") {
+                await handleToggleStatus(e);
+              } else if (item === "restore") {
+                // Task restore action
+                handleRestore(e);
+              } else if (item === "link_objects") {
+                handleLinkedObjects(e);
+              } else if (item === "linked_policies") {
+                handleOpenLinkedPolicies(e);
+              }else if (item === "delete" && (type === "Task" || type === "task")) {
+                // Task hard delete action
+                if (hardDeleteWarningTitle && hardDeleteWarningMessage) {
+                  setIsOpenHardDeleteModal(true);
+                  if (e) closeDropDownMenu(e);
+                } else {
+                  handleHardDelete(e);
+                }
+              } else if (item === "archive" && (type === "Task" || type === "task")) {
+                // Task archive action (soft delete)
+                if (warningTitle && warningMessage) {
+                  setIsOpenRemoveModal(true);
+                  if (e) closeDropDownMenu(e);
+                } else {
+                  onDelete();
+                  if (e) closeDropDownMenu(e);
+                }
+              } else if (item === "remove" || item === "archive") {
                 if (warningTitle && warningMessage) {
                   setIsOpenRemoveModal(true);
                   if (e) closeDropDownMenu(e);
@@ -246,7 +421,30 @@ const IconButton: React.FC<IconButtonProps> = ({
               }
             }}
             disabled={isDisabled}
-            sx={item === "remove" ? { color: "#d32f2f" } : {}}
+            sx={{
+              ...(() => {
+                // Archive (soft delete) uses warning color
+                if (item === "archive" && (type === "Task" || type === "task")) {
+                  return { color: "#F59E0B" }; // warning color
+                }
+                // Hard delete uses error color
+                if (item === "delete" && (type === "Task" || type === "task")) {
+                  return { color: "#d32f2f" }; // error color
+                }
+                // Other remove/archive uses error color
+                if (item === "remove" || item === "archive") {
+                  return { color: "#d32f2f" };
+                }
+                // Restore uses primary/success color
+                if (item === "restore") {
+                  return { color: "#13715B" }; // primary color
+                }
+                if (item === "link_objects" || item === "linked_policies") {
+                  return { color: "#13715B" }; // primary color
+                }
+                return {};
+              })(),
+            }}
           >
             {getMenuItemText(item)}
           </MenuItem>
@@ -282,7 +480,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         openMenu(event, id, "someUrl");
       }}
     >
-      <Setting />
+      <Settings size={20} />
     </MuiIconButton>
   );
 
@@ -290,15 +488,58 @@ const IconButton: React.FC<IconButtonProps> = ({
     <>
       {customIconButtonAsSettings}
       {dropDownListOfOptions}
-      {warningTitle && warningMessage && (
-        <BasicModal
+      {warningTitle && warningMessage && isOpenRemoveModal && (
+        <ConfirmationModal
           isOpen={isOpenRemoveModal}
-          setIsOpen={() => setIsOpenRemoveModal(false)}
-          onDelete={(e) => checkForRisks && onDeleteWithRisks ? handleDeleteWithRiskCheck(e) : handleDelete(e)}
-          warningTitle={warningTitle}
-          warningMessage={warningMessage}
-          onCancel={(e) => handleCancle(e)}
-          type={type}
+          title={warningTitle}
+          body={
+            typeof warningMessage === "string" ? (
+              <Typography fontSize={13} color="#344054">
+                {warningMessage}
+              </Typography>
+            ) : (
+              warningMessage
+            )
+          }
+          cancelText="Cancel"
+          proceedText={
+            type === "Incident" || type === "Task"
+              ? `Archive ${type.toLowerCase()}`
+              : `Delete ${type}`
+          }
+          onCancel={() => handleCancle()}
+          onProceed={() =>
+            checkForRisks && onDeleteWithRisks
+              ? handleDeleteWithRiskCheck()
+              : handleDelete()
+          }
+          proceedButtonColor={
+            type === "Incident" || type === "Task" ? "warning" : "error"
+          }
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
+        />
+      )}
+      {hardDeleteWarningTitle && hardDeleteWarningMessage && isOpenHardDeleteModal && (
+        <ConfirmationModal
+          isOpen={isOpenHardDeleteModal}
+          title={hardDeleteWarningTitle}
+          body={
+            typeof hardDeleteWarningMessage === "string" ? (
+              <Typography fontSize={13} color="#344054">
+                {hardDeleteWarningMessage}
+              </Typography>
+            ) : (
+              hardDeleteWarningMessage
+            )
+          }
+          cancelText="Cancel"
+          proceedText="Delete permanently"
+          onCancel={() => setIsOpenHardDeleteModal(false)}
+          onProceed={() => handleHardDelete()}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
         />
       )}
       <ModelRiskConfirmation

@@ -1,24 +1,14 @@
-import { Button, Stack, Typography } from "@mui/material";
-import { ClearIcon } from "@mui/x-date-pickers/icons";
+import { Stack } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import Field from "../Inputs/Field";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
-import { getAllRisksByFrameworkId } from "../../../application/repository/projectRisk.repository";
+import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import LinkedRisksTable from "../Table/LinkedRisksTable";
 import { useSearchParams } from "react-router-dom";
-import CustomizableButton from "../Button/CustomizableButton";
+import StandardModal from "../Modals/StandardModal";
 
-import { textfieldStyle, styles } from "./styles";
-
-interface LinkedRisksModalProps {
-  onClose: () => void;
-  currentRisks: number[];
-  setSelectecRisks: (selectedRisks: number[]) => void;
-  _setDeletedRisks: (deletedRisks: number[]) => void;
-  projectId?: number; // Optional project ID to override URL search params
-  frameworkId?: number; // Optional framework ID for organizational projects
-  isOrganizational?: boolean; // Flag to determine which endpoint to use
-}
+import { textfieldStyle } from "./styles";
+import { LinkedRisksModalProps } from "../../types/interfaces/i.table";
 
 const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   onClose,
@@ -33,30 +23,72 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   const pId = searchParams.get("projectId");
   const projectId = propProjectId || parseInt(pId ?? "0");
 
-  // State for framework-based risks
+  // State for framework-based risks (used for organizational frameworks, EU AI Act, or when projectId is invalid)
   const [frameworkRisks, setFrameworkRisks] = useState<any[]>([]);
 
-  // Use project-based risks hook
-  const { projectRisks } = useProjectRisks({ projectId });
+  // Use project-based risks hook (only when projectId is valid, not organizational, and not EU AI Act)
+  // EU AI Act (frameworkId = 1) uses frameworkId instead of projectId
+  const shouldUseProjectRisks =
+    !isOrganizational && projectId > 0 && frameworkId !== 1;
+  const { projectRisks } = useProjectRisks({
+    projectId: shouldUseProjectRisks ? projectId : 0,
+  });
 
-  // Fetch framework-based risks when needed
+  // Fetch risks based on the scenario:
+  // 1. Organizational frameworks: fetch ALL risks (so users can link any risk to subcategories)
+  // 2. EU AI Act (frameworkId = 1): fetch risks by frameworkId
+  // 3. Invalid projectId: fetch all risks as fallback
   useEffect(() => {
-    if (isOrganizational && frameworkId) {
-      const fetchFrameworkRisks = async () => {
+    if (isOrganizational) {
+      // For organizational frameworks, fetch ALL risks
+      const fetchAllRisks = async () => {
         try {
-          const response = await getAllRisksByFrameworkId({ frameworkId });
+          const response = await getAllProjectRisks({ filter: "active" });
           setFrameworkRisks(response.data || []);
         } catch (error) {
-          console.error("Error fetching framework risks:", error);
+          console.error("Error fetching all risks:", error);
           setFrameworkRisks([]);
         }
       };
-      fetchFrameworkRisks();
+      fetchAllRisks();
+    } else if (frameworkId === 1) {
+      // For EU AI Act, fetch ALL risks (not just those already linked to framework)
+      // The framework association will be created when the risk is linked to the subcategory
+      const fetchAllRisks = async () => {
+        try {
+          const response = await getAllProjectRisks({ filter: "active" });
+          setFrameworkRisks(response.data || []);
+        } catch (error) {
+          console.error("Error fetching all risks for EU AI Act:", error);
+          setFrameworkRisks([]);
+        }
+      };
+      fetchAllRisks();
+    } else if (projectId === 0) {
+      // Fallback: if projectId is 0, fetch all risks
+      const fetchAllRisks = async () => {
+        try {
+          const response = await getAllProjectRisks({ filter: "active" });
+          setFrameworkRisks(response.data || []);
+        } catch (error) {
+          console.error("Error fetching all risks:", error);
+          setFrameworkRisks([]);
+        }
+      };
+      fetchAllRisks();
+    } else {
+      // Reset frameworkRisks when using project-based risks
+      setFrameworkRisks([]);
     }
-  }, [isOrganizational, frameworkId]);
+  }, [isOrganizational, frameworkId, projectId]);
 
   // Determine which risks to use
-  const risks = isOrganizational ? frameworkRisks : projectRisks;
+  // If organizational, EU AI Act (frameworkId=1), OR projectId is 0/invalid, use frameworkRisks
+  // Otherwise, use projectRisks (project-specific risks)
+  const risks =
+    isOrganizational || frameworkId === 1 || projectId === 0
+      ? frameworkRisks
+      : projectRisks;
   const [searchInput, setSearchInput] = useState<string>("");
   const [checkedRows, setCheckedRows] = useState<number[]>(currentRisks);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
@@ -78,29 +110,24 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   );
 
   return (
-    <Stack sx={styles.container}>
-      <Stack>
-        <Stack sx={styles.headingSection}>
-          <Typography sx={styles.textTitle}>
-            Link a risk from risk database
-          </Typography>
-          <ClearIcon sx={styles.clearIconStyle} onClick={onClose} />
-        </Stack>
-        <Stack component="form" sx={styles.searchInputWrapper}>
-          <Typography sx={{ fontSize: 13, color: "#344054", mr: 8 }}>
-            Search from the risk database:
-          </Typography>
-          <Stack>
-            <Field
-              id="risk-input"
-              width="350px"
-              sx={textfieldStyle}
-              value={searchInput}
-              onChange={handleOnTextFieldChange}
-              disabled={risks.length === 0}
-            />
-          </Stack>
-        </Stack>
+    <StandardModal
+      isOpen={true}
+      onClose={onClose}
+      title="Link a risk from risk database"
+      description="Search from the risk database:"
+      onSubmit={handleFormSubmit}
+      submitButtonText="Use selected risks"
+      maxWidth="1500px"
+    >
+      <Stack spacing={6}>
+        <Field
+          id="risk-input"
+          width="350px"
+          sx={textfieldStyle}
+          value={searchInput}
+          onChange={handleOnTextFieldChange}
+          disabled={risks.length === 0}
+        />
         <LinkedRisksTable
           projectRisksGroup={risks}
           filteredRisksGroup={filteredRisks}
@@ -111,24 +138,7 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
           setDeletedRisks={setDeletedRisks}
         />
       </Stack>
-      <Stack
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-        }}
-      >
-        <Button sx={styles.cancelBtn} onClick={onClose}>
-          Cancel
-        </Button>
-        <CustomizableButton
-          sx={styles.CustomizableButton}
-          variant="contained"
-          text="Use selected risks"
-          onClick={handleFormSubmit}
-        />
-      </Stack>
-    </Stack>
+    </StandardModal>
   );
 };
 

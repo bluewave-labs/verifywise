@@ -1,43 +1,37 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  getAllVendors, 
-  getVendorById, 
-  getVendorsByProjectId, 
-  createNewVendor, 
-  update as updateVendor, 
-  deleteVendor 
-} from '../repository/vendor.repository';
-
-export interface VendorDetails {
-  id?: number;
-  projects: number[];
-  vendor_name: string;
-  vendor_provides: string;
-  website: string;
-  vendor_contact_person: string;
-  review_result: string;
-  review_status: string;
-  reviewer: string;
-  risk_status: string;
-  review_date: string;
-  assignee: string;
-}
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import {
+  getAllVendors,
+  getVendorById,
+  getVendorsByProjectId,
+  createNewVendor,
+  update as updateVendor,
+  deleteVendor,
+} from "../repository/vendor.repository";
+import { VendorModel } from "../../domain/models/Common/vendor/vendor.model";
 
 // Query keys for vendors
 export const vendorQueryKeys = {
-  all: ['vendors'] as const,
-  lists: () => [...vendorQueryKeys.all, 'list'] as const,
-  list: (filters: { projectId?: string | number }) => [...vendorQueryKeys.lists(), filters] as const,
-  details: () => [...vendorQueryKeys.all, 'detail'] as const,
+  all: ["vendors"] as const,
+  lists: () => [...vendorQueryKeys.all, "list"] as const,
+  list: (filters: { projectId?: string | number }) =>
+    [...vendorQueryKeys.lists(), filters] as const,
+  details: () => [...vendorQueryKeys.all, "detail"] as const,
   detail: (id: number) => [...vendorQueryKeys.details(), id] as const,
 };
 
 // Hook to fetch all vendors
-export const useVendors = (filters: { projectId?: string | number } = {}) => {
+export const useVendors = (
+  filters: { projectId?: string | number } = {}
+): UseQueryResult<VendorModel[], Error> => {
   return useQuery({
     queryKey: vendorQueryKeys.list(filters),
     queryFn: async () => {
-      if (filters.projectId && filters.projectId !== 'all') {
+      if (filters.projectId && filters.projectId !== "all") {
         const response = await getVendorsByProjectId({
           projectId: Number(filters.projectId),
         });
@@ -48,7 +42,7 @@ export const useVendors = (filters: { projectId?: string | number } = {}) => {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000,   // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 
@@ -69,9 +63,9 @@ export const useVendor = (id: number) => {
 // Hook to create a new vendor
 export const useCreateVendor = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (vendorData: Partial<VendorDetails>) => {
+    mutationFn: async (vendorData: Partial<VendorModel>) => {
       const response = await createNewVendor({ body: vendorData });
       return response;
     },
@@ -85,9 +79,15 @@ export const useCreateVendor = () => {
 // Hook to update a vendor
 export const useUpdateVendor = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<VendorDetails> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<VendorModel>;
+    }) => {
       const response = await updateVendor({ id, body: data });
       return response;
     },
@@ -102,7 +102,7 @@ export const useUpdateVendor = () => {
 // Hook to delete a vendor
 export const useDeleteVendor = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: number) => {
       const response = await deleteVendor({ id });

@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import "./index.css";
 
-import { ReactComponent as RadioChecked } from "../../../assets/icons/radio-checked.svg";
+import { CircleDot } from "lucide-react";
 
 import { ChangeEvent } from "react";
 
@@ -47,7 +47,7 @@ const Radio = (props: RadioProps) => {
         <MUIRadio
           id={props.id}
           size={props.size}
-          checkedIcon={<RadioChecked />}
+          checkedIcon={<CircleDot size={16} />}
           sx={{
             color: "transparent",
             width: 16,
@@ -62,7 +62,7 @@ const Radio = (props: RadioProps) => {
       }
       label={
         <>
-          <Typography >{props.title}</Typography>
+          <Typography fontSize={13} color="text.tertiary">{props.title}</Typography>
           <Typography
             component="h6"
             mt={theme.spacing(1)}

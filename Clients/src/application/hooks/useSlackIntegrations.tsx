@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getSlackIntegrations } from "../repository/slack.integration.repository";
 
 export enum SlackNotificationRoutingType {
@@ -52,12 +52,14 @@ const useSlackIntegrations = (userId: number | null) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSlackIntegrations = async () => {
+  const fetchSlackIntegrations = useCallback(async () => {
+    if (!userId) return;
+
     try {
       const controller = new AbortController();
       const signal = controller.signal;
       setLoading(true);
-      const response = await getSlackIntegrations({ id: userId!, signal });
+      const response = await getSlackIntegrations({ id: userId, signal });
 
       const integrations: SlackWebhook[] = (response as ApiResponse).data.map(
         (item: ISlackWebhook): SlackWebhook => ({
@@ -102,11 +104,11 @@ const useSlackIntegrations = (userId: number | null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     fetchSlackIntegrations();
-  }, []);
+  }, [fetchSlackIntegrations]);
 
   return {
     slackIntegrations,

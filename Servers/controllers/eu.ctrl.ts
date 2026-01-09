@@ -8,7 +8,6 @@ import {
 } from "../utils/project.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { QuestionStructEU } from "../domain.layer/frameworks/EU-AI-Act/questionStructEU.model";
 import {
   countAnswersEUByProjectId,
   countSubControlsEUByProjectId,
@@ -21,7 +20,6 @@ import {
   getControlByIdForProjectQuery,
   getControlStructByControlCategoryIdForAProjectQuery,
   getTopicByIdForProjectQuery,
-  updateControlEUByIdQuery,
   updateQuestionEUByIdQuery,
   updateSubcontrolEUByIdQuery,
 } from "../utils/eu.utils";
@@ -33,22 +31,7 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
-import {
-  validateEUControlIdParam,
-  validateEUAnswerIdParam,
-  validateProjectFrameworkIdParam,
-  validateTopicIdParam,
-  validateControlIdParam,
-  validateControlCategoryIdParam,
-  validateProjectFrameworkIdQuery,
-  validateTopicIdQuery,
-  validateControlIdQuery,
-  validateCompleteControlUpdate,
-  validateCompleteAnswerUpdate
-} from "../utils/validations/euAIActValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
+import logger from "../utils/logger/fileLogger";
 
 export async function getAssessmentsByProjectId(
   req: Request,
@@ -65,22 +48,6 @@ export async function getAssessmentsByProjectId(
   );
 
   try {
-    // Validate project framework ID parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid project framework ID parameter: ${req.params.id}`,
-        functionName: "getAssessmentsByProjectId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
     const assessments = await getAssessmentsEUByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!
@@ -122,22 +89,6 @@ export async function getCompliancesByProjectId(
   );
 
   try {
-    // Validate project framework ID parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid project framework ID parameter: ${req.params.id}`,
-        functionName: "getCompliancesByProjectId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
     const complainces = await getComplianceEUByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!
@@ -178,40 +129,6 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
   );
 
   try {
-    // Validate topic ID query parameter
-    const topicIdValidation = validateTopicIdQuery(topicId);
-    if (!topicIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid topic ID query parameter: ${req.query.topicId}`,
-        functionName: "getTopicById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid topic ID query parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: topicIdValidation.message || 'Invalid topic ID',
-        code: topicIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
-    // Validate project framework ID query parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdQuery(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid project framework ID query parameter: ${req.query.projectFrameworkId}`,
-        functionName: "getTopicById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID query parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
     const topic = await getTopicByIdForProjectQuery(
       topicId,
       projectFrameworkId,
@@ -253,6 +170,15 @@ export async function getControlById(
 ): Promise<any> {
   const controlId = parseInt(req.query.controlId as string);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+  const owner = req.query.owner
+    ? parseInt(req.query.owner as string)
+    : undefined;
+  const approver = req.query.approver
+    ? parseInt(req.query.approver as string)
+    : undefined;
+  const dueDateFilter = req.query.dueDateFilter
+    ? parseInt(req.query.dueDateFilter as string)
+    : undefined;
 
   logProcessing({
     description: `starting getControlById for control ID ${controlId} and project framework ID ${projectFrameworkId}`,
@@ -264,43 +190,12 @@ export async function getControlById(
   );
 
   try {
-    // Validate control ID query parameter
-    const controlIdValidation = validateControlIdQuery(controlId);
-    if (!controlIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid control ID query parameter: ${req.query.controlId}`,
-        functionName: "getControlById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid control ID query parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: controlIdValidation.message || 'Invalid control ID',
-        code: controlIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
-    // Validate project framework ID query parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdQuery(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid project framework ID query parameter: ${req.query.projectFrameworkId}`,
-        functionName: "getControlById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID query parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
     const topic = await getControlByIdForProjectQuery(
       controlId,
       projectFrameworkId,
+      owner,
+      approver,
+      dueDateFilter,
       req.tenantId!
     );
 
@@ -348,71 +243,19 @@ export async function saveControls(
   logger.debug(`💾 Saving controls for control ID ${controlId}`);
 
   try {
-    // Validate control ID parameter
-    const controlIdValidation = validateEUControlIdParam(controlId);
-    if (!controlIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Invalid control ID parameter: ${req.params.id}`,
-        functionName: "saveControls",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid control ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: controlIdValidation.message || 'Invalid control ID',
-        code: controlIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
-    // Validate request body and files
-    const validationErrors = validateCompleteControlUpdate(req.body, req.files as any[]);
-    if (validationErrors.length > 0) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Control update validation failed for control ID ${controlId}`,
-        functionName: "saveControls",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Control update validation failed"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: 'Control update validation failed',
-        errors: validationErrors.map((err: ValidationError) => ({
-          field: err.field,
-          message: err.message,
-          code: err.code
-        }))
-      });
-    }
     const Control = req.body as ControlEU & {
       subControls: string;
       user_id: number;
       project_id: number;
       delete: string;
-      risksDelete: string;
-      risksMitigated: string;
     };
 
-    // now we need to create the control for the control category, and use the control category id as the foreign key
-    const control: any = await updateControlEUByIdQuery(
-      controlId,
-      {
-        status: Control.status,
-        approver: Control.approver,
-        risk_review: Control.risk_review,
-        owner: Control.owner,
-        reviewer: Control.reviewer,
-        due_date: Control.due_date,
-        implementation_details: Control.implementation_details,
-        risksDelete: JSON.parse(Control.risksDelete || "[]") as number[],
-        risksMitigated: JSON.parse(Control.risksMitigated || "[]") as number[],
-      },
-      req.tenantId!,
-      transaction
-    );
+    // Control-level status fields are no longer managed here - they exist only at subcontrol level
+    // The control record in database doesn't need to be updated - all editable fields are at subcontrol level
+    // We return a simple control object for the response
+    const control: any = {
+      id: controlId,
+    };
 
     const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {
@@ -492,6 +335,8 @@ export async function saveControls(
             implementation_details: subcontrol.implementation_details,
             evidence_description: subcontrol.evidence_description,
             feedback_description: subcontrol.feedback_description,
+            risksDelete: subcontrol.risksDelete,
+            risksMitigated: subcontrol.risksMitigated,
           },
           evidenceUploadedFiles,
           feedbackUploadedFiles,
@@ -538,7 +383,7 @@ export async function saveControls(
 }
 
 export async function updateQuestionById(
-  req: Request,
+  req: RequestWithFile,
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
@@ -552,53 +397,142 @@ export async function updateQuestionById(
   logger.debug(`✏️ Updating question ID ${questionId}`);
 
   try {
-    // Validate answer ID parameter
-    const answerIdValidation = validateEUAnswerIdParam(questionId);
-    if (!answerIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Invalid answer ID parameter: ${req.params.id}`,
-        functionName: "updateQuestionById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid answer ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: answerIdValidation.message || 'Invalid answer ID',
-        code: answerIdValidation.code || 'INVALID_PARAMETER'
-      });
+    const body: Partial<
+      AnswerEU & {
+        risksDelete: number[];
+        risksMitigated: number[];
+        user_id: string | number;
+        project_id: string | number;
+        delete: string;
+      }
+    > = req.body;
+
+    // Handle file deletions
+    const filesToDelete = JSON.parse(body.delete || "[]") as number[];
+    for (let f of filesToDelete) {
+      await deleteFileById(f, req.tenantId!, transaction);
     }
 
-    // Validate request body
-    const validationErrors = validateCompleteAnswerUpdate(req.body);
-    if (validationErrors.length > 0) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Answer update validation failed for question ID ${questionId}`,
-        functionName: "updateQuestionById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Answer update validation failed"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: 'Answer update validation failed',
-        errors: validationErrors.map((err: ValidationError) => ({
-          field: err.field,
-          message: err.message,
-          code: err.code
-        }))
-      });
+    // Handle file uploads
+    // Normalize req.files to always be an array
+    // Multer's upload.any() returns an array, but we need to handle it safely
+    let filesArray: UploadedFile[] = [];
+    if (req.files) {
+      if (Array.isArray(req.files)) {
+        filesArray = req.files as UploadedFile[];
+      } else {
+        // If it's an object (key-value pairs), flatten all file arrays into one array
+        const filesObject = req.files as { [key: string]: UploadedFile[] };
+        filesArray = Object.values(filesObject).flat();
+      }
     }
-    const body: Partial<AnswerEU & {
-      risksDelete: number[];
-      risksMitigated: number[];
-    }> = req.body;
+
+    // Debug: Log what we received
+    logger.debug(`📦 Received files: ${filesArray.length}`);
+    filesArray.forEach((f, idx) => {
+      logger.debug(
+        `  File ${idx}: fieldname="${f.fieldname}", originalname="${f.originalname}"`
+      );
+    });
+
+    const evidenceFiles = filesArray.filter((f) => f.fieldname === "files");
+
+    logger.debug(
+      `📋 Filtered evidence files (fieldname="files"): ${evidenceFiles.length}`
+    );
+
+    let uploadedFiles: FileType[] = [];
+    const userId =
+      typeof body.user_id === "string"
+        ? parseInt(body.user_id)
+        : (body.user_id as number);
+    const projectId =
+      typeof body.project_id === "string"
+        ? parseInt(body.project_id)
+        : (body.project_id as number);
+
+    logger.debug(
+      `👤 userId: ${userId}, projectId: ${projectId}, evidenceFiles.length: ${evidenceFiles.length}`
+    );
+
+    if (userId && projectId && evidenceFiles.length > 0) {
+      logger.debug(
+        `📤 Uploading ${evidenceFiles.length} file(s) for question ID ${questionId}`
+      );
+      for (let f of evidenceFiles) {
+        const uploadedFile = await uploadFile(
+          f,
+          userId,
+          projectId,
+          "Assessment tracker group",
+          req.tenantId!,
+          transaction
+        );
+
+        if (!uploadedFile || !uploadedFile.id) {
+          logger.error(`❌ Failed to upload file: ${f.originalname}`);
+          continue;
+        }
+
+        // Convert uploaded_time to ISO string if it's a Date object
+        const uploadedTime =
+          uploadedFile.uploaded_time instanceof Date
+            ? uploadedFile.uploaded_time.toISOString()
+            : uploadedFile.uploaded_time;
+
+        uploadedFiles.push({
+          id: uploadedFile.id!.toString(),
+          fileName: uploadedFile.filename,
+          project_id: uploadedFile.project_id,
+          uploaded_by: uploadedFile.uploaded_by,
+          uploaded_time: uploadedTime,
+          type: uploadedFile.type || "application/octet-stream",
+          source: uploadedFile.source || "Assessment tracker group",
+        });
+
+        logger.debug(
+          `✅ File uploaded successfully: ${uploadedFile.filename} (ID: ${uploadedFile.id})`
+        );
+      }
+      logger.debug(`📦 Total uploaded files: ${uploadedFiles.length}`);
+    } else {
+      logger.debug(
+        `⚠️ Skipping file upload - userId: ${userId}, projectId: ${projectId}, evidenceFiles.length: ${evidenceFiles.length}`
+      );
+    }
+
+    // Prepare the update body
+    const updateBody: Partial<
+      AnswerEU & {
+        risksDelete: number[];
+        risksMitigated: number[];
+        delete?: number[];
+        evidence_files?: FileType[];
+      }
+    > = {
+      answer: body.answer,
+      status: body.status,
+      risksDelete: JSON.parse((body.risksDelete as any) || "[]") || [],
+      risksMitigated: JSON.parse((body.risksMitigated as any) || "[]") || [],
+      delete: filesToDelete, // Pass deleted files to query function
+    };
+
+    // Always set evidence_files if there are file operations (upload or delete)
+    // This ensures the file operations are processed even if only deletions
+    if (uploadedFiles.length > 0 || filesToDelete.length > 0) {
+      updateBody.evidence_files = uploadedFiles; // Will be empty array if no uploads, but delete will still be processed
+      logger.debug(
+        `📋 Setting evidence_files in updateBody: ${uploadedFiles.length} files, ${filesToDelete.length} deletions`
+      );
+    } else {
+      logger.debug(
+        `⚠️ No file operations - uploadedFiles: ${uploadedFiles.length}, filesToDelete: ${filesToDelete.length}`
+      );
+    }
 
     const question = (await updateQuestionEUByIdQuery(
       questionId,
-      body,
+      updateBody,
       req.tenantId!,
       transaction
     )) as AnswerEU;
@@ -662,23 +596,6 @@ export async function deleteAssessmentsByProjectId(
   );
 
   try {
-    // Validate project framework ID parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Delete",
-        description: `Invalid project framework ID parameter: ${req.params.id}`,
-        functionName: "deleteAssessmentsByProjectId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
     const result = await deleteAssessmentEUByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!,
@@ -735,23 +652,6 @@ export async function deleteCompliancesByProjectId(
   );
 
   try {
-    // Validate project framework ID parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Delete",
-        description: `Invalid project framework ID parameter: ${req.params.id}`,
-        functionName: "deleteCompliancesByProjectId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
     const result = await deleteComplianeEUByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!,
@@ -1098,6 +998,18 @@ export async function getControlsByControlCategoryId(
 ): Promise<any> {
   const controlCategoryId = parseInt(req.params.id);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+  const owner =
+    req.query.owner && req.query.owner !== ""
+      ? parseInt(req.query.owner as string)
+      : undefined;
+  const approver =
+    req.query.approver && req.query.approver !== ""
+      ? parseInt(req.query.approver as string)
+      : undefined;
+  const dueDateFilter =
+    req.query.dueDateFilter && req.query.dueDateFilter !== ""
+      ? parseInt(req.query.dueDateFilter as string)
+      : undefined;
 
   logProcessing({
     description: `starting getControlsByControlCategoryId for control category ID ${controlCategoryId} and project framework ID ${projectFrameworkId}`,
@@ -1109,42 +1021,12 @@ export async function getControlsByControlCategoryId(
   );
 
   try {
-    // Validate control category ID parameter
-    const controlCategoryIdValidation = validateControlCategoryIdParam(controlCategoryId);
-    if (!controlCategoryIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid control category ID parameter: ${req.params.id}`,
-        functionName: "getControlsByControlCategoryId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid control category ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: controlCategoryIdValidation.message || 'Invalid control category ID',
-        code: controlCategoryIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
-    // Validate project framework ID query parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdQuery(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid project framework ID query parameter: ${req.query.projectFrameworkId}`,
-        functionName: "getControlsByControlCategoryId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID query parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
     const controls = await getControlStructByControlCategoryIdForAProjectQuery(
       controlCategoryId,
       projectFrameworkId,
+      owner,
+      approver,
+      dueDateFilter,
       req.tenantId!
     );
 

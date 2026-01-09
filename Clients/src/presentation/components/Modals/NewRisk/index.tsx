@@ -15,23 +15,21 @@ import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
 import {
   Box,
-  Modal,
   Stack,
   Typography,
-  useTheme,
   Divider,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
-import { ReactComponent as Close } from "../../../assets/icons/close.svg";
 import { Suspense, useEffect, useState, lazy, useCallback } from "react";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
-import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import StandardModal from "../StandardModal";
 import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -41,6 +39,10 @@ import {
   useUpdateVendorRisk,
 } from "../../../../application/hooks/useVendorRiskMutations";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { History as HistoryIcon } from "lucide-react";
+import HistorySidebar from "../../Common/HistorySidebar";
+import { useVendorRiskChangeHistory } from "../../../../application/hooks/useVendorRiskChangeHistory";
+import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 
 interface ExistingRisk {
@@ -72,7 +74,7 @@ interface AddNewRiskProps {
   handleChange: (event: React.SyntheticEvent, newValue: string) => void;
   existingRisk?: ExistingRisk | null;
   onSuccess?: () => void;
-  vendors: any[];
+  vendors: VendorModel[];
 }
 
 const initialState = {
@@ -121,16 +123,17 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   onSuccess = () => {},
   vendors,
 }) => {
-  const theme = useTheme();
   const { userRoleName } = useAuth();
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
   const VENDOR_OPTIONS =
     vendors?.length > 0
-      ? vendors.map((vendor: any) => ({
-          _id: vendor.id,
-          name: vendor.vendor_name,
-        }))
-      : [{ _id: "no-vendor", name: "No Vendor Exists" }];
+      ? vendors
+          .filter((vendor) => vendor.id !== undefined)
+          .map((vendor) => ({
+            _id: vendor.id as number,
+            name: vendor.vendor_name,
+          }))
+      : [{ _id: "no-vendor" as string | number, name: "No Vendor Exists" }];
 
   const [values, setValues] = useState(initialState);
   const [errors, setErrors] = useState({} as FormErrors);
@@ -140,6 +143,12 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     title?: string;
     body: string;
   } | null>(null);
+  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+
+  // Prefetch history data when modal opens in edit mode
+  useVendorRiskChangeHistory(
+    isOpen && existingRisk?.id ? existingRisk.id : undefined
+  );
 
   const { users } = useUsers();
   const formattedUsers = users?.map((user) => ({
@@ -418,112 +427,118 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   );
 
   const risksPanel = (
-    <TabPanel value="2" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
-      <Stack direction="row" spacing={12}>
-        <Stack flex={1} spacing={12}>
-          <Stack direction="row" spacing={6}>
-            <Box flex={1}>
-              <Select
-                items={VENDOR_OPTIONS}
-                label="Vendor"
-                placeholder="Select vendor"
-                isHidden={false}
-                id="vendor_id"
-                onChange={(e) => handleOnChange("vendor_id", e.target.value)}
-                value={values.vendor_id}
-                error={errors.vendor_id}
-                sx={{ width: "100%" }}
+    <TabPanel value="2" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 0 }}>
+      <Stack spacing={6}>
+        <Stack direction="row" spacing={6}>
+          <Stack flex={1} spacing={6}>
+            <Stack direction="row" spacing={6}>
+              <Box flex={1}>
+                <Select
+                  items={VENDOR_OPTIONS}
+                  label="Vendor"
+                  placeholder="Select vendor"
+                  isHidden={false}
+                  id="vendor_id"
+                  onChange={(e) => handleOnChange("vendor_id", e.target.value)}
+                  value={values.vendor_id}
+                  error={errors.vendor_id}
+                  sx={{ width: "100%" }}
+                  isRequired
+                  disabled={isEditingDisabled}
+                />
+              </Box>
+              <Box flex={1}>
+                <Select
+                  items={formattedUsers}
+                  label="Action owner"
+                  placeholder="Select owner"
+                  isHidden={false}
+                  id="action_owner"
+                  onChange={(e) =>
+                    handleOnChange("action_owner", e.target.value)
+                  }
+                  value={values.action_owner || ""}
+                  error={errors.action_owner}
+                  sx={{ width: "100%" }}
+                  isRequired
+                  disabled={isEditingDisabled}
+                />
+              </Box>
+            </Stack>
+            <Box>
+              <Field
+                label="Risk description"
+                width="100%"
+                value={values.risk_description}
+                onChange={(e) =>
+                  handleOnChange("risk_description", e.target.value)
+                }
+                error={errors.risk_description}
                 isRequired
                 disabled={isEditingDisabled}
-              />
-            </Box>
-            <Box flex={1}>
-              <Select
-                items={formattedUsers}
-                label="Action owner"
-                placeholder="Select owner"
-                isHidden={false}
-                id="action_owner"
-                onChange={(e) => handleOnChange("action_owner", e.target.value)}
-                value={values.action_owner || ""}
-                error={errors.action_owner}
-                sx={{ width: "100%" }}
-                isRequired
-                disabled={isEditingDisabled}
+                type="description"
+                rows={7}
+                placeholder="Describe the specific risk related to this vendor (e.g., data breach, service outage, compliance gap)."
               />
             </Box>
           </Stack>
-          <Box>
-            <Field
-              label="Risk description"
-              width="100%"
-              value={values.risk_description}
-              onChange={(e) =>
-                handleOnChange("risk_description", e.target.value)
-              }
-              error={errors.risk_description}
-              isRequired
-              disabled={isEditingDisabled}
-              type="description"
-              rows={7}
-              placeholder="Describe the specific risk related to this vendor (e.g., data breach, service outage, compliance gap)."
-            />
-          </Box>
+          <Stack flex={1} spacing={6}>
+            <Box>
+              <Field
+                label="Action plan"
+                width="100%"
+                type="description"
+                value={values.action_plan}
+                error={errors.action_plan}
+                onChange={(e) => handleOnChange("action_plan", e.target.value)}
+                isRequired
+                disabled={isEditingDisabled}
+                rows={4}
+                placeholder="Outline the steps or controls you will take to reduce or eliminate this risk."
+              />
+            </Box>
+            <Box>
+              <Field
+                label="Impact description"
+                width="100%"
+                value={values.impact_description}
+                onChange={(e) =>
+                  handleOnChange("impact_description", e.target.value)
+                }
+                error={errors.impact_description}
+                isRequired
+                disabled={isEditingDisabled}
+                type="description"
+                rows={4}
+                placeholder="Explain the potential consequences if this risk occurs (e.g., financial, reputational, regulatory)."
+              />
+            </Box>
+          </Stack>
         </Stack>
-        <Stack flex={1} spacing={12}>
+        <Stack>
+          <Divider sx={{ mb: 4 }} />
           <Box>
-            <Field
-              label="Action plan"
-              width="100%"
-              type="description"
-              value={values.action_plan}
-              error={errors.action_plan}
-              onChange={(e) => handleOnChange("action_plan", e.target.value)}
-              isRequired
-              disabled={isEditingDisabled}
-              rows={4}
-              placeholder="Outline the steps or controls you will take to reduce or eliminate this risk."
-            />
-          </Box>
-          <Box>
-            <Field
-              label="Impact description"
-              width="100%"
-              value={values.impact_description}
-              onChange={(e) =>
-                handleOnChange("impact_description", e.target.value)
-              }
-              error={errors.impact_description}
-              isRequired
-              disabled={isEditingDisabled}
-              type="description"
-              rows={4}
-              placeholder="Explain the potential consequences if this risk occurs (e.g., financial, reputational, regulatory)."
-            />
+            <Typography fontWeight={600} fontSize={16} mb={2}>
+              Calculate risk level
+            </Typography>
+            <Typography fontSize={13} color="text.secondary" mb={4}>
+              The Risk Level is calculated by multiplying the Likelihood and
+              Severity scores. By assigning these scores, the risk level will be
+              determined based on your inputs.
+            </Typography>
+            <Stack direction="row" spacing={6}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <RiskLevel
+                  likelihood={Number(values.likelihood) || 1}
+                  riskSeverity={Number(values.risk_severity) || 1}
+                  handleOnSelectChange={handleOnSelectChange}
+                  disabled={isEditingDisabled}
+                />
+              </Suspense>
+            </Stack>
           </Box>
         </Stack>
       </Stack>
-      <Divider sx={{ my: 6 }} />
-      <Box mt={4} mb={2}>
-        <Typography fontWeight={600} fontSize={16} mb={2}>
-          Calculate risk level
-        </Typography>
-        <Typography fontSize={13} color="text.secondary" mb={4}>
-          The Risk Level is calculated by multiplying the Likelihood and
-          Severity scores. By assigning these scores, the risk level will be
-          determined based on your inputs.
-        </Typography>
-        <Stack direction="row" spacing={12}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <RiskLevel
-              likelihood={Number(values.likelihood) || 1}
-              riskSeverity={Number(values.risk_severity) || 1}
-              handleOnSelectChange={handleOnSelectChange}
-              disabled={isEditingDisabled}
-            />
-          </Suspense>
-        </Stack>
-      </Box>
     </TabPanel>
   );
 
@@ -543,87 +558,83 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-      <Modal
-        open={isOpen}
-        onClose={(_event, reason) => {
-          if (reason !== "backdropClick") {
-            setValues(initialState);
-            setIsOpen();
-          }
+      <StandardModal
+        isOpen={isOpen}
+        onClose={() => {
+          setValues(initialState);
+          setIsHistorySidebarOpen(false);
+          setIsOpen();
         }}
-        sx={{ overflowY: "scroll" }}
+        title={existingRisk ? "Edit risk" : "Add a new vendor risk"}
+        description={
+          existingRisk
+            ? "Update risk details including description, impact assessment, and mitigation plan."
+            : "Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan."
+        }
+        onSubmit={handleSave}
+        submitButtonText="Save"
+        isSubmitting={isSubmitting || isEditingDisabled}
+        maxWidth={isHistorySidebarOpen ? "1300px" : "1000px"}
+        headerActions={
+          existingRisk?.id ? (
+            <Tooltip title="View activity history" arrow>
+              <IconButton
+                onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
+                size="small"
+                sx={{
+                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  backgroundColor: isHistorySidebarOpen
+                    ? "#E6F4F1"
+                    : "transparent",
+                  "&:hover": {
+                    backgroundColor: isHistorySidebarOpen
+                      ? "#D1EDE6"
+                      : "#F2F4F7",
+                  },
+                }}
+              >
+                <HistoryIcon size={20} />
+              </IconButton>
+            </Tooltip>
+          ) : undefined
+        }
       >
         <Stack
-          gap={theme.spacing(2)}
-          color={theme.palette.text.secondary}
+          direction="row"
           sx={{
-            backgroundColor: "#D9D9D9",
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 1000,
-            bgcolor: theme.palette.background.modal,
-            border: 1,
-            borderColor: theme.palette.border,
-            borderRadius: theme.shape.borderRadius,
-            boxShadow: 24,
-            p: theme.spacing(15),
-            "&:focus": {
-              outline: "none",
-            },
-            mt: 5,
-            mb: 5,
+            width: "100%",
+            minHeight: 0,
+            alignItems: "flex-start",
+            overflow: "hidden",
+            position: "relative",
           }}
         >
-          <Stack
-            display={"flex"}
-            flexDirection={"row"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
+          {/* Main Content */}
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "auto",
+            }}
           >
-            <Typography
-              fontSize={16}
-              fontWeight={600}
-              marginBottom={theme.spacing(5)}
-            >
-              {existingRisk ? "Edit risk" : "Add a new vendor risk"}
-            </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
-          </Stack>
-          {!existingRisk && (
-            <Typography
-              fontSize={13}
-              color={theme.palette.text.secondary}
-              marginBottom={theme.spacing(2)}
-              sx={{ lineHeight: 1.4 }}
-            >
-              Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan.
-            </Typography>
+            <TabContext value={value}>{risksPanel}</TabContext>
+          </Box>
+
+          {/* History Sidebar - Only shown when editing */}
+          {existingRisk?.id && (
+            <HistorySidebar
+              isOpen={isHistorySidebarOpen}
+              entityType="vendor_risk"
+              entityId={existingRisk.id}
+            />
           )}
-          <TabContext value={value}>
-            {risksPanel}
-            <Stack
-              sx={{
-                alignItems: "flex-end",
-              }}
-            >
-              <CustomizableButton
-                variant="contained"
-                text="Save"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                onClick={handleSave}
-                icon={<SaveIconSVGWhite />}
-                isDisabled={isEditingDisabled}
-              />
-            </Stack>
-          </TabContext>
         </Stack>
-      </Modal>
+      </StandardModal>
     </Stack>
   );
 };

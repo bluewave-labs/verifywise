@@ -1,7 +1,9 @@
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import Dashboard from "../../presentation/containers/Dashboard";
-import Home from "../../presentation/pages/Home";
 import Vendors from "../../presentation/pages/Vendors";
+import Integrations from "../../presentation/pages/Integrations";
+import SlackManagement from "../../presentation/pages/Integrations/SlackManagement";
+import MLFlowManagement from "../../presentation/pages/Integrations/MLFlowManagement";
 import Setting from "../../presentation/pages/SettingsPage";
 import Organization from "../../presentation/pages/SettingsPage/Organization";
 import RegisterAdmin from "../../presentation/pages/Authentication/RegisterAdmin";
@@ -13,33 +15,43 @@ import ResetPassword from "../../presentation/pages/Authentication/ResetPassword
 import SetNewPassword from "../../presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "../../presentation/pages/Authentication/ResetPasswordContinue";
 import MicrosoftCallback from "../../presentation/pages/Authentication/MicrosoftCallback";
-import ProjectView from "../../presentation/pages/ProjectView";
 import FileManager from "../../presentation/pages/FileManager";
 import Reporting from "../../presentation/pages/Reporting";
-import Playground from "../../presentation/pages";
 import VWHome from "../../presentation/pages/Home/1.0Home";
 import VWProjectView from "../../presentation/pages/ProjectView/V1.0ProjectView";
 import PageNotFound from "../../presentation/pages/PageNotFound";
 import ProtectedRoute from "../../presentation/components/ProtectedRoute";
-import FairnessDashboard from "../../presentation/pages/FairnessDashboard/FairnessDashboard";
-import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
-import BiasAndFairnessResultsPage from "../../presentation/pages/FairnessDashboard/BiasAndFairnessResultsPage";
+import EvalsDashboard from "../../presentation/pages/EvalsDashboard/EvalsDashboard";
+import OrgSettings from "../../presentation/pages/EvalsDashboard/OrgSettings";
+import DatasetEditorPage from "../../presentation/pages/EvalsDashboard/DatasetEditorPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
+import SharedView from "../../presentation/pages/SharedView";
 
 import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
+import IncidentManagement from "../../presentation/pages/IncidentManagement";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
+import AutomationsPage from "../../presentation/pages/Automations";
+import StyleGuide from "../../presentation/pages/StyleGuide";
+import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
+import AIDetectionPage from "../../presentation/pages/AIDetection";
+
+// Check if we're in development mode
+const isDev = import.meta.env.DEV;
 
 export const createRoutes = (
   triggerSidebar: boolean,
-  triggerSidebarReload: () => void
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _triggerSidebarReload: () => void
 ) => [
+  // ReactFlow Demo - Development only (must be before dashboard route)
+  ...(isDev ? [<Route key="reactflow-demo" path="/reactflow-demo" element={<ReactFlowDemo />} />] : []),
   <Route
     key="dashboard"
     path="/"
@@ -47,31 +59,51 @@ export const createRoutes = (
       <ProtectedRoute Component={Dashboard} reloadTrigger={triggerSidebar} />
     }
   >
-    <Route
-      path="/test"
-      element={<Home onProjectUpdate={triggerSidebarReload} />}
-    />
-    <Route path="/vendors" element={<Vendors />} />
-    <Route path="/setting" element={<Setting />} />
+    <Route path="/vendors" element={<Vendors />}>
+      <Route index element={<Vendors />} /> {/* Default tab */}
+      <Route path="risks" element={<Vendors />} /> {/* Risks tab */}
+    </Route>
+
+    <Route path="/integrations" element={<Integrations />} />
+    <Route path="/settings" element={<Setting />} />
+    <Route path="/settings/:tab" element={<Setting />} />
+    <Route path="/integrations/slack" element={<SlackManagement />} />
+    <Route path="/integrations/mlflow" element={<MLFlowManagement />} />
+    <Route path="/setting" element={<Navigate to="/settings" replace />} />
     <Route path="/organization" element={<Organization />} />
-    <Route path="/test/project-view" element={<ProjectView />} />
-    <Route path="/file-manager" element={<FileManager />} />
+      <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
     <Route index element={<IntegratedDashboard />} />
     <Route path="/overview" element={<VWHome />} />
-    <Route path="/framework" element={<Framework />} />
+    <Route path="/framework/:tab?" element={<Framework />} />
     <Route path="/project-view" element={<VWProjectView />} />
-    <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
-    <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
-    <Route path="/fairness-dashboard/bias-fairness-results/:id" element={<BiasAndFairnessResultsPage />} />
-    <Route path="/fairness-dashboard/bias-fairness-results-demo" element={<BiasAndFairnessResultsPage />} />
+    <Route path="/evals" element={<EvalsDashboard />} />
+    <Route path="/evals/:projectId" element={<EvalsDashboard />} />
+    <Route path="/evals/:projectId/datasets/editor" element={<DatasetEditorPage />} />
+    <Route path="/evals/settings" element={<OrgSettings />} />
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
-    <Route path="/policies" element={<PolicyDashboard/>}/>
+    <Route path="/ai-trust-center/:tab" element={<AITrustCenter />} />
+    <Route path="/policies" element={<PolicyDashboard />}>
+      <Route index element={<PolicyDashboard />} /> {/* Default tab */}
+      <Route path="templates" element={<PolicyDashboard />} /> {/* Policy Templates tab */}
+    </Route>
     <Route path="/event-tracker" element={<WatchTower />} />
+    <Route path="/event-tracker/logs" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
+    <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
+    <Route path="/model-inventory/mlflow" element={<ModelInventory />} />
+    <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
+    <Route path="/automations" element={<AutomationsPage />} />
+    <Route path="/ai-incident-managements" element={<IncidentManagement />} />
+    <Route path="/ai-detection" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/scan" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/history" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/settings" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/scans/:scanId" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/scans/:scanId/:tab" element={<AIDetectionPage />} />
   </Route>,
   <Route
     key="admin-reg"
@@ -118,8 +150,11 @@ export const createRoutes = (
     path="/auth/microsoft/callback"
     element={<MicrosoftCallback />}
   />,
-  <Route key="playground" path="/playground" element={<Playground />} />,
   // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
+  <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
+  // Style Guide - Development only
+  ...(isDev ? [<Route key="style-guide" path="/style-guide/:section?" element={<StyleGuide />} />] : []),
+  <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

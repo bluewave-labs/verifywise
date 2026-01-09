@@ -62,7 +62,7 @@ export const useStyles = (theme: Theme): StylesType => ({
 
   resourcesHeader: {
     display: 'flex',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     gap: 3,
     mb: 2,

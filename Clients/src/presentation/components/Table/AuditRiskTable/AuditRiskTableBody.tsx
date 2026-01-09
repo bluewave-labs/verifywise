@@ -5,38 +5,38 @@ import {
   TablePagination,
   TableRow,
   useTheme,
-  Checkbox as MuiCheckbox,
 } from "@mui/material";
 import { useCallback, useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ReactComponent as CheckboxOutline } from "../../../assets/icons/checkbox-outline.svg";
-import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-filled.svg";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
+import Checkbox from "../../Inputs/Checkbox";
+
+interface SelectorVerticalProps {
+  [key: string]: unknown;
+}
+
+const SelectorVertical = (props: SelectorVerticalProps) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 import {
   paginationStyle,
   paginationDropdown,
   paginationSelect,
 } from "../styles";
 import TablePaginationActions from "../../TablePagination";
-import RiskChip from "../../RiskLevel/RiskChip";
-import { Risk } from "./AuditRiskTable";
+import Chip from "../../Chip";
 import { useSearchParams } from "react-router-dom";
 import CustomizableButton from "../../Button/CustomizableButton";
-
-interface AuditRiskTableBodyProps {
-  rows: Risk[];
-  page: number;
-  setCurrentPagingation: (pageNo: number) => void;
-  deletedRisks: number[];
-  checkedRows: number[];
-  setCheckedRows: (checkedRows: number[]) => void;
-}
+import {
+  IAuditRiskTableBodyProps,
+  ITypeRisk,
+} from "../../../types/interfaces/i.table";
 
 const navigteToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
-export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
+export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
   rows,
   page,
   setCurrentPagingation,
@@ -65,12 +65,14 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
   );
 
   const handleChange = (
-    riskData: Risk,
+    riskData: ITypeRisk,
     event: React.ChangeEvent | React.MouseEvent
   ) => {
     event.stopPropagation();
     const riskId = riskData.id;
     if (deletedRisks.includes(riskId)) {
+      // Risk is deleted, skip selection
+      return;
     } else if (checkedRows.includes(riskId)) {
       setCheckedRows(checkedRows.filter((id) => id !== riskId));
     } else {
@@ -78,7 +80,7 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
     }
   };
 
-  const handleRowClick = (riskData: Risk, event: React.MouseEvent) => {
+  const handleRowClick = (riskData: ITypeRisk, event: React.MouseEvent) => {
     event.stopPropagation();
     const riskId = riskData.id;
     if (riskId) {
@@ -96,31 +98,22 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
         {rows &&
           rows
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: Risk, index: number) => (
+            .map((row: ITypeRisk, index: number) => (
               <TableRow
                 key={index}
                 sx={singleTheme.tableStyles.primary.body.row}
               >
                 <TableCell sx={cellStyle}>
-                  <MuiCheckbox
+                  <Checkbox
                     size="small"
-                    id="auto-fill"
-                    checked={
+                    id={`audit-risk-${row.id}`}
+                    isChecked={
                       deletedRisks.includes(row.id) ||
                       checkedRows.includes(row.id)
                     }
+                    value={row.id.toString()}
                     onChange={(e) => handleChange(row, e)}
                     onClick={(e) => e.stopPropagation()}
-                    checkedIcon={<CheckboxFilled />}
-                    icon={<CheckboxOutline />}
-                    sx={{
-                      borderRadius: "4px",
-                      "&:hover": { backgroundColor: "transparent" },
-                      "& svg": { width: "small", height: "small" },
-                      "& .MuiTouchRipple-root": {
-                        display: "none",
-                      },
-                    }}
                   />
                 </TableCell>
                 <TableCell sx={cellStyle}>
@@ -137,7 +130,7 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
                   {row.status ? row.status : "-"}
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  {row.severity ? <RiskChip label={row.severity} /> : "-"}
+                  {row.severity ? <Chip label={row.severity} /> : "-"}
                 </TableCell>
                 <TableCell>
                   <CustomizableButton
@@ -148,8 +141,8 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
                     }}
                     variant="contained"
                     text="View"
-                    onClick={(e: React.MouseEvent<HTMLElement>) => {
-                      handleRowClick(row, e);
+                    onClick={(e) => {
+                      handleRowClick(row, e as React.MouseEvent<HTMLElement>);
                     }}
                   />
                 </TableCell>

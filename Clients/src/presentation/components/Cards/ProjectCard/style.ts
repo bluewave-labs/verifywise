@@ -1,13 +1,11 @@
 export const projectCardStyle = {
-  border: "1px solid #EAECF0",
+  border: "1px solid #d0d5dd",
   borderRadius: "4px",
-  padding: "10px",
-  pt: "15px",
+  padding: "16px",
   minWidth: 300,
   width: "100%",
   maxWidth: "100&",
-  gap: 10,
-  minHeight: "275px",
+  background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
 };
 
 export const projectCardTitleStyle = {
@@ -40,11 +38,17 @@ export const projectCardSpecKeyStyle = { fontSize: 11, color: "#8594AC" };
 export const projectCardSpecValueyStyle = { fontSize: 13, color: "#344054" };
 
 export const viewProjectButtonStyle = {
-  border: "1px solid #D0D5DD",
-  color: "#344054",
+  backgroundColor: "#13715B",
+  color: "#fff",
+  fontSize: 13,
+  fontWeight: 600,
+  px: 3,
+  mt: 1,
+  height: 34,
   "&:hover": {
-    backgroundColor: "transparent",
+    backgroundColor: "#0e5c47",
   },
+  border: "none",
 };
 
 export const euAiActChipStyle = {
@@ -53,7 +57,7 @@ export const euAiActChipStyle = {
   fontWeight: 600,
   fontSize: 11,
   height: 28,
-  borderRadius: 2,
+  borderRadius: "4px",
   mb: 1,
   textTransform: 'none',
   minWidth: 'auto',
@@ -82,7 +86,7 @@ export const iso42001ChipStyle = {
   fontWeight: 600,
   fontSize: 11,
   height: 28,
-  borderRadius: 2,
+  borderRadius: "4px",
   mb: 1,
   textTransform: 'none',
   minWidth: 'auto',

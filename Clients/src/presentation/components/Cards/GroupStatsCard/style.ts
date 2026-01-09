@@ -9,7 +9,7 @@ export const GroupStatsCardFrame = {
     gap: "40px",
     backgroundColor: "white",
     padding: "10px 25px",
-    border: "1px solid #EAECF0",
+    border: "1px solid #d0d5dd",
     borderRadius: "4px",
     boxShadow: "none",
   };

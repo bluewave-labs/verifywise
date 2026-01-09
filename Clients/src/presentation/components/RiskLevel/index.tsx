@@ -1,22 +1,14 @@
-import { SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import { FC } from "react";
 import Select from "../Inputs/Select";
-import { Likelihood, Severity } from "./constants";
-import { riskSeverityItems, likelihoodItems } from "../AddNewRiskForm/projectRiskValue";
+import {
+  riskSeverityItems,
+  likelihoodItems,
+} from "../AddNewRiskForm/projectRiskValue";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "./riskValues";
-
-interface RiskLevelFormValues {
-  likelihood: Likelihood;
-  riskSeverity: Severity;
-}
-
-interface RiskLevelProps {
-  likelihood: number;
-  riskSeverity: number;
-  handleOnSelectChange: (field: keyof RiskLevelFormValues) => (event: SelectChangeEvent<string | number>) => void;
-  disabled?: boolean;
-}
+import { IRiskLevelProps } from "../../types/riskForm.types";
+import Chip from "../Chip";
 
 /**
  * RiskLevel component displays a form to select the likelihood and severity of a risk,
@@ -29,7 +21,7 @@ interface RiskLevelProps {
  * @param {function} props.handleOnSelectChange - The function to handle changes in the select inputs.
  * @returns {JSX.Element} The rendered RiskLevel component.
  */
-const RiskLevel: FC<RiskLevelProps> = ({
+const RiskLevel: FC<IRiskLevelProps> = ({
   likelihood,
   riskSeverity,
   handleOnSelectChange,
@@ -38,19 +30,24 @@ const RiskLevel: FC<RiskLevelProps> = ({
   const theme = useTheme();
 
   // Get the selected likelihood and severity names from the items
-  const selectedLikelihood = likelihoodItems.find(item => item._id === likelihood);
-  const selectedSeverity = riskSeverityItems.find(item => item._id === riskSeverity);
+  const selectedLikelihood = likelihoodItems.find(
+    (item) => item._id === likelihood
+  );
+  const selectedSeverity = riskSeverityItems.find(
+    (item) => item._id === riskSeverity
+  );
 
   // Calculate risk level using RiskCalculator
-  const riskLevel = selectedLikelihood && selectedSeverity 
-    ? RiskCalculator.getRiskLevel(
-        selectedLikelihood.name as RiskLikelihood,
-        selectedSeverity.name as RiskSeverity
-      )
-    : { level: "", color: "" };
+  const riskLevel =
+    selectedLikelihood && selectedSeverity
+      ? RiskCalculator.getRiskLevel(
+          selectedLikelihood.name as RiskLikelihood,
+          selectedSeverity.name as RiskSeverity
+        )
+      : { level: "", color: "" };
 
   return (
-    <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 12.5 }}>
+    <Stack sx={{ flexDirection: "row", gap: "8px" }}>
       <Select
         id="likelihood-input"
         label="Likelihood"
@@ -58,7 +55,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
         value={likelihood}
         onChange={handleOnSelectChange("likelihood")}
         items={likelihoodItems}
-        sx={{ width: 324, backgroundColor: theme.palette.background.main }}
+        sx={{ width: "325px", backgroundColor: theme.palette.background.main }}
         disabled={disabled}
       />
       <Select
@@ -68,27 +65,22 @@ const RiskLevel: FC<RiskLevelProps> = ({
         value={riskSeverity}
         onChange={handleOnSelectChange("riskSeverity")}
         items={riskSeverityItems}
-        sx={{ width: 324, backgroundColor: theme.palette.background.main }}
+        sx={{ width: "325px", backgroundColor: theme.palette.background.main }}
         disabled={disabled}
       />
-      <Stack rowGap={2}>
+      <Stack gap={theme.spacing(2)}>
         <Typography
-          sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
+          sx={{
+            fontSize: "13px",
+            fontWeight: 500,
+            color: theme.palette.text.secondary,
+            margin: 0,
+            height: "22px",
+          }}
         >
           Risk level
         </Typography>
-        <Stack
-          sx={{
-            backgroundColor: riskLevel.color,
-            color: theme.palette.background.main,
-            p: "0 8px",
-            height: 34,
-            borderRadius: theme.shape.borderRadius,
-            justifyContent: "center",
-          }}
-        >
-          {riskLevel.level}
-        </Stack>
+        <Chip label={riskLevel.level} size="medium" />
       </Stack>
     </Stack>
   );

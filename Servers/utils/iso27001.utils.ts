@@ -81,8 +81,77 @@ export const countAnnexControlsISOByProjectId = async (
   return result[0][0];
 };
 
+/**
+ * Counts the total and assigned subclauses for an ISO 27001 project framework.
+ * A subclause is considered "assigned" if it has an owner (owner IS NOT NULL).
+ *
+ * @param projectFrameworkId - The ID of the project framework to count assignments for
+ * @param tenant - The tenant schema identifier for multi-tenant database access
+ * @returns Promise resolving to an object with total and assigned subclause counts as strings
+ *
+ * @example
+ * const counts = await countSubClauseAssignmentsISOByProjectId(2, 'tenant_123');
+ * // Returns: { totalSubclauses: "23", assignedSubclauses: "1" }
+ */
+export const countSubClauseAssignmentsISOByProjectId = async (
+  projectFrameworkId: number,
+  tenant: string
+): Promise<{
+  totalSubclauses: string;
+  assignedSubclauses: string;
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+       COUNT(*) AS "totalSubclauses",
+       SUM(CASE WHEN owner IS NOT NULL THEN 1 ELSE 0 END) AS "assignedSubclauses"
+     FROM "${tenant}".subclauses_iso27001
+     WHERE projects_frameworks_id = :projects_frameworks_id;`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+    }
+  )) as [{ totalSubclauses: string; assignedSubclauses: string }[], number];
+
+  return result[0][0];
+};
+
+/**
+ * Counts the total and assigned annex controls for an ISO 27001 project framework.
+ * An annex control is considered "assigned" if it has an owner (owner IS NOT NULL).
+ *
+ * @param projectFrameworkId - The ID of the project framework to count assignments for
+ * @param tenant - The tenant schema identifier for multi-tenant database access
+ * @returns Promise resolving to an object with total and assigned annex control counts as strings
+ *
+ * @example
+ * const counts = await countAnnexControlAssignmentsISOByProjectId(2, 'tenant_123');
+ * // Returns: { totalAnnexControls: "93", assignedAnnexControls: "3" }
+ */
+export const countAnnexControlAssignmentsISOByProjectId = async (
+  projectFrameworkId: number,
+  tenant: string
+): Promise<{
+  totalAnnexControls: string;
+  assignedAnnexControls: string;
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+       COUNT(*) AS "totalAnnexControls",
+       SUM(CASE WHEN owner IS NOT NULL THEN 1 ELSE 0 END) AS "assignedAnnexControls"
+     FROM "${tenant}".annexcontrols_iso27001
+     WHERE projects_frameworks_id = :projects_frameworks_id;`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+    }
+  )) as [
+    { totalAnnexControls: string; assignedAnnexControls: string }[],
+    number,
+  ];
+
+  return result[0][0];
+};
+
 export const getAllClausesQuery = async (
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const clauses = await sequelize.query(
@@ -111,7 +180,7 @@ export const getAllClausesWithSubClauseQuery = async (
 
   for (let clause of clauses[0]) {
     const subClauses = (await sequelize.query(
-      `SELECT scs.id, scs.title, scs.order_no, sc.status FROM public.subclauses_struct_iso27001 scs JOIN "${tenant}".subclauses_iso27001 sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT sc.id, scs.title, scs.order_no, sc.status, sc.owner FROM public.subclauses_struct_iso27001 scs JOIN "${tenant}".subclauses_iso27001 sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY scs.id;`,
       {
         replacements: {
           id: clause.id,
@@ -121,9 +190,9 @@ export const getAllClausesWithSubClauseQuery = async (
         ...(transaction ? { transaction } : {}),
       }
     )) as [
-        Partial<ISO27001SubClauseStructModel & ISO27001SubClauseModel>[],
-        number,
-      ];
+      Partial<ISO27001SubClauseStructModel & ISO27001SubClauseModel>[],
+      number,
+    ];
     (
       clause as ISO27001ClauseStructModel & {
         subClauses: Partial<
@@ -197,33 +266,26 @@ export const getSubClausesByClauseIdQuery = async (
   transaction: Transaction | null = null
 ) => {
   const subClauses = await sequelize.query(
-    `SELECT * FROM public.subclauses_struct_iso27001 WHERE clause_id = :id ORDER BY id;`,
+    `SELECT sc.id, scs.title, scs.order_no, scs.clause_id, scs.requirement_summary, scs.key_questions, scs.evidence_examples,
+            sc.owner AS owner, sc.reviewer AS reviewer, sc.due_date, sc.status
+    FROM "${tenant}".subclauses_iso27001 sc JOIN public.subclauses_struct_iso27001 scs ON
+    sc.subclause_meta_id = scs.id WHERE scs.clause_id = :id ORDER BY scs.id;`,
     {
       replacements: { id: clauseId },
       mapToModel: true,
-      model: ISO27001SubClauseStructModel,
       ...(transaction ? { transaction } : {}),
     }
   );
-  return subClauses;
+  return subClauses[0];
 };
 
 export const getSubClauseByIdForProjectQuery = async (
   subClauseId: number,
-  projectFrameworkId: number,
+  _projectFrameworkId: number,
   tenant: string
 ) => {
-  const _subClauseId = (await sequelize.query(
-    `SELECT id FROM "${tenant}".subclauses_iso27001 WHERE subclause_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
-    {
-      replacements: {
-        id: subClauseId,
-        projects_frameworks_id: projectFrameworkId,
-      },
-    }
-  )) as [{ id: number }[], number];
-  const subClauses = await getSubClauseByIdQuery(_subClauseId[0][0].id, tenant);
-  return subClauses;
+  const subClause = await getSubClauseByIdQuery(subClauseId, tenant);
+  return subClause;
 };
 
 export const getSubClauseByIdQuery = async (
@@ -255,10 +317,13 @@ export const getSubClauseByIdQuery = async (
       ...(transaction ? { transaction } : {}),
     }
   )) as [
-      Partial<ISO27001SubClauseStructModel & ISO27001SubClauseModel>[],
-      number,
-    ];
+    Partial<ISO27001SubClauseStructModel & ISO27001SubClauseModel>[],
+    number,
+  ];
   const subClause = subClauses[0][0];
+  if (!subClause) {
+    return null;
+  }
   (subClause as any).risks = [];
   const risks = (await sequelize.query(
     `SELECT projects_risks_id FROM "${tenant}".subclauses_iso27001__risks WHERE subclause_id = :id`,
@@ -311,15 +376,17 @@ export const getMainClausesQuery = async (
       tenant,
       transaction
     );
-    (clausesStruct as any)[
-      clausesStructMap.get(subClause.clause_id!)
-    ].dataValues.subClauses.push(subClause);
+    if (subClause) {
+      (clausesStruct as any)[
+        clausesStructMap.get(subClause.clause_id!)
+      ].dataValues.subClauses.push(subClause);
+    }
   }
   return clausesStruct;
 };
 
 export const getAllAnnexesQuery = async (
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexes = await sequelize.query(
@@ -348,7 +415,10 @@ export const getAllAnnexesWithControlsQuery = async (
 
   for (let annex of annexes[0]) {
     const annexControls = (await sequelize.query(
-      `SELECT acs.id, acs.title, acs.requirement_summary, acs.order_no, ac.status FROM public.annexcontrols_struct_iso27001 acs JOIN "${tenant}".annexcontrols_iso27001 ac ON acs.id = ac.annexcontrol_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT acs.id, acs.title, acs.requirement_summary, acs.order_no, ac.status, ac.owner, ac.reviewer, ac.due_date 
+      FROM public.annexcontrols_struct_iso27001 acs JOIN "${tenant}".annexcontrols_iso27001 ac 
+      ON acs.id = ac.annexcontrol_meta_id WHERE acs.annex_id = :id 
+      AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
         replacements: {
           id: annex.id,
@@ -358,9 +428,10 @@ export const getAllAnnexesWithControlsQuery = async (
         ...(transaction ? { transaction } : {}),
       }
     )) as [
-        Partial<ISO27001AnnexControlStructModel & ISO27001AnnexControlModel>[],
-        number,
-      ];
+      Partial<ISO27001AnnexControlStructModel & ISO27001AnnexControlModel>[],
+      number,
+    ];
+
     (
       annex as ISO27001AnnexStructModel & {
         annexControls: Partial<
@@ -390,7 +461,7 @@ export const getAnnexByIdQuery = async (
 
 export const getAnnexControlsByAnnexIdQuery = async (
   annexId: number,
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexControls = await sequelize.query(
@@ -455,10 +526,13 @@ export const getAnnexControlsByIdQuery = async (
       ...(transaction ? { transaction } : {}),
     }
   )) as [
-      Partial<ISO27001AnnexControlStructModel & ISO27001AnnexControlModel>[],
-      number,
-    ];
+    Partial<ISO27001AnnexControlStructModel & ISO27001AnnexControlModel>[],
+    number,
+  ];
   const annexControl = annexControls[0][0];
+  if (!annexControl) {
+    return null;
+  }
   (annexControl as any).risks = [];
   const risks = (await sequelize.query(
     `SELECT projects_risks_id FROM "${tenant}".annexcontrols_iso27001__risks WHERE annexcontrol_id = :id`,
@@ -511,9 +585,11 @@ export const getAnnexControlsQuery = async (
       tenant,
       transaction
     );
-    (annexesStruct as any)[
-      annexStructMap.get(annex.annex_id!)
-    ].dataValues.subClauses.push(annex);
+    if (annex) {
+      (annexesStruct as any)[
+        annexStructMap.get(annex.annex_id!)
+      ].dataValues.subClauses.push(annex);
+    }
   }
   return annexesStruct;
 };
@@ -715,7 +791,7 @@ export const updateSubClauseQuery = async (
   uploadedFiles: {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[] = [],
@@ -738,7 +814,7 @@ export const updateSubClauseQuery = async (
   ) as {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[];
@@ -833,7 +909,9 @@ export const updateSubClauseQuery = async (
   );
   if (currentRisks.length > 0) {
     // Create parameterized placeholders for safe insertion
-    const placeholders = currentRisks.map((_, i) => `(:subclause_id${i}, :projects_risks_id${i})`).join(", ");
+    const placeholders = currentRisks
+      .map((_, i) => `(:subclause_id${i}, :projects_risks_id${i})`)
+      .join(", ");
     const replacements: { [key: string]: any } = {};
 
     // Build replacement parameters safely
@@ -852,6 +930,7 @@ export const updateSubClauseQuery = async (
       (subClauseResult as any).risks.push(risk.projects_risks_id);
     }
   }
+  return subClauseResult as IISO27001SubClause;
 };
 
 export const updateAnnexControlQuery = async (
@@ -862,7 +941,7 @@ export const updateAnnexControlQuery = async (
   uploadedFiles: {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[] = [],
@@ -889,7 +968,7 @@ export const updateAnnexControlQuery = async (
   ) as {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[];
@@ -947,7 +1026,11 @@ export const updateAnnexControlQuery = async (
   const risksDeleted = validateRiskArray(risksDeletedRaw, "risksDelete");
   const risksMitigated = validateRiskArray(risksMitigatedRaw, "risksMitigated");
 
-  if (setClause.length === 0 && risksDeleted.length === 0 && risksMitigated.length === 0) {
+  if (
+    setClause.length === 0 &&
+    risksDeleted.length === 0 &&
+    risksMitigated.length === 0
+  ) {
     return annexControl as IISO27001AnnexControl;
   }
 
@@ -983,7 +1066,9 @@ export const updateAnnexControlQuery = async (
   );
   if (currentRisks.length > 0) {
     // Create parameterized placeholders for safe insertion
-    const placeholders = currentRisks.map((_, i) => `(:annexcontrol_id${i}, :projects_risks_id${i})`).join(", ");
+    const placeholders = currentRisks
+      .map((_, i) => `(:annexcontrol_id${i}, :projects_risks_id${i})`)
+      .join(", ");
     const replacements: { [key: string]: any } = {};
 
     // Build replacement parameters safely

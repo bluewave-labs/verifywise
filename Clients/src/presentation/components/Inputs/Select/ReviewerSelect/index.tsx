@@ -8,7 +8,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown } from "lucide-react";
 import "./index.css"; // Include your existing styles
 import useUsers from "../../../../../application/hooks/useUsers";
 
@@ -87,7 +87,7 @@ const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
         value={selected}
         onChange={handleChange}
         renderValue={renderSelected}
-        IconComponent={GreyDownArrowIcon}
+        IconComponent={() => <ChevronDown size={16} />}
         error={!!error}
         size="small"
         displayEmpty
@@ -101,13 +101,16 @@ const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
               "& .MuiMenuItem-root": {
                 fontSize: 13,
                 color: theme.palette.text.primary,
+                transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
+                  color: "#13715B",
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,
                   "&:hover": {
                     backgroundColor: theme.palette.background.accent,
+                    color: "#13715B",
                   },
                 },
               },

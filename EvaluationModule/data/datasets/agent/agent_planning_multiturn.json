@@ -1,0 +1,18 @@
+[
+  {
+    "scenario": "User planning a product launch",
+    "expected_outcome": "Create comprehensive launch plan with timeline",
+    "tools_available": ["calendar", "project_management", "email", "web_search"],
+    "turns": [
+      { "role": "user", "content": "I need to plan a product launch for March 15th. Can you help create a timeline?" },
+      { "role": "assistant", "content": "I'll help you create a launch timeline. Let me gather some information first. What type of product is this, and what's your team size? This will help me estimate realistic timelines.", "tools_used": [] },
+      { "role": "user", "content": "It's a SaaS product, team of 5 (2 devs, 1 designer, 1 marketer, me as PM)." },
+      { "role": "assistant", "content": "[Using project_management tool to create timeline]\n\nHere's your launch timeline working back from March 15th:\n\n**T-8 weeks (Jan 18):** Feature freeze, start QA\n**T-6 weeks (Feb 1):** Marketing assets creation begins\n**T-4 weeks (Feb 15):** Beta testing with select users\n**T-2 weeks (Mar 1):** Final bug fixes, launch prep\n**T-1 week (Mar 8):** Press outreach, final review\n**Launch day (Mar 15):** Go live\n\nShould I create these as tasks and calendar events?", "tools_used": ["project_management"] },
+      { "role": "user", "content": "Yes, and add team assignments to each milestone." },
+      { "role": "assistant", "content": "I've created the full project plan with assignments. [Using project_management and calendar tools]\n\n**Assignments:**\n- Feature freeze & QA: Devs + Designer\n- Marketing assets: Marketer + Designer  \n- Beta testing: PM + Devs\n- Bug fixes: Devs\n- Press outreach: Marketer + PM\n- Launch day: All hands\n\nI've added calendar blocks for key meetings and deadlines. Want me to send the plan to the team via email?", "tools_used": ["project_management", "calendar"] },
+      { "role": "user", "content": "Yes, send it out." },
+      { "role": "assistant", "content": "Done! [Using email tool]\n\nI've sent 'Product Launch Plan - March 15th' to your team with:\n- Timeline overview\n- Individual assignments\n- Calendar invites for key milestones\n- Link to the project board\n\nI've also scheduled a kickoff meeting for tomorrow at 10 AM. Everyone has been notified. Is there anything else you'd like to add to the plan?", "tools_used": ["email", "calendar"] }
+    ]
+  }
+]
+

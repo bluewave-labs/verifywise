@@ -1,0 +1,30 @@
+{
+  "name": "verifywise-api-docs",
+  "private": true,
+  "version": "1.7.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^6.1.6",
+    "lucide-react": "^0.294.0",
+    "prismjs": "^1.30.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/prismjs": "^1.26.5",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.3",
+    "vite": "^7.2.6"
+  }
+}

@@ -123,7 +123,7 @@ export const validateForm = (values: FormValues): ValidationResult => {
 
   // Confirm password validation
   if (values.password !== values.confirmPassword) {
-    newErrors.confirmPassword = "Passwords do not match";
+    newErrors.confirmPassword = "Password confirmation does not match. Please re-enter.";
   }
 
   return {

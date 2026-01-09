@@ -14,7 +14,9 @@ export const getAllRolesQuery = async (): Promise<RoleModel[]> => {
   return roles;
 };
 
-export const getRoleByIdQuery = async (id: number): Promise<RoleModel | null> => {
+export const getRoleByIdQuery = async (
+  id: number
+): Promise<RoleModel | null> => {
   const result = await sequelize.query("SELECT * FROM roles WHERE id = :id", {
     replacements: { id },
     mapToModel: true,
@@ -51,10 +53,15 @@ export const updateRoleByIdQuery = async (
   const updateRole: Partial<Record<keyof IRoleAttributes, any>> = {};
   const setClause = ["name", "description"]
     .filter((f) => {
-      if (role[f as keyof IRoleAttributes] !== undefined && role[f as keyof IRoleAttributes]) {
-        updateRole[f as keyof IRoleAttributes] = role[f as keyof IRoleAttributes];
+      if (
+        role[f as keyof IRoleAttributes] !== undefined &&
+        role[f as keyof IRoleAttributes]
+      ) {
+        updateRole[f as keyof IRoleAttributes] =
+          role[f as keyof IRoleAttributes];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

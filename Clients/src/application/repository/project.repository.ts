@@ -1,16 +1,13 @@
-
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 export async function getAllProjects({
   signal,
 }: {
   signal?: AbortSignal;
-  authToken?: string;
 } = {}): Promise<any> {
   const response = await apiServices.get("/projects", {
     signal,
   });
-  console.log(response);
   return response.data;
 }
 
@@ -27,11 +24,7 @@ export async function getProjectById({
   return response.data;
 }
 
-export async function createProject({
-  body,
-}: {
-  body: any;
-}): Promise<any> {
+export async function createProject({ body }: { body: any }): Promise<any> {
   const response = await apiServices.post("/projects", body);
   return response;
 }
@@ -47,15 +40,10 @@ export async function updateProject({
   return response;
 }
 
-export async function deleteProject({
-  id,
-}: {
-  id: number;
-}): Promise<any> {
+export async function deleteProject({ id }: { id: number }): Promise<any> {
   const response = await apiServices.delete(`/projects/${id}`);
   return response;
 }
-
 
 export async function getProjectProgressData({
   routeUrl,
@@ -69,4 +57,3 @@ export async function getProjectProgressData({
   });
   return response.data;
 }
-

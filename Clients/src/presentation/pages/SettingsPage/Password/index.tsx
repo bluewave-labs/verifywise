@@ -8,12 +8,12 @@ import {
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../components/Toast"; // Import CustomizableToast
 import { updatePassword } from "../../../../application/repository/user.repository";
@@ -105,7 +105,7 @@ const PasswordForm: React.FC = () => {
       setConfirmPassword(value);
 
       if (value !== newPassword) {
-        setConfirmPasswordError("Passwords do not match");
+        setConfirmPasswordError("Password confirmation does not match. Please re-enter.");
       } else {
         setConfirmPasswordError(null);
       }
@@ -135,7 +135,18 @@ const PasswordForm: React.FC = () => {
     }
 
     if (newPassword !== confirmPassword) {
-      setConfirmPasswordError("Passwords do not match");
+      setConfirmPasswordError("Password confirmation does not match. Please re-enter.");
+      return;
+    }
+
+    if (!id) {
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "User session not found. Please log in again.",
+        isToast: false,
+        visible: true,
+      });
       return;
     }
 
@@ -285,7 +296,7 @@ const PasswordForm: React.FC = () => {
                     : "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<SaveIconSVGWhite />}
+                icon={<SaveIcon size={16} />}
                 onClick={() => setIsConfirmationModalOpen(true)}
                 isDisabled={isSaveDisabled}
               />
@@ -294,8 +305,8 @@ const PasswordForm: React.FC = () => {
         </Box>
       )}
       {isConfirmationModalOpen && (
-        <DualButtonModal
-          title="Confirm Save"
+        <ConfirmationModal
+          title="Confirm save"
           body={
             <Typography fontSize={13}>
               Are you sure you want to save the changes?

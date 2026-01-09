@@ -1,21 +1,10 @@
-import { Button, Typography, useTheme, Stack } from "@mui/material";
-import { ClearIcon } from "@mui/x-date-pickers/icons";
-import React from "react";
+import { Button, Typography, useTheme, Stack, Modal } from "@mui/material";
+import { X as ClearIcon } from "lucide-react";
 import { FC } from "react";
-import { Unstable_Popup as BasePopup } from "@mui/base/Unstable_Popup";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
+import { IPopupProps } from "../../types/widget.types";
 
-interface PopupProps {
-  popupId: string;
-  popupContent: React.ReactNode;
-  openPopupButtonName: string;
-  popupTitle: string;
-  popupSubtitle?: string;
-  handleOpenOrClose?: (event: React.MouseEvent<HTMLElement>) => void;
-  anchor: null | HTMLElement;
-}
-
-const Popup: FC<PopupProps> = ({
+const Popup: FC<IPopupProps> = ({
   popupId,
   popupContent,
   openPopupButtonName,
@@ -94,19 +83,12 @@ const Popup: FC<PopupProps> = ({
       >
         {openPopupButtonName}
       </Button>
-      <BasePopup
+      <Modal
         className="Popup"
-        id={id}
         open={open}
-        anchor={anchor}
-        style={{
-          position: "fixed",
-          transform: "none",
-          left: 0,
-          top: 0,
-          width: "100%",
-          height: "100%",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
+        onClose={() => handleOpenOrClose?.(null as any)}
+        aria-labelledby={id}
+        sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -130,11 +112,11 @@ const Popup: FC<PopupProps> = ({
             </Typography>
           )}
           <Button onClick={handleOpenOrClose} sx={styles.closePopupButton}>
-            <ClearIcon />
+            <ClearIcon size={20} />
           </Button>
           {popupContent}
         </Stack>
-      </BasePopup>
+      </Modal>
     </>
   );
 };

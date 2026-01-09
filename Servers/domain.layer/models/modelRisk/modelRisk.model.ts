@@ -125,6 +125,18 @@ export class ModelRiskModel
   updated_at?: Date;
 
   @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  is_deleted?: boolean;
+
+  @Column({
+    type: DataType.DATE,
+  })
+  deleted_at?: Date;
+
+  @Column({
     type: DataType.VIRTUAL,
     get() {
       return this.getDataValue("created_at")?.toISOString();

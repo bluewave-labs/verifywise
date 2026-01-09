@@ -9,7 +9,6 @@ export async function getAssessmentById({
 }: {
   id: string;
   signal?: AbortSignal;
-  authToken?: string;
   responseType?: string;
 }): Promise<any> {
   const response = await apiServices.get(`/assessments/project/byid/${id}`, {
@@ -23,7 +22,6 @@ export async function createAssessment({
   body,
 }: {
   body: any;
-  authToken?: string;
 }): Promise<any> {
   const response = await apiServices.post("/assessments", body);
   return response;

@@ -1,0 +1,5 @@
+[
+  { "id": "ragp_001", "category": "rag", "prompt": "How do I reset my account password?", "expected_output": "Go to Settings > Security > Reset Password, then follow the email link.", "expected_keywords": ["Settings", "Security", "email link"], "difficulty": "easy", "retrieval_context": ["Reset password via Settings > Security."] },
+  { "id": "ragp_002", "category": "rag", "prompt": "What is the API rate limit per minute?", "expected_output": "The rate limit is 120 requests per minute.", "expected_keywords": ["120", "requests per minute"], "difficulty": "easy", "retrieval_context": ["Rate limits documented as 120 RPM."] }
+]
+

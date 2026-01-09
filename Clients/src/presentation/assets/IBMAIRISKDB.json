@@ -1,0 +1,906 @@
+[
+  {
+    "Id": 1,
+    "Summary": "Unexplainable and untraceable actions",
+    "Description": "The agent may take actions that can't be traced back to a clear reasoning path. This makes troubleshooting, auditing and incident investigation difficult. It also reduces trust in the system.",
+    "Risk Category": "Operational risk; Technological risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 2,
+    "Summary": "Sharing IP or confidential information with the user",
+    "Description": "The agent might surface proprietary data or personal information in natural-language outputs. Leaks often go unnoticed and create legal and reputational exposure. Even small slips can be irreversible.",
+    "Risk Category": "Data privacy risk; Legal risk; Reputational risk; Cybersecurity risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 3,
+    "Summary": "Sharing IP or confidential information with tools",
+    "Description": "External tools or APIs may receive sensitive data unintentionally when the agent passes context outward. Once data enters third-party systems, control and visibility are lost.",
+    "Risk Category": "Third-party or vendor risk; Cybersecurity risk; Data privacy risk; Legal risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 4,
+    "Summary": "Discriminatory actions",
+    "Description": "The agent may treat groups unfairly due to biased reasoning or skewed training patterns. This affects service quality, hiring decisions or customer treatment. It can cause serious compliance and reputation damage.",
+    "Risk Category": "Compliance risk; Legal risk; Reputational risk; Human resources risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 5,
+    "Summary": "Introduction of new data bias",
+    "Description": "Agents can generate new biased content or reinforce skewed data patterns. These issues spread across downstream systems and create long-term fairness gaps.",
+    "Risk Category": "Operational risk; Technological risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 6,
+    "Summary": "Impact on human dignity",
+    "Description": "Agents may interact in ways that feel disrespectful or dehumanizing. This undermines user trust and can conflict with internal ethical standards. In sensitive contexts it causes real harm.",
+    "Risk Category": "Reputational risk; Compliance risk; Human resources risk",
+    "Likelihood": "Unlikely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 7,
+    "Summary": "Impact on human agency",
+    "Description": "Highly autonomous agents can take over decisions that should remain under human control. This reduces oversight and can create overdependence on automated judgment.",
+    "Risk Category": "Strategic risk; Operational risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 8,
+    "Summary": "Impact on jobs",
+    "Description": "Agentic automation reshapes job roles and can displace certain tasks entirely. Teams may face uncertainty and morale issues as responsibilities shift.",
+    "Risk Category": "Human resources risk; Strategic risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 9,
+    "Summary": "Environmental impact",
+    "Description": "Agents may loop or execute unnecessary actions, increasing compute consumption. Over time this leads to higher energy use and larger cloud costs.",
+    "Risk Category": "Environmental risk; Financial risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Minor"
+  },
+  {
+    "Id": 10,
+    "Summary": "Over-reliance or under-reliance on agents",
+    "Description": "Some users trust the agent too much, others ignore it entirely. Both extremes undermine safety and effectiveness and introduce avoidable errors.",
+    "Risk Category": "Operational risk; Strategic risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 11,
+    "Summary": "Misaligned actions",
+    "Description": "The agent may pursue goals that technically match the prompt but conflict with actual intentions. These errors lead to harmful or wasteful outcomes.",
+    "Risk Category": "Operational risk; Technological risk; Strategic risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 12,
+    "Summary": "Attacks on external resources used by the agent",
+    "Description": "Agents depend on external APIs, tools and services. If attackers compromise these components, the agent inherits the risk and may behave unpredictably.",
+    "Risk Category": "Cybersecurity risk; Third-party or vendor risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 13,
+    "Summary": "Unauthorized use",
+    "Description": "Without strong access controls, an agent can be triggered by someone who shouldn't have access. This results in unintended actions, data exposure or policy violations.",
+    "Risk Category": "Cybersecurity risk; Operational risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 14,
+    "Summary": "Exploiting trust mismatch",
+    "Description": "Users often assume the agent is more reliable or capable than it actually is. This misplaced trust can be exploited or lead to poor decisions.",
+    "Risk Category": "Reputational risk; Operational risk; Human resources risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 15,
+    "Summary": "Function-calling hallucination",
+    "Description": "The agent may trigger tool calls based on incorrect assumptions or invented context. These hallucinated actions can modify systems or data in dangerous ways.",
+    "Risk Category": "Technological risk; Operational risk; Cybersecurity risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 16,
+    "Summary": "Redundant actions",
+    "Description": "Agents may repeat tasks or run unnecessary steps because of misinterpreted state or looping behavior. This wastes compute resources and slows workflows.",
+    "Risk Category": "Operational risk; Environmental risk; Financial risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Minor"
+  },
+  {
+    "Id": 17,
+    "Summary": "Incomplete agent evaluation",
+    "Description": "Many agent capabilities aren't covered in standard testing. This creates blind spots where failures emerge only in real-world conditions.",
+    "Risk Category": "Compliance risk; Operational risk; Technological risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 18,
+    "Summary": "Mitigation and maintenance challenges",
+    "Description": "Agent behavior changes as tools, environments or models evolve. Maintaining safe behavior requires constant monitoring and policy updates over time.",
+    "Risk Category": "Operational risk; Strategic risk; Compliance risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 19,
+    "Summary": "Lack of agent transparency",
+    "Description": "The agent's internal reasoning and state transitions are hard to inspect. This makes it difficult to audit decisions and understand harmful outcomes.",
+    "Risk Category": "Compliance risk; Operational risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 20,
+    "Summary": "Reproducibility issues",
+    "Description": "Agent behavior can differ between runs due to randomness, tool timing or environmental differences. This complicates debugging, evaluation and incident analysis.",
+    "Risk Category": "Technological risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 21,
+    "Summary": "Accountability of agent actions",
+    "Description": "When an agent acts autonomously, it becomes unclear who is responsible for outcomes. This creates governance complexity and can lead to regulatory problems.",
+    "Risk Category": "Compliance risk; Legal risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 22,
+    "Summary": "Compliance difficulties",
+    "Description": "Autonomous actions may unintentionally violate rules, contracts or regulatory requirements. Ensuring continuous compliance becomes harder as agents evolve.",
+    "Risk Category": "Compliance risk; Legal risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 23,
+    "Summary": "Unrepresentative training distribution",
+    "Description": "The dataset doesn't accurately reflect real-world scenarios or user populations. This causes uneven model performance and unreliable predictions in critical contexts.",
+    "Risk Category": "Operational risk; Technological risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 24,
+    "Summary": "Training data contamination",
+    "Description": "The dataset contains irrelevant, corrupted or low-quality examples, which distort model learning. These impurities often lead to unstable or inconsistent model behavior.",
+    "Risk Category": "Technological risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 25,
+    "Summary": "Model overfitting during training",
+    "Description": "The model memorizes specific training examples instead of learning generalizable patterns. This results in degraded performance when encountering new or unseen data.",
+    "Risk Category": "Technological risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 26,
+    "Summary": "Embedded dataset bias",
+    "Description": "Harmful societal or historical biases are present in the training data and become encoded in the model. This leads to unfair outcomes, discrimination and compliance issues.",
+    "Risk Category": "Compliance risk; Legal risk; Reputational risk; Human resources risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 27,
+    "Summary": "Poor data curation practices",
+    "Description": "Data is collected, filtered or prepared inconsistently, without quality controls or ethical oversight. These weaknesses undermine the reliability and fairness of the model.",
+    "Risk Category": "Operational risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 28,
+    "Summary": "Risky or incorrect retraining",
+    "Description": "When retraining processes are unmanaged, new data can introduce regressions or erase important learned behaviors. Models may degrade without clear warning.",
+    "Risk Category": "Operational risk; Technological risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 29,
+    "Summary": "Malicious data poisoning",
+    "Description": "Attackers or compromised pipelines may inject deceptive samples into the training dataset. This allows models to be manipulated into harmful or targeted behaviors.",
+    "Risk Category": "Cybersecurity risk; Operational risk",
+    "Likelihood": "Unlikely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 30,
+    "Summary": "Presence of personal data in training",
+    "Description": "The dataset unintentionally includes personal or sensitive information. This creates regulatory exposure and ethical concerns if the model reproduces this content.",
+    "Risk Category": "Data privacy risk; Legal risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 31,
+    "Summary": "Reidentification through dataset content",
+    "Description": "Even anonymized training data can sometimes be matched with external datasets to reveal identities. This undermines privacy protections and exposes organizations to scrutiny.",
+    "Risk Category": "Data privacy risk; Compliance risk; Legal risk",
+    "Likelihood": "Unlikely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 32,
+    "Summary": "Misalignment with data privacy rights",
+    "Description": "The collected data may not comply with user consent, regional data laws or deletion requests. These gaps can trigger legal disputes or force retraining from scratch.",
+    "Risk Category": "Data privacy risk; Legal risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 33,
+    "Summary": "Opaque training dataset",
+    "Description": "Teams lack visibility into how the dataset was sourced, filtered or labeled. This opacity makes audits difficult and weakens trust in the model's foundations.",
+    "Risk Category": "Compliance risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 34,
+    "Summary": "Unverified dataset provenance",
+    "Description": "The origin, licensing or intended use of the data is unclear. This creates IP uncertainty and risks models being built on unauthorized or unethical sources.",
+    "Risk Category": "Legal risk; Compliance risk; Third-party or vendor risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 35,
+    "Summary": "Restrictions on data acquisition",
+    "Description": "Regulations or contractual terms limit which datasets the organization can legally collect or purchase. Violating these rules exposes projects to penalties or forced shutdowns.",
+    "Risk Category": "Legal risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 36,
+    "Summary": "Restrictions on data usage",
+    "Description": "Some data is licensed only for research or non-commercial use. Training models beyond those boundaries creates legal liabilities and reputational issues.",
+    "Risk Category": "Legal risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 37,
+    "Summary": "Restrictions on data transfer",
+    "Description": "Cross-border data flows may violate regional laws or internal policies. These constraints impact cloud architecture, storage, and model training pipelines.",
+    "Risk Category": "Compliance risk; Legal risk; Strategic risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 38,
+    "Summary": "Confidential material embedded in training data",
+    "Description": "Internal documents, trade secrets or customer records may appear in datasets without authorization. Models trained on such data risk exposing sensitive information later.",
+    "Risk Category": "Data privacy risk; Cybersecurity risk; Legal risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 39,
+    "Summary": "Insufficient rights to use training data",
+    "Description": "The dataset may be protected by copyright or license terms that don't allow model training or redistribution. Using it improperly can lead to lawsuits and loss of trust.",
+    "Risk Category": "Legal risk; Compliance risk; Strategic risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 40,
+    "Summary": "Low inference accuracy",
+    "Description": "The model may generate incorrect outputs when handling real-world data not seen during training. These mistakes can be subtle and hard to detect in complex workflows. In high-impact domains this becomes a reliability concern.",
+    "Risk Category": "Operational risk; Technological risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 41,
+    "Summary": "Evasion-based inference attack",
+    "Description": "Attackers craft inputs that intentionally mislead the model into producing wrong or unsafe outputs. These attacks often bypass normal guardrails and exploit model blind spots.",
+    "Risk Category": "Cybersecurity risk; Technological risk",
+    "Likelihood": "Unlikely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 42,
+    "Summary": "Model extraction attempt",
+    "Description": "An attacker sends repeated, carefully designed prompts to reverse-engineer parts of the model. Over time this leaks intellectual property and reduces competitive advantage.",
+    "Risk Category": "Cybersecurity risk; Legal risk; Strategic risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 43,
+    "Summary": "Jailbreaking the model",
+    "Description": "Users attempt to bypass safety rules through adversarial prompting or instruction manipulation. Successful jailbreaks allow harmful output generation or restricted functionality.",
+    "Risk Category": "Cybersecurity risk; Compliance risk; Operational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 44,
+    "Summary": "IP exposure in prompts",
+    "Description": "Users may include confidential designs, source code or proprietary knowledge directly in prompts. This information may be logged, cached or indirectly surfaced later.",
+    "Risk Category": "Data privacy risk; Legal risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 45,
+    "Summary": "Sensitive data exposure in prompts",
+    "Description": "Prompts may contain personal information or confidential business details. If mishandled, this data can leak into analytics logs or reappear in outputs.",
+    "Risk Category": "Data privacy risk; Legal risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 46,
+    "Summary": "Prompt injection attack",
+    "Description": "A malicious actor embeds hidden instructions in input text, documents or URLs. The model follows these hidden commands, overriding intended behavior.",
+    "Risk Category": "Cybersecurity risk; Operational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 47,
+    "Summary": "Prompt leaking through responses",
+    "Description": "The model may reveal parts of its own system prompt, chain-of-thought hints or prior interactions. These disclosures weaken security and reveal internal logic.",
+    "Risk Category": "Cybersecurity risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 48,
+    "Summary": "Prompt priming manipulation",
+    "Description": "Attackers manipulate earlier conversation context to influence how the model interprets later prompts. This leads to biased or harmful outcomes without clear visibility.",
+    "Risk Category": "Cybersecurity risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 49,
+    "Summary": "Context overload attack",
+    "Description": "The attacker floods the context window with long or noisy text, pushing out relevant safety instructions or system messages. This degrades reliability and control.",
+    "Risk Category": "Cybersecurity risk; Technological risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 50,
+    "Summary": "Direct instruction override",
+    "Description": "Simple but forceful instructions are crafted to convince the model to ignore its guardrails. These attacks exploit limitations in safety alignment.",
+    "Risk Category": "Cybersecurity risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 51,
+    "Summary": "Encoded malicious inputs",
+    "Description": "Attackers embed harmful instructions inside encoded or obfuscated sequences (base64, unicode tricks, special tokens). Models may decode and execute them unintentionally.",
+    "Risk Category": "Cybersecurity risk; Operational risk; Technological risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 52,
+    "Summary": "Indirect-objective manipulation",
+    "Description": "Attackers instruct the model through indirect cues, such as asking it to emulate another agent or persona. These pathways often bypass standard safeguards.",
+    "Risk Category": "Cybersecurity risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 53,
+    "Summary": "Social-engineering prompt attack",
+    "Description": "Attackers craft emotionally manipulative or authoritative prompts to trick the model into harmful behavior. These prompts exploit trust and politeness patterns in the model.",
+    "Risk Category": "Cybersecurity risk; Human resources risk; Operational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 54,
+    "Summary": "Special-token exploits",
+    "Description": "Models may respond unpredictably to rare or reserved tokens that behave differently from normal text. Attackers exploit these quirks to destabilize the system.",
+    "Risk Category": "Technological risk; Cybersecurity risk",
+    "Likelihood": "Unlikely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 55,
+    "Summary": "Attribute inference attempt",
+    "Description": "Attackers analyze outputs to infer hidden attributes about the training data or demographics. This can reveal sensitive patterns or violate privacy expectations.",
+    "Risk Category": "Data privacy risk; Compliance risk",
+    "Likelihood": "Unlikely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 56,
+    "Summary": "Membership inference attempt",
+    "Description": "Attackers try to determine whether specific individuals or records were used during training. Success exposes privacy gaps and weakens legal defensibility.",
+    "Risk Category": "Data privacy risk; Legal risk; Compliance risk",
+    "Likelihood": "Unlikely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 57,
+    "Summary": "Biased decision outputs",
+    "Description": "The model may generate outputs that consistently favor or disadvantage certain groups. These biased patterns appear in scoring, recommendations or evaluations and can be difficult to detect. Organizations risk compliance violations and reputational harm.",
+    "Risk Category": "Compliance risk; Legal risk; Reputational risk; Human resources risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 58,
+    "Summary": "Skewed content generation",
+    "Description": "Outputs may reflect subtle biases from training data, producing unbalanced summaries, suggestions or narratives. These distortions influence real decisions and user perceptions.",
+    "Risk Category": "Operational risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 59,
+    "Summary": "Harmful advisory output",
+    "Description": "The model may propose unsafe actions, incorrect instructions or dangerous recommendations. Users might act on them without verifying accuracy. This risk grows in domains like healthcare or finance.",
+    "Risk Category": "Operational risk; Legal risk; Safety risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 60,
+    "Summary": "Unsafe code generation",
+    "Description": "When generating code, the model may introduce security vulnerabilities or flawed logic. Developers may trust the output too readily, leading to exploitable systems.",
+    "Risk Category": "Cybersecurity risk; Technological risk; Operational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 61,
+    "Summary": "Toxic or offensive output",
+    "Description": "The model may generate language that is insulting, harmful or inappropriate. Even rare incidents damage trust and can have regulatory implications.",
+    "Risk Category": "Reputational risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 62,
+    "Summary": "Incomplete or misleading advice",
+    "Description": "The model may provide partially correct answers that omit critical details. These subtle gaps can mislead users more than outright errors.",
+    "Risk Category": "Operational risk; Safety risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 63,
+    "Summary": "Overtrust in generated outputs",
+    "Description": "Users may rely heavily on AI-generated responses without validating them. This leads to poor decision-making, especially in high-stakes environments.",
+    "Risk Category": "Operational risk; Strategic risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 64,
+    "Summary": "Harmful use of generated output",
+    "Description": "End users may deliberately weaponize the model's output (e.g., for fraud, manipulation or cyberattacks). The model becomes an indirect enabler of harmful activity.",
+    "Risk Category": "Cybersecurity risk; Legal risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 65,
+    "Summary": "Disinformation generation",
+    "Description": "The model can produce highly realistic but false content that spreads quickly. This can influence public opinion or damage institutional credibility.",
+    "Risk Category": "Reputational risk; Legal risk; Societal risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 66,
+    "Summary": "Nonconsensual content generation",
+    "Description": "The model may be used to generate content involving individuals without their consent, including impersonation. This creates ethical and privacy violations.",
+    "Risk Category": "Legal risk; Data privacy risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 67,
+    "Summary": "Propagation of toxic content",
+    "Description": "The model may repeat or amplify harmful language it has been exposed to. These outputs negatively affect communities and user wellbeing.",
+    "Risk Category": "Reputational risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 68,
+    "Summary": "Improper contextual usage",
+    "Description": "Outputs may be applied outside their intended purpose, leading to misuse. Even harmless-looking responses cause harm when placed into the wrong business flow.",
+    "Risk Category": "Operational risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 69,
+    "Summary": "Lack of user disclosure",
+    "Description": "When the output does not clarify that it is AI-generated, users may interpret it as authoritative or human-written. This transparency gap misleads stakeholders.",
+    "Risk Category": "Compliance risk; Reputational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 70,
+    "Summary": "Hallucinatory incorrect output",
+    "Description": "The model may confidently generate content that is entirely fabricated. These hallucinations often appear plausible, increasing the risk of being taken as truth.",
+    "Risk Category": "Operational risk; Safety risk; Reputational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 71,
+    "Summary": "Exposure of private information through output",
+    "Description": "The model might unintentionally output private data learned from training or previous interactions. This creates legal exposure and privacy violations.",
+    "Risk Category": "Data privacy risk; Legal risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 72,
+    "Summary": "Copyright-sensitive content generation",
+    "Description": "Outputs may resemble or replicate copyrighted material. This introduces intellectual property disputes and business risk.",
+    "Risk Category": "Legal risk; Compliance risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 73,
+    "Summary": "Disclosure of confidential information",
+    "Description": "The model can unknowingly reproduce internal documents, secrets or proprietary designs. These exposures are difficult to detect and mitigate post-incident.",
+    "Risk Category": "Cybersecurity risk; Data privacy risk; Legal risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 74,
+    "Summary": "Opaque reasoning in output",
+    "Description": "The model produces conclusions without explaining how it arrived at them. This reduces reliability and complicates human validation.",
+    "Risk Category": "Operational risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 75,
+    "Summary": "Unreliable source attribution",
+    "Description": "When asked for citations, the model may fabricate sources or misattribute information. This damages credibility and can mislead users who rely on accuracy.",
+    "Risk Category": "Operational risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 76,
+    "Summary": "Untraceable output origins",
+    "Description": "It becomes unclear whether an output was generated from training data, retrieved material or internal heuristics. This ambiguity obstructs audits and legal review.",
+    "Risk Category": "Compliance risk; Legal risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 77,
+    "Summary": "Inaccessible training-source context",
+    "Description": "Users and auditors cannot determine the training datasets behind specific outputs. This makes it difficult to assess fairness, privacy exposure or legal compliance.",
+    "Risk Category": "Compliance risk; Legal risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 78,
+    "Summary": "Insufficient data transparency",
+    "Description": "Teams may not clearly understand how data was sourced, processed or validated before being used in an AI system. This lack of clarity complicates audits and weakens trust. It often leads to compliance gaps.",
+    "Risk Category": "Compliance risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 79,
+    "Summary": "Lack of model transparency",
+    "Description": "The internal workings of the model remain unclear to developers, auditors or stakeholders. This makes it difficult to explain decisions or diagnose harmful outcomes. Transparency gaps often escalate oversight issues.",
+    "Risk Category": "Compliance risk; Operational risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 80,
+    "Summary": "Opaque system-level behavior",
+    "Description": "Even if individual components are documented, the full system behavior becomes unpredictable when interactions scale. Organizations struggle to map cause and effect across the pipeline.",
+    "Risk Category": "Operational risk; Strategic risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 81,
+    "Summary": "Insufficient domain expertise",
+    "Description": "Teams building or deploying models may lack deep knowledge of the domain where the AI is applied. This leads to misinterpretation of outputs, weak oversight and flawed decision-making.",
+    "Risk Category": "Human resources risk; Operational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 82,
+    "Summary": "Poor use-case definition",
+    "Description": "AI systems may be deployed into workflows without clearly defining scope, boundaries or intended outcomes. Ambiguous goals increase the risk of misuse or misalignment.",
+    "Risk Category": "Strategic risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 83,
+    "Summary": "Unrepresentative risk testing",
+    "Description": "Testing may focus on narrow scenarios and fail to simulate real-world conditions. Blind spots emerge, especially in edge cases or diverse population segments.",
+    "Risk Category": "Compliance risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 84,
+    "Summary": "Incorrect or shallow risk testing",
+    "Description": "Tests may be rushed, incomplete or misaligned with actual deployment conditions. This produces a false sense of confidence and allows major issues to escape detection.",
+    "Risk Category": "Operational risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 85,
+    "Summary": "Lack of diversity in test coverage",
+    "Description": "Testing may omit demographic groups, environmental conditions or linguistic variations. AI performance then becomes uneven across users and contexts.",
+    "Risk Category": "Compliance risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 86,
+    "Summary": "Temporal drift in performance",
+    "Description": "AI systems degrade over time because real-world data shifts, user behavior changes or context evolves. Without continuous monitoring, the system becomes less accurate and less safe.",
+    "Risk Category": "Operational risk; Strategic risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 87,
+    "Summary": "Model usage rights uncertainty",
+    "Description": "Teams may be unsure whether they legally have the rights to use a model for certain purposes. These uncertainties create legal exposure and can halt deployments abruptly.",
+    "Risk Category": "Legal risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 88,
+    "Summary": "Ambiguous legal accountability",
+    "Description": "It may be unclear who is legally responsible for an AI-driven decision or outcome. This creates conflicts between teams, vendors and regulators, especially during incidents.",
+    "Risk Category": "Legal risk; Compliance risk; Strategic risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 89,
+    "Summary": "Unclear ownership of generated content",
+    "Description": "AI-generated outputs may not have a clear owner under current IP frameworks. This ambiguity complicates commercial use and contract obligations.",
+    "Risk Category": "Legal risk; Strategic risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 90,
+    "Summary": "Environmental impact of AI operations",
+    "Description": "Large-scale model training and inference consume significant energy. Without monitoring, organizations may exceed sustainability targets or face public criticism.",
+    "Risk Category": "Environmental risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Minor"
+  },
+  {
+    "Id": 91,
+    "Summary": "Negative impact on affected communities",
+    "Description": "AI systems may reinforce stereotypes, misrepresent groups or cause real-world harm in marginalized communities. These harms often surface slowly and are difficult to reverse.",
+    "Risk Category": "Reputational risk; Compliance risk; Societal risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 92,
+    "Summary": "Human exploitation through automation",
+    "Description": "AI-driven workflows may pressure workers, accelerate productivity expectations or automate oversight unfairly. These issues create workplace inequality and ethical concerns.",
+    "Risk Category": "Human resources risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 93,
+    "Summary": "Workforce disruption and job displacement",
+    "Description": "AI adoption can restructure teams and eliminate roles unexpectedly. Poor communication and planning amplify morale loss and resistance to adoption.",
+    "Risk Category": "Human resources risk; Strategic risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 94,
+    "Summary": "Reduced human agency in oversight processes",
+    "Description": "As AI automates decision-making, human reviewers may be sidelined or feel unable to intervene. This weakens governance and accountability mechanisms.",
+    "Risk Category": "Strategic risk; Compliance risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 95,
+    "Summary": "Cultural homogenization via AI systems",
+    "Description": "AI-driven outputs may standardize communication, creativity and expression in ways that suppress cultural diversity. This subtly shapes user behavior over time.",
+    "Risk Category": "Societal risk; Reputational risk",
+    "Likelihood": "Unlikely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 96,
+    "Summary": "Academic integrity risks",
+    "Description": "Students or researchers may misuse AI to bypass learning, write assignments or generate research. This erodes educational trust and assessment integrity.",
+    "Risk Category": "Educational risk; Reputational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 97,
+    "Summary": "AI-enabled plagiarism",
+    "Description": "AI can generate content that is too similar to copyrighted or academic sources. Users may unknowingly commit plagiarism, triggering disciplinary or legal consequences.",
+    "Risk Category": "Educational risk; Legal risk; Reputational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 98,
+    "Summary": "Exclusion of certain user groups",
+    "Description": "AI systems may work poorly for users with specific accents, disabilities, languages or cultural backgrounds. This exclusion reduces accessibility and harms user experience.",
+    "Risk Category": "Compliance risk; Societal risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 99,
+    "Summary": "Realistic but incorrect content generation",
+    "Description": "Generative models can produce text that looks polished and authoritative but is factually wrong. These errors are more likely to be believed because of the natural writing style. This increases misinformation risks and misinformed decision-making.",
+    "Risk Category": "Operational risk; Reputational risk; Safety risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 100,
+    "Summary": "Highly plausible hallucinations",
+    "Description": "Hallucinations in generative models often appear coherent and detailed, making them harder to detect. Users may adopt them as truth, causing cascading errors in workflows. This is especially dangerous in compliance-heavy domains.",
+    "Risk Category": "Operational risk; Compliance risk; Reputational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 101,
+    "Summary": "Synthetic content abuse at scale",
+    "Description": "Generative AI enables rapid creation of harmful media such as phishing emails, impersonations or fraud campaigns. Attackers gain efficiency and sophistication with minimal effort.",
+    "Risk Category": "Cybersecurity risk; Societal risk; Legal risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 102,
+    "Summary": "Manipulative or persuasive output",
+    "Description": "Generative models can craft emotionally engaging or persuasive content that influences behavior. This raises risks of manipulation in politics, finance or consumer decisions.",
+    "Risk Category": "Societal risk; Reputational risk; Legal risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 103,
+    "Summary": "Deepfake-style synthetic media generation",
+    "Description": "Models capable of generating images, video or audio can be misused to create realistic fabrications. These outputs can damage reputations, enable fraud or undermine trust.",
+    "Risk Category": "Cybersecurity risk; Legal risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 104,
+    "Summary": "Unintentional disclosure of sensitive training patterns",
+    "Description": "Generative models may reproduce phrases, structures or snippets that resemble sensitive training data. This happens even without explicit memorization and creates privacy/legal risk.",
+    "Risk Category": "Data privacy risk; Legal risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 105,
+    "Summary": "Amplified copyright exposure",
+    "Description": "Generated text or media may resemble copyrighted works, even when not an exact match. Organizations face IP risks when outputs are used commercially.",
+    "Risk Category": "Legal risk; Compliance risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 106,
+    "Summary": "Propagating biased generative patterns",
+    "Description": "Generative models may amplify biases through storytelling, examples or structural patterns. These subtle biases spread through downstream content or decisions.",
+    "Risk Category": "Compliance risk; Reputational risk; Societal risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 107,
+    "Summary": "Unsafe reasoning chains",
+    "Description": "Generative models sometimes produce step-by-step reasoning that seems rational but contains flaws or unsafe assumptions. These errors mislead users and weaken safety.",
+    "Risk Category": "Safety risk; Operational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 108,
+    "Summary": "Self-reinforcing generative drift",
+    "Description": "When generative outputs are fed back into systems as new data, the model begins amplifying its own artifacts and distortions. This causes long-term degradation of quality and fairness.",
+    "Risk Category": "Technological risk; Operational risk; Strategic risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 109,
+    "Summary": "Generative scaling misuse",
+    "Description": "The ability to mass-produce text, audio or visuals at near-zero cost enables large-scale campaigns — both beneficial and harmful. Without controls, this increases societal and regulatory concerns.",
+    "Risk Category": "Societal risk; Legal risk; Reputational risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Major"
+  },
+  {
+    "Id": 110,
+    "Summary": "Contextual overfitting in generation",
+    "Description": "Generative models sometimes overfit to the local context, producing outputs that reflect prompt bias rather than objective reasoning. This leads to skewed or misleading content.",
+    "Risk Category": "Operational risk; Technological risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 111,
+    "Summary": "Overpersonalized or invasive generation",
+    "Description": "Models can produce content that feels too personalized based on small user inputs, making users feel surveilled or profiled. This harms trust and creates privacy tension.",
+    "Risk Category": "Data privacy risk; Reputational risk",
+    "Likelihood": "Possible",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 112,
+    "Summary": "Loss of human creativity diversity",
+    "Description": "Overuse of generative tools can lead to homogenized writing style, visuals or expression. Organizations may slowly lose creative originality in marketing, design or communication.",
+    "Risk Category": "Strategic risk; Reputational risk; Societal risk",
+    "Likelihood": "Unlikely",
+    "Risk Severity": "Moderate"
+  },
+  {
+    "Id": 113,
+    "Summary": "Misleading confidence in AI authority",
+    "Description": "Generative AI tends to sound polished and confident, even when wrong. This stylistic authority encourages users to overtrust the system beyond safe limits.",
+    "Risk Category": "Operational risk; Strategic risk",
+    "Likelihood": "Likely",
+    "Risk Severity": "Moderate"
+  }
+]

@@ -357,19 +357,19 @@ export const validateTaskCreationBusinessRules = (data: any): ValidationError[] 
   }
 
   // Validate title doesn't contain inappropriate terms
-  if (data.title) {
-    const inappropriateTerms = ['test', 'dummy', 'fake', 'sample', 'todo', 'fixme'];
-    const containsInappropriate = inappropriateTerms.some(term =>
-      data.title.toLowerCase().includes(term.toLowerCase())
-    );
-    if (containsInappropriate) {
-      errors.push({
-        field: 'title',
-        message: 'Task title should not contain test or placeholder terms',
-        code: 'INAPPROPRIATE_TASK_TITLE'
-      });
-    }
-  }
+  // if (data.title) {
+  //   const inappropriateTerms = ['test', 'dummy', 'fake', 'sample', 'todo', 'fixme'];
+  //   const containsInappropriate = inappropriateTerms.some(term =>
+  //     data.title.toLowerCase().includes(term.toLowerCase())
+  //   );
+  //   if (containsInappropriate) {
+  //     errors.push({
+  //       field: 'title',
+  //       message: 'Task title should not contain test or placeholder terms',
+  //       code: 'INAPPROPRIATE_TASK_TITLE'
+  //     });
+  //   }
+  // }
 
   // Validate status for new tasks
   if (data.status) {
@@ -474,6 +474,18 @@ export const validateTaskUpdateBusinessRules = (data: any, existingData?: any): 
         field: 'priority',
         message: 'Cannot decrease priority for overdue tasks',
         code: 'OVERDUE_PRIORITY_DECREASE'
+      });
+    }
+  }
+
+  // Validate assignees don't contain duplicates (same as creation rules)
+  if (data.assignees && Array.isArray(data.assignees)) {
+    const uniqueAssignees = [...new Set(data.assignees)];
+    if (uniqueAssignees.length !== data.assignees.length) {
+      errors.push({
+        field: 'assignees',
+        message: 'Assignees cannot contain duplicates',
+        code: 'DUPLICATE_ASSIGNEES'
       });
     }
   }

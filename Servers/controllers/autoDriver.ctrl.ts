@@ -27,7 +27,7 @@ export async function postAutoDriver(req: Request, res: Response) {
     );
     await logEvent("Create", "Mock data inserted via auto driver");
 
-    res.status(201).json(STATUS_CODE[201]("Mock data inserted"));
+    return res.status(201).json(STATUS_CODE[201]("Mock data inserted"));
   } catch (error) {
     logStructured(
       "error",
@@ -64,7 +64,7 @@ export async function deleteAutoDriver(req: Request, res: Response) {
     );
     await logEvent("Delete", "Mock data deleted via auto driver");
 
-    res.status(200).json(STATUS_CODE[200]("Mock data deleted"));
+    return res.status(200).json(STATUS_CODE[200]("Mock data deleted"));
   } catch (error) {
     logStructured(
       "error",

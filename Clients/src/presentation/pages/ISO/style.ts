@@ -17,7 +17,6 @@ export const flashAnimation = keyframes`
 // Common styles
 export const commonStyles = {
   container: {
-    maxWidth: "1400px",
     marginTop: "14px",
     gap: "20px",
   } as SxProps<Theme>,
@@ -31,7 +30,7 @@ export const commonStyles = {
 
   accordion: {
     marginTop: "9px",
-    border: "1px solid #eaecf0",
+    border: "1px solid #d0d5dd",
     width: "100%",
     marginLeft: "1.5px",
     borderRadius: "4px",
@@ -79,6 +78,8 @@ export function getStatusColor(status: string): string {
     case "Awaiting approval":
       return "#4F46E5";
     case "Implemented":
+      return "#059669";
+    case "Done":
       return "#059669";
     case "Audited":
       return "#0D9488";

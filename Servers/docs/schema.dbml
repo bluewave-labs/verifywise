@@ -1,0 +1,1080 @@
+// VerifyWise Database Schema
+// Generated on 2025-11-29
+// Source: Sequelize-typescript models
+
+Project VerifyWise {
+  database_type: 'PostgreSQL'
+  Note: 'AI Governance and Compliance Platform'
+}
+
+// ==================== Core Models ====================
+
+Table organizations {
+  id integer [pk, increment]
+  name varchar
+  logo varchar
+  created_at timestamp
+
+  Note: 'Organization Model'
+}
+
+Table projects {
+  id integer [pk, increment]
+  uc_id varchar [unique]
+  project_title varchar
+  owner integer
+  start_date timestamp
+  geography integer
+  ai_risk_classification varchar
+  type_of_high_risk_role varchar
+  goal varchar
+  target_industry varchar
+  description varchar
+  last_updated timestamp
+  last_updated_by integer
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+  is_organizational boolean [default: 'false']
+  status varchar [not null, default: 'ProjectStatus.NOT_STARTED']
+}
+
+Table project_scopes {
+  id integer [pk, increment]
+  assessmentId integer
+  describeAiEnvironment varchar
+  isNewAiTechnology boolean
+  usesPersonalData boolean
+  projectScopeDocuments varchar
+  technologyType varchar
+  hasOngoingMonitoring boolean
+  unintendedOutcomes varchar
+  technologyDocumentation varchar
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+
+  Note: 'Create a new project scope with comprehensive validation'
+}
+
+Table roles {
+  id integer [pk, increment]
+  name varchar
+  description varchar
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+
+  Note: 'Role Model'
+}
+
+Table users {
+  id integer [pk, increment]
+  name varchar
+  surname varchar
+  email varchar
+  password_hash varchar
+  role_id integer
+  created_at timestamp
+  last_login timestamp
+  is_demo boolean [not null, default: 'false']
+  organization_id integer
+  profile_photo_id integer
+
+  Note: 'User Model'
+}
+
+// ==================== Risk Management ====================
+
+Table model_risks {
+  id integer [pk, increment]
+  risk_name varchar [not null]
+  risk_category varchar [not null]
+  risk_level varchar [not null]
+  status varchar [not null, default: 'ModelRiskStatus.OPEN']
+  owner varchar [not null]
+  target_date timestamp [not null]
+  description text
+  mitigation_plan text
+  impact text
+  likelihood varchar
+  key_metrics text
+  current_values text
+  threshold varchar
+  model_id integer
+  created_at timestamp
+  updated_at timestamp
+  is_deleted boolean [not null, default: 'false']
+  deleted_at timestamp
+
+  Note: 'Validate model risk data before saving'
+}
+
+Table risk_history {
+  id integer [pk, increment]
+  parameter varchar [not null]
+  recorded_at timestamp [not null, default: 'DataType.NOW']
+  triggered_by_user_id integer
+  change_description text
+  created_at timestamp [not null, default: 'DataType.NOW']
+}
+
+Table project_risks {
+  id integer [pk, increment]
+  risk_name varchar
+  risk_owner integer
+  ai_lifecycle_phase varchar
+  risk_description varchar
+  risk_category text[]
+  impact varchar
+  assessment_mapping varchar
+  controls_mapping varchar
+  likelihood varchar
+  severity varchar
+  risk_level_autocalculated varchar
+  review_notes varchar
+  mitigation_status varchar
+  current_risk_level varchar
+  deadline timestamp
+  mitigation_plan varchar
+  implementation_strategy varchar
+  mitigation_evidence_document varchar
+  likelihood_mitigation varchar
+  risk_severity varchar
+  final_risk_level varchar
+  risk_approval integer
+  approval_status varchar
+  date_of_assessment timestamp
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+  updated_at timestamp
+  is_deleted boolean [not null, default: 'false']
+  deleted_at timestamp
+
+  Note: 'Create a new project risk with validation'
+}
+
+Table vendor_risks {
+  id integer [pk, increment]
+  vendor_id integer
+  order_no integer
+  risk_description varchar
+  impact_description varchar
+  impact varchar
+  likelihood varchar
+  risk_severity varchar
+  action_plan varchar
+  action_owner integer
+  risk_level varchar
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+  updated_at timestamp
+  is_deleted boolean [not null, default: 'false']
+  deleted_at timestamp
+}
+
+// ==================== Compliance Frameworks ====================
+
+Table answers_eu {
+  id integer [pk, increment]
+  question_id integer
+  answer varchar
+  assessment_id integer
+  dropdown_options text[]
+  evidence_files json
+  status varchar
+  created_at timestamp
+}
+
+Table answers_eu__risks {
+  answer_id integer [pk]
+  projects_risks_id integer [pk]
+}
+
+Table controls_eu {
+  id integer [pk, increment]
+  status varchar
+  approver integer
+  risk_review varchar
+  owner integer
+  reviewer integer
+  due_date timestamp
+  implementation_details varchar
+  control_meta_id integer
+  projects_frameworks_id integer
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+}
+
+Table controls_eu__risks {
+  control_id integer [pk]
+  projects_risks_id integer [pk]
+}
+
+Table subcontrols_eu {
+  id integer [pk, increment]
+  approver integer
+  status varchar
+  risk_review varchar
+  owner integer
+  reviewer integer
+  due_date timestamp
+  implementation_details varchar
+  evidence_description varchar
+  feedback_description varchar
+  evidence_files json
+  feedback_files json
+  control_id integer
+  subcontrol_meta_id integer
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+}
+
+Table annexcontrols_iso27001 {
+  id integer [pk, increment]
+  implementation_description varchar [not null]
+  evidence_links json [not null]
+  status varchar [not null]
+  owner integer [not null]
+  reviewer integer [not null]
+  approver integer [not null]
+  due_date timestamp [not null]
+  auditor_feedback varchar [not null]
+  annexcontrol_meta_id integer [not null]
+  projects_frameworks_id integer [not null]
+  created_at timestamp [not null]
+  is_demo boolean [not null]
+
+  Note: 'Create ISO27001AnnexControlModel instance from JSON data'
+}
+
+Table annexcontrols_iso27001__risks {
+  annexcontrol_id integer [pk]
+  projects_risks_id integer [pk]
+}
+
+Table annexcontrols_struct_iso27001 {
+  id integer [pk, increment]
+  title varchar [not null]
+  order_no integer [not null]
+  requirement_summary text [not null]
+  key_questions text[] [not null]
+  evidence_examples text[] [not null]
+  annex_id integer [not null]
+
+  Note: 'Create ISO27001AnnexControlStructModel instance from JSON data'
+}
+
+Table annex_struct_iso27001 {
+  id integer [pk, increment]
+  arrangement integer [not null]
+  title varchar [not null]
+  order_no integer [not null]
+  framework_id integer [not null]
+
+  Note: 'Create ISO27001AnnexCategoryModel instance from JSON data'
+}
+
+Table subclauses_iso27001 {
+  id integer [pk, increment]
+  implementation_description varchar [not null]
+  evidence_links json [not null]
+  status varchar [not null]
+  owner integer [not null]
+  reviewer integer [not null]
+  approver integer [not null]
+  due_date timestamp [not null]
+  auditor_feedback varchar [not null]
+  subclause_meta_id integer [not null]
+  projects_frameworks_id integer [not null]
+  created_at timestamp [not null]
+  is_demo boolean [not null]
+
+  Note: 'Create ISO27001SubClauseModel instance from JSON data'
+}
+
+Table subclauses_iso27001__risks {
+  subclause_id integer [pk]
+  projects_risks_id integer [pk]
+}
+
+Table subclauses_struct_iso27001 {
+  id integer [pk, increment]
+  title varchar [not null]
+  order_no integer [not null]
+  requirement_summary text [not null]
+  key_questions text[] [not null]
+  evidence_examples text[] [not null]
+  clause_id integer [not null]
+
+  Note: 'Create ISO27001SubClauseStructModel instance from JSON data'
+}
+
+Table annexcategory_iso {
+  id integer [pk, increment]
+  is_applicable boolean
+  justification_for_exclusion varchar
+  implementation_description varchar
+  evidence_links json
+  status varchar
+  owner integer
+  reviewer integer
+  approver integer
+  due_date timestamp
+  auditor_feedback varchar
+  projects_frameworks_id integer
+  annexcategory_meta_id integer
+  created_at timestamp [default: 'DataType.NOW']
+  is_demo boolean [default: 'false']
+}
+
+Table annexcategory_risks_iso {
+  annexcategory_id integer [pk]
+  projects_risks_id integer [pk]
+}
+
+Table annexcategory_struct_iso {
+  id integer [pk, increment]
+  title varchar
+  description varchar
+  guidance varchar
+  sub_id integer
+  order_no integer
+  annex_id integer
+}
+
+Table annex_struct_iso {
+  id integer [pk, increment]
+  title varchar
+  annex_no integer
+  framework_id integer
+}
+
+Table clause_struct_iso {
+  id integer [pk, increment]
+  title varchar
+  clause_no integer
+  framework_id integer
+}
+
+Table subclauses_iso {
+  id integer [pk, increment]
+  implementation_description varchar
+  evidence_links json
+  status varchar
+  owner integer
+  reviewer integer
+  approver integer
+  due_date timestamp
+  auditor_feedback varchar
+  subclause_meta_id integer
+  projects_frameworks_id integer
+  created_at timestamp [default: 'DataType.NOW']
+  is_demo boolean [default: 'false']
+}
+
+Table subclauses_iso__risks {
+  subclause_id integer [pk]
+  projects_risks_id integer [pk]
+}
+
+Table subclause_struct_iso {
+  id integer [pk, increment]
+  title varchar
+  order_no integer
+  summary varchar
+  questions text[]
+  evidence_examples text[]
+  clause_id integer
+}
+
+Table nist_ai_rmf_categories {
+  id integer [pk, increment]
+  title varchar
+  description varchar
+  function_id integer
+  index integer
+}
+
+Table nist_ai_rmf_functions {
+  id integer [pk, increment]
+  type varchar
+  title varchar
+  description varchar
+  framework_id integer
+  created_at timestamp [default: 'DataType.NOW']
+  is_demo boolean [default: 'false']
+  index integer
+}
+
+Table nist_ai_rmf_subcategories {
+  id integer [pk, increment]
+  index integer
+  title varchar
+  description varchar
+  implementation_description varchar
+  category_id integer
+  created_at timestamp [default: 'DataType.NOW']
+  updated_at timestamp
+  is_demo boolean [default: 'false']
+  status varchar
+  auditor_feedback varchar
+  owner integer
+  reviewer integer
+  approver integer
+  due_date timestamp
+  evidence_links json
+  tags text[]
+}
+
+Table frameworks {
+  id integer [pk, increment]
+  name varchar
+  description varchar
+  created_at timestamp
+  is_organizational boolean [default: 'false']
+
+  Note: 'Create a new framework with comprehensive validation'
+}
+
+Table project_frameworks {
+  framework_id integer [pk]
+  project_id integer [pk]
+  is_demo boolean [not null, default: 'false']
+
+  Note: 'Create a new project-framework association with validation'
+}
+
+// ==================== Automation ====================
+
+Table automations {
+  id integer [pk, increment]
+  name text [not null]
+  trigger_id integer [not null]
+  is_active boolean [not null, default: 'true']
+  created_by integer
+  created_at timestamp [not null, default: 'DataType.NOW']
+
+  Note: 'Factory method to create a new automation'
+}
+
+Table automation_actions {
+  id integer [pk, increment]
+  key text [not null, unique]
+  label text [not null]
+  description text
+
+  Note: 'Factory method to create a new automation action'
+}
+
+Table automation_execution_logs {
+  id integer [pk, increment]
+  automation_id integer [not null]
+  triggered_at timestamp [not null, default: 'DataType.NOW']
+  action_results json [not null, default: '[]']
+  status text [not null, default: 'success']
+  error_message text
+  execution_time_ms integer
+  created_at timestamp [not null, default: 'DataType.NOW']
+
+  Note: 'Factory method to create a new execution log'
+}
+
+Table automation_triggers {
+  id integer [pk, increment]
+  key text [not null, unique]
+  label text [not null]
+  event_name text [not null]
+  description text
+
+  Note: 'Factory method to create a new automation trigger'
+}
+
+Table automation_triggers_actions {
+  trigger_id integer [pk]
+  action_id integer [pk]
+
+  Note: 'Factory method to create a new trigger-action association'
+}
+
+// ==================== AI Trust Center ====================
+
+Table ai_trust_center_info {
+  id integer [pk, increment]
+  title varchar [not null]
+  logo integer
+  visible boolean [not null, default: 'false']
+  header_color varchar [not null]
+  intro_visible boolean [not null, default: 'true']
+  compliance_badges_visible boolean [not null, default: 'true']
+  company_description_visible boolean [not null, default: 'true']
+  terms_and_contact_visible boolean [not null, default: 'true']
+  resources_visible boolean [not null, default: 'true']
+  subprocessor_visible boolean [not null, default: 'true']
+}
+
+Table ai_trust_center_company_description {
+  id integer [pk, increment]
+  background_visible boolean [not null, default: 'true']
+  background_text varchar [not null]
+  core_benefits_visible boolean [not null, default: 'true']
+  core_benefits_text varchar [not null]
+  compliance_doc_visible boolean [not null, default: 'true']
+  compliance_doc_text varchar [not null]
+}
+
+Table ai_trust_center_compliance_badges {
+  id integer [pk, increment]
+  soc2_type_i boolean [not null, default: 'true']
+  soc2_type_ii boolean [not null, default: 'true']
+  iso_27001 boolean [not null, default: 'true']
+  iso_42001 boolean [not null, default: 'true']
+  ccpa boolean [not null, default: 'true']
+  gdpr boolean [not null, default: 'true']
+  hipaa boolean [not null, default: 'true']
+  eu_ai_act boolean [not null, default: 'true']
+}
+
+Table ai_trust_center_intro {
+  id integer [pk, increment]
+  purpose_visible boolean [not null, default: 'true']
+  purpose_text varchar [not null]
+  our_statement_visible boolean [not null, default: 'true']
+  our_statement_text varchar [not null]
+  our_mission_visible boolean [not null, default: 'true']
+  our_mission_text varchar [not null]
+}
+
+Table ai_trust_center_resources {
+  id integer [pk, increment]
+  name varchar [not null]
+  description varchar [not null]
+  file_id varchar [not null]
+  visible boolean [not null, default: 'true']
+}
+
+Table ai_trust_center_subprocessors {
+  id integer [pk, increment]
+  name varchar [not null]
+  purpose varchar [not null]
+  location varchar [not null]
+  url varchar [not null]
+}
+
+Table ai_trust_center_terms_and_contact {
+  id integer [pk, increment]
+  terms_visible boolean [not null, default: 'true']
+  terms_text varchar [not null]
+  privacy_visible boolean [not null, default: 'true']
+  privacy_text varchar [not null]
+  email_visible boolean [not null, default: 'true']
+  email_text varchar [not null]
+}
+
+// ==================== Other Models ====================
+
+Table assessments {
+  id integer [pk, increment]
+  project_id integer
+  projects_frameworks_id integer
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+}
+
+Table control_categories {
+  id integer [pk, increment]
+  project_id integer
+  title varchar
+  order_no integer
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+
+  Note: 'Create a new control category with validation'
+}
+
+Table controls {
+  id integer [pk, increment]
+  title varchar
+  description varchar
+  order_no integer
+  status varchar
+  approver integer
+  risk_review varchar
+  owner integer
+  reviewer integer
+  due_date timestamp
+  implementation_details varchar
+  control_category_id integer
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+
+  Note: 'Create a new control with comprehensive validation'
+}
+
+Table questions {
+  id integer [pk, increment]
+  order_no integer
+  question varchar
+  hint varchar
+  priority_level varchar
+  answer_type varchar
+  input_type varchar
+  evidence_required boolean
+  is_required boolean
+  dropdown_options text[]
+  evidence_files json
+  answer varchar
+  subtopic_id integer
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+  status varchar
+
+  Note: 'Create a new question with comprehensive validation'
+}
+
+Table subcontrols {
+  id integer [pk, increment]
+  title varchar
+  description varchar
+  order_no integer
+  status varchar
+  approver integer
+  risk_review varchar
+  owner integer
+  reviewer integer
+  due_date timestamp
+  implementation_details varchar
+  evidence_description varchar
+  feedback_description varchar
+  evidence_files json
+  feedback_files json
+  control_id integer
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+
+  Note: 'Create a new subcontrol with comprehensive validation'
+}
+
+Table subtopics {
+  id integer [pk, increment]
+  title varchar
+  order_no integer
+  topic_id integer
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+
+  Note: 'Create a new subtopic with comprehensive validation'
+}
+
+Table topics {
+  id integer [pk, increment]
+  title varchar
+  order_no integer
+  assessment_id integer
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+
+  Note: 'Create a new topic with comprehensive validation'
+}
+
+Table evidence_hub {
+  id integer [pk, increment]
+  evidence_name varchar [not null]
+  evidence_type varchar [not null]
+  description text
+  evidence_files json [not null, default: '[]']
+  expiry_date timestamp
+  mapped_model_ids text[]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table files {
+  id integer [pk, increment]
+  filename varchar
+  content varchar
+  project_id integer
+  uploaded_by integer
+  uploaded_time timestamp
+  source varchar
+  type varchar
+  is_demo boolean [not null, default: 'false']
+}
+
+Table file_access_logs {
+  id integer [pk, increment]
+  file_id integer [not null]
+  accessed_by integer [not null]
+  access_date timestamp [not null, default: 'DataType.NOW']
+  action varchar [not null]
+  org_id integer [not null]
+
+  Note: 'File Access Log Model'
+}
+
+Table file_manager {
+  id integer [pk, increment]
+  filename varchar [not null]
+  size bigint [not null]
+  mimetype varchar [not null]
+  file_path varchar [not null]
+  uploaded_by integer [not null]
+  upload_date timestamp [not null, default: 'DataType.NOW']
+  model_id integer
+  org_id integer [not null]
+  is_demo boolean [not null, default: 'false']
+
+  Note: 'File Manager Model'
+}
+
+Table ai_incident_managements {
+  id integer [pk, increment]
+  incident_id varchar
+  ai_project varchar [not null]
+  type varchar [not null]
+  severity varchar [not null]
+  status varchar [not null]
+  occurred_date timestamp [not null]
+  date_detected timestamp [not null]
+  reporter varchar [not null]
+  approval_status varchar [not null]
+  approved_by varchar
+  approval_date timestamp
+  approval_notes text
+  categories_of_harm text[] [not null, default: '[]']
+  affected_persons_groups text
+  description text [not null]
+  relationship_causality text
+  immediate_mitigations text
+  planned_corrective_actions text
+  model_system_version varchar
+  interim_report boolean [default: 'false']
+  archived boolean [not null, default: 'false']
+  created_at timestamp
+  updated_at timestamp
+
+  Note: 'Validation before saving'
+}
+
+Table mlflow_integrations {
+  id integer [pk, increment]
+  tracking_server_url varchar [not null]
+  auth_method varchar [not null, default: 'none']
+  username varchar
+  username_iv varchar
+  password varchar
+  password_iv varchar
+  api_token varchar
+  api_token_iv varchar
+  verify_ssl boolean [not null, default: 'true']
+  timeout integer [not null, default: '30']
+  last_tested_at timestamp
+  last_test_status varchar
+  last_test_message text
+  last_successful_test_at timestamp
+  last_failed_test_at timestamp
+  last_failed_test_message text
+  last_synced_at timestamp
+  last_sync_status varchar
+  last_sync_message text
+  updated_by integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table mlflow_model_records {
+  id integer [pk, increment]
+  model_name varchar [not null]
+  version varchar [not null]
+  lifecycle_stage varchar
+  run_id varchar
+  description text
+  source varchar
+  status varchar
+  experiment_id varchar
+  experiment_name varchar
+  artifact_location text
+  training_status varchar
+  training_started_at timestamp
+  training_ended_at timestamp
+  source_version varchar
+  model_created_at timestamp
+  model_updated_at timestamp
+  last_synced_at timestamp
+}
+
+Table model_inventories {
+  id integer [pk, increment]
+  provider_model varchar
+  provider varchar [not null]
+  model varchar [not null]
+  version varchar [not null]
+  approver varchar [not null]
+  capabilities text [not null]
+  security_assessment boolean [not null, default: 'false']
+  status varchar [not null, default: 'ModelInventoryStatus.PENDING']
+  status_date timestamp [not null]
+  reference_link text [not null]
+  biases text [not null]
+  limitations text [not null]
+  hosting_provider text [not null]
+  security_assessment_data json [default: '[]']
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+  updated_at timestamp
+
+  Note: 'Validate model inventory data before saving'
+}
+
+Table model_inventory_history {
+  id integer [pk, increment]
+  parameter varchar [not null]
+  recorded_at timestamp [not null, default: 'DataType.NOW']
+  triggered_by_user_id integer
+  change_description text
+  created_at timestamp [not null, default: 'DataType.NOW']
+}
+
+Table model_inventories_projects_frameworks {
+  model_inventory_id integer [pk]
+  project_id integer [pk]
+  framework_id integer [pk]
+
+  Note: 'Validate that at least project_id or framework_id is present'
+}
+
+Table policy_manager {
+  id integer [pk, increment]
+  title varchar [not null]
+  content_html text [not null]
+  status varchar [not null]
+  tags text[]
+  next_review_date timestamp
+  author_id integer [not null]
+  assigned_reviewer_ids text[]
+  last_updated_by integer [not null]
+  last_updated_at timestamp
+  created_at timestamp [not null]
+
+  Note: 'Static method to create organization from JSON data'
+}
+
+Table project_members {
+  user_id integer [pk]
+  project_id integer [pk]
+  is_demo boolean [not null, default: 'false']
+
+  Note: 'Create a new project member with comprehensive validation'
+}
+
+Table slack_webhooks {
+  id integer [pk, increment]
+  access_token varchar
+  access_token_iv varchar
+  scope varchar
+  user_id integer
+  team_name varchar
+  team_id varchar
+  channel varchar
+  channel_id varchar
+  configuration_url varchar
+  url varchar
+  url_iv varchar
+  created_at timestamp
+  updated_at timestamp
+  is_active boolean
+  routing_type varchar
+
+  Note: 'Create a new slack webhook with comprehensive validation'
+}
+
+Table subscriptions {
+  id integer [pk, increment]
+  organization_id integer [not null]
+  tier_id integer [not null]
+  stripe_sub_id varchar [not null]
+  status varchar [not null]
+  start_date timestamp [not null]
+  end_date timestamp
+  created_at timestamp [not null, default: 'DataType.NOW']
+  updated_at timestamp [not null, default: 'DataType.NOW']
+}
+
+Table task_assignees {
+  task_id integer [pk]
+  user_id integer [pk]
+  assigned_at timestamp [not null, default: 'DataType.NOW']
+
+  Note: 'Create a new task assignee'
+}
+
+Table tasks {
+  id integer [pk, increment]
+  description text
+  creator_id integer
+  organization_id integer
+  due_date timestamp
+  categories json [default: '[]']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: 'Validate task data with comprehensive checks'
+}
+
+Table tiers {
+  id integer [pk, increment]
+  name varchar
+  price integer
+  features json
+  created_at timestamp [default: 'DataType.NOW']
+  updated_at timestamp [default: 'DataType.NOW']
+}
+
+Table tokens {
+  id integer [pk, increment]
+  token varchar [not null]
+  name varchar [not null]
+  created_at timestamp [default: 'DataType.NOW']
+  expires_at timestamp [not null]
+  created_by integer [not null]
+}
+
+Table trainingregistar {
+  id integer [pk, increment]
+  training_name varchar
+  duration varchar
+  provider varchar
+  department varchar
+  status varchar
+  numberOfPeople integer
+  description varchar
+
+  Note: 'Create a new training register with comprehensive validation'
+}
+
+Table user_preferences {
+  id integer [pk, increment]
+  user_id integer [not null, unique]
+  date_format varchar [not null, default: 'UserDateFormat.DD_MM_YYYY_DASH']
+
+  Note: 'Create new user preferences'
+}
+
+Table vendors {
+  id integer [pk, increment]
+  order_no integer
+  vendor_name varchar
+  vendor_provides varchar
+  assignee integer
+  website varchar
+  vendor_contact_person varchar
+  review_result varchar
+  review_status varchar [default: 'Not started']
+  reviewer integer
+  review_date timestamp
+  is_demo boolean [not null, default: 'false']
+  created_at timestamp
+  data_sensitivity varchar
+  business_criticality varchar
+  past_issues varchar
+  regulatory_exposure varchar
+  risk_score integer
+
+  Note: 'Create a new vendor with comprehensive validation'
+}
+
+Table vendor_projects {
+  vendor_id integer [pk]
+  project_id integer [pk]
+  is_demo boolean [not null, default: 'false']
+}
+
+// ==================== Relationships ====================
+
+Ref: answers_eu__risks.projects_risks_id > project_risks.id
+Ref: assessments.project_id > projects.id
+Ref: control_categories.project_id > projects.id
+Ref: controls_eu.approver > users.id
+Ref: controls_eu.owner > users.id
+Ref: controls_eu.reviewer > users.id
+Ref: controls_eu__risks.projects_risks_id > project_risks.id
+Ref: controls.control_category_id > control_categories.id
+Ref: questions.subtopic_id > subtopics.id
+Ref: subcontrols_eu.approver > users.id
+Ref: subcontrols_eu.owner > users.id
+Ref: subcontrols_eu.reviewer > users.id
+Ref: subcontrols.approver > users.id
+Ref: subcontrols.owner > users.id
+Ref: subcontrols.reviewer > users.id
+Ref: subcontrols.control_id > controls.id
+Ref: subtopics.topic_id > topics.id
+Ref: topics.assessment_id > assessments.id
+Ref: annexcontrols_iso27001.owner > users.id
+Ref: annexcontrols_iso27001.reviewer > users.id
+Ref: annexcontrols_iso27001.approver > users.id
+Ref: annexcontrols_iso27001__risks.projects_risks_id > project_risks.id
+Ref: annex_struct_iso27001.framework_id > frameworks.id
+Ref: subclauses_iso27001.owner > users.id
+Ref: subclauses_iso27001.reviewer > users.id
+Ref: subclauses_iso27001.approver > users.id
+Ref: subclauses_iso27001__risks.projects_risks_id > project_risks.id
+Ref: annexcategory_iso.owner > users.id
+Ref: annexcategory_iso.reviewer > users.id
+Ref: annexcategory_iso.approver > users.id
+Ref: annexcategory_risks_iso.projects_risks_id > project_risks.id
+Ref: annexcategory_struct_iso.annex_id > annex_struct_iso.id
+Ref: annex_struct_iso.framework_id > frameworks.id
+Ref: clause_struct_iso.framework_id > frameworks.id
+Ref: subclauses_iso.owner > users.id
+Ref: subclauses_iso.reviewer > users.id
+Ref: subclauses_iso.approver > users.id
+Ref: subclauses_iso__risks.projects_risks_id > project_risks.id
+Ref: subclause_struct_iso.clause_id > clause_struct_iso.id
+Ref: nist_ai_rmf_categories.function_id > nist_ai_rmf_functions.id
+Ref: nist_ai_rmf_functions.framework_id > frameworks.id
+Ref: nist_ai_rmf_subcategories.category_id > nist_ai_rmf_categories.id
+Ref: nist_ai_rmf_subcategories.owner > users.id
+Ref: nist_ai_rmf_subcategories.reviewer > users.id
+Ref: nist_ai_rmf_subcategories.approver > users.id
+Ref: ai_trust_center_info.logo > files.id
+Ref: ai_trust_center_resources.file_id > files.id
+Ref: automations.trigger_id > automation_triggers.id
+Ref: automations.created_by > users.id
+Ref: automation_execution_logs.automation_id > automations.id
+Ref: automation_triggers_actions.trigger_id > automation_triggers.id
+Ref: automation_triggers_actions.action_id > automation_actions.id
+Ref: files.project_id > projects.id
+Ref: files.uploaded_by > users.id
+Ref: file_access_logs.accessed_by > users.id
+Ref: file_access_logs.org_id > organizations.id
+Ref: file_manager.uploaded_by > users.id
+Ref: file_manager.org_id > organizations.id
+Ref: mlflow_integrations.updated_by > users.id
+Ref: model_inventory_history.triggered_by_user_id > users.id
+Ref: model_inventories_projects_frameworks.model_inventory_id > model_inventories.id
+Ref: model_inventories_projects_frameworks.project_id > projects.id
+Ref: model_inventories_projects_frameworks.framework_id > frameworks.id
+Ref: policy_manager.author_id > users.id
+Ref: policy_manager.last_updated_by > users.id
+Ref: projects.owner > users.id
+Ref: projects.last_updated_by > users.id
+Ref: project_frameworks.framework_id > frameworks.id
+Ref: project_frameworks.project_id > projects.id
+Ref: project_members.user_id > users.id
+Ref: project_members.project_id > projects.id
+Ref: risk_history.triggered_by_user_id > users.id
+Ref: project_risks.risk_owner > users.id
+Ref: project_risks.risk_approval > users.id
+Ref: slack_webhooks.user_id > users.id
+Ref: subscriptions.organization_id > organizations.id
+Ref: subscriptions.tier_id > tiers.id
+Ref: task_assignees.task_id > tasks.id
+Ref: task_assignees.user_id > users.id
+Ref: tasks.creator_id > users.id
+Ref: tokens.created_by > users.id
+Ref: users.role_id > roles.id
+Ref: users.organization_id > organizations.id
+Ref: user_preferences.user_id > users.id
+Ref: vendors.assignee > users.id
+Ref: vendors.reviewer > users.id
+Ref: vendor_risks.vendor_id > vendors.id
+Ref: vendor_risks.action_owner > users.id
+Ref: vendor_projects.vendor_id > vendors.id
+Ref: vendor_projects.project_id > projects.id

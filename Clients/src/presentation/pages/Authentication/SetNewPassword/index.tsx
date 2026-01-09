@@ -7,14 +7,14 @@ import React, { useEffect, useState, useCallback } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
-import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
-import { ReactComponent as Lock } from "../../../assets/icons/lock.svg";
+import { ArrowLeft as LeftArrowLong } from "lucide-react";
+import { Lock } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { validatePassword } from "../../../../application/validations/formValidation";
 import type { FormErrors } from "../../../../application/validations/formValidation";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { resetPassword } from "../../../../application/repository/auth.repository";
 import CustomizableSkeleton from "../../../components/Skeletons";
 
 interface ResetPasswordFormValues {
@@ -79,7 +79,7 @@ const SetNewPassword: React.FC = () => {
     }
 
     if (values.password !== values.confirmPassword) {
-      return "Passwords do not match";
+      return "Password confirmation does not match. Please re-enter.";
     }
 
     return null;
@@ -120,10 +120,13 @@ const SetNewPassword: React.FC = () => {
         return;
       }
 
-      const response = await apiServices.post("/users/reset-password", {
-        email: userInfo?.email,
-        newPassword: values.password,
-      });
+      const response = await resetPassword(
+        {
+          email: userInfo?.email || "",
+          newPassword: values.password,
+        },
+        userToken || ""
+      );
 
       if (response.status === 202) {
         setValues(initialState);
@@ -226,7 +229,7 @@ const SetNewPassword: React.FC = () => {
               gap: theme.spacing(12),
             }}
           >
-            <Lock />
+            <Lock size={24} />
           </Stack>
           <Stack sx={{ gap: theme.spacing(6), textAlign: "center" }}>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
@@ -299,7 +302,7 @@ const SetNewPassword: React.FC = () => {
               }}
               onClick={() => navigate("/login")}
             >
-              <LeftArrowLong />
+              <LeftArrowLong size={16} />
               <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
                 Back to log in
               </Typography>

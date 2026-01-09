@@ -1,6 +1,6 @@
 import { QuestionModel } from "../domain.layer/models/question/question.model";
 import { sequelize } from "../database/db";
-import { deleteFileById, getFileById } from "./fileUpload.utils";
+import { deleteFileById } from "./fileUpload.utils";
 import { Request } from "express";
 import { QueryTypes, Transaction } from "sequelize";
 import { IQuestion } from "../domain.layer/interfaces/I.question";
@@ -55,21 +55,22 @@ export const getQuestionByIdQuery = async (
   } as QuestionModel & { evidence_files: string[] };
 };
 
-export interface RequestWithFile extends Request {
-  files?:
-  | UploadedFile[]
-  | {
-    [key: string]: UploadedFile[];
-  };
-  file?: UploadedFile;
-}
-
 export interface UploadedFile {
   fieldname: string;
   originalname: string;
   mimetype: string;
   buffer: Buffer;
+  size?: number;
 }
+
+export type RequestWithFile = Omit<Request, "file" | "files"> & {
+  files?:
+    | UploadedFile[]
+    | {
+        [key: string]: UploadedFile[];
+      };
+  file?: UploadedFile;
+};
 
 export const createNewQuestionQuery = async (
   question: QuestionModel,
@@ -183,6 +184,7 @@ export const updateQuestionByIdQuery = async (
         }
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

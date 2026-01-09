@@ -1,6 +1,6 @@
 import React from "react";
 import { IconButton, Box } from "@mui/material";
-import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
+import { Info as GreyCircleInfoIcon } from "lucide-react";
 
 interface MetricInfoIconProps {
   onClick: () => void;
@@ -24,7 +24,7 @@ const MetricInfoIcon = React.forwardRef<HTMLDivElement, MetricInfoIconProps>(({ 
           },
         }}
       >
-        <GreyCircleInfoIcon />
+        <GreyCircleInfoIcon size={16} />
       </IconButton>
     </Box>
   );

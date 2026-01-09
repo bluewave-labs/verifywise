@@ -1,8 +1,21 @@
 import { IRisk } from "../../interfaces/I.risk";
 
+// Helper functions to create dynamic dates for testing
+const createPastDate = (daysAgo: number): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date;
+};
+
+const createFutureDate = (daysFromNow: number): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date;
+};
+
 // Sample mock data for ProjectRisk
 const mockProjectRisks = (
-  projectId1: number,
+  _projectId1: number,
   userId1: number,
   userId2: number
 ): IRisk[] => {
@@ -24,7 +37,7 @@ const mockProjectRisks = (
       review_notes: "Need for regular audits.",
       mitigation_status: "Requires review",
       current_risk_level: "Medium risk",
-      deadline: new Date("2024-12-31"),
+      deadline: createPastDate(30),
       mitigation_plan: "In Progress",
       implementation_strategy:
         "Anonymize user data in production environments.",
@@ -34,7 +47,7 @@ const mockProjectRisks = (
       final_risk_level: "Low",
       risk_approval: userId2,
       approval_status: "In Progress",
-      date_of_assessment: new Date("2024-11-01"),
+      date_of_assessment: createPastDate(60),
     },
     {
       id: 2,
@@ -52,7 +65,7 @@ const mockProjectRisks = (
       review_notes: "Regular monitoring required.",
       mitigation_status: "Not Started",
       current_risk_level: "Low risk",
-      deadline: new Date("2025-03-15"),
+      deadline: createFutureDate(75),
       mitigation_plan: "Introduce fair algorithms.",
       implementation_strategy: "Regularly assess and modify algorithms.",
       mitigation_evidence_document: "Bias_Test_Report.pdf",
@@ -61,7 +74,7 @@ const mockProjectRisks = (
       final_risk_level: "Low",
       risk_approval: userId1,
       approval_status: "Completed",
-      date_of_assessment: new Date("2024-10-15"),
+      date_of_assessment: createPastDate(75),
     },
     // Project risk for the second project
   ];

@@ -15,10 +15,12 @@ export async function getProjectRiskById({
 
 export async function getAllProjectRisks({
   signal,
+  filter = 'active',
 }: {
   signal?: AbortSignal;
+  filter?: 'active' | 'deleted' | 'all';
 } = {}): Promise<any> {
-  const response = await apiServices.get("/projectRisks", {
+  const response = await apiServices.get(`/projectRisks?filter=${filter}`, {
     signal,
   });
   return response.data;
@@ -27,11 +29,13 @@ export async function getAllProjectRisks({
 export async function getAllProjectRisksByProjectId({
   projectId,
   signal,
+  filter = 'active',
 }: {
   projectId: string;
   signal?: AbortSignal;
+  filter?: 'active' | 'deleted' | 'all';
 }): Promise<any> {
-  const response = await apiServices.get(`/projectRisks/by-projid/${projectId}`, {
+  const response = await apiServices.get(`/projectRisks/by-projid/${projectId}?filter=${filter}`, {
     signal,
   });
   return response.data;
@@ -40,11 +44,13 @@ export async function getAllProjectRisksByProjectId({
 export async function getAllRisksByFrameworkId({
   frameworkId,
   signal,
+  filter = 'active',
 }: {
   frameworkId: number;
   signal?: AbortSignal;
+  filter?: 'active' | 'deleted' | 'all';
 }): Promise<any> {
-  const response = await apiServices.get(`/projectRisks/by-frameworkid/${frameworkId}`, {
+  const response = await apiServices.get(`/projectRisks/by-frameworkid/${frameworkId}?filter=${filter}`, {
     signal,
   });
   return response.data;

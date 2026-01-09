@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: verifywise
+spec:
+  replicas: 1
+  template:
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: postgres-volume
+          persistentVolumeClaim:
+            claimName: verifywise-postgres-volume
+      containers:
+        - name: verifywise-frontend
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "200m"
+              memory: "768Mi"
+        - name: verifywise-backend
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "200m"
+              memory: "768Mi"
+        - name: verifywise-worker
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "200m"
+              memory: "768Mi"
+        - name: verifywise-biasandfairness-backend
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "200m"
+              memory: "768Mi"
+        - name: verifywise-redis
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "200m"
+              memory: "768Mi"
+        - name: verifywise-postgres-temp
+          securityContext:
+            runAsUser: 999
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "200m"
+              memory: "768Mi"
+          volumeMounts:
+            - name: postgres-volume
+              mountPath: /var/lib/postgresql/data

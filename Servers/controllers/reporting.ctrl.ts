@@ -2,17 +2,11 @@ import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { uploadFile } from "../utils/fileUpload.utils";
 import {
-  getReportData,
-  getFormattedReportName,
-} from "../services/reportService";
-import {
   deleteReportByIdQuery,
   getGeneratedReportsQuery,
   getReportByIdQuery,
 } from "../utils/reporting.utils";
-import { marked } from "marked";
 import { sequelize } from "../database/db";
-const htmlDocx = require("html-to-docx");
 import { getOrganizationByIdQuery } from "../utils/organization.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import {
@@ -20,18 +14,16 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
-import {
-  validateCompleteReportGenerationWithRules,
-  validateReportIdParam,
-  validateUserId,
-  validateCompleteReportDeletion
-} from "../utils/validations/reportingValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
+import logger from "../utils/logger/fileLogger";
 
-function mapReportTypeToFileSource(
-  reportType: string
+// Reporting system imports (v2 - HTML/EJS based)
+import {
+  generateReport as generateReportV2,
+  ReportFormat,
+} from "../services/reporting";
+
+export function mapReportTypeToFileSource(
+  reportType: string | string[]
 ):
   | "Project risks report"
   | "Compliance tracker report"
@@ -44,6 +36,9 @@ function mapReportTypeToFileSource(
   | "Policy manager report"
   | "All reports" {
   // These values must match the enum_files_source in the database
+  if (Array.isArray(reportType) && reportType.length > 1) {
+    return "All reports";
+  }
   switch (reportType) {
     case "Project risks report":
       return "Project risks report";
@@ -69,177 +64,15 @@ function mapReportTypeToFileSource(
   }
 }
 
+/**
+ * Legacy endpoint wrapper - redirects to v2 system
+ * Kept for backward compatibility with old API calls
+ */
 export async function generateReports(
   req: Request,
   res: Response
 ): Promise<any> {
-  // Validate report generation request
-  const validationErrors = validateCompleteReportGenerationWithRules(req.body);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: "Create",
-      description: "Report generation validation failed",
-      functionName: "generateReports",
-      fileName: "reporting.ctrl.ts",
-      error: new Error("Validation failed")
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Report generation validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
-  // Validate user ID
-  const userIdValidation = validateUserId(req.userId);
-  if (!userIdValidation.isValid) {
-    await logFailure({
-      eventType: "Create",
-      description: `Invalid user ID: ${req.userId}`,
-      functionName: "generateReports",
-      fileName: "reporting.ctrl.ts",
-      error: new Error("Invalid user ID")
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: userIdValidation.message || 'Invalid user ID',
-      code: userIdValidation.code || 'INVALID_USER_ID'
-    });
-  }
-
-  const {
-    projectId: projectIdRaw,
-    reportType,
-    projectTitle,
-    projectOwner,
-    frameworkId: frameworkIdRaw,
-    reportName,
-    projectFrameworkId,
-  } = req.body;
-  const projectId = parseInt(projectIdRaw);
-  const frameworkId = parseInt(frameworkIdRaw);
-  const userId = req.userId;
-
-  logProcessing({
-    description: `starting generateReports for project ID ${projectId}, report type: ${reportType}`,
-    functionName: "generateReports",
-    fileName: "reporting.ctrl.ts",
-  });
-  logger.debug(
-    `📄 Generating ${reportType} report for project ID ${projectId}`
-  );
-
-  try {
-    // Project ID and User ID validation already handled by the validation utilities above
-
-    const user = await getUserByIdQuery(userId!);
-    if (!user) {
-      await logFailure({
-        eventType: "Create",
-        description: `User not found: ID ${userId}`,
-        functionName: "generateReports",
-        fileName: "reporting.ctrl.ts",
-        error: new Error("User not found"),
-      });
-      return res.status(404).json(STATUS_CODE[404]("User not found"));
-    }
-
-    const organization = await getOrganizationByIdQuery(user.organization_id!);
-    const organizationName = organization?.name || "VerifyWise";
-
-    const reportData = {
-      projectTitle,
-      projectOwner,
-      organizationName,
-    };
-
-    const markdownData = await getReportData(
-      projectId,
-      frameworkId,
-      reportType,
-      reportData,
-      projectFrameworkId,
-      req.tenantId!
-    );
-    const markdownDoc = await marked.parse(markdownData); // markdown file
-    const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx
-
-    let defaultFileName = getFormattedReportName(reportName, reportType);
-    const docFile = {
-      originalname: `${defaultFileName}.docx`,
-      buffer: generatedDoc,
-      fieldname: "file",
-      mimetype:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    };
-
-    let uploadedFile;
-    try {
-      uploadedFile = await uploadFile(
-        docFile,
-        userId!,
-        projectId,
-        mapReportTypeToFileSource(reportType),
-        req.tenantId!
-      );
-    } catch (error) {
-      console.error("File upload error:", error);
-      await logFailure({
-        eventType: "Create",
-        description: `Error uploading report file for project ID ${projectId}`,
-        functionName: "generateReports",
-        fileName: "reporting.ctrl.ts",
-        error: error as Error,
-      });
-      return res
-        .status(500)
-        .json(STATUS_CODE[500]("Error uploading report file"));
-    }
-
-    if (uploadedFile) {
-      await logSuccess({
-        eventType: "Create",
-        description: `Successfully generated ${reportType} report for project ID ${projectId}`,
-        functionName: "generateReports",
-        fileName: "reporting.ctrl.ts",
-      });
-
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="${uploadedFile.filename}"`
-      );
-      res.setHeader(
-        "Content-Type",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      );
-      res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-      return res.status(200).send(uploadedFile.content);
-    } else {
-      await logFailure({
-        eventType: "Create",
-        description: `Failed to upload report file for project ID ${projectId}`,
-        functionName: "generateReports",
-        fileName: "reporting.ctrl.ts",
-        error: new Error("Upload failed"),
-      });
-      return res
-        .status(500)
-        .json(STATUS_CODE[500]("Error uploading report file"));
-    }
-  } catch (error) {
-    await logFailure({
-      eventType: "Create",
-      description: `Failed to generate ${reportType} report for project ID ${projectId}`,
-      functionName: "generateReports",
-      fileName: "reporting.ctrl.ts",
-      error: error as Error,
-    });
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
+  return generateReportsV2(req, res);
 }
 
 export async function getAllGeneratedReports(
@@ -270,23 +103,20 @@ export async function getAllGeneratedReports(
       { userId, role },
       req.tenantId!
     );
-    if (reports && reports.length > 0) {
-      await logSuccess({
-        eventType: "Read",
-        description: `Retrieved ${reports.length} generated reports`,
-        functionName: "getAllGeneratedReports",
-        fileName: "reporting.ctrl.ts",
-      });
-      return res.status(200).json(STATUS_CODE[200](reports));
-    }
 
     await logSuccess({
       eventType: "Read",
-      description: "No generated reports found",
+      description:
+        reports && reports.length > 0
+          ? `Retrieved ${reports.length} generated reports`
+          : "No generated reports found",
       functionName: "getAllGeneratedReports",
       fileName: "reporting.ctrl.ts",
     });
-    return res.status(404).json(STATUS_CODE[404]("No reports found"));
+
+    // Return 200 with empty array if no reports, not 404
+    // 404 should be reserved for "endpoint not found" or "specific resource not found"
+    return res.status(200).json(STATUS_CODE[200](reports || []));
   } catch (error) {
     console.error("Error in getAllGeneratedReports:", error);
     await logFailure({
@@ -305,43 +135,7 @@ export async function deleteGeneratedReportById(
   res: Response
 ): Promise<any> {
   const reportId = parseInt(req.params.id);
-
-  // Validate report ID parameter
-  const reportIdValidation = validateReportIdParam(reportId);
-  if (!reportIdValidation.isValid) {
-    await logFailure({
-      eventType: "Delete",
-      description: `Invalid report ID parameter: ${req.params.id}`,
-      functionName: "deleteGeneratedReportById",
-      fileName: "reporting.ctrl.ts",
-      error: new Error("Invalid report ID")
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: reportIdValidation.message || 'Invalid report ID',
-      code: reportIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
-  // Validate user ID
-  const userIdValidation = validateUserId(req.userId);
-  if (!userIdValidation.isValid) {
-    await logFailure({
-      eventType: "Delete",
-      description: `Invalid user ID: ${req.userId}`,
-      functionName: "deleteGeneratedReportById",
-      fileName: "reporting.ctrl.ts",
-      error: new Error("Invalid user ID")
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: userIdValidation.message || 'Invalid user ID',
-      code: userIdValidation.code || 'INVALID_USER_ID'
-    });
-  }
-
   const transaction = await sequelize.transaction();
-  const userId = req.userId;
 
   logProcessing({
     description: `starting deleteGeneratedReportById for report ID ${reportId}`,
@@ -351,7 +145,6 @@ export async function deleteGeneratedReportById(
   logger.debug(`🗑️ Deleting generated report ID ${reportId}`);
 
   try {
-
     const report = await getReportByIdQuery(reportId, req.tenantId!); // get report detail
     if (!report) {
       await logFailure({
@@ -362,30 +155,6 @@ export async function deleteGeneratedReportById(
         error: new Error("Report not found"),
       });
       return res.status(404).json(STATUS_CODE[404]("Report not found"));
-    }
-
-    // Validate business rules for report deletion
-    const deletionValidationErrors = validateCompleteReportDeletion(
-      report,
-      { userId: req.userId, role: req.role }
-    );
-    if (deletionValidationErrors.length > 0) {
-      await logFailure({
-        eventType: "Delete",
-        description: `Report deletion validation failed for ID ${reportId}`,
-        functionName: "deleteGeneratedReportById",
-        fileName: "reporting.ctrl.ts",
-        error: new Error("Deletion validation failed")
-      });
-      return res.status(403).json({
-        status: 'error',
-        message: 'Report deletion validation failed',
-        errors: deletionValidationErrors.map((err: ValidationError) => ({
-          field: err.field,
-          message: err.message,
-          code: err.code
-        }))
-      });
     }
 
     const deletedReport = await deleteReportByIdQuery(
@@ -418,6 +187,154 @@ export async function deleteGeneratedReportById(
       eventType: "Delete",
       description: `Failed to delete generated report ID ${reportId}`,
       functionName: "deleteGeneratedReportById",
+      fileName: "reporting.ctrl.ts",
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Generate reports using the new HTML/EJS-based system
+ * Supports both PDF and DOCX formats with rich formatting
+ */
+export async function generateReportsV2(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const {
+    projectId: projectIdRaw,
+    reportType,
+    frameworkId: frameworkIdRaw,
+    reportName,
+    projectFrameworkId: projectFrameworkIdRaw,
+    format = "docx", // Default to docx for backward compatibility
+  } = req.body;
+
+  const projectId = parseInt(projectIdRaw);
+  const frameworkId = parseInt(frameworkIdRaw);
+  const projectFrameworkId = parseInt(projectFrameworkIdRaw);
+  const userId = req.userId;
+  const reportFormat: ReportFormat = format === "pdf" ? "pdf" : "docx";
+
+  logProcessing({
+    description: `starting generateReportsV2 for project ID ${projectId}, report type: ${reportType}, format: ${reportFormat}`,
+    functionName: "generateReportsV2",
+    fileName: "reporting.ctrl.ts",
+  });
+  logger.debug(
+    `📄 Generating ${reportType} report (${reportFormat}) for project ID ${projectId}`
+  );
+
+  try {
+    const user = await getUserByIdQuery(userId!);
+    if (!user) {
+      await logFailure({
+        eventType: "Create",
+        description: `User not found: ID ${userId}`,
+        functionName: "generateReportsV2",
+        fileName: "reporting.ctrl.ts",
+        error: new Error("User not found"),
+      });
+      return res.status(404).json(STATUS_CODE[404]("User not found"));
+    }
+
+    const organization = await getOrganizationByIdQuery(user.organization_id!);
+    const organizationName = organization?.name || "VerifyWise";
+
+    // Generate report using new system
+    const result = await generateReportV2(
+      {
+        projectId,
+        frameworkId,
+        projectFrameworkId,
+        reportType,
+        reportName,
+        format: reportFormat,
+        branding: {
+          organizationName,
+        },
+      },
+      userId!,
+      req.tenantId!
+    );
+
+    if (!result.success) {
+      await logFailure({
+        eventType: "Create",
+        description: `Failed to generate ${reportType} report: ${result.error}`,
+        functionName: "generateReportsV2",
+        fileName: "reporting.ctrl.ts",
+        error: new Error(result.error || "Unknown error"),
+      });
+      return res
+        .status(500)
+        .json(STATUS_CODE[500](result.error || "Failed to generate report"));
+    }
+
+    // Upload file to storage
+    const docFile = {
+      originalname: result.filename,
+      buffer: result.content,
+      fieldname: "file",
+      mimetype: result.mimeType,
+    };
+
+    let uploadedFile;
+    try {
+      uploadedFile = await uploadFile(
+        docFile,
+        userId!,
+        projectId,
+        mapReportTypeToFileSource(reportType),
+        req.tenantId!
+      );
+    } catch (error) {
+      console.error("File upload error:", error);
+      await logFailure({
+        eventType: "Create",
+        description: `Error uploading report file for project ID ${projectId}`,
+        functionName: "generateReportsV2",
+        fileName: "reporting.ctrl.ts",
+        error: error as Error,
+      });
+      return res
+        .status(500)
+        .json(STATUS_CODE[500]("Error uploading report file"));
+    }
+
+    if (uploadedFile) {
+      await logSuccess({
+        eventType: "Create",
+        description: `Successfully generated ${reportType} report (${reportFormat}) for project ID ${projectId}`,
+        functionName: "generateReportsV2",
+        fileName: "reporting.ctrl.ts",
+      });
+
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${uploadedFile.filename}"`
+      );
+      res.setHeader("Content-Type", result.mimeType);
+      res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+      return res.status(200).send(uploadedFile.content);
+    } else {
+      await logFailure({
+        eventType: "Create",
+        description: `Failed to upload report file for project ID ${projectId}`,
+        functionName: "generateReportsV2",
+        fileName: "reporting.ctrl.ts",
+        error: new Error("Upload failed"),
+      });
+      return res
+        .status(500)
+        .json(STATUS_CODE[500]("Error uploading report file"));
+    }
+  } catch (error) {
+    await logFailure({
+      eventType: "Create",
+      description: `Failed to generate ${reportType} report for project ID ${projectId}`,
+      functionName: "generateReportsV2",
       fileName: "reporting.ctrl.ts",
       error: error as Error,
     });

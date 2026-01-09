@@ -7,20 +7,22 @@ const fontSizes = {
 export const tableStyles = {
   primary: {
     frame: {
-      border: "1px solid #EEEEEE",
+      border: "1px solid #d0d5dd",
       borderRadius: "4px",
       "& td, & th": {
         border: 0,
       },
     },
     header: {
-      backgroundColors: "#fafafa",
+      backgroundColors: "linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%)",
       row: {
         textTransform: "uppercase",
-        borderBottom: "1px solid #EEEEEE",
+        borderBottom: "1px solid #d0d5dd",
+        background: "linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%)",
       },
       cell: {
-        color: "#a1afc6",
+        color: "#475467",
+        fontSize: fontSizes.medium,
         fontWeight: 400,
         padding: "12px 10px",
         whiteSpace: "nowrap",
@@ -33,12 +35,15 @@ export const tableStyles = {
     body: {
       backgroundColor: "white",
       row: {
-        textTransform: "capitalize",
-        borderBottom: "1px solid #EEEEEE",
+        textTransform: "none",
+        borderBottom: "1px solid #d0d5dd",
         backgroundColor: "white",
         transition: "background-color 0.3s ease-in-out",
+        "&:last-child": {
+          borderBottom: "none", // Prevent double border with table frame
+        },
         "&:hover td": {
-          backgroundColor: " #fafafa",
+          backgroundColor: "#f5f5f5", // Also defined in singleTheme.tableColors.rowHover
         },
         "&:hover": {
           cursor: "pointer",
@@ -48,7 +53,6 @@ export const tableStyles = {
         fontSize: fontSizes.medium,
         padding: "12px 10px",
         whiteSpace: "nowrap",
-        backgroundColor: "white",
         "&:not(:lastChild)": {
           minWidth: "120px",
           width: "120px",
@@ -67,6 +71,13 @@ export const tableStyles = {
           cursor: "pointer",
         },
       }
+    },
+    footer: {
+      cell: {
+        fontSize: fontSizes.small,
+        whiteSpace: "nowrap",
+        opacity: 0.7,
+      },
     },
   },
 };

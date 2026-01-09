@@ -23,8 +23,8 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import {ReactComponent as CloudUploadIcon} from "../../../assets/icons/cloudUpload.svg";
-import { ImageFieldProps } from "../../../../domain/interfaces/iWidget";
+import { CloudUpload as CloudUploadIcon } from "lucide-react";
+import { ImageFieldProps } from "../../../types/widget.types";
 import { checkImage, IconButtonStack, TextFieldStyles } from "./constants";
 
 const ImageField: React.FC<ImageFieldProps> = ({
@@ -89,7 +89,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
                   boxShadow: theme.boxShadow,
                 }}
               >
-                <CloudUploadIcon />
+                <CloudUploadIcon size={24} />
               </IconButton>
               <Typography component="h2" color={theme.palette.text.tertiary}>
                 <Typography

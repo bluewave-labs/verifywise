@@ -1,4 +1,5 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
+import { LayoutDashboard, AlertTriangle, Settings, History } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import React, { useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -7,17 +8,19 @@ import TabPanel from "@mui/lab/TabPanel";
 import Overview from "./Overview";
 import RisksView from "./RisksView";
 import ProjectSettings from "./ProjectSettings";
-import emptyStateImg from "../../assets/imgs/empty-state.svg";
+import Activity from "./Activity";
+import PageTour from "../../components/PageTour";
+import ProjectViewSteps from "./ProjectViewSteps";
+import EmptyState from "../../components/EmptyState";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../application/hooks/useProjectData";
 import { getProjectById } from "../../../application/repository/project.repository";
+import { createTabLabelWithCount } from "../../utils/tabUtils";
 import {
   tabStyle,
   noProjectContainerStyle,
-  noProjectImageStyle,
-  noProjectDescriptionStyle,
   newProjectButtonStyle,
   projectTitleStyle,
   projectDescriptionStyle,
@@ -95,21 +98,7 @@ const ProjectView = () => {
       {noProject ? (
         //no project found template
         <Box sx={noProjectContainerStyle}>
-          {/* empty state image */}
-          <Box sx={noProjectImageStyle}>
-            <img
-              src={emptyStateImg}
-              alt="No project found"
-            />
-          </Box>
-
-          {/* Subtitle */}
-          <Typography
-            variant="body2"
-            sx={noProjectDescriptionStyle}
-          >
-            No projects found. Create a new project to start with.
-          </Typography>
+          <EmptyState message="No projects found. Create a new project to start with." />
           {/* new project button */}
           <Button
             variant="contained"
@@ -126,32 +115,50 @@ const ProjectView = () => {
             {project.project_title} project overview
           </Typography>
           <Typography sx={projectDescriptionStyle}>
-            This project includes all the governance process status of the{" "}
-            {project.project_title} project.
+            This page includes the governance process status of{" "}
+            <span style={{ color: "#13715B" }}>{project.project_title}</span>
           </Typography>
           <Stack sx={tabContainerStyle}>
             <TabContext value={value}>
-              <Box sx={tabListContainerStyle}>
+              <Box sx={tabListContainerStyle} data-joyride-id="project-tabs">
                 <TabList
                   onChange={handleChange}
                   aria-label="project view tabs"
                   sx={tabListStyle}
                 >
                   <Tab
-                    label="Overview"
+                    label={createTabLabelWithCount({
+                      label: "Overview",
+                      icon: <LayoutDashboard size={14} />,
+                    })}
                     value="overview"
                     sx={tabStyle}
                     disableRipple={disableRipple}
                   />
                   <Tab
-                    label="Project risks"
+                    label={createTabLabelWithCount({
+                      label: "Use case risks",
+                      icon: <AlertTriangle size={14} />,
+                    })}
                     value="project-risks"
                     sx={tabStyle}
                     disableRipple={disableRipple}
                   />
                   <Tab
-                    label="Settings"
+                    label={createTabLabelWithCount({
+                      label: "Settings",
+                      icon: <Settings size={14} />,
+                    })}
                     value="settings"
+                    sx={tabStyle}
+                    disableRipple={disableRipple}
+                  />
+                  <Tab
+                    label={createTabLabelWithCount({
+                      label: "Activity",
+                      icon: <History size={14} />,
+                    })}
+                    value="activity"
                     sx={tabStyle}
                     disableRipple={disableRipple}
                   />
@@ -180,10 +187,16 @@ const ProjectView = () => {
               <TabPanel value="settings" sx={{ p: "32px 0 0" }}>
                 <ProjectSettings />
               </TabPanel>
+              <TabPanel value="activity" sx={{ p: "32px 0 0" }}>
+                <Activity entityType="use_case" entityId={parseInt(projectId)} />
+              </TabPanel>
             </TabContext>
           </Stack>
         </Stack>
       )}
+
+      {/* Page Tour */}
+      <PageTour steps={ProjectViewSteps} run={true} tourKey="project-view-tour" />
     </Stack>
   );
 };

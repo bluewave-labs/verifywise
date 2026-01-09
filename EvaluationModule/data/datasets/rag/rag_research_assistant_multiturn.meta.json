@@ -1,0 +1,9 @@
+{
+  "name": "Research Assistant Multi-Turn",
+  "description": "Multi-turn RAG conversations for research assistance, including follow-up questions and context refinement.",
+  "type": "multi-turn",
+  "use_case": "rag",
+  "tags": ["RAG", "research", "multi-turn", "follow-up"],
+  "prompt_count": 3
+}
+

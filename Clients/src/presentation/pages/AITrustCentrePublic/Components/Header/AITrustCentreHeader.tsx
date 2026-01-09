@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Stack, Typography, Link, CircularProgress } from "@mui/material";
+import { Box, Stack, Typography, CircularProgress } from "@mui/material";
+import { VWLink } from "../../../../components/Link";
 import axios from "axios";
 import { ENV_VARs } from "../../../../../../env.vars";
 
@@ -7,28 +8,40 @@ interface AITrustCentreHeaderProps {
   data: any;
   hash: string | null;
 }
-const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data, hash}) => {
+const AITrustCentreHeader: React.FC<AITrustCentreHeaderProps> = ({
+  data,
+  hash,
+}) => {
   const [logo, setLogo] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
     if (!hash) return;
     setLoading(true);
-    axios.get(`${ENV_VARs.URL}/api/aiTrustCentre/${hash}/logo`)
+    axios
+      .get(`${ENV_VARs.URL}/api/aiTrustCentre/${hash}/logo`)
       .then((response) => {
         // Extract the buffer and type
         const logoData = response?.data?.data?.logo;
-        if (logoData?.content?.type === "Buffer" && Array.isArray(logoData?.content?.data)) {
+        if (
+          logoData?.content?.type === "Buffer" &&
+          Array.isArray(logoData?.content?.data)
+        ) {
           // Convert buffer to base64
           const byteArray = new Uint8Array(logoData.content.data);
-          const binary = byteArray.reduce((acc, byte) => acc + String.fromCharCode(byte), "");
+          const binary = byteArray.reduce(
+            (acc, byte) => acc + String.fromCharCode(byte),
+            ""
+          );
           const base64 = window.btoa(binary);
           const imageUrl = `data:${logoData.type};base64,${base64}`;
           setLogo(imageUrl);
         }
       })
       .catch((err) => {
-        console.log(err?.response?.data?.error || err.message || 'Failed to fetch logo');
+        console.error(
+          err?.response?.data?.error || err.message || "Failed to fetch logo"
+        );
       })
       .finally(() => {
         setLoading(false);
@@ -52,8 +65,16 @@ const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data, hash}) =
             <CircularProgress size={28} />
           ) : (
             <>
-              <img src={logo || data?.info?.logo} alt="Company Logo" style={{ height: 35 }} />
-              <Typography variant="h5" fontWeight="semibold" sx={{color: "#344054"}}>
+              <img
+                src={logo || data?.info?.logo}
+                alt="Company Logo"
+                style={{ height: 35 }}
+              />
+              <Typography
+                variant="h5"
+                fontWeight="semibold"
+                sx={{ color: "#344054" }}
+              >
                 {data?.info?.title}
               </Typography>
             </>
@@ -62,25 +83,38 @@ const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data, hash}) =
         {data?.terms_and_contact && (
           <Stack direction="row" spacing={2} alignItems="center">
             {data?.terms_and_contact?.terms && (
-              <Link href={data?.terms_and_contact?.terms} target="_blank" rel="noopener" sx={{ fontSize: 13 }}>
+              <VWLink
+                url={data?.terms_and_contact?.terms}
+                openInNewTab={true}
+                showIcon={false}
+              >
                 Terms of service
-              </Link>
+              </VWLink>
             )}
-            {data?.terms_and_contact?.terms && data?.terms_and_contact?.privacy && (
-              <Typography sx={{ fontSize: 13 }}>•</Typography>
-            )}
+            {data?.terms_and_contact?.terms &&
+              data?.terms_and_contact?.privacy && (
+                <Typography sx={{ fontSize: 13 }}>•</Typography>
+              )}
             {data?.terms_and_contact?.privacy && (
-              <Link href={data?.terms_and_contact?.privacy} target="_blank" rel="noopener" sx={{ fontSize: 13 }}>
+              <VWLink
+                url={data?.terms_and_contact?.privacy}
+                openInNewTab={true}
+                showIcon={false}
+              >
                 Privacy policy
-              </Link>
+              </VWLink>
             )}
-            {data?.terms_and_contact?.privacy && data?.terms_and_contact?.email && (
-              <Typography sx={{ fontSize: 13 }}>•</Typography>
-            )}
+            {data?.terms_and_contact?.privacy &&
+              data?.terms_and_contact?.email && (
+                <Typography sx={{ fontSize: 13 }}>•</Typography>
+              )}
             {data?.terms_and_contact?.email && (
-              <Link href={`mailto:${data?.terms_and_contact?.email}`} sx={{ fontSize: 13 }}>
+              <VWLink
+                url={`mailto:${data?.terms_and_contact?.email}`}
+                showIcon={false}
+              >
                 {data?.terms_and_contact?.email}
-              </Link>
+              </VWLink>
             )}
           </Stack>
         )}

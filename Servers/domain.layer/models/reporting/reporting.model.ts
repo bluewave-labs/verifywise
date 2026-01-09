@@ -6,7 +6,8 @@ export const DefaultReportName = Object.freeze({
   CLAUSES_AND_ANNEXES_REPORT: 'clauses-annexes-report',
   CLAUSES_REPORT: 'clause-report',
   ANNEXES_REPORT: 'annexes-report',
-  ALL_REPORT: 'report'
+  ALL_REPORT: 'report',
+  MULTI_REPORT: 'multi-report'
 });
 
 export const ReportType = Object.freeze({

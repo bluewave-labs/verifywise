@@ -127,6 +127,12 @@ export class UserModel extends Model<UserModel> {
     allowNull: true,
   })
   sso_user_id?: string;
+  
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  profile_photo_id?: number;
 
   /**
    * Creates a new user with validation and password hashing
@@ -187,7 +193,11 @@ export class UserModel extends Model<UserModel> {
     }
     // Validate organization_id
     if (!numberValidation(organization_id, 1)) {
-      throw new ValidationException("Invalid organization_id", "organization_id", organization_id);
+      throw new ValidationException(
+        "Invalid organization_id",
+        "organization_id",
+        organization_id
+      );
     }
 
     // Hash the password
@@ -425,9 +435,8 @@ export class UserModel extends Model<UserModel> {
 
     // If current password is provided, verify it matches
     if (currentPassword) {
-      const isCurrentPasswordValid = await this.comparePassword(
-        currentPassword
-      );
+      const isCurrentPasswordValid =
+        await this.comparePassword(currentPassword);
       if (!isCurrentPasswordValid) {
         throw new ValidationException(
           "Current password is incorrect",
@@ -594,8 +603,8 @@ export class UserModel extends Model<UserModel> {
    * }
    */
   static async validateEmailUniqueness(
-    email: string,
-    excludeUserId?: number
+    _email: string,
+    _excludeUserId?: number
   ): Promise<boolean> {
     // This is a placeholder implementation
     // In real implementation, you would query the database like:

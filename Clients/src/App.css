@@ -58,3 +58,32 @@ div.react-joyride > * {
 .MuiChip-root .MuiTouchRipple-root {
   display: none !important;
 }
+
+/* Policy editor heading font sizes */
+.slate-h1 {
+  font-size: 18px !important;
+}
+
+.slate-h2 {
+  font-size: 16px !important;
+}
+
+.slate-h3 {
+  font-size: 14px !important;
+}
+
+/* Policy editor link styles */
+.slate-link,
+[data-slate-node="element"][data-slate-type="link"],
+a[data-slate-node="element"] {
+  color: #3182ce !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+}
+
+.slate-link:hover,
+[data-slate-node="element"][data-slate-type="link"]:hover,
+a[data-slate-node="element"]:hover {
+  color: #2c5aa0 !important;
+  text-decoration: underline !important;
+}

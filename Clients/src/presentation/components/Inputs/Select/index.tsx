@@ -24,8 +24,9 @@ import {
   useTheme,
 } from "@mui/material";
 import "./index.css";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
-import { SelectProps } from "../../../../domain/interfaces/iWidget";
+import { ChevronDown } from "lucide-react";
+import { SelectProps } from "../../../types/widget.types";
+import { getSelectStyles } from "../../../utils/inputStyles";
 
 const Select: React.FC<SelectProps> = ({
   id,
@@ -40,14 +41,30 @@ const Select: React.FC<SelectProps> = ({
   getOptionValue,
   disabled,
   customRenderValue,
+  isFilterApplied = false,
 }) => {
   const theme = useTheme();
   const itemStyles = {
     fontSize: "var(--env-var-font-size-medium)",
     color: theme.palette.text.tertiary,
     borderRadius: theme.shape.borderRadius,
-    margin: theme.spacing(2),
+    margin: "4px 8px",
   };
+
+  // Extract width, flexGrow, minWidth, maxWidth from sx prop to apply to wrapper Stack
+  const extractedLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? {
+        width: (sx as any).width,
+        flexGrow: (sx as any).flexGrow,
+        minWidth: (sx as any).minWidth,
+        maxWidth: (sx as any).maxWidth,
+      }
+    : {};
+
+  // Create a copy of sx without layout props to pass to MuiSelect
+  const sxWithoutLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? Object.fromEntries(Object.entries(sx).filter(([key]) => !['width', 'flexGrow', 'minWidth', 'maxWidth'].includes(key)))
+    : sx;
 
   const renderValue = (value: unknown) => {
     const selected = value as string | number;
@@ -85,18 +102,7 @@ const Select: React.FC<SelectProps> = ({
     <Stack
       gap={theme.spacing(2)}
       className="select-wrapper"
-      sx={{
-        ".MuiOutlinedInput-notchedOutline": {
-          border: error
-            ? `1px solid ${theme.palette.status.error.border}!important`
-            : `1px solid ${theme.palette.border.dark}!important`,
-        },
-        ".Mui-focused .MuiOutlinedInput-notchedOutline": {
-          border: error
-            ? `1px solid ${theme.palette.status.error.border}!important`
-            : `1px solid ${theme.palette.border.dark}!important`,
-        },
-      }}
+      sx={extractedLayoutProps}
     >
       {label && (
         <Typography
@@ -131,10 +137,23 @@ const Select: React.FC<SelectProps> = ({
         displayEmpty
         inputProps={{ id: id }}
         renderValue={renderValue}
-        IconComponent={GreyDownArrowIcon}
+        IconComponent={() => (
+          <ChevronDown
+            size={16}
+            style={{
+              position: 'absolute',
+              right: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              pointerEvents: 'none',
+              color: theme.palette.text.tertiary
+            }}
+          />
+        )}
         disabled={disabled}
         MenuProps={{
           disableScrollLock: true,
+          style: { zIndex: 10001 },
           PaperProps: {
             sx: {
               borderRadius: theme.shape.borderRadius,
@@ -143,13 +162,16 @@ const Select: React.FC<SelectProps> = ({
               "& .MuiMenuItem-root": {
                 fontSize: 13,
                 color: theme.palette.text.primary,
+                transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
+                  color: "#13715B",
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,
                   "&:hover": {
                     backgroundColor: theme.palette.background.accent,
+                    color: "#13715B",
                   },
                 },
                 "& .MuiTouchRipple-root": {
@@ -162,15 +184,12 @@ const Select: React.FC<SelectProps> = ({
         sx={{
           fontSize: 13,
           minWidth: "125px",
-          backgroundColor: theme.palette.background.main,
-          "& fieldset": {
-            borderRadius: theme.shape.borderRadius,
-            borderColor: theme.palette.border.dark,
-          },
-          "&:not(.Mui-focused):hover fieldset": {
-            borderColor: theme.palette.border.dark,
-          },
-          ...sx,
+          width: "100%",
+          backgroundColor: isFilterApplied ? theme.palette.background.fill : theme.palette.background.main,
+          position: "relative",
+          cursor: "pointer",
+          ...getSelectStyles(theme, { hasError: !!error }),
+          ...sxWithoutLayoutProps,
         }}
       >
         {items.map(

@@ -1,21 +1,35 @@
-import React, { useState, lazy, Suspense, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  lazy,
+  Suspense,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import { Stack, Box, Typography } from "@mui/material";
 const ReportTable = lazy(() => import("../../../components/Table/ReportTable"));
 import { TITLE_OF_COLUMNS } from "./constants";
-import useGeneratedReports, {
-  GeneratedReports,
-} from "../../../../application/hooks/useGeneratedReports";
+import useGeneratedReports from "../../../../application/hooks/useGeneratedReports";
+import { GeneratedReports } from "../../../../domain/interfaces/i.reports";
 import { styles, reportTablePlaceholder } from "./styles";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import Alert from "../../../components/Alert";
-import ProjectFilterDropdown from "../../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import { Project } from "../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { GetMyOrganization } from "../../../../application/repository/organization.repository";
+import { GroupBy } from "../../../components/Table/GroupBy";
+import {
+  useTableGrouping,
+  useGroupByState,
+} from "../../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../../components/Table/GroupedTableView";
+import { FilterBy, FilterColumn } from "../../../components/Table/FilterBy";
+import { useFilterBy } from "../../../../application/hooks/useFilterBy";
+import { SearchBox } from "../../../components/Search";
 
 interface ReportsProps {
   refreshKey?: number;
@@ -35,10 +49,8 @@ const Reports: React.FC<ReportsProps> = ({
     body: string;
   } | null>(null);
   const [internalRefreshKey, setInternalRefreshKey] = useState(0);
-  const [selectedProject, setSelectedProject] = useState<
-    string | number | null
-  >("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Use external refresh key when provided, otherwise use internal one
   const effectiveRefreshKey = externalRefreshKey || internalRefreshKey;
@@ -53,16 +65,19 @@ const Reports: React.FC<ReportsProps> = ({
       }, 500);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [externalRefreshKey]);
 
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   const { generatedReports, loadingReports } = useGeneratedReports({
     projectId,
     projects,
     refreshKey: effectiveRefreshKey,
   });
-
 
   const { organizationId } = useAuth();
   const [organizationName, setOrganizationName] = useState("");
@@ -83,13 +98,14 @@ const Reports: React.FC<ReportsProps> = ({
     fetchOrganization();
   }, [fetchOrganization]);
 
-  const [filteredReports, setFilteredReports] =
-    useState<GeneratedReports[]>(generatedReports);
-
   // Function to transform project title based on framework_id
-  const transformProjectTitle = (report: GeneratedReports): GeneratedReports => {
-    const project = projects.find(p => p.id.toString() === report.project_id?.toString());
-    if (project && project.framework.some(f => f.framework_id !== 1)) {
+  const transformProjectTitle = (
+    report: GeneratedReports
+  ): GeneratedReports => {
+    const project = projects.find(
+      (p) => p.id.toString() === report.project_id?.toString()
+    );
+    if (project && project.framework.some((f) => f.framework_id !== 1)) {
       return {
         ...report,
         project_title: organizationName,
@@ -117,9 +133,6 @@ const Reports: React.FC<ReportsProps> = ({
       if (response.status === 200) {
         handleToast("success", "Report deleted successfully.");
         setInternalRefreshKey((prevKey: number) => prevKey + 1);
-        setFilteredReports((prevReports) =>
-          prevReports.filter((report) => report.id !== id)
-        );
       } else if (response.status === 204) {
         handleToast("error", "Report not found.");
       } else {
@@ -135,26 +148,179 @@ const Reports: React.FC<ReportsProps> = ({
     setCurrentPage(page);
   };
 
-  useEffect(() => {
-    const filterReports =
-      selectedProject === "all"
-        ? generatedReports
-        : selectedProject === "org"
-        ? generatedReports.filter((report) => {
-            const project = projects.find(p => p.id.toString() === report.project_id?.toString());
-            return project && project.framework.some(f => f.framework_id !== 1);
-          })
-        : generatedReports.filter(
-            (report) => String(report?.project_id) === String(selectedProject)
+  // FilterBy - Dynamic options generators
+  const getUniqueProjects = useCallback(() => {
+    const projectIds = new Set<string>();
+    generatedReports.forEach((report) => {
+      if (report.project_id) {
+        projectIds.add(report.project_id.toString());
+      }
+    });
+    return Array.from(projectIds)
+      .map((projectId) => {
+        const project = projects.find(
+          (p: Project) => p.id.toString() === projectId
+        );
+        return {
+          value: projectId,
+          label: project?.project_title || `Project ${projectId}`,
+        };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [generatedReports, projects]);
+
+  const getUniqueTypes = useCallback(() => {
+    const types = new Set<string>();
+    generatedReports.forEach((report) => {
+      if (report.type) {
+        types.add(report.type);
+      }
+    });
+    return Array.from(types)
+      .sort()
+      .map((type) => ({
+        value: type,
+        label: type,
+      }));
+  }, [generatedReports]);
+
+  const getUniqueGenerators = useCallback(() => {
+    const generators = new Set<string>();
+    generatedReports.forEach((report) => {
+      const generatorName = `${report.uploader_name || ""} ${
+        report.uploader_surname || ""
+      }`.trim();
+      if (generatorName) {
+        generators.add(generatorName);
+      }
+    });
+    return Array.from(generators)
+      .sort()
+      .map((generator) => ({
+        value: generator,
+        label: generator,
+      }));
+  }, [generatedReports]);
+
+  // FilterBy - Filter columns configuration
+  const reportFilterColumns: FilterColumn[] = useMemo(
+    () => [
+      {
+        id: "filename",
+        label: "Report name",
+        type: "text" as const,
+      },
+      {
+        id: "type",
+        label: "Report type",
+        type: "select" as const,
+        options: getUniqueTypes(),
+      },
+      {
+        id: "project_id",
+        label: "Project",
+        type: "select" as const,
+        options: getUniqueProjects(),
+      },
+      {
+        id: "generated_by",
+        label: "Generated by",
+        type: "select" as const,
+        options: getUniqueGenerators(),
+      },
+      {
+        id: "uploaded_time",
+        label: "Uploaded date",
+        type: "date" as const,
+      },
+    ],
+    [getUniqueTypes, getUniqueProjects, getUniqueGenerators]
+  );
+
+  // FilterBy - Field value getter
+  const getReportFieldValue = useCallback(
+    (
+      item: GeneratedReports,
+      fieldId: string
+    ): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case "filename":
+          return item.filename;
+        case "type":
+          return item.type;
+        case "project_id":
+          return item.project_id?.toString();
+        case "generated_by":
+          return `${item.uploader_name || ""} ${
+            item.uploader_surname || ""
+          }`.trim();
+        case "uploaded_time":
+          return item.uploaded_time;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook
+  const {
+    filterData: filterReportData,
+    handleFilterChange: handleReportFilterChange,
+  } = useFilterBy<GeneratedReports>(getReportFieldValue);
+
+  // Filter reports using FilterBy and search
+  const filteredReports = useMemo(() => {
+    let result = filterReportData(generatedReports);
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      result = result.filter((report) =>
+        report.filename?.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [filterReportData, generatedReports, searchTerm]);
+
+  // Define how to get the group key for each report
+  const getReportGroupKey = useCallback(
+    (report: GeneratedReports, field: string): string => {
+      switch (field) {
+        case "type":
+          return report.type || "Unknown";
+        case "project":
+          return report.project_title || "Unknown";
+        case "generated_by":
+          return (
+            `${report.uploader_name || ""} ${
+              report.uploader_surname || ""
+            }`.trim() || "Unknown"
           );
-    setFilteredReports(filterReports);
-  }, [selectedProject, generatedReports, projects]);
+        default:
+          return "Other";
+      }
+    },
+    []
+  );
+
+  // Apply transform and then grouping to filtered reports
+  const transformedReports = filteredReports.map(transformProjectTitle);
+  const groupedReports = useTableGrouping({
+    data: transformedReports,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getReportGroupKey,
+  });
 
   return (
     <Stack
       sx={{
         ...styles.tableContainer,
         opacity: isRefreshing ? 0.7 : 1,
+        padding: 0,
+        margin: 0,
       }}
     >
       {alert && (
@@ -184,35 +350,45 @@ const Reports: React.FC<ReportsProps> = ({
           <Stack
             direction="row"
             justifyContent="space-between"
-            alignItems="center"
-            sx={{ marginBottom: "24px" }}
+            alignItems="flex-end"
+            sx={{ marginBottom: "16px", marginTop: "0px !important" }}
           >
-            <ProjectFilterDropdown
-              projects={[
-                // Add organization entry if any project has framework_id !== 1
-                ...(projects.some(project => project.framework.some(f => f.framework_id !== 1)) 
-                  ? [{ id: "org", name: organizationName }] 
-                  : []),
-                // Add individual projects that don't have framework_id !== 1
-                ...projects
-                  .filter(project => !project.framework.some(f => f.framework_id !== 1))
-                  .map((project: Project) => ({
-                    id: project.id.toString(),
-                    name: project.project_title,
-                  }))
-              ]}
-              selectedProject={selectedProject}
-              onChange={setSelectedProject}
-            />
+            <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <FilterBy
+                columns={reportFilterColumns}
+                onFilterChange={handleReportFilterChange}
+              />
+              <GroupBy
+                options={[
+                  { id: "type", label: "Report type" },
+                  { id: "project", label: "Project" },
+                  { id: "generated_by", label: "Generated by" },
+                ]}
+                onGroupChange={handleGroupChange}
+              />
+              <SearchBox
+                placeholder="Search reports..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                fullWidth={false}
+              />
+            </Box>
             {generateReportButton}
           </Stack>
           <Suspense fallback={<div>Loading...</div>}>
-            <ReportTable
-              columns={TITLE_OF_COLUMNS}
-              rows={filteredReports.map(transformProjectTitle)}
-              removeReport={handleRemoveReport}
-              setCurrentPagingation={setCurrentPagingation}
-              page={currentPage}
+            <GroupedTableView
+              groupedData={groupedReports}
+              ungroupedData={transformedReports}
+              renderTable={(data, options) => (
+                <ReportTable
+                  columns={TITLE_OF_COLUMNS}
+                  rows={data}
+                  removeReport={handleRemoveReport}
+                  setCurrentPagingation={setCurrentPagingation}
+                  page={currentPage}
+                  hidePagination={options?.hidePagination}
+                />
+              )}
             />
           </Suspense>
         </>

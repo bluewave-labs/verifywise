@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @fileoverview This module provides a set of network services for making HTTP requests using CustomAxios.
  * It includes utility functions for logging requests and responses, as well as error handling.
@@ -26,8 +27,20 @@ interface ApiResponse<T> {
 const handleError = (error: any) => {
   try {
     if (axios.isAxiosError(error)) {
-      // Use backend message if available, otherwise fallback to generic
-      const errorMessage = error.response?.data?.message || error.message;
+      // Extract the most specific error message available
+      let errorMessage = error.message; // fallback
+
+      if (error.response?.data?.data && typeof error.response.data.data === 'string') {
+        // Validation errors from STATUS_CODE[400] put the specific message in data.data
+        errorMessage = error.response.data.data;
+      } else if (error.response?.data?.message) {
+        // Standard error format with message
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        // Alternative error format
+        errorMessage = error.response.data.error;
+      }
+
       return new CustomException(
         errorMessage,
         error.response?.status,
@@ -41,31 +54,37 @@ const handleError = (error: any) => {
       );
     }
   } catch (e) {
-    console.error("Error in handleError:", e);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error in handleError:", e);
+    }
     throw e;
   }
 };
 
-// Logging function
+// Logging function - only logs in development mode
 const logRequest = (
   method: string,
   endpoint: string,
   params?: any,
   data?: any
 ) => {
-  console.log(`[API Request] ${method.toUpperCase()} ${endpoint}`, {
-    params,
-    data,
-  });
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[API Request] ${method.toUpperCase()} ${endpoint}`, {
+      params,
+      data,
+    });
+  }
 };
 
 const logResponse = (method: string, endpoint: string, response: any) => {
-  console.table(
-    `[API Response] ${method.toUpperCase()} ${endpoint} ${
-      response.data.message
-    }`,
-    response.status
-  );
+  if (process.env.NODE_ENV === 'development') {
+    console.table(
+      `[API Response] ${method.toUpperCase()} ${endpoint} ${
+        response.data.message
+      }`,
+      response.status
+    );
+  }
 };
 
 export const apiServices = {
@@ -81,11 +100,15 @@ export const apiServices = {
     endpoint: string,
     params: RequestParams = {}
   ): Promise<ApiResponse<T>> {
-    logRequest("get", endpoint, params);
+    // Extract special config options that should not be query params
+    const { signal, responseType, ...queryParams } = params;
+
+    logRequest("get", endpoint, queryParams);
     try {
       const response = await CustomAxios.get(endpoint, {
-        params,
-        responseType: params.responseType ?? "json",
+        params: queryParams,
+        responseType: responseType ?? "json",
+        signal,
       });
 
       logResponse("get", endpoint, response);

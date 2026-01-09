@@ -1,27 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Stack,
   Typography,
   Box,
   Button,
-  Modal,
-  Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
   Divider,
+  Popover
 } from "@mui/material";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import { useContext, useEffect, useState, useMemo } from "react";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
-import { ReactComponent as SettingsIcon } from "../../assets/icons/setting-small.svg";
-import { ReactComponent as DeleteIconRed } from "../../assets/icons/trash-filled-red.svg";
-import {ReactComponent as EditIconGrey} from "../../assets/icons/edit.svg";
-import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
+import { useContext, useEffect, useState, useMemo, useRef } from "react";
+import {
+  CirclePlus as AddCircleOutlineIcon,
+  Settings as SettingsIcon,
+  Trash2 as DeleteIconRed,
+  Pencil as EditIconGrey,
+  ChevronDown as WhiteDownArrowIcon,
+} from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
-import singleTheme from "../../themes/v1SingleTheme";
 import useFrameworks from "../../../application/hooks/useFrameworks";
+import useUsers from "../../../application/hooks/useUsers";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -30,18 +31,32 @@ import ISO27001Clause from "./ISO27001/Clause";
 import ISO27001Annex from "./ISO27001/Annex";
 import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
-import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
+import { getAllEntities } from "../../../application/repository/entity.repository";
 import ProjectForm from "../../components/Forms/ProjectForm";
 import AddFrameworkModal from "../ProjectView/AddNewFramework";
 import allowedRoles from "../../../application/constants/permissions";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import CustomizableButton from "../../components/Button/CustomizableButton";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
+import StandardModal from "../../components/Modals/StandardModal";
 import { deleteProject } from "../../../application/repository/project.repository";
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
+import TipBox from "../../components/TipBox";
+import FrameworkDashboard from "./Dashboard";
+import FrameworkSettings from "./Settings";
+import FrameworkRisks from "./FrameworkRisks";
+import FrameworkLinkedModels from "./FrameworkLinkedModels";
+import PageTour from "../../components/PageTour";
+import FrameworkSteps from "./FrameworkSteps";
+import TabBar from "../../components/TabBar";
+import NISTAIRMFGovern from "./NIST-AI-RMF/Govern";
+import NISTAIRMFMap from "./NIST-AI-RMF/Map";
+import NISTAIRMFMeasure from "./NIST-AI-RMF/Measure";
+import NISTAIRMFManage from "./NIST-AI-RMF/Manage";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -59,7 +74,6 @@ const tabStyle = {
 
 const tabPanelStyle = {
   padding: 0,
-  pt: 10,
 };
 
 const tabListStyle = {
@@ -69,9 +83,16 @@ const tabListStyle = {
   },
 };
 
+// localStorage keys for persisting tab state
+const FRAMEWORK_SELECTED_KEY = "verifywise_framework_selected";
+const ISO27001_TAB_KEY = "verifywise_iso27001_tab";
+const ISO42001_TAB_KEY = "verifywise_iso42001_tab";
+const NIST_AI_RMF_TAB_KEY = "verifywise_nist_ai_rmf_tab";
 
 const Framework = () => {
   const [searchParams] = useSearchParams();
+  const { tab } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
   const framework = searchParams.get("framework");
   const frameworkName = searchParams.get("frameworkName");
 
@@ -86,15 +107,18 @@ const Framework = () => {
   const subClause27001Id = searchParams.get("subClause27001Id");
   const annex27001Id = searchParams.get("annex27001Id");
   const annexControl27001Id = searchParams.get("annexControl27001Id");
-  const [rotated, setRotated] = useState(false);
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+
+  // NIST AI RMF parameters
+  const functionId = searchParams.get("functionId");
+  const categoryId = searchParams.get("categoryId");
+  const subcategoryId = searchParams.get("subcategoryId");
 
   const { changeComponentVisibility, projects, userRoleName, setProjects } =
     useContext(VerifyWiseContext);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
-  const dropDownStyle = singleTheme.dropDownStyles.primary;
+  const { users } = useUsers();
 
   // Check if there are any organizational projects
   const organizationalProject = useMemo(() => {
@@ -106,37 +130,13 @@ const Framework = () => {
   const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
   const [isFrameworkModalOpen, setIsFrameworkModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [rotated, setRotated] = useState(false);
+  const submitFormRef = useRef<(() => void) | undefined>();
+  const createFormRef = useRef<(() => void) | undefined>();
 
   // State for dropdown menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
-
-  // Handle dropdown menu
-  const handleManageProjectClick = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setRotated(false);
-  };
-
-  const handleManageFrameworksClick = () => {
-    setIsFrameworkModalOpen(true);
-    handleMenuClose();
-  };
-
-  const handleEditProjectClick = () => {
-    setIsEditProjectModalOpen(true);
-    handleMenuClose();
-  };
-
-  const handleDeleteProjectClick = () => {
-    setIsDeleteModalOpen(true);
-    handleMenuClose();
-  };
 
   // Function to refresh project data after framework changes
   const refreshProjectData = async () => {
@@ -152,6 +152,32 @@ const Framework = () => {
     } catch (error) {
       console.error("Error refreshing projects:", error);
     }
+  };
+
+  // Handle dropdown menu
+  const handleManageProjectClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleManageFrameworksClick = () => {
+    setIsFrameworkModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleEditProjectClick = () => {
+    setIsEditProjectModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleDeleteProjectClick = () => {
+    setIsDeleteModalOpen(true);
+    handleMenuClose();
   };
 
   // Function to handle project deletion
@@ -199,15 +225,40 @@ const Framework = () => {
     );
 
     // Filter frameworks to only include those assigned to the project and exclude EU AI Act
-    return allFrameworks.filter((framework) => {
+    const filtered = allFrameworks.filter((framework) => {
       const frameworkId = Number(framework.id);
       const isAssignedToProject = projectFrameworkIds.includes(frameworkId);
       const isNotEuAiAct = !framework.name.toLowerCase().includes("eu ai act");
-      const isIsoFramework =
+      const isComplianceFramework =
         framework.name.toLowerCase().includes("iso 27001") ||
-        framework.name.toLowerCase().includes("iso 42001");
+        framework.name.toLowerCase().includes("iso 42001") ||
+        framework.name.toLowerCase().includes("nist ai rmf");
 
-      return isAssignedToProject && isNotEuAiAct && isIsoFramework;
+      return isAssignedToProject && isNotEuAiAct && isComplianceFramework;
+    });
+
+    // Sort to ensure ISO 42001 appears first, then ISO 27001, then NIST AI RMF
+    return filtered.sort((a, b) => {
+      const aIsISO42001 = a.name.toLowerCase().includes("iso 42001");
+      const bIsISO42001 = b.name.toLowerCase().includes("iso 42001");
+      const aIsISO27001 = a.name.toLowerCase().includes("iso 27001");
+      const bIsISO27001 = b.name.toLowerCase().includes("iso 27001");
+      const aIsNISTAI_RMF = a.name.toLowerCase().includes("nist ai rmf");
+      const bIsNISTAI_RMF = b.name.toLowerCase().includes("nist ai rmf");
+
+      // ISO 42001 comes first
+      if (aIsISO42001 && !bIsISO42001) return -1;
+      if (!aIsISO42001 && bIsISO42001) return 1;
+
+      // ISO 27001 comes second
+      if (aIsISO27001 && !bIsISO27001 && !bIsNISTAI_RMF) return -1;
+      if (!aIsISO27001 && bIsISO27001 && !aIsNISTAI_RMF) return 1;
+
+      // NIST AI RMF comes third
+      if (aIsNISTAI_RMF && !bIsNISTAI_RMF) return -1;
+      if (!aIsNISTAI_RMF && bIsNISTAI_RMF) return 1;
+
+      return 0;
     });
   }, [allFrameworks, organizationalProject]);
 
@@ -222,13 +273,71 @@ const Framework = () => {
     return projectFramework?.project_framework_id || null;
   };
 
-  const [selectedFramework, setSelectedFramework] = useState<number>(0);
-  const [iso27001TabValue, setIso27001TabValue] = useState("clause");
-  const [iso42001TabValue, setIso42001TabValue] = useState("clauses");
+  // Default to "dashboard"
+  const [mainTabValue, setMainTabValue] = useState(tab || "dashboard");
+  const [selectedFramework, setSelectedFramework] = useState<number>(() => {
+    const saved = localStorage.getItem(FRAMEWORK_SELECTED_KEY);
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [iso27001TabValue, setIso27001TabValue] = useState(() => {
+    return localStorage.getItem(ISO27001_TAB_KEY) || "clause";
+  });
+  const [iso42001TabValue, setIso42001TabValue] = useState(() => {
+    return localStorage.getItem(ISO42001_TAB_KEY) || "clauses";
+  });
+  const [nistAiRmfTabValue, setNistAiRmfTabValue] = useState(() => {
+    return localStorage.getItem(NIST_AI_RMF_TAB_KEY) || "govern";
+  });
+
+  const [risksFrameworkIndex, setRisksFrameworkIndex] = useState(0);
+  const [linkedModelsFrameworkIndex, setLinkedModelsFrameworkIndex] = useState(0);
+
+
+  // Sync mainTabValue with URL tab param when navigating programmatically
+  useEffect(() => {
+    const newTabValue = tab || "dashboard";
+    if (newTabValue !== mainTabValue) {
+      setMainTabValue(newTabValue);
+
+      // When navigating to controls, re-read localStorage for framework/tab selection
+      if (newTabValue === "controls") {
+        const savedFramework = localStorage.getItem(FRAMEWORK_SELECTED_KEY);
+        if (savedFramework !== null) {
+          const frameworkIndex = parseInt(savedFramework, 10);
+          if (!isNaN(frameworkIndex) && frameworkIndex !== selectedFramework) {
+            setSelectedFramework(frameworkIndex);
+          }
+        }
+
+        // Re-read sub-tab values from localStorage
+        const savedIso27001Tab = localStorage.getItem(ISO27001_TAB_KEY);
+        if (savedIso27001Tab && savedIso27001Tab !== iso27001TabValue) {
+          setIso27001TabValue(savedIso27001Tab);
+        }
+
+        const savedIso42001Tab = localStorage.getItem(ISO42001_TAB_KEY);
+        if (savedIso42001Tab && savedIso42001Tab !== iso42001TabValue) {
+          setIso42001TabValue(savedIso42001Tab);
+        }
+
+        const savedNistTab = localStorage.getItem(NIST_AI_RMF_TAB_KEY);
+        if (savedNistTab && savedNistTab !== nistAiRmfTabValue) {
+          setNistAiRmfTabValue(savedNistTab);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   // Filter states following ProjectFrameworks pattern
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [applicabilityFilter, setApplicabilityFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("");
+  const [reviewerFilter, setReviewerFilter] = useState<string>("");
+  const [dueDateFilter, setDueDateFilter] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const [linkedModelsCount, setLinkedModelsCount] = useState<number>(0);
 
   // Status options following ProjectFrameworks pattern for ISO27001
   const iso27001StatusOptions = [
@@ -254,6 +363,26 @@ const Framework = () => {
     { value: "needs rework", label: "Needs Rework" },
   ];
 
+  // Status options for NIST AI RMF (same as other frameworks)
+  const nistAiRmfStatusOptions = [
+    { value: "not started", label: "Not Started" },
+    { value: "in progress", label: "In Progress" },
+    { value: "implemented", label: "Implemented" },
+    { value: "awaiting approval", label: "Awaiting Approval" },
+    { value: "awaiting review", label: "Awaiting Review" },
+    { value: "draft", label: "Draft" },
+    // { value: "audited", label: "Audited" },
+    { value: "needs rework", label: "Needs Rework" },
+  ];
+
+  // User options for owner and reviewer filters
+  const userOptions = useMemo(() => {
+    return users.map((user: any) => ({
+      value: user.id?.toString() || "",
+      label: `${user.name} ${user.surname}`,
+    }));
+  }, [users]);
+
   useEffect(() => {
     if (allVisible) {
       changeComponentVisibility("projectFrameworks", true);
@@ -272,10 +401,15 @@ const Framework = () => {
   }, [filteredFrameworks, selectedFramework, frameworkName]);
 
   useEffect(() => {
+    if (framework || frameworkName) {
+      setMainTabValue("controls");
+    }
     if (framework === "iso-42001" || frameworkName === "iso-42001") {
       // Find ISO 42001 framework in filtered frameworks
-      const iso42001Index = filteredFrameworks.findIndex(fw =>
-        fw.name.toLowerCase().includes("iso") && fw.name.toLowerCase().includes("42001")
+      const iso42001Index = filteredFrameworks.findIndex(
+        (fw) =>
+          fw.name.toLowerCase().includes("iso") &&
+          fw.name.toLowerCase().includes("42001")
       );
       if (iso42001Index !== -1) {
         setSelectedFramework(iso42001Index);
@@ -289,8 +423,10 @@ const Framework = () => {
       }
     } else if (framework === "iso-27001" || frameworkName === "iso-27001") {
       // Find ISO 27001 framework in filtered frameworks
-      const iso27001Index = filteredFrameworks.findIndex(fw =>
-        fw.name.toLowerCase().includes("iso") && fw.name.toLowerCase().includes("27001")
+      const iso27001Index = filteredFrameworks.findIndex(
+        (fw) =>
+          fw.name.toLowerCase().includes("iso") &&
+          fw.name.toLowerCase().includes("27001")
       );
       if (iso27001Index !== -1) {
         setSelectedFramework(iso27001Index);
@@ -301,6 +437,24 @@ const Framework = () => {
         setIso27001TabValue("annex");
       } else if (clause27001Id || subClause27001Id) {
         setIso27001TabValue("clause");
+      }
+    } else if (framework === "nist-ai-rmf" || frameworkName === "nist-ai-rmf") {
+      // Find NIST AI RMF framework in filtered frameworks
+      const nistAiRmfIndex = filteredFrameworks.findIndex(
+        (fw) =>
+          fw.name.toLowerCase().includes("nist") &&
+          fw.name.toLowerCase().includes("ai") &&
+          fw.name.toLowerCase().includes("rmf")
+      );
+      if (nistAiRmfIndex !== -1) {
+        setSelectedFramework(nistAiRmfIndex);
+      }
+
+      // Set tab based on parameters (simplified since we combined functions/categories)
+      if (subcategoryId) {
+        setNistAiRmfTabValue("subcategories");
+      } else {
+        setNistAiRmfTabValue("functions");
       }
     }
   }, [
@@ -314,20 +468,40 @@ const Framework = () => {
     clause27001Id,
     subClause27001Id,
     annex27001Id,
-    annexControl27001Id
+    annexControl27001Id,
+    functionId,
+    categoryId,
+    subcategoryId,
   ]);
+
+  const resetFilters = () => {
+    setStatusFilter("");
+    setApplicabilityFilter("");
+    setSearchTerm("");
+    setOwnerFilter("");
+    setReviewerFilter("");
+    setDueDateFilter("");
+  }
 
   // Reset filters when tab changes (following ProjectFrameworks pattern)
   useEffect(() => {
     if (organizationalProject) {
-      setStatusFilter("");
-      setApplicabilityFilter("");
+      resetFilters();
     }
-  }, [iso27001TabValue, iso42001TabValue, organizationalProject]);
+  }, [
+    iso27001TabValue,
+    iso42001TabValue,
+    nistAiRmfTabValue,
+    organizationalProject,
+  ]);
 
   const handleFrameworkSelect = (index: number) => {
     if (organizationalProject) {
+      if(selectedFramework !== index) {
+        resetFilters();
+      }
       setSelectedFramework(index);
+      localStorage.setItem(FRAMEWORK_SELECTED_KEY, index.toString());
     }
   };
 
@@ -336,6 +510,7 @@ const Framework = () => {
     newValue: string
   ) => {
     setIso27001TabValue(newValue);
+    localStorage.setItem(ISO27001_TAB_KEY, newValue);
   };
 
   const handleIso42001TabChange = (
@@ -343,7 +518,46 @@ const Framework = () => {
     newValue: string
   ) => {
     setIso42001TabValue(newValue);
+    localStorage.setItem(ISO42001_TAB_KEY, newValue);
   };
+
+  const handleNistAiRmfTabChange = (
+    _: React.SyntheticEvent,
+    newValue: string
+  ) => {
+    setNistAiRmfTabValue(newValue);
+    localStorage.setItem(NIST_AI_RMF_TAB_KEY, newValue);
+  };
+
+  const handleMainTabChange = (_: React.SyntheticEvent, newValue: string) => {
+    setMainTabValue(newValue);
+    if (newValue === "dashboard") {
+      navigate("/framework");
+    } else {
+      navigate(`/framework/${newValue}`);
+    }
+  };
+
+  useEffect(() => {
+    const getLinkedModelCount = async() => {
+      if (filteredFrameworks.length === 0) return;
+
+      const framework = filteredFrameworks[linkedModelsFrameworkIndex];
+      if (!framework) return;
+      const frameworkId = framework?.id;
+
+      const response = await getAllEntities({
+        routeUrl: `/modelInventory/by-frameworkId/${frameworkId}`,
+      });
+
+      if (response && response.data) {
+        setLinkedModelsCount(response.data.length);
+      }
+    };
+
+    getLinkedModelCount();
+
+  }, [filteredFrameworks, linkedModelsFrameworkIndex]);
 
   const renderFrameworkContent = () => {
     if (loading) {
@@ -396,16 +610,18 @@ const Framework = () => {
     const framework = filteredFrameworks[selectedFramework];
     if (!framework) return null;
 
-    // Check if the selected framework is ISO 27001 or ISO 42001
+    // Check if the selected framework is ISO 27001, ISO 42001, or NIST AI RMF
     const isISO27001 = framework.name.toLowerCase().includes("iso 27001");
     const isISO42001 = framework.name.toLowerCase().includes("iso 42001");
+    const isNISTAI_RMF = framework.name.toLowerCase().includes("nist ai rmf");
 
     if (isISO27001) {
       return (
-        <Box sx={{ mt: 6 }}>
+        <Box>
           <TabContext value={iso27001TabValue}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
               <TabList
+                data-joyride-id="framework-clause-tabs"
                 onChange={handleIso27001TabChange}
                 TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
                 sx={tabListStyle}
@@ -425,19 +641,6 @@ const Framework = () => {
               </TabList>
             </Box>
 
-            {/* Filter Bar following ProjectFrameworks pattern */}
-            <TabFilterBar
-              statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
-              applicabilityFilter={applicabilityFilter}
-              onApplicabilityChange={setApplicabilityFilter}
-              showStatusFilter={
-                iso27001TabValue === "clause" || iso27001TabValue === "annex"
-              }
-              showApplicabilityFilter={iso27001TabValue === "annex"}
-              statusOptions={iso27001StatusOptions}
-            />
-
             <TabPanel value="clause" sx={tabPanelStyle}>
               <ISO27001Clause
                 project={organizationalProject}
@@ -445,8 +648,20 @@ const Framework = () => {
                   getProjectFrameworkId(framework.id) || framework.id
                 }
                 statusFilter={statusFilter}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
+                dueDateFilter={dueDateFilter}
                 initialClauseId={clause27001Id}
                 initialSubClauseId={subClause27001Id}
+                searchTerm={searchTerm}
+                onStatusChange={setStatusFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso27001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
 
@@ -458,8 +673,21 @@ const Framework = () => {
                 }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
+                dueDateFilter={dueDateFilter}
                 initialAnnexId={annex27001Id}
                 initialAnnexControlId={annexControl27001Id}
+                searchTerm={searchTerm}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
+                onStatusChange={setStatusFilter}
+                onApplicabilityChange={setApplicabilityFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso27001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
           </TabContext>
@@ -469,10 +697,11 @@ const Framework = () => {
 
     if (isISO42001) {
       return (
-        <Box sx={{ mt: 6 }}>
+        <Box>
           <TabContext value={iso42001TabValue}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
               <TabList
+                data-joyride-id="framework-clause-tabs"
                 onChange={handleIso42001TabChange}
                 TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
                 sx={tabListStyle}
@@ -492,19 +721,6 @@ const Framework = () => {
               </TabList>
             </Box>
 
-            {/* Filter Bar following ProjectFrameworks pattern */}
-            <TabFilterBar
-              statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
-              applicabilityFilter={applicabilityFilter}
-              onApplicabilityChange={setApplicabilityFilter}
-              showStatusFilter={
-                iso42001TabValue === "clauses" || iso42001TabValue === "annexes"
-              }
-              showApplicabilityFilter={iso42001TabValue === "annexes"}
-              statusOptions={iso42001StatusOptions}
-            />
-
             <TabPanel value="clauses" sx={tabPanelStyle}>
               <ISO42001Clause
                 project={organizationalProject}
@@ -512,8 +728,20 @@ const Framework = () => {
                   getProjectFrameworkId(framework.id) || framework.id
                 }
                 statusFilter={statusFilter}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
+                dueDateFilter={dueDateFilter}
                 initialClauseId={clauseId}
                 initialSubClauseId={subClauseId}
+                searchTerm={searchTerm}
+                onStatusChange={setStatusFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso42001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
 
@@ -525,8 +753,103 @@ const Framework = () => {
                 }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
+                dueDateFilter={dueDateFilter}
                 initialAnnexId={annexId}
                 initialAnnexCategoryId={annexCategoryId}
+                searchTerm={searchTerm}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
+                onStatusChange={setStatusFilter}
+                onApplicabilityChange={setApplicabilityFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso42001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
+              />
+            </TabPanel>
+          </TabContext>
+        </Box>
+      );
+    }
+
+    if (isNISTAI_RMF) {
+      return (
+        <Box>
+          <TabContext value={nistAiRmfTabValue}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
+              <TabList
+                data-joyride-id="framework-nist-ai-rmf-tabs"
+                onChange={handleNistAiRmfTabChange}
+                TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+                sx={tabListStyle}
+              >
+                <Tab
+                  label="Govern"
+                  value="govern"
+                  sx={tabStyle}
+                  disableRipple
+                />
+                <Tab label="Map" value="map" sx={tabStyle} disableRipple />
+                <Tab
+                  label="Measure"
+                  value="measure"
+                  sx={tabStyle}
+                  disableRipple
+                />
+                <Tab
+                  label="Manage"
+                  value="manage"
+                  sx={tabStyle}
+                  disableRipple
+                />
+              </TabList>
+            </Box>
+
+            <TabPanel value="govern" sx={tabPanelStyle}>
+              <NISTAIRMFGovern
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId("4") || ""}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                statusOptions={nistAiRmfStatusOptions}
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
+              />
+            </TabPanel>
+            <TabPanel value="map" sx={tabPanelStyle}>
+              <NISTAIRMFMap
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId("4") || ""}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                statusOptions={nistAiRmfStatusOptions}
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
+              />
+            </TabPanel>
+            <TabPanel value="measure" sx={tabPanelStyle}>
+              <NISTAIRMFMeasure
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId("4") || ""}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                statusOptions={nistAiRmfStatusOptions}
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
+              />
+            </TabPanel>
+            <TabPanel value="manage" sx={tabPanelStyle}>
+              <NISTAIRMFManage
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId("4") || ""}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                statusOptions={nistAiRmfStatusOptions}
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
               />
             </TabPanel>
           </TabContext>
@@ -538,7 +861,6 @@ const Framework = () => {
     return (
       <Box
         sx={{
-          mt: 6,
           p: 6,
           backgroundColor: "#000000",
           borderRadius: 3,
@@ -564,92 +886,39 @@ const Framework = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"24px"} ref={refs[0]}>
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Organizational frameworks"
-        description="Navigate compliance frameworks like ISO 27001 and ISO 42001 for AI governance"
-        whatItDoes="Provide **structured guidance** for implementing *organizational frameworks* and **compliance standards**. Access detailed requirements, clauses, and annexes for *ISO 27001* and **ISO 42001 frameworks**."
-        whyItMatters="**Compliance frameworks** ensure your organization meets *industry standards* and **regulatory requirements**. They provide *systematic approaches* to managing risks, implementing controls, and demonstrating **due diligence** to stakeholders and regulators."
-        quickActions={[
-          {
-            label: "Explore Framework Requirements",
-            description: "Browse detailed clauses and implementation guidelines for each framework",
-            primary: true
-          },
-          {
-            label: "Check Compliance Status",
-            description: "Review your organization's current compliance progress and gaps"
-          }
-        ]}
-        useCases={[
-          "**ISO 27001 implementation** for *information security management systems*",
-          "**ISO 42001 compliance** for *artificial intelligence management systems* and **governance**"
-        ]}
-        keyFeatures={[
-          "**Comprehensive framework navigation** with *hierarchical clause structure*",
-          "**Cross-referencing** between different *standards* and requirements",
-          "**Progress tracking** and *compliance gap analysis* tools for implementation planning"
-        ]}
-        tips={[
-          "Start with **gap analysis** to understand your *current compliance position*",
-          "Focus on *foundational clauses* before moving to **specific technical requirements**",
-          "Document your **implementation decisions** and evidence for *audit readiness*"
-        ]}
-      />
+    <Stack className="vwhome" gap={"16px"} ref={refs[0]}>
       <PageBreadcrumbs />
-      <Stack>
-      <PageHeader
-               title="Framework"
-               description="This page provides an overview of available AI compliance frameworks.
-              Explore different frameworks to understand their requirements and
-              implementation guidelines."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
-                     size="small"
-                    />
-                 }
-       />
-        {/* Framework Controls Section - ISO selectors and Manage Project button on same line */}
-        <Box
-          sx={{
-            mt: "24px",
-            mb: "0px",
-            display: "flex",
-            gap: 2,
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
-          {organizationalProject && filteredFrameworks.length > 0 && (
-            <ButtonToggle
-              options={filteredFrameworks.map((framework, index) => ({
-                value: index.toString(),
-                label: framework.name,
-              }))}
-              value={selectedFramework.toString()}
-              onChange={(value) => handleFrameworkSelect(parseInt(value))}
-              height={34}
+      <Stack
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          mb: 2,
+        }}
+      >
+        <PageHeader
+          title="Organizational Frameworks"
+          description="This page provides an overview of available AI and data governance frameworks to your organization."
+          rightContent={
+            <HelperIcon
+              articlePath="compliance/assessments"
+              size="small"
             />
-          )}
-
-          {/* Manage Project Button */}
+          }
+        />
+        {/* Manage Project / New Project Button */}
+        <Box>
           {organizationalProject ? (
             <>
-              <Button
+              <CustomizableButton
                 variant="contained"
-                endIcon={<WhiteDownArrowIcon />}
+                text="Manage frameworks"
+                endIcon={<WhiteDownArrowIcon size={16} style={{ transform: rotated ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />}
                 onClick={(event) => {
                   setRotated((prev) => !prev);
-                  handleManageProjectClick(event);
+                  handleManageProjectClick(event as React.MouseEvent<any>);
                 }}
-                disableRipple
-                disabled={
+                isDisabled={
                   !allowedRoles.frameworks.manage.includes(userRoleName) &&
                   !allowedRoles.projects.edit.includes(userRoleName) &&
                   !allowedRoles.projects.delete.includes(userRoleName)
@@ -657,26 +926,13 @@ const Framework = () => {
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",
-                  textTransform: "none",
+                  gap: 2,
                   "&:hover": {
                     backgroundColor: "#0e5c47",
-                    boxShadow: "0px 4px 8px rgba(19, 113, 91, 0.3)",
-                  },
-                  "&:disabled": {
-                    backgroundColor: "#cccccc",
-                    color: "#666666",
-                    boxShadow: "none",
-                  },
-                  "& .MuiButton-endIcon": {
-                    marginLeft: 1,
-                    transition: "transform 0.2s ease",
-                    transform: rotated ? "rotate(180deg)" : "rotate(0deg)",
                   },
                 }}
-              >
-                Manage Project
-              </Button>
-              <Menu
+              />
+              <Popover
                 anchorEl={anchorEl}
                 open={isMenuOpen}
                 onClose={handleMenuClose}
@@ -688,13 +944,14 @@ const Framework = () => {
                   vertical: "top",
                   horizontal: "right",
                 }}
-                slotProps={{
-                  paper: {
-                    sx: {
-                      ...dropDownStyle,
-                      width: 200,
-                      mt: 1,
-                    },
+                sx={{
+                  mt: 1,
+                  "& .MuiPopover-paper": {
+                    borderRadius: "4px",
+                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
+                    border: "1px solid #d0d5dd",
+                    overflow: "visible",
+                    backgroundColor: "#fff",
                   },
                 }}
               >
@@ -706,15 +963,14 @@ const Framework = () => {
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
                     <SettingsIcon
-                      fontSize="small"
+                      size={16}
                       style={{
                         color: "text.secondary",
-                        fontSize: "16px",
                       }}
                     />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Manage Frameworks"
+                    primary="Add/remove frameworks"
                     primaryTypographyProps={{
                       fontSize: "13px",
                       fontWeight: 400,
@@ -728,14 +984,14 @@ const Framework = () => {
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
                     <EditIconGrey
+                      size={16}
                       style={{
                         color: "text.secondary",
-                        fontSize: "16px",
                       }}
                     />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Edit Project"
+                    primary="Edit project"
                     primaryTypographyProps={{
                       fontSize: "13px",
                       fontWeight: 400,
@@ -752,15 +1008,14 @@ const Framework = () => {
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
                     <DeleteIconRed
-                      fontSize="small"
+                      size={16}
                       style={{
-                        color: "error.main",
-                        fontSize: "16px",
+                        color: "#DB504A",
                       }}
                     />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Delete Project"
+                    primary="Delete project"
                     primaryTypographyProps={{
                       fontSize: "13px",
                       fontWeight: 400,
@@ -768,12 +1023,12 @@ const Framework = () => {
                     }}
                   />
                 </MenuItem>
-              </Menu>
+              </Popover>
             </>
           ) : (
             <Button
               variant="contained"
-              startIcon={<AddCircleOutlineIcon />}
+              startIcon={<AddCircleOutlineIcon size={16} />}
               onClick={() => setIsProjectFormModalOpen(true)}
               disabled={!allowedRoles.projects.create.includes(userRoleName)}
               sx={{
@@ -795,121 +1050,205 @@ const Framework = () => {
         </Box>
       </Stack>
 
+      {/* Tips */}
+      <TipBox entityName="framework" />
+
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
-        <Stack className="frameworks-switch" sx={{ mt: 0 }}>
-          {/* Content that changes based on selected framework */}
-          {renderFrameworkContent()}
-        </Stack>
+        <>
+          <TabContext value={mainTabValue}>
+            <TabBar
+              tabs={[
+                {
+                  label: "Dashboard",
+                  value: "dashboard",
+                  icon: "LayoutDashboard",
+                },
+                {
+                  label: "Framework risks",
+                  value: "framework-risks",
+                  icon: "AlertTriangle",
+                },
+                {
+                  label: "Linked models",
+                  value: "linked-models",
+                  icon: "Link",
+                  count: linkedModelsCount,
+                },
+                {
+                  label: "Controls and Requirements",
+                  value: "controls",
+                  icon: "FileCode",
+                },
+                {
+                  label: "Settings",
+                  value: "settings",
+                  icon: "Settings",
+                },
+              ]}
+              activeTab={mainTabValue}
+              onChange={handleMainTabChange}
+              dataJoyrideId="framework-main-tabs"
+            />
+
+            <TabPanel value="dashboard" sx={tabPanelStyle}>
+              <Box data-joyride-id="framework-dashboard">
+                <FrameworkDashboard
+                  organizationalProject={organizationalProject}
+                  filteredFrameworks={filteredFrameworks}
+                />
+              </Box>
+            </TabPanel>
+
+            <TabPanel value="controls" sx={tabPanelStyle}>
+              <Stack className="frameworks-switch" spacing={3}>
+                {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
+                {organizationalProject && filteredFrameworks.length > 0 && (
+                  <Box data-joyride-id="framework-toggle">
+                    <ButtonToggle
+                      options={filteredFrameworks.map((framework, index) => ({
+                        value: index.toString(),
+                        label: framework.name,
+                      }))}
+                      value={selectedFramework.toString()}
+                      onChange={(value) =>
+                        handleFrameworkSelect(parseInt(value))
+                      }
+                      height={34}
+                    />
+                  </Box>
+                )}
+                {/* Content that changes based on selected framework */}
+                {renderFrameworkContent()}
+              </Stack>
+            </TabPanel>
+
+            <TabPanel value="framework-risks" sx={tabPanelStyle}>
+              <FrameworkRisks
+                organizationalProject={organizationalProject}
+                filteredFrameworks={filteredFrameworks}
+                selectedFramework={risksFrameworkIndex}
+                onFrameworkSelect={setRisksFrameworkIndex}
+              />
+            </TabPanel>
+
+            <TabPanel value="linked-models" sx={tabPanelStyle}>
+              <FrameworkLinkedModels
+                organizationalProject={organizationalProject}
+                filteredFrameworks={filteredFrameworks}
+                selectedFramework={linkedModelsFrameworkIndex}
+                onFrameworkSelect={setLinkedModelsFrameworkIndex}
+              />
+            </TabPanel>
+
+            <TabPanel value="settings" sx={tabPanelStyle}>
+              <FrameworkSettings
+                organizationalProject={organizationalProject}
+                allFrameworks={allFrameworks}
+                filteredFrameworks={filteredFrameworks}
+                onProjectDataChanged={refreshProjectData}
+                onFrameworksChanged={refreshFilteredFrameworks}
+                setProjects={setProjects}
+              />
+            </TabPanel>
+          </TabContext>
+        </>
       )}
 
       {/* Show message when no organizational project exists */}
       {!organizationalProject && (
-        <NoProject message="No Organizational Project Found. Create a new organizational project to manage ISO 27001 and ISO 42001 frameworks for your organization." />
+        <NoProject message="No Organizational Project Found. Create a new organizational project to manage ISO 27001, ISO 42001, and NIST AI RMF frameworks for your organization." />
       )}
 
       {/* Modals */}
       {isProjectFormModalOpen && (
-        <Modal
-          open={isProjectFormModalOpen}
-          onClose={async (_event, reason) => {
-            // Prevent closing on backdrop click
-            if (reason === "backdropClick") {
-              return;
-            }
+        <StandardModal
+          isOpen={isProjectFormModalOpen}
+          onClose={async () => {
             setIsProjectFormModalOpen(false);
-            // Refresh project data after editing the project
             await refreshProjectData();
           }}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+          title="Create new framework"
+          description="Set up a new organizational framework below"
+          onSubmit={() => {
+            if (createFormRef.current) {
+              createFormRef.current();
+            }
           }}
+          submitButtonText="Create framework"
+          maxWidth="900px"
         >
-          <Box
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              backgroundColor: "white",
-              borderRadius: 2,
-              boxShadow: 24,
-              maxHeight: "90vh",
-              maxWidth: "90vw",
-              overflow: "auto",
-              outline: "none",
-              p: 0,
+          <ProjectForm
+            defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
+            useStandardModal={true}
+            onSubmitRef={createFormRef}
+            onClose={async () => {
+              setIsProjectFormModalOpen(false);
+              await refreshProjectData();
             }}
-          >
-            <ProjectForm
-              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
-              onClose={async () => {
-                setIsProjectFormModalOpen(false);
-                // Refresh project data after creating a new project
-                await refreshProjectData();
-              }}
-            />
-          </Box>
-        </Modal>
+          />
+        </StandardModal>
       )}
 
       {isEditProjectModalOpen && organizationalProject && (
-        <Modal
-          open={isEditProjectModalOpen}
-          onClose={async (_event, reason) => {
-            // Prevent closing on backdrop click
-            if (reason === "backdropClick") {
-              return;
-            }
+        <StandardModal
+          isOpen={isEditProjectModalOpen}
+          onClose={async () => {
             setIsEditProjectModalOpen(false);
-            // Refresh project data after editing the project
             await refreshProjectData();
           }}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+          title="Edit framework"
+          description="Update your framework details below"
+          onSubmit={() => {
+            if (submitFormRef.current) {
+              submitFormRef.current();
+            }
           }}
+          submitButtonText="Update framework"
+          maxWidth="780px"
         >
-          <Box
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              backgroundColor: "white",
-              borderRadius: 2,
-              boxShadow: 24,
-              maxHeight: "90vh",
-              maxWidth: "90vw",
-              overflow: "auto",
-              outline: "none",
-              p: 0,
+          <ProjectForm
+            projectToEdit={organizationalProject}
+            defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
+            useStandardModal={true}
+            onSubmitRef={submitFormRef}
+            onClose={async () => {
+              setIsEditProjectModalOpen(false);
+              await refreshProjectData();
             }}
-          >
-            <ProjectForm
-              projectToEdit={organizationalProject}
-              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
-              onClose={async () => {
-                setIsEditProjectModalOpen(false);
-                // Refresh project data after editing the project
-                await refreshProjectData();
-              }}
-            />
-          </Box>
-        </Modal>
+          />
+        </StandardModal>
       )}
 
       {isFrameworkModalOpen && organizationalProject && (
         <AddFrameworkModal
           open={isFrameworkModalOpen}
           onClose={() => setIsFrameworkModalOpen(false)}
-          frameworks={allFrameworks.filter((framework) => {
-            // Only show organizational frameworks (ISO 27001 and ISO 42001) for organizational projects
-            const isNotEuAiAct = !framework.name
-              .toLowerCase()
-              .includes("eu ai act");
-            const isIsoFramework =
-              framework.name.toLowerCase().includes("iso 27001") ||
-              framework.name.toLowerCase().includes("iso 42001");
-            return isNotEuAiAct && isIsoFramework;
-          })}
+          frameworks={allFrameworks
+            .filter((framework) => {
+              // Only show organizational frameworks (ISO 27001, ISO 42001, and NIST AI RMF) for organizational projects
+              const isNotEuAiAct = !framework.name
+                .toLowerCase()
+                .includes("eu ai act");
+              const isOrganizationalFramework =
+                framework.name.toLowerCase().includes("iso 27001") ||
+                framework.name.toLowerCase().includes("iso 42001") ||
+                framework.name.toLowerCase().includes("nist ai rmf");
+              return isNotEuAiAct && isOrganizationalFramework;
+            })
+            .sort((a, b) => {
+              // Sort order: ISO 42001 first, then NIST AI RMF, then ISO 27001
+              const aIsISO42001 = a.name.toLowerCase().includes("iso 42001");
+              const bIsISO42001 = b.name.toLowerCase().includes("iso 42001");
+              const aIsNISTAIRMF = a.name.toLowerCase().includes("nist ai rmf");
+              const bIsNISTAIRMF = b.name.toLowerCase().includes("nist ai rmf");
+
+              if (aIsISO42001 && !bIsISO42001) return -1;
+              if (!aIsISO42001 && bIsISO42001) return 1;
+              if (aIsNISTAIRMF && !bIsNISTAIRMF) return -1;
+              if (!aIsNISTAIRMF && bIsNISTAIRMF) return 1;
+              return 0;
+            })}
           project={organizationalProject}
           onFrameworksChanged={async () => {
             // Refresh both frameworks and project data
@@ -921,7 +1260,7 @@ const Framework = () => {
       )}
 
       {isDeleteModalOpen && organizationalProject && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm Delete"
           body={
             <Typography fontSize={13}>
@@ -939,6 +1278,9 @@ const Framework = () => {
           TitleFontSize={0}
         />
       )}
+
+      {/* Page Tour */}
+      <PageTour steps={FrameworkSteps} run={true} tourKey="framework-tour" />
     </Stack>
   );
 };

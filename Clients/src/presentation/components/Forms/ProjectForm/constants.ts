@@ -25,6 +25,9 @@ export interface FormValues {
   enable_ai_data_insertion: boolean;
   monitored_regulations_and_standards: { _id: number; name: string }[];
   framework_type: FrameworkTypeEnum | null;
+  geography: number;
+  target_industry: string;
+  description: string;
 }
 
 export interface FormErrors {
@@ -38,6 +41,9 @@ export interface FormErrors {
   typeOfHighRiskRole?: string;
   goal?: string;
   frameworkType?: string;
+  geography?: string;
+  targetIndustry?: string;
+  description?: string;
 }
 
 export const initialState: FormValues = {
@@ -52,6 +58,9 @@ export const initialState: FormValues = {
   enable_ai_data_insertion: false,
   monitored_regulations_and_standards: [],
   framework_type: null,
+  geography: 1,
+  target_industry: "",
+  description: "",
 };
 
 export interface ProjectFormProps {
@@ -59,6 +68,8 @@ export interface ProjectFormProps {
   sx?: SxProps<Theme> | undefined;
   defaultFrameworkType?: FrameworkTypeEnum;
   projectToEdit?: any; // Add optional prop for editing
+  useStandardModal?: boolean; // When true, renders without internal header/footer for use inside StandardModal
+  onSubmitRef?: React.MutableRefObject<(() => void) | undefined>; // Ref to expose handleSubmit when useStandardModal is true
 }
 
 export interface FrameworkOption {

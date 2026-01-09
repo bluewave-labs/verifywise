@@ -5,7 +5,6 @@ import {
   CardContent,
   CardHeader,
   Typography,
-  Switch,
   FormControlLabel,
   IconButton,
   useTheme,
@@ -15,25 +14,27 @@ import {
   Divider,
   alpha,
 } from '@mui/material';
+import Toggle from '../../components/Inputs/Toggle';
 import {
   Edit as EditIcon,
-  Visibility as ViewIcon,
-  DragIndicator as DragIcon,
+  Eye as ViewIcon,
+  GripVertical as DragIcon,
   Settings as SettingsIcon,
-  Refresh as RefreshIcon,
+  RefreshCw as RefreshIcon,
   Download as DownloadIcon,
   Upload as UploadIcon,
-  RestartAlt as ResetIcon,
-} from '@mui/icons-material';
-import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout';
+  RotateCcw as ResetIcon,
+} from 'lucide-react';
+import { Responsive, LayoutItem, verticalCompactor, useContainerWidth } from 'react-grid-layout';
 import { DashboardProvider, useDashboardContext } from './contexts/DashboardContext';
 import { MetricsWidget, ProjectsWidget, RisksWidget } from './widgets';
-import { WidgetConfig, WidgetType } from './types/dashboard.types';
+import { WidgetConfig, WidgetType, Layouts } from '../../types/interfaces/i.dashboard';
+
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
-// Make GridLayout responsive
-const ResponsiveGridLayout = WidthProvider(Responsive);
+// Type definitions for react-grid-layout v2
+type Layout = readonly LayoutItem[];
 
 // Main Dashboard Component (wrapped with context)
 const DashboardContent: React.FC = () => {
@@ -41,6 +42,12 @@ const DashboardContent: React.FC = () => {
   const { state, actions } = useDashboardContext();
   const [mounted, setMounted] = useState(false);
   const [settingsAnchor, setSettingsAnchor] = useState<null | HTMLElement>(null);
+  
+  // Get container width for responsive grid (react-grid-layout v2 requirement)
+  const { width, containerRef } = useContainerWidth();
+  
+  // Fallback width for initial render
+  const gridWidth = width && width > 0 ? width : (typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   // Sample widgets configuration
   const widgets: WidgetConfig[] = [
@@ -143,16 +150,21 @@ const DashboardContent: React.FC = () => {
     const storedLayouts = localStorage.getItem('verifywise_dashboard_layouts');
     if (storedLayouts) {
       try {
-        setLayouts(JSON.parse(storedLayouts));
+        const parsedLayouts = JSON.parse(storedLayouts);
+        // Use setTimeout to avoid synchronous setState in effect
+        setTimeout(() => {
+          setLayouts(parsedLayouts);
+        }, 0);
       } catch (error) {
         console.error('Failed to parse stored layouts:', error);
       }
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
   // Handle layout change
-  const handleLayoutChange = useCallback((_: Layout[], allLayouts: Layouts) => {
+  const handleLayoutChange = useCallback((_layout: Layout, allLayouts: Layouts) => {
     setLayouts(allLayouts);
     localStorage.setItem('verifywise_dashboard_layouts', JSON.stringify(allLayouts));
     actions.saveLayout(allLayouts);
@@ -247,24 +259,23 @@ const DashboardContent: React.FC = () => {
             onClose={handleSettingsClose}
           >
             <MenuItem onClick={() => { actions.resetLayout(); handleSettingsClose(); }}>
-              <ResetIcon sx={{ mr: 1 }} /> Reset Layout
+              <ResetIcon style={{ marginRight: 8 }} /> Reset Layout
             </MenuItem>
             <MenuItem onClick={() => { actions.exportDashboard(); handleSettingsClose(); }}>
-              <DownloadIcon sx={{ mr: 1 }} /> Export Dashboard
+              <DownloadIcon style={{ marginRight: 8 }} /> Export Dashboard
             </MenuItem>
             <Divider />
             <MenuItem disabled>
-              <UploadIcon sx={{ mr: 1 }} /> Import Dashboard
+              <UploadIcon style={{ marginRight: 8 }} /> Import Dashboard
             </MenuItem>
           </Menu>
 
           {/* Edit Mode Toggle */}
           <FormControlLabel
             control={
-              <Switch
+              <Toggle
                 checked={state.editMode}
                 onChange={(e) => actions.setEditMode(e.target.checked)}
-                color="primary"
               />
             }
             label={
@@ -380,21 +391,29 @@ const DashboardContent: React.FC = () => {
       `}</style>
 
       {/* Grid Layout */}
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={layouts}
-        onLayoutChange={handleLayoutChange}
-        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
-        cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
-        rowHeight={60}
-        isDraggable={state.editMode}
-        isResizable={state.editMode}
-        draggableHandle=".dashboard-card-header"
-        draggableCancel=".no-drag"
-        margin={[16, 16]}
-        containerPadding={[0, 0]}
-        useCSSTransforms={true}
-      >
+      <Box ref={containerRef} sx={{ width: '100%' }}>
+        <Responsive
+          className="layout"
+          width={Math.floor(gridWidth)}
+          layouts={layouts}
+          onLayoutChange={handleLayoutChange}
+          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
+          cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
+          rowHeight={60}
+          dragConfig={{
+            enabled: state.editMode,
+            handle: ".dashboard-card-header",
+            bounded: true,
+          }}
+          resizeConfig={{
+            enabled: state.editMode,
+            handles: ["se", "sw", "ne", "nw", "s", "e", "n", "w"],
+          }}
+          margin={[16, 16]}
+          containerPadding={[0, 0]}
+          compactor={verticalCompactor}
+          autoSize={true}
+        >
         {widgets.map((widget) => (
           <Card
             key={widget.id}
@@ -429,7 +448,7 @@ const DashboardContent: React.FC = () => {
               avatar={
                 state.editMode && (
                   <DragIcon
-                    sx={{
+                    style={{
                       color: alpha(theme.palette.text.secondary, 0.6),
                       fontSize: '1.2rem',
                     }}
@@ -459,7 +478,8 @@ const DashboardContent: React.FC = () => {
             </CardContent>
           </Card>
         ))}
-      </ResponsiveGridLayout>
+        </Responsive>
+      </Box>
     </Box>
   );
 };

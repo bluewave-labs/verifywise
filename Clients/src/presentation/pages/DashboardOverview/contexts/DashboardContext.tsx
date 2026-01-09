@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { Layouts } from 'react-grid-layout';
 import {
   DashboardConfig,
   DashboardState,
   DashboardContextValue,
   WidgetConfig,
   LayoutPersistence,
-} from '../types/dashboard.types';
+  Layouts,
+} from '../../../types/interfaces/i.dashboard';
 
 // Local storage keys
 const STORAGE_KEYS = {
@@ -277,7 +277,8 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         } : null,
       }));
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   // Context value
   const contextValue: DashboardContextValue = {
@@ -304,6 +305,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
 };
 
 // Custom hook to use dashboard context
+// eslint-disable-next-line react-refresh/only-export-components
 export const useDashboardContext = (): DashboardContextValue => {
   const context = useContext(DashboardContext);
   if (!context) {

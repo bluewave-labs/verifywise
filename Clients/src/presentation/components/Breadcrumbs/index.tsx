@@ -7,13 +7,11 @@ import {
   useTheme,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getRouteMapping } from "./routeMapping";
+import { getRouteMapping, getRouteIcon } from "./routeMapping";
 
-import { ReactComponent as ChevronRightGreyIcon } from "../../assets/icons/chevron-right-grey.svg";
-import {
-  IBreadcrumbItem,
-  IBreadcrumbsProps,
-} from "../../../domain/interfaces/i.breadcrumbs";
+import { ChevronRight as ChevronRightGreyIcon } from "lucide-react";
+import { IBreadcrumbItemPresentation } from "../../types/breadcrumbs.types";
+import { IBreadcrumbsProps } from "../../types/breadcrumbs.types";
 
 /**
  * A customizable Breadcrumbs component that wraps Material-UI Breadcrumbs.
@@ -25,7 +23,7 @@ import {
  */
 const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
   items,
-  separator = <ChevronRightGreyIcon style={{ width: "80%", height: "auto" }} />,
+  separator = <ChevronRightGreyIcon size={16} style={{ width: "80%", height: "auto" }} />,
   maxItems = 8,
   sx,
   autoGenerate = false,
@@ -66,17 +64,18 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
   /**
    * Auto-generate breadcrumbs from current route
    */
-  const generateBreadcrumbs = useMemo((): IBreadcrumbItem[] => {
+  const generateBreadcrumbs = useMemo((): IBreadcrumbItemPresentation[] => {
     if (!autoGenerate) return [];
 
     const pathSegments = location.pathname.split("/").filter(Boolean);
 
-    const breadcrumbs: IBreadcrumbItem[] = [];
+    const breadcrumbs: IBreadcrumbItemPresentation[] = [];
 
     // Add home item
     breadcrumbs.push({
       label: homeLabel,
       path: homePath,
+      icon: getRouteIcon(homePath),
     });
 
     // Build path progressively
@@ -92,6 +91,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
       breadcrumbs.push({
         label: pathToLabel(currentPath),
         path: currentPath,
+        icon: getRouteIcon(currentPath),
       });
     });
 
@@ -110,7 +110,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
    * Enhanced with error handling
    */
   const handleItemClick = useCallback(
-    (item: IBreadcrumbItem, index: number) => {
+    (item: IBreadcrumbItemPresentation, index: number) => {
       if (item.disabled) return;
 
       try {
@@ -138,7 +138,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
    * Memoized for better performance
    */
   const renderBreadcrumbItem = useCallback(
-    (item: IBreadcrumbItem, index: number, totalItems: number) => {
+    (item: IBreadcrumbItemPresentation, index: number, totalItems: number) => {
       const isLast = index === totalItems - 1;
       const isDisabled = item.disabled || isLast;
       const truncatedLabel = truncateText(item.label);
@@ -156,20 +156,38 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
           sx={{
             fontSize: "13px",
             fontWeight: isLast ? 500 : 400,
-            color: isDisabled
-              ? theme.palette.text.disabled
-              : theme.palette.text.secondary,
+            color: theme.palette.text.secondary,
             cursor: isDisabled ? "default" : "pointer",
             "&:hover": {
               color: isDisabled
-                ? theme.palette.text.disabled
+                ? theme.palette.text.secondary
                 : theme.palette.primary.main,
+              backgroundColor: isDisabled
+                ? (theme.palette.mode === "dark"
+                  ? "rgba(255, 255, 255, 0.06)"
+                  : "rgba(0, 0, 0, 0.04)")
+                : (theme.palette.mode === "dark"
+                  ? "rgba(255, 255, 255, 0.12)"
+                  : "rgba(0, 0, 0, 0.08)"),
             },
-            transition: "color 0.2s ease",
-            marginY: 1,
+            transition: "color 0.2s ease, background-color 0.2s ease",
             textDecoration: "none",
+            lineHeight: 1.2,
+            display: "flex",
+            alignItems: "center",
+            backgroundColor: theme.palette.mode === "dark"
+              ? "rgba(255, 255, 255, 0.06)"
+              : "rgba(0, 0, 0, 0.04)",
+            padding: "3px 10px",
+            borderRadius: "4px",
+            gap: "6px",
           }}
         >
+          {item.icon && (
+            <span style={{ display: "flex", alignItems: "center" }}>
+              {item.icon as React.ReactNode}
+            </span>
+          )}
           {truncatedLabel}
         </Typography>
       );
@@ -211,9 +229,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
               textDecoration: "none",
             },
             "&:focus": {
-              outline: `2px solid ${theme.palette.primary.main}`,
-              outlineOffset: "2px",
-              borderRadius: "2px",
+              outline: "none",
             },
           }}
         >
@@ -240,23 +256,29 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
       }}
     >
       <MUIBreadcrumbs
-        separator={separator}
+        separator={separator as React.ReactNode}
         maxItems={maxItems}
         aria-label="Page navigation breadcrumbs"
         sx={{
           "& .MuiBreadcrumbs-separator": {
             color: theme.palette.text.disabled,
-            mx: 1,
+            ml: 4,
+            mr: 2.25,
             fontSize: "14px",
           },
           "& .MuiBreadcrumbs-ol": {
             alignItems: "center",
             flexWrap: "wrap",
+            gap: 0,
+          },
+          "& .MuiBreadcrumbs-li": {
+            display: "flex",
+            alignItems: "center",
           },
         }}
       >
         {breadcrumbItems.map((item, index) =>
-          renderBreadcrumbItem(item, index, breadcrumbItems.length)
+          renderBreadcrumbItem(item as IBreadcrumbItemPresentation, index, breadcrumbItems.length)
         )}
       </MUIBreadcrumbs>
     </Stack>

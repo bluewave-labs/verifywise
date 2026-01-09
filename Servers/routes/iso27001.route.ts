@@ -20,6 +20,8 @@ import {
   getClausesByProjectId,
   getProjectAnnxesProgress,
   getProjectClausesProgress,
+  getProjectClausesAssignments,
+  getProjectAnnexesAssignments,
   getSubClauseById,
   getSubClausesByClauseId,
   saveAnnexes,
@@ -105,6 +107,20 @@ router.get(
   "/all/annexes/progress",
   authenticateJWT,
   getAllProjectsAnnxesProgress
+);
+
+// assignment endpoints
+router.get(
+  "/clauses/assignments/:id",
+  authenticateJWT,
+  validateId("id"),
+  getProjectClausesAssignments
+);
+router.get(
+  "/annexes/assignments/:id",
+  authenticateJWT,
+  validateId("id"),
+  getProjectAnnexesAssignments
 );
 
 router.patch(

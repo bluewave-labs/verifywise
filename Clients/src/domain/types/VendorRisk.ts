@@ -12,4 +12,6 @@ export type VendorRisk = {
   action_owner: number;
   risk_level: string;
   vendor_name: string;
+  is_deleted?: boolean;
+  deleted_at?: Date;
 };

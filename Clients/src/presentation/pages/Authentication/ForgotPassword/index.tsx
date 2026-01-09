@@ -4,15 +4,15 @@
 
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import React, { useState } from "react";
-import { ReactComponent as Key } from "../../../assets/icons/key.svg";
-import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
+import { Key } from "lucide-react";
+import { ArrowLeft as LeftArrowLong } from "lucide-react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useLocation } from "react-router-dom";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { sendPasswordResetEmail } from "../../../../application/repository/auth.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../types/alert.types";
 import Alert from "../../../components/Alert";
 
 // Define the shape of form values
@@ -51,7 +51,7 @@ const ForgotPassword: React.FC = () => {
         email: values.email,
         name: values.email,
       };
-      apiServices.post("/mail/reset-password", formData);
+      sendPasswordResetEmail(formData);
       navigate("/reset-password", { state: { email: values.email } });
     } catch (error) {
       handleAlert({
@@ -128,7 +128,7 @@ const ForgotPassword: React.FC = () => {
               gap: theme.spacing(12),
             }}
           >
-            <Key />
+            <Key size={24} />
           </Stack>
           <Stack sx={{ gap: theme.spacing(6), textAlign: "center" }}>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
@@ -177,7 +177,7 @@ const ForgotPassword: React.FC = () => {
                 navigate("/login");
               }}
             >
-              <LeftArrowLong />
+              <LeftArrowLong size={16} />
               <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
                 Back to log in
               </Typography>

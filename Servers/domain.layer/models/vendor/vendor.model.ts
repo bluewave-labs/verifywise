@@ -58,8 +58,9 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
 
   @Column({
     type: DataType.STRING,
+    allowNull: true,
   })
-  review_result!: string;
+  review_result?: string;
 
   @Column({
     type: DataType.ENUM(
@@ -68,8 +69,10 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       "Reviewed",
       "Requires follow-up"
     ),
+    allowNull: true,
+    defaultValue: "Not started",
   })
-  review_status!:
+  review_status?:
     | "Not started"
     | "In review"
     | "Reviewed"
@@ -78,12 +81,14 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
   @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER,
+    allowNull: true,
   })
-  reviewer!: number;
+  reviewer?: number | null;
   @Column({
     type: DataType.DATE,
+    allowNull: true,
   })
-  review_date!: Date;
+  review_date?: Date;
 
   @Column({
     type: DataType.BOOLEAN,
@@ -97,6 +102,82 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
   })
   created_at?: Date;
 
+  @Column({
+    type: DataType.ENUM(
+      "None",
+      "Internal only", 
+      "Personally identifiable information (PII)",
+      "Financial data",
+      "Health data (e.g. HIPAA)",
+      "Model weights or AI assets",
+      "Other sensitive data"
+    ),
+    allowNull: true,
+  })
+  data_sensitivity?:
+    | "None"
+    | "Internal only"
+    | "Personally identifiable information (PII)"
+    | "Financial data"
+    | "Health data (e.g. HIPAA)"
+    | "Model weights or AI assets"
+    | "Other sensitive data";
+
+  @Column({
+    type: DataType.ENUM(
+      "Low (vendor supports non-core functions)",
+      "Medium (affects operations but is replaceable)",
+      "High (critical to core services or products)"
+    ),
+    allowNull: true,
+  })
+  business_criticality?:
+    | "Low (vendor supports non-core functions)"
+    | "Medium (affects operations but is replaceable)"
+    | "High (critical to core services or products)";
+
+  @Column({
+    type: DataType.ENUM(
+      "None",
+      "Minor incident (e.g. small delay, minor bug)",
+      "Major incident (e.g. data breach, legal issue)"
+    ),
+    allowNull: true,
+  })
+  past_issues?:
+    | "None"
+    | "Minor incident (e.g. small delay, minor bug)"
+    | "Major incident (e.g. data breach, legal issue)";
+
+  @Column({
+    type: DataType.ENUM(
+      "None",
+      "GDPR (EU)",
+      "HIPAA (US)",
+      "SOC 2",
+      "ISO 27001",
+      "EU AI act",
+      "CCPA (california)",
+      "Other"
+    ),
+    allowNull: true,
+  })
+  regulatory_exposure?:
+    | "None"
+    | "GDPR (EU)"
+    | "HIPAA (US)"
+    | "SOC 2"
+    | "ISO 27001"
+    | "EU AI act"
+    | "CCPA (california)"
+    | "Other";
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  risk_score?: number;
+
   // Projects field (not a database column, used for API)
   projects?: number[];
 
@@ -109,17 +190,22 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
     assignee: number,
     website: string,
     vendor_contact_person: string,
-    review_result: string,
-    review_status:
+    review_result?: string,
+    review_status?:
       | "Not started"
       | "In review"
       | "Reviewed"
       | "Requires follow-up",
-    reviewer: number,
-    review_date: Date,
+    reviewer?: number,
+    review_date?: Date,
     order_no?: number,
     is_demo: boolean = false,
-    projects?: number[]
+    projects?: number[],
+    data_sensitivity?: "None" | "Internal only" | "Personally identifiable information (PII)" | "Financial data" | "Health data (e.g. HIPAA)" | "Model weights or AI assets" | "Other sensitive data",
+    business_criticality?: "Low (vendor supports non-core functions)" | "Medium (affects operations but is replaceable)" | "High (critical to core services or products)",
+    past_issues?: "None" | "Minor incident (e.g. small delay, minor bug)" | "Major incident (e.g. data breach, legal issue)",
+    regulatory_exposure?: "None" | "GDPR (EU)" | "HIPAA (US)" | "SOC 2" | "ISO 27001" | "EU AI act" | "CCPA (california)" | "Other",
+    risk_score?: number
   ): Promise<VendorModel> {
     // Validate required fields
     if (!vendor_name || vendor_name.trim().length === 0) {
@@ -150,13 +236,7 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       );
     }
 
-    if (!review_result || review_result.trim().length === 0) {
-      throw new ValidationException(
-        "Review result is required",
-        "review_result",
-        review_result
-      );
-    }
+    // Review result is now optional - no validation required
 
     // Validate assignee
     if (!numberValidation(assignee, 1)) {
@@ -167,8 +247,8 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       );
     }
 
-    // Validate reviewer
-    if (!numberValidation(reviewer, 1)) {
+    // Reviewer is now optional - validate only if provided and positive
+    if (reviewer !== undefined && reviewer !== null && reviewer > 0 && !numberValidation(reviewer, 1)) {
       throw new ValidationException(
         "Valid reviewer ID is required (must be >= 1)",
         "reviewer",
@@ -185,14 +265,21 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
     vendor.assignee = assignee;
     vendor.website = website.trim();
     vendor.vendor_contact_person = vendor_contact_person.trim();
-    vendor.review_result = review_result.trim();
-    vendor.review_status = review_status;
-    vendor.reviewer = reviewer;
-    vendor.review_date = review_date;
+    vendor.review_result = review_result ? review_result.trim() : '';
+    vendor.review_status = review_status || 'Not started';
+    vendor.reviewer = reviewer && reviewer > 0 ? reviewer : null;
+    vendor.review_date = review_date || new Date();
     vendor.order_no = order_no;
     vendor.is_demo = is_demo;
     vendor.created_at = new Date();
     vendor.projects = projects || [];
+    
+    // Set scorecard fields
+    vendor.data_sensitivity = data_sensitivity;
+    vendor.business_criticality = business_criticality;
+    vendor.past_issues = past_issues;
+    vendor.regulatory_exposure = regulatory_exposure;
+    vendor.risk_score = risk_score;
 
     return vendor;
   }
@@ -212,10 +299,15 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       | "In review"
       | "Reviewed"
       | "Requires follow-up";
-    reviewer?: number;
+    reviewer?: number | null;
     review_date?: Date;
     order_no?: number;
     projects?: number[];
+    data_sensitivity?: "None" | "Internal only" | "Personally identifiable information (PII)" | "Financial data" | "Health data (e.g. HIPAA)" | "Model weights or AI assets" | "Other sensitive data";
+    business_criticality?: "Low (vendor supports non-core functions)" | "Medium (affects operations but is replaceable)" | "High (critical to core services or products)";
+    past_issues?: "None" | "Minor incident (e.g. small delay, minor bug)" | "Major incident (e.g. data breach, legal issue)";
+    regulatory_exposure?: "None" | "GDPR (EU)" | "HIPAA (US)" | "SOC 2" | "ISO 27001" | "EU AI act" | "CCPA (california)" | "Other";
+    risk_score?: number;
   }): Promise<void> {
     // Validate vendor_name if provided
     if (updateData.vendor_name !== undefined) {
@@ -274,19 +366,9 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       this.vendor_contact_person = updateData.vendor_contact_person.trim();
     }
 
-    // Validate review_result if provided
+    // Validate review_result if provided - now optional, allow empty values
     if (updateData.review_result !== undefined) {
-      if (
-        !updateData.review_result ||
-        updateData.review_result.trim().length === 0
-      ) {
-        throw new ValidationException(
-          "Review result is required",
-          "review_result",
-          updateData.review_result
-        );
-      }
-      this.review_result = updateData.review_result.trim();
+      this.review_result = updateData.review_result ? updateData.review_result.trim() : '';
     }
 
     // Validate assignee if provided
@@ -301,9 +383,9 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       this.assignee = updateData.assignee;
     }
 
-    // Validate reviewer if provided
+    // Validate reviewer if provided - only validate if it's a positive number
     if (updateData.reviewer !== undefined) {
-      if (!numberValidation(updateData.reviewer, 1)) {
+      if (updateData.reviewer !== null && updateData.reviewer > 0 && !numberValidation(updateData.reviewer, 1)) {
         throw new ValidationException(
           "Valid reviewer ID is required (must be >= 1)",
           "reviewer",
@@ -330,6 +412,27 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
     // Update projects if provided
     if (updateData.projects !== undefined) {
       this.projects = updateData.projects;
+    }
+
+    // Update scorecard fields if provided
+    if (updateData.data_sensitivity !== undefined) {
+      this.data_sensitivity = updateData.data_sensitivity;
+    }
+
+    if (updateData.business_criticality !== undefined) {
+      this.business_criticality = updateData.business_criticality;
+    }
+
+    if (updateData.past_issues !== undefined) {
+      this.past_issues = updateData.past_issues;
+    }
+
+    if (updateData.regulatory_exposure !== undefined) {
+      this.regulatory_exposure = updateData.regulatory_exposure;
+    }
+
+    if (updateData.risk_score !== undefined) {
+      this.risk_score = updateData.risk_score;
     }
   }
 
@@ -372,9 +475,10 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       );
     }
 
-    if (!this.review_result || this.review_result.trim().length === 0) {
+    // Review result is now optional - only validate if provided and not empty
+    if (this.review_result && this.review_result.trim().length === 0) {
       throw new ValidationException(
-        "Review result is required",
+        "Review result cannot be empty if provided",
         "review_result",
         this.review_result
       );
@@ -388,7 +492,8 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       );
     }
 
-    if (!this.reviewer || !numberValidation(this.reviewer, 1)) {
+    // Reviewer is now optional - validate only if provided and not 0
+    if (this.reviewer !== undefined && this.reviewer !== null && this.reviewer > 0 && !numberValidation(this.reviewer, 1)) {
       throw new ValidationException(
         "Valid reviewer ID is required",
         "reviewer",
@@ -449,7 +554,7 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
     id: number | undefined;
     vendorName: string;
     vendorProvides: string;
-    reviewStatus: string;
+    reviewStatus: string | undefined;
     isDemo: boolean;
   } {
     return {

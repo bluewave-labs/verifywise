@@ -8,15 +8,17 @@ import {
   createNewModelInventoryQuery,
   updateModelInventoryByIdQuery,
   deleteModelInventoryByIdQuery,
+  getModelByProjectIdQuery,
+  getModelByFrameworkIdQuery,
 } from "../utils/modelInventory.utils";
+import {
+  recordModelInventoryCreation,
+  recordModelInventoryDeletion,
+  trackModelInventoryChanges,
+  recordMultipleFieldChanges,
+} from "../utils/modelInventoryChangeHistory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import {
-  validateModelInventoryIdParam,
-  validateCompleteModelInventoryCreation,
-  validateCompleteModelInventoryUpdate
-} from "../utils/validations/modelInventoryValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getAllModelInventories(req: Request, res: Response) {
   logStructured(
@@ -71,22 +73,6 @@ export async function getAllModelInventories(req: Request, res: Response) {
 export async function getModelInventoryById(req: Request, res: Response) {
   const modelInventoryId = parseInt(req.params.id);
 
-  // Validate model inventory ID parameter
-  const modelInventoryIdValidation = validateModelInventoryIdParam(modelInventoryId);
-  if (!modelInventoryIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid model inventory ID parameter: ${req.params.id}`,
-      "getModelInventoryById",
-      "modelInventory.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: modelInventoryIdValidation.message || 'Invalid model inventory ID',
-      code: modelInventoryIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logStructured(
     "processing",
     `fetching model inventory by id: ${modelInventoryId}`,
@@ -130,27 +116,93 @@ export async function getModelInventoryById(req: Request, res: Response) {
   }
 }
 
-export async function createNewModelInventory(req: Request, res: Response) {
-  // Validate model inventory creation request
-  const validationErrors = validateCompleteModelInventoryCreation(req.body);
-  if (validationErrors.length > 0) {
+export async function getModelByProjectId(req: Request, res: Response) {
+  const projectId = parseInt(req.params.projectId);
+
+  logStructured(
+    "processing",
+    `fetching model inventory by project id: ${projectId}`,
+    "getModelByProjectId",
+    "modelInventory.ctrl.ts"
+  );
+  logger.debug(`🔍 Looking up model inventory with project id: ${projectId}`);
+
+  try {
+    const modelInventories = (await getModelByProjectIdQuery(
+      projectId,
+      req.tenantId!
+    )) as unknown as ModelInventoryModel[];
+
     logStructured(
-      "error",
-      "Model inventory creation validation failed",
-      "createNewModelInventory",
+      "successful",
+      `model inventories retrieved for project id: ${projectId}`,
+      "getModelByProjectId",
       "modelInventory.ctrl.ts"
     );
-    return res.status(400).json({
-      status: 'error',
-      message: 'Model inventory creation validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
+    return res
+      .status(200)
+      .json(
+        STATUS_CODE[200](
+          modelInventories.map((modelInventory) => modelInventory.toSafeJSON())
+        )
+      );
+  } catch (error) {
+    logStructured(
+      "error",
+      "failed to retrieve model inventories by project id",
+      "getModelByProjectId",
+      "modelInventory.ctrl.ts"
+    );
+    logger.error("❌ Error in getModelByProjectId:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
+}
 
+export async function getModelByFrameworkId(req: Request, res: Response) {
+  const frameworkId = parseInt(req.params.frameworkId);
+
+  logStructured(
+    "processing",
+    `fetching model inventory by framework id: ${frameworkId}`,
+    "getModelByFrameworkId",
+    "modelInventory.ctrl.ts"
+  );
+  logger.debug(
+    `🔍 Looking up model inventory with framework id: ${frameworkId}`
+  );
+
+  try {
+    const modelInventories = (await getModelByFrameworkIdQuery(
+      frameworkId,
+      req.tenantId!
+    )) as unknown as ModelInventoryModel[];
+
+    logStructured(
+      "successful",
+      `model inventories retrieved for framework id: ${frameworkId}`,
+      "getModelByFrameworkId",
+      "modelInventory.ctrl.ts"
+    );
+    return res
+      .status(200)
+      .json(
+        STATUS_CODE[200](
+          modelInventories.map((modelInventory) => modelInventory.toSafeJSON())
+        )
+      );
+  } catch (error) {
+    logStructured(
+      "error",
+      "failed to retrieve model inventories by framework id",
+      "getModelByFrameworkId",
+      "modelInventory.ctrl.ts"
+    );
+    logger.error("❌ Error in getModelByFrameworkId:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function createNewModelInventory(req: Request, res: Response) {
   const {
     provider_model,
     provider,
@@ -165,8 +217,10 @@ export async function createNewModelInventory(req: Request, res: Response) {
     biases,
     limitations,
     hosting_provider,
-    used_in_projects,
+    security_assessment_data,
     is_demo,
+    projects,
+    frameworks,
   } = req.body;
 
   logStructured(
@@ -195,7 +249,7 @@ export async function createNewModelInventory(req: Request, res: Response) {
       biases,
       limitations,
       hosting_provider,
-      used_in_projects,
+      security_assessment_data,
       is_demo,
     });
 
@@ -204,8 +258,20 @@ export async function createNewModelInventory(req: Request, res: Response) {
     const savedModelInventory = await createNewModelInventoryQuery(
       modelInventory,
       req.tenantId!,
+      projects || [],
+      frameworks || [],
       transaction
     );
+
+    // Record creation in change history
+    await recordModelInventoryCreation(
+      savedModelInventory.id!,
+      req.userId!,
+      req.tenantId!,
+      modelInventory,
+      transaction
+    );
+
     await transaction.commit();
 
     logStructured(
@@ -242,51 +308,14 @@ export async function createNewModelInventory(req: Request, res: Response) {
 export async function updateModelInventoryById(req: Request, res: Response) {
   const modelInventoryId = parseInt(req.params.id);
 
-  // Validate model inventory ID parameter
-  const modelInventoryIdValidation = validateModelInventoryIdParam(modelInventoryId);
-  if (!modelInventoryIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid model inventory ID parameter: ${req.params.id}`,
-      "updateModelInventoryById",
-      "modelInventory.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: modelInventoryIdValidation.message || 'Invalid model inventory ID',
-      code: modelInventoryIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   // Get existing model inventory for business rule validation
-  let existingModelInventory = null;
   try {
-    existingModelInventory = (await getModelInventoryByIdQuery(
+    (await getModelInventoryByIdQuery(
       modelInventoryId,
       req.tenantId!
     )) as unknown as ModelInventoryModel;
   } catch (error) {
     // Continue without existing data if query fails
-  }
-
-  // Validate model inventory update request
-  const validationErrors = validateCompleteModelInventoryUpdate(req.body, existingModelInventory);
-  if (validationErrors.length > 0) {
-    logStructured(
-      "error",
-      `Model inventory update validation failed for ID ${modelInventoryId}`,
-      "updateModelInventoryById",
-      "modelInventory.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: 'Model inventory update validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
   }
 
   const {
@@ -303,8 +332,12 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     biases,
     limitations,
     hosting_provider,
-    used_in_projects,
+    security_assessment_data,
     is_demo,
+    projects,
+    frameworks,
+    deleteProjects,
+    deleteFrameworks,
   } = req.body;
 
   logStructured(
@@ -336,6 +369,25 @@ export async function updateModelInventoryById(req: Request, res: Response) {
         .json(STATUS_CODE[404]("Model inventory not found"));
     }
 
+    // Track changes before updating
+    const changes = await trackModelInventoryChanges(currentModelInventory, {
+      provider_model,
+      provider,
+      model,
+      version,
+      approver,
+      capabilities,
+      security_assessment,
+      status,
+      status_date,
+      reference_link,
+      biases,
+      limitations,
+      hosting_provider,
+      security_assessment_data,
+      is_demo,
+    });
+
     // Update the model inventory using the static method
     const updatedModelInventory = ModelInventoryModel.updateModelInventory(
       currentModelInventory,
@@ -350,10 +402,10 @@ export async function updateModelInventoryById(req: Request, res: Response) {
         status,
         status_date,
         reference_link,
-        used_in_projects,
         biases,
         limitations,
         hosting_provider,
+        security_assessment_data,
         is_demo,
       }
     );
@@ -363,9 +415,25 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     const savedModelInventory = await updateModelInventoryByIdQuery(
       modelInventoryId,
       updatedModelInventory,
+      projects || [],
+      frameworks || [],
+      deleteProjects || false,
+      deleteFrameworks || false,
       req.tenantId!,
       transaction
     );
+
+    // Record changes in change history
+    if (changes.length > 0) {
+      await recordMultipleFieldChanges(
+        modelInventoryId,
+        req.userId!,
+        req.tenantId!,
+        changes,
+        transaction
+      );
+    }
+
     await transaction.commit();
 
     logStructured(
@@ -403,22 +471,6 @@ export async function deleteModelInventoryById(req: Request, res: Response) {
   const modelInventoryId = parseInt(req.params.id);
   const deleteRisks = req.query.deleteRisks === "true";
 
-  // Validate model inventory ID parameter
-  const modelInventoryIdValidation = validateModelInventoryIdParam(modelInventoryId);
-  if (!modelInventoryIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid model inventory ID parameter: ${req.params.id}`,
-      "deleteModelInventoryById",
-      "modelInventory.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: modelInventoryIdValidation.message || 'Invalid model inventory ID',
-      code: modelInventoryIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logStructured(
     "processing",
     "starting deleteModelInventoryById",
@@ -450,7 +502,21 @@ export async function deleteModelInventoryById(req: Request, res: Response) {
 
     // Use the existing database query approach for deleting
     transaction = await sequelize.transaction();
-    await deleteModelInventoryByIdQuery(modelInventoryId, deleteRisks, req.tenantId!, transaction);
+
+    // Record deletion in change history before deleting
+    await recordModelInventoryDeletion(
+      modelInventoryId,
+      req.userId!,
+      req.tenantId!,
+      transaction
+    );
+
+    await deleteModelInventoryByIdQuery(
+      modelInventoryId,
+      deleteRisks,
+      req.tenantId!,
+      transaction
+    );
     await transaction.commit();
 
     logStructured(

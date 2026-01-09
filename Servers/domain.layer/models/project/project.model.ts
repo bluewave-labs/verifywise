@@ -28,6 +28,12 @@ export class ProjectModel
 
   @Column({
     type: DataType.STRING,
+    unique: true,
+  })
+  uc_id?: string;
+
+  @Column({
+    type: DataType.STRING,
   })
   project_title!: string;
 
@@ -43,6 +49,11 @@ export class ProjectModel
   start_date!: Date;
 
   @Column({
+    type: DataType.INTEGER,
+  })
+  geography!: number;
+
+  @Column({
     type: DataType.ENUM(...Object.values(AiRiskClassification)),
   })
   ai_risk_classification!: AiRiskClassification;
@@ -56,6 +67,16 @@ export class ProjectModel
     type: DataType.STRING,
   })
   goal!: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  target_industry!: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  description!: string;
 
   @Column({
     type: DataType.DATE,

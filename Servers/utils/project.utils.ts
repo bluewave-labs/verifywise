@@ -3,14 +3,38 @@ import { sequelize } from "../database/db";
 import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/projectsMembers.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
-import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
-import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { RiskModel } from "../domain.layer/models/risks/risk.model";
 import { FileModel } from "../domain.layer/models/file/file.model";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { frameworkDeletionMap } from "../types/framework.type";
 import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
 import { IRoleAttributes } from "../domain.layer/interfaces/i.role";
+import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
+import { replaceTemplateVariables } from "./automation/automation.utils";
+import { enqueueAutomationAction } from "../services/automations/automationProducer";
+import {
+  buildProjectReplacements,
+  buildProjectUpdateReplacements,
+} from "./automation/project.automation.utils";
+
+// Function to generate the next sequential UC ID
+// Using a database sequence to fetch the next value
+// Assumes infrastructure has been pre-checked via ensureProjectInfrastructure
+export const generateNextUcId = async (
+  tenant: string,
+  transaction: Transaction
+): Promise<string> => {
+  const result = await sequelize.query<{ next_id: number }>(
+    `SELECT nextval('"${tenant}".project_uc_id_seq') AS next_id`,
+    {
+      type: QueryTypes.SELECT,
+      transaction,
+    }
+  );
+
+  const nextNumber = result[0].next_id;
+  return `UC-${nextNumber}`;
+};
 
 interface GetUserProjectsOptions {
   userId: number;
@@ -89,9 +113,9 @@ export const getAllProjectsQuery = async (
         replacements: { project_id: project.id },
       }
     )) as [
-        { project_framework_id: number; framework_id: number; name: string }[],
-        number,
-      ];
+      { project_framework_id: number; framework_id: number; name: string }[],
+      number,
+    ];
     (project.dataValues as any)["framework"] = [];
     for (let pf of projectFramework[0]) {
       (project.dataValues as any)["framework"].push(pf);
@@ -137,13 +161,28 @@ export const getProjectByIdQuery = async (
       replacements: { project_id: project.id },
     }
   )) as [
-      { project_framework_id: number; framework_id: number; name: string }[],
-      number,
-    ];
+    { project_framework_id: number; framework_id: number; name: string }[],
+    number,
+  ];
   (project.dataValues as any)["framework"] = [];
   for (let pf of projectFramework[0]) {
     (project.dataValues as any)["framework"].push(pf);
   }
+
+  // Handle case where project owner might be null or user doesn't exist
+  let ownerName = "Unassigned";
+  if (project.owner) {
+    const projectOwner = (await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+      {
+        replacements: { owner_id: project.owner },
+      }
+    )) as [{ full_name: string }[], number];
+    if (projectOwner[0] && projectOwner[0][0]) {
+      ownerName = projectOwner[0][0].full_name;
+    }
+  }
+  (project.dataValues as any)["owner_name"] = ownerName;
 
   const members = await sequelize.query(
     `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
@@ -234,22 +273,28 @@ export const createNewProjectQuery = async (
     }
   }
 
+  const ucId = await generateNextUcId(tenant, transaction);
+
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".projects (
-      project_title, owner, start_date, ai_risk_classification, 
+      uc_id, project_title, owner, start_date, geography, target_industry, description, ai_risk_classification,
       type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational
     ) VALUES (
-      :project_title, :owner, :start_date, :ai_risk_classification, 
+      :uc_id, :project_title, :owner, :start_date, :geography, :target_industry, :description, :ai_risk_classification,
       :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational
     ) RETURNING *`,
     {
       replacements: {
+        uc_id: ucId,
         project_title: project.project_title,
         owner: project.owner,
         start_date: project.start_date,
+        geography: project.geography || 1,
         ai_risk_classification: project.ai_risk_classification || null,
         type_of_high_risk_role: project.type_of_high_risk_role || null,
         goal: project.goal || null,
+        target_industry: project.target_industry || null,
+        description: project.description || null,
         status: project.status || "Not started",
         last_updated: new Date(Date.now()),
         last_updated_by: userId,
@@ -298,6 +343,62 @@ export const createNewProjectQuery = async (
     );
     (createdProject.dataValues as any)["framework"].push(framework);
   }
+
+  const automations = (await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      a.id AS automation_id,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_added' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "project_added") {
+      const owner_name = (await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        {
+          replacements: { owner_id: createdProject.dataValues.owner },
+          transaction,
+        }
+      )) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildProjectReplacements({
+        ...createdProject.dataValues,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
+        automation_id: automation.automation_id,
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
+    } else {
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
+    }
+  }
+
   return createdProject;
 };
 
@@ -354,6 +455,7 @@ export const updateProjectByIdQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<(IProjectAttributes & { members: number[] }) | null> => {
+  const oldProject = await getProjectByIdQuery(id, tenant);
   const _currentMembers = await sequelize.query(
     `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
     {
@@ -401,6 +503,9 @@ export const updateProjectByIdQuery = async (
     "ai_risk_classification",
     "type_of_high_risk_role",
     "goal",
+    "geography",
+    "target_industry",
+    "description",
     "last_updated",
     "last_updated_by",
     "status",
@@ -414,6 +519,7 @@ export const updateProjectByIdQuery = async (
           project[f as keyof ProjectModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -439,11 +545,66 @@ export const updateProjectByIdQuery = async (
       transaction,
     }
   );
+  const updatedProject = result[0];
+  const automations = (await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      a.id AS automation_id,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_updated' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "project_updated") {
+      const owner_name = (await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        {
+          replacements: { owner_id: updatedProject.dataValues.owner },
+          transaction,
+        }
+      )) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildProjectUpdateReplacements(oldProject, {
+        ...updatedProject.dataValues,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
+        automation_id: automation.automation_id,
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
+    } else {
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
+    }
+  }
   return result.length
     ? {
-      ...result[0].dataValues,
-      members: updatedMembers.map((m) => m.user_id),
-    }
+        ...updatedProject.dataValues,
+        members: updatedMembers.map((m) => m.user_id),
+      }
     : null;
 };
 
@@ -592,6 +753,61 @@ export const deleteProjectByIdQuery = async (
       transaction,
     }
   );
+  const deletedProject = result[0];
+  const automations = (await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      a.id AS automation_id,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "project_deleted") {
+      const owner_name = (await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        {
+          replacements: { owner_id: deletedProject.owner },
+          transaction,
+        }
+      )) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildProjectReplacements({
+        ...deletedProject,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
+        automation_id: automation.automation_id,
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
+    } else {
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
+    }
+  }
   return result.length > 0;
 };
 
@@ -636,7 +852,6 @@ export const calculateVendirRisks = async (
   return result;
 };
 
-
 /**
  * Gets current project members to identify newly added ones
  * @param projectId - The project ID to get members for
@@ -645,18 +860,17 @@ export const calculateVendirRisks = async (
  * @returns Array of user IDs that are currently members of the project
  */
 export const getCurrentProjectMembers = async (
-    projectId: number,
-    tenant: string,
-    transaction?: Transaction
+  projectId: number,
+  tenant: string,
+  transaction?: Transaction
 ): Promise<number[]> => {
-    const currentMembersResult = await sequelize.query(
-        `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
-        {
-            replacements: { project_id: projectId },
-            type: QueryTypes.SELECT,
-            transaction,
-        }
-    );
-    return (currentMembersResult as any[]).map((m) => m.user_id);
+  const currentMembersResult = await sequelize.query(
+    `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
+    {
+      replacements: { project_id: projectId },
+      type: QueryTypes.SELECT,
+      transaction,
+    }
+  );
+  return (currentMembersResult as any[]).map((m) => m.user_id);
 };
-

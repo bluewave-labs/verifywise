@@ -16,18 +16,16 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import { ReactComponent as GreyDownArrowIcon } from "../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useSelector } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import useUsers from "../../../application/hooks/useUsers";
-import {
-  CreateProjectFormErrors,
-  CreateProjectFormValues,
-} from "../../../domain/interfaces/iForm";
-import { CreateProjectFormUser } from "../../../domain/interfaces/iUser";
+import { CreateProjectFormValues } from "../../../domain/interfaces/i.form";
+import { CreateProjectFormErrors } from "../../types/form.props";
+// import { CreateProjectFormUser } from "../../../domain/interfaces/i.user";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";
@@ -35,6 +33,8 @@ import { Project } from "../../../domain/types/Project";
 import { createProjectFormStyles } from "./styles";
 import { AiRiskClassification } from "../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../domain/enums/highRiskRole.enum";
+import { getAutocompleteStyles } from "../../utils/inputStyles";
+import { CreateProjectFormUserModel } from "../../../domain/models/Common/user/user.model";
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -65,10 +65,10 @@ interface CreateProjectFormProps {
 }
 
 /**
- * `CreateProjectForm` is a functional component that renders a form for creating a new project.
- * It includes fields for project title, users, owner, start date, AI risk classification, type of high risk role, and goal.
+ * `CreateProjectForm` is a functional component that renders a form for creating a new use case.
+ * It includes fields for use case title, users, owner, start date, AI risk classification, type of high risk role, and goal.
  * The form validates the input fields and displays error messages if validation fails.
- * On successful submission, it shows a newly created project on project overview page.
+ * On successful submission, it shows a newly created use case on use case overview page.
  *
  * @component
  * @returns {JSX.Element} The rendered component.
@@ -103,7 +103,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           ...prevValues,
           [prop]: event.target.value,
         }));
-        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+        setErrors((prevErrors: CreateProjectFormErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
   );
@@ -115,7 +115,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           ...prevValues,
           [prop]: event.target.value,
         }));
-        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+        setErrors((prevErrors: CreateProjectFormErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
   );
@@ -124,7 +124,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     const newErrors: CreateProjectFormErrors = {};
 
     const projectTitle = checkStringValidation(
-      "Project title",
+      "Use case title",
       values.project_title,
       1,
       64
@@ -209,15 +209,16 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
         });
       }
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error("Error creating use case:", error);
     }
   };
 
   const riskClassificationItems = useMemo(
     () => [
-      { _id: 1, name: AiRiskClassification.HIGH_RISK },
-      { _id: 2, name: AiRiskClassification.LIMITED_RISK },
-      { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
+      { _id: 1, name: AiRiskClassification.PROHIBITED },
+      { _id: 2, name: AiRiskClassification.HIGH_RISK },
+      { _id: 3, name: AiRiskClassification.LIMITED_RISK },
+      { _id: 4, name: AiRiskClassification.MINIMAL_RISK },
     ],
     []
   );
@@ -241,13 +242,16 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const handleOnMultiSelect = useCallback(
     (prop: keyof CreateProjectFormValues) =>
-      (_event: React.SyntheticEvent, newValue: CreateProjectFormUser[]) => {
+      (
+        _event: React.SyntheticEvent,
+        newValue: CreateProjectFormUserModel[]
+      ) => {
         setValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue,
         }));
         setMemberRequired(false);
-        setErrors((prevErrors) => ({ ...prevErrors, members: "" }));
+        setErrors((prevErrors: CreateProjectFormErrors) => ({ ...prevErrors, members: "" }));
       },
     []
   );
@@ -260,7 +264,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
             <Suspense fallback={<div>Loading...</div>}>
               <Field
                 id="project-title-input"
-                label="Project title"
+                label="Use case title"
                 width="350px"
                 value={values.project_title}
                 onChange={handleOnTextFieldChange("project_title")}
@@ -351,7 +355,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                           name: user.name,
                           surname: user.surname,
                           email: user.email,
-                        } satisfies CreateProjectFormUser)
+                        } satisfies CreateProjectFormUserModel)
                     ) || []
                 }
                 noOptionsText={
@@ -382,16 +386,19 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                   );
                 }}
                 filterSelectedOptions
-                popupIcon={<GreyDownArrowIcon />}
+                popupIcon={<GreyDownArrowIcon size={20} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder="Select Users"
+                    placeholder="Select users"
                     error={memberRequired}
                     sx={createProjectFormStyles.autocompleteTextField}
                   />
                 )}
-                sx={createProjectFormStyles.autocompleteContainer(theme)}
+                sx={{
+                  ...getAutocompleteStyles(theme, { hasError: memberRequired }),
+                  ...createProjectFormStyles.autocompleteContainer(theme),
+                }}
                 slotProps={createProjectFormStyles.autocompleteSlotProps}
               />
               {memberRequired && (
@@ -441,7 +448,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           }
           sx={createProjectFormStyles.submitButton}
         >
-          Create project
+          Create use case
         </Button>
       </Stack>
     </Stack>

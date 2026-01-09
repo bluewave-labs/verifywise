@@ -1,7 +1,5 @@
 import { Stack, Typography, Tooltip, Box } from "@mui/material";
-import {ReactComponent as TrendingUpRedIcon} from "../../../assets/icons/trendingUp.svg";
-import {ReactComponent as TrendingDownGreenIcon} from "../../../assets/icons/trendingDown.svg";
-import {ReactComponent as TrendingFlatGreyIcon} from "../../../assets/icons/trendingFlat.svg";
+import { TrendingUp as TrendingUpRedIcon, TrendingDown as TrendingDownGreenIcon, Minus as TrendingFlatGreyIcon } from "lucide-react";
 import {
   projectRisksCard,
   projectRisksTileCard,
@@ -12,7 +10,7 @@ import {
   trendIconDown,
   trendIconStable,
 } from "./style";
-import { risksSummary, EnhancedRiskSummary, RiskTrend } from "../../../../domain/interfaces/iRiskSummary";
+import { risksSummary, EnhancedRiskSummary, RiskTrend } from "../../../../domain/interfaces/i.riskSummary";
 
 interface RisksCardProps {
   risksSummary: risksSummary | EnhancedRiskSummary;
@@ -25,7 +23,7 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
     if (!trend || trend.direction === 'stable') {
       return (
         <Typography sx={trendIndicator}>
-          <TrendingFlatGreyIcon style={trendIconStable} />
+          <TrendingFlatGreyIcon size={16} style={trendIconStable} />
           <span style={{ color: "#6B7280" }}>
             {trend?.change === 0 ? "0" : "—"}
           </span>
@@ -36,7 +34,7 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
     if (trend.direction === 'up') {
       return (
         <Typography sx={trendIndicator}>
-          <TrendingUpRedIcon style={trendIconUp} />
+          <TrendingUpRedIcon size={16} style={trendIconUp} />
           <span style={{ color: "#EF4444" }}>
             +{trend.change}
           </span>
@@ -46,7 +44,7 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
 
     return (
       <Typography sx={trendIndicator}>
-        <TrendingDownGreenIcon style={trendIconDown} />
+        <TrendingDownGreenIcon size={16} style={trendIconDown} />
         <span style={{ color: "#10B981" }}>
           -{Math.abs(trend.change)}
         </span>
@@ -114,10 +112,10 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
           >
             <Stack
               className="vw-project-risks-tile"
-              sx={{ 
-                ...projectRisksTileCard, 
+              sx={{
+                ...projectRisksTileCard,
                 color: level.color,
-                border: `1px solid #E5E7EB`,
+                border: `1px solid #d0d5dd`,
                 cursor: 'default',
               }}
             >

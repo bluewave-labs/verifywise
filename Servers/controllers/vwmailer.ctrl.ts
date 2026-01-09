@@ -9,13 +9,10 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
-import {
-  validateCompleteInviteEmail
-} from "../utils/validations/mailValidation.utils";
+import logger from "../utils/logger/fileLogger";
 
 export const invite = async (
-  req: Request,
+  _req: Request,
   res: Response,
   body: {
     to: string;
@@ -25,27 +22,6 @@ export const invite = async (
     organizationId: number;
   }
 ) => {
-  // Validate invite email request
-  const validationErrors = validateCompleteInviteEmail(body);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: "Create",
-      description: `Invite email validation failed for ${body.to}`,
-      functionName: "invite",
-      fileName: "vwmailer.ctrl.ts",
-      error: new Error('Invite email validation failed')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Invite email validation failed',
-      errors: validationErrors.map(err => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   const { to, name, surname, roleId, organizationId } = body;
 
   logProcessing({

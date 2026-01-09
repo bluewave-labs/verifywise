@@ -19,7 +19,6 @@ export const Container = styled(Box)<ContainerProps>(() => ({
 }));
 
 export const Text = styled(Typography)(() => ({
-  fontFamily: 'Inter, sans-serif',
   fontWeight: 500,
   fontSize: '13px',
   lineHeight: '20px',

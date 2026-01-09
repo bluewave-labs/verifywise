@@ -14,7 +14,7 @@ export const useStyles = () => {
     },
     card: {
       background: theme.palette.background.paper,
-      border: `1.5px solid ${theme.palette.border.light}`,
+      border: `1px solid ${theme.palette.border.dark}`,
       borderRadius: theme.shape.borderRadius,
       padding: theme.spacing(5, 6),
       marginBottom: theme.spacing(4),

@@ -2,24 +2,9 @@ import { Request, Response } from "express";
 import { getTiersFeaturesQuery } from "../utils/tiers.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import {
-  validateTierIdParam
-} from "../utils/validations/tiersValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
 
 async function getTiersFeatures(req: Request, res: Response) {
     const tierId = parseInt(req.params.id);
-
-    // Validate tier ID parameter
-    const tierIdValidation = validateTierIdParam(tierId);
-    if (!tierIdValidation.isValid) {
-        logStructured("error", `Invalid tier ID parameter: ${req.params.id}`, "getTiersFeatures", "tiers.ctrl.ts");
-        return res.status(400).json({
-            status: 'error',
-            message: tierIdValidation.message || 'Invalid tier ID',
-            code: tierIdValidation.code || 'INVALID_PARAMETER'
-        });
-    }
 
     logStructured("processing", "Fetching tiers features", "getTiersFeatures", "tiers.ctrl.ts");
     logger.debug('🔍 Fetching tiers features');

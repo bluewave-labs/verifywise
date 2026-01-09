@@ -7,7 +7,7 @@ import { formatDate } from "../../../tools/isoDateToString";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import { Dayjs } from "dayjs";
-import { DropDownsProps } from "../../../../domain/interfaces/iWidget";
+import { DropDownsProps } from "../../../../domain/interfaces/i.widget";
 import { inputStyles } from "./style";
 import useUsers from "../../../../application/hooks/useUsers";
 
@@ -122,15 +122,15 @@ const DropDowns: React.FC<DropDownsProps> = ({
     <Stack
       id={elementId}
       style={{
-        gap: theme.spacing(8),
+        gap: theme.spacing(6),
       }}
     >
       <Stack
         display="flex"
         flexDirection="row"
         justifyContent="space-between"
-        alignItems="center"
-        gap={theme.spacing(15)}
+        alignItems="flex-end"
+        gap={theme.spacing(4)}
       >
         <Select
           id="status"
@@ -182,8 +182,8 @@ const DropDowns: React.FC<DropDownsProps> = ({
         display="flex"
         flexDirection="row"
         justifyContent="space-between"
-        alignItems="center"
-        gap={theme.spacing(15)}
+        alignItems="flex-end"
+        gap={theme.spacing(4)}
       >
         <Select
           id="Owner"

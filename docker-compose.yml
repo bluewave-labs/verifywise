@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   postgresdb:
@@ -19,9 +19,16 @@ services:
     expose:
       - "6379"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
   backend:
     depends_on:
       postgresdb:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     image: ghcr.io/bluewave-labs/verifywise-backend:latest
     pull_policy: always
@@ -38,20 +45,38 @@ services:
       - JWT_SECRET=$JWT_SECRET
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
-      - FAIRNESS_AND_BIAS_URL=http://bias_and_fairness_backend:8000
+      - LLM_EVALS_URL=http://eval_server:8000
+      - REDIS_URL=redis://redis:6379/0
+      - ENCRYPTION_KEY=$ENCRYPTION_KEY
   frontend:
     depends_on:
       - backend
     image: ghcr.io/bluewave-labs/verifywise-frontend:latest
     pull_policy: always
-  bias_and_fairness_backend:
+  worker:
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    image: ghcr.io/bluewave-labs/verifywise-backend:latest
+    pull_policy: always
+    command: ["node", "dist/jobs/worker.js"]
+    environment:
+      - DB_HOST=postgresdb
+      - DB_USER=$DB_USER
+      - DB_PORT=$DB_PORT
+      - DB_PASSWORD=$DB_PASSWORD
+      - DB_NAME=$DB_NAME
+      - JWT_SECRET=$JWT_SECRET
+      - REDIS_URL=redis://redis:6379/0
+      - ENCRYPTION_KEY=$ENCRYPTION_KEY
+    restart: unless-stopped
+  eval_server:
     depends_on:
       - backend
       - redis
-    image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
-    # pull_policy: always
-    # ports:
-    #   - "8000"
+    image: ghcr.io/bluewave-labs/verifywise-eval-server:latest
     expose:
       - "8000"
     environment:

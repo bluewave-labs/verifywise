@@ -1,9 +1,63 @@
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, Box, IconButton, Tooltip } from "@mui/material";
 import { infoCardbodyStyle, infoCardStyle, infoCardTitleStyle } from "./style";
+import React from "react";
 
-const InfoCard = ({ title, body }: { title: string; body: string }) => {
+interface InfoCardProps {
+  title: string;
+  body: string;
+  icon?: React.ReactNode;
+  actionIcon?: React.ReactNode;
+  actionTooltip?: string;
+  onActionClick?: () => void;
+  isActionActive?: boolean;
+}
+
+const InfoCard = ({
+  title,
+  body,
+  icon,
+  actionIcon,
+  actionTooltip,
+  onActionClick,
+  isActionActive = false
+}: InfoCardProps) => {
   return (
     <Stack sx={infoCardStyle}>
+      {icon && !actionIcon && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            color: "#8594AC",
+            opacity: 0.7,
+          }}
+        >
+          {icon}
+        </Box>
+      )}
+      {actionIcon && onActionClick && (
+        <Tooltip title={actionTooltip || ""} arrow>
+          <IconButton
+            onClick={onActionClick}
+            size="small"
+            sx={{
+              position: "absolute",
+              top: 4,
+              right: 4,
+              color: isActionActive ? "#13715B" : "#98A2B3",
+              padding: "4px",
+              borderRadius: "4px",
+              backgroundColor: isActionActive ? "#E6F4F1" : "transparent",
+              "&:hover": {
+                backgroundColor: isActionActive ? "#D1EDE6" : "#F2F4F7",
+              },
+            }}
+          >
+            {actionIcon}
+          </IconButton>
+        </Tooltip>
+      )}
       <Typography sx={infoCardTitleStyle}>{title}</Typography>
       <Typography sx={infoCardbodyStyle}>{body}</Typography>
     </Stack>

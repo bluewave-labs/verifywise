@@ -2,6 +2,7 @@
 
 export type Project = {
   id: number;
+  uc_id?: string;
   project_title: string;
   owner: number;
   members: string[];
@@ -23,6 +24,9 @@ export type Project = {
     name: string;
   }[];
   monitored_regulations_and_standards: string[];
+  geography?: number;
+  target_industry?: string;
+  description?: string;
   is_organizational?: boolean;
   status?: "Not started" | "In progress" | "Under review" | "Completed" | "Closed" | "On hold" | "Rejected";
   // vendors: string[];

@@ -13,25 +13,25 @@ import {
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { logProcessing, logSuccess, logFailure } from '../utils/logger/logHelper';
 import {
-  validateCompleteVendorRisk,
-  validateUpdateVendorRisk,
-  validateVendorRiskIdParam,
-  validateProjectIdParam,
-  validateVendorIdParam
-} from '../utils/validations/vendorRiskValidation.utils';
+  recordVendorRiskCreation,
+  trackVendorRiskChanges,
+  recordMultipleFieldChanges,
+} from "../utils/vendorRiskChangeHistory.utils";
 
 export async function getAllVendorRisksAllProjects(
   req: Request,
   res: Response
 ): Promise<any> {
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
+  
   logProcessing({
-    description: 'starting getAllVendorRisksAllProjects',
+    description: `starting getAllVendorRisksAllProjects with filter: ${filter}`,
     functionName: 'getAllVendorRisksAllProjects',
     fileName: 'vendorRisk.ctrl.ts'
   });
 
   try {
-    const risks = await getAllVendorRisksAllProjectsQuery(req.tenantId!);
+    const risks = await getAllVendorRisksAllProjectsQuery(req.tenantId!, filter);
     await logSuccess({
       eventType: 'Read',
       description: 'Retrieved all vendor risks across all projects',
@@ -56,37 +56,21 @@ export async function getAllVendorRisks(
   res: Response
 ): Promise<any> {
   const projectId = parseInt(req.params.id);
-
-  // Validate project ID parameter
-  const projectIdValidation = validateProjectIdParam(projectId);
-  if (!projectIdValidation.isValid) {
-    await logFailure({
-      eventType: 'Read',
-      description: `Invalid project ID parameter: ${req.params.id}`,
-      functionName: 'getAllVendorRisks',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
 
   logProcessing({
-    description: `starting getAllVendorRisks for project ID ${projectId}`,
+    description: `starting getAllVendorRisks for project ID ${projectId} with filter: ${filter}`,
     functionName: 'getAllVendorRisks',
     fileName: 'vendorRisk.ctrl.ts'
   });
 
   try {
-    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId, req.tenantId!);
+    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId, req.tenantId!, filter);
 
     if (vendorRisks) {
       await logSuccess({
         eventType: 'Read',
-        description: `Retrieved vendor risks for project ID ${projectId}`,
+        description: `Retrieved vendor risks for project ID ${projectId} with filter: ${filter}`,
         functionName: 'getAllVendorRisks',
         fileName: 'vendorRisk.ctrl.ts'
       });
@@ -95,7 +79,7 @@ export async function getAllVendorRisks(
 
     await logSuccess({
       eventType: 'Read',
-      description: `No vendor risks found for project ID ${projectId}`,
+      description: `No vendor risks found for project ID ${projectId} with filter: ${filter}`,
       functionName: 'getAllVendorRisks',
       fileName: 'vendorRisk.ctrl.ts'
     });
@@ -117,37 +101,21 @@ export async function getAllVendorRisksByVendorId(
   res: Response
 ) {
   const vendorId = parseInt(req.params.id);
-
-  // Validate vendor ID parameter
-  const vendorIdValidation = validateVendorIdParam(vendorId);
-  if (!vendorIdValidation.isValid) {
-    await logFailure({
-      eventType: 'Read',
-      description: `Invalid vendor ID parameter: ${req.params.id}`,
-      functionName: 'getAllVendorRisksByVendorId',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error(vendorIdValidation.message || 'Invalid vendor ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorIdValidation.message || 'Invalid vendor ID',
-      code: vendorIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
 
   logProcessing({
-    description: `starting getAllVendorRisksByVendorId for vendor ID ${vendorId}`,
+    description: `starting getAllVendorRisksByVendorId for vendor ID ${vendorId} with filter: ${filter}`,
     functionName: 'getAllVendorRisksByVendorId',
     fileName: 'vendorRisk.ctrl.ts'
   });
 
   try {
-    const vendorRisks = await getVendorRisksByVendorIdQuery(vendorId, req.tenantId!);
+    const vendorRisks = await getVendorRisksByVendorIdQuery(vendorId, req.tenantId!, filter);
 
     if (vendorRisks) {
       await logSuccess({
         eventType: 'Read',
-        description: `Retrieved vendor risks for vendor ID ${vendorId}`,
+        description: `Retrieved vendor risks for vendor ID ${vendorId} with filter: ${filter}`,
         functionName: 'getAllVendorRisksByVendorId',
         fileName: 'vendorRisk.ctrl.ts'
       });
@@ -156,7 +124,7 @@ export async function getAllVendorRisksByVendorId(
 
     await logSuccess({
       eventType: 'Read',
-      description: `No vendor risks found for vendor ID ${vendorId}`,
+      description: `No vendor risks found for vendor ID ${vendorId} with filter: ${filter}`,
       functionName: 'getAllVendorRisksByVendorId',
       fileName: 'vendorRisk.ctrl.ts'
     });
@@ -178,23 +146,6 @@ export async function getVendorRiskById(
   res: Response
 ): Promise<any> {
   const vendorRiskId = parseInt(req.params.id);
-
-  // Validate vendor risk ID parameter
-  const vendorRiskIdValidation = validateVendorRiskIdParam(vendorRiskId);
-  if (!vendorRiskIdValidation.isValid) {
-    await logFailure({
-      eventType: 'Read',
-      description: `Invalid vendor risk ID parameter: ${req.params.id}`,
-      functionName: 'getVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error(vendorRiskIdValidation.message || 'Invalid vendor risk ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorRiskIdValidation.message || 'Invalid vendor risk ID',
-      code: vendorRiskIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logProcessing({
     description: `starting getVendorRiskById for ID ${vendorRiskId}`,
@@ -240,27 +191,6 @@ export async function createVendorRisk(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
 
-  // Validate request body
-  const validationErrors = validateCompleteVendorRisk(req.body);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: 'Create',
-      description: `Validation failed for createVendorRisk: ${validationErrors.map(e => e.message).join(', ')}`,
-      functionName: 'createVendorRisk',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error('Validation failed')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Validation failed',
-      errors: validationErrors.map(err => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   logProcessing({
     description: 'starting createVendorRisk',
     functionName: 'createVendorRisk',
@@ -278,6 +208,18 @@ export async function createVendorRisk(
     );
 
     if (createdVendorRisk) {
+      // Record creation in change history
+      const userId = req.userId;
+      if (userId && createdVendorRisk.id) {
+        await recordVendorRiskCreation(
+          createdVendorRisk.id,
+          userId,
+          req.tenantId!,
+          createdVendorRisk,
+          transaction
+        );
+      }
+
       await transaction.commit();
       await logSuccess({
         eventType: 'Create',
@@ -316,44 +258,6 @@ export async function updateVendorRiskById(
   const vendorRiskId = parseInt(req.params.id);
   const updatedVendorRisk = req.body;
 
-  // Validate vendor risk ID parameter
-  const vendorRiskIdValidation = validateVendorRiskIdParam(vendorRiskId);
-  if (!vendorRiskIdValidation.isValid) {
-    await logFailure({
-      eventType: 'Update',
-      description: `Invalid vendor risk ID parameter: ${req.params.id}`,
-      functionName: 'updateVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error(vendorRiskIdValidation.message || 'Invalid vendor risk ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorRiskIdValidation.message || 'Invalid vendor risk ID',
-      code: vendorRiskIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
-  // Validate request body
-  const validationErrors = validateUpdateVendorRisk(updatedVendorRisk);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: 'Update',
-      description: `Validation failed for updateVendorRiskById: ${validationErrors.map(e => e.message).join(', ')}`,
-      functionName: 'updateVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error('Validation failed')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Validation failed',
-      errors: validationErrors.map(err => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   logProcessing({
     description: `starting updateVendorRiskById for ID ${vendorRiskId}`,
     functionName: 'updateVendorRiskById',
@@ -361,6 +265,23 @@ export async function updateVendorRiskById(
   });
 
   try {
+    // Fetch existing vendor risk for change tracking
+    const existingVendorRisk = await getVendorRiskByIdQuery(vendorRiskId, req.tenantId!);
+
+    if (!existingVendorRisk) {
+      await transaction.rollback();
+      await logSuccess({
+        eventType: 'Update',
+        description: `Vendor risk not found for update: ID ${vendorRiskId}`,
+        functionName: 'updateVendorRiskById',
+        fileName: 'vendorRisk.ctrl.ts'
+      });
+      return res.status(404).json(STATUS_CODE[404]({}));
+    }
+
+    // Create model from existing data for change tracking
+    const oldVendorRiskModel = new VendorRiskModel(existingVendorRisk as any);
+
     const vendorRiskModel = new VendorRiskModel();
     await vendorRiskModel.updateVendorRisk(updatedVendorRisk);
 
@@ -372,6 +293,21 @@ export async function updateVendorRiskById(
     );
 
     if (vendorRisk) {
+      // Track and record changes
+      const userId = req.userId;
+      if (userId) {
+        const changes = await trackVendorRiskChanges(oldVendorRiskModel, updatedVendorRisk);
+        if (changes.length > 0) {
+          await recordMultipleFieldChanges(
+            vendorRiskId,
+            userId,
+            req.tenantId!,
+            changes,
+            transaction
+          );
+        }
+      }
+
       await transaction.commit();
       await logSuccess({
         eventType: 'Update',
@@ -408,23 +344,6 @@ export async function deleteVendorRiskById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const vendorRiskId = parseInt(req.params.id);
-
-  // Validate vendor risk ID parameter
-  const vendorRiskIdValidation = validateVendorRiskIdParam(vendorRiskId);
-  if (!vendorRiskIdValidation.isValid) {
-    await logFailure({
-      eventType: 'Delete',
-      description: `Invalid vendor risk ID parameter: ${req.params.id}`,
-      functionName: 'deleteVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error(vendorRiskIdValidation.message || 'Invalid vendor risk ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorRiskIdValidation.message || 'Invalid vendor risk ID',
-      code: vendorRiskIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logProcessing({
     description: `starting deleteVendorRiskById for ID ${vendorRiskId}`,

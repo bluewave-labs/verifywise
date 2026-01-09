@@ -10,30 +10,14 @@ import Field from "../Inputs/Field";
 import Select from "../Inputs/Select";
 import DatePicker from "../Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
-import { User } from "../../../domain/types/User";
 import useUsers from "../../../application/hooks/useUsers";
-import { ReactComponent as GreyDownArrowIcon } from "../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useCallback } from "react";
-import { FormErrors } from "./PolicyDetailsModal";
+import { PolicyFormData, PolicyFormProps } from "../../types/interfaces/i.policy";
+import { getAutocompleteStyles } from "../../utils/inputStyles";
 
-export interface FormData {
-  title: string;
-  status: string;
-  tags: string[];
-  nextReviewDate?: string;
-  assignedReviewers: User[];
-  content: any;
-}
 
-interface Props {
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  tags: string[];
-  errors: FormErrors;
-  setErrors: React.Dispatch<React.SetStateAction<FormErrors>>;
-}
-
-const statuses: FormData["status"][] = [
+const statuses: PolicyFormData["status"][] = [
   "Draft",
   "Under Review",
   "Approved",
@@ -42,12 +26,17 @@ const statuses: FormData["status"][] = [
   "Deprecated",
 ];
 
-const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) => {
+const PolicyForm: React.FC<PolicyFormProps> = ({
+  formData,
+  setFormData,
+  tags,
+  errors,
+}) => {
   const theme = useTheme();
   const { users } = useUsers();
 
   const handleOnMultiSelect = useCallback(
-    (prop: keyof FormData) =>
+    (prop: keyof PolicyFormData) =>
       (_event: React.SyntheticEvent, newValue: any[]) => {
         setFormData((prevValues) => ({
           ...prevValues,
@@ -67,31 +56,81 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
   }, []);
 
   return (
-    <Stack spacing={4}>
-      {/* Policy Title */}
-      <Field
-        id="policy-title-input"
-        label="Policy title"
-        width="100%"
-        value={formData.title}
-        onChange={(e) =>
-          setFormData((prev) => ({ ...prev, title: e.target.value }))
-        }
-        error={errors.title}
-        sx={{
-          backgroundColor: "#FFFFFF",
-          "& input": {
-            padding: "0 14px",
-          },
-        }}
-        isRequired
-      />
+    <Stack spacing={2}>
+      {/* Policy Title + Next Review Date + Status */}
+      <Stack direction="row" justifyContent="space-between" spacing={4}>
+        {/* Policy Title */}
+        <Stack sx={{ width: "50%" }}>
+          <Field
+            id="policy-title-input"
+            label="Policy title"
+            width="100%"
+            value={formData.title}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, title: e.target.value }))
+            }
+            error={errors.title}
+            sx={{
+              backgroundColor: "#FFFFFF",
+              "& input": {
+                padding: "0 14px",
+              },
+            }}
+            isRequired
+          />
+        </Stack>
+
+        {/* Next Review Date + Status */}
+        <Stack direction="row" sx={{ width: "50%", gap: 2 }}>
+          {/* Next Review Date */}
+          <Stack sx={{ width: "50%" }}>
+            <DatePicker
+              label="Next review date"
+              date={
+                formData.nextReviewDate ? dayjs(formData.nextReviewDate) : null
+              }
+              handleDateChange={handleDateChange}
+              sx={{
+                width: "100%",
+                "& input": { width: "85px" },
+              }}
+              isRequired
+              error={errors.nextReviewDate}
+            />
+          </Stack>
+
+          {/* Status */}
+          <Stack sx={{ width: "50%" }}>
+            <Select
+              id="status-input"
+              label="Status"
+              placeholder="Select status"
+              value={formData.status || ""}
+              onChange={(e) => {
+                const statusValue = e.target.value;
+                if (typeof statusValue === "string") {
+                  setFormData((prev) => ({ ...prev, status: statusValue }));
+                }
+              }}
+              items={statuses.map((s) => ({ _id: s, name: s }))}
+              sx={{
+                width: "100%",
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.status}
+              isRequired
+            />
+          </Stack>
+        </Stack>
+      </Stack>
 
       {/* Team Members + Tags */}
       <Stack direction="row" justifyContent="space-between" spacing={4}>
         {/* Team Members */}
         <Stack sx={{ gap: 2, width: "50%" }}>
-          <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}>
+          <Typography
+            sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
+          >
             Team members
           </Typography>
           <Autocomplete
@@ -100,8 +139,9 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
             size="small"
             value={formData.assignedReviewers}
             options={
-              users.filter((user) =>
-                !formData.assignedReviewers.some((u) => u.id === user.id)
+              users.filter(
+                (user) =>
+                  !formData.assignedReviewers.some((u) => u.id === user.id)
               ) || []
             }
             noOptionsText={
@@ -136,11 +176,11 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
               );
             }}
             filterSelectedOptions
-            popupIcon={<GreyDownArrowIcon />}
+            popupIcon={<GreyDownArrowIcon size={16} />}
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Select Users"
+                placeholder="Select users"
                 error={!!errors.assignedReviewers}
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -156,15 +196,17 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
             sx={{
               backgroundColor: theme.palette.background.main,
               width: "100%",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "3px",
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#888",
-                  borderWidth: "1px",
-                },
-              },
+              cursor: "pointer",
               "& .MuiChip-root": {
                 borderRadius: theme.shape.borderRadius,
+              },
+              ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers }),
+              "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers })["& .MuiOutlinedInput-root"],
+                "& fieldset": {
+                  ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers })["& .MuiOutlinedInput-root"]["& fieldset"],
+                  borderRadius: "3px",
+                },
               },
             }}
             slotProps={{
@@ -194,7 +236,9 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
 
         {/* Tags */}
         <Stack sx={{ gap: 2, width: "50%" }}>
-          <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}>
+          <Typography
+            sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
+          >
             Tags
           </Typography>
           <Autocomplete
@@ -219,11 +263,11 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
               );
             }}
             filterSelectedOptions
-            popupIcon={<GreyDownArrowIcon />}
+            popupIcon={<GreyDownArrowIcon size={16} />}
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Select Tags"
+                placeholder="Select tags"
                 error={!!errors.tags}
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -239,15 +283,17 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
             sx={{
               backgroundColor: theme.palette.background.main,
               width: "100%",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "3px",
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#888",
-                  borderWidth: "1px",
-                },
-              },
+              cursor: "pointer",
               "& .MuiChip-root": {
                 borderRadius: theme.shape.borderRadius,
+              },
+              ...getAutocompleteStyles(theme, { hasError: !!errors.tags }),
+              "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.tags })["& .MuiOutlinedInput-root"],
+                "& fieldset": {
+                  ...getAutocompleteStyles(theme, { hasError: !!errors.tags })["& .MuiOutlinedInput-root"]["& fieldset"],
+                  borderRadius: "3px",
+                },
               },
             }}
             slotProps={{
@@ -286,47 +332,6 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
               {errors.tags}
             </Typography>
           )}
-        </Stack>
-      </Stack>
-
-      {/* Status + Next Review Date */}
-      <Stack direction="row" justifyContent="space-between" spacing={4}>
-        {/* Status */}
-        <Stack sx={{ width: "50%" }}>
-          <Select
-            id="status-input"
-            label="Status"
-            placeholder="Select status"
-            value={formData.status || ""}
-            onChange={(e) => {
-              const statusValue = e.target.value;
-              if (typeof statusValue === "string") {
-                setFormData((prev) => ({ ...prev, status: statusValue }));
-              }
-            }}
-            items={statuses.map((s) => ({ _id: s, name: s }))}
-            sx={{
-              width: "100%",
-              backgroundColor: theme.palette.background.main,
-            }}
-            error={errors.status}
-            isRequired
-          />
-        </Stack>
-
-        {/* Next Review Date */}
-        <Stack sx={{ width: "50%" }}>
-          <DatePicker
-            label="Next review date"
-            date={formData.nextReviewDate ? dayjs(formData.nextReviewDate) : null}
-            handleDateChange={handleDateChange}
-            sx={{
-              width: "100%",
-              "& input": { width: "85px" },
-            }}
-            isRequired
-            error={errors.nextReviewDate}
-          />
         </Stack>
       </Stack>
     </Stack>

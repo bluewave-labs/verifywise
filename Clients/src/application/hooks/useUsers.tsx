@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { User } from '../../domain/types/User';
 import { getAllUsers } from '../repository/user.repository';
+import { useAuth } from './useAuth';
+
 interface ApiUser {
   id: number;
   name: string;
@@ -13,6 +15,7 @@ interface ApiResponse {
 }
 
 const useUsers = () => {
+  const { userId } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +44,10 @@ const useUsers = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (userId) {
+      fetchUsers();
+    }
+  }, [userId]);
 
   return { users, loading, error, refreshUsers: fetchUsers };
 };

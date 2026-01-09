@@ -25,7 +25,7 @@ import {
   setAuthToken,
   setExpiration,
 } from "../../../../application/redux/auth/authSlice";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { CreateMyOrganization } from "../../../../application/repository/organization.repository";
 import useUsers from "../../../../application/hooks/useUsers";
 
 // Initial state for form values
@@ -61,10 +61,13 @@ const RegisterMultiTenant: React.FC = () => {
     useState<OrganizationFormErrors>({});
 
   // State to track which form to show
-  const [showOrganizationForm, setShowOrganizationForm] = useState(true);
+  const [showOrganizationForm, setShowOrganizationForm] = useState(false);
 
   //state for overlay modal
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // State to track password field focus
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   const passwordChecks = validatePassword(values);
 
@@ -86,6 +89,19 @@ const RegisterMultiTenant: React.FC = () => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" }); // Clear error for the specific field
     };
+
+  // Handle password field focus
+  const handlePasswordFocus = () => {
+    setIsPasswordFocused(true);
+  };
+
+  // Handle password field blur (when input loses focus)
+  const handlePasswordBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    // Hide indicators if field is empty when focus is lost
+    if (!event.target.value) {
+      setIsPasswordFocused(false);
+    }
+  };
 
   // Handle input field changes for organization form
   const handleOrganizationChange =
@@ -129,7 +145,7 @@ const RegisterMultiTenant: React.FC = () => {
 
     // Include organization data in the request
     const requestBody = {
-      name: organizationValues.organizationName,
+      name: `${values.name}'s Organization`,
       userName: values.name,
       userSurname: values.surname,
       userEmail: values.email,
@@ -137,7 +153,10 @@ const RegisterMultiTenant: React.FC = () => {
       userRoleId: values.roleId,
     };
 
-    const response = await apiServices.post("organizations", requestBody) as any;
+    const response = (await CreateMyOrganization({
+      routeUrl: "/organizations",
+      body: requestBody,
+    })) as any;
     setValues(initialState);
     setErrors({});
     setOrganizationValues(initialOrganizationState);
@@ -150,13 +169,18 @@ const RegisterMultiTenant: React.FC = () => {
         users,
       });
       const token = response.data.data.token;
+      const organizationName = response.data.data.organization?.name || `${values.name}'s Organization`;
       const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
       dispatch(setAuthToken(token));
       dispatch(setExpiration(expirationDate));
+      // Store organization name and clear the flag so the modal shows on first login
+      localStorage.setItem("initial_org_name", organizationName);
+      localStorage.setItem("initial_org_id", response.data.data.organization?.id || -1);
+      localStorage.removeItem("has_seen_org_name_modal");
       setTimeout(() => {
         setIsSubmitting(false);
         dispatch(setUserExists(true));
-        localStorage.setItem('root_version', __APP_VERSION__);
+        localStorage.setItem("root_version", __APP_VERSION__);
         navigate("/");
       }, 3000);
     } else if (response.status === 400) {
@@ -414,6 +438,8 @@ const RegisterMultiTenant: React.FC = () => {
                 value={values.password}
                 onChange={handleChange("password")}
                 error={errors.password}
+                onFocus={handlePasswordFocus}
+                onBlur={handlePasswordBlur}
               />
               <Field
                 label="Confirm password"
@@ -425,33 +451,45 @@ const RegisterMultiTenant: React.FC = () => {
                 onChange={handleChange("confirmPassword")}
                 error={errors.confirmPassword}
               />
-              <Stack
-                sx={{
-                  gap: theme.spacing(6),
-                }}
-              >
-                <Check
-                  text="Must be at least 8 characters"
-                  variant={passwordChecks.length ? "success" : "info"}
-                />
-                <Check
-                  text="Must contain one special character"
-                  variant={passwordChecks.specialChar ? "success" : "info"}
-                />
-                <Check
-                  text="Must contain at least one uppercase letter"
-                  variant={passwordChecks.uppercase ? "success" : "info"}
-                />
-                <Check
-                  text="Must contain atleast one number"
-                  variant={passwordChecks.number ? "success" : "info"}
-                />
-              </Stack>
+              {(isPasswordFocused || values.password || errors.password) && (
+                <Stack
+                  sx={{
+                    gap: theme.spacing(6),
+                    mt: theme.spacing(2),
+                  }}
+                >
+                  <Check
+                    text="Must be at least 8 characters"
+                    variant={passwordChecks.length ? "success" : "info"}
+                  />
+                  <Check
+                    text="Must contain one special character"
+                    variant={passwordChecks.specialChar ? "success" : "info"}
+                  />
+                  <Check
+                    text="Must contain at least one uppercase letter"
+                    variant={passwordChecks.uppercase ? "success" : "info"}
+                  />
+                  <Check
+                    text="Must contain atleast one number"
+                    variant={passwordChecks.number ? "success" : "info"}
+                  />
+                </Stack>
+              )}
               <Button
                 type="submit"
                 disableRipple
                 variant="contained"
-                sx={singleTheme.buttons.primary.contained}
+                sx={{
+                  marginTop: !(
+                    isPasswordFocused ||
+                    values.password ||
+                    errors.password
+                  )
+                    ? 10
+                    : 0,
+                  ...singleTheme.buttons.primary.contained,
+                }}
               >
                 Get started
               </Button>

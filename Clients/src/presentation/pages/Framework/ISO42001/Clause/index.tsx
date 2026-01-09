@@ -2,21 +2,21 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Box,
   CircularProgress,
   Stack,
   Typography,
 } from "@mui/material";
 import { GetClausesByProjectFrameworkId } from "../../../../../application/repository/clause_struct_iso.repository";
 import { ClauseStructISO } from "../../../../../domain/types/ClauseStructISO";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { styles } from "../../ISO27001/Clause/style";
-import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
+import { ArrowRight as RightArrowBlack } from "lucide-react";
 import { GetSubClausesById } from "../../../../../application/repository/subClause_iso.repository";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
-import { AlertProps } from "../../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../types/alert.types";
 import VWISO42001ClauseDrawerDialog from "../../../../components/Drawer/ClauseDrawerDialog";
-import StatsCard from "../../../../components/Cards/StatsCard";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { useSearchParams } from "react-router-dom";
 import StatusDropdown from "../../../../components/StatusDropdown";
@@ -24,26 +24,51 @@ import { updateISO42001ClauseStatus } from "../../../../components/StatusDropdow
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
+import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
 
 const ISO42001Clause = ({
-  project,
+  project: _project,
   projectFrameworkId,
   statusFilter,
+  ownerFilter,
+  reviewerFilter,
+  dueDateFilter,
   initialClauseId,
-  initialSubClauseId
+  initialSubClauseId,
+  searchTerm,
+  onStatusChange,
+  onOwnerChange,
+  onReviewerChange,
+  onDueDateChange,
+  onSearchTermChange,
+  statusOptions,
+  ownerOptions,
+  reviewerOptions,
 }: {
   project: Project;
   projectFrameworkId: number | string;
   statusFilter?: string;
+  ownerFilter?: string;
+  reviewerFilter?: string;
+  dueDateFilter?: string;
   initialClauseId?: string | null;
   initialSubClauseId?: string | null;
+  searchTerm: string;
+  onStatusChange?: (val: string) => void;
+  onOwnerChange?: (val: string) => void;
+  onReviewerChange?: (val: string) => void;
+  onDueDateChange?: (val: string) => void;
+  onSearchTermChange?: (val: string) => void;
+  statusOptions?: { label: string; value: string }[];
+  ownerOptions?: { label: string; value: string }[];
+  reviewerOptions?: { label: string; value: string }[];
 }) => {
   const { userId, userRoleName } = useAuth();
   const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubClause, setSelectedSubClause] = useState<any>(null);
   const [selectedClause, setSelectedClause] = useState<any>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [_selectedIndex, setSelectedIndex] = useState<number>(0);
   const [expanded, setExpanded] = useState<number | false>(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -54,13 +79,79 @@ const ISO42001Clause = ({
   const [loadingSubClauses, setLoadingSubClauses] = useState<{
     [key: number]: boolean;
   }>({});
-  const [clauseProgress, setClauseProgress] = useState<{
+  const [, setClauseProgress] = useState<{
     totalSubclauses: number;
     doneSubclauses: number;
   }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const clauseId = initialClauseId;
   const subClauseId = initialSubClauseId;
+
+  // Shared function to filter subclauses based on all active filters
+  const filterSubClauses = useCallback((subClauses: any[]) => {
+    let filtered = subClauses;
+
+    // Filter by status
+    if (statusFilter && statusFilter !== "") {
+      filtered = filtered.filter(
+        (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase(),
+      );
+    }
+
+    // Filter by owner
+    if (ownerFilter && ownerFilter !== "") {
+      filtered = filtered.filter(
+        (sc) => sc.owner?.toString() === ownerFilter,
+      );
+    }
+
+    // Filter by reviewer
+    if (reviewerFilter && reviewerFilter !== "") {
+      filtered = filtered.filter(
+        (sc) => sc.reviewer?.toString() === reviewerFilter,
+      );
+    }
+
+    // Filter by due date
+    if (dueDateFilter && dueDateFilter !== "") {
+      filtered = filtered.filter((sc) => {
+        if (sc.due_date) {
+          const dueDate = new Date(sc.due_date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          const filterDays = parseInt(dueDateFilter);
+          return daysUntilDue >= 0 && daysUntilDue <= filterDays;
+        }
+        return false;
+      });
+    }
+
+    return filtered;
+  }, [statusFilter, ownerFilter, reviewerFilter, dueDateFilter]);
+
+  // Check if any filter is active
+  const hasActiveFilters = useMemo(() => {
+    return !!(
+      (statusFilter && statusFilter !== "") ||
+      (ownerFilter && ownerFilter !== "") ||
+      (reviewerFilter && reviewerFilter !== "") ||
+      (dueDateFilter && dueDateFilter !== "")
+    );
+  }, [statusFilter, ownerFilter, reviewerFilter, dueDateFilter]);
+
+  // Calculate filtered subclauses count for all clauses
+  const filteredSubClausesCountMemo = useMemo(() => {
+    const counts: { [key: number]: number } = {};
+
+    clauses.forEach((clause) => {
+      const subClauses = subClausesMap[clause.id ?? 0] || clause.subClauses || [];
+      const filteredSubClauses = filterSubClauses(subClauses);
+      counts[clause.id ?? 0] = filteredSubClauses.length;
+    });
+
+    return counts;
+  }, [clauses, subClausesMap, filterSubClauses]);
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -214,16 +305,22 @@ const ISO42001Clause = ({
     }
   };
 
+  // Filter clauses by search query
+  const filteredClauses = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return clauses;
+    }
+    return clauses.filter((clause: any) =>
+      clause.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [clauses, searchTerm]);
+
   function dynamicSubClauses(clause: any) {
     const subClauses = subClausesMap[clause.id ?? 0] || [];
     const isLoading = loadingSubClauses[clause.id ?? 0];
 
-    const filteredSubClauses =
-      statusFilter && statusFilter !== ""
-        ? subClauses.filter(
-            (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase(),
-          )
-        : subClauses;
+    // Use shared filtering function
+    const filteredSubClauses = filterSubClauses(subClauses);
 
     return (
       <AccordionDetails sx={{ padding: 0 }}>
@@ -282,36 +379,69 @@ const ISO42001Clause = ({
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
-      <StatsCard
-        completed={clauseProgress?.doneSubclauses ?? 0}
-        total={clauseProgress?.totalSubclauses ?? 0}
-        title="Clauses"
-        progressbarColor="#13715B"
-      />
       <Typography sx={{ ...styles.title, mt: 4 }}>
         {"Management System Clauses"}
       </Typography>
-      {clauses &&
-        clauses.map((clause: any) => (
-          <Stack key={clause.id} sx={styles.container}>
-            <Accordion
-              key={clause.id}
-              expanded={expanded === clause.id}
-              sx={styles.accordion}
-              onChange={handleAccordionChange(clause.id ?? 0)}
-            >
-              <AccordionSummary sx={styles.accordionSummary}>
-                <RightArrowBlack
-                  style={styles.expandIcon(expanded === clause.id) as React.CSSProperties}
-                />
-                <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
-                  {clause.arrangement} {clause.title}
-                </Typography>
-              </AccordionSummary>
-              {dynamicSubClauses(clause)}
-            </Accordion>
-          </Stack>
-        ))}
+      <TabFilterBar
+        statusFilter={statusFilter}
+        onStatusChange={onStatusChange}
+        ownerFilter={ownerFilter}
+        onOwnerChange={onOwnerChange}
+        reviewerFilter={reviewerFilter}
+        onReviewerChange={onReviewerChange}
+        dueDateFilter={dueDateFilter}
+        onDueDateChange={onDueDateChange}
+        showStatusFilter={true}
+        showOwnerFilter={true}
+        showReviewerFilter={true}
+        showDueDateFilter={true}
+        statusOptions={statusOptions}
+        ownerOptions={ownerOptions}
+        reviewerOptions={reviewerOptions}
+        showSearchBar={true}
+        searchTerm={searchTerm}
+        setSearchTerm={onSearchTermChange as any}
+      />
+      {filteredClauses &&
+        filteredClauses.map((clause: any) => {
+          const count = filteredSubClausesCountMemo[clause.id ?? 0];
+          const chipColor = count !== undefined && count > 0
+            ? { bg: "#E6F4EA", color: "#138A5E" }
+            : { bg: "#FFF8E1", color: "#795548" };
+          return (
+            <Stack key={clause.id} sx={styles.container}>
+              <Accordion
+                key={clause.id}
+                expanded={expanded === clause.id}
+                sx={styles.accordion}
+                onChange={handleAccordionChange(clause.id ?? 0)}
+              >
+                <AccordionSummary sx={styles.accordionSummary}>
+                  <RightArrowBlack size={16}
+                    style={styles.expandIcon(expanded === clause.id) as React.CSSProperties}
+                  />
+                  <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
+                    {clause.arrangement} {clause.title}
+                  </Typography>
+                  {hasActiveFilters && count !== undefined && (
+                    <Box component="span" sx={{
+                      backgroundColor: chipColor.bg,
+                      color: chipColor.color,
+                      padding: "4px 8px",
+                      borderRadius: "2px",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      ml: 4,
+                    }}>
+                      {count} filtered
+                    </Box>
+                  )}
+                </AccordionSummary>
+                {dynamicSubClauses(clause)}
+              </Accordion>
+            </Stack>
+          );
+        })}
       {drawerOpen && (
         <VWISO42001ClauseDrawerDialog
           open={drawerOpen}
@@ -321,14 +451,12 @@ const ISO42001Clause = ({
             }
             handleDrawerClose();
           }}
-          subClause={selectedSubClause}
+          subclause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={Number(projectFrameworkId)}
-          project_id={Number(project.id)}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedSubClause?.id)
           }
-          index={selectedIndex}
         />
       )}
     </Stack>

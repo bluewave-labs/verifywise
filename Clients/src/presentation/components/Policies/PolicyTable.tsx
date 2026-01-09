@@ -1,19 +1,11 @@
 import React from "react";
-import { Policy } from "../../../domain/types/Policy";
 import CustomizablePolicyTable from "../Table/PolicyTable";
 import { TableRow, TableCell } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import useUsers from "../../../application/hooks/useUsers";
-
-interface Props {
-  data: Policy[];
-  onOpen: (id: string) => void;
-  onDelete: (id: string) => void;
-  onRefresh?: () => void;
-  isLoading?: boolean;
-  error?: Error | null;
-}
+import { PolicyTableProps } from "../../types/interfaces/i.policy";
+import Chip from "../Chip";
 
 const tableHeaders = [
   { id: "title", name: "Title" },
@@ -27,37 +19,16 @@ const tableHeaders = [
   { id: "actions", name: "Actions" },
 ];
 
-const policyStatusBadgeStyle = (status: string) => {
-  const statusStyles: Record<string, { bg: string; color: string }> = {
-    Draft: { bg: "#e0e0e0", color: "#616161" },
-    "In review": { bg: "#fff3e0", color: "#b71c1c" },
-    Approved: { bg: "#c8e6c9", color: "#388e3c" },
-    Published: { bg: "#bbdefb", color: "#1976d2" },
-    Archived: { bg: "#eeeeee", color: "#757575" },
-  };
-
-  const style = statusStyles[status] || { bg: "#f5f5f5", color: "#9e9e9e" };
-
-  return {
-    backgroundColor: style.bg,
-    color: style.color,
-    padding: "4px 8px",
-    borderRadius: 12,
-    fontWeight: 500,
-    fontSize: "11px",
-    textTransform: "uppercase" as const,
-    display: "inline-block" as const,
-    letterSpacing: "0.5px",
-  };
-};
-
-const PolicyTable: React.FC<Props> = ({
+const PolicyTable: React.FC<PolicyTableProps> = ({
   data,
   onOpen,
   onDelete,
+  onLinkedObjects,
   isLoading,
   error,
   onRefresh,
+  hidePagination = false,
+  flashRowId,
 }) => {
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -93,19 +64,30 @@ const PolicyTable: React.FC<Props> = ({
   return (
     <>
       <CustomizablePolicyTable
-        table="policy-table"
         data={{ rows, cols: tableHeaders }}
-        bodyData={[...data]}
         paginated
         setSelectedRow={() => {}}
         setAnchorEl={() => {}}
-        onRowClick={onOpen}
-        renderRow={(policy) => (
+        onRowClick={(id: string) => onOpen(Number(id))}
+        hidePagination={hidePagination}
+        flashRowId={flashRowId}
+        renderRow={(policy, sortConfig) => (
           <TableRow
             key={policy.id}
             tabIndex={0}
             aria-label={`Policy: ${policy.title}`}
-            sx={{ ...singleTheme.tableStyles.primary.body.row }}
+            sx={{
+              ...singleTheme.tableStyles.primary.body.row,
+              ...(flashRowId === policy.id && {
+                backgroundColor: singleTheme.flashColors.background,
+                "& td": {
+                  backgroundColor: "transparent !important",
+                },
+                "&:hover": {
+                  backgroundColor: singleTheme.flashColors.backgroundHover,
+                },
+              }),
+            }}
             onClick={(_event) => {
               const target = _event.target as HTMLElement;
 
@@ -122,28 +104,51 @@ const PolicyTable: React.FC<Props> = ({
               onOpen(policy.id);
             }}
           >
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("title") ? singleTheme.tableColors.sortedColumnFirst : undefined,
+              }}
+            >
               {policy.title.length > 30
                 ? `${policy.title.slice(0, 30)}...`
                 : policy.title}
             </TableCell>
-            <TableCell sx={cellStyle}>
-              <span style={policyStatusBadgeStyle(policy.status)}>
-                {policy.status}
-              </span>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("status") ? singleTheme.tableColors.sortedColumn : undefined,
+              }}
+            >
+              <Chip label={policy.status} />
             </TableCell>
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("tags") ? singleTheme.tableColors.sortedColumn : undefined,
+              }}
+            >
               {(() => {
                 const tags = policy.tags?.join(", ") ?? "-";
                 return tags.length > 30 ? `${tags.slice(0, 30)}...` : tags;
               })()}
             </TableCell>
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("next") || sortConfig.key.toLowerCase().includes("review")) ? singleTheme.tableColors.sortedColumn : undefined,
+              }}
+            >
               {policy.next_review_date
                 ? new Date(policy.next_review_date).toLocaleDateString()
                 : "-"}
             </TableCell>
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("author") ? singleTheme.tableColors.sortedColumn : undefined,
+              }}
+            >
               {getUserNameById(policy.author_id)}
             </TableCell>
             {/* <TableCell sx={cellStyle}>
@@ -151,15 +156,29 @@ const PolicyTable: React.FC<Props> = ({
                 policy.assigned_reviewer_ids?.map(getUserNameById).join(", ").length > 30 ? `${policy.assigned_reviewer_ids?.map(getUserNameById).join(", ").slice(0, 30)}...` : policy.assigned_reviewer_ids?.map(getUserNameById).join(", ") || "-"
               }
             </TableCell> */}
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("last") || sortConfig.key.toLowerCase().includes("updated")) && !sortConfig.key.toLowerCase().includes("by") ? singleTheme.tableColors.sortedColumn : undefined,
+              }}
+            >
               {policy.last_updated_at
                 ? new Date(policy.last_updated_at).toLocaleString()
                 : "-"}
             </TableCell>
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("updated") && sortConfig.key.toLowerCase().includes("by") ? singleTheme.tableColors.sortedColumn : undefined,
+              }}
+            >
               {getUserNameById(policy.last_updated_by)}
             </TableCell>
-            <TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("actions") ? singleTheme.tableColors.sortedColumn : undefined,
+              }}
+            >
               <div onClick={(e) => e.stopPropagation()}>
                 <CustomIconButton
                   id={Number(policy.id)}
@@ -170,10 +189,13 @@ const PolicyTable: React.FC<Props> = ({
                   onEdit={() => {
                     onOpen(policy.id);
                   }}
+                  onLinkedObjects={() => {
+                    onLinkedObjects(policy.id);
+                  }}
                   onMouseEvent={() => {}}
                   warningTitle="Delete this policy?"
                   warningMessage="When you delete this policy, all data related to it will be removed. This action is non-recoverable."
-                  type=""
+                  type="Policy"
                 />
               </div>
             </TableCell>

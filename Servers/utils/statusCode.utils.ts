@@ -72,6 +72,15 @@ export class STATUS_CODE {
   static 409 = (data: any) => {
     return { message: "Conflict", data };
   };
+  static 413 = (data: any) => {
+    return { message: "Payload Too Large", data };
+  };
+  static 415 = (data: any) => {
+    return { message: "Unsupported Media Type", data };
+  };
+  static 422 = (data: any) => {
+    return { message: "Unprocessable Entity", data };
+  };
 
   // 5XX server errors
   static 500 = (error: any) => {

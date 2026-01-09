@@ -67,6 +67,7 @@ export const updateSubtopicByIdQuery = async (
           subtopic[f as keyof SubtopicModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

@@ -1,5 +1,5 @@
 import { Typography } from "@mui/material";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 
 interface DeleteFileModalProps {
   isOpen: boolean;
@@ -17,8 +17,8 @@ const DeleteFileModal = ({
   if (!isOpen) return null;
 
   return (
-    <DualButtonModal
-      title="Confirm Delete"
+    <ConfirmationModal
+      title="Confirm delete"
       body={
         <Typography fontSize={13}>
           Are you sure you want to delete the file {fileName}?

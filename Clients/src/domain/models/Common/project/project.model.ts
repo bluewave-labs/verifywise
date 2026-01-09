@@ -3,6 +3,7 @@ import { HighRiskRole } from "../../../enums/highRiskRole.enum";
 
 export class ProjectModel {
   id?: number;
+  uc_id?: string;
   project_title!: string;
   owner!: number;
   start_date!: Date;
@@ -17,6 +18,7 @@ export class ProjectModel {
 
   constructor(data: ProjectModel) {
     this.id = data.id;
+    this.uc_id = data.uc_id;
     this.project_title = data.project_title;
     this.owner = data.owner;
     this.start_date = data.start_date;

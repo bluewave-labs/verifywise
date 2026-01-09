@@ -51,7 +51,7 @@ export const useStyles = (theme: Theme): StylesType => ({
 
   subprocessorsHeader: {
     display: 'flex',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     gap: 3,
     mb: 2,
@@ -67,8 +67,9 @@ export const useStyles = (theme: Theme): StylesType => ({
   headerControls: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     gap: theme.spacing(3),
+    width: '100%',
   },
 
   toggleRow: {

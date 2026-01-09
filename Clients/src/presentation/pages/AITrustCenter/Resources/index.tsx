@@ -1,27 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
-  IconButton,
-  Dialog,
   TableCell,
   CircularProgress,
-  DialogTitle,
-  DialogContent,
   Stack,
   Tooltip,
 } from "@mui/material";
 import Alert from "../../../components/Alert";
-import {ReactComponent as VisibilityIcon} from "../../../assets/icons/visibility-grey.svg"
-import {ReactComponent as VisibilityOffIcon} from "../../../assets/icons/visibility-off-grey.svg"
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
+import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import Toggle from "../../../components/Inputs/Toggle";
 import { useStyles } from "./styles";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import IconButtonComponent from "../../../components/IconButton";
 import Field from "../../../components/Inputs/Field";
+import StandardModal from "../../../components/Modals/StandardModal";
 import {
   useAITrustCentreOverviewQuery,
   useAITrustCentreOverviewMutation,
@@ -38,16 +34,11 @@ import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverview";
 import { useTheme } from "@mui/material/styles";
 import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
-import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
-
-interface Resource {
-  id: number;
-  name: string;
-  description: string;
-  visible: boolean;
-  file_id?: number;
-  filename?: string;
-}
+import { Resource } from "../../../../domain/interfaces/i.aiTrustCenter";
+import { GroupBy } from "../../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../../components/Table/GroupedTableView";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 // Helper component for Resource Table Row
 const ResourceTableRow: React.FC<{
@@ -56,12 +47,17 @@ const ResourceTableRow: React.FC<{
   onEdit: (id: number) => void;
   onMakeVisible: (id: number) => void;
   onDownload: (id: number) => void;
+  sortConfig?: {
+    key: string;
+    direction: "asc" | "desc" | null;
+  };
 }> = ({
   resource,
   onDelete,
   onEdit,
   onMakeVisible,
   onDownload,
+  sortConfig,
 }) => {
   const theme = useTheme();
   const styles = useStyles(theme);
@@ -80,6 +76,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("resource name") ? singleTheme.tableColors.sortedColumnFirst : "transparent",
         }}
       >
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
@@ -90,6 +87,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("type") && sortConfig.key.toLowerCase().includes("purpose") ? singleTheme.tableColors.sortedColumn : "transparent",
         }}
       >
         <Typography sx={styles.resourceType}>{resource.description}</Typography>
@@ -100,23 +98,28 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("visibility") ? singleTheme.tableColors.sortedColumn : "transparent",
         }}
       >
         {resource.visible ? (
           <Tooltip title="Click to make this resource invisible">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <VisibilityIcon/>
+              <VisibilityIcon size={20} />
             </Box>
           </Tooltip>
         ) : (
           <Tooltip title="Click to make this resource visible">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <VisibilityOffIcon/>
+              <VisibilityOffIcon size={20} />
             </Box>
           </Tooltip>
         )}
       </TableCell>
-      <TableCell>
+      <TableCell
+        sx={{
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("action") ? singleTheme.tableColors.sortedColumn : "transparent",
+        }}
+      >
         <IconButtonComponent
           id={resource.id}
           onDelete={() => onDelete(resource.id)}
@@ -145,6 +148,8 @@ interface FormData {
 }
 
 const TrustCenterResources: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const {
     data: overviewData,
     isLoading: overviewLoading,
@@ -162,8 +167,12 @@ const TrustCenterResources: React.FC = () => {
   const theme = useTheme();
   const styles = useStyles(theme);
 
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
   // State management
   const [formData, setFormData] = useState<FormData | null>(null);
+  const [flashRowId, setFlashRowId] = useState<number | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [newResource, setNewResource] = useState<{
@@ -209,6 +218,17 @@ const TrustCenterResources: React.FC = () => {
       setFormData(overviewData);
     }
   }, [overviewData]);
+
+  // Handle resourceId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const resourceId = searchParams.get("resourceId");
+    if (resourceId && !hasProcessedUrlParam.current && resources && resources.length > 0) {
+      hasProcessedUrlParam.current = true;
+      // Use existing handleEditResource function which opens the modal
+      handleEditResource(parseInt(resourceId, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, resources, setSearchParams]);
 
   // Handle field change and auto-save
   const handleFieldChange = (
@@ -297,16 +317,6 @@ const TrustCenterResources: React.FC = () => {
     setEditResourceError(null);
   };
 
-  // Add modal key handling for ESC key support
-  useModalKeyHandling({
-    isOpen: addModalOpen,
-    onClose: handleCloseAddModal,
-  });
-
-  useModalKeyHandling({
-    isOpen: editModalOpen,
-    onClose: handleCloseEditModal,
-  });
 
   // File handling
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -407,6 +417,10 @@ const TrustCenterResources: React.FC = () => {
         file: editResource.file || undefined,
         oldFileId: oldFileId,
       });
+
+      // Flash the updated resource row
+      setFlashRowId(editResource.id);
+      setTimeout(() => setFlashRowId(null), 3000);
 
       handleAlert({
         variant: "success",
@@ -516,6 +530,26 @@ const TrustCenterResources: React.FC = () => {
     }
   };
 
+  // Define how to get the group key for each resource
+  const getResourceGroupKey = useCallback((resource: Resource, field: string): string => {
+    switch (field) {
+      case 'description':
+        return resource.description || 'Unknown';
+      case 'visible':
+        return resource.visible ? 'Visible' : 'Hidden';
+      default:
+        return 'Other';
+    }
+  }, []);
+
+  // Apply grouping to resources
+  const groupedResources = useTableGrouping({
+    data: resources || [],
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getResourceGroupKey,
+  });
+
   // Show loading state
   if (overviewLoading || resourcesLoading) {
     return (
@@ -572,250 +606,232 @@ const TrustCenterResources: React.FC = () => {
 
       <Box sx={styles.container}>
         <Box sx={styles.resourcesHeader}>
-          <CustomizableButton
-            sx={styles.addButton}
-            variant="contained"
-            onClick={handleOpenAddModal}
-            isDisabled={!formData?.info?.resources_visible}
-            text="Add new resource"
-            icon={<AddCircleOutlineIcon />}
-          />
-          <Box sx={styles.toggleRow}>
-            <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
-            <Toggle
-              checked={formData?.info?.resources_visible ?? false}
-              onChange={(_, checked) =>
-                handleFieldChange("info", "resources_visible", checked)
-              }
+          <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <GroupBy
+              options={[
+                { id: 'description', label: 'Type' },
+                { id: 'visible', label: 'Visibility' },
+              ]}
+              onGroupChange={handleGroupChange}
+            />
+          </Box>
+          <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <Box sx={styles.toggleRow}>
+              <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
+              <Toggle
+                checked={formData?.info?.resources_visible ?? false}
+                onChange={(_, checked) =>
+                  handleFieldChange("info", "resources_visible", checked)
+                }
+              />
+            </Box>
+            <CustomizableButton
+              sx={styles.addButton}
+              variant="contained"
+              onClick={handleOpenAddModal}
+              isDisabled={!formData?.info?.resources_visible}
+              text="Add new resource"
+              icon={<AddCircleOutlineIcon size={16} />}
             />
           </Box>
         </Box>
 
         <Box sx={styles.tableWrapper}>
-          <AITrustCenterTable
-            data={resources || []}
-            columns={TABLE_COLUMNS}
-            isLoading={resourcesLoading}
-            paginated={true}
-            disabled={!formData?.info?.resources_visible}
-            emptyStateText="No resources found. Add your first resource to get started."
-            renderRow={(resource) => (
-              <ResourceTableRow
-                key={resource.id}
-                resource={resource}
-                onDelete={handleDeleteResource}
-                onEdit={handleEditResource}
-                onMakeVisible={handleMakeVisible}
-                onDownload={handleDownload}
+          <GroupedTableView
+            groupedData={groupedResources}
+            ungroupedData={resources || []}
+            renderTable={(data, options) => (
+              <AITrustCenterTable
+                data={data}
+                columns={TABLE_COLUMNS}
+                isLoading={resourcesLoading}
+                paginated={true}
+                disabled={!formData?.info?.resources_visible}
+                emptyStateText="No resources found. Add your first resource to get started."
+                renderRow={(resource, sortConfig) => (
+                  <ResourceTableRow
+                    key={resource.id}
+                    resource={resource}
+                    onDelete={handleDeleteResource}
+                    onEdit={handleEditResource}
+                    onMakeVisible={handleMakeVisible}
+                    onDownload={handleDownload}
+                    sortConfig={sortConfig}
+                  />
+                )}
+                tableId="resources-table"
+                hidePagination={options?.hidePagination}
+                flashRowId={flashRowId}
               />
             )}
-            tableId="resources-table"
           />
         </Box>
 
         {/* Add Resource Modal */}
-        <Dialog
-          open={addModalOpen}
-          onClose={async (_event, reason) => {
-            if (reason === "backdropClick") {
-              return; // block closing on backdrop click
-            }
-            handleCloseAddModal();
-          }}
-          maxWidth="sm"
-          fullWidth
-          PaperProps={{
-            sx: styles.modalPaper,
-          }}
+        <StandardModal
+          isOpen={addModalOpen}
+          onClose={handleCloseAddModal}
+          title="Add a new resource"
+          description="Upload a resource document for your AI Trust Center"
+          onSubmit={handleAddResource}
+          submitButtonText="Add resource"
+          isSubmitting={
+            !formData?.info?.resources_visible ||
+            !newResource.name ||
+            !newResource.description ||
+            !newResource.file
+          }
         >
-          <DialogTitle sx={styles.modalTitle}>
-            Add a new resource
-            <IconButton onClick={handleCloseAddModal} sx={styles.closeButton}>
-              <CloseGreyIcon />
-            </IconButton>
-          </DialogTitle>
-
-          <DialogContent sx={styles.modalContent}>
-            <Stack spacing={3}>
-              <Field
-                id="resource-name"
-                label="Resource name"
-                value={newResource.name}
-                onChange={(e) =>
-                  setNewResource((r) => ({ ...r, name: e.target.value }))
+          <Stack spacing={6}>
+            <Field
+              id="resource-name"
+              label="Resource name"
+              value={newResource.name}
+              onChange={(e) =>
+                setNewResource((r) => ({ ...r, name: e.target.value }))
+              }
+              disabled={!formData?.info?.resources_visible}
+              isRequired
+              sx={styles.fieldStyle}
+              placeholder="Enter resource name"
+            />
+            <Field
+              id="resource-description"
+              label="Type or purpose of resource"
+              value={newResource.description}
+              onChange={(e) =>
+                setNewResource((r) => ({ ...r, description: e.target.value }))
+              }
+              disabled={!formData?.info?.resources_visible}
+              isRequired
+              sx={styles.fieldStyle}
+              placeholder="Enter resource description"
+            />
+            <Box>
+              <CustomizableButton
+                text="Upload a file"
+                variant="outlined"
+                onClick={() =>
+                  document.getElementById("resource-file-input")?.click()
                 }
-                disabled={!formData?.info?.resources_visible}
-                isRequired
-                sx={styles.fieldStyle}
-                placeholder="Enter resource name"
+                isDisabled={!formData?.info?.resources_visible}
+                sx={{
+                  border: "1px solid #D0D5DD",
+                  color: "#344054",
+                  "&:hover": {
+                    backgroundColor: "#F9FAFB",
+                    border: "1px solid #D0D5DD",
+                  },
+                }}
               />
-              <Field
-                id="resource-description"
-                label="Type or purpose of resource"
-                value={newResource.description}
-                onChange={(e) =>
-                  setNewResource((r) => ({ ...r, description: e.target.value }))
-                }
+              <input
+                id="resource-file-input"
+                type="file"
+                accept="application/pdf"
+                style={{ display: "none" }}
+                onChange={handleFileChange}
                 disabled={!formData?.info?.resources_visible}
-                isRequired
-                sx={styles.fieldStyle}
-                placeholder="Enter resource description"
               />
-              <Box>
-                <CustomizableButton
-                  text="Upload a file"
-                  variant="outlined"
-                  onClick={() =>
-                    document.getElementById("resource-file-input")?.click()
-                  }
-                  isDisabled={!formData?.info?.resources_visible}
-                  sx={styles.fileUploadButton}
-                />
-                <input
-                  id="resource-file-input"
-                  type="file"
-                  accept="application/pdf"
-                  style={{ display: "none" }}
-                  onChange={handleFileChange}
-                  disabled={!formData?.info?.resources_visible}
-                />
-                {newResource.file && (
-                  <Typography sx={styles.fileName}>
-                    {newResource.file.name}
-                  </Typography>
-                )}
-              </Box>
-              <Box display="flex" justifyContent="flex-end">
-                <CustomizableButton
-                  text="Add resource"
-                  variant="contained"
-                  onClick={handleAddResource}
-                  isDisabled={
-                    !formData?.info?.resources_visible ||
-                    !newResource.name ||
-                    !newResource.description ||
-                    !newResource.file
-                  }
-                  sx={styles.modalActionButton}
-                />
-              </Box>
-            </Stack>
-          </DialogContent>
-        </Dialog>
+              {newResource.file && (
+                <Typography sx={styles.fileName}>
+                  {newResource.file.name}
+                </Typography>
+              )}
+            </Box>
+          </Stack>
+        </StandardModal>
 
         {/* Edit Resource Modal */}
-        <Dialog
-          open={editModalOpen}
-          onClose={(_event, reason) => {
-            if (reason === "backdropClick") {
-              return; // block closing on backdrop click
-            }
-            handleCloseEditModal();
-          }}
-          maxWidth="sm"
-          fullWidth
-          PaperProps={{
-            sx: styles.modalPaper,
-          }}
+        <StandardModal
+          isOpen={editModalOpen}
+          onClose={handleCloseEditModal}
+          title="Edit resource"
+          description="Update resource details and manage visibility"
+          onSubmit={handleSaveEditResource}
+          submitButtonText="Save"
+          isSubmitting={
+            !formData?.info?.resources_visible ||
+            !editResource.name ||
+            !editResource.description
+          }
         >
-          <DialogTitle sx={styles.modalTitle}>
-            Edit resource
-            <IconButton onClick={handleCloseEditModal} sx={styles.closeButton}>
-              <CloseGreyIcon />
-            </IconButton>
-          </DialogTitle>
-
-          <DialogContent sx={styles.modalContent}>
-            <Stack spacing={3}>
-              <Field
-                id="edit-resource-name"
-                label="Resource name"
-                value={editResource.name}
-                onChange={(e) =>
-                  setEditResource((r) => ({ ...r, name: e.target.value }))
+          <Stack spacing={6}>
+            <Field
+              id="edit-resource-name"
+              label="Resource name"
+              value={editResource.name}
+              onChange={(e) =>
+                setEditResource((r) => ({ ...r, name: e.target.value }))
+              }
+              disabled={!formData?.info?.resources_visible}
+              isRequired
+              sx={styles.fieldStyle}
+              placeholder="Enter resource name"
+            />
+            <Field
+              id="edit-resource-description"
+              label="Type or purpose of resource"
+              value={editResource.description}
+              onChange={(e) =>
+                setEditResource((r) => ({
+                  ...r,
+                  description: e.target.value,
+                }))
+              }
+              disabled={!formData?.info?.resources_visible}
+              isRequired
+              sx={styles.fieldStyle}
+              placeholder="Enter resource description"
+            />
+            <Box>
+              <Typography sx={styles.modalLabel}>Visibility</Typography>
+              <Toggle
+                checked={editResource.visible}
+                onChange={(_, checked) =>
+                  setEditResource((r) => ({ ...r, visible: checked }))
                 }
-                disabled={!formData?.info?.resources_visible}
-                isRequired
-                sx={styles.fieldStyle}
-                placeholder="Enter resource name"
               />
-              <Field
-                id="edit-resource-description"
-                label="Type or purpose of resource"
-                value={editResource.description}
-                onChange={(e) =>
-                  setEditResource((r) => ({
-                    ...r,
-                    description: e.target.value,
-                  }))
+            </Box>
+            <Box>
+              <CustomizableButton
+                text="Replace file"
+                variant="outlined"
+                onClick={() =>
+                  document.getElementById("edit-resource-file-input")?.click()
                 }
-                disabled={!formData?.info?.resources_visible}
-                isRequired
-                sx={styles.fieldStyle}
-                placeholder="Enter resource description"
+                isDisabled={!formData?.info?.resources_visible}
+                sx={{
+                  border: "1px solid #D0D5DD",
+                  color: "#344054",
+                  "&:hover": {
+                    backgroundColor: "#F9FAFB",
+                    border: "1px solid #D0D5DD",
+                  },
+                }}
               />
-              <Box>
-                <Typography sx={styles.modalLabel}>Visibility</Typography>
-                <Toggle
-                  checked={editResource.visible}
-                  onChange={(_, checked) =>
-                    setEditResource((r) => ({ ...r, visible: checked }))
-                  }
-                />
-              </Box>
-              <Box>
-                <CustomizableButton
-                  text="Replace file"
-                  variant="outlined"
-                  onClick={() =>
-                    document.getElementById("edit-resource-file-input")?.click()
-                  }
-                  isDisabled={!formData?.info?.resources_visible}
-                  sx={styles.fileUploadButton}
-                />
-                <input
-                  id="edit-resource-file-input"
-                  type="file"
-                  accept="application/pdf"
-                  style={{ display: "none" }}
-                  onChange={handleEditFileChange}
-                  disabled={!formData?.info?.resources_visible}
-                />
-                {/* Show existing file name */}
-                {!editResource.file && editResource.filename && (
-                  <Typography sx={styles.existingFileName}>
-                    Current file: {editResource.filename}
-                  </Typography>
-                )}
-                {/* Show new file name when selected */}
-                {editResource.file && (
-                  <Typography sx={styles.fileName}>
-                    New file: {editResource.file.name}
-                  </Typography>
-                )}
-              </Box>
-              <Box display="flex" justifyContent="flex-end" gap={2}>
-                <CustomizableButton
-                  variant="outlined"
-                  text="Cancel"
-                  onClick={handleCloseEditModal}
-                  sx={styles.modalCancelButton}
-                />
-                <CustomizableButton
-                  text="Save"
-                  variant="contained"
-                  onClick={handleSaveEditResource}
-                  isDisabled={
-                    !formData?.info?.resources_visible ||
-                    !editResource.name ||
-                    !editResource.description
-                  }
-                  sx={styles.modalActionButton}
-                />
-              </Box>
-            </Stack>
-          </DialogContent>
-        </Dialog>
+              <input
+                id="edit-resource-file-input"
+                type="file"
+                accept="application/pdf"
+                style={{ display: "none" }}
+                onChange={handleEditFileChange}
+                disabled={!formData?.info?.resources_visible}
+              />
+              {/* Show existing file name */}
+              {!editResource.file && editResource.filename && (
+                <Typography sx={styles.existingFileName}>
+                  Current file: {editResource.filename}
+                </Typography>
+              )}
+              {/* Show new file name when selected */}
+              {editResource.file && (
+                <Typography sx={styles.fileName}>
+                  New file: {editResource.file.name}
+                </Typography>
+              )}
+            </Box>
+          </Stack>
+        </StandardModal>
       </Box>
 
       {alert && (

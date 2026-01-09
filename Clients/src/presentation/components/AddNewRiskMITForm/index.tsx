@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
 import {
-  Modal,
   Stack,
   Typography,
   useTheme,
@@ -11,14 +10,14 @@ import {
   TableHead,
   TableRow,
   Radio,
-  TextField,
+  Tooltip,
 } from "@mui/material";
-import { ReactComponent as GreyCloseIconSVG } from "../../assets/icons/close-grey.svg";
-import placeholderImage from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../EmptyState";
 import riskData from "../../assets/MITAIRISKDB.json";
-import CustomizableButton from "../Button/CustomizableButton";
+import StandardModal from "../Modals/StandardModal";
 import { Likelihood, Severity } from "../RiskLevel/constants";
 import { riskCategoryItems } from "../AddNewRiskForm/projectRiskValue";
+import { SearchBox } from "../Search";
 
 // Types
 interface RiskData {
@@ -168,8 +167,8 @@ const AddNewRiskMITModal = ({
   }, [setIsOpen]);
 
   const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearch(e.target.value);
+    (value: string) => {
+      setSearch(value);
     },
     []
   );
@@ -225,51 +224,21 @@ const AddNewRiskMITModal = ({
   }, [selectedId, onRiskSelected, handleClose]);
 
   return (
-    <Modal 
-      open={isOpen} 
-      onClose={(_event, reason) => {
-        if (reason !== 'backdropClick') {
-          handleClose();
-        }
-      }}
+    <StandardModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Add a new risk from risk database"
+      description="Search and select a risk from the MIT AI Risk Database"
+      onSubmit={handleUseSelectedRisk}
+      submitButtonText="Use selected risk and edit"
+      isSubmitting={selectedId === null}
+      maxWidth="1000px"
     >
-      <Stack
-        gap={theme.spacing(4)}
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: { xs: "90vw", sm: "80vw", md: MODAL_CONFIG.MAX_WIDTH },
-          maxWidth: MODAL_CONFIG.MAX_WIDTH,
-          bgcolor: theme.palette.background.paper,
-          p: { xs: 4, sm: 6, md: 10 },
-          borderRadius: theme.spacing(1),
-          boxShadow: theme.shadows[24],
-        }}
-      >
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Typography
-            component="h2"
-            sx={{
-              fontSize: { xs: 14, md: 15 },
-              fontWeight: 700,
-              color: theme.palette.text.primary,
-            }}
-          >
-            Add a new risk from risk database
-          </Typography>
-          <GreyCloseIconSVG onClick={handleClose} cursor={"pointer"} />
-        </Stack>
+      <Stack spacing={6}>
         <Stack
           direction="row"
           alignItems="center"
           gap={2}
-          sx={{ mb: theme.spacing(4) }}
         >
           <Typography
             component="label"
@@ -284,46 +253,28 @@ const AddNewRiskMITModal = ({
           >
             Search from the risk database:
           </Typography>
-          <TextField
-            id="risk-search-input"
-            size="small"
+          <SearchBox
             value={search}
             onChange={handleSearchChange}
             placeholder="Search by name, category, or description..."
-            aria-label="Search risks"
+            inputProps={{ "aria-label": "Search risks" }}
             sx={{
               width: { xs: "100%", sm: MODAL_CONFIG.SEARCH_FIELD_WIDTH },
               maxWidth: MODAL_CONFIG.SEARCH_FIELD_WIDTH,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: theme.spacing(0.5),
-                height: 34,
-                fontSize: 13,
-                "& input::placeholder": {
-                  fontSize: 13,
-                },
-                "& fieldset": {
-                  borderRadius: theme.spacing(0.5),
-                },
-                "&:hover fieldset": {
-                  borderRadius: theme.spacing(0.5),
-                },
-                "&.Mui-focused fieldset": {
-                  borderRadius: theme.spacing(0.5),
-                },
-              },
             }}
           />
         </Stack>
         <Stack
           sx={{
-            maxHeight: MODAL_CONFIG.MAX_HEIGHT,
+            height: MODAL_CONFIG.MAX_HEIGHT,
+            minHeight: MODAL_CONFIG.MAX_HEIGHT,
             overflow: "auto",
             border: `1px solid ${theme.palette.divider}`,
             borderRadius: theme.spacing(1),
           }}
         >
           <TableContainer>
-            <Table>
+            <Table sx={{ minWidth: 900 }}>
               <TableHead>
                 <TableRow>
                   {TITLE_OF_COLUMNS.map((column) => (
@@ -350,26 +301,9 @@ const AddNewRiskMITModal = ({
                     <TableCell
                       colSpan={TITLE_OF_COLUMNS.length}
                       align="center"
-                      sx={{
-                        padding: theme.spacing(15, 5),
-                        paddingBottom: theme.spacing(20),
-                      }}
+                      sx={{ border: "none", p: 0 }}
                     >
-                      <img
-                        src={placeholderImage}
-                        alt="No risks found"
-                        style={{ maxWidth: "100%", height: "auto" }}
-                      />
-                      <Typography
-                        sx={{
-                          fontSize: 13,
-                          fontWeight: 400,
-                          color: theme.palette.text.secondary,
-                          mt: 2,
-                        }}
-                      >
-                        No risks found in database
-                      </Typography>
+                      <EmptyState message="No risks found in database" />
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -383,15 +317,15 @@ const AddNewRiskMITModal = ({
                       cursor: "pointer",
                       backgroundColor:
                         selectedId === risk.Id
-                          ? theme.palette.action.selected
+                          ? "rgba(19, 113, 91, 0.04)"
                           : "inherit",
                       "&:hover": {
                         backgroundColor: theme.palette.action.hover,
                       },
                       "&:focus": {
                         backgroundColor: theme.palette.action.focus,
-                        outline: `2px solid ${theme.palette.primary.main}`,
-                        outlineOffset: -2,
+                        outline: `1px solid ${theme.palette.primary.main}`,
+                        outlineOffset: -1,
                       },
                     }}
                     tabIndex={0}
@@ -414,20 +348,32 @@ const AddNewRiskMITModal = ({
                     <TableCell
                       sx={{
                         maxWidth: 200,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
                       }}
                     >
-                      {risk.Summary}
+                      <span style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}>
+                        {risk.Summary}
+                      </span>
                     </TableCell>
                     <TableCell
                       sx={{
                         maxWidth: 250,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
                       }}
                     >
-                      {risk.Description}
+                      <Tooltip title={risk.Description} arrow placement="top-start">
+                        <span style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}>{risk.Description}</span>
+                      </Tooltip>
                     </TableCell>
                     <TableCell>
                       <Typography
@@ -466,11 +412,17 @@ const AddNewRiskMITModal = ({
                     <TableCell
                       sx={{
                         maxWidth: 150,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
                       }}
                     >
-                      {risk["Risk Category"]}
+                      <span style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}>
+                        {risk["Risk Category"]}
+                      </span>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -478,38 +430,8 @@ const AddNewRiskMITModal = ({
             </Table>
           </TableContainer>
         </Stack>
-        <Stack direction="row" justifyContent="flex-end" gap={2} mt={4}>
-          <CustomizableButton
-            variant="outlined"
-            text="Cancel"
-            onClick={handleClose}
-            sx={{
-              fontWeight: 400,
-              fontSize: 13,
-              minWidth: 120,
-            }}
-          />
-          <CustomizableButton
-            variant="contained"
-            text="Use selected risk and edit"
-            onClick={handleUseSelectedRisk}
-            isDisabled={selectedId === null}
-            sx={{
-              fontWeight: 400,
-              fontSize: 13,
-              bgcolor: theme.palette.primary.main,
-              minWidth: 200,
-              "&:hover": {
-                bgcolor: theme.palette.primary.dark,
-              },
-              "&:disabled": {
-                bgcolor: theme.palette.action.disabledBackground,
-              },
-            }}
-          />
-        </Stack>
       </Stack>
-    </Modal>
+    </StandardModal>
   );
 };
 

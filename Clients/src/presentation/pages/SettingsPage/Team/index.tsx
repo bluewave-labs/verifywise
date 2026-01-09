@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import {
   Box,
-  Button,
   Typography,
   Table,
   TableBody,
@@ -26,14 +25,19 @@ import {
   TableFooter,
   Tooltip,
 } from "@mui/material";
-import {ReactComponent as GroupsIcon} from "../../../assets/icons/group.svg";
+import {
+  UserPlus as GroupsIcon,
+  ChevronsUpDown,
+  Trash2 as DeleteIconGrey,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
-import {ReactComponent as DeleteIconGrey} from "../../../assets/icons/trash-grey.svg"
-import { handleAlert } from "../../../../application/tools/alertUtils";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
+import ButtonToggle from "../../../components/ButtonToggle";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import {
@@ -42,7 +46,15 @@ import {
 } from "../../../../application/repository/user.repository";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { UserModel } from "../../../../domain/models/Common/user/user.model";
 import { GetSsoConfig } from "../../../../application/repository/ssoConfig.repository";
+
+interface AlertState {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+  isToast?: boolean;
+}
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
@@ -54,6 +66,14 @@ const TABLE_COLUMNS = [
   { id: "action", label: "ACTION" },
 ];
 
+const TEAM_TABLE_SORTING_KEY = "verifywise_team_table_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
+
 /**
  * A component that renders a team management table with the ability to edit member roles, invite new members, and delete members.
  *
@@ -64,11 +84,23 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const theme = useTheme();
   const { roles, loading: rolesLoading } = useRoles();
 
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  const [alert, setAlert] = useState<AlertState | null>(null);
+
+  const showAlert = useCallback(
+    (variant: AlertState["variant"], title: string, body: string) => {
+      setAlert({ variant, title, body, isToast: false });
+    },
+    []
+  );
+
+  // Auto-hide alert after 3 seconds
+  React.useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [alert]);
 
   const roleItems = useMemo(
     () => roles.map((role) => ({ _id: role.id, name: role.name })),
@@ -78,11 +110,29 @@ const TeamManagement: React.FC = (): JSX.Element => {
   // State management
   const [open, setOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<number | null>(null);
-  const [filter, setFilter] = useState(0);
+  const [filter, setFilter] = useState("0");
 
   const [page, setPage] = useState(0); // Current page
   const { userId } = useAuth();
   const { users, refreshUsers } = useUsers();
+
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(TEAM_TABLE_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(TEAM_TABLE_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
 
   // Exclude the current user from the team users list
   const teamUsers = users;
@@ -118,54 +168,53 @@ const TeamManagement: React.FC = (): JSX.Element => {
           (user) => user.id.toString() === memberId
         );
         if (!member) {
-          setAlert({
-            variant: "error",
-            body: "User not found.",
-          });
-          setTimeout(() => setAlert(null), 3000);
+          showAlert("error", "Error", "User not found.");
           return;
         }
+
+        const updatedUser = UserModel.createNewUser({
+          id: parseInt(memberId),
+          name: member.name,
+          surname: member.surname,
+          email: member.email,
+          roleId: parseInt(newRole),
+        } as UserModel);
 
         const response = await updateUserById({
           userId: parseInt(memberId),
           userData: {
-            name: member.name,
-            surname: member.surname,
-            email: member.email,
-            roleId: parseInt(newRole),
+            name: updatedUser.name,
+            surname: updatedUser.surname,
+            email: updatedUser.email,
+            roleId: updatedUser.roleId,
           },
         });
 
         if (response.status === 202) {
-          handleAlert({
-            variant: "success",
-            body: "User role updated successfully.",
-            setAlert,
-          });
+          showAlert("success", "Success", "User role updated successfully.");
 
           // Add a small delay to ensure the server has processed the update
           setTimeout(() => {
             refreshUsers();
           }, 500);
         } else {
-          setAlert({
-            variant: "error",
-            body: (response as any)?.data?.message || "An error occurred.",
-          });
-          setTimeout(() => setAlert(null), 3000);
+          showAlert(
+            "error",
+            "Error",
+            (response as any)?.data?.message || "An error occurred."
+          );
         }
       } catch (error) {
-        setAlert({
-          variant: "error",
-          body: `An error occurred: ${
+        showAlert(
+          "error",
+          "Error",
+          `An error occurred: ${
             (error as Error).message || "Please try again."
-          }`,
-        });
-
-        setTimeout(() => setAlert(null), 3000);
+          }`
+        );
       }
     },
-    [teamUsers, refreshUsers]
+    [teamUsers, refreshUsers, showAlert]
   );
 
   const handleClose = () => {
@@ -184,27 +233,24 @@ const TeamManagement: React.FC = (): JSX.Element => {
       });
 
       if (response && response.status === 202) {
-        handleAlert({
-          variant: "success",
-          body: "User deleted successfully",
-          setAlert,
-        });
+        showAlert("success", "Success", "User deleted successfully");
         refreshUsers();
+      } else if (response && response.status === 403) {
+        // Demo user cannot be deleted - show info message
+        showAlert(
+          "info",
+          "Info",
+          response.data?.message || "This user cannot be deleted"
+        );
       } else {
-        handleAlert({
-          variant: "error",
-          body: "User deletion failed",
-          setAlert,
-        });
+        showAlert("error", "Error", "User deletion failed");
       }
     } catch (error) {
-      handleAlert({
-        variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
-        setAlert,
-      });
+      showAlert(
+        "error",
+        "Error",
+        `An error occurred: ${(error as Error).message || "Please try again."}`
+      );
     }
 
     handleClose();
@@ -244,12 +290,88 @@ const TeamManagement: React.FC = (): JSX.Element => {
     [roles, RoleTypography]
   );
 
+  // Sorting handlers
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
+
+  // Sort the team data based on current sort configuration
+  const sortedTeamUsers = useMemo(() => {
+    if (!teamUsers || !sortConfig.key || !sortConfig.direction) {
+      return teamUsers || [];
+    }
+
+    const sortableData = [...teamUsers];
+
+    return sortableData.sort((a: any, b: any) => {
+      let aValue: string;
+      let bValue: string;
+
+      // Use exact column name matching - case insensitive
+      const sortKey = sortConfig.key.trim().toLowerCase();
+
+      // Handle different column types for team members
+      if (sortKey.includes("name")) {
+        const aFullName = [a.name, a.surname]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        const bFullName = [b.name, b.surname]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        aValue = aFullName;
+        bValue = bFullName;
+      } else if (sortKey.includes("email")) {
+        aValue = a.email?.toLowerCase() || "";
+        bValue = b.email?.toLowerCase() || "";
+      } else if (sortKey.includes("role")) {
+        // Get role names for sorting
+        const aRole = roles.find(
+          (r) => r.id.toString() === a.roleId?.toString()
+        );
+        const bRole = roles.find(
+          (r) => r.id.toString() === b.roleId?.toString()
+        );
+        aValue = aRole?.name?.toLowerCase() || "";
+        bValue = bRole?.name?.toLowerCase() || "";
+      } else {
+        // Try to handle unknown columns by checking if they're properties of the member
+        if (sortKey && sortKey in a && sortKey in b) {
+          const aVal = (a as Record<string, unknown>)[sortKey];
+          const bVal = (b as Record<string, unknown>)[sortKey];
+          aValue = String(aVal).toLowerCase();
+          bValue = String(bVal).toLowerCase();
+          const comparison = aValue.localeCompare(bValue);
+          return sortConfig.direction === "asc" ? comparison : -comparison;
+        }
+        return 0;
+      }
+
+      // Handle string comparisons
+      const comparison = aValue.localeCompare(bValue);
+      return sortConfig.direction === "asc" ? comparison : -comparison;
+    });
+  }, [teamUsers, sortConfig, roles]);
+
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
-    return filter === 0
-      ? teamUsers
-      : teamUsers.filter((member) => member.roleId === filter);
-  }, [filter, teamUsers]);
+    const members = sortedTeamUsers.length > 0 ? sortedTeamUsers : teamUsers;
+    return filter === "0"
+      ? members
+      : members.filter((member) => member.roleId === parseInt(filter));
+  }, [filter, teamUsers, sortedTeamUsers]);
 
   const handleDeleteClick = (memberId: number) => {
     setMemberToDelete(memberId);
@@ -276,27 +398,24 @@ const TeamManagement: React.FC = (): JSX.Element => {
     status: number | string,
     link: string | undefined = undefined
   ) => {
-    console.log("Invitation to ", email, "is ", status);
-
     if (status === 200) {
-      handleAlert({
-        variant: "success",
-        body: `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`,
-        setAlert,
-      });
+      showAlert(
+        "success",
+        "Success",
+        `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`
+      );
     } else if (status === 206) {
-      handleAlert({
-        variant: "info",
-        body: `Invitation sent to ${email}. Please use this link: ${link} to create an account.`,
-        setAlert,
-        alertTimeout: 20000,
-      });
+      showAlert(
+        "info",
+        "Info",
+        `Invitation sent to ${email}. Please use this link: ${link} to create an account.`
+      );
     } else {
-      handleAlert({
-        variant: "error",
-        body: `Failed to send invitation to ${email}. Please try again.`,
-        setAlert,
-      });
+      showAlert(
+        "error",
+        "Error",
+        `Failed to send invitation to ${email}. Please try again.`
+      );
     }
 
     setInviteUserModalOpen(false);
@@ -342,34 +461,24 @@ const TeamManagement: React.FC = (): JSX.Element => {
               mb: 3,
             }}
           >
-            <Box sx={{ display: "flex", mb: 2, mt: 2 }}>
-              {rolesLoading ? (
-                <Typography>Loading roles...</Typography>
-              ) : (
-                [{ _id: 0, name: "All" }, ...roleItems].map((role) => (
-                  <Button
-                    key={role._id}
-                    disableRipple
-                    variant={filter === role._id ? "contained" : "outlined"}
-                    onClick={() => setFilter(role._id | 0)}
-                    sx={{
-                      borderRadius: 0,
-                      color: "#344054",
-                      borderColor: "#EAECF0",
-                      backgroundColor:
-                        filter === role._id ? "#EAECF0" : "transparent",
-                      "&:hover": {
-                        backgroundColor:
-                          filter === role._id ? "#D0D4DA" : "transparent",
-                      },
-                      fontWeight: filter === role._id ? "medium" : "normal",
-                    }}
-                  >
-                    {role.name}
-                  </Button>
-                ))
-              )}
-            </Box>
+            {rolesLoading ? (
+              <Typography>Loading roles...</Typography>
+            ) : (
+              <ButtonToggle
+                options={[
+                  { value: "0", label: "All", count: teamUsers.length },
+                  ...roleItems.map((role) => ({
+                    value: role._id.toString(),
+                    label: role.name,
+                    count: teamUsers.filter((user) => user.roleId === role._id)
+                      .length,
+                  })),
+                ]}
+                value={filter}
+                onChange={(value) => setFilter(value)}
+                height={34}
+              />
+            )}
 
             <Box>
               <Tooltip
@@ -382,13 +491,12 @@ const TeamManagement: React.FC = (): JSX.Element => {
                     variant="contained"
                     text="Invite team member"
                     sx={{
-                      backgroundColor: isSsoEnabled ? "#CCCCCC" : "#13715B",
-                      border: isSsoEnabled ? "1px solid #CCCCCC" : "1px solid #13715B",
+                      backgroundColor: "#13715B",
+                      border: "1px solid #13715B",
                       gap: 2,
                     }}
-                    icon={<GroupsIcon />}
+                    icon={<GroupsIcon size={16} />}
                     onClick={() => inviteTeamMember()}
-                    isDisabled={isSsoEnabled}
                   />
                 </span>
               </Tooltip>
@@ -398,7 +506,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
           {/* only render table and pagination if team is loaded  */}
           {rolesLoading || roles.length === 0 ? null : (
             <>
-              <TableContainer sx={{ overflowX: "auto" }}>
+              <TableContainer sx={{ overflowX: "auto", mt: 1 }}>
                 <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
                   <TableHead
                     sx={{
@@ -407,23 +515,76 @@ const TeamManagement: React.FC = (): JSX.Element => {
                     }}
                   >
                     <TableRow>
-                      {TABLE_COLUMNS.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          sx={{
-                            ...singleTheme.tableStyles.primary.header.cell,
-                            ...(column.id === "action" && {
-                              position: "sticky",
-                              right: 0,
-                              backgroundColor:
-                                singleTheme.tableStyles.primary.header
-                                  .backgroundColors,
-                            }),
-                          }}
-                        >
-                          {column.label}
-                        </TableCell>
-                      ))}
+                      {TABLE_COLUMNS.map((column) => {
+                        const isLastColumn = column.id === "action";
+                        const sortable = !["action"].includes(column.id);
+
+                        return (
+                          <TableCell
+                            key={column.id}
+                            sx={{
+                              ...singleTheme.tableStyles.primary.header.cell,
+                              ...(!isLastColumn && sortable
+                                ? {
+                                    cursor: "pointer",
+                                    userSelect: "none",
+                                    "&:hover": {
+                                      backgroundColor: "rgba(0, 0, 0, 0.04)",
+                                    },
+                                  }
+                                : {}),
+                            }}
+                            onClick={() => sortable && handleSort(column.label)}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: theme.spacing(2),
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontWeight: 500,
+                                  color:
+                                    sortConfig.key === column.label
+                                      ? "primary.main"
+                                      : "inherit",
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                {column.label}
+                              </Typography>
+                              {sortable && (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    color:
+                                      sortConfig.key === column.label
+                                        ? "primary.main"
+                                        : "#9CA3AF",
+                                  }}
+                                >
+                                  {sortConfig.key === column.label &&
+                                    sortConfig.direction === "asc" && (
+                                      <ChevronUp size={16} />
+                                    )}
+                                  {sortConfig.key === column.label &&
+                                    sortConfig.direction === "desc" && (
+                                      <ChevronDown size={16} />
+                                    )}
+                                  {sortConfig.key !== column.label && (
+                                    <ChevronsUpDown size={16} />
+                                  )}
+                                </Box>
+                              )}
+                            </Box>
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -439,7 +600,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             sx={singleTheme.tableStyles.primary.body.row}
                           >
                             <TableCell
-                              sx={singleTheme.tableStyles.primary.body.cell}
+                              sx={{
+                                ...singleTheme.tableStyles.primary.body.cell,
+                                backgroundColor:
+                                  sortConfig.key &&
+                                  sortConfig.key.toLowerCase().includes("name")
+                                    ? "#e8e8e8"
+                                    : "#fafafa",
+                              }}
                             >
                               {[member.name, member.surname]
                                 .filter(Boolean)
@@ -449,12 +617,24 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
                                 textTransform: "none",
+                                backgroundColor:
+                                  sortConfig.key &&
+                                  sortConfig.key.toLowerCase().includes("email")
+                                    ? "#f5f5f5"
+                                    : "inherit",
                               }}
                             >
                               {member.email}
                             </TableCell>
                             <TableCell
-                              sx={singleTheme.tableStyles.primary.body.cell}
+                              sx={{
+                                ...singleTheme.tableStyles.primary.body.cell,
+                                backgroundColor:
+                                  sortConfig.key &&
+                                  sortConfig.key.toLowerCase().includes("role")
+                                    ? "#f5f5f5"
+                                    : "inherit",
+                              }}
                             >
                               <Select
                                 value={member.roleId?.toString() || "1"}
@@ -497,9 +677,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             <TableCell
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
-                                position: "sticky",
-                                right: 0,
                                 minWidth: "50px",
+                                backgroundColor:
+                                  sortConfig.key &&
+                                  sortConfig.key
+                                    .toLowerCase()
+                                    .includes("action")
+                                    ? "#f5f5f5"
+                                    : "inherit",
                               }}
                             >
                               <Tooltip
@@ -519,7 +704,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                     disableRipple
                                     disabled={member.id === userId || isSsoEnabled}
                                   >
-                                    <DeleteIconGrey />
+                                    <DeleteIconGrey size={16} />
                                   </IconButton>
                                 </span>
                               </Tooltip>
@@ -612,8 +797,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
               </TableContainer>
 
               {open && (
-                <DualButtonModal
-                  title="Confirm Delete"
+                <ConfirmationModal
+                  title="Confirm delete"
                   body={
                     <Typography fontSize={13}>
                       Are you sure you want to delete your account? This action

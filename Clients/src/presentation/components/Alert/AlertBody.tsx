@@ -1,7 +1,7 @@
 // AlertBody.tsx
 import React, { useState } from "react";
 import { Box, IconButton, Typography } from "@mui/material";
-import {ReactComponent as ContentCopyIcon} from "../../assets/icons/contentCopy.svg";
+import { Copy as ContentCopyIcon } from "lucide-react";
 
 interface AlertBodyProps {
   body: string;
@@ -61,7 +61,8 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
                   </Typography>
                 ) : (
                   <ContentCopyIcon
-                     style={{ width: "13px", height:"13px" , color: textColor }}
+                     size={13}
+                     style={{ color: textColor }}
                   />
                 )}
               </Box>

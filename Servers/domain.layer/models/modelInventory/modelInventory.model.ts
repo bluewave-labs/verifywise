@@ -1,5 +1,5 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
-import { IModelInventory } from "../../interfaces/i.modelInventory";
+import { Filedata, IModelInventory } from "../../interfaces/i.modelInventory";
 import { ModelInventoryStatus } from "../../enums/model-inventory-status.enum";
 import { ValidationException } from "../../exceptions/custom.exception";
 
@@ -99,10 +99,11 @@ export class ModelInventoryModel
   hosting_provider!: string;
 
   @Column({
-    type: DataType.TEXT,
-    allowNull: false,
+    type: DataType.JSONB,
+    allowNull: true, // Optional
+    defaultValue: [], // Initialize as empty array
   })
-  used_in_projects!: string;
+  security_assessment_data!: Filedata[];
 
   @Column({
     type: DataType.BOOLEAN,
@@ -204,14 +205,6 @@ export class ModelInventoryModel
         this.hosting_provider
       );
     }
-
-    if (!this.used_in_projects?.trim()) {
-      throw new ValidationException(
-        "Used in projects is required",
-        "used_in_projects",
-        this.used_in_projects
-      );
-    }
   }
 
   /**
@@ -298,6 +291,7 @@ export class ModelInventoryModel
    * Get model inventory data without sensitive information
    */
   toSafeJSON(): any {
+    const dataValues = this.dataValues as any;
     return {
       id: this.id,
       provider_model: this.provider_model, // Keep for backward compatibility
@@ -315,10 +309,12 @@ export class ModelInventoryModel
       biases: this.biases,
       limitations: this.limitations,
       hosting_provider: this.hosting_provider,
-      used_in_projects: this.used_in_projects? this.used_in_projects.split(", ").filter((use) => use.trim()) : [],
+      security_assessment_data: this.security_assessment_data!= undefined ? this.security_assessment_data : [],
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
       updated_at: this.updated_at?.toISOString(),
+      projects: dataValues.projects || [],
+      frameworks: dataValues.frameworks || [],
     };
   }
 
@@ -333,6 +329,7 @@ export class ModelInventoryModel
    * Convert model inventory to JSON representation
    */
   toJSON(): any {
+    const dataValues = this.dataValues as any;
     return {
       id: this.id,
       provider_model: this.provider_model, // Keep for backward compatibility
@@ -350,10 +347,12 @@ export class ModelInventoryModel
       biases: this.biases,
       limitations: this.limitations,
       hosting_provider: this.hosting_provider,
-      used_in_projects: this.used_in_projects? this.used_in_projects.split(", ").filter((use) => use.trim()) : [],
+      security_assessment_data: this.security_assessment_data!= undefined ? this.security_assessment_data : [],
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
       updated_at: this.updated_at?.toISOString(),
+      projects: dataValues.projects || [],
+      frameworks: dataValues.frameworks || [],
     };
   }
 
@@ -424,9 +423,7 @@ export class ModelInventoryModel
       biases: data.biases || "",
       limitations: data.limitations || "",
       hosting_provider: data.hosting_provider || "",
-      used_in_projects: Array.isArray(data.used_in_projects)
-      ? data.used_in_projects.join(", ")
-      : data.used_in_projects || "",
+      security_assessment_data : data.security_assessment_data || [],
       is_demo: data.is_demo || false,
       created_at: new Date(),
       updated_at: new Date(),
@@ -484,10 +481,8 @@ export class ModelInventoryModel
     if (data.hosting_provider !== undefined) {
       existingModel.hosting_provider = data.hosting_provider;
     }
-    if (data.used_in_projects !== undefined) {
-      existingModel.used_in_projects = Array.isArray(data.used_in_projects)
-        ? data.used_in_projects.join(", ")
-        : data.used_in_projects;
+    if (data.security_assessment_data !== undefined) {
+      existingModel.security_assessment_data = data.security_assessment_data;
     }
     if (data.is_demo !== undefined) {
       existingModel.is_demo = data.is_demo;

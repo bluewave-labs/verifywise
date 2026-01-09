@@ -20,8 +20,12 @@ import {
   getClausesByProjectId,
   getProjectAnnxesProgress,
   getProjectClausesProgress,
+  getProjectClausesAssignments,
+  getProjectAnnexesAssignments,
   getSubClauseById,
   getSubClausesByClauseId,
+  getSubClauseRisks,
+  getAnnexCategoryRisks,
   saveAnnexes,
   saveClauses,
 } from "../controllers/iso42001.ctrl";
@@ -74,6 +78,20 @@ router.get(
   validateId("projectFrameworkId"),
   getSubClauseById
 );
+// Get all risks linked to a specific ISO 42001 subclause
+router.get(
+  "/subclauses/:id/risks",
+  authenticateJWT,
+  validateId("id"),
+  getSubClauseRisks
+);
+// Get all risks linked to a specific ISO 42001 annex category
+router.get(
+  "/annexCategories/:id/risks",
+  authenticateJWT,
+  validateId("id"),
+  getAnnexCategoryRisks
+);
 router.get(
   "/annexCategory/byId/:id",
   authenticateJWT,
@@ -105,6 +123,20 @@ router.get(
   "/all/annexes/progress",
   authenticateJWT,
   getAllProjectsAnnxesProgress
+);
+
+// assignment endpoints
+router.get(
+  "/clauses/assignments/:id",
+  authenticateJWT,
+  validateId("id"),
+  getProjectClausesAssignments
+);
+router.get(
+  "/annexes/assignments/:id",
+  authenticateJWT,
+  validateId("id"),
+  getProjectAnnexesAssignments
 );
 
 router.patch(

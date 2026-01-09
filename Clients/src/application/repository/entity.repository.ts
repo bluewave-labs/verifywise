@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   GetRequestParams,
   RequestParams,
-} from "../../domain/interfaces/iRequestParams";
+} from "../../domain/interfaces/i.requestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 /**
@@ -57,8 +58,11 @@ export async function getEntityById({
       responseType,
     });
     return response.data;
-  } catch (error) {
-    console.error("Error getting entity by ID:", error);
+  } catch (error: any) {
+    // Don't log 404 errors as they're often expected (e.g., empty lists)
+    if (error?.status !== 404) {
+      console.error("Error getting entity by ID:", error);
+    }
     throw error;
   }
 }
@@ -81,7 +85,7 @@ export async function updateEntityById({
     });
     return response;
   } catch (error) {
-    throw error;
+    console.error("", error);
   }
 }
 
@@ -113,9 +117,10 @@ export async function deleteEntityById({
  */
 export async function getAllEntities({
   routeUrl,
-}: RequestParams): Promise<any> {
+  params,
+}: RequestParams & { params?: Record<string, any> }): Promise<any> {
   try {
-    const response = await apiServices.get(routeUrl);
+    const response = await apiServices.get(routeUrl, { params });
     return response.data;
   } catch (error) {
     console.error("Error getting all users:", error);
@@ -155,6 +160,46 @@ export async function postAutoDrivers(): Promise<any> {
     return response;
   } catch (error) {
     console.error("Error creating demo data:", error);
+    throw error;
+  }
+}
+
+/**
+ * Checks if demo data exists by querying for demo projects.
+ *
+ * @returns {Promise<boolean>} A promise that resolves to true if demo data exists, false otherwise.
+ */
+export async function checkDemoDataExists(): Promise<boolean> {
+  try {
+    const response = await apiServices.get("/projects");
+    const projects = response.data as Array<{ project_title: string }>;
+
+    // Check if any project has demo-specific titles
+    const demoProjectTitles = ["AI Compliance Checker", "Information Security & AI Governance Framework"];
+    const hasDemoProjects = projects.some((project) =>
+      demoProjectTitles.includes(project.project_title)
+    );
+
+    return hasDemoProjects;
+  } catch (error) {
+    console.error("Error checking demo data:", error);
+    return false;
+  }
+}
+
+/**
+ * Deletes demo data by sending a DELETE request to the autoDrivers endpoint.
+ *
+ * @returns {Promise<any>} A promise that resolves to the response data.
+ * @throws Will throw an error if the request fails.
+ */
+export async function deleteAutoDrivers(): Promise<any> {
+  try {
+    const response = await apiServices.delete("/autoDrivers");
+
+    return response;
+  } catch (error) {
+    console.error("Error deleting demo data:", error);
     throw error;
   }
 }
@@ -204,7 +249,7 @@ export async function generateReport({
 
     return response;
   } catch (error) {
-    throw error;
+    console.error("", error);
   }
 }
 
@@ -240,3 +285,29 @@ export const assignFrameworkToProject = async ({
     throw error;
   }
 };
+
+/**
+ * Archives an incident by updating its "isArchived" flag.
+ *
+ * @param {RequestParams} params - The parameters for the archive operation.
+ * @returns {Promise<any>} A promise that resolves to the response after archiving the incident.
+ * @throws Will throw an error if the archive operation fails.
+ */
+export async function archiveIncidentById({
+  routeUrl,
+  body,
+  headers,
+}: RequestParams): Promise<any> {
+  try {
+    // PATCH /incidents/:id/archive
+    const response = await apiServices.patch(`${routeUrl}/archive`, body, {
+      headers: { ...headers },
+    });
+    return response;
+  } catch (error) {
+    console.error("Error archiving incident:", error);
+    throw error;
+  }
+}
+
+

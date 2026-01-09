@@ -2,12 +2,19 @@ import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { sequelize } from "../database/db";
 import { deleteVendorRisksForVendorQuery } from "./vendorRisk.utils";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
-import { QueryTypes, Sequelize, Transaction } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import {
   getUserProjects,
   updateProjectUpdatedByIdQuery,
 } from "./project.utils";
 import { IVendor } from "../domain.layer/interfaces/i.vendor";
+import { enqueueAutomationAction } from "../services/automations/automationProducer";
+import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
+import {
+  buildVendorReplacements,
+  buildVendorUpdateReplacements,
+} from "./automation/vendor.automation.utils";
+import { replaceTemplateVariables } from "./automation/automation.utils";
 
 export const getAllVendorsQuery = async (
   tenant: string
@@ -19,7 +26,8 @@ export const getAllVendorsQuery = async (
       model: VendorModel,
     }
   );
-  for (let vendor of vendors as (VendorModel & { projects: number[] })[]) {
+  const vendorsWithDetails = [];
+  for (let vendor of vendors as VendorModel[]) {
     const projects = await sequelize.query(
       `SELECT project_id FROM "${tenant}".vendors_projects WHERE vendor_id = :vendor_id`,
       {
@@ -28,9 +36,23 @@ export const getAllVendorsQuery = async (
         model: VendorsProjectsModel,
       }
     );
-    vendor["projects"] = projects.map((p) => p.project_id);
+
+    const reviewer_name = (await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :reviewer_id`,
+      {
+        replacements: { reviewer_id: vendor.reviewer },
+      }
+    )) as [{ full_name: string }[], number];
+
+    // Extract dataValues to include all database columns including scorecard fields
+    vendorsWithDetails.push({
+      ...vendor.dataValues,
+      projects: projects.map((p) => p.project_id),
+      reviewer_name:
+        reviewer_name[0].length > 0 ? reviewer_name[0][0].full_name : "",
+    });
   }
-  return vendors;
+  return vendorsWithDetails;
 };
 
 export const getVendorByIdQuery = async (
@@ -126,31 +148,93 @@ export const createNewVendorQuery = async (
   transaction: Transaction,
   is_demo: boolean = false
 ): Promise<VendorModel> => {
+  // Build dynamic query for optional fields
+  const fields = [
+    "order_no",
+    "vendor_name",
+    "vendor_provides",
+    "assignee",
+    "website",
+    "vendor_contact_person",
+    "is_demo",
+  ];
+  const values = [
+    "order_no",
+    "vendor_name",
+    "vendor_provides",
+    "assignee",
+    "website",
+    "vendor_contact_person",
+    "is_demo",
+  ];
+  const replacements: any = {
+    order_no: vendor.order_no || null,
+    vendor_name: vendor.vendor_name,
+    vendor_provides: vendor.vendor_provides,
+    assignee: vendor.assignee,
+    website: vendor.website,
+    vendor_contact_person: vendor.vendor_contact_person,
+    is_demo: is_demo,
+  };
+
+  // Add optional review fields only if provided
+  if (vendor.review_result !== undefined) {
+    fields.push("review_result");
+    values.push("review_result");
+    replacements.review_result = vendor.review_result;
+  }
+  if (vendor.review_status !== undefined) {
+    fields.push("review_status");
+    values.push("review_status");
+    replacements.review_status = vendor.review_status;
+  }
+  if (vendor.reviewer !== undefined) {
+    fields.push("reviewer");
+    values.push("reviewer");
+    replacements.reviewer = vendor.reviewer;
+  }
+  if (vendor.review_date !== undefined) {
+    fields.push("review_date");
+    values.push("review_date");
+    replacements.review_date = vendor.review_date;
+  }
+
+  // Add optional scorecard fields only if provided
+  if (vendor.data_sensitivity !== undefined) {
+    fields.push("data_sensitivity");
+    values.push("data_sensitivity");
+    replacements.data_sensitivity = vendor.data_sensitivity;
+  }
+  if (vendor.business_criticality !== undefined) {
+    fields.push("business_criticality");
+    values.push("business_criticality");
+    replacements.business_criticality = vendor.business_criticality;
+  }
+  if (vendor.past_issues !== undefined) {
+    fields.push("past_issues");
+    values.push("past_issues");
+    replacements.past_issues = vendor.past_issues;
+  }
+  if (vendor.regulatory_exposure !== undefined) {
+    fields.push("regulatory_exposure");
+    values.push("regulatory_exposure");
+    replacements.regulatory_exposure = vendor.regulatory_exposure;
+  }
+  if (vendor.risk_score !== undefined) {
+    fields.push("risk_score");
+    values.push("risk_score");
+    replacements.risk_score = vendor.risk_score;
+  }
+
+  const fieldsList = fields.join(", ");
+  const valuesList = values.map((v) => `:${v}`).join(", ");
+
   const result = await sequelize.query(
-    `INSERT INTO "${tenant}".vendors (
-        order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person,
-        review_result, review_status, reviewer, review_date, is_demo
-      ) VALUES (
-        :order_no, :vendor_name, :vendor_provides, :assignee, :website, :vendor_contact_person,
-        :review_result, :review_status, :reviewer, :review_date, :is_demo
-      ) RETURNING *`,
+    `INSERT INTO "${tenant}".vendors (${fieldsList}) VALUES (${valuesList}) RETURNING *`,
     {
-      replacements: {
-        order_no: vendor.order_no || null,
-        vendor_name: vendor.vendor_name,
-        vendor_provides: vendor.vendor_provides,
-        assignee: vendor.assignee,
-        website: vendor.website,
-        vendor_contact_person: vendor.vendor_contact_person,
-        review_result: vendor.review_result,
-        review_status: vendor.review_status,
-        reviewer: vendor.reviewer,
-        review_date: vendor.review_date,
-        is_demo: is_demo,
-      },
+      replacements,
       mapToModel: true,
       model: VendorModel,
-      // type: QueryTypes.INSERT
       transaction,
     }
   );
@@ -168,6 +252,50 @@ export const createNewVendorQuery = async (
     createdVendor["projects"] = vendors_projects.map((p) => p.project_id);
   }
   await updateProjectUpdatedByIdQuery(vendorId, "vendors", tenant, transaction);
+
+  const automations = (await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      a.id AS automation_id,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'vendor_added' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "vendor_added") {
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildVendorReplacements(createdVendor);
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
+        automation_id: automation.automation_id,
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
+    } else {
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
+    }
+  }
   return createdVendor;
 };
 
@@ -198,18 +326,49 @@ export const updateVendorByIdQuery = async (
     "review_status",
     "reviewer",
     "review_date",
+    "data_sensitivity",
+    "business_criticality",
+    "past_issues",
+    "regulatory_exposure",
+    "risk_score",
   ]
     .filter((f) => {
-      if (
-        vendor[f as keyof IVendor] !== undefined &&
-        vendor[f as keyof IVendor]
-      ) {
-        updateVendor[f as keyof IVendor] = vendor[f as keyof IVendor];
-        return true;
+      // For review and scorecard fields, allow undefined or null to be updated (to clear the field)
+      // For other required fields, only update if they have a value
+      const isReviewField = [
+        "review_result",
+        "review_status",
+        "reviewer",
+        "review_date",
+      ].includes(f);
+      const isScorecardField = [
+        "data_sensitivity",
+        "business_criticality",
+        "past_issues",
+        "regulatory_exposure",
+        "risk_score",
+      ].includes(f);
+      const value = vendor[f as keyof IVendor];
+
+      if (isReviewField || isScorecardField) {
+        // Review and scorecard fields: include if explicitly provided (even if null/empty)
+        if (value !== undefined) {
+          updateVendor[f as keyof IVendor] = value;
+          return true;
+        }
+      } else {
+        // Required fields: include only if they have a value
+        if (value !== undefined && value) {
+          updateVendor[f as keyof IVendor] = value;
+          return true;
+        }
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
+
+  const oldVendor = await getVendorByIdQuery(id, tenant);
 
   const query = `UPDATE "${tenant}".vendors SET ${setClause} WHERE id = :id RETURNING *;`;
 
@@ -254,7 +413,54 @@ export const updateVendorByIdQuery = async (
     result[0]["projects"] = projects.map((p) => p.project_id);
   }
   await updateProjectUpdatedByIdQuery(id, "vendors", tenant, transaction);
-  return result[0];
+  const updatedVendor = result[0];
+  const automations = (await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      a.id AS automation_id,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'vendor_updated' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "vendor_updated") {
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildVendorUpdateReplacements(
+        oldVendor,
+        updatedVendor
+      );
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
+        automation_id: automation.automation_id,
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
+    } else {
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
+    }
+  }
+  return updatedVendor;
 };
 
 export const deleteVendorByIdQuery = async (
@@ -275,7 +481,7 @@ export const deleteVendorByIdQuery = async (
     }
   );
   const result = await sequelize.query(
-    `DELETE FROM "${tenant}".vendors WHERE id = :id RETURNING id`,
+    `DELETE FROM "${tenant}".vendors WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -284,6 +490,50 @@ export const deleteVendorByIdQuery = async (
       transaction,
     }
   );
+  const deletedVendor = result[0];
+  const automations = (await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      a.id AS automation_id,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'vendor_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "vendor_deleted") {
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildVendorReplacements(deletedVendor);
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
+        automation_id: automation.automation_id,
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
+    } else {
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
+    }
+  }
   return result.length > 0;
 };
 

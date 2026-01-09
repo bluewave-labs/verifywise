@@ -7,64 +7,285 @@ import {
   TablePagination,
   TableRow,
   useTheme,
-  Stack,
   Typography,
   TableFooter,
   Box,
+  Stack,
 } from "@mui/material";
-import { useCallback, useMemo, useState } from "react";
-import Placeholder from "../../../assets/imgs/empty-state.svg";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import IconButton from "../../IconButton";
-import CustomizableButton from "../../Button/CustomizableButton";
+import ViewRelationshipsButton from "../../ViewRelationshipsButton";
+import EmptyState from "../../EmptyState";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { formatDate } from "../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import VendorRisksDialog from "../../VendorRisksDialog";
-import { VendorDetails } from "../../../pages/Vendors";
-import { User } from "../../../../domain/types/User";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
+import { User } from "../../../../domain/types/User";
+import { ITableWithPlaceholderProps } from "../../../types/interfaces/i.table";
+import { ReviewStatus } from "../../../../domain/enums/status.enum";
+import { getRiskScoreColor } from "../../../../domain/utils/vendorScorecard.utils";
+import { VWLink } from "../../Link";
+import VendorLogo from "../../VendorLogo";
+
+const VENDORS_ROWS_PER_PAGE_KEY = "verifywise_vendors_rows_per_page";
+const VENDORS_SORTING_KEY = "verifywise_vendors_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
 
 const titleOfTableColumns = [
-  "name",
-  "assignee",
-  "status",
-  "risk",
-  "review date",
-  "",
+  { id: "vendor_name", label: "name", sortable: true },
+  { id: "assignee", label: "assignee", sortable: true },
+  { id: "review_status", label: "status", sortable: true },
+  { id: "risk", label: "risks", sortable: true },
+  { id: "scorecard", label: "scorecard", sortable: true },
+  { id: "review_date", label: "review date", sortable: true },
+  { id: "actions", label: "", sortable: false },
 ];
 
-interface TableWithPlaceholderProps {
-  vendors: VendorDetails[];
-  users: User[];
-  onDelete: (vendorId: number) => void;
-  onEdit: (vendorId: number) => void;
-}
+const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
-const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
+// Sortable Table Header Component
+const SortableTableHead: React.FC<{
+  columns: typeof titleOfTableColumns;
+  sortConfig: SortConfig;
+  onSort: (columnId: string) => void;
+}> = ({ columns, sortConfig, onSort }) => {
+  const theme = useTheme();
+
+  return (
+    <TableHead
+      sx={{
+        backgroundColor:
+          singleTheme.tableStyles.primary.header.backgroundColors,
+      }}
+    >
+      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+        {columns.map((column) => (
+          <TableCell
+            key={column.id}
+            sx={{
+              ...singleTheme.tableStyles.primary.header.cell,
+              ...(column.sortable
+                ? {
+                    cursor: "pointer",
+                    userSelect: "none",
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 0, 0, 0.04)",
+                    },
+                  }
+                : {}),
+            }}
+            onClick={() => column.sortable && onSort(column.id)}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: theme.spacing(2),
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 500,
+                  color:
+                    sortConfig.key === column.id ? "primary.main" : "inherit",
+                }}
+              >
+                {column.label}
+              </Typography>
+              {column.sortable && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color:
+                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                  }}
+                >
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "asc" && <ChevronUp size={16} />}
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "desc" && (
+                      <ChevronDown size={16} />
+                    )}
+                  {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
+                </Box>
+              )}
+            </Box>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+  );
+};
+
+const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   users,
   vendors,
   onDelete,
   onEdit,
+  hidePagination = false,
+  vendorRisks = [],
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(
-    null
-  );
+
+  // Initialize rowsPerPage from localStorage or default to 5
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    const saved = localStorage.getItem(VENDORS_ROWS_PER_PAGE_KEY);
+    return saved ? parseInt(saved, 10) : 5;
+  });
+
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(VENDORS_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save rowsPerPage to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(VENDORS_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
+  }, [rowsPerPage]);
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(VENDORS_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
   const [showVendorRisks, setShowVendorRisks] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState<{ id: number; name: string } | null>(null);
-  const formattedUsers = users?.map((user:any) => ({
+  const [selectedVendor, setSelectedVendor] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+
+  const formattedUsers = users?.map((user: User) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
 
+  // Get risk count for a specific vendor
+  const getVendorRiskCount = useCallback(
+    (vendorId: number) => {
+      return vendorRisks.filter((risk) => risk.vendor_id === vendorId).length;
+    },
+    [vendorRisks]
+  );
+
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName)
+  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
+
+  // Sorting handlers
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
+
+  // Sort the vendors based on current sort configuration
+  const sortedVendors = useMemo(() => {
+    if (!vendors || !sortConfig.key || !sortConfig.direction) {
+      return vendors || [];
+    }
+
+    const sortableVendors = [...vendors];
+
+    return sortableVendors.sort((a: VendorModel, b: VendorModel) => {
+      // Status order function based on actual ReviewStatus enum values
+      const getStatusValue = (status: ReviewStatus) => {
+        switch (status) {
+          case ReviewStatus.NotStarted:
+            return 1; // "Not started"
+          case ReviewStatus.InReview:
+            return 2; // "In review"
+          case ReviewStatus.RequiresFollowUp:
+            return 3; // "Requires follow-up"
+          case ReviewStatus.Reviewed:
+            return 4; // "Reviewed"
+          default:
+            return 0; // fallback for unknown values
+        }
+      };
+
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortConfig.key) {
+        case "vendor_name":
+          aValue = a.vendor_name.toLowerCase();
+          bValue = b.vendor_name.toLowerCase();
+          break;
+
+        case "assignee":
+          aValue = a.assignee;
+          bValue = b.assignee;
+          break;
+
+        case "review_status":
+          aValue = getStatusValue(a.review_status);
+          bValue = getStatusValue(b.review_status);
+          break;
+
+        case "review_date":
+          aValue = new Date(a.review_date).getTime();
+          bValue = new Date(b.review_date).getTime();
+          break;
+
+        case "scorecard":
+          aValue = a.risk_score ?? 0;
+          bValue = b.risk_score ?? 0;
+          break;
+
+        case "risk":
+          aValue = getVendorRiskCount(a.id!);
+          bValue = getVendorRiskCount(b.id!);
+          break;
+
+        default:
+          return 0;
+      }
+
+      // Handle string comparisons
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      // Handle number comparisons
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [vendors, sortConfig, getVendorRiskCount]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -78,14 +299,13 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
     []
   );
 
-  const handleDropdownClose = useCallback(() => {
-    setDropdownAnchor(null);
-  }, []);
-
-  const openVendorRisksDialog = useCallback((vendorId: number, vendorName: string) => {
-    setSelectedVendor({ id: vendorId, name: vendorName });
-    setShowVendorRisks(true);
-  }, []);
+  const openVendorRisksDialog = useCallback(
+    (vendorId: number, vendorName: string) => {
+      setSelectedVendor({ id: vendorId, name: vendorName });
+      setShowVendorRisks(true);
+    },
+    []
+  );
 
   const closeVendorRisksDialog = useCallback(() => {
     setShowVendorRisks(false);
@@ -96,238 +316,317 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
     const start = page * rowsPerPage + 1;
     const end = Math.min(
       page * rowsPerPage + rowsPerPage,
-      vendors?.length ?? 0
+      sortedVendors?.length ?? 0
     );
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, vendors?.length ?? 0]);
-
-  const tableHeader = useMemo(
-    () => (
-      <TableHead
-        sx={{
-          backgroundColors:
-            singleTheme.tableStyles.primary.header.backgroundColors,
-        }}
-      >
-        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-          {titleOfTableColumns.map((cell, index) => (
-            <TableCell
-              style={{
-                ...singleTheme.tableStyles.primary.header.cell,
-                ...(index === titleOfTableColumns.length - 1
-                  ? {
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
-                    backgroundColor:
-                      singleTheme.tableStyles.primary.header.backgroundColors,
-                  }
-                  : {}),
-              }}
-              key={index}
-            >
-              {cell}
-            </TableCell>
-          ))}
-        </TableRow>
-      </TableHead>
-    ),
-    []
-  );
+  }, [page, rowsPerPage, sortedVendors?.length]);
 
   const tableBody = useMemo(
     () => (
       <TableBody>
-        {vendors &&
-          vendors
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: any, index: number) => (
+        {sortedVendors &&
+          sortedVendors
+            .slice(
+              hidePagination ? 0 : page * rowsPerPage,
+              hidePagination
+                ? Math.min(sortedVendors.length, 100)
+                : page * rowsPerPage + rowsPerPage
+            )
+            .map((row: VendorModel, index: number) => (
               <TableRow
                 key={index}
-                sx={singleTheme.tableStyles.primary.body.row}
-                // onClick={() => onEdit(row.id)}  
-                // Removed row-level onClick to prevent accidental edit modal opening
-                // Editing is now handled only through the actions menu (IconButton)    
-              >
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {row.vendor_name}
-                </TableCell>
-                <TableCell sx={cellStyle}>
-                  {
-                    row.assignee
-                      ? formattedUsers?.find(
-                          (user:any) => user._id === row.assignee
-                        )?.name || "Unassigned"
-                      : "Unassigned"
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.row,
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "#f5f5f5",
+                  },
+                  outline: "none",
+                }}
+                onClick={() => onEdit(row.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onEdit(row.id);
                   }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Edit vendor ${row.vendor_name}`}
+              >
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor:
+                      sortConfig.key === "vendor_name" ? "#e8e8e8" : "#fafafa",
+                  }}
+                >
+                  <VendorLogo
+                    website={row.website || ""}
+                    vendorName={row.vendor_name}
+                    size={32}
+                    showName={true}
+                  />
                 </TableCell>
-                <TableCell sx={cellStyle}>{row.review_status}</TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor:
+                      sortConfig.key === "assignee" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {row.assignee
+                    ? formattedUsers?.find(
+                        (user: { _id: number; name: string }) =>
+                          user._id === row.assignee
+                      )?.name || "Unassigned"
+                    : "Unassigned"}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor:
+                      sortConfig.key === "review_status"
+                        ? "#f5f5f5"
+                        : "inherit",
+                  }}
+                >
+                  {row.review_status}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor:
+                      sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {(() => {
+                    const riskCount = getVendorRiskCount(row.id!);
+                    return riskCount > 0 ? (
+                      <VWLink
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openVendorRisksDialog(row.id!, row.vendor_name);
+                        }}
+                        showIcon={false}
+                      >
+                        {riskCount} risk{riskCount !== 1 ? "s" : ""}
+                      </VWLink>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: "#98A2B3" }}>
+                        No risks
+                      </Typography>
+                    );
+                  })()}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor:
+                      sortConfig.key === "scorecard" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Box display="flex" alignItems="center" gap={1}>
-                    {/* <RiskChip label={row.risk_status} /> */}
-                    <CustomizableButton
-                      sx={singleTheme.tableStyles.primary.body.button}
-                      variant="contained"
-                      text="View risks"
-                      onClick={(e: React.MouseEvent<HTMLElement>) => {
-                        e.stopPropagation();
-                        openVendorRisksDialog(row.id, row.vendor_name);
-                      }}
-                    />
+                    {(() => {
+                      // Use only backend provided risk_score, no client-side calculations
+                      const riskScore = row.risk_score ?? 0;
+                      const riskColor = getRiskScoreColor(riskScore);
+
+                      return (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            backgroundColor: `${riskColor}20`,
+                            border: `1px solid ${riskColor}`,
+                            minWidth: "50px",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              backgroundColor: riskColor,
+                            }}
+                          />
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontSize: "11px",
+                              fontWeight: 500,
+                              color: riskColor,
+                            }}
+                          >
+                            {riskScore}%
+                          </Typography>
+                        </Box>
+                      );
+                    })()}
                   </Box>
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor:
+                      sortConfig.key === "review_date" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {row.review_date
-                    ? formatDate(row.review_date.toString())
+                    ? displayFormattedDate(row.review_date.toString())
                     : "No review date"}
                 </TableCell>
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
                   }}
+                  onClick={(e) => e.stopPropagation()}
                 >
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <ViewRelationshipsButton
+                      entityId={row.id || 0}
+                      entityType="vendor"
+                      entityLabel={row.vendor_name || undefined}
+                    />
                     <IconButton
-                      id={row.id}
+                      id={row.id!}
                       onDelete={() => onDelete(row.id)}
                       onEdit={() => onEdit(row.id)}
-                      onMouseEvent={() => { }}
+                      onMouseEvent={() => {}}
                       warningTitle="Delete this vendor?"
                       warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
                       type="Vendor"
                       canDelete={isDeletingAllowed} // pass down as a prop
-                  />
-
+                    />
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}
       </TableBody>
     ),
     [
-      vendors,
+      sortedVendors,
       page,
       rowsPerPage,
       cellStyle,
-      dropdownAnchor,
-      handleDropdownClose,
       openVendorRisksDialog,
       formattedUsers,
+      onEdit,
+      onDelete,
+      isDeletingAllowed,
+      sortConfig.key,
+      getVendorRiskCount,
+      hidePagination,
     ]
   );
 
   return (
     <>
-      {!vendors || vendors.length === 0 ? (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            padding: theme.spacing(15, 5),
-            paddingBottom: theme.spacing(20),
-            gap: theme.spacing(10),
-            minHeight: 200,
-          }}
-        >
-          <img src={Placeholder} alt="Placeholder" />
-          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-            There is currently no data in this table.
-          </Typography>
-        </Stack>
+      {!sortedVendors || sortedVendors.length === 0 ? (
+        <EmptyState
+          message="There is currently no data in this table."
+          showBorder
+        />
       ) : (
         <TableContainer>
-          <Table
-            sx={
-              singleTheme.tableStyles.primary.frame
-            }
-          >
-            {tableHeader}
+          <Table sx={singleTheme.tableStyles.primary.frame}>
+            <SortableTableHead
+              columns={titleOfTableColumns}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+            />
             {tableBody}
-            <TableFooter>
-              <TableRow sx={{
-                  '& .MuiTableCell-root.MuiTableCell-footer': {
-                    paddingX: theme.spacing(8),
-                    paddingY: theme.spacing(4),
-                  }}}>
-                <TableCell
-                  sx={{ 
-                    paddingX: theme.spacing(2),
-                    fontSize: 12,
-                    opacity: 0.7 }}
+            {!hidePagination && (
+              <TableFooter>
+                <TableRow
+                  sx={{
+                    "& .MuiTableCell-root.MuiTableCell-footer": {
+                      paddingX: theme.spacing(8),
+                      paddingY: theme.spacing(4),
+                    },
+                  }}
+                >
+                  <TableCell
+                    sx={{
+                      paddingX: theme.spacing(2),
+                      fontSize: 12,
+                      opacity: 0.7,
+                    }}
                   >
-                  Showing {getRange} of {vendors?.length} vendor(s)
-                </TableCell>
-                <TablePagination
-                  count={vendors?.length}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  rowsPerPage={rowsPerPage}
-                  rowsPerPageOptions={[5, 10, 15, 25]}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  ActionsComponent={(props) => (
-                    <TablePaginationActions {...props} />
-                  )}
-                  labelRowsPerPage="Rows per page"
-                  labelDisplayedRows={({ page, count }) =>
-                    `Page ${page + 1} of ${Math.max(
-                      0,
-                      Math.ceil(count / rowsPerPage)
-                    )}`
-                  }
-                  slotProps={{
-                    select: {
-                      MenuProps: {
-                        keepMounted: true,
-                        PaperProps: {
-                          className: "pagination-dropdown",
-                          sx: {
-                            mt: 0,
-                            mb: theme.spacing(2),
+                    Showing {getRange} of {sortedVendors?.length} vendor(s)
+                  </TableCell>
+                  <TablePagination
+                    count={sortedVendors?.length}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={rowsPerPage}
+                    rowsPerPageOptions={[5, 10, 15, 25]}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    ActionsComponent={(props) => (
+                      <TablePaginationActions {...props} />
+                    )}
+                    labelRowsPerPage="Rows per page"
+                    labelDisplayedRows={({ page, count }) =>
+                      `Page ${page + 1} of ${Math.max(
+                        0,
+                        Math.ceil(count / rowsPerPage)
+                      )}`
+                    }
+                    slotProps={{
+                      select: {
+                        MenuProps: {
+                          keepMounted: true,
+                          PaperProps: {
+                            className: "pagination-dropdown",
+                            sx: {
+                              mt: 0,
+                              mb: theme.spacing(2),
+                            },
+                          },
+                          transformOrigin: {
+                            vertical: "bottom",
+                            horizontal: "left",
+                          },
+                          anchorOrigin: {
+                            vertical: "top",
+                            horizontal: "left",
+                          },
+                          sx: { mt: theme.spacing(-2) },
+                        },
+                        inputProps: { id: "pagination-dropdown" },
+                        IconComponent: SelectorVertical,
+                        sx: {
+                          ml: theme.spacing(4),
+                          mr: theme.spacing(12),
+                          minWidth: theme.spacing(20),
+                          textAlign: "left",
+                          "&.Mui-focused > div": {
+                            backgroundColor: theme.palette.background.main,
                           },
                         },
-                        transformOrigin: {
-                          vertical: "bottom",
-                          horizontal: "left",
-                        },
-                        anchorOrigin: {
-                          vertical: "top",
-                          horizontal: "left",
-                        },
-                        sx: { mt: theme.spacing(-2) },
                       },
-                      inputProps: { id: "pagination-dropdown" },
-                      IconComponent: SelectorVertical,
-                      sx: {
-                        ml: theme.spacing(4),
-                        mr: theme.spacing(12),
-                        minWidth: theme.spacing(20),
-                        textAlign: "left",
-                        "&.Mui-focused > div": {
-                          backgroundColor: theme.palette.background.main,
-                        },
+                    }}
+                    sx={{
+                      mt: theme.spacing(6),
+                      color: theme.palette.text.secondary,
+                      "& .MuiSelect-icon": {
+                        width: "24px",
+                        height: "fit-content",
                       },
-                    },
-                  }}
-                  sx={{
-                    mt: theme.spacing(6),
-                    color: theme.palette.text.secondary,
-                    "& .MuiSelect-icon": {
-                      width: "24px",
-                      height: "fit-content",
-                    },
-                    "& .MuiSelect-select": {
-                      width: theme.spacing(10),
-                      borderRadius: theme.shape.borderRadius,
-                      border: `1px solid ${theme.palette.border.light}`,
-                      padding: theme.spacing(4),
-                    },
-                  }}
-                />
-              </TableRow>
-            </TableFooter>
+                      "& .MuiSelect-select": {
+                        width: theme.spacing(10),
+                        borderRadius: theme.shape.borderRadius,
+                        border: `1px solid ${theme.palette.border.light}`,
+                        padding: theme.spacing(4),
+                      },
+                    }}
+                  />
+                </TableRow>
+              </TableFooter>
+            )}
           </Table>
         </TableContainer>
       )}

@@ -284,20 +284,20 @@ export const validateModelRiskCreationBusinessRules = (data: any): ValidationErr
     }
   }
 
-  // Validate risk name doesn't contain inappropriate terms
-  if (data.riskName) {
-    const inappropriateTerms = ['test', 'dummy', 'fake', 'sample', 'todo'];
-    const containsInappropriate = inappropriateTerms.some(term =>
-      data.riskName.toLowerCase().includes(term.toLowerCase())
-    );
-    if (containsInappropriate) {
-      errors.push({
-        field: 'riskName',
-        message: 'Risk name should not contain test or placeholder terms',
-        code: 'INAPPROPRIATE_RISK_NAME'
-      });
-    }
-  }
+  // // Validate risk name doesn't contain inappropriate terms
+  // if (data.riskName) {
+  //   const inappropriateTerms = ['test', 'dummy', 'fake', 'sample', 'todo'];
+  //   const containsInappropriate = inappropriateTerms.some(term =>
+  //     data.riskName.toLowerCase().includes(term.toLowerCase())
+  //   );
+  //   if (containsInappropriate) {
+  //     errors.push({
+  //       field: 'riskName',
+  //       message: 'Risk name should not contain test or placeholder terms',
+  //       code: 'INAPPROPRIATE_RISK_NAME'
+  //     });
+  //   }
+  // }
 
   return errors;
 };

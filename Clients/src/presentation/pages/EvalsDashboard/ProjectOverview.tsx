@@ -345,13 +345,19 @@ export default function ProjectOverview({
         judgeDisplay = scorerName;
       }
 
+      // Calculate prompt count from config or results
+      const promptCount = exp.config?.dataset?.count ||
+        exp.config?.dataset?.prompts?.length ||
+        exp.results?.total_prompts ||
+        0;
+
       return {
         id: exp.id,
         name: exp.name,
         model: exp.config?.model?.name || "Unknown",
         judge: judgeDisplay,
         dataset: datasetName,
-        prompts: exp.sampleCount || 0,
+        prompts: promptCount,
         date: createdDate,
         status:
           exp.status === "completed" ? "Completed" :

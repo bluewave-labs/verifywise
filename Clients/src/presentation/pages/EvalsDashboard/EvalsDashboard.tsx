@@ -698,7 +698,7 @@ export default function EvalsDashboard() {
       } else {
         setSelectedExperimentId(experimentId);
         setTab("experiments");
-        navigate(`${location.pathname}#experiments`, { replace: true });
+        navigate(`${location.pathname}#experiments`);
       }
     });
     sidebarContext.setOnProjectClick(() => (clickedProjectId: string) => {
@@ -1125,7 +1125,7 @@ export default function EvalsDashboard() {
       )}
 
       {/* Main content */}
-      <Box sx={{ flex: 1, margin: 0, padding: 0 }}>
+      <Box sx={{ flex: 1, margin: 0, padding: 0, minWidth: 0, overflow: "hidden" }}>
           {/* Show nothing while initially loading to prevent flash */}
           {initialLoading && !projectId ? null : (
           /* Settings tab - always available regardless of project selection */
@@ -1572,7 +1572,7 @@ export default function EvalsDashboard() {
                   onViewExperiment={(experimentId) => {
                     setSelectedExperimentId(experimentId);
                     setTab("experiments");
-                    navigate(`${location.pathname}#experiments`, { replace: true });
+                    navigate(`${location.pathname}#experiments`);
                   }}
                 />
               )}

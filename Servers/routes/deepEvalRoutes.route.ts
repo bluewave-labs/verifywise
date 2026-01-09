@@ -7,13 +7,7 @@ import { getDecryptedKeyForProviderQuery } from "../utils/evaluationLlmApiKey.ut
 // JSON body parser for routes that need to inspect/modify the body before proxying
 const jsonParser = express.json({ limit: "50mb" });
 
-function addHeaders(req: Request, _res: Response, next: NextFunction) {
-  req.headers["x-organization-id"] = req.organizationId?.toString();
-  req.headers["x-user-id"] = req.userId?.toString();
-  req.headers["x-role"] = req.role;
-  req.headers["x-tenant-id"] = req.tenantId;
-  next();
-}
+// Headers are now set directly in the proxyReq handler to ensure they're forwarded
 
 /**
  * Middleware to inject API keys for experiment creation and arena comparisons
@@ -198,6 +192,21 @@ function deepEvalRoutes() {
     pathRewrite: { "^/": "/deepeval/" },
     on: {
       proxyReq: (proxyReq, req) => {
+        // Forward custom headers to the proxy target
+        const expressReq = req as Request;
+        if (expressReq.tenantId) {
+          proxyReq.setHeader("x-tenant-id", expressReq.tenantId);
+        }
+        if (expressReq.organizationId) {
+          proxyReq.setHeader("x-organization-id", expressReq.organizationId.toString());
+        }
+        if (expressReq.userId) {
+          proxyReq.setHeader("x-user-id", expressReq.userId.toString());
+        }
+        if (expressReq.role) {
+          proxyReq.setHeader("x-role", expressReq.role);
+        }
+
         // Fix request body - this re-streams the parsed body to the proxy target
         // Required because body-parser consumed the original stream
         fixRequestBody(proxyReq, req as Request);
@@ -221,7 +230,7 @@ function deepEvalRoutes() {
     },
   });
 
-  return [authenticateJWT, jsonParser, addHeaders, injectApiKeys, proxy];
+  return [authenticateJWT, jsonParser, injectApiKeys, proxy];
 }
 
 export default deepEvalRoutes;

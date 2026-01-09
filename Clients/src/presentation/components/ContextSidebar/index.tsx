@@ -42,12 +42,12 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
   const handleTabChange = (newTab: string) => {
     const pathParts = location.pathname.split("/");
     const hasProjectInUrl = pathParts.length > 2 && pathParts[2]; // /evals/:projectId
-    
+
     // If there's no project in URL but we have a selected project, navigate to that project
     if (!hasProjectInUrl && evalsSidebarContext?.currentProject) {
-      navigate(`/evals/${evalsSidebarContext.currentProject.id}#${newTab}`, { replace: true });
+      navigate(`/evals/${evalsSidebarContext.currentProject.id}#${newTab}`);
     } else {
-      navigate(`${location.pathname}#${newTab}`, { replace: true });
+      navigate(`${location.pathname}#${newTab}`);
     }
   };
 

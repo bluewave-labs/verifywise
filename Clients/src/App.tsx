@@ -28,6 +28,7 @@ import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
 import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
+import { AdvisorConversationProvider } from './application/contexts/AdvisorConversation.context';
 
 // Auth routes where the helper sidebar should not be shown
 const AUTH_ROUTES = [
@@ -94,33 +95,27 @@ function App() {
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
   const { completeOnboarding, state, isLoading: isOnboardingLoading } = useOnboarding();
-  const [showModal, setShowModal] = useState(false);
 
   // Onboarding should ONLY show on the dashboard (/) route
   const isDashboardRoute = location.pathname === '/';
 
-  // Update modal visibility based on onboarding state and current route
-  useEffect(() => {
-    // Only show modal if:
-    // 1. User is authenticated (has token and userId)
-    // 2. Onboarding state is loaded (not loading)
-    // 3. Onboarding is not complete (first login)
-    // 4. Currently on dashboard route (/)
-    if (token && userId && !isOnboardingLoading && !state.isComplete && isDashboardRoute) {
-      setShowModal(true);
-    } else {
-      setShowModal(false);
-    }
-  }, [token, userId, isOnboardingLoading, state.isComplete, isDashboardRoute]);
+  // Derive modal visibility from onboarding state and current route
+  // Only show modal if:
+  // 1. User is authenticated (has token and userId)
+  // 2. Onboarding state is loaded (not loading)
+  // 3. Onboarding is not complete (first login)
+  // 4. Currently on dashboard route (/)
+  const showModal = useMemo(
+    () => token && userId && !isOnboardingLoading && !state.isComplete && isDashboardRoute,
+    [token, userId, isOnboardingLoading, state.isComplete, isDashboardRoute]
+  );
 
   const handleOnboardingComplete = useCallback(() => {
     completeOnboarding();
-    setShowModal(false);
   }, [completeOnboarding]);
 
   const handleOnboardingSkip = useCallback(() => {
     completeOnboarding();
-    setShowModal(false);
   }, [completeOnboarding]);
 
   useEffect(() => {
@@ -224,7 +219,7 @@ function App() {
       errorFetchingProjectStatus,
       currentProjectId,
       setCurrentProjectId,
-      userIdForProject,
+      userId,
       projects,
       setProjects,
       componentsVisible,
@@ -274,8 +269,10 @@ function App() {
                   {createRoutes(triggerSidebar, triggerSidebarReload)}
                 </Routes>
 
-                {/* User Guide Sidebar */}
-                <UserGuideSidebarContainer />
+                {/* User Guide Sidebar with Advisor Conversation persistence */}
+                <AdvisorConversationProvider>
+                  <UserGuideSidebarContainer />
+                </AdvisorConversationProvider>
               </ConditionalThemeWrapper>
             </UserGuideSidebarProvider>
           </VerifyWiseContext.Provider>

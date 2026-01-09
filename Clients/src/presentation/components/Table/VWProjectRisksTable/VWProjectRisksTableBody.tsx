@@ -204,22 +204,6 @@ const VWProjectRisksTableBody = ({
                     ...getCellStyle(row),
                     backgroundColor: flashRow === row.id
                       ? singleTheme.flashColors.background
-                      : sortConfig.key === "likelihood"
-                      ? "#f5f5f5"
-                      : "",
-                  }}
-                >
-                  {row.likelihood ? (
-                    <Chip label={row.likelihood} />
-                  ) : (
-                    "-"
-                  )}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...getCellStyle(row),
-                    backgroundColor: flashRow === row.id
-                      ? singleTheme.flashColors.background
                       : sortConfig.key === "mitigation_status"
                       ? "#f5f5f5"
                       : "",

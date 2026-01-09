@@ -46,7 +46,6 @@ const titleOfTableColumns = [
   { id: "project_titles", label: "use case", sortable: true },
   { id: "action_owner", label: "action owner", sortable: true },
   { id: "risk_severity", label: "risk severity", sortable: true },
-  { id: "likelihood", label: "likelihood", sortable: true },
   { id: "risk_level", label: "risk level", sortable: true },
   { id: "actions", label: " ", sortable: false },
 ];
@@ -551,15 +550,6 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                   }}
                 >
                   {row.risk_severity ? <Chip label={row.risk_severity} /> : "-"}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...getCellStyle(row),
-                    backgroundColor:
-                      sortConfig.key === "likelihood" ? "#f5f5f5" : "inherit",
-                  }}
-                >
-                  {row.likelihood}
                 </TableCell>
                 <TableCell
                   sx={{

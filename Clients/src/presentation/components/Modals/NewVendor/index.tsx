@@ -205,7 +205,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         reviewer: existingVendor.reviewer || null,
         reviewResult: existingVendor.review_result,
         assignee: existingVendor.assignee || null,
-        reviewDate: dayjs(existingVendor.review_date).toISOString(),
+        reviewDate: existingVendor.review_date && dayjs(existingVendor.review_date).isValid()
+          ? dayjs(existingVendor.review_date).toISOString()
+          : "",
         dataSensitivity: existingVendor.data_sensitivity || "",
         businessCriticality: existingVendor.business_criticality || "",
         pastIssues: existingVendor.past_issues || "",
@@ -330,12 +332,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     if (values.assignee === null) {
       newErrors.assignee = "Please select an assignee from the dropdown";
     }
-
-     // New validation: reviewer and assignee can't be the same (only if reviewer is provided)
-      if (values.reviewer != null && values.assignee != null && values.reviewer === values.assignee) {
-        newErrors.reviewer = "Reviewer and assignee cannot be the same";
-        newErrors.assignee = "Reviewer and assignee cannot be the same";
-      }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

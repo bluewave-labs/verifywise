@@ -46,9 +46,11 @@ import YAML from "yamljs";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
+import llmKeyRouter from "./routes/llmKey.route";
 import nistAiRmfRoutes from "./routes/nist_ai_rmf.route";
 import evidenceHubRouter from "./routes/evidenceHub.route";
 import ceMarkingRoutes from "./routes/ceMarking.route";
+import advisorRouter from "./routes/advisor.route";
 import searchRoutes from "./routes/search.route";
 import deepEvalRoutes from "./routes/deepEvalRoutes.route";
 import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
@@ -60,6 +62,8 @@ import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
 import policyLinkedObjects from "./routes/policyLinkedObjects.route";
+import aiDetectionRoutes from "./routes/aiDetection.route";
+import githubIntegrationRoutes from "./routes/githubIntegration.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -119,9 +123,9 @@ try {
       // Let the proxy handle the raw body for bias/fairness
       return next();
     }
-    // For deepeval experiment creation, we need to parse body to inject API keys
+    // For deepeval experiment creation and arena comparisons, we need to parse body to inject API keys
     // For other deepeval routes, let proxy handle raw body
-    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments")) {
+    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments") && !req.url.includes("/arena/compare")) {
       return next();
     }
     express.json()(req, res, next);
@@ -178,8 +182,10 @@ try {
   app.use("/api/automations", automation);
   app.use("/api/integrations/mlflow", integrationsRoutes);
   app.use("/api/user-preferences", userPreferenceRouter);
+  app.use("/api/llm-keys", llmKeyRouter);
   app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
   app.use("/api/evidenceHub", evidenceHubRouter);
+  app.use("/api/advisor", advisorRouter);
   app.use("/api/policy-linked", policyLinkedObjects);
 
   // Adding background jobs in the Queue
@@ -198,6 +204,8 @@ try {
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
   app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
   app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
+  app.use("/api/ai-detection", aiDetectionRoutes);
+  app.use("/api/integrations/github", githubIntegrationRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

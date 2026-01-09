@@ -37,11 +37,10 @@ const columns = [
   { id: "risk_name", label: "RISK NAME", sortable: true }, // value from risk tab
   { id: "risk_owner", label: "OWNER", sortable: true }, // value from risk tab
   { id: "severity", label: "SEVERITY", sortable: true }, // value from risk tab
-  { id: "likelihood", label: "LIKELIHOOD", sortable: true }, // value from risk tab
   { id: "mitigation_status", label: "MITIGATION STATUS", sortable: true }, // mitigation status
   { id: "risk_level_autocalculated", label: "RISK LEVEL", sortable: true }, // risk auto calculated value from risk tab
   { id: "deadline", label: "TARGET DATE", sortable: true }, // start date (deadline) value from mitigation tab
-  { id: "controls_mapping", label: "LINKED CONTROLS", sortable: true }, // controls mapping value from risk tab
+  { id: "controls_mapping", label: "CONTROLS", sortable: true }, // controls mapping value from risk tab
   { id: "actions", label: "", sortable: false },
 ];
 
@@ -189,12 +188,14 @@ const VWProjectRisksTable = ({
 
     return sortableRows.sort((a: RiskModel, b: RiskModel) => {
       // Helper functions for sorting
+      // Severity values: Negligible, Minor, Moderate, Major, Catastrophic
       const getSeverityValue = (severity: string) => {
         const severityLower = severity.toLowerCase();
-        if (severityLower.includes("critical")) return 4;
-        if (severityLower.includes("high")) return 3;
-        if (severityLower.includes("medium")) return 2;
-        if (severityLower.includes("low")) return 1;
+        if (severityLower.includes("catastrophic")) return 5;
+        if (severityLower.includes("major")) return 4;
+        if (severityLower.includes("moderate")) return 3;
+        if (severityLower.includes("minor")) return 2;
+        if (severityLower.includes("negligible")) return 1;
         return 0;
       };
 
@@ -208,12 +209,15 @@ const VWProjectRisksTable = ({
         return 0;
       };
 
+      // Risk level values: No risk, Very low risk, Low risk, Medium risk, High risk, Very high risk
       const getRiskLevelValue = (riskLevel: string) => {
         const riskLower = riskLevel.toLowerCase();
-        if (riskLower.includes("critical")) return 4;
-        if (riskLower.includes("high")) return 3;
-        if (riskLower.includes("medium")) return 2;
-        if (riskLower.includes("low")) return 1;
+        if (riskLower.includes("very high")) return 6;
+        if (riskLower.includes("high")) return 5;
+        if (riskLower.includes("medium")) return 4;
+        if (riskLower.includes("low") && !riskLower.includes("very low")) return 3;
+        if (riskLower.includes("very low")) return 2;
+        if (riskLower.includes("no risk")) return 1;
         return 0;
       };
 

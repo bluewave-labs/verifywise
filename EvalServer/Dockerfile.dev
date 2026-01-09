@@ -5,9 +5,10 @@ WORKDIR /app
 
 # Copy requirements first for better caching
 COPY ./requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Use CPU-only PyTorch index for smaller image size
+RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Copy the rest of the application
 COPY ./src .
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--workers", "4"]

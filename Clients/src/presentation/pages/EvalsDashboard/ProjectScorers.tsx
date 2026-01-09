@@ -22,6 +22,7 @@ import StandardModal from "../../components/Modals/StandardModal";
 import CreateScorerModal, { type ScorerConfig } from "./CreateScorerModal";
 import ScorersTable, { type ScorerRow } from "../../components/Table/ScorersTable";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 
@@ -338,6 +339,7 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Define custom LLM judges to evaluate model outputs using your own domain-specific criteria and prompts.
         </Typography>
+        <TipBox entityName="evals-scorers" />
       </Stack>
 
       {/* Controls row */}

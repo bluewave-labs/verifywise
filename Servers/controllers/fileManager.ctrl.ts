@@ -17,12 +17,13 @@ import { Request, Response } from "express";
 import "multer";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
-  uploadFileToManager,
+  uploadOrganizationFile,
   getFileById,
-  getFilesByOrganization,
+  getOrganizationFiles,
   logFileAccess,
-  deleteFile,
-} from "../utils/fileManager.utils";
+  deleteFileById,
+  FileSource,
+} from "../repositories/file.repository";
 import {
   validateFileUpload,
   formatFileSize,
@@ -127,8 +128,8 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       if (!isNaN(parsed)) modelId = parsed;
     }
 
-    // Parse source from request body (e.g., "policy_editor", "evidence", etc.)
-    const source: string | undefined = req.body.source || undefined;
+    // Parse source from request body (e.g., "policy_editor", "File Manager", etc.)
+    const source: FileSource = (req.body.source as FileSource) || "File Manager";
 
     if (!file) {
       await logFailure({
@@ -162,8 +163,8 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       return res.status(400).json(STATUS_CODE[400](validation.error));
     }
 
-    // Upload file (this will move it from temp to permanent location)
-    const uploadedFile = await uploadFileToManager(
+    // Upload file to files table with org_id and project_id = NULL
+    const uploadedFile = await uploadOrganizationFile(
       file,
       userId,
       orgId,
@@ -241,7 +242,7 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
         ? (validPage - 1) * validPageSize
         : undefined;
 
-    const { files, total } = await getFilesByOrganization(orgId, tenant, {
+    const { files, total } = await getOrganizationFiles(orgId, tenant, {
       limit: validPageSize,
       offset,
     });
@@ -260,7 +261,7 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
           id: file.id,
           filename: file.filename,
           size: file.size,
-          formattedSize: formatFileSize(file.size),
+          formattedSize: formatFileSize(file.size ?? 0),
           mimetype: file.mimetype, // optional
           upload_date: file.upload_date,
           uploaded_by: file.uploaded_by,
@@ -306,7 +307,6 @@ export const downloadFile = async (
   }
 
   const fileId = parseInt(req.params.id, 10);
-  const isFileManagerFile = req.query.isFileManagerFile === "true";
 
   // Validate parsed file ID is a safe integer
   if (!Number.isSafeInteger(fileId)) {
@@ -326,8 +326,8 @@ export const downloadFile = async (
   });
 
   try {
-    // Get file metadata
-    const file = await getFileById(fileId, tenant, isFileManagerFile);
+    // Get file metadata from unified files table
+    const file = await getFileById(fileId, tenant);
 
     if (!file) {
       await logFailure({
@@ -340,10 +340,13 @@ export const downloadFile = async (
       return res.status(404).json(STATUS_CODE[404]("File not found"));
     }
 
-    // Verify file belongs to user's organization (ensure type consistency)
-    // For file_manager table files, check org_id
-    // For regular files table, check project_id against user's projects
-    if (isFileManagerFile) {
+    // Authorization check based on file type:
+    // - Organization files (project_id IS NULL): check org_id
+    // - Project files (project_id IS NOT NULL): check project access
+    const isOrganizationFile = file.project_id == null;
+
+    if (isOrganizationFile) {
+      // Organization-level file: verify user belongs to the same org
       if (Number(file.org_id) !== orgId) {
         await logFailure({
           eventType: "Error",
@@ -355,26 +358,26 @@ export const downloadFile = async (
         return res.status(403).json(STATUS_CODE[403]("Access denied"));
       }
     } else {
-      // For regular files table, verify user has access to the project
-      // Get user's projects and check if file.project_id matches
+      // Project-level file: verify user has access to the project
       const userProjects = await getUserProjects(userId, tenant);
       const userProjectIds = userProjects.map((p) => p.id);
 
-      // Get the project to check ownership
-      const project = await getProjectByIdQuery(file.project_id, tenant);
+      // Get the project to check ownership (project_id is guaranteed non-null in this branch)
+      const projectId = file.project_id!;
+      const project = await getProjectByIdQuery(projectId, tenant);
 
       // Allow access if:
       // 1. User is a member of the project, OR
       // 2. User is the owner of the project, OR
       // 3. User is the one who uploaded/generated the file
-      const isProjectMember = userProjectIds.includes(file.project_id);
+      const isProjectMember = userProjectIds.includes(projectId);
       const isProjectOwner = project && Number(project.owner) === userId;
       const isFileOwner = Number(file.uploaded_by) === userId;
 
       if (!isProjectMember && !isProjectOwner && !isFileOwner) {
         await logFailure({
           eventType: "Error",
-          description: `Unauthorized access attempt to file ${fileId} - user doesn't have access to project ${file.project_id}, is not the project owner, and is not the file owner`,
+          description: `Unauthorized access attempt to file ${fileId} - user doesn't have access to project ${projectId}, is not the project owner, and is not the file owner`,
           functionName: "downloadFile",
           fileName: "fileManager.ctrl.ts",
           error: new Error("Access denied"),
@@ -383,8 +386,8 @@ export const downloadFile = async (
       }
     }
 
-    // Log file access (only for file manager files)
-    if (isFileManagerFile) {
+    // Log file access for organization-level files
+    if (isOrganizationFile) {
       try {
         await logFileAccess(fileId, userId, orgId, "download", tenant);
       } catch (error) {
@@ -405,17 +408,15 @@ export const downloadFile = async (
       return res.status(404).json(STATUS_CODE[404]("File content not found"));
     }
 
-    // Set headers for file download
-    // file_manager table uses 'mimetype', files table uses 'type'
-    const contentType = isFileManagerFile ? file.mimetype : file.type;
-    res.setHeader("Content-Type", contentType || "application/octet-stream");
+    // Set headers for file download (unified files table uses 'type' for mimetype)
+    res.setHeader("Content-Type", file.type || "application/octet-stream");
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="${file.filename}"`
     );
 
-    // Set Content-Length - file_manager has size field, files table doesn't
+    // Set Content-Length
     const contentLength = file.size || (file.content ? file.content.length : 0);
     res.setHeader("Content-Length", contentLength);
 
@@ -457,7 +458,6 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
   }
 
   const fileId = parseInt(req.params.id, 10);
-  const isFileManagerFile = req.query.isFileManagerFile === "true";
 
   // Validate parsed file ID is a safe integer
   if (!Number.isSafeInteger(fileId)) {
@@ -491,8 +491,8 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
   });
 
   try {
-    // Get file metadata to verify access
-    const file = await getFileById(fileId, tenant, isFileManagerFile);
+    // Get file metadata from unified files table
+    const file = await getFileById(fileId, tenant);
 
     if (!file) {
       await logFailure({
@@ -505,10 +505,13 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
       return res.status(404).json(STATUS_CODE[404]("File not found"));
     }
 
-    // Verify file belongs to user's organization (ensure type consistency)
-    // For file_manager table files, check org_id
-    // For regular files table, check project_id against user's projects
-    if (isFileManagerFile) {
+    // Authorization check based on file type:
+    // - Organization files (project_id IS NULL): check org_id
+    // - Project files (project_id IS NOT NULL): check project access
+    const isOrganizationFile = file.project_id == null;
+
+    if (isOrganizationFile) {
+      // Organization-level file: verify user belongs to the same org
       if (Number(file.org_id) !== orgId) {
         await logFailure({
           eventType: "Error",
@@ -520,26 +523,26 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
         return res.status(403).json(STATUS_CODE[403]("Access denied"));
       }
     } else {
-      // For regular files table, verify user has access to the project
-      // Get user's projects and check if file.project_id matches
+      // Project-level file: verify user has access to the project
       const userProjects = await getUserProjects(userId, tenant);
       const userProjectIds = userProjects.map((p) => p.id);
 
-      // Get the project to check ownership
-      const project = await getProjectByIdQuery(file.project_id, tenant);
+      // Get the project to check ownership (project_id is guaranteed non-null in this branch)
+      const projectId = file.project_id!;
+      const project = await getProjectByIdQuery(projectId, tenant);
 
       // Allow access if:
       // 1. User is a member of the project, OR
       // 2. User is the owner of the project, OR
       // 3. User is the one who uploaded/generated the file
-      const isProjectMember = userProjectIds.includes(file.project_id);
+      const isProjectMember = userProjectIds.includes(projectId);
       const isProjectOwner = project && Number(project.owner) === userId;
       const isFileOwner = Number(file.uploaded_by) === userId;
 
       if (!isProjectMember && !isProjectOwner && !isFileOwner) {
         await logFailure({
           eventType: "Error",
-          description: `Unauthorized deletion attempt for file ${fileId} - user doesn't have access to project ${file.project_id}, is not the project owner, and is not the file owner`,
+          description: `Unauthorized deletion attempt for file ${fileId} - user doesn't have access to project ${projectId}, is not the project owner, and is not the file owner`,
           functionName: "removeFile",
           fileName: "fileManager.ctrl.ts",
           error: new Error("Access denied"),
@@ -549,30 +552,7 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
     }
 
     // Delete the file from database
-    let deleted: boolean;
-    try {
-      deleted = await deleteFile(fileId, tenant, isFileManagerFile);
-    } catch (error: any) {
-      // Handle partial deletion failure (DB deleted but disk failed)
-      if (error.message?.includes("Partial deletion")) {
-        await logFailure({
-          eventType: "Error",
-          description: `Partial deletion failure for file ${fileId}: ${error.message}`,
-          functionName: "removeFile",
-          fileName: "fileManager.ctrl.ts",
-          error: error as Error,
-        });
-        return res
-          .status(500)
-          .json(
-            STATUS_CODE[500](
-              "File database record deleted but physical file removal failed. Please contact support."
-            )
-          );
-      }
-      // Re-throw other errors to be handled by outer catch
-      throw error;
-    }
+    const deleted = await deleteFileById(fileId, tenant);
 
     if (!deleted) {
       await logFailure({

@@ -194,7 +194,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
       const fileId = response.data.id;
       // Use relative /api path - Vite dev server proxies this to backend
-      const imageUrl = `/api/file-manager/${fileId}?isFileManagerFile=true`;
+      const imageUrl = `/api/file-manager/${fileId}`;
       insertImage(editor, imageUrl, file.name);
     } catch (error) {
       console.error("Failed to upload image:", error);

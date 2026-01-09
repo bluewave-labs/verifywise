@@ -23,9 +23,15 @@ import PageBreadcrumbs from '../../../components/Breadcrumbs/PageBreadcrumbs';
 import HeaderCard from '../../../components/Cards/DashboardHeaderCard';
 import Chip from '@mui/material/Chip';
 import { useTheme } from '@mui/material/styles';
-import { getMlflowConfig, getMlflowSyncStatus, configureMlflow, testMlflowConnection, getMlflowModels } from '../../../../application/repository/integration.repository';
+import { apiServices } from '../../../../infrastructure/api/networkServices';
 
 type AuthMethod = 'none' | 'basic' | 'token';
+
+type MLFlowActionResponse = {
+  success: boolean;
+  message?: string;
+  error?: string;
+};
 
 interface MLFlowFormState {
   trackingServerUrl: string;
@@ -35,26 +41,6 @@ interface MLFlowFormState {
   apiToken: string;
   timeout: number;
   verifySsl: boolean;
-}
-
-interface MlflowTestData {
-  trackingServerUrl?: string;
-  authMethod?: string;
-  username?: string;
-  password?: string;
-  apiToken?: string;
-  timeout?: number;
-  verifySsl?: boolean;
-}
-
-interface MlflowConfigureData {
-  tracking_uri: string;
-  authMethod?: string;
-  username?: string;
-  password?: string;
-  apiToken?: string;
-  timeout?: number;
-  verifySsl?: boolean;
 }
 
 const initialFormState: MLFlowFormState = {
@@ -149,7 +135,7 @@ const MLFlowManagement: React.FC = () => {
     setIsFetchingConfig(true);
     setIsLoadingSyncStatus(true);
     try {
-      const configData = await getMlflowConfig({}) as {
+      const { data: configData } = await apiServices.get<{
         configured: boolean;
         config?: {
           trackingServerUrl: string;
@@ -166,7 +152,7 @@ const MLFlowManagement: React.FC = () => {
           lastFailedTestAt?: string | null;
           lastFailedTestMessage?: string | null;
         };
-      };
+      }>("/integrations/mlflow/config");
 
       let syncData:
         | {
@@ -183,8 +169,22 @@ const MLFlowManagement: React.FC = () => {
         | null = null;
 
       try {
-        const statusResponse = await getMlflowSyncStatus({});
-        syncData = statusResponse?.data ?? null;
+        const { data } = await apiServices.get<{
+          success: boolean;
+          data: {
+            configured: boolean;
+            lastSyncedAt: string | null;
+            lastSyncStatus: 'success' | 'partial' | 'error' | null;
+            lastSyncMessage: string | null;
+            lastTestedAt: string | null;
+            lastTestStatus: 'success' | 'error' | null;
+            lastTestMessage: string | null;
+            lastSuccessfulTestAt: string | null;
+            lastFailedTestAt: string | null;
+            lastFailedTestMessage: string | null;
+          };
+        }>("/integrations/mlflow/sync-status");
+        syncData = data?.data ?? null;
       } catch {
         syncData = null;
       } finally {
@@ -248,20 +248,34 @@ const MLFlowManagement: React.FC = () => {
       setIsLoadingSyncStatus(true);
     }
     try {
-      const statusResponse = await getMlflowSyncStatus({});
+      const { data } = await apiServices.get<{
+        success: boolean;
+        data: {
+          configured: boolean;
+          lastSyncedAt: string | null;
+          lastSyncStatus: 'success' | 'partial' | 'error' | null;
+          lastSyncMessage: string | null;
+          lastTestedAt: string | null;
+          lastTestStatus: 'success' | 'error' | null;
+          lastTestMessage: string | null;
+          lastSuccessfulTestAt: string | null;
+          lastFailedTestAt: string | null;
+          lastFailedTestMessage: string | null;
+        };
+      }>("/integrations/mlflow/sync-status");
 
-      if (statusResponse?.data && configMeta) {
+      if (data?.data && configMeta) {
         setConfigMeta({
           ...configMeta,
-          lastTestedAt: statusResponse.data.lastTestedAt || configMeta.lastTestedAt,
-          lastTestStatus: statusResponse.data.lastTestStatus || configMeta.lastTestStatus,
-          lastTestMessage: statusResponse.data.lastTestMessage || configMeta.lastTestMessage,
-          lastSyncedAt: statusResponse.data.lastSyncedAt ?? configMeta.lastSyncedAt,
-          lastSyncStatus: statusResponse.data.lastSyncStatus ?? configMeta.lastSyncStatus,
-          lastSyncMessage: statusResponse.data.lastSyncMessage ?? configMeta.lastSyncMessage,
-          lastSuccessfulTestAt: statusResponse.data.lastSuccessfulTestAt || configMeta.lastSuccessfulTestAt,
-          lastFailedTestAt: statusResponse.data.lastFailedTestAt || configMeta.lastFailedTestAt,
-          lastFailedTestMessage: statusResponse.data.lastFailedTestMessage || configMeta.lastFailedTestMessage,
+          lastTestedAt: data.data.lastTestedAt || configMeta.lastTestedAt,
+          lastTestStatus: data.data.lastTestStatus || configMeta.lastTestStatus,
+          lastTestMessage: data.data.lastTestMessage || configMeta.lastTestMessage,
+          lastSyncedAt: data.data.lastSyncedAt ?? configMeta.lastSyncedAt,
+          lastSyncStatus: data.data.lastSyncStatus ?? configMeta.lastSyncStatus,
+          lastSyncMessage: data.data.lastSyncMessage ?? configMeta.lastSyncMessage,
+          lastSuccessfulTestAt: data.data.lastSuccessfulTestAt || configMeta.lastSuccessfulTestAt,
+          lastFailedTestAt: data.data.lastFailedTestAt || configMeta.lastFailedTestAt,
+          lastFailedTestMessage: data.data.lastFailedTestMessage || configMeta.lastFailedTestMessage,
         });
       }
     } catch (error) {
@@ -287,17 +301,7 @@ const MLFlowManagement: React.FC = () => {
   const handleSaveConfiguration = useCallback(async () => {
     setIsConfiguring(true);
     try {
-      const payload = buildPayload();
-      const configurePayload: MlflowConfigureData = {
-        tracking_uri: payload.trackingServerUrl as string,
-        authMethod: payload.authMethod as string,
-        username: payload.username as string | undefined,
-        password: payload.password as string | undefined,
-        apiToken: payload.apiToken as string | undefined,
-        timeout: payload.timeout as number | undefined,
-        verifySsl: payload.verifySsl as boolean | undefined,
-      };
-      const data = await configureMlflow(configurePayload);
+      const { data } = await apiServices.post<MLFlowActionResponse>("/integrations/mlflow/configure", buildPayload());
       handleToast('success', data?.message || 'MLFlow configuration saved successfully!', 'Configuration saved');
       await loadConfiguration();
     } catch (error) {
@@ -320,17 +324,7 @@ const MLFlowManagement: React.FC = () => {
     setTestStatus('testing');
 
     try {
-      const payload = buildPayload();
-      const testPayload: MlflowTestData = {
-        trackingServerUrl: payload.trackingServerUrl as string,
-        authMethod: payload.authMethod as string,
-        username: payload.username as string | undefined,
-        password: payload.password as string | undefined,
-        apiToken: payload.apiToken as string | undefined,
-        timeout: payload.timeout as number | undefined,
-        verifySsl: payload.verifySsl as boolean | undefined,
-      };
-      const data = await testMlflowConnection(testPayload);
+      const { data } = await apiServices.post<MLFlowActionResponse>("/integrations/mlflow/test", buildPayload());
 
       if (data?.success) {
         setTestStatus('success');
@@ -451,7 +445,7 @@ const MLFlowManagement: React.FC = () => {
   const handleResync = useCallback(async () => {
     setIsResyncing(true);
     try {
-      await getMlflowModels({});
+      await apiServices.get("/integrations/mlflow/models");
       handleToast("success", "Sync triggered successfully.", "Sync started");
       await loadConfiguration();
     } catch (error) {

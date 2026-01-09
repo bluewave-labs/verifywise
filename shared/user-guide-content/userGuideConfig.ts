@@ -9,7 +9,8 @@ export type IconName =
   | 'FileText'
   | 'GraduationCap'
   | 'BarChart3'
-  | 'FlaskConical';
+  | 'FlaskConical'
+  | 'ScanSearch';
 
 export interface Article {
   id: string;
@@ -156,6 +157,27 @@ export const collections: Collection[] = [
         title: 'Configuring scorers',
         description: 'Set up evaluation metrics and scoring thresholds.',
         keywords: ['scorer', 'metric', 'threshold', 'judge', 'llm', 'bias', 'toxicity', 'hallucination', 'conversational', 'turn relevancy', 'knowledge retention', 'coherence', 'task completion'],
+      },
+    ],
+  },
+  {
+    id: 'ai-detection',
+    title: 'AI Detection',
+    description: 'Scan repositories to discover AI/ML libraries and detect shadow AI in your codebase.',
+    icon: 'ScanSearch',
+    articleCount: 2,
+    articles: [
+      {
+        id: 'scanning',
+        title: 'Scanning repositories',
+        description: 'Learn how to scan GitHub repositories to detect AI/ML usage.',
+        keywords: ['scan', 'repository', 'github', 'detect', 'ai', 'ml', 'library', 'framework', 'shadow ai'],
+      },
+      {
+        id: 'history',
+        title: 'Scan history',
+        description: 'View and manage your scan history and audit trail.',
+        keywords: ['history', 'scan', 'audit', 'trail', 'results', 'findings'],
       },
     ],
   },

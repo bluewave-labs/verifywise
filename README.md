@@ -6,7 +6,7 @@
 ![](https://img.shields.io/github/issues/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/issues-pr/bluewave-labs/verifywise)
 
-<img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
+<img width="3182" height="2570" alt="github" src="https://github.com/user-attachments/assets/6feb9d3d-19c1-42c2-a9f5-908db8694f8f" />
 
 [VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses use the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
@@ -16,12 +16,14 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
 
 - [Join our Discord channel](https://discord.com/invite/d3k3E4uEpR) to ask your questions and get the latest announcemnets.
 - [Need to talk to someone](https://verifywise.ai/contact)? Get with us to see the latest demo, or [click here](https://app.verifywise.ai) to experience the demo yourself.
+- [Read our documentation](https://verifywise.ai/user-guide/) to understand features and capabilities
 
 ## Screenshots
 
+
 | The main dashboard                                                                                                                  | LLM Evals                                                                                                                           |
 | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| <img width="1598" height="861" alt="image" src="https://github.com/user-attachments/assets/649d030a-6e13-4cb5-96c3-707ae7d448f6" /> | <img width="1600" height="923" alt="image" src="https://github.com/user-attachments/assets/dc598a33-486f-4424-988d-4cca5e9420c2" /> |
+| <img width="1615" height="942" alt="image" src="https://github.com/user-attachments/assets/32dd22f8-3e9b-40d8-96e5-ba64f4c03f5e" /> | <img width="1600" height="923" alt="image" src="https://github.com/user-attachments/assets/dc598a33-486f-4424-988d-4cca5e9420c2" /> |
 |                                                                                                                                     |
 
 | EU AI Act project view                                                                                                              | AI Use case risks                                                                                                                   |
@@ -60,19 +62,21 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
 - User registration, authentication, and role-based access control (RBAC) support
 - Major features:
   - Support for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
+  - Dashboard: executive view & operating view
   - Vendors & vendor risks
   - AI project risks
   - Tasks
-  - Bias & fairness check of LLM systems
+  - LLM Evals
   - Evidence center
   - AI trust center for public view
   - AI literacy training registery
+  - Activity history for each entity
   - Integration with MIT and IBM AI risk repository
   - Model inventory and model risks that keeps a list of models used and risks
   - Policy manager to create and manage internal company AI policies
   - Risk and control mappings for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
   - CE Marking registry
-  - Detailed reports
+  - Detailed reports with PDF and DOCX export
   - Event logs (audits) for enterprise organizations
   - AI incident management
   - Integrations (currently Slack and MLFlow is supported, more on the way)
@@ -162,7 +166,7 @@ Navigate to the EvalServer/src directory and start the server:
 
 ```
 cd EvalServer/src
-uvicorn app:app --reload --port 8000
+python app.py
 ```
 
 Navigate to the Servers directory and start the server in watch mode:
@@ -338,7 +342,7 @@ Note: CORS is automatically configured to allow requests from the same host wher
 
 VerifyWise supports multiple email service providers through a provider abstraction layer, enabling administrators to choose the most suitable email service for their organization. The system includes security enhancements such as TLS enforcement, input validation and credential rotation for supported providers.
 
-Below is a list of supported email providers. You can use [this documentation](https://docs.verifywise.ai/settings#email-services) to setup the email service of your choice.
+Below is a list of supported email providers. You can use [this documentation](https://verifywise.ai/user-guide/settings/email-configuration) to setup the email service of your choice.
 
 - **Exchange Online (Office 365)** - Microsoft's cloud email service
 - **On-Premises Exchange** - Self-hosted Exchange servers
@@ -354,9 +358,3 @@ You’ll need to open ports 80 and 443 so VerifyWise can be accessed from the in
 
 If you find a vulnerability, please report it [here](https://github.com/bluewave-labs/verifywise/security/advisories/new).
 
-## VerifyWise product line
-
-VerifyWise also has additional products for end-to-end AI governance and management:
-
-- [MaskWise](https://github.com/bluewave-labs/maskwise), which helps you detect, redact, mask, and anonymize sensitive data across text, images, and structured data in training datasets for LLM systems.
-- [EvalWise](https://github.com/bluewave-labs/evalwise), a developer-friendly platform for LLM evaluation and red teaming that helps test AI models for safety, compliance, and performance issues

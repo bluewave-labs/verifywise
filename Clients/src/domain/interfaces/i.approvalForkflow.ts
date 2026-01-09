@@ -50,6 +50,7 @@ export interface IStepDetailsModalProps {
 export interface IRequestorApprovalProps {
     isOpen: boolean;
     onClose: () => void;
+    onRefresh?: () => void;
 }
 
 export interface ITimelineStep {

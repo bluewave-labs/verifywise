@@ -6,6 +6,18 @@ import { ApprovalWorkflowStepModel } from "../domain.layer/models/approvalWorkfl
 import { ApprovalRequestStatus, ApprovalStepStatus, ApprovalResult } from "../domain.layer/enums/approval-workflow.enum";
 
 /**
+ * Notification info to be sent after transaction commits
+ */
+export interface NotificationInfo {
+  type: 'step_approvers' | 'requester_approved' | 'requester_rejected';
+  tenantId: string;
+  requestId: number;
+  requesterId?: number;
+  requestName: string;
+  stepNumber?: number;
+}
+
+/**
  * Create approval request
  */
 export const createApprovalRequestQuery = async (
@@ -263,7 +275,7 @@ export const processApprovalQuery = async (
   comments: string | undefined,
   tenantId: string,
   transaction: Transaction
-): Promise<void> => {
+): Promise<NotificationInfo | null> => {
   // Get current request
   const [request] = await sequelize.query(
     `SELECT * FROM "${tenantId}".approval_requests WHERE id = :requestId`,
@@ -391,6 +403,15 @@ export const processApprovalQuery = async (
         transaction,
       }
     );
+
+    // Return notification info for requester rejection
+    return {
+      type: 'requester_rejected',
+      tenantId,
+      requestId,
+      requesterId: (request as any).requested_by,
+      requestName: (request as any).request_name,
+    };
   }
   // If approved and conditions met (all/any), move to next step or complete
   else if (approvalResult === ApprovalResult.APPROVED && shouldComplete) {
@@ -432,6 +453,15 @@ export const processApprovalQuery = async (
           transaction,
         }
       );
+
+      // Return notification info for next step approvers
+      return {
+        type: 'step_approvers',
+        tenantId,
+        requestId,
+        stepNumber: currentStep + 1,
+        requestName: (request as any).request_name,
+      };
     } else {
       // All steps completed - mark as approved
       await sequelize.query(
@@ -446,6 +476,15 @@ export const processApprovalQuery = async (
           transaction,
         }
       );
+
+      // Store notification info to be sent after transaction commits
+      const notificationInfo: NotificationInfo = {
+        type: 'requester_approved',
+        tenantId,
+        requestId,
+        requesterId: (request as any).requested_by,
+        requestName: (request as any).request_name,
+      };
 
       // ===== FRAMEWORK CREATION AFTER APPROVAL =====
       // Get the entity (use-case/project) to check if it has pending frameworks
@@ -548,8 +587,14 @@ export const processApprovalQuery = async (
           console.log("No pending frameworks to create");
         }
       }
+
+      // Return notification info after all processing is done
+      return notificationInfo;
     }
   }
+
+  // No notification needed if approval is pending (not all approvers have responded)
+  return null;
 };
 
 /**

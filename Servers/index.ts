@@ -66,6 +66,8 @@ import approvalWorkflowRoutes from "./routes/approvalWorkflow.route";
 import approvalRequestRoutes from "./routes/approvalRequest.route";
 import aiDetectionRoutes from "./routes/aiDetection.route";
 import githubIntegrationRoutes from "./routes/githubIntegration.route";
+import notificationRoutes from "./routes/notification.route";
+import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -210,6 +212,16 @@ try {
   app.use("/api/approval-requests", approvalRequestRoutes);
   app.use("/api/ai-detection", aiDetectionRoutes);
   app.use("/api/integrations/github", githubIntegrationRoutes);
+  app.use("/api/notifications", notificationRoutes);
+
+  // Setup notification subscriber for real-time notifications
+  (async () => {
+    try {
+      await setupNotificationSubscriber();
+    } catch (error) {
+      console.error("Failed to setup notification subscriber:", error);
+    }
+  })();
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

@@ -2,11 +2,11 @@
  * @fileoverview Approval Workflow Routes
  *
  * Defines RESTful API endpoints for approval workflow management.
- * All routes require JWT authentication. Most routes restricted to Admin role.
+ * All routes require JWT authentication. Write operations restricted to Admin role.
  *
  * Workflow Management Endpoints:
- * - GET / - List all approval workflows (Admin only)
- * - GET /:id - Get workflow by ID (Admin only)
+ * - GET / - List all approval workflows (All authenticated users)
+ * - GET /:id - Get workflow by ID (All authenticated users)
  * - POST / - Create new workflow (Admin only)
  * - PUT /:id - Update workflow (Admin only)
  * - DELETE /:id - Delete workflow (Admin only)
@@ -31,24 +31,22 @@ import authorize from "../middleware/accessControl.middleware";
 /**
  * GET /approval-workflows
  * List all approval workflows
- * @access Admin only
+ * @access All authenticated users (needed for use-case creation)
  */
 router.get(
   "/",
   authenticateJWT,
-  authorize(["Admin"]),
   getAllApprovalWorkflows
 );
 
 /**
  * GET /approval-workflows/:id
  * Get approval workflow by ID with steps
- * @access Admin only
+ * @access All authenticated users (needed for viewing workflow details)
  */
 router.get(
   "/:id",
   authenticateJWT,
-  authorize(["Admin"]),
   getApprovalWorkflowById
 );
 

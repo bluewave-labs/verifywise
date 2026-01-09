@@ -50,6 +50,7 @@ import {
 } from "../utils/useCaseChangeHistory.utils";
 import { getApprovalWorkflowByIdQuery } from "../utils/approvalWorkflow.utils";
 import { createApprovalRequestQuery, hasPendingApprovalQuery, getPendingApprovalRequestIdQuery, withdrawApprovalRequestQuery } from "../utils/approvalRequest.utils";
+import { notifyStepApprovers } from "../services/notification.service";
 import { ApprovalRequestStatus } from "../domain.layer/enums/approval-workflow.enum";
 
 export async function getAllProjects(
@@ -329,13 +330,17 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           };
           console.log("Approval request data:", JSON.stringify(approvalRequestData, null, 2));
 
-          await createApprovalRequestQuery(
+          const createdApprovalRequest = await createApprovalRequestQuery(
             approvalRequestData,
             workflowSteps,
             req.tenantId!,
             transaction
           );
           console.log("Approval request created successfully!");
+
+          // Store approval request info for notification after transaction commits
+          (createdProject as any)._approvalRequestId = createdApprovalRequest.id;
+          (createdProject as any)._approvalRequestName = approvalRequestData.request_name;
         } else {
           console.log("ERROR: Workflow not found or has no steps!");
           if (!workflow) {
@@ -365,6 +370,18 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         functionName: "createProject",
         fileName: "project.ctrl.ts",
       });
+
+      // Notify Step 1 approvers AFTER transaction commits (fire-and-forget)
+      if ((createdProject as any)._approvalRequestId) {
+        notifyStepApprovers(
+          req.tenantId!,
+          (createdProject as any)._approvalRequestId,
+          1, // Step 1
+          (createdProject as any)._approvalRequestName
+        ).catch(error => {
+          console.error("Error sending approval notification:", error);
+        });
+      }
 
       // Send project creation notification to admin (fire-and-forget, don't block response)
       sendProjectCreatedNotification({

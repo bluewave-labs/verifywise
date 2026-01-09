@@ -13,6 +13,7 @@ import {
 } from '../../../application/repository/approvalRequest.repository';
 import Button from '../Button';
 import { approvalButtonStyle } from './style';
+import { useNotifications } from '../../../application/hooks/useNotifications';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -121,26 +122,40 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
 
   const [totalApprovalCount, setTotalApprovalCount] = React.useState(0);
 
-  useEffect(() => {
-    const fetchApprovalCounts = async () => {
-      try {
-        const [approvalsResponse, myRequestsResponse] = await Promise.all([
-          getPendingApprovals(),
-          getMyApprovalRequests(),
-        ]);
+  // Function to fetch approval counts
+  const fetchApprovalCounts = useCallback(async () => {
+    try {
+      const [approvalsResponse, myRequestsResponse] = await Promise.all([
+        getPendingApprovals(),
+        getMyApprovalRequests(),
+      ]);
 
-        const approvalsCount = approvalsResponse?.data?.length || 0;
-        const myRequestsCount = myRequestsResponse?.data?.length || 0;
+      const approvalsCount = approvalsResponse?.data?.length || 0;
+      const myRequestsCount = myRequestsResponse?.data?.length || 0;
 
-        setTotalApprovalCount(approvalsCount + myRequestsCount);
-      } catch (error) {
-        console.error("Failed to fetch approval counts:", error);
-        setTotalApprovalCount(0);
-      }
-    };
-
-    fetchApprovalCounts();
+      setTotalApprovalCount(approvalsCount + myRequestsCount);
+    } catch (error) {
+      console.error("Failed to fetch approval counts:", error);
+      setTotalApprovalCount(0);
+    }
   }, []);
+
+  // Listen for approval notifications and refresh count
+  useNotifications({
+    enabled: true,
+    onNotification: useCallback((notification: any) => {
+      // Refresh count when approval-related notifications are received
+      const approvalTypes = ['approval_request', 'approval_approved', 'approval_rejected', 'approval_complete'];
+      if (approvalTypes.includes(notification?.type)) {
+        fetchApprovalCounts();
+      }
+    }, [fetchApprovalCounts]),
+  });
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchApprovalCounts();
+  }, [fetchApprovalCounts]);
 
 
   return (
@@ -185,7 +200,11 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
       <ApprovalButton
         label="Approval requests"
         count={totalApprovalCount}
-        onClick={() => setIsRequestModalOpen(true)}
+        onClick={() => {
+          setIsRequestModalOpen(true);
+          // Refresh count when modal is opened to ensure it's up-to-date
+          fetchApprovalCounts();
+        }}
       />
 
       {/* Integrations */}
@@ -217,7 +236,8 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
 
       <RequestorApprovalModal
         isOpen={isRequestModalOpen}
-        onClose={() => setIsRequestModalOpen(false)} />
+        onClose={() => setIsRequestModalOpen(false)}
+        onRefresh={fetchApprovalCounts} />
     </Stack>
   );
 });

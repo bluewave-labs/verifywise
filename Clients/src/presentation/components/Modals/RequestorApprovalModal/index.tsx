@@ -106,6 +106,7 @@ const getWorkflowChipProps = (value: string) => {
 const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     isOpen,
     onClose,
+    onRefresh,
 }) => {
 
     const [isStepDetailsModalOpen, setIsStepDetailsModalOpen] = useState(false);
@@ -189,6 +190,9 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             await fetchRequestsData();
             setComment("");
 
+            // Refresh the count in the header
+            onRefresh?.();
+
             // Check if the request is still pending after approval
             // If not, it means all steps are completed and we should close the modal
             const response = await getApprovalRequestById({ id: approvedRequestId });
@@ -224,6 +228,10 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
 
             fetchRequestsData();
             setComment("");
+
+            // Refresh the count in the header
+            onRefresh?.();
+
             onClose();
         } catch (error) {
             logEngine({
@@ -250,6 +258,10 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             });
 
             fetchRequestsData();
+
+            // Refresh the count in the header
+            onRefresh?.();
+
             onClose();
         } catch (error) {
             logEngine({

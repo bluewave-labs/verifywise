@@ -479,7 +479,7 @@ const IntegratedDashboard: React.FC = () => {
                             sx={{
                               padding: "4px",
                               color: "#667085",
-                              "&:hover": { backgroundColor: "#F3F4F6" },
+                              "&:hover": { backgroundColor: "#E5E7EB", color: "#1F2937" },
                             }}
                           >
                             <ChevronLeft size={18} />
@@ -504,7 +504,7 @@ const IntegratedDashboard: React.FC = () => {
                             sx={{
                               padding: "4px",
                               color: "#667085",
-                              "&:hover": { backgroundColor: "#F3F4F6" },
+                              "&:hover": { backgroundColor: "#E5E7EB", color: "#1F2937" },
                             }}
                           >
                             <ChevronRight size={18} />
@@ -880,7 +880,7 @@ const IntegratedDashboard: React.FC = () => {
                             sx={{
                               padding: "4px",
                               color: "#667085",
-                              "&:hover": { backgroundColor: "#F3F4F6" },
+                              "&:hover": { backgroundColor: "#E5E7EB", color: "#1F2937" },
                             }}
                           >
                             <ChevronLeft size={18} />
@@ -905,7 +905,7 @@ const IntegratedDashboard: React.FC = () => {
                             sx={{
                               padding: "4px",
                               color: "#667085",
-                              "&:hover": { backgroundColor: "#F3F4F6" },
+                              "&:hover": { backgroundColor: "#E5E7EB", color: "#1F2937" },
                             }}
                           >
                             <ChevronRight size={18} />

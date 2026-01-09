@@ -446,7 +446,7 @@ const IntegratedDashboard: React.FC = () => {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: `repeat(${organizationalFrameworks.length}, 1fr)`,
+                gridTemplateColumns: "repeat(3, 1fr)",
                 gap: "16px",
                 mb: "16px",
               }}
@@ -847,7 +847,7 @@ const IntegratedDashboard: React.FC = () => {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: `repeat(${organizationalFrameworks.length}, 1fr)`,
+                gridTemplateColumns: "repeat(3, 1fr)",
                 gap: "16px",
                 mb: "16px",
               }}

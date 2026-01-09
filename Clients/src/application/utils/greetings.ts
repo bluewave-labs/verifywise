@@ -71,7 +71,7 @@ export const getSpecialDayGreeting = (
  */
 export const getTimeBasedGreeting = (
   userName?: string,
-  userToken?: { name?: string; email?: string }
+  userToken?: { name?: string; email?: string } | null
 ): GreetingResult => {
   const now = new Date();
   const hour = now.getHours();

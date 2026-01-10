@@ -860,17 +860,14 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
     const processedValue = editorValue.map(processNode);
 
-    // Temporarily set processed value and clear selection to avoid path errors
-    const originalValue = editor.children;
-    const originalSelection = editor.selection;
-    editor.children = processedValue;
-    editor.selection = null;
+    // Create a temporary editor clone for serialization to avoid modifying the actual editor
+    // This prevents placeholders from appearing in the UI
+    const tempEditor = createPlateEditor({
+      plugins: editor.pluginList,
+      value: processedValue,
+    });
 
-    let html = await serializeHtml(editor);
-
-    // Restore original value and selection
-    editor.children = originalValue;
-    editor.selection = originalSelection;
+    let html = await serializeHtml(tempEditor);
 
     // Replace placeholders with actual HTML
     imageMap.forEach((imageNode, placeholder) => {

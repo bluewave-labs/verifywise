@@ -335,7 +335,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                       backgroundColor: sortConfig.key === "title" ? singleTheme.tableColors.sortedColumnFirst : undefined,
                     }}
                   >
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <Box>
                       <Typography
                         variant="body2"
                         sx={{

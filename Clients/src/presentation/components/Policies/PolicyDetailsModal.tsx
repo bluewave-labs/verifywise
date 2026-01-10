@@ -83,7 +83,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   tags,
   template,
   onClose,
-  onSaved,
+  onSaved: _onSaved,
 }) => {
   const isNew = !policy;
   const { users } = useUsers();

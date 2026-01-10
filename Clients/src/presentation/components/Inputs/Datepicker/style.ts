@@ -42,4 +42,22 @@ export const DatePickerStyle = {
     backgroundColor: "#FFFFFF",
     borderRadius: "4px",
   },
+  // Hover state for MUI v8 DatePicker
+  "& .MuiPickersOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#5FA896 !important",
+  },
+  "& .MuiPickersOutlinedInput-root:hover fieldset": {
+    borderColor: "#5FA896 !important",
+  },
+  // Focus state with green border for MUI v8 DatePicker
+  "& .MuiPickersOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#13715B !important",
+    borderWidth: "2px",
+    boxShadow: "0 0 0 3px rgba(19, 113, 91, 0.1)",
+  },
+  "& .MuiPickersOutlinedInput-root.Mui-focused fieldset": {
+    borderColor: "#13715B !important",
+    borderWidth: "2px",
+    boxShadow: "0 0 0 3px rgba(19, 113, 91, 0.1)",
+  },
 };

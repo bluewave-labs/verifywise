@@ -42,9 +42,19 @@
 }
 
 .MuiPickersCalendarHeader-switchViewButton:hover,
-.MuiPickersArrowSwitcher-button:hover,
-.MuiPickersDay-root:hover {
+.MuiPickersArrowSwitcher-button:hover {
   background-color: transparent!important;
+}
+
+/* Regular day hover - light gray background */
+.MuiPickersDay-root:hover {
+  background-color: #f5f5f5 !important;
+}
+
+/* Selected day should keep green background on hover */
+.MuiPickersDay-root.Mui-selected:hover {
+  background-color: #13715B !important;
+  color: #FFFFFF !important;
 }
 
 .MuiButtonBase-root.MuiIconButton-root.MuiIconButton-edgeEnd.MuiPickersArrowSwitcher-previousIconButton{

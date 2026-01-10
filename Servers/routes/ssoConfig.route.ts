@@ -1,7 +1,10 @@
 import express from "express";
 import authenticateJWT from "../middleware/auth.middleware";
-import { disableSSO, enableSSO, getSSOConfigForOrg, saveSSOConfig } from "../controllers/ssoConfig.ctrl";
+import { checkSSOStatusByOrgId, disableSSO, enableSSO, getSSOConfigForOrg, saveSSOConfig } from "../controllers/ssoConfig.ctrl";
 const router = express.Router();
+
+// Public endpoint for login page to check SSO status by organization ID
+router.get("/check-status", checkSSOStatusByOrgId);
 
 router.get("/", /** authenticateJWT, **/ getSSOConfigForOrg);
 router.put("/", authenticateJWT, saveSSOConfig);

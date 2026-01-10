@@ -61,3 +61,28 @@ export async function ToggleSsoStatus({
     throw error;
   }
 }
+
+/**
+ * Check SSO status for a specific organization (public endpoint for login).
+ *
+ * @param {number} organizationId - The ID of the organization.
+ * @param {string} provider - The SSO provider (e.g., 'AzureAD').
+ * @returns {Promise<any>} A promise that resolves to SSO status data.
+ * @throws Will throw an error if the operation fails.
+ */
+export async function CheckSsoStatusByOrgId({
+  organizationId,
+  provider = 'AzureAD',
+}: {
+  organizationId: number;
+  provider?: string;
+}): Promise<any> {
+  try {
+    const response = await apiServices.get(
+      `ssoConfig/check-status?organizationId=${organizationId}&provider=${provider}`
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}

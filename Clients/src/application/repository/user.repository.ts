@@ -218,11 +218,13 @@ export async function deleteUserProfilePhoto(userId: number | string): Promise<A
 
 export async function loginUserWithMicrosoft({
   code,
+  organizationId,
 }: {
   code: string;
+  organizationId: number;
 }): Promise<any> {
   try {
-    const response = await apiServices.post(`/users/login-microsoft`, { code });
+    const response = await apiServices.post(`/users/login-microsoft`, { code, organizationId });
     return response;
   } catch (error) {
     console.error("Error logging in with Microsoft:", error);

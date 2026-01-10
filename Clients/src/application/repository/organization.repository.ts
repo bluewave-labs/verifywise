@@ -81,3 +81,19 @@ export async function checkOrganizationExists(): Promise<boolean> {
     throw error;
   }
 }
+
+/**
+ * Retrieves all organizations in the system (public endpoint for login).
+ *
+ * @returns {Promise<any[]>} List of all organizations.
+ * @throws Will throw an error if the request fails.
+ */
+export async function getAllOrganizations(): Promise<any[]> {
+  try {
+    const response = await apiServices.get("/organizations");
+    const data = response.data as { data?: any[] };
+    return data?.data ?? [];
+  } catch (error) {
+    throw error;
+  }
+}

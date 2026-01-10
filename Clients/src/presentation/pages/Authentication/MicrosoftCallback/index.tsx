@@ -36,7 +36,11 @@ const MicrosoftCallback: React.FC = () => {
       }
 
       try {
-        const response = await loginUserWithMicrosoft({ code });
+        // Retrieve organization ID from session storage (set during organization selection on login page)
+        const orgIdFromSession = sessionStorage.getItem('sso_organization_id');
+        const organizationId = orgIdFromSession ? parseInt(orgIdFromSession, 10) : 1; // Default to 1 if not found
+
+        const response = await loginUserWithMicrosoft({ code, organizationId });
 
         if (response.status === 202 || response.status === 200) {
           const token = response.data.data.token;

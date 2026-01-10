@@ -65,7 +65,6 @@ import { generateUserTokens } from "../utils/auth.utils";
 import { ConfidentialClientApplication } from '@azure/msal-node';
 import { getAzureADConfigQuery } from "../utils/ssoConfig.utils";
 import Jwt from "jsonwebtoken";
-import { getAllOrganizationsQuery } from "../utils/organization.utils";
 import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 import { getRoleByIdQuery } from "../utils/role.utils";
@@ -590,7 +589,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
 
 async function loginUserWithMicrosoft(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
-  const { code } = req.body;
+  const { code, organizationId } = req.body;
 
   logStructured('processing', `attempting Microsoft SSO login with code`, 'loginUserWithMicrosoft', 'user.ctrl.ts');
   logger.debug(`🔐 Microsoft SSO login attempt`);
@@ -600,7 +599,7 @@ async function loginUserWithMicrosoft(req: Request, res: Response): Promise<any>
       return res.status(400).json(STATUS_CODE[400]('Authorization code is required'));
     }
 
-    const azureADConfig = await getAzureADConfigQuery(transaction);
+    const azureADConfig = await getAzureADConfigQuery(req.tenantId!, transaction);
 
     const cca = new ConfidentialClientApplication({
       auth: {
@@ -634,14 +633,13 @@ async function loginUserWithMicrosoft(req: Request, res: Response): Promise<any>
     // Find or create user in database
     let user = await getUserByEmailQuery(userInfo.mail || userInfo.userPrincipalName, transaction);
     if (!user) {
-      const organizationId = await getAllOrganizationsQuery(transaction);
       // Create user model with automatic password hashing
       const userModel = await UserModel.createNewUser(
         userInfo.givenName || userInfo.displayName,
         userInfo.surname || userInfo.givenName || userInfo.displayName,
         userInfo.mail || userInfo.userPrincipalName,
         roleMap.get(userRole)!,
-        organizationId[0].id!,
+        organizationId,
         null, 'AzureAD', userInfo.id
       );
       await userModel.validateUserData();

@@ -10,6 +10,7 @@ interface MicrosoftSignInProps {
   setIsSubmitting: (isSubmitting: boolean) => void;
   tenantId?: string;
   clientId?: string;
+  organizationId?: number;
   text?: string;
 }
 
@@ -18,6 +19,7 @@ export const MicrosoftSignIn: React.FC<MicrosoftSignInProps> = ({
   setIsSubmitting,
   tenantId,
   clientId,
+  organizationId,
   text = "Sign in with Microsoft"
 }) => {
   const theme = useTheme();

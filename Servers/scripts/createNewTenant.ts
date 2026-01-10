@@ -1937,6 +1937,29 @@ export const createNewTenant = async (
     );
 
     await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".sso_configurations (
+        id SERIAL PRIMARY KEY,
+        organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+        provider enum_sso_configuration_providers NOT NULL,
+        is_enabled BOOLEAN DEFAULT FALSE,
+        config_data JSONB NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(organization_id, provider)
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for SSO configurations
+    await Promise.all(
+      [
+        `CREATE INDEX IF NOT EXISTS "${tenantHash}_sso_configurations_organization_id_idx" ON "${tenantHash}".sso_configurations (organization_id);`,
+        `CREATE INDEX IF NOT EXISTS "${tenantHash}_sso_configurations_provider_idx" ON "${tenantHash}".sso_configurations (provider);`,
+        `CREATE INDEX IF NOT EXISTS "${tenantHash}_sso_configurations_is_enabled_idx" ON "${tenantHash}".sso_configurations (is_enabled);`,
+      ].map((query) => sequelize.query(query, { transaction }))
+    );
+
+    await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".advisor_conversations (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,

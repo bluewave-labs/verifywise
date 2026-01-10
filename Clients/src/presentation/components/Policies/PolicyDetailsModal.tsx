@@ -50,6 +50,9 @@ import {
   Quote,
   Highlighter,
   Table,
+  FileText,
+  FileDown,
+  Loader2,
 } from "lucide-react";
 
 const FormatUnderlined = () => <Underline size={16} />;
@@ -72,6 +75,7 @@ import { checkStringValidation } from "../../../application/validations/stringVa
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 import { linkPlugin, insertLink, removeLink, isLinkActive } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
+import { store } from "../../../application/redux/store";
 
 
 const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
@@ -79,7 +83,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   tags,
   template,
   onClose,
-  onSaved,
+  onSaved: _onSaved,
 }) => {
   const isNew = !policy;
   const { users } = useUsers();
@@ -90,12 +94,14 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   const [savedSelection, setSavedSelection] = useState<BaseRange | null>(null);
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingDOCX, setIsExportingDOCX] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Prefetch history data when drawer opens in edit mode
   usePolicyChangeHistory(!isNew && policy?.id ? policy.id : undefined);
 
-  // const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Track toggle state for toolbar buttons
   type ToolbarKey =
@@ -854,17 +860,14 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
     const processedValue = editorValue.map(processNode);
 
-    // Temporarily set processed value and clear selection to avoid path errors
-    const originalValue = editor.children;
-    const originalSelection = editor.selection;
-    editor.children = processedValue;
-    editor.selection = null;
+    // Create a temporary editor clone for serialization to avoid modifying the actual editor
+    // This prevents placeholders from appearing in the UI
+    const tempEditor = createPlateEditor({
+      plugins: editor.pluginList,
+      value: processedValue,
+    });
 
-    let html = await serializeHtml(editor);
-
-    // Restore original value and selection
-    editor.children = originalValue;
-    editor.selection = originalSelection;
+    let html = await serializeHtml(tempEditor);
 
     // Replace placeholders with actual HTML
     imageMap.forEach((imageNode, placeholder) => {
@@ -881,7 +884,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     if (!validateForm()) {
       return;
     }
-    // setIsSubmitting(true);
+    setIsSaving(true);
     const html = await serializeToHtml();
     const assignedReviewers = formData.assignedReviewers.map((user) => user.id);
     const payload = {
@@ -896,21 +899,24 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     };
 
     try {
+      const startTime = Date.now();
+
       if (isNew) {
         await createPolicy(payload);
       } else {
         await updatePolicy(policy!.id, payload);
       }
 
-      // Close modal immediately and pass success message to parent
-      const successMessage = isNew
-        ? "Policy created successfully!"
-        : "Policy updated successfully!";
+      // Ensure saving state is visible for at least 1 second
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+      }
 
-      onSaved(successMessage);
+      setIsSaving(false);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      // setIsSubmitting(false);
+      setIsSaving(false);
       console.error("Full error object:", err);
       console.error("Original error:", err?.originalError);
       console.error("Original error response:", err?.originalError?.response);
@@ -945,6 +951,103 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       } else {
         console.error("No errors found in response");
       }
+    }
+  };
+
+  // Export policy as PDF
+  const exportPDF = async () => {
+    if (!policy?.id) return;
+
+    setIsExportingPDF(true);
+    try {
+      const token = store.getState().auth.authToken;
+      const response = await fetch(`/api/policies/${policy.id}/export/pdf`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export PDF");
+      }
+
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+
+      // Extract filename from Content-Disposition header if available
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+          filename = match[1];
+        }
+      }
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export PDF:", error);
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
+  // Export policy as DOCX
+  const exportDOCX = async () => {
+    if (!policy?.id) return;
+
+    setIsExportingDOCX(true);
+    try {
+      const token = store.getState().auth.authToken;
+      const response = await fetch(`/api/policies/${policy.id}/export/docx`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export DOCX");
+      }
+
+      const blob = await response.blob();
+      console.log("DOCX blob size:", blob.size, "type:", blob.type);
+
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.docx`;
+
+      // Extract filename from Content-Disposition header if available
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+          filename = match[1];
+        }
+      }
+
+      // Create download link with proper MIME type
+      const docxBlob = new Blob([blob], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      });
+      const url = window.URL.createObjectURL(docxBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export DOCX:", error);
+    } finally {
+      setIsExportingDOCX(false);
     }
   };
 
@@ -1262,13 +1365,74 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             backgroundColor: "#fff",
             display: "flex",
             justifyContent: "flex-end",
+            gap: "8px",
             zIndex: 1201,
             transition: "right 300ms ease-in-out",
           }}
         >
+          {/* Export buttons - only show when editing existing policy */}
+          {!isNew && policy?.id && (
+            <>
+              <Tooltip title="Download as PDF" arrow>
+                <span>
+                  <CustomizableButton
+                    variant="outlined"
+                    text={isExportingPDF ? "Exporting..." : "PDF"}
+                    isDisabled={isExportingPDF || isExportingDOCX}
+                    sx={{
+                      backgroundColor: "#fff",
+                      border: "1px solid #D0D5DD",
+                      color: "#344054",
+                      gap: 1,
+                      minWidth: "90px",
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#98A2B3",
+                      },
+                      "&:disabled": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#E4E7EC",
+                        color: "#98A2B3",
+                      },
+                    }}
+                    onClick={exportPDF}
+                    icon={<FileText size={16} />}
+                  />
+                </span>
+              </Tooltip>
+              <Tooltip title="Download as Word" arrow>
+                <span>
+                  <CustomizableButton
+                    variant="outlined"
+                    text={isExportingDOCX ? "Exporting..." : "Word"}
+                    isDisabled={isExportingPDF || isExportingDOCX}
+                    sx={{
+                      backgroundColor: "#fff",
+                      border: "1px solid #D0D5DD",
+                      color: "#344054",
+                      gap: 1,
+                      minWidth: "90px",
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#98A2B3",
+                      },
+                      "&:disabled": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#E4E7EC",
+                        color: "#98A2B3",
+                      },
+                    }}
+                    onClick={exportDOCX}
+                    icon={<FileDown size={16} />}
+                  />
+                </span>
+              </Tooltip>
+            </>
+          )}
           <CustomizableButton
             variant="contained"
-            text={isNew && template ? "Save in organizational policies" : "Save"}
+            text={isSaving ? "Saving..." : (isNew && template ? "Save in organizational policies" : "Save")}
+            isDisabled={isSaving}
             sx={{
               backgroundColor: "#13715B",
               border: "1px solid #13715B",
@@ -1277,9 +1441,13 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                 backgroundColor: "#0F5B4D",
                 borderColor: "#0F5B4D",
               },
+              "&:disabled": {
+                backgroundColor: "#13715B",
+                opacity: 0.7,
+              },
             }}
             onClick={save}
-            icon={<SaveIcon size={16} />}
+            icon={isSaving ? <Loader2 size={16} className="animate-spin" style={{ animation: "spin 1s linear infinite" }} /> : <SaveIcon size={16} />}
           />
         </Box>
       </Drawer>

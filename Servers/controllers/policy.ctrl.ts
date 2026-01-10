@@ -14,6 +14,11 @@ import {
   trackPolicyChanges,
   recordMultipleFieldChanges,
 } from "../utils/policyChangeHistory.utils";
+import {
+  generatePolicyPDF,
+  generatePolicyDOCX,
+  generateFilename,
+} from "../services/policies/policyExporter";
 
 export class PolicyController {
   // Get all policies
@@ -174,6 +179,87 @@ export class PolicyController {
       return res.status(404).json(STATUS_CODE[404]({}));
     } catch (error) {
       await transaction.rollback();
+      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    }
+  }
+
+  // Export policy as PDF
+  static async exportPolicyPDF(req: Request, res: Response) {
+    try {
+      const policyId = parseInt(req.params.id);
+      if (isNaN(policyId)) {
+        return res.status(400).json(STATUS_CODE[400]("Invalid policy ID"));
+      }
+
+      const policyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+
+      if (!policyResult || policyResult.length === 0) {
+        return res.status(404).json(STATUS_CODE[404](null));
+      }
+
+      const policy = policyResult[0] as IPolicy;
+      const pdfBuffer = await generatePolicyPDF(
+        policy.title,
+        policy.content_html || "",
+        req.tenantId!
+      );
+
+      const filename = generateFilename(policy.title, "pdf");
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`
+      );
+      res.setHeader("Content-Length", pdfBuffer.length);
+
+      return res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error exporting policy as PDF:", error);
+      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    }
+  }
+
+  // Export policy as DOCX
+  static async exportPolicyDOCX(req: Request, res: Response) {
+    try {
+      const policyId = parseInt(req.params.id);
+      if (isNaN(policyId)) {
+        return res.status(400).json(STATUS_CODE[400]("Invalid policy ID"));
+      }
+
+      const policyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+
+      if (!policyResult || policyResult.length === 0) {
+        return res.status(404).json(STATUS_CODE[404](null));
+      }
+
+      const policy = policyResult[0] as IPolicy;
+      console.log("Exporting DOCX for policy:", policy.title);
+      console.log("Content HTML:", policy.content_html?.substring(0, 1000));
+
+      const docxBuffer = await generatePolicyDOCX(
+        policy.title,
+        policy.content_html || "",
+        req.tenantId!
+      );
+      console.log("Generated DOCX buffer size:", docxBuffer.length);
+
+      const filename = generateFilename(policy.title, "docx");
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`
+      );
+      res.setHeader("Content-Length", docxBuffer.length);
+
+      return res.send(docxBuffer);
+    } catch (error) {
+      console.error("Error exporting policy as DOCX:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }

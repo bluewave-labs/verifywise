@@ -6,6 +6,7 @@ import CustomIconButton from "../../components/IconButton";
 import useUsers from "../../../application/hooks/useUsers";
 import { PolicyTableProps } from "../../types/interfaces/i.policy";
 import Chip from "../Chip";
+import { store } from "../../../application/redux/store";
 
 const tableHeaders = [
   { id: "title", name: "Title" },
@@ -39,6 +40,83 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
   };
 
   const { users } = useUsers();
+
+  // Download handlers for policy export
+  const handleDownloadPDF = async (policyId: number, title: string) => {
+    try {
+      const token = store.getState().auth.authToken;
+      const response = await fetch(`/api/policies/${policyId}/export/pdf`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export PDF");
+      }
+
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = `${title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+          filename = match[1];
+        }
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export PDF:", error);
+    }
+  };
+
+  const handleDownloadDOCX = async (policyId: number, title: string) => {
+    try {
+      const token = store.getState().auth.authToken;
+      const response = await fetch(`/api/policies/${policyId}/export/docx`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export DOCX");
+      }
+
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = `${title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.docx`;
+
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+          filename = match[1];
+        }
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export DOCX:", error);
+    }
+  };
 
   if (error) {
     return (
@@ -192,6 +270,8 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
                   onLinkedObjects={() => {
                     onLinkedObjects(policy.id);
                   }}
+                  onDownloadPDF={() => handleDownloadPDF(policy.id, policy.title)}
+                  onDownloadDOCX={() => handleDownloadDOCX(policy.id, policy.title)}
                   onMouseEvent={() => {}}
                   warningTitle="Delete this policy?"
                   warningMessage="When you delete this policy, all data related to it will be removed. This action is non-recoverable."

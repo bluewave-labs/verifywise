@@ -5,7 +5,10 @@ export const DatePickerStyle = {
   // Icon button positioning (MUI v8 uses MuiInputAdornment-root)
   "& .MuiInputAdornment-root": {
     position: "absolute",
-    left: "8px",
+    left: "4px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    marginTop: "1px",
     marginRight: 0,
     zIndex: 1,
   },
@@ -22,7 +25,7 @@ export const DatePickerStyle = {
   "& .MuiPickersOutlinedInput-root": {
     backgroundColor: "#FFFFFF",
     borderRadius: "4px",
-    paddingLeft: "36px !important",
+    paddingLeft: "40px !important",
   },
   "& .MuiPickersInputBase-sectionsContainer": {
     paddingLeft: "0 !important",

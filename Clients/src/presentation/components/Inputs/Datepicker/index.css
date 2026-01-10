@@ -20,7 +20,7 @@
 
 /* MUI v8 uses sectionsContainer for date display */
 .mui-date-picker .MuiPickersOutlinedInput-root {
-  padding-left: 36px !important;
+  padding-left: 40px !important;
 }
 
 .mui-date-picker .MuiPickersInputBase-sectionsContainer {

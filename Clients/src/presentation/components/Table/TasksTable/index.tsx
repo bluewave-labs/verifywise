@@ -404,7 +404,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     }}
                   >
                     {task.due_date ? (
-                      <Stack direction="row" spacing={1} alignItems="center">
+                      <Stack direction="row" spacing="8px" alignItems="center">
                         <Typography
                           variant="body2"
                           sx={{

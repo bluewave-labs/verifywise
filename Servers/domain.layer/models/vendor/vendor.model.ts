@@ -103,6 +103,11 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
   created_at?: Date;
 
   @Column({
+    type: DataType.DATE,
+  })
+  updated_at?: Date;
+
+  @Column({
     type: DataType.ENUM(
       "None",
       "Internal only", 
@@ -584,6 +589,7 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       review_date: this.review_date?.toISOString(),
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
+      updated_at: this.updated_at?.toISOString(),
     };
   }
 

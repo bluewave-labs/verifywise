@@ -33,6 +33,9 @@ import FlyingHearts from "../FlyingHearts";
 
 declare const __APP_VERSION__: string;
 
+// Track if sidebar has been shown before (persists across module switches)
+let hasShownSidebarBefore = false;
+
 // Types for menu items
 export interface SidebarMenuItem {
   id: string;
@@ -110,8 +113,9 @@ const SidebarShell: FC<SidebarShellProps> = ({
   const theme = useTheme();
   const dispatch = useDispatch();
 
-  // Sidebar mount state for fade-in animation
-  const [isMounted, setIsMounted] = useState(false);
+  // Sidebar mount state for slide-in animation
+  // Skip animation if sidebar has been shown before (e.g., when switching modules)
+  const [isMounted, setIsMounted] = useState(hasShownSidebarBefore);
 
   // Heart icon state (Easter egg)
   const [showHeartIcon, setShowHeartIcon] = useState(false);
@@ -119,11 +123,18 @@ const SidebarShell: FC<SidebarShellProps> = ({
   const [heartReturning, setHeartReturning] = useState(false);
   const heartTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Trigger fade-in after initial render
+  // Trigger slide-in after initial render (only on first app load)
   useEffect(() => {
-    // Small delay to ensure smooth fade-in after DOM is ready
+    if (hasShownSidebarBefore) {
+      // Skip animation on module switch
+      setIsMounted(true);
+      return;
+    }
+
+    // First time showing sidebar - animate it
     const timer = setTimeout(() => {
       setIsMounted(true);
+      hasShownSidebarBefore = true;
     }, 50);
     return () => clearTimeout(timer);
   }, []);

@@ -63,6 +63,9 @@ import ExperimentDetailContent from "./ExperimentDetailContent";
 import ArenaPage from "./ArenaPage";
 import type { DeepEvalProject } from "./types";
 
+// Track if Evals dashboard has been loaded before (persists across module switches)
+let hasLoadedEvalsBefore = false;
+
 const LLM_PROVIDERS = [
   { _id: "openrouter", name: "OpenRouter", Logo: OpenRouterLogo },
   { _id: "openai", name: "OpenAI", Logo: OpenAILogo },
@@ -206,7 +209,10 @@ export default function EvalsDashboard() {
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
   const [scorersCount, setScorersCount] = useState<number>(0);
   const [arenaCount, setArenaCount] = useState<number>(0);
-  const [initialLoading, setInitialLoading] = useState(true);
+  // Skip initial loading state if we've loaded before AND we're on a specific project
+  // If no projectId, we might redirect to last project, so keep loading to prevent flash
+  const shouldSkipLoading = hasLoadedEvalsBefore && !!projectId;
+  const [initialLoading, setInitialLoading] = useState(!shouldSkipLoading);
   const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null);
   const [recentExperiments, setRecentExperiments] = useState<RecentExperiment[]>(() => {
     try {
@@ -518,6 +524,7 @@ export default function EvalsDashboard() {
         if (location.hash === "#projects") {
           setOnboardingStep(null);
           setInitialLoading(false);
+          hasLoadedEvalsBefore = true;
           return;
         }
 
@@ -528,6 +535,7 @@ export default function EvalsDashboard() {
           try {
             const projectData = await getProject(lastProjectId);
             if (projectData?.project) {
+              // Don't set initialLoading to false - keep showing nothing while redirecting
               navigate(`/evals/${lastProjectId}#overview`, { replace: true });
               return;
             }
@@ -543,8 +551,10 @@ export default function EvalsDashboard() {
         if (!projectIds || projectIds.length === 0) {
           // Org exists but no projects - go to project step
           setOnboardingStep("project");
+          setInitialLoading(false);
+          hasLoadedEvalsBefore = true;
         } else if (projectIds.length > 0) {
-          // Redirect to first project in org
+          // Don't set initialLoading to false - keep showing nothing while redirecting
           navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
           return;
         }
@@ -553,8 +563,8 @@ export default function EvalsDashboard() {
         // On error, set server connection error instead of forcing onboarding
         setServerConnectionError(true);
         setOnboardingStep(null);
-      } finally {
         setInitialLoading(false);
+        hasLoadedEvalsBefore = true;
       }
     };
 
@@ -563,6 +573,7 @@ export default function EvalsDashboard() {
       loadAndCheckOnboarding();
     } else {
       setInitialLoading(false);
+      hasLoadedEvalsBefore = true;
     }
   }, [projectId, navigate, location.hash]);
 
@@ -821,6 +832,7 @@ export default function EvalsDashboard() {
       setServerConnectionError(true);
     } finally {
       setInitialLoading(false);
+      hasLoadedEvalsBefore = true;
     }
   };
 

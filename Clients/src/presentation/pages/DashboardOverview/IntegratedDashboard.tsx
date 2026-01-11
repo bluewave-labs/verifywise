@@ -86,8 +86,11 @@ const IntegratedDashboard: React.FC = () => {
     policyStatusMetrics,
     incidentStatusMetrics,
     evidenceHubMetrics,
+    evidenceMetrics,
     modelLifecycleMetrics,
     organizationalFrameworks,
+    taskMetrics,
+    useCaseMetrics,
   } = useDashboardMetrics();
 
   const { userToken, userId } = useAuth();
@@ -504,46 +507,133 @@ const IntegratedDashboard: React.FC = () => {
             sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", mb: "16px" }}
           >
             <DashboardCard title="Recent activity">
-              {!policyMetrics?.recent?.length && !incidentMetrics?.recent?.length ? (
-                <EmptyStateMessage message="No recent activity" />
-              ) : (
-                <Stack gap={0}>
-                  {(() => {
-                    const policies = policyMetrics?.recent?.slice(0, 3) || [];
-                    const incidents = incidentMetrics?.recent?.slice(0, 2) || [];
-                    const totalItems = policies.length + incidents.length;
-                    let currentIndex = 0;
-                    return (
-                      <>
-                        {policies.map((policy: any) => {
-                          currentIndex++;
-                          return (
-                            <ActivityItem
-                              key={policy.id}
-                              title={policy.title}
-                              timestamp={formatRelativeDate(policy.last_updated_at)}
-                              type="Policy"
-                              isLast={currentIndex === totalItems}
-                            />
-                          );
-                        })}
-                        {incidents.map((incident: any) => {
-                          currentIndex++;
-                          return (
-                            <ActivityItem
-                              key={incident.id}
-                              title={incident.description || incident.incident_id}
-                              timestamp={formatRelativeDate(incident.created_at)}
-                              type="Incident"
-                              isLast={currentIndex === totalItems}
-                            />
-                          );
-                        })}
-                      </>
-                    );
-                  })()}
-                </Stack>
-              )}
+              {(() => {
+                // Combine all recent items with timestamps and types
+                const allActivities: Array<{ id: string; title: string; timestamp: string; type: string }> = [];
+
+                // Add policies
+                policyMetrics?.recent?.forEach((policy: any) => {
+                  allActivities.push({
+                    id: `policy-${policy.id}`,
+                    title: policy.title,
+                    timestamp: policy.last_updated_at,
+                    type: "Policy",
+                  });
+                });
+
+                // Add incidents
+                incidentMetrics?.recent?.forEach((incident: any) => {
+                  allActivities.push({
+                    id: `incident-${incident.id}`,
+                    title: incident.description || incident.incident_id,
+                    timestamp: incident.created_at,
+                    type: "Incident",
+                  });
+                });
+
+                // Add risks
+                riskMetrics?.recent?.forEach((risk: any) => {
+                  allActivities.push({
+                    id: `risk-${risk.id}`,
+                    title: risk.title,
+                    timestamp: risk.created_at,
+                    type: "Risk",
+                  });
+                });
+
+                // Add evidence
+                evidenceMetrics?.recent?.forEach((evidence: any) => {
+                  allActivities.push({
+                    id: `evidence-${evidence.id}`,
+                    title: evidence.title,
+                    timestamp: evidence.uploaded_at,
+                    type: "Evidence",
+                  });
+                });
+
+                // Add vendors
+                vendorMetrics?.recent?.forEach((vendor: any) => {
+                  allActivities.push({
+                    id: `vendor-${vendor.id}`,
+                    title: vendor.name,
+                    timestamp: vendor.created_at,
+                    type: "Vendor",
+                  });
+                });
+
+                // Add vendor risks
+                vendorRiskMetrics?.recent?.forEach((vendorRisk: any) => {
+                  allActivities.push({
+                    id: `vendorRisk-${vendorRisk.id}`,
+                    title: vendorRisk.title,
+                    timestamp: vendorRisk.created_at,
+                    type: "Vendor risk",
+                  });
+                });
+
+                // Add model risks
+                modelRiskMetrics?.recent?.forEach((modelRisk: any) => {
+                  allActivities.push({
+                    id: `modelRisk-${modelRisk.id}`,
+                    title: modelRisk.title,
+                    timestamp: modelRisk.created_at,
+                    type: "Model risk",
+                  });
+                });
+
+                // Add tasks
+                taskMetrics?.recent?.forEach((task: any) => {
+                  allActivities.push({
+                    id: `task-${task.id}`,
+                    title: task.title,
+                    timestamp: task.created_at,
+                    type: "Task",
+                  });
+                });
+
+                // Add use cases
+                useCaseMetrics?.recent?.forEach((useCase: any) => {
+                  allActivities.push({
+                    id: `useCase-${useCase.id}`,
+                    title: useCase.title,
+                    timestamp: useCase.created_at,
+                    type: "Use case",
+                  });
+                });
+
+                // Add trainings
+                trainingMetrics?.recent?.forEach((training: any) => {
+                  allActivities.push({
+                    id: `training-${training.id}`,
+                    title: training.title,
+                    timestamp: training.created_at,
+                    type: "Training",
+                  });
+                });
+
+                // Sort by timestamp descending and take top 5
+                const sortedActivities = allActivities
+                  .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                  .slice(0, 5);
+
+                if (sortedActivities.length === 0) {
+                  return <EmptyStateMessage message="No recent activity" />;
+                }
+
+                return (
+                  <Stack gap={0}>
+                    {sortedActivities.map((activity, index) => (
+                      <ActivityItem
+                        key={activity.id}
+                        title={activity.title}
+                        timestamp={formatRelativeDate(activity.timestamp)}
+                        type={activity.type}
+                        isLast={index === sortedActivities.length - 1}
+                      />
+                    ))}
+                  </Stack>
+                );
+              })()}
             </DashboardCard>
             <DashboardCard title="Recent use cases" navigateTo="/overview">
               {useCases.length === 0 ? (
@@ -709,46 +799,133 @@ const IntegratedDashboard: React.FC = () => {
               )}
             </DashboardCard>
             <DashboardCard title="Recent activity">
-              {!policyMetrics?.recent?.length && !incidentMetrics?.recent?.length ? (
-                <EmptyStateMessage message="No recent activity" />
-              ) : (
-                <Stack gap={0}>
-                  {(() => {
-                    const policies = policyMetrics?.recent?.slice(0, 3) || [];
-                    const incidents = incidentMetrics?.recent?.slice(0, 2) || [];
-                    const totalItems = policies.length + incidents.length;
-                    let currentIndex = 0;
-                    return (
-                      <>
-                        {policies.map((policy: any) => {
-                          currentIndex++;
-                          return (
-                            <ActivityItem
-                              key={policy.id}
-                              title={policy.title}
-                              timestamp={formatRelativeDate(policy.last_updated_at)}
-                              type="Policy"
-                              isLast={currentIndex === totalItems}
-                            />
-                          );
-                        })}
-                        {incidents.map((incident: any) => {
-                          currentIndex++;
-                          return (
-                            <ActivityItem
-                              key={incident.id}
-                              title={incident.description || incident.incident_id}
-                              timestamp={formatRelativeDate(incident.created_at)}
-                              type="Incident"
-                              isLast={currentIndex === totalItems}
-                            />
-                          );
-                        })}
-                      </>
-                    );
-                  })()}
-                </Stack>
-              )}
+              {(() => {
+                // Combine all recent items with timestamps and types
+                const allActivities: Array<{ id: string; title: string; timestamp: string; type: string }> = [];
+
+                // Add policies
+                policyMetrics?.recent?.forEach((policy: any) => {
+                  allActivities.push({
+                    id: `policy-${policy.id}`,
+                    title: policy.title,
+                    timestamp: policy.last_updated_at,
+                    type: "Policy",
+                  });
+                });
+
+                // Add incidents
+                incidentMetrics?.recent?.forEach((incident: any) => {
+                  allActivities.push({
+                    id: `incident-${incident.id}`,
+                    title: incident.description || incident.incident_id,
+                    timestamp: incident.created_at,
+                    type: "Incident",
+                  });
+                });
+
+                // Add risks
+                riskMetrics?.recent?.forEach((risk: any) => {
+                  allActivities.push({
+                    id: `risk-${risk.id}`,
+                    title: risk.title,
+                    timestamp: risk.created_at,
+                    type: "Risk",
+                  });
+                });
+
+                // Add evidence
+                evidenceMetrics?.recent?.forEach((evidence: any) => {
+                  allActivities.push({
+                    id: `evidence-${evidence.id}`,
+                    title: evidence.title,
+                    timestamp: evidence.uploaded_at,
+                    type: "Evidence",
+                  });
+                });
+
+                // Add vendors
+                vendorMetrics?.recent?.forEach((vendor: any) => {
+                  allActivities.push({
+                    id: `vendor-${vendor.id}`,
+                    title: vendor.name,
+                    timestamp: vendor.created_at,
+                    type: "Vendor",
+                  });
+                });
+
+                // Add vendor risks
+                vendorRiskMetrics?.recent?.forEach((vendorRisk: any) => {
+                  allActivities.push({
+                    id: `vendorRisk-${vendorRisk.id}`,
+                    title: vendorRisk.title,
+                    timestamp: vendorRisk.created_at,
+                    type: "Vendor risk",
+                  });
+                });
+
+                // Add model risks
+                modelRiskMetrics?.recent?.forEach((modelRisk: any) => {
+                  allActivities.push({
+                    id: `modelRisk-${modelRisk.id}`,
+                    title: modelRisk.title,
+                    timestamp: modelRisk.created_at,
+                    type: "Model risk",
+                  });
+                });
+
+                // Add tasks
+                taskMetrics?.recent?.forEach((task: any) => {
+                  allActivities.push({
+                    id: `task-${task.id}`,
+                    title: task.title,
+                    timestamp: task.created_at,
+                    type: "Task",
+                  });
+                });
+
+                // Add use cases
+                useCaseMetrics?.recent?.forEach((useCase: any) => {
+                  allActivities.push({
+                    id: `useCase-${useCase.id}`,
+                    title: useCase.title,
+                    timestamp: useCase.created_at,
+                    type: "Use case",
+                  });
+                });
+
+                // Add trainings
+                trainingMetrics?.recent?.forEach((training: any) => {
+                  allActivities.push({
+                    id: `training-${training.id}`,
+                    title: training.title,
+                    timestamp: training.created_at,
+                    type: "Training",
+                  });
+                });
+
+                // Sort by timestamp descending and take top 5
+                const sortedActivities = allActivities
+                  .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                  .slice(0, 5);
+
+                if (sortedActivities.length === 0) {
+                  return <EmptyStateMessage message="No recent activity" />;
+                }
+
+                return (
+                  <Stack gap={0}>
+                    {sortedActivities.map((activity, index) => (
+                      <ActivityItem
+                        key={activity.id}
+                        title={activity.title}
+                        timestamp={formatRelativeDate(activity.timestamp)}
+                        type={activity.type}
+                        isLast={index === sortedActivities.length - 1}
+                      />
+                    ))}
+                  </Stack>
+                );
+              })()}
             </DashboardCard>
           </Box>
 

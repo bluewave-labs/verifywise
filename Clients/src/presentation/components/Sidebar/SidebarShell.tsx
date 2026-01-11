@@ -11,7 +11,7 @@ import {
   Typography,
   Chip,
   Popover,
-  Fade,
+  Slide,
 } from "@mui/material";
 import { useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
@@ -506,7 +506,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
   };
 
   return (
-    <Fade in={isMounted} timeout={300}>
+    <Slide direction="right" in={isMounted} timeout={350} mountOnEnter>
       <Stack
         component="aside"
         className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
@@ -973,7 +973,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
           <FlyingHearts onComplete={() => setShowFlyingHearts(false)} />
         )}
       </Stack>
-    </Fade>
+    </Slide>
   );
 };
 

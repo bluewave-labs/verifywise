@@ -1,7 +1,7 @@
-import { Stack, Typography, Box } from "@mui/material";
+import { Stack, Typography, Box, Slide } from "@mui/material";
 import "./index.css";
 import { Outlet, useLocation } from "react-router";
-import { useContext, useEffect, FC, useState } from "react";
+import { useContext, useEffect, FC, useState, useRef } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { EvalsSidebarProvider } from "../../../application/contexts/EvalsSidebar.context";
 import { AIDetectionSidebarProvider } from "../../../application/contexts/AIDetectionSidebar.context";
@@ -30,6 +30,18 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { setDashboardValues, setProjects } = useContext(VerifyWiseContext);
   const location = useLocation();
   const { activeModule, setActiveModule } = useActiveModule();
+
+  // Content mount state for slide-in animation
+  const [isContentMounted, setIsContentMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Trigger slide-in after initial render
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsContentMounted(true);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Demo data state
   const [showToastNotification, setShowToastNotification] =
@@ -277,11 +289,12 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     <EvalsSidebarProvider>
       <AIDetectionSidebarProvider>
         <Stack
+          ref={containerRef}
           maxWidth="100%"
           className="home-layout"
           flexDirection="row"
           gap={0}
-          sx={{ backgroundColor: "#FCFCFD" }}
+          sx={{ backgroundColor: "#FCFCFD", overflow: "hidden" }}
         >
           <AppSwitcher
             activeModule={activeModule}
@@ -293,20 +306,22 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
             hasDemoData={hasDemoData}
           />
-          <Stack sx={{ flex: 1, minWidth: 0 }}>
-            <DemoAppBanner />
-            {alertState && (
-              <Alert
-                variant={alertState.variant}
-                title={alertState.title}
-                body={alertState.body}
-                isToast={true}
-                onClick={() => setAlertState(undefined)}
-              />
-            )}
-            {showToastNotification && <CustomizableToast title={toastMessage} />}
-            <Outlet />
-          </Stack>
+          <Slide direction="up" in={isContentMounted} timeout={400} container={containerRef.current} mountOnEnter>
+            <Stack sx={{ flex: 1, minWidth: 0 }}>
+              <DemoAppBanner />
+              {alertState && (
+                <Alert
+                  variant={alertState.variant}
+                  title={alertState.title}
+                  body={alertState.body}
+                  isToast={true}
+                  onClick={() => setAlertState(undefined)}
+                />
+              )}
+              {showToastNotification && <CustomizableToast title={toastMessage} />}
+              <Outlet />
+            </Stack>
+          </Slide>
 
           {/* Demo Data Modals */}
           <StandardModal

@@ -209,8 +209,10 @@ export default function EvalsDashboard() {
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
   const [scorersCount, setScorersCount] = useState<number>(0);
   const [arenaCount, setArenaCount] = useState<number>(0);
-  // Skip initial loading state if we've loaded before (prevents flicker on module switch)
-  const [initialLoading, setInitialLoading] = useState(!hasLoadedEvalsBefore);
+  // Skip initial loading state if we've loaded before AND we're on a specific project
+  // If no projectId, we might redirect to last project, so keep loading to prevent flash
+  const shouldSkipLoading = hasLoadedEvalsBefore && !!projectId;
+  const [initialLoading, setInitialLoading] = useState(!shouldSkipLoading);
   const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null);
   const [recentExperiments, setRecentExperiments] = useState<RecentExperiment[]>(() => {
     try {

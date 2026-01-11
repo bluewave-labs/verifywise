@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import {
   Box,
   Typography,
@@ -6,6 +6,7 @@ import {
   CircularProgress,
   IconButton,
   useTheme,
+  Fade,
 } from "@mui/material";
 import {
   ChevronLeft,
@@ -60,10 +61,43 @@ type DashboardView = "executive" | "operations";
 
 const DASHBOARD_VIEW_KEY = "dashboard_view_preference";
 
+// Delay before showing loading indicator (ms)
+const LOADING_DELAY_MS = 300;
+
 const IntegratedDashboard: React.FC = () => {
   const theme = useTheme();
   const navigateSearch = useNavigateSearch();
   const { dashboard, loading, fetchDashboard } = useDashboard();
+
+  // Delayed loading state - only show spinner after LOADING_DELAY_MS
+  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
+  const [contentReady, setContentReady] = useState(false);
+  const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle delayed loading indicator
+  useEffect(() => {
+    if (loading) {
+      // Start timer to show loading indicator after delay
+      loadingTimerRef.current = setTimeout(() => {
+        setShowLoadingIndicator(true);
+      }, LOADING_DELAY_MS);
+    } else {
+      // Clear timer and hide loading indicator
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+        loadingTimerRef.current = null;
+      }
+      setShowLoadingIndicator(false);
+      // Mark content as ready for fade-in
+      setContentReady(true);
+    }
+
+    return () => {
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+      }
+    };
+  }, [loading]);
 
   // Dashboard view state with localStorage persistence
   const [dashboardView, setDashboardView] = useState<DashboardView>(() => {
@@ -280,25 +314,34 @@ const IntegratedDashboard: React.FC = () => {
     }));
   }, []);
 
-  if (loading) {
+  // Show loading indicator only after delay threshold
+  if (loading && showLoadingIndicator) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "50vh",
-        }}
-      >
-        <CircularProgress />
-        <Typography sx={{ ml: 2 }}>Loading dashboard...</Typography>
-      </Box>
+      <Fade in={true} timeout={200}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "50vh",
+          }}
+        >
+          <CircularProgress />
+          <Typography sx={{ ml: 2 }}>Loading dashboard...</Typography>
+        </Box>
+      </Fade>
     );
   }
 
+  // Don't render anything while loading (before delay threshold)
+  if (loading) {
+    return null;
+  }
+
   return (
-    <Box sx={{ pb: 3, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
-      <PageBreadcrumbs />
+    <Fade in={contentReady} timeout={300}>
+      <Box sx={{ pb: 3, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
+        <PageBreadcrumbs />
 
       {/* Organization Name Modal */}
       {showOrgNameModal && (
@@ -1046,9 +1089,10 @@ const IntegratedDashboard: React.FC = () => {
         </>
       )}
 
-      {/* Page Tour */}
-      <PageTour steps={DashboardSteps} run={true} tourKey="dashboard-tour" />
-    </Box>
+        {/* Page Tour */}
+        <PageTour steps={DashboardSteps} run={true} tourKey="dashboard-tour" />
+      </Box>
+    </Fade>
   );
 };
 

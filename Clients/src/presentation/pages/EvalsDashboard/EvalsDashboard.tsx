@@ -535,6 +535,7 @@ export default function EvalsDashboard() {
           try {
             const projectData = await getProject(lastProjectId);
             if (projectData?.project) {
+              // Don't set initialLoading to false - keep showing nothing while redirecting
               navigate(`/evals/${lastProjectId}#overview`, { replace: true });
               return;
             }
@@ -550,8 +551,10 @@ export default function EvalsDashboard() {
         if (!projectIds || projectIds.length === 0) {
           // Org exists but no projects - go to project step
           setOnboardingStep("project");
+          setInitialLoading(false);
+          hasLoadedEvalsBefore = true;
         } else if (projectIds.length > 0) {
-          // Redirect to first project in org
+          // Don't set initialLoading to false - keep showing nothing while redirecting
           navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
           return;
         }
@@ -560,7 +563,6 @@ export default function EvalsDashboard() {
         // On error, set server connection error instead of forcing onboarding
         setServerConnectionError(true);
         setOnboardingStep(null);
-      } finally {
         setInitialLoading(false);
         hasLoadedEvalsBefore = true;
       }

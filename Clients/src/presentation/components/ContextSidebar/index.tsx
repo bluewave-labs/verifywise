@@ -51,6 +51,25 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
     }
   };
 
+  // Get active tab from URL path for ai-detection
+  const aiDetectionTab = location.pathname.includes("/ai-detection/history")
+    ? "history"
+    : location.pathname.includes("/ai-detection/settings")
+    ? "settings"
+    : location.pathname.includes("/ai-detection/scans/")
+    ? "history"
+    : "scan";
+
+  const handleAIDetectionTabChange = (newTab: string) => {
+    if (newTab === "scan") {
+      navigate("/ai-detection");
+    } else if (newTab === "history") {
+      navigate("/ai-detection/history");
+    } else if (newTab === "settings") {
+      navigate("/ai-detection/settings");
+    }
+  };
+
   switch (activeModule) {
     case "main":
       return (
@@ -61,7 +80,6 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
         />
       );
     case "evals":
-      // Render EvalsSidebar - use URL hash for active tab, context for counts
       return (
         <EvalsSidebar
           activeTab={activeTab}
@@ -80,26 +98,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           onProjectChange={evalsSidebarContext?.onProjectChange}
         />
       );
-    case "ai-detection": {
-      // Get active tab from URL path for ai-detection
-      const aiDetectionTab = location.pathname.includes("/ai-detection/history")
-        ? "history"
-        : location.pathname.includes("/ai-detection/settings")
-        ? "settings"
-        : location.pathname.includes("/ai-detection/scans/")
-        ? "history"
-        : "scan";
-
-      const handleAIDetectionTabChange = (newTab: string) => {
-        if (newTab === "scan") {
-          navigate("/ai-detection");
-        } else if (newTab === "history") {
-          navigate("/ai-detection/history");
-        } else if (newTab === "settings") {
-          navigate("/ai-detection/settings");
-        }
-      };
-
+    case "ai-detection":
       return (
         <AIDetectionSidebar
           activeTab={aiDetectionTab}
@@ -109,7 +108,6 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           onScanClick={(scanId) => navigate(`/ai-detection/scans/${scanId}`)}
         />
       );
-    }
     case "gateway":
       return <GatewaySidebar />;
     default:

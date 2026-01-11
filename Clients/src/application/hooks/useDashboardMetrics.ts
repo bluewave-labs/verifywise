@@ -218,6 +218,7 @@ export interface UseCaseMetrics {
     title: string;
     status: string;
     created_at: string;
+    last_updated: string;
   }>;
 }
 
@@ -836,13 +837,20 @@ export const useDashboardMetrics = () => {
       const metrics = {
         total: useCases.length,
         recent: useCases
-          .filter((project: any) => project.created_at || project.createdAt)
+          .filter((project: any) => project.created_at || project.createdAt || project.last_updated)
+          .sort((a: any, b: any) => {
+            // Sort by most recent activity (prefer last_updated, fall back to created_at)
+            const dateA = new Date(a.last_updated || a.created_at || a.createdAt);
+            const dateB = new Date(b.last_updated || b.created_at || b.createdAt);
+            return dateB.getTime() - dateA.getTime();
+          })
           .slice(0, 5)
           .map((project: any, index: number) => ({
             id: project.id || index + 1,
             title: project.project_title || project.name || "Untitled Use Case",
             status: project.status || "Active",
             created_at: project.created_at || project.createdAt,
+            last_updated: project.last_updated,
           })),
       };
       setUseCaseMetrics(metrics);

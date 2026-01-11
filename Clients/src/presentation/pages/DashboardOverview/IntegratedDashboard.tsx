@@ -521,98 +521,99 @@ const IntegratedDashboard: React.FC = () => {
                   });
                 });
 
-                // Add incidents
+                // Add incidents (prefer updated_at over created_at)
                 incidentMetrics?.recent?.forEach((incident: any) => {
                   allActivities.push({
                     id: `incident-${incident.id}`,
                     title: incident.description || incident.incident_id,
-                    timestamp: incident.created_at,
+                    timestamp: incident.updated_at || incident.created_at,
                     type: "Incident",
                   });
                 });
 
-                // Add risks
+                // Add risks (prefer updated_at over created_at)
                 riskMetrics?.recent?.forEach((risk: any) => {
                   allActivities.push({
                     id: `risk-${risk.id}`,
                     title: risk.title,
-                    timestamp: risk.created_at,
+                    timestamp: risk.updated_at || risk.created_at,
                     type: "Risk",
                   });
                 });
 
-                // Add evidence
+                // Add evidence (prefer updated_at)
                 evidenceMetrics?.recent?.forEach((evidence: any) => {
                   allActivities.push({
                     id: `evidence-${evidence.id}`,
                     title: evidence.title,
-                    timestamp: evidence.uploaded_at,
+                    timestamp: evidence.updated_at || evidence.uploaded_at,
                     type: "Evidence",
                   });
                 });
 
-                // Add vendors
+                // Add vendors (prefer updated_at over created_at)
                 vendorMetrics?.recent?.forEach((vendor: any) => {
                   allActivities.push({
                     id: `vendor-${vendor.id}`,
                     title: vendor.name,
-                    timestamp: vendor.created_at,
+                    timestamp: vendor.updated_at || vendor.created_at,
                     type: "Vendor",
                   });
                 });
 
-                // Add vendor risks
+                // Add vendor risks (prefer updated_at over created_at)
                 vendorRiskMetrics?.recent?.forEach((vendorRisk: any) => {
                   allActivities.push({
                     id: `vendorRisk-${vendorRisk.id}`,
                     title: vendorRisk.title,
-                    timestamp: vendorRisk.created_at,
+                    timestamp: vendorRisk.updated_at || vendorRisk.created_at,
                     type: "Vendor risk",
                   });
                 });
 
-                // Add model risks
+                // Add model risks (prefer updated_at over created_at)
                 modelRiskMetrics?.recent?.forEach((modelRisk: any) => {
                   allActivities.push({
                     id: `modelRisk-${modelRisk.id}`,
                     title: modelRisk.title,
-                    timestamp: modelRisk.created_at,
+                    timestamp: modelRisk.updated_at || modelRisk.created_at,
                     type: "Model risk",
                   });
                 });
 
-                // Add tasks
+                // Add tasks (prefer updated_at over created_at)
                 taskMetrics?.recent?.forEach((task: any) => {
                   allActivities.push({
                     id: `task-${task.id}`,
                     title: task.title,
-                    timestamp: task.created_at,
+                    timestamp: task.updated_at || task.created_at,
                     type: "Task",
                   });
                 });
 
-                // Add use cases
+                // Add use cases (prefer last_updated over created_at)
                 useCaseMetrics?.recent?.forEach((useCase: any) => {
                   allActivities.push({
                     id: `useCase-${useCase.id}`,
                     title: useCase.title,
-                    timestamp: useCase.created_at,
+                    timestamp: useCase.last_updated || useCase.created_at,
                     type: "Use case",
                   });
                 });
 
-                // Add trainings
+                // Add trainings (prefer updated_at over created_at)
                 trainingMetrics?.recent?.forEach((training: any) => {
                   allActivities.push({
                     id: `training-${training.id}`,
                     title: training.title,
-                    timestamp: training.created_at,
+                    timestamp: training.updated_at || training.created_at,
                     type: "Training",
                   });
                 });
 
                 // Sort by timestamp descending and take top 5
                 const sortedActivities = allActivities
+                  .filter((a) => a.timestamp) // Filter out items without valid timestamps
                   .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
                   .slice(0, 5);
 
@@ -813,98 +814,99 @@ const IntegratedDashboard: React.FC = () => {
                   });
                 });
 
-                // Add incidents
+                // Add incidents (prefer updated_at over created_at)
                 incidentMetrics?.recent?.forEach((incident: any) => {
                   allActivities.push({
                     id: `incident-${incident.id}`,
                     title: incident.description || incident.incident_id,
-                    timestamp: incident.created_at,
+                    timestamp: incident.updated_at || incident.created_at,
                     type: "Incident",
                   });
                 });
 
-                // Add risks
+                // Add risks (prefer updated_at over created_at)
                 riskMetrics?.recent?.forEach((risk: any) => {
                   allActivities.push({
                     id: `risk-${risk.id}`,
                     title: risk.title,
-                    timestamp: risk.created_at,
+                    timestamp: risk.updated_at || risk.created_at,
                     type: "Risk",
                   });
                 });
 
-                // Add evidence
+                // Add evidence (prefer updated_at)
                 evidenceMetrics?.recent?.forEach((evidence: any) => {
                   allActivities.push({
                     id: `evidence-${evidence.id}`,
                     title: evidence.title,
-                    timestamp: evidence.uploaded_at,
+                    timestamp: evidence.updated_at || evidence.uploaded_at,
                     type: "Evidence",
                   });
                 });
 
-                // Add vendors
+                // Add vendors (prefer updated_at over created_at)
                 vendorMetrics?.recent?.forEach((vendor: any) => {
                   allActivities.push({
                     id: `vendor-${vendor.id}`,
                     title: vendor.name,
-                    timestamp: vendor.created_at,
+                    timestamp: vendor.updated_at || vendor.created_at,
                     type: "Vendor",
                   });
                 });
 
-                // Add vendor risks
+                // Add vendor risks (prefer updated_at over created_at)
                 vendorRiskMetrics?.recent?.forEach((vendorRisk: any) => {
                   allActivities.push({
                     id: `vendorRisk-${vendorRisk.id}`,
                     title: vendorRisk.title,
-                    timestamp: vendorRisk.created_at,
+                    timestamp: vendorRisk.updated_at || vendorRisk.created_at,
                     type: "Vendor risk",
                   });
                 });
 
-                // Add model risks
+                // Add model risks (prefer updated_at over created_at)
                 modelRiskMetrics?.recent?.forEach((modelRisk: any) => {
                   allActivities.push({
                     id: `modelRisk-${modelRisk.id}`,
                     title: modelRisk.title,
-                    timestamp: modelRisk.created_at,
+                    timestamp: modelRisk.updated_at || modelRisk.created_at,
                     type: "Model risk",
                   });
                 });
 
-                // Add tasks
+                // Add tasks (prefer updated_at over created_at)
                 taskMetrics?.recent?.forEach((task: any) => {
                   allActivities.push({
                     id: `task-${task.id}`,
                     title: task.title,
-                    timestamp: task.created_at,
+                    timestamp: task.updated_at || task.created_at,
                     type: "Task",
                   });
                 });
 
-                // Add use cases
+                // Add use cases (prefer last_updated over created_at)
                 useCaseMetrics?.recent?.forEach((useCase: any) => {
                   allActivities.push({
                     id: `useCase-${useCase.id}`,
                     title: useCase.title,
-                    timestamp: useCase.created_at,
+                    timestamp: useCase.last_updated || useCase.created_at,
                     type: "Use case",
                   });
                 });
 
-                // Add trainings
+                // Add trainings (prefer updated_at over created_at)
                 trainingMetrics?.recent?.forEach((training: any) => {
                   allActivities.push({
                     id: `training-${training.id}`,
                     title: training.title,
-                    timestamp: training.created_at,
+                    timestamp: training.updated_at || training.created_at,
                     type: "Training",
                   });
                 });
 
                 // Sort by timestamp descending and take top 5
                 const sortedActivities = allActivities
+                  .filter((a) => a.timestamp) // Filter out items without valid timestamps
                   .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
                   .slice(0, 5);
 

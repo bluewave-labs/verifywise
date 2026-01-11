@@ -83,6 +83,7 @@ export interface RiskMetrics {
     title: string;
     severity: "high" | "medium" | "low";
     created_at: string;
+    updated_at?: string;
     project_name: string;
   }>;
 }
@@ -93,6 +94,7 @@ export interface EvidenceMetrics {
     id: number;
     title: string;
     uploaded_at: string;
+    updated_at?: string;
     project_name: string;
     user_name: string;
   }>;
@@ -112,6 +114,7 @@ export interface VendorRiskMetrics {
     title: string;
     severity: "high" | "medium" | "low";
     created_at: string;
+    updated_at?: string;
     vendor_name: string;
   }>;
   statusDistribution?: Array<{ name: string; value: number; color: string }>;
@@ -123,6 +126,7 @@ export interface VendorMetrics {
     id: number;
     name: string;
     created_at: string;
+    updated_at?: string;
     status: string;
   }>;
   statusDistribution?: Array<{ name: string; value: number; color: string }>;
@@ -162,6 +166,7 @@ export interface IncidentMetrics {
     severity: string;
     status: string;
     created_at: string;
+    updated_at?: string;
   }>;
   statusDistribution?: Array<{ name: string; value: number; color: string }>;
 }
@@ -179,6 +184,7 @@ export interface ModelRiskMetrics {
     title: string;
     severity: "critical" | "high" | "medium" | "low";
     created_at: string;
+    updated_at?: string;
     model_name?: string;
   }>;
 }
@@ -197,6 +203,7 @@ export interface TrainingMetrics {
     title: string;
     status: string;
     created_at: string;
+    updated_at?: string;
   }>;
 }
 
@@ -208,6 +215,7 @@ export interface TaskMetrics {
     status: string;
     priority: string;
     created_at: string;
+    updated_at?: string;
   }>;
 }
 

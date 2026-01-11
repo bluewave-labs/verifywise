@@ -11,9 +11,9 @@ module.exports = {
         defaultValue: Sequelize.fn('NOW'),
       }, { transaction });
 
-      // Set updated_at to created_at for existing records
+      // Set updated_at to created_at for existing records (overwrite default NOW() value)
       await queryInterface.sequelize.query(
-        `UPDATE vendors SET updated_at = COALESCE(created_at, NOW()) WHERE updated_at IS NULL;`,
+        `UPDATE vendors SET updated_at = COALESCE(created_at, NOW());`,
         { transaction }
       );
 

@@ -133,6 +133,31 @@ export class ProjectModel
     });
   }
 
+  /**
+   * Convert to JSON representation
+   */
+  toJSON(): any {
+    return {
+      id: this.id,
+      uc_id: this.uc_id,
+      project_title: this.project_title,
+      owner: this.owner,
+      start_date: this.start_date?.toISOString(),
+      geography: this.geography,
+      ai_risk_classification: this.ai_risk_classification,
+      type_of_high_risk_role: this.type_of_high_risk_role,
+      goal: this.goal,
+      target_industry: this.target_industry,
+      description: this.description,
+      last_updated: this.last_updated?.toISOString(),
+      last_updated_by: this.last_updated_by,
+      is_demo: this.is_demo,
+      created_at: this.created_at?.toISOString(),
+      is_organizational: this.is_organizational,
+      status: this.status,
+    };
+  }
+
   constructor(init?: Partial<IProjectAttributes>) {
     super();
     Object.assign(this, init);

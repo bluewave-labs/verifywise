@@ -218,7 +218,7 @@ export interface UseCaseMetrics {
     title: string;
     status: string;
     created_at: string;
-    last_updated: string;
+    last_updated?: string;
   }>;
 }
 

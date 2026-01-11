@@ -11,7 +11,7 @@ const initialState: OnboardingState = {
   skippedSteps: [],
   preferences: {},
   sampleProject: {},
-  isComplete: false,
+  isComplete: true, // Temporarily set to true to disable onboarding modal
   lastUpdated: new Date().toISOString(),
 };
 

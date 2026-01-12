@@ -67,6 +67,8 @@ export class EntityGraphAnnotationsService {
       description: "Starting EntityGraphAnnotationsService.saveAnnotation",
       functionName: "saveAnnotation",
       fileName: "entityGraphAnnotationsService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -127,6 +129,8 @@ export class EntityGraphAnnotationsService {
         description: `Annotation saved for ${entityType}:${entityId}`,
         functionName: "saveAnnotation",
         fileName: "entityGraphAnnotationsService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return savedAnnotation;
@@ -137,6 +141,8 @@ export class EntityGraphAnnotationsService {
         functionName: "saveAnnotation",
         fileName: "entityGraphAnnotationsService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -161,6 +167,8 @@ export class EntityGraphAnnotationsService {
       description: "Starting EntityGraphAnnotationsService.getAnnotations",
       functionName: "getAnnotations",
       fileName: "entityGraphAnnotationsService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -178,6 +186,8 @@ export class EntityGraphAnnotationsService {
         description: `Retrieved ${annotations.length} annotations for user ${userId}`,
         functionName: "getAnnotations",
         fileName: "entityGraphAnnotationsService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return annotations;
@@ -188,6 +198,8 @@ export class EntityGraphAnnotationsService {
         functionName: "getAnnotations",
         fileName: "entityGraphAnnotationsService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -263,6 +275,8 @@ export class EntityGraphAnnotationsService {
       description: `Starting EntityGraphAnnotationsService.deleteAnnotation for ID ${annotationId}`,
       functionName: "deleteAnnotation",
       fileName: "entityGraphAnnotationsService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -300,6 +314,8 @@ export class EntityGraphAnnotationsService {
         description: `Annotation ${annotationId} deleted`,
         functionName: "deleteAnnotation",
         fileName: "entityGraphAnnotationsService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return true;
@@ -310,6 +326,8 @@ export class EntityGraphAnnotationsService {
         functionName: "deleteAnnotation",
         fileName: "entityGraphAnnotationsService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -336,6 +354,8 @@ export class EntityGraphAnnotationsService {
       description: `Starting EntityGraphAnnotationsService.deleteAnnotationByEntity for ${entityType}:${entityId}`,
       functionName: "deleteAnnotationByEntity",
       fileName: "entityGraphAnnotationsService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -367,6 +387,8 @@ export class EntityGraphAnnotationsService {
         description: `Annotation for ${entityType}:${entityId} deleted`,
         functionName: "deleteAnnotationByEntity",
         fileName: "entityGraphAnnotationsService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return true;
@@ -377,6 +399,8 @@ export class EntityGraphAnnotationsService {
         functionName: "deleteAnnotationByEntity",
         fileName: "entityGraphAnnotationsService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }

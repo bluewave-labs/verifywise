@@ -95,6 +95,8 @@ export async function startScanController(
     description: "Starting AI detection scan",
     functionName: "startScanController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -112,9 +114,10 @@ export async function startScanController(
     await logSuccess({
       eventType: "Create",
       description: `Started AI detection scan for ${scan.repository_owner}/${scan.repository_name}`,
-      userId: ctx.userId,
       functionName: "startScanController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(201).json(STATUS_CODE[201](scan));
@@ -125,6 +128,8 @@ export async function startScanController(
       description: "Failed to start AI detection scan",
       functionName: "startScanController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return handleException(res, error);
   }
@@ -143,6 +148,8 @@ export async function getScanStatusController(
     description: "Getting AI detection scan status",
     functionName: "getScanStatusController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -174,6 +181,8 @@ export async function getScanController(
     description: "Getting AI detection scan details",
     functionName: "getScanController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -206,6 +215,8 @@ export async function getScanFindingsController(
     description: "Getting AI detection scan findings",
     functionName: "getScanFindingsController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -258,6 +269,8 @@ export async function getScansController(
     description: "Getting AI detection scan history",
     functionName: "getScansController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -321,6 +334,8 @@ export async function cancelScanController(
     description: "Cancelling AI detection scan",
     functionName: "cancelScanController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -336,9 +351,10 @@ export async function cancelScanController(
     await logSuccess({
       eventType: "Update",
       description: `Cancelled AI detection scan ${scanId}`,
-      userId: ctx.userId,
       functionName: "cancelScanController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](result));
@@ -349,6 +365,8 @@ export async function cancelScanController(
       description: `Failed to cancel AI detection scan`,
       functionName: "cancelScanController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return handleException(res, error);
   }
@@ -367,6 +385,8 @@ export async function deleteScanController(
     description: "Deleting AI detection scan",
     functionName: "deleteScanController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -382,9 +402,10 @@ export async function deleteScanController(
     await logSuccess({
       eventType: "Delete",
       description: `Deleted AI detection scan ${scanId}`,
-      userId: ctx.userId,
       functionName: "deleteScanController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](result));
@@ -395,6 +416,8 @@ export async function deleteScanController(
       description: `Failed to delete AI detection scan`,
       functionName: "deleteScanController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return handleException(res, error);
   }
@@ -414,6 +437,8 @@ export async function getSecurityFindingsController(
     description: "Getting AI detection security findings",
     functionName: "getSecurityFindingsController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -456,6 +481,8 @@ export async function getSecuritySummaryController(
     description: "Getting AI detection security summary",
     functionName: "getSecuritySummaryController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -488,6 +515,8 @@ export async function updateGovernanceStatusController(
     description: "Updating finding governance status",
     functionName: "updateGovernanceStatusController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -506,7 +535,7 @@ export async function updateGovernanceStatusController(
 
     // Validate governance_status if provided
     if (governance_status !== null && governance_status !== undefined &&
-        !["reviewed", "approved", "flagged"].includes(governance_status)) {
+      !["reviewed", "approved", "flagged"].includes(governance_status)) {
       return res
         .status(400)
         .json(STATUS_CODE[400]("governance_status must be 'reviewed', 'approved', 'flagged', or null"));
@@ -523,9 +552,10 @@ export async function updateGovernanceStatusController(
     await logSuccess({
       eventType: "Update",
       description: `Updated governance status for finding ${findingId} to ${governance_status || 'cleared'}`,
-      userId: ctx.userId,
       functionName: "updateGovernanceStatusController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](result));
@@ -536,6 +566,8 @@ export async function updateGovernanceStatusController(
       description: "Failed to update finding governance status",
       functionName: "updateGovernanceStatusController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return handleException(res, error);
   }
@@ -554,6 +586,8 @@ export async function getGovernanceSummaryController(
     description: "Getting governance summary",
     functionName: "getGovernanceSummaryController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -585,6 +619,8 @@ export async function getAIDetectionStatsController(
     description: "Getting AI Detection statistics",
     functionName: "getAIDetectionStatsController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -613,6 +649,8 @@ export async function exportAIBOMController(
     description: "Exporting scan as AI-BOM",
     functionName: "exportAIBOMController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -632,9 +670,10 @@ export async function exportAIBOMController(
     await logSuccess({
       eventType: "Read",
       description: `AI-BOM export for scan ${scanId}`,
-      userId: ctx.userId,
       functionName: "exportAIBOMController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](aibom));
@@ -645,6 +684,8 @@ export async function exportAIBOMController(
       description: "Failed to export AI-BOM",
       functionName: "exportAIBOMController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return handleException(res, error);
   }
@@ -665,6 +706,8 @@ export async function getDependencyGraphController(
     description: "Getting AI dependency graph",
     functionName: "getDependencyGraphController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -698,6 +741,8 @@ export async function getComplianceMappingController(
     description: "Getting compliance mapping for scan",
     functionName: "getComplianceMappingController",
     fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -712,9 +757,10 @@ export async function getComplianceMappingController(
     await logSuccess({
       eventType: "Read",
       description: `Retrieved compliance mapping with ${compliance.checklist.length} checklist items`,
-      userId: ctx.userId,
       functionName: "getComplianceMappingController",
       fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](compliance));

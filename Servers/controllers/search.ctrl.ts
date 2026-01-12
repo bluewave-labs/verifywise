@@ -27,6 +27,8 @@ export async function search(req: Request, res: Response): Promise<any> {
     description: "Starting Wise Search",
     functionName: "search",
     fileName: "search.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -70,6 +72,8 @@ export async function search(req: Request, res: Response): Promise<any> {
       description: `Wise Search completed: "${query}" returned ${totalCount} results`,
       functionName: "search",
       fileName: "search.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(
@@ -86,6 +90,8 @@ export async function search(req: Request, res: Response): Promise<any> {
       functionName: "search",
       fileName: "search.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

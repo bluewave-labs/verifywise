@@ -64,6 +64,8 @@ export class EntityGraphGapRulesService {
       description: "Starting EntityGraphGapRulesService.saveGapRules",
       functionName: "saveGapRules",
       fileName: "entityGraphGapRulesService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -163,6 +165,8 @@ export class EntityGraphGapRulesService {
         description: `Gap rules saved for user ${userId}`,
         functionName: "saveGapRules",
         fileName: "entityGraphGapRulesService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return savedGapRules;
@@ -173,6 +177,8 @@ export class EntityGraphGapRulesService {
         functionName: "saveGapRules",
         fileName: "entityGraphGapRulesService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -197,6 +203,8 @@ export class EntityGraphGapRulesService {
       description: "Starting EntityGraphGapRulesService.getGapRules",
       functionName: "getGapRules",
       fileName: "entityGraphGapRulesService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -211,6 +219,8 @@ export class EntityGraphGapRulesService {
           description: `Retrieved gap rules for user ${userId}`,
           functionName: "getGapRules",
           fileName: "entityGraphGapRulesService.ts",
+          userId: userId,
+          tenantId: tenantId,
         });
 
         return {
@@ -226,6 +236,8 @@ export class EntityGraphGapRulesService {
         description: `Returning default gap rules for user ${userId}`,
         functionName: "getGapRules",
         fileName: "entityGraphGapRulesService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return {
@@ -239,6 +251,8 @@ export class EntityGraphGapRulesService {
         functionName: "getGapRules",
         fileName: "entityGraphGapRulesService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -263,6 +277,8 @@ export class EntityGraphGapRulesService {
       description: "Starting EntityGraphGapRulesService.resetToDefaults",
       functionName: "resetToDefaults",
       fileName: "entityGraphGapRulesService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -282,6 +298,8 @@ export class EntityGraphGapRulesService {
         description: `Gap rules reset to defaults for user ${userId}`,
         functionName: "resetToDefaults",
         fileName: "entityGraphGapRulesService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return {
@@ -295,6 +313,8 @@ export class EntityGraphGapRulesService {
         functionName: "resetToDefaults",
         fileName: "entityGraphGapRulesService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -320,6 +340,8 @@ export class EntityGraphGapRulesService {
       description: `Starting EntityGraphGapRulesService.deleteGapRules for ID ${gapRulesId}`,
       functionName: "deleteGapRules",
       fileName: "entityGraphGapRulesService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -354,6 +376,8 @@ export class EntityGraphGapRulesService {
         description: `Gap rules ${gapRulesId} deleted`,
         functionName: "deleteGapRules",
         fileName: "entityGraphGapRulesService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return true;
@@ -364,6 +388,8 @@ export class EntityGraphGapRulesService {
         functionName: "deleteGapRules",
         fileName: "entityGraphGapRulesService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }

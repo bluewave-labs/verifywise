@@ -115,11 +115,11 @@ export const createShareLink = async (req: Request, res: Response) => {
     await transaction.rollback();
     if (error instanceof ValidationException) {
       logStructured('error', `validation failed: ${error.message}`, 'createShareLink', 'shareLink.ctrl.ts');
-      await logEvent('Error', `Validation error during share link creation: ${error.message}`);
+      await logEvent('Error', `Validation error during share link creation: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
     logStructured('error', `unexpected error creating share link`, 'createShareLink', 'shareLink.ctrl.ts');
-    await logEvent('Error', `Unexpected error during share link creation: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during share link creation: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in createShareLink:', error);
 
     // Sanitize error message before sending to client
@@ -195,7 +195,7 @@ export const getShareLinksForResource = async (req: Request, res: Response) => {
     return res.status(200).json(STATUS_CODE[200](response));
   } catch (error) {
     logStructured('error', `unexpected error fetching share links`, 'getShareLinksForResource', 'shareLink.ctrl.ts');
-    await logEvent('Error', `Unexpected error fetching share links: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error fetching share links: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in getShareLinksForResource:', error);
     const safeMessage = sanitizeErrorMessage(error as Error, "Failed to fetch share links");
     return res.status(500).json(STATUS_CODE[500](safeMessage));
@@ -286,7 +286,7 @@ export const getShareLinkByToken = async (req: Request, res: Response) => {
     return res.status(200).json(STATUS_CODE[200](response));
   } catch (error) {
     logStructured('error', `unexpected error fetching share link`, 'getShareLinkByToken', 'shareLink.ctrl.ts');
-    await logEvent('Error', `Unexpected error fetching share link: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error fetching share link: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in getShareLinkByToken:', error);
     const safeMessage = sanitizeErrorMessage(error as Error, "An error occurred");
     return res.status(500).json(STATUS_CODE[500](safeMessage));
@@ -309,8 +309,10 @@ export const updateShareLink = async (req: Request, res: Response) => {
     description: `UPDATE DEBUG | ID=${id}, is_enabled=${is_enabled} (type=${typeof is_enabled}), settings=${JSON.stringify(settings)}`,
     functionName: 'updateShareLink',
     fileName: 'shareLink.ctrl.ts',
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
-  
+
 
   try {
     // Validate tenant hash format
@@ -345,6 +347,8 @@ export const updateShareLink = async (req: Request, res: Response) => {
       description: `[UPDATE DEBUG] Current state before update - ID: ${shareLink.id}, is_enabled: ${shareLink.is_enabled}`,
       functionName: 'updateShareLink',
       fileName: 'shareLink.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     // Check if user owns this share link
@@ -402,7 +406,8 @@ export const updateShareLink = async (req: Request, res: Response) => {
       description: `[UPDATE DEBUG] After update - ID: ${updatedLink.id}, is_enabled: ${updatedLink.is_enabled} (type: ${typeof updatedLink.is_enabled})`,
       functionName: 'updateShareLink',
       fileName: 'shareLink.ctrl.ts',
-      userId: req.userId,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     logStructured('successful', `updated share link ${id} - new is_enabled: ${updatedLink.is_enabled}`, 'updateShareLink', 'shareLink.ctrl.ts');
     logger.debug(`✅ Updated share link: ${id}`);
@@ -431,7 +436,7 @@ export const updateShareLink = async (req: Request, res: Response) => {
   } catch (error) {
     await transaction.rollback();
     logStructured('error', `unexpected error updating share link ${id}`, 'updateShareLink', 'shareLink.ctrl.ts');
-    await logEvent('Error', `Unexpected error updating share link: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error updating share link: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in updateShareLink:', error);
     const safeMessage = sanitizeErrorMessage(error as Error, "An error occurred");
     return res.status(500).json(STATUS_CODE[500](safeMessage));
@@ -507,7 +512,7 @@ export const deleteShareLink = async (req: Request, res: Response) => {
   } catch (error) {
     await transaction.rollback();
     logStructured('error', `unexpected error deleting share link ${id}`, 'deleteShareLink', 'shareLink.ctrl.ts');
-    await logEvent('Error', `Unexpected error deleting share link: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error deleting share link: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in deleteShareLink:', error);
     const safeMessage = sanitizeErrorMessage(error as Error, "An error occurred");
     return res.status(500).json(STATUS_CODE[500](safeMessage));
@@ -667,20 +672,25 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
       description: `[SHARE VIEW DEBUG] Settings from DB: ${JSON.stringify(settings)}`,
       functionName: 'getSharedDataByToken',
       fileName: 'shareLink.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     logProcessing({
       description: `[SHARE VIEW DEBUG] shareAllFields value: ${settings.shareAllFields} (type: ${typeof settings.shareAllFields})`,
       functionName: 'getSharedDataByToken',
       fileName: 'shareLink.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     logProcessing({
-      description: `[SHARE VIEW DEBUG] Resource data sample (first record): ${
-        JSON.stringify(Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]) : "no data")
-      }`,
+      description: `[SHARE VIEW DEBUG] Resource data sample (first record): ${JSON.stringify(Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]) : "no data")
+        }`,
       functionName: 'getSharedDataByToken',
       fileName: 'shareLink.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     // If shareAllFields is false, filter fields shown
@@ -692,6 +702,8 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
         description: `[SHARE VIEW DEBUG] Showing ALL fields (shareAllFields is true)`,
         functionName: 'getSharedDataByToken',
         fileName: 'shareLink.ctrl.ts',
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       })
       filteredData = resourceData;
     } else {
@@ -700,6 +712,8 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
         description: `[SHARE VIEW DEBUG] Filtering to essential fields (shareAllFields is ${settings.shareAllFields})`,
         functionName: 'getSharedDataByToken',
         fileName: 'shareLink.ctrl.ts',
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       const getEssentialFields = (record: any, resourceType: string) => {
         // Resource-specific essential fields
@@ -757,21 +771,22 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
     }
 
     logProcessing({
-      description: `[SHARE VIEW DEBUG] Filtered data sample (first record): ${
-        JSON.stringify(Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]) : "no data")
-      }`,
+      description: `[SHARE VIEW DEBUG] Filtered data sample (first record): ${JSON.stringify(Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]) : "no data")
+        }`,
       functionName: 'getSharedDataByToken',
       fileName: 'shareLink.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
-    
+
     logProcessing({
-      description: `[SHARE VIEW DEBUG] Column count - Original: ${
-        Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]).length : 0
-      }, Filtered: ${
-        Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]).length : 0
-      }`,
+      description: `[SHARE VIEW DEBUG] Column count - Original: ${Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]).length : 0
+        }, Filtered: ${Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]).length : 0
+        }`,
       functionName: 'getSharedDataByToken',
       fileName: 'shareLink.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     // Post-process: For models, consolidate provider_model and replace approver ID
@@ -816,13 +831,14 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
       }
 
       logProcessing({
-        description: `[SHARE VIEW DEBUG] After approver name replacement, sample: ${
-          JSON.stringify(
-            Array.isArray(filteredData) && filteredData[0] ? filteredData[0] : filteredData
-          )
-        }`,
+        description: `[SHARE VIEW DEBUG] After approver name replacement, sample: ${JSON.stringify(
+          Array.isArray(filteredData) && filteredData[0] ? filteredData[0] : filteredData
+        )
+          }`,
         functionName: 'getSharedDataByToken',
         fileName: 'shareLink.ctrl.ts',
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
     }
 
@@ -844,7 +860,7 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
     return res.status(200).json(STATUS_CODE[200](response));
   } catch (error) {
     logStructured('error', `unexpected error fetching shared data`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
-    await logEvent('Error', `Unexpected error fetching shared data: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error fetching shared data: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in getSharedDataByToken:', error);
     const safeMessage = sanitizeErrorMessage(error as Error, "An error occurred");
     return res.status(500).json(STATUS_CODE[500](safeMessage));

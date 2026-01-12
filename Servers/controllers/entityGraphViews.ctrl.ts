@@ -50,6 +50,8 @@ export async function createView(req: Request, res: Response): Promise<any> {
     description: "Starting createView",
     functionName: "createView",
     fileName: "entityGraphViews.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -87,6 +89,8 @@ export async function createView(req: Request, res: Response): Promise<any> {
       functionName: "createView",
       fileName: "entityGraphViews.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof ValidationException) {
@@ -118,6 +122,8 @@ export async function getViews(req: Request, res: Response): Promise<any> {
     description: "Starting getViews",
     functionName: "getViews",
     fileName: "entityGraphViews.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -140,6 +146,8 @@ export async function getViews(req: Request, res: Response): Promise<any> {
       functionName: "getViews",
       fileName: "entityGraphViews.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(
@@ -169,6 +177,8 @@ export async function getViewById(req: Request, res: Response): Promise<any> {
     description: `Starting getViewById for ID ${viewId}`,
     functionName: "getViewById",
     fileName: "entityGraphViews.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -198,6 +208,8 @@ export async function getViewById(req: Request, res: Response): Promise<any> {
       functionName: "getViewById",
       fileName: "entityGraphViews.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof ValidationException) {
@@ -237,6 +249,8 @@ export async function updateView(req: Request, res: Response): Promise<any> {
     description: `Starting updateView for ID ${viewId}`,
     functionName: "updateView",
     fileName: "entityGraphViews.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -273,6 +287,8 @@ export async function updateView(req: Request, res: Response): Promise<any> {
       functionName: "updateView",
       fileName: "entityGraphViews.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof BusinessLogicException) {
@@ -308,6 +324,8 @@ export async function deleteView(req: Request, res: Response): Promise<any> {
     description: `Starting deleteView for ID ${viewId}`,
     functionName: "deleteView",
     fileName: "entityGraphViews.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -329,6 +347,8 @@ export async function deleteView(req: Request, res: Response): Promise<any> {
       functionName: "deleteView",
       fileName: "entityGraphViews.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof BusinessLogicException) {

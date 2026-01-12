@@ -47,6 +47,8 @@ export async function saveGapRules(req: Request, res: Response): Promise<any> {
     description: "Starting saveGapRules",
     functionName: "saveGapRules",
     fileName: "entityGraphGapRules.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -84,6 +86,8 @@ export async function saveGapRules(req: Request, res: Response): Promise<any> {
       functionName: "saveGapRules",
       fileName: "entityGraphGapRules.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof ValidationException) {
@@ -114,6 +118,8 @@ export async function getGapRules(req: Request, res: Response): Promise<any> {
     description: "Starting getGapRules",
     functionName: "getGapRules",
     fileName: "entityGraphGapRules.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -133,6 +139,8 @@ export async function getGapRules(req: Request, res: Response): Promise<any> {
       functionName: "getGapRules",
       fileName: "entityGraphGapRules.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(
@@ -160,6 +168,8 @@ export async function resetGapRules(req: Request, res: Response): Promise<any> {
     description: "Starting resetGapRules",
     functionName: "resetGapRules",
     fileName: "entityGraphGapRules.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -179,6 +189,8 @@ export async function resetGapRules(req: Request, res: Response): Promise<any> {
       functionName: "resetGapRules",
       fileName: "entityGraphGapRules.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(
@@ -210,6 +222,8 @@ export async function getDefaultGapRules(
     description: "Starting getDefaultGapRules",
     functionName: "getDefaultGapRules",
     fileName: "entityGraphGapRules.ctrl.ts",
+    userId: _req.userId!,
+    tenantId: _req.tenantId!,
   });
 
   try {
@@ -228,6 +242,8 @@ export async function getDefaultGapRules(
       functionName: "getDefaultGapRules",
       fileName: "entityGraphGapRules.ctrl.ts",
       error: error as Error,
+      userId: _req.userId!,
+      tenantId: _req.tenantId!,
     });
 
     return res.status(500).json(

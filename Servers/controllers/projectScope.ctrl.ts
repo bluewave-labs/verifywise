@@ -58,7 +58,9 @@ export async function getAllProjectScopes(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve project scopes: ${(error as Error).message}`
+      `Failed to retrieve project scopes: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllProjectScopes:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -110,7 +112,9 @@ export async function getProjectScopeById(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve project scope by ID: ${projectScopeId}`
+      `Failed to retrieve project scope by ID: ${projectScopeId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getProjectScopeById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -180,7 +184,9 @@ export async function createProjectScope(
       );
       await logEvent(
         "Create",
-        `Project scope created: ID ${createdProjectScope.id}, assessment ID: ${assessmentId}`
+        `Project scope created: ID ${createdProjectScope.id}, assessment ID: ${assessmentId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(201).json(STATUS_CODE[201](createdProjectScope));
     }
@@ -193,7 +199,9 @@ export async function createProjectScope(
     );
     await logEvent(
       "Error",
-      `Project scope creation failed for assessment ID: ${assessmentId}`
+      `Project scope creation failed for assessment ID: ${assessmentId}`,
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res
@@ -211,7 +219,9 @@ export async function createProjectScope(
       );
       await logEvent(
         "Error",
-        `Validation error during project scope creation: ${error.message}`
+        `Validation error during project scope creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -225,7 +235,9 @@ export async function createProjectScope(
       );
       await logEvent(
         "Error",
-        `Business logic error during project scope creation: ${error.message}`
+        `Business logic error during project scope creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -238,7 +250,9 @@ export async function createProjectScope(
     );
     await logEvent(
       "Error",
-      `Unexpected error during project scope creation for assessment ID ${assessmentId}: ${(error as Error).message}`
+      `Unexpected error during project scope creation for assessment ID ${assessmentId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createProjectScope:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -276,7 +290,9 @@ export async function updateProjectScopeById(
       );
       await logEvent(
         "Error",
-        `Update failed — project scope not found: ID ${projectScopeId}`
+        `Update failed — project scope not found: ID ${projectScopeId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Project scope not found"));
@@ -313,7 +329,9 @@ export async function updateProjectScopeById(
       );
       await logEvent(
         "Update",
-        `Project scope updated: ID ${projectScopeId}, assessment ID: ${updatedProjectScope.assessmentId}`
+        `Project scope updated: ID ${projectScopeId}, assessment ID: ${updatedProjectScope.assessmentId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(STATUS_CODE[200](updatedProjectScope));
     }
@@ -326,7 +344,9 @@ export async function updateProjectScopeById(
     );
     await logEvent(
       "Error",
-      `Project scope update failed: ID ${projectScopeId}`
+      `Project scope update failed: ID ${projectScopeId}`,
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res
@@ -344,7 +364,9 @@ export async function updateProjectScopeById(
       );
       await logEvent(
         "Error",
-        `Validation error during project scope update: ${error.message}`
+        `Validation error during project scope update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -358,7 +380,9 @@ export async function updateProjectScopeById(
       );
       await logEvent(
         "Error",
-        `Business logic error during project scope update: ${error.message}`
+        `Business logic error during project scope update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -371,7 +395,9 @@ export async function updateProjectScopeById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during project scope update for ID ${projectScopeId}: ${(error as Error).message}`
+      `Unexpected error during project scope update for ID ${projectScopeId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateProjectScopeById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -409,7 +435,9 @@ export async function deleteProjectScopeById(
       );
       await logEvent(
         "Error",
-        `Delete failed — project scope not found: ID ${projectScopeId}`
+        `Delete failed — project scope not found: ID ${projectScopeId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Project scope not found"));
@@ -437,7 +465,9 @@ export async function deleteProjectScopeById(
       );
       await logEvent(
         "Delete",
-        `Project scope deleted: ID ${projectScopeId}, assessment ID: ${existingProjectScope.assessmentId}`
+        `Project scope deleted: ID ${projectScopeId}, assessment ID: ${existingProjectScope.assessmentId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(STATUS_CODE[200](deletedProjectScope));
     }
@@ -450,7 +480,9 @@ export async function deleteProjectScopeById(
     );
     await logEvent(
       "Error",
-      `Project scope deletion failed: ID ${projectScopeId}`
+      `Project scope deletion failed: ID ${projectScopeId}`,
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res
@@ -468,7 +500,9 @@ export async function deleteProjectScopeById(
       );
       await logEvent(
         "Error",
-        `Validation error during project scope deletion: ${error.message}`
+        `Validation error during project scope deletion: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -482,7 +516,9 @@ export async function deleteProjectScopeById(
       );
       await logEvent(
         "Error",
-        `Business logic error during project scope deletion: ${error.message}`
+        `Business logic error during project scope deletion: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -495,7 +531,9 @@ export async function deleteProjectScopeById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during project scope deletion for ID ${projectScopeId}: ${(error as Error).message}`
+      `Unexpected error during project scope deletion for ID ${projectScopeId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteProjectScopeById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

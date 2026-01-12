@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { sendEmail } from "../services/emailService";
 import fs from "fs";
 import path from "path";
@@ -33,13 +33,15 @@ router.post("/invite", inviteLimiter, async (req, res) => {
   await invite(req, res, req.body);
 });
 
-router.post("/reset-password", resetPasswordLimiter, async (req, res) => {
+router.post("/reset-password", resetPasswordLimiter, async (req: Request, res: Response) => {
   const { to, name, email } = req.body;
 
   logProcessing({
     description: `starting password reset request for: ${to}`,
     functionName: "reset-password",
     fileName: "vwmailer.route.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -82,6 +84,8 @@ router.post("/reset-password", resetPasswordLimiter, async (req, res) => {
         description: `Successfully sent password reset email to ${to}`,
         functionName: "reset-password",
         fileName: "vwmailer.route.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
     } else {
       // User doesn't exist, but don't reveal this information
@@ -92,6 +96,8 @@ router.post("/reset-password", resetPasswordLimiter, async (req, res) => {
         description: `Password reset requested for non-existent user: ${to}`,
         functionName: "reset-password",
         fileName: "vwmailer.route.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
     }
 
@@ -106,6 +112,8 @@ router.post("/reset-password", resetPasswordLimiter, async (req, res) => {
       functionName: "reset-password",
       fileName: "vwmailer.route.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json({ error: "Failed to process request", details: (error as Error).message });

@@ -79,7 +79,8 @@ export const addKey = async (req: Request, res: Response) => {
       description: `Added LLM API key for provider: ${provider} by user: ${req.userId}`,
       functionName: 'addKey',
       fileName: 'evaluationLlmApiKey.ctrl.ts',
-      userId: req.userId,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     await transaction.commit();
@@ -312,7 +313,8 @@ export const deleteKey = async (req: Request, res: Response) => {
       description: `LLM API key deleted for provider: ${provider} by user: ${req.userId}`,
       functionName: 'deleteKey',
       fileName: 'evaluationLlmApiKey.ctrl.ts',
-      userId: req.userId,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json({

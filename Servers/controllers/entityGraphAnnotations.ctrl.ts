@@ -51,6 +51,8 @@ export async function saveAnnotation(req: Request, res: Response): Promise<any> 
     description: "Starting saveAnnotation",
     functionName: "saveAnnotation",
     fileName: "entityGraphAnnotations.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -101,6 +103,8 @@ export async function saveAnnotation(req: Request, res: Response): Promise<any> 
       functionName: "saveAnnotation",
       fileName: "entityGraphAnnotations.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof ValidationException) {
@@ -129,6 +133,8 @@ export async function getAnnotations(req: Request, res: Response): Promise<any> 
     description: "Starting getAnnotations",
     functionName: "getAnnotations",
     fileName: "entityGraphAnnotations.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -151,6 +157,8 @@ export async function getAnnotations(req: Request, res: Response): Promise<any> 
       functionName: "getAnnotations",
       fileName: "entityGraphAnnotations.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(
@@ -179,6 +187,8 @@ export async function getAnnotationByEntity(
     description: "Starting getAnnotationByEntity",
     functionName: "getAnnotationByEntity",
     fileName: "entityGraphAnnotations.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -209,6 +219,8 @@ export async function getAnnotationByEntity(
       functionName: "getAnnotationByEntity",
       fileName: "entityGraphAnnotations.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof ValidationException) {
@@ -241,6 +253,8 @@ export async function deleteAnnotation(req: Request, res: Response): Promise<any
     description: `Starting deleteAnnotation for ID ${annotationId}`,
     functionName: "deleteAnnotation",
     fileName: "entityGraphAnnotations.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -266,6 +280,8 @@ export async function deleteAnnotation(req: Request, res: Response): Promise<any
       functionName: "deleteAnnotation",
       fileName: "entityGraphAnnotations.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof BusinessLogicException) {
@@ -304,6 +320,8 @@ export async function deleteAnnotationByEntity(
     description: `Starting deleteAnnotationByEntity for ${entityType}:${entityId}`,
     functionName: "deleteAnnotationByEntity",
     fileName: "entityGraphAnnotations.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -330,6 +348,8 @@ export async function deleteAnnotationByEntity(
       functionName: "deleteAnnotationByEntity",
       fileName: "entityGraphAnnotations.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof ValidationException) {

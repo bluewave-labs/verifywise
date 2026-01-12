@@ -2,43 +2,21 @@
  * @fileoverview File Repository
  *
  * Consolidated repository for all file-related database operations.
- * Combines operations from fileUpload.utils.ts and fileManager.utils.ts
- * following the repository pattern.
+ * Handles both project-level and organization-level files in a unified
+ * files table following the repository pattern.
  *
  * @module repositories/file
  */
 
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
-import { FileModel } from "../domain.layer/models/file/file.model";
-import { FileManagerMetadata } from "../domain.layer/models/fileManager/fileManager.model";
+import { FileModel, FileSource } from "../domain.layer/models/file/file.model";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import sanitizeFilename from "sanitize-filename";
 
-// ============================================================================
-// Types
-// ============================================================================
-
-export type FileSource =
-  | "Assessment tracker group"
-  | "Compliance tracker group"
-  | "Project risks report"
-  | "Compliance tracker report"
-  | "Assessment tracker report"
-  | "Vendors and risks report"
-  | "All reports"
-  | "Management system clauses group"
-  | "Reference controls group"
-  | "Clauses and annexes report"
-  | "AI trust center group"
-  | "Main clauses group"
-  | "Annex controls group"
-  | "ISO 27001 report"
-  | "Models and risks report"
-  | "Training registry report"
-  | "Policy manager report"
-  | "File Manager";
+// Re-export FileSource for backward compatibility
+export { FileSource };
 
 export interface UploadedFile {
   originalname: string;
@@ -52,6 +30,20 @@ export interface FileMetadata {
   filename: string;
   project_id?: number;
   uploaded_time?: string;
+  source?: string;
+  uploader_name?: string;
+  uploader_surname?: string;
+}
+
+export interface OrganizationFileMetadata {
+  id: number;
+  filename: string;
+  size?: number;
+  mimetype?: string;
+  upload_date?: string;
+  uploaded_by?: number;
+  org_id?: number;
+  model_id?: number;
   source?: string;
   uploader_name?: string;
   uploader_surname?: string;
@@ -263,39 +255,39 @@ export async function getProjectFileMetadata(
 }
 
 // ============================================================================
-// File Manager Repository (file_manager table)
+// Organization Files Repository (org-level files in files table)
 // ============================================================================
 
 /**
- * Uploads a file to file manager
+ * Uploads an organization-level file (no project association)
  *
  * @param file - The Express multer file object
  * @param userId - ID of the user uploading the file
  * @param orgId - Organization ID for the file
  * @param tenant - Tenant schema identifier
  * @param modelId - Optional model ID to associate with
- * @param source - Optional source identifier
+ * @param source - Optional source identifier (defaults to 'File Manager')
  * @param transaction - Optional database transaction for atomicity
- * @returns The created file manager record
+ * @returns The created file record
  */
-export async function uploadFileManagerFile(
+export async function uploadOrganizationFile(
   file: Express.Multer.File,
   userId: number,
   orgId: number,
   tenant: string,
   modelId?: number,
-  source?: string,
+  source?: FileSource,
   transaction?: Transaction
-): Promise<FileManagerMetadata> {
+): Promise<OrganizationFileMetadata> {
   validateTenant(tenant);
 
   const safeName = sanitizeFilenameStr(file.originalname);
 
   const query = `
-    INSERT INTO ${escapePgIdentifier(tenant)}.file_manager
-      (filename, size, mimetype, file_path, content, uploaded_by, upload_date, model_id, org_id, is_demo, source)
+    INSERT INTO ${escapePgIdentifier(tenant)}.files
+      (filename, size, type, file_path, content, uploaded_by, uploaded_time, model_id, org_id, is_demo, source, project_id)
     VALUES
-      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source)
+      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source, NULL)
     RETURNING *`;
 
   const result = await sequelize.query(query, {
@@ -308,60 +300,54 @@ export async function uploadFileManagerFile(
       model_id: modelId ?? null,
       file_path: safeName,
       content: file.buffer,
-      source: source ?? null,
+      source: source ?? "File Manager",
     },
     type: QueryTypes.SELECT,
     ...(transaction && { transaction }),
   });
 
-  return result[0] as FileManagerMetadata;
+  return result[0] as OrganizationFileMetadata;
 }
 
 /**
- * Gets a file by ID from either files or file_manager table
+ * Gets a file by ID from the files table
  *
  * @param fileId - The file ID to retrieve
  * @param tenant - Tenant schema identifier
- * @param isFileManagerFile - Whether to look in file_manager table (default: files table)
  * @returns The file record or null if not found
  */
 export async function getFileById(
   fileId: number,
-  tenant: string,
-  isFileManagerFile: boolean = false
-): Promise<FileModel | FileManagerMetadata | null> {
+  tenant: string
+): Promise<FileModel | null> {
   validateTenant(tenant);
 
-  const table = isFileManagerFile ? '"file_manager"' : '"files"';
-  const query = `SELECT * FROM ${escapePgIdentifier(tenant)}.${table} WHERE id = :fileId`;
+  const query = `SELECT * FROM ${escapePgIdentifier(tenant)}.files WHERE id = :fileId`;
 
   const result = await sequelize.query(query, {
     replacements: { fileId },
     type: QueryTypes.SELECT,
   });
 
-  return (result[0] as FileModel | FileManagerMetadata) || null;
+  return (result[0] as FileModel) || null;
 }
 
 /**
- * Deletes a file by ID from either files or file_manager table
+ * Deletes a file by ID from the files table
  *
  * @param fileId - The file ID to delete
  * @param tenant - Tenant schema identifier
- * @param isFileManagerFile - Whether to delete from file_manager table (default: files table)
  * @param transaction - Optional database transaction for atomicity
  * @returns True if file was deleted, false otherwise
  */
 export async function deleteFileById(
   fileId: number,
   tenant: string,
-  isFileManagerFile: boolean = false,
   transaction?: Transaction
 ): Promise<boolean> {
   validateTenant(tenant);
 
-  const table = isFileManagerFile ? '"file_manager"' : '"files"';
-  const query = `DELETE FROM ${escapePgIdentifier(tenant)}.${table} WHERE id = :fileId RETURNING id`;
+  const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :fileId RETURNING id`;
 
   const result = await sequelize.query(query, {
     replacements: { fileId },
@@ -373,7 +359,7 @@ export async function deleteFileById(
 }
 
 /**
- * Gets files for an organization with pagination
+ * Gets organization-level files (files without project association) with pagination
  *
  * @param orgId - Organization ID to get files for
  * @param tenant - Tenant schema identifier
@@ -384,26 +370,30 @@ export async function getOrganizationFiles(
   orgId: number,
   tenant: string,
   options: PaginationOptions = {}
-): Promise<{ files: FileManagerMetadata[]; total: number }> {
+): Promise<{ files: OrganizationFileMetadata[]; total: number }> {
   validateTenant(tenant);
 
   const { limit, offset } = options;
 
   let query = `
     SELECT
-      fm.id,
-      fm.filename,
-      fm.size,
-      fm.mimetype,
-      fm.upload_date,
-      fm.uploaded_by,
+      f.id,
+      f.filename,
+      f.size,
+      f.type AS mimetype,
+      f.uploaded_time AS upload_date,
+      f.uploaded_by,
+      f.org_id,
+      f.model_id,
+      f.source,
       u.name AS uploader_name,
       u.surname AS uploader_surname
-    FROM ${escapePgIdentifier(tenant)}.file_manager fm
-    JOIN public.users u ON fm.uploaded_by = u.id
-    WHERE fm.org_id = :orgId
-      AND (fm.source IS NULL OR fm.source != 'policy_editor')
-    ORDER BY fm.upload_date DESC`;
+    FROM ${escapePgIdentifier(tenant)}.files f
+    JOIN public.users u ON f.uploaded_by = u.id
+    WHERE f.org_id = :orgId
+      AND f.project_id IS NULL
+      AND (f.source IS NULL OR f.source != 'policy_editor')
+    ORDER BY f.uploaded_time DESC`;
 
   if (limit !== undefined) query += ` LIMIT :limit`;
   if (offset !== undefined) query += ` OFFSET :offset`;
@@ -415,8 +405,9 @@ export async function getOrganizationFiles(
 
   const countQuery = `
     SELECT COUNT(*) as count
-    FROM ${escapePgIdentifier(tenant)}.file_manager
+    FROM ${escapePgIdentifier(tenant)}.files
     WHERE org_id = :orgId
+      AND project_id IS NULL
       AND (source IS NULL OR source != 'policy_editor')`;
 
   const countResult = await sequelize.query(countQuery, {
@@ -427,7 +418,7 @@ export async function getOrganizationFiles(
   const countRow = countResult[0] as { count: string } | undefined;
   const total = countRow ? parseInt(countRow.count, 10) : 0;
 
-  return { files: files as FileManagerMetadata[], total };
+  return { files: files as OrganizationFileMetadata[], total };
 }
 
 // ============================================================================
@@ -508,3 +499,51 @@ export async function getFileAccessLogs(
 
   return logs as FileAccessLog[];
 }
+
+/**
+ * Gets files associated with a specific model ID
+ *
+ * @param modelId - The model ID to get files for
+ * @param tenant - Tenant schema identifier
+ * @returns Array of files associated with the model
+ */
+export async function getFilesByModelId(
+  modelId: number,
+  tenant: string
+): Promise<OrganizationFileMetadata[]> {
+  validateTenant(tenant);
+
+  const query = `
+    SELECT
+      f.id,
+      f.filename,
+      f.size,
+      f.type AS mimetype,
+      f.uploaded_time AS upload_date,
+      f.uploaded_by,
+      f.org_id,
+      f.model_id,
+      f.source,
+      u.name AS uploader_name,
+      u.surname AS uploader_surname
+    FROM ${escapePgIdentifier(tenant)}.files f
+    JOIN public.users u ON f.uploaded_by = u.id
+    WHERE f.model_id = :modelId
+    ORDER BY f.uploaded_time DESC`;
+
+  const files = await sequelize.query(query, {
+    replacements: { modelId },
+    type: QueryTypes.SELECT,
+  });
+
+  return files as OrganizationFileMetadata[];
+}
+
+// ============================================================================
+// Backward Compatibility Aliases
+// ============================================================================
+
+/**
+ * @deprecated Use uploadOrganizationFile instead
+ */
+export const uploadFileManagerFile = uploadOrganizationFile;

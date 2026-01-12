@@ -940,14 +940,14 @@ export const updateSubcontrolEUByIdQuery = async (
   evidenceUploadedFiles: {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[] = [],
   feedbackUploadedFiles: {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[] = [],
@@ -970,7 +970,7 @@ export const updateSubcontrolEUByIdQuery = async (
   ) as {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[];
@@ -979,7 +979,7 @@ export const updateSubcontrolEUByIdQuery = async (
   ) as {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[];
@@ -1156,7 +1156,7 @@ export const addFileToAnswerEU = async (
   uploadedFiles: {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[],
@@ -1197,7 +1197,7 @@ export const addFileToAnswerEU = async (
   ) as {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[];

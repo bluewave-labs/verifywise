@@ -28,7 +28,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { UserModel } from "../user/user.model";
-import { FileManagerModel } from "./fileManager.model";
+import { FileModel } from "../file/file.model";
 import { OrganizationModel } from "../organization/organization.model";
 
 export interface FileAccessLog {
@@ -52,7 +52,7 @@ export class FileAccessLogModel extends Model<FileAccessLog> {
   })
   id?: number;
 
-  @ForeignKey(() => FileManagerModel)
+  @ForeignKey(() => FileModel)
   @Column({
     type: DataType.INTEGER,
     allowNull: false,

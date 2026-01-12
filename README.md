@@ -20,9 +20,10 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
 
 ## Screenshots
 
+
 | The main dashboard                                                                                                                  | LLM Evals                                                                                                                           |
 | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| <img width="1598" height="861" alt="image" src="https://github.com/user-attachments/assets/649d030a-6e13-4cb5-96c3-707ae7d448f6" /> | <img width="1600" height="923" alt="image" src="https://github.com/user-attachments/assets/dc598a33-486f-4424-988d-4cca5e9420c2" /> |
+| <img width="1615" height="942" alt="image" src="https://github.com/user-attachments/assets/32dd22f8-3e9b-40d8-96e5-ba64f4c03f5e" /> | <img width="1600" height="923" alt="image" src="https://github.com/user-attachments/assets/dc598a33-486f-4424-988d-4cca5e9420c2" /> |
 |                                                                                                                                     |
 
 | EU AI Act project view                                                                                                              | AI Use case risks                                                                                                                   |
@@ -61,6 +62,7 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
 - User registration, authentication, and role-based access control (RBAC) support
 - Major features:
   - Support for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
+  - Dashboard: executive view & operating view
   - Vendors & vendor risks
   - AI project risks
   - Tasks

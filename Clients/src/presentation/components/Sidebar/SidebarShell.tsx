@@ -15,7 +15,6 @@ import {
 import { useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
-import { Link as MuiLink } from "@mui/material";
 import {
   PanelLeftClose,
   PanelLeftOpen,
@@ -27,7 +26,7 @@ import {
 } from "lucide-react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import Logo from "../../assets/imgs/logo.png";
+import VerifyWiseLogo from "../../assets/imgs/verifywise-logo.svg";
 import SidebarFooter from "./SidebarFooter";
 import FlyingHearts from "../FlyingHearts";
 
@@ -602,49 +601,23 @@ const SidebarShell: FC<SidebarShellProps> = ({
                 style={{ display: "flex", alignItems: "center" }}
               >
                 <img
-                  src={Logo}
-                  alt="Logo"
-                  width={20}
+                  src={VerifyWiseLogo}
+                  alt="VerifyWise"
                   height={20}
                   style={{ position: "relative", zIndex: 1, display: "block" }}
                 />
               </RouterLink>
-            </Box>
-          )}
-          {!delayedCollapsed && (
-            <MuiLink
-              component={RouterLink}
-              to="/"
-              sx={{
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <Typography
-                component="span"
-                sx={{
-                  opacity: 0.8,
-                  fontWeight: 500,
-                  fontSize: "13px",
-                  lineHeight: 1,
+              <span
+                style={{
+                  fontSize: "8px",
+                  marginLeft: "4px",
+                  opacity: 0.6,
+                  fontWeight: 400,
                 }}
-                className="app-title"
               >
-                Verify
-                <span style={{ color: "#0f604d" }}>Wise</span>
-                <span
-                  style={{
-                    fontSize: "8px",
-                    marginLeft: "4px",
-                    opacity: 0.6,
-                    fontWeight: 400,
-                  }}
-                >
-                  {__APP_VERSION__}
-                </span>
-              </Typography>
-            </MuiLink>
+                {__APP_VERSION__}
+              </span>
+            </Box>
           )}
           {/* Sidebar Toggle Button */}
           <IconButton

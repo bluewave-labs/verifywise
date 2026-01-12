@@ -22,14 +22,21 @@
   z-index: 2;
 }
 
-.home-layout > div {
+.home-layout .main-content-area {
   flex: 1;
-  min-width: 0; /* Allow flex item to shrink below content size */
+  min-width: 0;
   height: 100vh;
-  overflow-y: auto; /* Independent scroll for content */
-  overflow-x: hidden; /* Prevent horizontal overflow */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.home-layout .scrollable-content {
+  flex: 1;
+  min-height: 0; /* Critical for flex scroll containers */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   padding: 24px;
-  padding-left: 24px; /* Gap between sidebar and content */
 }
 .home-layout > div:has(> [class*="fallback__"]) .background-pattern-svg {
   position: absolute;

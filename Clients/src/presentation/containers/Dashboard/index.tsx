@@ -1,7 +1,7 @@
-import { Stack, Typography, Box, Slide } from "@mui/material";
+import { Stack, Typography, Box } from "@mui/material";
 import "./index.css";
 import { Outlet, useLocation } from "react-router";
-import { useContext, useEffect, FC, useState, useRef } from "react";
+import { useContext, useEffect, FC, useState } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { EvalsSidebarProvider } from "../../../application/contexts/EvalsSidebar.context";
 import { AIDetectionSidebarProvider } from "../../../application/contexts/AIDetectionSidebar.context";
@@ -30,18 +30,6 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { setDashboardValues, setProjects } = useContext(VerifyWiseContext);
   const location = useLocation();
   const { activeModule, setActiveModule } = useActiveModule();
-
-  // Content mount state for slide-in animation
-  const [isContentMounted, setIsContentMounted] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Trigger slide-in after initial render
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsContentMounted(true);
-    }, 50);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Demo data state
   const [showToastNotification, setShowToastNotification] =
@@ -289,7 +277,6 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     <EvalsSidebarProvider>
       <AIDetectionSidebarProvider>
         <Stack
-          ref={containerRef}
           maxWidth="100%"
           className="home-layout"
           flexDirection="row"
@@ -306,22 +293,41 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
             hasDemoData={hasDemoData}
           />
-          <Slide direction="up" in={isContentMounted} timeout={400} container={containerRef.current} mountOnEnter>
-            <Stack sx={{ flex: 1, minWidth: 0, height: "100vh", overflowY: "auto" }}>
-              <DemoAppBanner />
-              {alertState && (
-                <Alert
-                  variant={alertState.variant}
-                  title={alertState.title}
-                  body={alertState.body}
-                  isToast={true}
-                  onClick={() => setAlertState(undefined)}
-                />
-              )}
-              {showToastNotification && <CustomizableToast title={toastMessage} />}
+          <Stack 
+            className="main-content-area" 
+            sx={{ 
+              flex: 1, 
+              minWidth: 0, 
+              height: "100vh", 
+              display: "flex", 
+              flexDirection: "column",
+              overflow: "hidden"
+            }}
+          >
+            <DemoAppBanner />
+            {alertState && (
+              <Alert
+                variant={alertState.variant}
+                title={alertState.title}
+                body={alertState.body}
+                isToast={true}
+                onClick={() => setAlertState(undefined)}
+              />
+            )}
+            {showToastNotification && <CustomizableToast title={toastMessage} />}
+            <Box 
+              className="scrollable-content"
+              sx={{ 
+                flex: 1, 
+                minHeight: 0,
+                overflowY: "auto", 
+                overflowX: "hidden",
+                padding: "24px"
+              }}
+            >
               <Outlet />
-            </Stack>
-          </Slide>
+            </Box>
+          </Stack>
 
           {/* Demo Data Modals */}
           <StandardModal

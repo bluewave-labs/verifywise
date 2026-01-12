@@ -1,8 +1,9 @@
-import { Button, Stack, Typography, useTheme, Box } from "@mui/material";
-import React, { Suspense, useState } from "react";
+import { Button, Stack, Typography, useTheme, Box, Divider } from "@mui/material";
+import React, { Suspense, useEffect, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
+import SelectField from "../../../components/Inputs/SelectField";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { logEngine } from "../../../../application/tools/log.engine";
@@ -13,6 +14,9 @@ import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
 import { loginUser } from "../../../../application/repository/user.repository";
+import { MicrosoftSignIn } from "../../../components/MicrosoftSignIn";
+import { CheckSsoStatusByOrgId } from "../../../../application/repository/ssoConfig.repository";
+import { getAllOrganizations } from "../../../../application/repository/organization.repository";
 
 // Animated loading component specifically for login
 const LoginLoadingOverlay: React.FC = () => {
@@ -130,6 +134,76 @@ const Login: React.FC = () => {
     body: string;
   } | null>(null);
 
+  // Organization selection state
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
+  const [loadingOrgs, setLoadingOrgs] = useState(true);
+
+  // SSO configuration state
+  const [ssoConfig, setSsoConfig] = useState<{
+    tenantId?: string;
+    clientId?: string;
+    isEnabled?: boolean;
+  }>({});
+
+  // Fetch all organizations on mount
+  useEffect(() => {
+    const fetchOrganizations = async () => {
+      try {
+        setLoadingOrgs(true);
+        const orgs = await getAllOrganizations();
+        setOrganizations(orgs);
+      } catch (error) {
+        console.error('Failed to fetch organizations:', error);
+        setOrganizations([]);
+        setAlert({
+          variant: "error",
+          body: "Failed to load organizations. Please refresh the page."
+        });
+      } finally {
+        setLoadingOrgs(false);
+      }
+    };
+
+    fetchOrganizations();
+  }, []);
+
+  // Fetch SSO configuration when organization is selected
+  useEffect(() => {
+    const fetchSsoConfig = async () => {
+      if (!selectedOrgId) {
+        setSsoConfig({});
+        return;
+      }
+
+      try {
+        const response = await CheckSsoStatusByOrgId({
+          organizationId: selectedOrgId,
+          provider: 'AzureAD',
+        });
+
+        if (response?.isEnabled && response?.hasConfig) {
+          setSsoConfig({
+            tenantId: response.tenantId,
+            clientId: response.clientId,
+            isEnabled: response.isEnabled,
+          });
+          // Store organization ID for Microsoft callback
+          sessionStorage.setItem('sso_organization_id', selectedOrgId.toString());
+        } else {
+          setSsoConfig({});
+          sessionStorage.removeItem('sso_organization_id');
+        }
+      } catch (error) {
+        console.error('Failed to fetch SSO config:', error);
+        setSsoConfig({});
+        sessionStorage.removeItem('sso_organization_id');
+      }
+    };
+
+    fetchSsoConfig();
+  }, [selectedOrgId]);
+
   // Handle changes in input fields
   const handleChange =
     (prop: keyof FormValues) =>
@@ -140,6 +214,13 @@ const Login: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!selectedOrgId && organizations.length > 0) {
+      setAlert({ variant: "error", body: "Please select an organization" });
+      setTimeout(() => setAlert(null), 5000);
+      return;
+    }
+
     setIsSubmitting(true);
 
     await loginUser({
@@ -284,7 +365,7 @@ const Login: React.FC = () => {
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
             {loginText}
           </Typography>
-          <Stack sx={{ gap: theme.spacing(7.5) }}>
+          <Stack sx={{ gap: theme.spacing(7.5), width: '100%' }}>
             <Field
               label="Email"
               isRequired
@@ -375,6 +456,51 @@ const Login: React.FC = () => {
                   Register here
                 </Typography>
               </Stack>
+            )}
+
+            {/* Divider with "or" */}
+            <Stack sx={{ position: 'relative', my: 4 }}>
+              <Divider />
+              <Typography
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: '#fff',
+                  px: 2,
+                  fontSize: 14,
+                  color: theme.palette.text.secondary,
+                  fontWeight: 500,
+                }}
+              >
+                or
+              </Typography>
+            </Stack>
+
+            {/* Organization Selection - Always show at bottom */}
+            <SelectField
+              label="Organization"
+              isRequired
+              placeholder="Select your organization"
+              sx={fieldStyles}
+              value={selectedOrgId || ''}
+              onChange={(e) => setSelectedOrgId(Number(e.target.value))}
+              options={organizations.map(org => ({ id: org.id, name: org.name }))}
+              disabled={loadingOrgs || organizations.length === 0}
+              loading={loadingOrgs}
+            />
+
+            {/* Microsoft SSO Button - Always show when organization is selected */}
+            {selectedOrgId && (
+              <MicrosoftSignIn
+                isSubmitting={isSubmitting}
+                setIsSubmitting={setIsSubmitting}
+                tenantId={ssoConfig.tenantId}
+                clientId={ssoConfig.clientId}
+                organizationId={selectedOrgId}
+                text="Sign in with Microsoft"
+              />
             )}
           </Stack>
         </Stack>

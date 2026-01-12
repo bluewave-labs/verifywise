@@ -67,6 +67,10 @@ const allowedRoles = {
     deleteDataset: ["Admin", "Editor"],
     manageApiKeys: ["Admin"],
   },
+  sso: {
+    view: ["Admin"],
+    manage: ["Admin"],
+  },
 };
 
 export default allowedRoles;

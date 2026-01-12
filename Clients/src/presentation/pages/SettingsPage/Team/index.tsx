@@ -23,6 +23,7 @@ import {
   SelectChangeEvent,
   TablePagination,
   TableFooter,
+  Tooltip,
 } from "@mui/material";
 import {
   UserPlus as GroupsIcon,
@@ -46,6 +47,7 @@ import {
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { UserModel } from "../../../../domain/models/Common/user/user.model";
+import { GetSsoConfig } from "../../../../application/repository/ssoConfig.repository";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -137,6 +139,26 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
+  const [isSsoEnabled, setIsSsoEnabled] = useState(false);
+  const { organizationId } = useAuth();
+
+  // Check if SSO is enabled
+  useEffect(() => {
+    const checkSsoStatus = async () => {
+      try {
+        const response = await GetSsoConfig({
+                  routeUrl: `ssoConfig?organizationId=${organizationId}&provider=AzureAD`,
+                });
+        const ssoConfig = response?.data || response;
+        setIsSsoEnabled(ssoConfig?.is_enabled === true);
+      } catch (error) {
+        console.error("Failed to check SSO status:", error);
+        setIsSsoEnabled(false);
+      }
+    };
+
+    checkSsoStatus();
+  }, []);
 
   const handleUpdateRole = useCallback(
     async (memberId: string, newRole: string) => {
@@ -459,17 +481,25 @@ const TeamManagement: React.FC = (): JSX.Element => {
             )}
 
             <Box>
-              <CustomizableButton
-                variant="contained"
-                text="Invite team member"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                icon={<GroupsIcon size={16} />}
-                onClick={() => inviteTeamMember()}
-              />
+              <Tooltip
+                title={isSsoEnabled ? "SSO is enabled. User invitations are disabled. Manage users through your SSO provider." : ""}
+                arrow
+                placement="top"
+              >
+                <span>
+                  <CustomizableButton
+                    variant="contained"
+                    text="Invite team member"
+                    sx={{
+                      backgroundColor: "#13715B",
+                      border: "1px solid #13715B",
+                      gap: 2,
+                    }}
+                    icon={<GroupsIcon size={16} />}
+                    onClick={() => inviteTeamMember()}
+                  />
+                </span>
+              </Tooltip>
             </Box>
           </Stack>
 
@@ -628,7 +658,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                     padding: "0",
                                   },
                                 }}
-                                disabled={member.id === userId}
+                                disabled={member.id === userId || isSsoEnabled}
                               >
                                 {roles.map((role) => (
                                   <MenuItem
@@ -657,13 +687,27 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                     : "inherit",
                               }}
                             >
-                              <IconButton
-                                onClick={() => handleDeleteClick(member.id)}
-                                disableRipple
-                                disabled={member.id === userId}
+                              <Tooltip
+                                title={
+                                  member.id === userId
+                                    ? "You cannot delete your own account"
+                                    : isSsoEnabled
+                                    ? "SSO is enabled. User deletion is disabled. Manage users through your SSO provider."
+                                    : ""
+                                }
+                                arrow
+                                placement="top"
                               >
-                                <DeleteIconGrey size={16} />
-                              </IconButton>
+                                <span>
+                                  <IconButton
+                                    onClick={() => handleDeleteClick(member.id)}
+                                    disableRipple
+                                    disabled={member.id === userId || isSsoEnabled}
+                                  >
+                                    <DeleteIconGrey size={16} />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
                             </TableCell>
                           </TableRow>
                         ))

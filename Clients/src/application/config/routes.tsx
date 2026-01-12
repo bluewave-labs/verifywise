@@ -14,6 +14,7 @@ import ForgotPassword from "../../presentation/pages/Authentication/ForgotPasswo
 import ResetPassword from "../../presentation/pages/Authentication/ResetPassword";
 import SetNewPassword from "../../presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "../../presentation/pages/Authentication/ResetPasswordContinue";
+import MicrosoftCallback from "../../presentation/pages/Authentication/MicrosoftCallback";
 import FileManager from "../../presentation/pages/FileManager";
 import Reporting from "../../presentation/pages/Reporting";
 import VWHome from "../../presentation/pages/Home/1.0Home";
@@ -144,7 +145,12 @@ export const createRoutes = (
     path="/reset-password-continue"
     element={<ProtectedRoute Component={ResetPasswordContinue} />}
   />,
-// <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
+  <Route
+    key="microsoft-callback"
+    path="/auth/microsoft/callback"
+    element={<MicrosoftCallback />}
+  />,
+  // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
   <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
   // Style Guide - Development only

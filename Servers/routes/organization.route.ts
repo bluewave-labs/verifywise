@@ -26,6 +26,7 @@ const router = express.Router();
 
 import {
   createOrganization,
+  getAllOrganizations,
   getOrganizationById,
   updateOrganizationById,
   getOrganizationsExists,
@@ -33,6 +34,22 @@ import {
 
 import authenticateJWT from "../middleware/auth.middleware";
 import { checkMultiTenancy } from "../middleware/multiTenancy.middleware";
+
+/**
+ * GET /organizations
+ *
+ * Retrieves all organizations in the system.
+ * Public endpoint for login page organization selection.
+ *
+ * @name get/
+ * @function
+ * @memberof module:routes/organization.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ * @returns {Array} List of all organizations
+ */
+router.get("/", getAllOrganizations);
 
 /**
  * GET /organizations/exists

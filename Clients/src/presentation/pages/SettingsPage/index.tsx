@@ -12,17 +12,21 @@ import Preferences from "./Preferences/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
+import EntraIdConfig from "./EntraIdConfig";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
 import TabBar from "../../components/TabBar";
 
 export default function ProfilePage() {
-  const { userRoleName } = useAuth();
+  // const authorizedActiveTabs = ["profile", "password", "team", "organization", "sso"];
+  const { userRoleName, userId } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
+  const isSsoTabDisabled = !allowedRoles.sso.view.includes(userRoleName);
+  const [isPasswordTabDisabled, setIsPasswordTabDisabled] = useState(false);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
 
   const { tab } = useParams<{ tab?: string }>();
@@ -37,6 +41,7 @@ export default function ProfilePage() {
       "team",
       "organization",
       "apikeys",
+      "entraid",
     ];
     return tabs;
   }, []);
@@ -51,9 +56,36 @@ export default function ProfilePage() {
     }
   }, [tab, validTabs, navigate]);
 
+  // Check if user is SSO-authenticated and disable password tab
+  useEffect(() => {
+    const checkSsoStatus = async () => {
+      if (!userId) return;
+
+      try {
+        const { getUserById } = await import("../../../application/repository/user.repository");
+        const userData = await getUserById({ userId });
+        const actualUserData = userData?.data || userData;
+
+        // If user has SSO provider and SSO user ID, disable password tab
+        if (actualUserData?.sso_provider && actualUserData?.sso_user_id) {
+          setIsPasswordTabDisabled(true);
+          // If currently on password tab, redirect to profile
+          if (activeTab === "password") {
+            setActiveTab("profile");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check SSO status:", error);
+      }
+    };
+
+    checkSsoStatus();
+  }, [userId, activeTab]);
+
   // Handle navigation state from command palette
   useEffect(() => {
     if (location.state?.activeTab) {
+      const validTabs = ['profile', 'password', 'team', 'organization', 'entraid'];
       const requestedTab = location.state.activeTab;
 
       // Check if requested tab is valid and user has permission to access it
@@ -111,6 +143,7 @@ export default function ProfilePage() {
               label: "Password",
               value: "password",
               icon: "Lock",
+              disabled: isPasswordTabDisabled,
             },
             {
               label: "Team",
@@ -134,6 +167,12 @@ export default function ProfilePage() {
               icon: "Key",
               disabled: isApiKeysDisabled,
             },
+            {
+              label: "EntraID SSO",
+              value: "entraid",
+              icon: "Shield",
+              disabled: isSsoTabDisabled,
+            }
           ]}
           activeTab={activeTab}
           onChange={handleTabChange}
@@ -161,6 +200,10 @@ export default function ProfilePage() {
 
         <TabPanel value="apikeys">
           <ApiKeys />
+        </TabPanel>
+
+        <TabPanel value="entraid">
+          <EntraIdConfig />
         </TabPanel>
       </TabContext>
     </Stack>

@@ -62,10 +62,17 @@ import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { generateUserTokens } from "../utils/auth.utils";
+import { ConfidentialClientApplication } from '@azure/msal-node';
+import { getAzureADConfigQuery } from "../utils/ssoConfig.utils";
+import Jwt from "jsonwebtoken";
 import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 import { getRoleByIdQuery } from "../utils/role.utils";
 import { uploadFile } from "../utils/fileUpload.utils";
+
+const roleMap = new Map<string, number>(
+  [["Admin", 1], ["Reviewer", 2], ["Editor", 3], ["Auditor", 4]]
+);
 
 /**
  * Retrieves all users within the authenticated user's organization
@@ -257,9 +264,9 @@ async function createNewUserWrapper(
     name,
     surname,
     email,
-    password,
     roleId,
-    organizationId
+    organizationId,
+    password,
   );
 
   // Validate user data before saving
@@ -518,7 +525,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
       } catch (modelError) {
         passwordIsMatched = await bcrypt.compare(
           password,
-          userData.password_hash
+          userData.password_hash!
         );
       }
 
@@ -576,6 +583,92 @@ async function loginUser(req: Request, res: Response): Promise<any> {
       "user.ctrl.ts"
     );
     logger.error("❌ Error in loginUser:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+async function loginUserWithMicrosoft(req: Request, res: Response): Promise<any> {
+  const transaction = await sequelize.transaction();
+  const { code, organizationId } = req.body;
+
+  logStructured('processing', `attempting Microsoft SSO login with code`, 'loginUserWithMicrosoft', 'user.ctrl.ts');
+  logger.debug(`🔐 Microsoft SSO login attempt`);
+
+  try {
+    if (!code) {
+      return res.status(400).json(STATUS_CODE[400]('Authorization code is required'));
+    }
+
+    const azureADConfig = await getAzureADConfigQuery(req.tenantId!, transaction);
+
+    const cca = new ConfidentialClientApplication({
+      auth: {
+        clientId: azureADConfig.client_id,
+        authority: `https://login.microsoftonline.com/${azureADConfig.tenant_id}`,
+        clientSecret: Jwt.verify(azureADConfig.client_secret, process.env.SSO_SECRET as string) as string,
+      },
+    });
+
+    // Exchange code for Microsoft access token
+    const response = await cca.acquireTokenByCode({
+      code,
+      scopes: ['openid', 'profile', 'email', 'User.Read'],
+      redirectUri: "http://localhost:5173/auth/microsoft/callback",
+    });
+    if (!response) {
+      logStructured('error', `failed to acquire token from Microsoft`, 'loginUserWithMicrosoft', 'user.ctrl.ts');
+      return res.status(401).json(STATUS_CODE[401]('Failed to acquire token from Microsoft'));
+    }
+
+    // Get user info from Microsoft Graph API
+    const userInfoResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+      headers: {
+        'Authorization': `Bearer ${response.accessToken}`,
+      },
+    });
+    const userInfo = await userInfoResponse.json();
+    // ROLE
+    const userRole = ((response.idTokenClaims as { [key: string]: any })?.roles || ['Editor'])[0] as string;
+
+    // Find or create user in database
+    let user = await getUserByEmailQuery(userInfo.mail || userInfo.userPrincipalName, transaction);
+    if (!user) {
+      // Create user model with automatic password hashing
+      const userModel = await UserModel.createNewUser(
+        userInfo.givenName || userInfo.displayName,
+        userInfo.surname || userInfo.givenName || userInfo.displayName,
+        userInfo.mail || userInfo.userPrincipalName,
+        roleMap.get(userRole)!,
+        organizationId,
+        null, 'AzureAD', userInfo.id
+      );
+      await userModel.validateUserData();
+      const createdUser = await createNewUserQuery(userModel, transaction);
+      user = { ...createdUser.toSafeJSON(), role_name: userRole };
+    } else if (user.role_name !== userRole) {
+      user.role_name = userRole;
+      await updateUserByIdQuery(user.id!, { role_id: roleMap.get(userRole)! }, transaction);
+    }
+
+    // Generate JWT tokens
+    // Generate JWT tokens (access + refresh)
+    const { accessToken } = generateUserTokens({
+      id: user!.id!,
+      email: user!.email,
+      roleName: user!.role_name as string,
+      organizationId: user!.organization_id as number,
+    }, res);
+
+    // Placeholder response - implement actual Microsoft OAuth flow
+    logStructured('successful', `Microsoft SSO login successful for ${user!.email}`, 'loginUserWithMicrosoft', 'user.ctrl.ts');
+    return res.status(202).json(
+      STATUS_CODE[202]({
+        token: accessToken,
+      })
+    );
+  } catch (error) {
+    logStructured('error', `unexpected error during Microsoft SSO login`, 'loginUserWithMicrosoft', 'user.ctrl.ts');
+    logger.error('❌ Error in loginUserWithMicrosoft:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -711,9 +804,9 @@ async function resetPassword(req: Request, res: Response) {
       _user.name,
       _user.surname,
       _user.email,
-      _user.password_hash,
       _user.role_id,
-      _user.organization_id!
+      _user.organization_id!,
+      _user.password_hash,
     );
 
     if (user) {
@@ -721,7 +814,7 @@ async function resetPassword(req: Request, res: Response) {
 
       const updatedUser = (await resetPasswordQuery(
         email,
-        user.password_hash,
+        user.password_hash!,
         transaction
       )) as UserModel;
 
@@ -1235,7 +1328,7 @@ async function ChangePassword(req: Request, res: Response) {
 
     const updatedUser = (await resetPasswordQuery(
       user.email,
-      user.password_hash,
+      user.password_hash!,
       transaction
     )) as UserModel;
 
@@ -1744,6 +1837,7 @@ export {
   createNewUserWrapper,
   createNewUser,
   loginUser,
+  loginUserWithMicrosoft,
   resetPassword,
   updateUserById,
   deleteUserById,

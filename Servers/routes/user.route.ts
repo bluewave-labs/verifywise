@@ -46,6 +46,7 @@ import {
   calculateProgress,
   ChangePassword,
   refreshAccessToken,
+  loginUserWithMicrosoft,
   uploadUserProfilePhoto,
   getUserProfilePhoto,
   deleteUserProfilePhoto,
@@ -131,6 +132,8 @@ const loginLimiter = rateLimit({
     "Too many login attempts from this IP, please try again after a minute",
 });
 router.post("/login", loginLimiter, loginUser);
+
+router.post("/login-microsoft", loginUserWithMicrosoft);
 
 router.post("/refresh-token", authLimiter, refreshAccessToken);
 

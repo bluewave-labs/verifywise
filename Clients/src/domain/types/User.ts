@@ -12,6 +12,8 @@ export type User = {
     organization_id?: number; //organization association
     pwd_set?: boolean; //password set flag (compatibility)
     data?: any; //compatibility property for API responses
+    sso_provider?: string | null;
+    sso_user_id?: string | null;
 }
 
 export interface ApiResponse<T> {

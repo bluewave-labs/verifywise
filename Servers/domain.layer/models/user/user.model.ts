@@ -53,6 +53,7 @@ import {
 } from "../../exceptions/custom.exception";
 import bcrypt from "bcrypt";
 import { OrganizationModel } from "../organization/organization.model";
+import { SSOProvider } from "../../interfaces/i.ssoConfig";
 
 @Table({
   tableName: "users",
@@ -83,7 +84,7 @@ export class UserModel extends Model<UserModel> {
   @Column({
     type: DataType.STRING,
   })
-  password_hash!: string;
+  password_hash!: string | null;
 
   @ForeignKey(() => RoleModel)
   @Column({
@@ -115,6 +116,18 @@ export class UserModel extends Model<UserModel> {
   })
   organization_id?: number;
 
+  @Column({
+    type: DataType.ENUM("AzureAD"),
+    allowNull: true,
+  })
+  sso_provider?: SSOProvider;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  sso_user_id?: string;
+  
   @Column({
     type: DataType.INTEGER,
     allowNull: true,
@@ -154,9 +167,9 @@ export class UserModel extends Model<UserModel> {
     name: string,
     surname: string,
     email: string,
-    password: string,
     role_id: number,
-    organization_id: number
+    organization_id: number,
+    password: string | null = null, sso_provider?: SSOProvider, sso_user_id?: string
   ): Promise<UserModel> {
     // Validate email
     if (!emailValidation(email)) {
@@ -164,8 +177,8 @@ export class UserModel extends Model<UserModel> {
     }
 
     // Validate password
-    const passwordValidationResult = passwordValidation(password);
-    if (!passwordValidationResult.isValid) {
+    const passwordValidationResult = password ? passwordValidation(password) : null;
+    if (password && !passwordValidationResult!.isValid) {
       throw new ValidationException(
         "Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long",
         "password",
@@ -188,7 +201,7 @@ export class UserModel extends Model<UserModel> {
     }
 
     // Hash the password
-    const password_hash = await bcrypt.hash(password, 10);
+    const password_hash = password ? await bcrypt.hash(password, 10) : null;
 
     // Create and return the user model instance
     const user = new UserModel();
@@ -201,6 +214,8 @@ export class UserModel extends Model<UserModel> {
     user.last_login = new Date();
     user.is_demo = false;
     user.organization_id = organization_id;
+    user.sso_provider = sso_provider;
+    user.sso_user_id = sso_user_id;
 
     return user;
   }
@@ -374,6 +389,9 @@ export class UserModel extends Model<UserModel> {
    * }
    */
   async comparePassword(password: string): Promise<boolean> {
+    if (!this.password_hash) {
+      return false;
+    }
     return bcrypt.compare(password, this.password_hash);
   }
 
@@ -669,6 +687,9 @@ export class UserModel extends Model<UserModel> {
       created_at: this.created_at?.toISOString(),
       last_login: this.last_login?.toISOString(),
       is_demo: this.is_demo,
+      organization_id: this.organization_id,
+      sso_provider: this.sso_provider,
+      sso_user_id: this.sso_user_id,
     };
   }
 

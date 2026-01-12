@@ -1913,8 +1913,8 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               Use case
             </Typography>
             <Stack direction="row" spacing={1}>
-              {/* "agent" commented out - not supported yet */}
-              {(["chatbot", "rag" /*, "agent" */] as const).map((type) => {
+              {/* Agent evaluation now supported per DeepEval docs */}
+              {(["chatbot", "rag", "agent"] as const).map((type) => {
                 const isSelected = exampleDatasetType === type;
                 return (
                   <Box
@@ -1927,12 +1927,12 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                       uppercase={false}
                       backgroundColor={
                         isSelected
-                          ? type === "chatbot" ? "#DBEAFE" : "#E0E7FF"
+                          ? type === "chatbot" ? "#DBEAFE" : type === "rag" ? "#E0E7FF" : "#FEE2E2"
                           : "#F3F4F6"
                       }
                       textColor={
                         isSelected
-                          ? type === "chatbot" ? "#1E40AF" : "#3730A3"
+                          ? type === "chatbot" ? "#1E40AF" : type === "rag" ? "#3730A3" : "#991B1B"
                           : "#6B7280"
                       }
                     />
@@ -1943,8 +1943,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
             <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1 }}>
               {exampleDatasetType === "chatbot" && "Standard Q&A datasets for evaluating chatbot responses."}
               {exampleDatasetType === "rag" && "Datasets with retrieval_context for RAG faithfulness & relevancy metrics."}
-              {/* Agent not supported yet */}
-              {/* {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent task completion."} */}
+              {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent reasoning, tool usage, and task completion."}
             </Typography>
           </Box>
 

@@ -1,33 +1,42 @@
 .home-layout {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
   /* Remove fixed max-width, let content area handle constraints */
   margin: 0;
   /* Reserve space for the help sidebar on the right */
   margin-right: var(--help-sidebar-padding, 64px);
   transition: margin-right 300ms ease-in-out;
+  overflow: hidden;
 }
 
 .home-layout aside {
-  position: sticky;
   height: 100vh;
   width: 230px;
   max-width: 230px;
-  top: 0;
-  left: 0;
   z-index: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .base-Popup-root {
   z-index: 2;
 }
 
-.home-layout > div {
+.home-layout .main-content-area {
   flex: 1;
-  min-width: 0; /* Allow flex item to shrink below content size */
-  overflow-x: hidden; /* Prevent horizontal overflow */
+  min-width: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.home-layout .scrollable-content {
+  flex: 1;
+  min-height: 0; /* Critical for flex scroll containers */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   padding: 24px;
-  padding-left: 24px; /* Gap between sidebar and content */
 }
 .home-layout > div:has(> [class*="fallback__"]) .background-pattern-svg {
   position: absolute;

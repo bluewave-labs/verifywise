@@ -68,7 +68,7 @@ async def create_arena_comparison(
         "judgeModel": "gpt-4o"  // Model used as judge
     }
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     user_id = request.headers.get("x-user-id")
     return await create_arena_comparison_controller(
         background_tasks=background_tasks,
@@ -102,7 +102,7 @@ async def list_arena_comparisons(
         ]
     }
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     return await list_arena_comparisons_controller(tenant=tenant, org_id=org_id)
 
 
@@ -120,7 +120,7 @@ async def get_arena_comparison_status(comparison_id: str, request: Request):
         "updatedAt": "2025-01-30T12:01:30"
     }
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     return await get_arena_comparison_status_controller(comparison_id, tenant=tenant)
 
 
@@ -156,7 +156,7 @@ async def get_arena_comparison_results(comparison_id: str, request: Request):
         }
     }
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     return await get_arena_comparison_results_controller(comparison_id, tenant=tenant)
 
 
@@ -171,6 +171,6 @@ async def delete_arena_comparison(comparison_id: str, request: Request):
         "id": "arena_20250130_120000"
     }
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     return await delete_arena_comparison_controller(comparison_id, tenant=tenant)
 

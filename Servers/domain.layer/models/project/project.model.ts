@@ -114,6 +114,24 @@ export class ProjectModel
   })
   status!: ProjectStatus;
 
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  approval_workflow_id?: number;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+  })
+  pending_frameworks?: number[];
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  enable_ai_data_insertion?: boolean;
+
   static async CreateNewProject(
     projectAttributes: Partial<IProjectAttributes>
   ) {

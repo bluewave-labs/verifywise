@@ -28,7 +28,7 @@ const ComplianceTracker = ({
   dueDateFilter?: string;
 }) => {
   const currentProjectId = project?.id;
-  const currentProjectFramework = project.framework.filter(
+  const currentProjectFramework = project.framework?.filter(
     (p) => p.framework_id === 1
   )[0]?.project_framework_id;
   const [complianceData, setComplianceData] = useState<ComplianceData>();

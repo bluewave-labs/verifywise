@@ -29,6 +29,7 @@ import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
 import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
 import { AdvisorConversationProvider } from './application/contexts/AdvisorConversation.context';
+import { useNotifications } from "./application/hooks/useNotifications";
 
 // Auth routes where the helper sidebar should not be shown
 const AUTH_ROUTES = [
@@ -95,6 +96,13 @@ function App() {
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
   const { completeOnboarding, state, isLoading: isOnboardingLoading } = useOnboarding();
+
+  // Setup real-time notifications for authenticated users
+  useNotifications({
+    enabled: !!token, // Only enable notifications when user is authenticated
+    autoReconnect: true,
+    reconnectDelay: 3000,
+  });
 
   // Onboarding should ONLY show on the dashboard (/) route
   const isDashboardRoute = location.pathname === '/';

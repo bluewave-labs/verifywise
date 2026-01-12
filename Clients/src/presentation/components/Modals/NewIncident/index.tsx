@@ -21,7 +21,7 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { History as HistoryIcon } from "lucide-react";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
-import { getAllProjects } from "../../../../application/repository/project.repository";
+import { useProjects } from "../../../../application/hooks/useProjects";
 import { User } from "../../../../domain/types/User";
 import { Project } from "../../../../domain/types/Project";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
@@ -147,18 +147,19 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
     );
     const [errors, setErrors] = useState<NewIncidentFormErrors>({});
     const [users, setUsers] = useState<User[]>([]);
-    const [projectList, setProjects] = useState<Project[]>([]);
     const [, setIsLoadingUsers] = useState(false);
     const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+
+    // Use the useProjects hook to get approved projects only
+    const { approvedProjects } = useProjects();
 
     // Calculate drawer width based on history sidebar state
     const drawerWidth = isHistorySidebarOpen ? 1036 : 700;
 
-    // Fetch Users & Projects
+    // Fetch Users
     useEffect(() => {
         if (isOpen) {
             fetchUsers();
-            fetchProjects();
         }
     }, [isOpen]);
 
@@ -183,31 +184,24 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
         }
     };
 
-    const fetchProjects = async () => {
-        try {
-            const response = await getAllProjects();
-            if (response?.data) setProjects(response.data);
-        } catch (error) {
-            console.error("Error fetching projects:", error);
-        }
-    };
-
     const projectOptions = useMemo(() => {
         // Use a Set to track unique project titles
         const seen = new Set<string>();
 
-        return projectList
-            .filter((p) => {
-                // Only keep the first occurrence of each project_title
-                if (seen.has(p.project_title)) return false;
-                seen.add(p.project_title);
-                return true;
-            })
-            .map((p) => ({
-                _id: p.project_title,
-                name: p.project_title,
-            }));
-    }, [projectList]);
+        return Array.isArray(approvedProjects)
+            ? approvedProjects
+                .filter((p: Project) => {
+                    // Only keep the first occurrence of each project_title
+                    if (seen.has(p.project_title)) return false;
+                    seen.add(p.project_title);
+                    return true;
+                })
+                .map((p: Project) => ({
+                    _id: p.project_title,
+                    name: p.project_title,
+                }))
+            : [];
+    }, [approvedProjects]);
 
     const userOptions = useMemo(
         () =>

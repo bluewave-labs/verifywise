@@ -41,7 +41,7 @@ const AssessmentTracker = ({
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(false);
   const currentProjectId = project?.id;
-  const currentProjectFramework = project.framework.filter(
+  const currentProjectFramework = project.framework?.filter(
     (p) => p.framework_id === 1
   )[0]?.project_framework_id;
   const [searchParams, setSearchParams] = useSearchParams();

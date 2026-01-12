@@ -10,11 +10,9 @@
   flex-direction: column;
   align-items: center;
   padding: 12px 0;
-  position: sticky;
-  top: 0;
-  left: 0;
   z-index: 1000;
-  align-self: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .app-switcher-modules {

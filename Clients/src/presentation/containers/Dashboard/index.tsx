@@ -294,7 +294,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
           className="home-layout"
           flexDirection="row"
           gap={0}
-          sx={{ backgroundColor: "#FCFCFD", overflowX: "hidden" }}
+          sx={{ backgroundColor: "#FCFCFD", height: "100vh", overflow: "hidden" }}
         >
           <AppSwitcher
             activeModule={activeModule}
@@ -307,7 +307,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             hasDemoData={hasDemoData}
           />
           <Slide direction="up" in={isContentMounted} timeout={400} container={containerRef.current} mountOnEnter>
-            <Stack sx={{ flex: 1, minWidth: 0 }}>
+            <Stack sx={{ flex: 1, minWidth: 0, height: "100vh", overflowY: "auto" }}>
               <DemoAppBanner />
               {alertState && (
                 <Alert

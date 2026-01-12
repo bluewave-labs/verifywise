@@ -1,22 +1,21 @@
 .home-layout {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
   /* Remove fixed max-width, let content area handle constraints */
   margin: 0;
   /* Reserve space for the help sidebar on the right */
   margin-right: var(--help-sidebar-padding, 64px);
   transition: margin-right 300ms ease-in-out;
+  overflow: hidden;
 }
 
 .home-layout aside {
-  position: sticky;
   height: 100vh;
   width: 230px;
   max-width: 230px;
-  top: 0;
-  left: 0;
   z-index: 1;
-  align-self: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .base-Popup-root {
@@ -26,6 +25,8 @@
 .home-layout > div {
   flex: 1;
   min-width: 0; /* Allow flex item to shrink below content size */
+  height: 100vh;
+  overflow-y: auto; /* Independent scroll for content */
   overflow-x: hidden; /* Prevent horizontal overflow */
   padding: 24px;
   padding-left: 24px; /* Gap between sidebar and content */

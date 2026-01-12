@@ -294,7 +294,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
           className="home-layout"
           flexDirection="row"
           gap={0}
-          sx={{ backgroundColor: "#FCFCFD", overflow: "hidden" }}
+          sx={{ backgroundColor: "#FCFCFD", overflowX: "hidden" }}
         >
           <AppSwitcher
             activeModule={activeModule}

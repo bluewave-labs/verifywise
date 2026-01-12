@@ -524,6 +524,9 @@ const SidebarShell: FC<SidebarShellProps> = ({
         py={theme.spacing(6)}
         gap={theme.spacing(2)}
         sx={{
+          position: "sticky",
+          top: 0,
+          alignSelf: "flex-start",
           width: collapsed ? "78px" : "260px",
           minWidth: collapsed ? "78px" : "260px",
           maxWidth: collapsed ? "78px" : "260px",

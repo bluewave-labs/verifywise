@@ -1,0 +1,26 @@
+{
+  "dataset_name": "enterprise_poc",
+  "dataset_version": "v0.1",
+  "created_at": "2026-01-09T14:32:00Z",
+  "generation": {
+    "seed": 42,
+    "scenario_counts": {
+      "compliance_policy": 40,
+      "ambiguous_prompt": 30,
+      "multi_step_reasoning": 30
+    },
+    "template_versions": {
+      "compliance_policy": "v0.1",
+      "ambiguous_prompt": "v0.1",
+      "multi_step_reasoning": "v0.1"
+    }
+  },
+  "files": {
+    "scenarios": "scenarios.jsonl",
+    "candidates": "candidates.jsonl"
+  },
+  "checksums": {
+    "scenarios.jsonl": "sha256:b8a0702739f94e59d1cd3e85328dee6abf0be81bbddbb70ea35bd9400a94663a",
+    "candidates.jsonl": "sha256:49af0d3b9c00aae6d70e9761d1658ec9b64c2588540098eb576613247f55c9a3"
+  }
+}

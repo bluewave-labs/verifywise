@@ -112,7 +112,7 @@ const RiskSection: FC<RiskSectionProps> = ({
 
   const [alert, setAlert] = useState<alertState | null>(null);
   const { users, loading: usersLoading } = useUsers();
-  const { data: projects, isLoading: projectsLoading } = useProjects();
+  const { approvedProjects, isLoading: projectsLoading } = useProjects();
   const { allFrameworks: frameworks, loading: frameworksLoading } = useFrameworks({ listOfFrameworks: [] });
 
   const handleOnSelectChange = useCallback(
@@ -216,15 +216,17 @@ const RiskSection: FC<RiskSectionProps> = ({
                 id="applicable-projects-input"
                 size="small"
                 value={
-                  projectsLoading || !projects?.length
+                  projectsLoading || !approvedProjects?.length
                     ? []
-                    : projects
+                    : approvedProjects
                         .filter((project) => !project.is_organizational)
                         .filter((project) =>
                           riskValues.applicableProjects.includes(project.id)
                         )
                 }
-                options={projects?.filter((project) => !project.is_organizational) || []}
+                options={
+                  approvedProjects?.filter((project) => !project.is_organizational) || []
+                }
                 getOptionLabel={(project) => project.project_title}
                 renderOption={(props, option) => {
                   const { key, ...optionProps } = props;
@@ -244,9 +246,9 @@ const RiskSection: FC<RiskSectionProps> = ({
                   <TextField
                     {...params}
                     placeholder={
-                      projectsLoading || !projects?.length
+                      projectsLoading || !approvedProjects?.length
                         ? "Loading use cases..."
-                        : projects?.filter((project) => !project.is_organizational && riskValues.applicableProjects.includes(project.id)).length > 0
+                        : approvedProjects?.filter((project) => !project.is_organizational && riskValues.applicableProjects.includes(project.id)).length > 0
                         ? ""
                         : "Select applicable use cases"
                     }

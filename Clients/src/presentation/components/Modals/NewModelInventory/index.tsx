@@ -38,7 +38,7 @@ import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import modelInventoryOptions from "../../../utils/model-inventory.json";
-import { getAllProjects } from "../../../../application/repository/project.repository";
+import { useProjects } from "../../../../application/hooks/useProjects";
 import { Project } from "../../../../domain/types/Project";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
 import FileManagerUploadModal from "../FileManagerUpload";
@@ -254,31 +254,18 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     }
   };
 
-  const [projectList, setProjects] = useState<Project[]>([]);
-  const [, setProjectsLoading] = useState(true);
+  // Use the useProjects hook to get approved projects
+  const { approvedProjects } = useProjects();
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        setProjectsLoading(true);
-        const response = await getAllProjects();
-        if (response?.data) {
-          setProjects(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      } finally {
-        setProjectsLoading(false);
-      }
-    };
-
-    fetchProjects();
-  }, []);
+  // Filter to get only non-organizational approved projects
+  const projectList = useMemo(() => {
+    return Array.isArray(approvedProjects)
+      ? approvedProjects.filter((project: Project) => !project.is_organizational)
+      : [];
+  }, [approvedProjects]);
 
   const projectsList = useMemo(() => {
-    return projectList
-      .filter((project) => !project.is_organizational)
-      .map((project) => project.project_title.trim());
+    return projectList.map((project: Project) => project.project_title.trim());
   }, [projectList]);
 
   // Create a mapping from framework ID to framework name

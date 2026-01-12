@@ -1,24 +1,18 @@
+import { formatDistanceToNow, isValid } from "date-fns";
+
 /**
  * Format a date string to a human-readable relative time format
+ * Uses date-fns for consistent, localized relative time formatting
  * @param dateString - ISO date string or date-parseable string
- * @returns Formatted date string (e.g., "Today", "Yesterday", "3 days ago")
+ * @returns Formatted date string (e.g., "5 minutes ago", "about 2 hours ago", "3 days ago")
  */
 export const formatRelativeDate = (dateString: string): string => {
   if (!dateString) return "Unknown";
 
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "Unknown";
+  if (!isValid(date)) return "Unknown";
 
-  const now = new Date();
-  const diffTime = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) return date.toLocaleDateString();
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return date.toLocaleDateString();
+  return formatDistanceToNow(date, { addSuffix: true });
 };
 
 /**

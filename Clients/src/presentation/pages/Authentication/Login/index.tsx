@@ -167,10 +167,8 @@ const Login: React.FC = () => {
             message: "Login successful.",
           });
 
-          setTimeout(() => {
-            setIsSubmitting(false);
-            navigate("/");
-          }, 3000);
+          setIsSubmitting(false);
+          navigate("/");
         }
       })
       .catch((error) => {

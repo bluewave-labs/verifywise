@@ -11,6 +11,7 @@ import {
   Typography,
   Chip,
   Popover,
+  Slide,
 } from "@mui/material";
 import { useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
@@ -31,6 +32,9 @@ import SidebarFooter from "./SidebarFooter";
 import FlyingHearts from "../FlyingHearts";
 
 declare const __APP_VERSION__: string;
+
+// Track if sidebar has been shown before (persists across module switches)
+let hasShownSidebarBefore = false;
 
 // Types for menu items
 export interface SidebarMenuItem {
@@ -109,11 +113,31 @@ const SidebarShell: FC<SidebarShellProps> = ({
   const theme = useTheme();
   const dispatch = useDispatch();
 
+  // Sidebar mount state for slide-in animation
+  // Skip animation if sidebar has been shown before (e.g., when switching modules)
+  const [isMounted, setIsMounted] = useState(hasShownSidebarBefore);
+
   // Heart icon state (Easter egg)
   const [showHeartIcon, setShowHeartIcon] = useState(false);
   const [showFlyingHearts, setShowFlyingHearts] = useState(false);
   const [heartReturning, setHeartReturning] = useState(false);
   const heartTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Trigger slide-in after initial render (only on first app load)
+  useEffect(() => {
+    if (hasShownSidebarBefore) {
+      // Skip animation on module switch
+      setIsMounted(true);
+      return;
+    }
+
+    // First time showing sidebar - animate it
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+      hasShownSidebarBefore = true;
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   // VerifyWiseContext available for future use
   useContext(VerifyWiseContext);
@@ -493,25 +517,26 @@ const SidebarShell: FC<SidebarShellProps> = ({
   };
 
   return (
-    <Stack
-      component="aside"
-      className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
-      py={theme.spacing(6)}
-      gap={theme.spacing(2)}
-      sx={{
-        width: collapsed ? "78px" : "260px",
-        minWidth: collapsed ? "78px" : "260px",
-        maxWidth: collapsed ? "78px" : "260px",
-        flexShrink: 0,
-        height: "100vh",
-        border: "none",
-        borderRight: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
-        borderRadius: 0,
-        backgroundColor: theme.palette.background.main,
-        transition:
-          "width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), min-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), max-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77)",
-      }}
-    >
+    <Slide direction="right" in={isMounted} timeout={350} mountOnEnter>
+      <Stack
+        component="aside"
+        className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
+        py={theme.spacing(6)}
+        gap={theme.spacing(2)}
+        sx={{
+          width: collapsed ? "78px" : "260px",
+          minWidth: collapsed ? "78px" : "260px",
+          maxWidth: collapsed ? "78px" : "260px",
+          flexShrink: 0,
+          height: "100vh",
+          border: "none",
+          borderRight: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
+          borderRadius: 0,
+          backgroundColor: theme.palette.background.main,
+          transition:
+            "width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), min-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), max-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77)",
+        }}
+      >
       {/* Logo Header */}
       <Stack
         pt={theme.spacing(6)}
@@ -968,22 +993,23 @@ const SidebarShell: FC<SidebarShellProps> = ({
         )}
       </List>
 
-      {/* Shared Footer */}
-      <SidebarFooter
-        collapsed={collapsed}
-        delayedCollapsed={delayedCollapsed}
-        hasDemoData={hasDemoData}
-        onOpenCreateDemoData={onOpenCreateDemoData}
-        onOpenDeleteDemoData={onOpenDeleteDemoData}
-        showReadyToSubscribe={showReadyToSubscribe}
-        openUserGuide={openUserGuide}
-      />
+        {/* Shared Footer */}
+        <SidebarFooter
+          collapsed={collapsed}
+          delayedCollapsed={delayedCollapsed}
+          hasDemoData={hasDemoData}
+          onOpenCreateDemoData={onOpenCreateDemoData}
+          onOpenDeleteDemoData={onOpenDeleteDemoData}
+          showReadyToSubscribe={showReadyToSubscribe}
+          openUserGuide={openUserGuide}
+        />
 
-      {/* Flying Hearts Animation */}
-      {enableFlyingHearts && showFlyingHearts && (
-        <FlyingHearts onComplete={() => setShowFlyingHearts(false)} />
-      )}
-    </Stack>
+        {/* Flying Hearts Animation */}
+        {enableFlyingHearts && showFlyingHearts && (
+          <FlyingHearts onComplete={() => setShowFlyingHearts(false)} />
+        )}
+      </Stack>
+    </Slide>
   );
 };
 

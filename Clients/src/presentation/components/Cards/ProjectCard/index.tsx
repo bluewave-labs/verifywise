@@ -160,13 +160,13 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
     // Memoize framework IDs
     const projectFrameworkId = useMemo(
       () =>
-        project.framework.find((p) => p.framework_id === 1)
+        project.framework?.find((p) => p.framework_id === 1)
           ?.project_framework_id,
       [project.framework]
     );
     const projectFrameworkId2 = useMemo(
       () =>
-        project.framework.find((p) => p.framework_id === 2)
+        project.framework?.find((p) => p.framework_id === 2)
           ?.project_framework_id,
       [project.framework]
     );

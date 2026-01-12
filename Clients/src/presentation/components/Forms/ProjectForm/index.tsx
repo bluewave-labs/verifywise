@@ -1,4 +1,5 @@
 import {
+  Alert,
   Autocomplete,
   Box,
   SelectChangeEvent,
@@ -49,6 +50,7 @@ import {
   createProject,
   updateProject,
 } from "../../../../application/repository/project.repository";
+import { getAllApprovalWorkflows } from "../../../../application/repository/approvalWorkflow.repository";
 import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
 
@@ -104,6 +106,7 @@ const ProjectForm = ({
         geography: projectToEdit.geography || 1,
         target_industry: projectToEdit.target_industry || "",
         description: projectToEdit.description || "",
+        approval_workflow_id: projectToEdit.approval_workflow_id || 0,
       };
     }
     return {
@@ -116,6 +119,14 @@ const ProjectForm = ({
   const { allFrameworks } = useFrameworks({ listOfFrameworks: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [frameworkRequired, setFrameworkRequired] = useState<boolean>(false);
+  const [approvalWorkflows, setApprovalWorkflows] = useState<Array<{ _id: number; name: string }>>([]);
+
+  // Check if the project has a pending approval request
+  // Note: We show an info banner but allow editing basic fields
+  // Other tabs (frameworks, risks, etc.) are disabled in the ProjectView component
+  const hasPendingApproval = useMemo(() => {
+    return !!(projectToEdit && (projectToEdit as any).has_pending_approval);
+  }, [projectToEdit]);
 
   // Transform member IDs to User objects when editing a project
   useEffect(() => {
@@ -142,6 +153,27 @@ const ProjectForm = ({
       }));
     }
   }, [projectToEdit, users]);
+
+  // Fetch approval workflows
+  useEffect(() => {
+    const fetchWorkflows = async () => {
+      try {
+        const response = await getAllApprovalWorkflows();
+        const workflows = response?.data || [];
+        setApprovalWorkflows(
+          workflows.map((w: any) => ({
+            _id: w.id,
+            name: w.workflow_title,
+          }))
+        );
+      } catch (error) {
+        console.error("Failed to fetch approval workflows:", error);
+        setApprovalWorkflows([]);
+      }
+    };
+
+    fetchWorkflows();
+  }, []);
 
   // Filter frameworks based on framework type
   const filteredFrameworks = useMemo(() => {
@@ -500,6 +532,15 @@ const ProjectForm = ({
           />
         </Stack>
       )}
+
+      {hasPendingApproval && (
+        <Alert severity="info" sx={{ width: "100%" }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+            This use case has a pending approval request. You can view the Overview and edit Settings, but other tabs (Frameworks/Regulations, Use case risks, Linked models, etc.) are disabled until the approval is complete.
+          </Typography>
+        </Alert>
+      )}
+
       <Stack
         className="vwproject-form-body"
         sx={{ display: "flex", flexDirection: "row", gap: 6 }}
@@ -548,6 +589,21 @@ const ProjectForm = ({
             }}
             error={errors.status}
           />
+          {values.framework_type === FrameworkTypeEnum.ProjectBased && (
+            <Select
+              id="approval-workflow-input"
+              label="Approval workflow"
+              placeholder="Select workflow"
+              value={values.approval_workflow_id || ""}
+              onChange={handleOnSelectChange("approval_workflow_id")}
+              items={approvalWorkflows}
+              sx={{
+                width: "100%",
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.approvalWorkflow}
+            />
+          )}
           {values.framework_type === FrameworkTypeEnum.ProjectBased && (
             <>
               <Select
@@ -823,7 +879,7 @@ const ProjectForm = ({
                 marginTop: "1px",
                 ...(projectToEdit && { width: "350px" }), // Fix width when editing
               }}
-              rows={4.6}
+              rows={8}
               isRequired
               error={errors.goal}
             />

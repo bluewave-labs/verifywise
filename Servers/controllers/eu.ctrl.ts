@@ -32,6 +32,7 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import logger from "../utils/logger/fileLogger";
+import { hasPendingApprovalQuery } from "../utils/approvalRequest.utils";
 
 export async function getAssessmentsByProjectId(
   req: Request,
@@ -250,6 +251,32 @@ export async function saveControls(
       delete: string;
     };
 
+    // Check for pending approval
+    if (Control.project_id) {
+      const hasPendingApproval = await hasPendingApprovalQuery(
+        Control.project_id,
+        "use_case",
+        req.tenantId!,
+        transaction
+      );
+
+      if (hasPendingApproval) {
+        await transaction.rollback();
+        await logFailure({
+          eventType: "Update",
+          description: `Cannot save controls for project with pending approval: project ID ${Control.project_id}, control ID ${controlId}`,
+          functionName: "saveControls",
+          fileName: "eu.ctrl.ts",
+          error: new Error("Project has pending approval and controls cannot be modified"),
+        });
+        return res.status(403).json(
+          STATUS_CODE[403](
+            "This use case has a pending approval request. Controls cannot be modified until the approval process is complete."
+          )
+        );
+      }
+    }
+
     // Control-level status fields are no longer managed here - they exist only at subcontrol level
     // The control record in database doesn't need to be updated - all editable fields are at subcontrol level
     // We return a simple control object for the response
@@ -407,6 +434,37 @@ export async function updateQuestionById(
       }
     > = req.body;
 
+    // Get project ID and check for pending approval
+    const projectId =
+      typeof body.project_id === "string"
+        ? parseInt(body.project_id)
+        : (body.project_id as number);
+
+    if (projectId) {
+      const hasPendingApproval = await hasPendingApprovalQuery(
+        projectId,
+        "use_case",
+        req.tenantId!,
+        transaction
+      );
+
+      if (hasPendingApproval) {
+        await transaction.rollback();
+        await logFailure({
+          eventType: "Update",
+          description: `Cannot update question for project with pending approval: project ID ${projectId}, question ID ${questionId}`,
+          functionName: "updateQuestionById",
+          fileName: "eu.ctrl.ts",
+          error: new Error("Project has pending approval and assessments cannot be modified"),
+        });
+        return res.status(403).json(
+          STATUS_CODE[403](
+            "This use case has a pending approval request. Assessments cannot be modified until the approval process is complete."
+          )
+        );
+      }
+    }
+
     // Handle file deletions
     const filesToDelete = JSON.parse(body.delete || "[]") as number[];
     for (let f of filesToDelete) {
@@ -446,10 +504,7 @@ export async function updateQuestionById(
       typeof body.user_id === "string"
         ? parseInt(body.user_id)
         : (body.user_id as number);
-    const projectId =
-      typeof body.project_id === "string"
-        ? parseInt(body.project_id)
-        : (body.project_id as number);
+    // projectId already declared above for pending approval check
 
     logger.debug(
       `👤 userId: ${userId}, projectId: ${projectId}, evidenceFiles.length: ${evidenceFiles.length}`

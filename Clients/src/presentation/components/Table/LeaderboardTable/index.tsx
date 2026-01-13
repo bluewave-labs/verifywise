@@ -9,6 +9,36 @@ import { Box, Typography, CircularProgress, SxProps, Theme, Stack, TablePaginati
 import { ChevronUp, ChevronDown, BarChart3, Crown } from "lucide-react";
 import { METRIC_CONFIG, LeaderboardEntry } from "./leaderboardConfig";
 import TablePaginationActions from "../../TablePagination";
+import { PROVIDER_ICONS } from "../../ProviderIcons";
+
+// Map provider names to icon keys
+const PROVIDER_ICON_MAP: Record<string, keyof typeof PROVIDER_ICONS> = {
+  "OpenAI": "OpenAI",
+  "Anthropic": "Anthropic",
+  "Google": "Google",
+  "Meta": "Meta",
+  "Mistral": "Mistral",
+  "Cohere": "Cohere",
+  "DeepSeek": "DeepSeek",
+  "Microsoft": "Microsoft",
+  "Nvidia": "Nvidia",
+  "NVIDIA": "Nvidia",
+  "AI21": "Ai21",
+  "Databricks": "HuggingFace", // Fallback
+  "xAI": "OpenAI", // Fallback - no xAI icon in PROVIDER_ICONS
+  "Snowflake": "Aws", // Fallback
+  "IBM": "Microsoft", // Fallback
+  "TII": "HuggingFace", // Fallback - Falcon
+  "01.AI": "HuggingFace", // Fallback
+  "Alibaba": "HuggingFace", // Fallback - Qwen
+  "Groq": "Groq",
+  "Together": "Together",
+  "Replicate": "Replicate",
+  "HuggingFace": "HuggingFace",
+  "Perplexity": "Perplexity",
+  "Fireworks": "Fireworks",
+  "Ollama": "Ollama",
+};
 
 // Re-export for convenience
 export { METRIC_CONFIG, type LeaderboardEntry } from "./leaderboardConfig";
@@ -236,20 +266,31 @@ export default function LeaderboardTable({
               <RankBadge rank={entry.rank} />
             </Cell>
 
-            {/* Model */}
+            {/* Model with Provider Icon */}
             <Cell>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  fontFamily: "'SF Mono', 'Roboto Mono', monospace", 
-                  color: "#111827",
-                  fontWeight: 500,
-                  fontSize: "13px",
-                  textAlign: "center"
-                }}
-              >
-                {entry.model}
-              </Typography>
+              <Stack direction="row" alignItems="center" gap={1} justifyContent="center">
+                {entry.provider && PROVIDER_ICON_MAP[entry.provider] && (
+                  (() => {
+                    const IconComponent = PROVIDER_ICONS[PROVIDER_ICON_MAP[entry.provider]];
+                    return IconComponent ? (
+                      <Box sx={{ width: 18, height: 18, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <IconComponent width={18} height={18} />
+                      </Box>
+                    ) : null;
+                  })()
+                )}
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontFamily: "'SF Mono', 'Roboto Mono', monospace", 
+                    color: "#111827",
+                    fontWeight: 500,
+                    fontSize: "13px",
+                  }}
+                >
+                  {entry.model}
+                </Typography>
+              </Stack>
             </Cell>
 
             {/* Score */}

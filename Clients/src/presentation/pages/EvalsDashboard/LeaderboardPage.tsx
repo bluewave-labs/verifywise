@@ -260,7 +260,7 @@ export default function LeaderboardPage() {
           color="#111827"
           sx={{ mb: 1.5 }}
         >
-          Open LLM Leaderboard
+          VerifyWise LLM Arena
         </Typography>
 
         {/* Description */}

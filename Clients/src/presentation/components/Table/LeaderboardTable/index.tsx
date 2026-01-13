@@ -209,10 +209,11 @@ export default function LeaderboardTable({
   return (
     <Box 
       sx={{ 
-        border: "1px solid #e2e8f0", 
-        borderRadius: "8px", 
+        border: "1px solid #f0f0f0", 
+        borderRadius: "12px", 
         overflow: "hidden", 
-        bgcolor: "#fff" 
+        bgcolor: "#fff",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
       }}
     >
       {/* Scrollable Table Container */}
@@ -222,8 +223,8 @@ export default function LeaderboardTable({
           sx={{
             display: "grid",
             gridTemplateColumns: gridColumns,
-            bgcolor: "#f8fafc",
-            borderBottom: "2px solid #e2e8f0",
+            bgcolor: "#fff",
+            borderBottom: "2px solid #13715B",
             minWidth: "fit-content",
           }}
         >
@@ -255,9 +256,10 @@ export default function LeaderboardTable({
             sx={{
               display: "grid",
               gridTemplateColumns: gridColumns,
-              borderBottom: idx < paginatedEntries.length - 1 ? "1px solid #f1f5f9" : "none",
+              borderBottom: idx < paginatedEntries.length - 1 ? "1px solid #f5f5f5" : "none",
               minWidth: "fit-content",
-              "&:hover": { bgcolor: "#fafbfc" },
+              bgcolor: idx % 2 === 1 ? "#fafafa" : "#fff",
+              "&:hover": { bgcolor: "#f0fdf4" },
               transition: "background 0.15s",
             }}
           >
@@ -370,11 +372,11 @@ export default function LeaderboardTable({
         sx={{ 
           px: 2, 
           py: 1.5,
-          borderTop: "1px solid #e2e8f0",
-          bgcolor: "#fafafa"
+          borderTop: "1px solid #f5f5f5",
+          bgcolor: "#fff"
         }}
       >
-        <Typography variant="body2" sx={{ fontSize: 12, color: "#6b7280" }}>
+        <Typography variant="body2" sx={{ fontSize: 12, color: "#a8a29e" }}>
           Showing {page * rowsPerPage + 1} - {Math.min((page + 1) * rowsPerPage, sortedEntries.length)} of {sortedEntries.length} models
         </Typography>
         <Stack direction="row" alignItems="center" gap={2}>
@@ -392,7 +394,7 @@ export default function LeaderboardTable({
               "& .MuiTablePagination-toolbar": { minHeight: 36, p: 0 },
               "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
                 fontSize: 12,
-                color: "#6b7280",
+                color: "#a8a29e",
               },
             }}
           />
@@ -419,34 +421,33 @@ function HeaderCell({ children, onClick, active, direction }: HeaderCellProps) {
       onClick={onClick}
       sx={{
         px: 2,
-        py: 2,
+        py: 1.75,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         gap: 0.5,
-        borderRight: "1px solid #e2e8f0",
         cursor: onClick ? "pointer" : "default",
         userSelect: "none",
         whiteSpace: "nowrap",
-        minHeight: 48,
-        "&:last-child": { borderRight: "none" },
-        "&:hover": onClick ? { bgcolor: "#f1f5f9" } : {},
+        minHeight: 44,
+        "&:hover": onClick ? { bgcolor: "#ecfdf5" } : {},
+        transition: "background 0.15s",
       }}
     >
       <Typography
         variant="caption"
         sx={{
           fontWeight: 600,
-          color: active ? "#1f2937" : "#64748b",
-          fontSize: 12,
+          color: active ? "#13715B" : "#78716c",
+          fontSize: 11,
           textTransform: "uppercase",
-          letterSpacing: 0.5,
+          letterSpacing: 0.8,
           lineHeight: 1.2,
         }}
       >
         {children}
       </Typography>
-      {active && (direction === "desc" ? <ChevronDown size={14} /> : <ChevronUp size={14} />)}
+      {active && (direction === "desc" ? <ChevronDown size={14} color="#13715B" /> : <ChevronUp size={14} color="#13715B" />)}
     </Box>
   );
 }
@@ -461,13 +462,11 @@ function Cell({ children, sx = {} }: CellProps) {
     <Box
       sx={{
         px: 1.5,
-        py: 1.5,
+        py: 1.25,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        borderRight: "1px solid #f1f5f9",
-        minHeight: 48,
-        "&:last-child": { borderRight: "none" },
+        minHeight: 44,
         ...(sx as object),
       }}
     >
@@ -484,13 +483,13 @@ function RankBadge({ rank }: RankBadgeProps) {
   const getBadgeStyle = () => {
     switch (rank) {
       case 1:
-        return { bgcolor: "#fef3c7", color: "#b45309" };
+        return { bgcolor: "#fef3c7", color: "#b45309", border: "1px solid #fcd34d" }; // Gold
       case 2:
-        return { bgcolor: "#e5e7eb", color: "#374151" };
+        return { bgcolor: "#f5f5f4", color: "#57534e", border: "1px solid #d6d3d1" }; // Silver (warm)
       case 3:
-        return { bgcolor: "#fed7aa", color: "#c2410c" };
+        return { bgcolor: "#ffedd5", color: "#c2410c", border: "1px solid #fed7aa" }; // Bronze
       default:
-        return { bgcolor: "transparent", color: "#6b7280" };
+        return { bgcolor: "transparent", color: "#a8a29e", border: "none" };
     }
   };
 

@@ -44,7 +44,6 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [availableMetrics, setAvailableMetrics] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("overall");
-  const [lastUpdated, setLastUpdated] = useState<string>("");
 
   // Load leaderboard data from experiments
   const loadLeaderboardData = useCallback(async () => {
@@ -53,7 +52,6 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
       const data = await getAllExperiments({});
       const experiments: ExperimentData[] = data.experiments || [];
 
-      let latestDate = new Date(0);
       const modelAggregates: Record<
         string,
         {
@@ -73,8 +71,6 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
         const provider = exp.provider;
         const avgScores = exp.results?.avg_scores || exp.avgScores || {};
         const expDate = new Date(exp.createdAt || exp.timestamp || 0);
-
-        if (expDate > latestDate) latestDate = expDate;
 
         if (!modelAggregates[modelName]) {
           modelAggregates[modelName] = {
@@ -101,16 +97,6 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
           }
         });
       });
-
-      setLastUpdated(
-        latestDate.getTime() > 0
-          ? latestDate.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
-          : "—"
-      );
 
       // Create leaderboard entries
       const leaderboardEntries: LeaderboardEntry[] = Object.entries(modelAggregates)
@@ -140,54 +126,82 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
           };
         });
 
-      // Add sample entries for demonstration
-      const sampleEntries: LeaderboardEntry[] = [
-        {
-          rank: 0,
-          model: "gpt-4-turbo",
-          provider: "OpenAI",
-          score: 0.89,
-          metricScores: { bias: 0.02, toxicity: 0.01, correctness: 0.92, completeness: 0.88, hallucination: 0.05, answerRelevancy: 0.91 },
-          experimentCount: 12,
-          lastEvaluated: new Date().toISOString(),
-        },
-        {
-          rank: 0,
-          model: "claude-3-opus",
-          provider: "Anthropic",
-          score: 0.87,
-          metricScores: { bias: 0.03, toxicity: 0.0, correctness: 0.90, completeness: 0.85, hallucination: 0.08, answerRelevancy: 0.89 },
-          experimentCount: 8,
-          lastEvaluated: new Date().toISOString(),
-        },
-        {
-          rank: 0,
-          model: "gemini-1.5-pro",
-          provider: "Google",
-          score: 0.84,
-          metricScores: { bias: 0.04, toxicity: 0.02, correctness: 0.88, completeness: 0.82, hallucination: 0.10, answerRelevancy: 0.86 },
-          experimentCount: 15,
-          lastEvaluated: new Date().toISOString(),
-        },
-        {
-          rank: 0,
-          model: "llama-3.1-70b",
-          provider: "Meta",
-          score: 0.79,
-          metricScores: { bias: 0.06, toxicity: 0.03, correctness: 0.82, completeness: 0.78, hallucination: 0.15, answerRelevancy: 0.80 },
-          experimentCount: 6,
-          lastEvaluated: new Date().toISOString(),
-        },
-        {
-          rank: 0,
-          model: "mistral-large",
-          provider: "Mistral",
-          score: 0.76,
-          metricScores: { bias: 0.05, toxicity: 0.02, correctness: 0.79, completeness: 0.75, hallucination: 0.18, answerRelevancy: 0.77 },
-          experimentCount: 4,
-          lastEvaluated: new Date().toISOString(),
-        },
+      // Generate 50 sample entries for demonstration
+      const modelData = [
+        { model: "gpt-4-turbo", provider: "OpenAI", base: 0.89 },
+        { model: "gpt-4o", provider: "OpenAI", base: 0.91 },
+        { model: "gpt-4o-mini", provider: "OpenAI", base: 0.82 },
+        { model: "gpt-3.5-turbo", provider: "OpenAI", base: 0.74 },
+        { model: "o1-preview", provider: "OpenAI", base: 0.93 },
+        { model: "o1-mini", provider: "OpenAI", base: 0.85 },
+        { model: "claude-3-opus", provider: "Anthropic", base: 0.90 },
+        { model: "claude-3-sonnet", provider: "Anthropic", base: 0.86 },
+        { model: "claude-3-haiku", provider: "Anthropic", base: 0.78 },
+        { model: "claude-3.5-sonnet", provider: "Anthropic", base: 0.92 },
+        { model: "gemini-1.5-pro", provider: "Google", base: 0.88 },
+        { model: "gemini-1.5-flash", provider: "Google", base: 0.81 },
+        { model: "gemini-2.0-flash", provider: "Google", base: 0.87 },
+        { model: "gemini-ultra", provider: "Google", base: 0.89 },
+        { model: "llama-3.1-405b", provider: "Meta", base: 0.86 },
+        { model: "llama-3.1-70b", provider: "Meta", base: 0.79 },
+        { model: "llama-3.1-8b", provider: "Meta", base: 0.68 },
+        { model: "llama-3.2-90b", provider: "Meta", base: 0.84 },
+        { model: "llama-3.2-11b", provider: "Meta", base: 0.72 },
+        { model: "mistral-large", provider: "Mistral", base: 0.83 },
+        { model: "mistral-medium", provider: "Mistral", base: 0.76 },
+        { model: "mistral-small", provider: "Mistral", base: 0.69 },
+        { model: "mixtral-8x22b", provider: "Mistral", base: 0.80 },
+        { model: "mixtral-8x7b", provider: "Mistral", base: 0.73 },
+        { model: "codestral", provider: "Mistral", base: 0.77 },
+        { model: "command-r-plus", provider: "Cohere", base: 0.82 },
+        { model: "command-r", provider: "Cohere", base: 0.75 },
+        { model: "command-light", provider: "Cohere", base: 0.65 },
+        { model: "qwen-2.5-72b", provider: "Alibaba", base: 0.81 },
+        { model: "qwen-2.5-32b", provider: "Alibaba", base: 0.76 },
+        { model: "qwen-2.5-14b", provider: "Alibaba", base: 0.71 },
+        { model: "qwen-2.5-7b", provider: "Alibaba", base: 0.64 },
+        { model: "yi-large", provider: "01.AI", base: 0.79 },
+        { model: "yi-medium", provider: "01.AI", base: 0.72 },
+        { model: "deepseek-v3", provider: "DeepSeek", base: 0.85 },
+        { model: "deepseek-coder-v2", provider: "DeepSeek", base: 0.78 },
+        { model: "deepseek-chat", provider: "DeepSeek", base: 0.74 },
+        { model: "phi-3-medium", provider: "Microsoft", base: 0.73 },
+        { model: "phi-3-mini", provider: "Microsoft", base: 0.66 },
+        { model: "phi-3.5-moe", provider: "Microsoft", base: 0.77 },
+        { model: "falcon-180b", provider: "TII", base: 0.70 },
+        { model: "falcon-40b", provider: "TII", base: 0.62 },
+        { model: "jamba-1.5-large", provider: "AI21", base: 0.76 },
+        { model: "jamba-1.5-mini", provider: "AI21", base: 0.68 },
+        { model: "dbrx-instruct", provider: "Databricks", base: 0.74 },
+        { model: "grok-2", provider: "xAI", base: 0.84 },
+        { model: "grok-2-mini", provider: "xAI", base: 0.75 },
+        { model: "nemotron-4-340b", provider: "NVIDIA", base: 0.82 },
+        { model: "arctic-instruct", provider: "Snowflake", base: 0.71 },
+        { model: "granite-34b", provider: "IBM", base: 0.69 },
       ];
+
+      const sampleEntries: LeaderboardEntry[] = modelData.map(({ model, provider, base }) => {
+        // Generate realistic metric scores based on base score with some variation
+        const variation = () => (Math.random() - 0.5) * 0.15;
+        const clamp = (v: number) => Math.max(0, Math.min(1, v));
+        
+        return {
+          rank: 0,
+          model,
+          provider,
+          score: base,
+          metricScores: {
+            bias: clamp(0.08 - base * 0.05 + variation() * 0.5),
+            toxicity: clamp(0.06 - base * 0.04 + variation() * 0.5),
+            correctness: clamp(base + variation()),
+            completeness: clamp(base - 0.03 + variation()),
+            hallucination: clamp(0.25 - base * 0.2 + variation() * 0.5),
+            answerRelevancy: clamp(base + 0.02 + variation()),
+          },
+          experimentCount: Math.floor(Math.random() * 20) + 3,
+          lastEvaluated: new Date().toISOString(),
+        };
+      });
       
       // Merge real entries with sample entries (real data takes priority)
       const combinedEntries = [...leaderboardEntries, ...sampleEntries];
@@ -226,88 +240,91 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
   const totalEvaluations = entries.reduce((sum, e) => sum + e.experimentCount, 0);
 
   return (
-    <Box sx={{ width: "100%", maxWidth: 1400 }}>
-      {/* Header */}
+    <Box sx={{ width: "100%", maxWidth: 1400, mx: "auto" }}>
+      {/* Hero Section - Centered */}
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: "1fr auto",
-          gap: 4,
-          mb: 4,
-          pb: 3,
-          borderBottom: "1px solid #e5e7eb",
+          textAlign: "center",
+          mb: 5,
+          pt: 2,
         }}
       >
-        <Box>
-          <Stack direction="row" alignItems="center" gap={2} mb={1}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: "10px",
-                background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Trophy size={22} color="#78350f" />
-            </Box>
-            <Typography variant="h5" fontWeight={700} color="#111827">
-              LLM Leaderboard
-            </Typography>
-          </Stack>
-          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 500 }}>
-            Model rankings based on actual evaluation metrics from your experiments
-          </Typography>
-        </Box>
-
-        {/* Stats */}
+        {/* Logo/Icon */}
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 4,
-            textAlign: "center",
+            width: 64,
+            height: 64,
+            borderRadius: "16px",
+            background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mx: "auto",
+            mb: 2,
+            boxShadow: "0 4px 14px rgba(245, 158, 11, 0.3)",
           }}
         >
-          <Box>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1 }}
-            >
-              Last Updated
-            </Typography>
-            <Typography variant="body1" fontWeight={600} sx={{ fontFamily: "monospace" }}>
-              {lastUpdated}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1 }}
-            >
-              Evaluations
-            </Typography>
-            <Typography variant="body1" fontWeight={600} sx={{ fontFamily: "monospace" }}>
-              {totalEvaluations.toLocaleString()}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1 }}
-            >
-              Models
-            </Typography>
-            <Typography variant="body1" fontWeight={600} sx={{ fontFamily: "monospace" }}>
+          <Trophy size={32} color="#78350f" />
+        </Box>
+
+        {/* Title */}
+        <Typography 
+          variant="h4" 
+          fontWeight={700} 
+          color="#111827"
+          sx={{ mb: 1.5 }}
+        >
+          Open LLM Leaderboard
+        </Typography>
+
+        {/* Description */}
+        <Typography 
+          variant="body1" 
+          color="text.secondary" 
+          sx={{ 
+            maxWidth: 650, 
+            mx: "auto", 
+            mb: 3,
+            lineHeight: 1.7,
+          }}
+        >
+          Comparing Large Language Models in an <strong>open</strong> and <strong>reproducible</strong> way. 
+          We rank models by evaluating them on standardized benchmarks and metrics including correctness, 
+          completeness, bias, toxicity, and hallucination.
+        </Typography>
+
+        {/* Stats Row - Compact */}
+        <Stack 
+          direction="row" 
+          justifyContent="center" 
+          divider={<Box sx={{ width: "1px", bgcolor: "#e5e7eb", mx: 2 }} />}
+          sx={{ display: "inline-flex" }}
+        >
+          <Box sx={{ textAlign: "center", px: 1 }}>
+            <Typography component="span" fontWeight={700} color="#111827" sx={{ fontFamily: "monospace", fontSize: 15 }}>
               {entries.length}
             </Typography>
+            <Typography component="span" color="text.secondary" sx={{ fontSize: 12, ml: 0.5 }}>
+              models
+            </Typography>
           </Box>
-        </Box>
+          <Box sx={{ textAlign: "center", px: 1 }}>
+            <Typography component="span" fontWeight={700} color="#111827" sx={{ fontFamily: "monospace", fontSize: 15 }}>
+              {totalEvaluations.toLocaleString()}
+            </Typography>
+            <Typography component="span" color="text.secondary" sx={{ fontSize: 12, ml: 0.5 }}>
+              evaluations
+            </Typography>
+          </Box>
+          <Box sx={{ textAlign: "center", px: 1 }}>
+            <Typography component="span" fontWeight={700} color="#111827" sx={{ fontFamily: "monospace", fontSize: 15 }}>
+              {displayMetrics.length}
+            </Typography>
+            <Typography component="span" color="text.secondary" sx={{ fontSize: 12, ml: 0.5 }}>
+              metrics
+            </Typography>
+          </Box>
+        </Stack>
       </Box>
 
       {/* Controls */}

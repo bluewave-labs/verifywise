@@ -50,6 +50,7 @@ import {
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { generateUserTokens } from "../utils/auth.utils";
+import { getTenantHash } from "../tools/getTenantHash";
 
 /**
  * Retrieves all organizations from the system
@@ -350,8 +351,8 @@ export async function createOrganization(
       await logEvent(
         "Create",
         `Organization created: ${createdOrganization.name}`,
-        req.userId!,
-        req.tenantId!
+        user.id!,
+        getTenantHash(organization_id)
       );
       return res.status(201).json(
         STATUS_CODE[201]({

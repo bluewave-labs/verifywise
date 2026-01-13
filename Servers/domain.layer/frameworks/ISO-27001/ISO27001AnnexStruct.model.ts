@@ -57,12 +57,15 @@ export class ISO27001AnnexStructModel
    * Convert annex category model to JSON representation
    */
   toJSON(): any {
+    const dataValues = this.dataValues as any;
     return {
       id: this.id,
       arrangement: this.arrangement,
       title: this.title,
       order_no: this.order_no,
       framework_id: this.framework_id,
+      // Include dynamically added properties from queries
+      subClauses: dataValues?.subClauses,
     };
   }
 

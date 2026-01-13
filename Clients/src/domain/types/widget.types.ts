@@ -65,6 +65,8 @@ export interface SelectCorProps {
     name: string;
     email?: string;
     surname?: string;
+    icon?: React.ReactNode;
+    color?: string;
   }[];
   isRequired?: boolean;
   error?: string;
@@ -136,6 +138,28 @@ export interface IInputProps {
 
 export interface IHeaderProps {
   onHelperClick?: () => void;
+}
+
+export interface CustomSelectOptionWithIcon {
+  value: string;
+  label: string;
+  icon?: React.ReactNode;
+  color?: string;
+}
+
+export interface CustomSelectProps {
+  /** Current selected value */
+  currentValue: string;
+  /** Value change handler - should return boolean for success/failure */
+  onValueChange: (newValue: string) => Promise<boolean>;
+  /** Array of available options */
+  options: Array<string | CustomSelectOptionWithIcon>;
+  /** Whether the select is disabled */
+  disabled?: boolean;
+  /** Size of the select component */
+  size?: "small" | "medium";
+  /** Additional styling */
+  sx?: object;
 }
 
 // Note: React-dependent interfaces (IconButtonProps, CheckboxCoreProps, FieldCoreProps,

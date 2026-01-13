@@ -16,6 +16,7 @@
  * @returns {JSX.Element} The rendered select component.
  */
 
+import React, { cloneElement } from "react";
 import {
   MenuItem,
   Select as MuiSelect,
@@ -83,18 +84,21 @@ const Select: React.FC<SelectProps> = ({
     }
 
     return (
-      <span
-        style={{
-          display: "block",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          minWidth: 0,
-          maxWidth: "100%",
-        }}
-      >
-        {displayText}
-      </span>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+        {selectedItem?.icon && (selectedItem.color ? cloneElement(selectedItem.icon as React.ReactElement, {color: selectedItem.color}) : selectedItem.icon)}
+        <span
+          style={{
+            display: "block",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            minWidth: 0,
+            maxWidth: "100%",
+          }}
+        >
+          {displayText}
+        </span>
+      </Stack>
     );
   };
 
@@ -198,6 +202,8 @@ const Select: React.FC<SelectProps> = ({
             name: string;
             email?: string;
             surname?: string;
+            icon?: React.ReactNode;
+            color?: string;
           }) => (
             <MenuItem
               value={getOptionValue ? getOptionValue(item) : item._id}
@@ -209,7 +215,10 @@ const Select: React.FC<SelectProps> = ({
                 flexDirection: "row",
               }}
             >
-              {`${item.name} ${item.surname ? item.surname : ""}`}
+              <Stack direction="row" alignItems="center" spacing={1}>
+                {item.icon && (item.color ? cloneElement(item.icon as React.ReactElement, {color: item.color}) : item.icon)}
+                <span>{`${item.name} ${item.surname ? item.surname : ""}`}</span>
+              </Stack>
               {item.email && (
                 <span style={{ fontSize: 11, color: "#9d9d9d" }}>
                   {item.email}

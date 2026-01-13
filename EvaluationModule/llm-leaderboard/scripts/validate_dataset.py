@@ -210,6 +210,12 @@ def main() -> int:
         default=3,
         help="POC expects 3 candidates per scenario (good/risky/bad).",
     )
+    parser.add_argument(
+    "--skip-candidates",
+    action="store_true",
+    help="Skip candidates.jsonl checks (useful before Task 1.4 generates candidates).",
+    )
+    
     args = parser.parse_args()
 
     dataset_dir = Path(args.dataset_dir)
@@ -222,11 +228,15 @@ def main() -> int:
     manifest_path = dataset_dir / "manifest.json"
     schema_dir = dataset_dir / "schema"
 
-    required_paths = [scenarios_path, candidates_path, manifest_path, schema_dir]
+    required_paths = [scenarios_path, manifest_path, schema_dir]
+    if not args.skip_candidates:
+        required_paths.append(candidates_path)
+
     for p in required_paths:
         if not p.exists():
             print(f"ERROR: missing required path: {p}", file=sys.stderr)
             return 2
+
 
     # Load schemas
     scenario_schema = load_schema(schema_dir / "scenario.schema.json")
@@ -238,20 +248,24 @@ def main() -> int:
     # 1) Schema validation
     schema_errors: List[ValidationErrorItem] = []
     schema_errors.extend(validate_jsonl_against_schema(jsonl_path=scenarios_path, validator=scenario_schema))
-    schema_errors.extend(validate_jsonl_against_schema(jsonl_path=candidates_path, validator=candidate_schema))
+
+    if not args.skip_candidates:
+        schema_errors.extend(validate_jsonl_against_schema(jsonl_path=candidates_path, validator=candidate_schema))
+
     schema_errors.extend(validate_json_against_schema(json_path=manifest_path, validator=manifest_schema))
 
     for e in schema_errors:
         errors.append(f"{e.file}:{e.line}: {e.message}")
 
     # 2) Cross-file integrity checks
-    errors.extend(
-        cross_file_checks(
-            scenarios_path=scenarios_path,
-            candidates_path=candidates_path,
-            expected_candidates_per_scenario=args.expected_candidates_per_scenario,
+    if not args.skip_candidates:
+        errors.extend(
+            cross_file_checks(
+                scenarios_path=scenarios_path,
+                candidates_path=candidates_path,
+                expected_candidates_per_scenario=args.expected_candidates_per_scenario,
+            )
         )
-    )
 
     # 3) Checksum verification (optional but recommended)
     manifest = read_json(manifest_path)

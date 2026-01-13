@@ -48,6 +48,8 @@ export const getLLMKeys = async (req: Request, res: Response) => {
     await logEvent(
       "Error",
       `Unexpected error fetching LLM Keys: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getLLMKeys:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -75,6 +77,8 @@ export const getLLMKey = async (req: Request, res: Response) => {
     await logEvent(
       "Error",
       `Unexpected error fetching LLM Key: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getLLMKey:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -144,6 +148,8 @@ export const createLLMKey = async (req: Request, res: Response) => {
       await logEvent(
         "Error",
         `Validation error during LLM Key creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -157,6 +163,8 @@ export const createLLMKey = async (req: Request, res: Response) => {
       await logEvent(
         "Error",
         `Duplicate API key value during LLM Key creation`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](`This API key is already configured. Please use a different API key or edit the existing entry.`));
     }
@@ -164,6 +172,8 @@ export const createLLMKey = async (req: Request, res: Response) => {
     await logEvent(
       "Error",
       `Unexpected error during LLM Key creation: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createLLMKey:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -247,6 +257,8 @@ export const updateLLMKey = async (req: Request, res: Response) => {
       await logEvent(
         "Error",
         `Validation error during LLM Key update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -260,6 +272,8 @@ export const updateLLMKey = async (req: Request, res: Response) => {
       await logEvent(
         "Error",
         `Duplicate API key value during LLM Key update`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](`This API key is already configured. Please use a different API key.`));
     }
@@ -267,6 +281,8 @@ export const updateLLMKey = async (req: Request, res: Response) => {
     await logEvent(
       "Error",
       `Unexpected error during LLM Key update: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateLLMKey:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -293,7 +309,7 @@ export const deleteLLMKey = async (req: Request, res: Response) => {
         functionName,
         fileName,
       );
-      await logEvent("Error", `LLM Key not found for deletion: ${id}`);
+      await logEvent("Error", `LLM Key not found for deletion: ${id}`, req.userId!, req.tenantId!);
       return res
         .status(404)
         .json(STATUS_CODE[404]({ message: "LLM Key not found" }));
@@ -313,6 +329,8 @@ export const deleteLLMKey = async (req: Request, res: Response) => {
     await logEvent(
       "Error",
       `Unexpected error during LLM Key deletion: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteLLMKey:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

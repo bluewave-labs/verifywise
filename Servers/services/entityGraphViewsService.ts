@@ -68,6 +68,8 @@ export class EntityGraphViewsService {
       description: "Starting EntityGraphViewsService.createView",
       functionName: "createView",
       fileName: "entityGraphViewsService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -135,6 +137,8 @@ export class EntityGraphViewsService {
         description: `View "${name}" created`,
         functionName: "createView",
         fileName: "entityGraphViewsService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return savedView;
@@ -145,6 +149,8 @@ export class EntityGraphViewsService {
         functionName: "createView",
         fileName: "entityGraphViewsService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -169,6 +175,8 @@ export class EntityGraphViewsService {
       description: "Starting EntityGraphViewsService.getViews",
       functionName: "getViews",
       fileName: "entityGraphViewsService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -182,6 +190,8 @@ export class EntityGraphViewsService {
         description: `Retrieved ${views.length} views for user ${userId}`,
         functionName: "getViews",
         fileName: "entityGraphViewsService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return views;
@@ -192,6 +202,8 @@ export class EntityGraphViewsService {
         functionName: "getViews",
         fileName: "entityGraphViewsService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -253,6 +265,8 @@ export class EntityGraphViewsService {
       description: `Starting EntityGraphViewsService.updateView for ID ${viewId}`,
       functionName: "updateView",
       fileName: "entityGraphViewsService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -320,6 +334,8 @@ export class EntityGraphViewsService {
         description: `View ${viewId} updated`,
         functionName: "updateView",
         fileName: "entityGraphViewsService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return updatedView;
@@ -330,6 +346,8 @@ export class EntityGraphViewsService {
         functionName: "updateView",
         fileName: "entityGraphViewsService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -355,6 +373,8 @@ export class EntityGraphViewsService {
       description: `Starting EntityGraphViewsService.deleteView for ID ${viewId}`,
       functionName: "deleteView",
       fileName: "entityGraphViewsService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -389,6 +409,8 @@ export class EntityGraphViewsService {
         description: `View ${viewId} deleted`,
         functionName: "deleteView",
         fileName: "entityGraphViewsService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return true;
@@ -399,6 +421,8 @@ export class EntityGraphViewsService {
         functionName: "deleteView",
         fileName: "entityGraphViewsService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }

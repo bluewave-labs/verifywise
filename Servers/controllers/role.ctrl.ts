@@ -72,6 +72,8 @@ export async function getAllRoles(_req: Request, res: Response): Promise<any> {
     description: "starting getAllRoles",
     functionName: "getAllRoles",
     fileName: "role.ctrl.ts",
+    userId: _req.userId!,
+    tenantId: _req.tenantId!,
   });
 
   try {
@@ -82,6 +84,8 @@ export async function getAllRoles(_req: Request, res: Response): Promise<any> {
       description: "Retrieved all roles",
       functionName: "getAllRoles",
       fileName: "role.ctrl.ts",
+      userId: _req.userId!,
+      tenantId: _req.tenantId!,
     });
 
     if (roles) {
@@ -96,6 +100,8 @@ export async function getAllRoles(_req: Request, res: Response): Promise<any> {
       functionName: "getAllRoles",
       fileName: "role.ctrl.ts",
       error: error as Error,
+      userId: _req.userId!,
+      tenantId: _req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -133,6 +139,8 @@ export async function getRoleById(req: Request, res: Response): Promise<any> {
     description: `starting getRoleById for ID ${roleId}`,
     functionName: "getRoleById",
     fileName: "role.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -143,6 +151,8 @@ export async function getRoleById(req: Request, res: Response): Promise<any> {
       description: `Retrieved role ID ${roleId}`,
       functionName: "getRoleById",
       fileName: "role.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (role) {
@@ -157,6 +167,8 @@ export async function getRoleById(req: Request, res: Response): Promise<any> {
       functionName: "getRoleById",
       fileName: "role.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -209,6 +221,8 @@ export async function createRole(req: Request, res: Response): Promise<any> {
     description: "starting createRole",
     functionName: "createRole",
     fileName: "role.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -228,6 +242,8 @@ export async function createRole(req: Request, res: Response): Promise<any> {
         description: "Created new role",
         functionName: "createRole",
         fileName: "role.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(201).json(STATUS_CODE[201](createdRole));
@@ -239,6 +255,8 @@ export async function createRole(req: Request, res: Response): Promise<any> {
       functionName: "createRole",
       fileName: "role.ctrl.ts",
       error: new Error("Role creation returned null"),
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(503).json(STATUS_CODE[503]({}));
@@ -251,6 +269,8 @@ export async function createRole(req: Request, res: Response): Promise<any> {
       functionName: "createRole",
       fileName: "role.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof ValidationException) {
@@ -310,6 +330,8 @@ export async function updateRoleById(
     description: `starting updateRoleById for ID ${roleId}`,
     functionName: "updateRoleById",
     fileName: "role.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -325,6 +347,8 @@ export async function updateRoleById(
         description: `Updated role ID ${roleId}`,
         functionName: "updateRoleById",
         fileName: "role.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(202).json(STATUS_CODE[202](role));
@@ -335,6 +359,8 @@ export async function updateRoleById(
       description: `Role not found for update: ID ${roleId}`,
       functionName: "updateRoleById",
       fileName: "role.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -347,6 +373,8 @@ export async function updateRoleById(
       functionName: "updateRoleById",
       fileName: "role.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -399,6 +427,8 @@ export async function deleteRoleById(
     description: `starting deleteRoleById for ID ${roleId}`,
     functionName: "deleteRoleById",
     fileName: "role.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -412,6 +442,8 @@ export async function deleteRoleById(
         description: `Deleted role ID ${roleId}`,
         functionName: "deleteRoleById",
         fileName: "role.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(202).json(STATUS_CODE[202](deletedRole));
@@ -422,6 +454,8 @@ export async function deleteRoleById(
       description: `Role not found for deletion: ID ${roleId}`,
       functionName: "deleteRoleById",
       fileName: "role.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -434,6 +468,8 @@ export async function deleteRoleById(
       functionName: "deleteRoleById",
       fileName: "role.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

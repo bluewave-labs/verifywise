@@ -11,7 +11,6 @@ import { setAuthToken } from "../../../../application/redux/auth/authSlice";
 import { setExpiration } from "../../../../application/redux/auth/authSlice";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
-import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
 import { loginUser } from "../../../../application/repository/user.repository";
 
 // Animated loading component specifically for login
@@ -116,7 +115,6 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
-  const { isMultiTenant } = useIsMultiTenant();
 
   const loginText = isDemoApp
     ? "Click on Sign in button directly to continue"
@@ -347,7 +345,6 @@ const Login: React.FC = () => {
             >
               Sign in
             </Button>
-            {isMultiTenant && (
               <Stack
                 sx={{
                   display: "flex",
@@ -375,7 +372,6 @@ const Login: React.FC = () => {
                   Register here
                 </Typography>
               </Stack>
-            )}
           </Stack>
         </Stack>
       </form>

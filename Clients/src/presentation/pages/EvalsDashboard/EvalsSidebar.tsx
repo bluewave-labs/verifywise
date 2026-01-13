@@ -6,6 +6,7 @@ import {
   Settings,
   KeyRound,
   Swords,
+  Trophy,
 } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
@@ -103,6 +104,13 @@ export default function EvalsSidebar({
       icon: <Swords size={16} strokeWidth={1.5} />,
       count: arenaCount,
       disabled: false, // Always enabled - org-scoped
+    },
+    {
+      id: "leaderboard",
+      label: "Leaderboard",
+      value: "leaderboard",
+      icon: <Trophy size={16} strokeWidth={1.5} />,
+      disabled: false, // Always enabled - aggregates all experiments
     },
     {
       id: "configuration",

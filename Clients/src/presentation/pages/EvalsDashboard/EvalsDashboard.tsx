@@ -61,6 +61,7 @@ import { ProjectDatasets } from "./ProjectDatasets";
 import ProjectScorers from "./ProjectScorers";
 import ExperimentDetailContent from "./ExperimentDetailContent";
 import ArenaPage from "./ArenaPage";
+import LeaderboardPage from "./LeaderboardPage";
 import type { DeepEvalProject } from "./types";
 
 // Track if Evals dashboard has been loaded before (persists across module switches)
@@ -1617,6 +1618,10 @@ export default function EvalsDashboard() {
 
               {tab === "arena" && (
                 <ArenaPage orgId={orgId} />
+              )}
+
+              {tab === "leaderboard" && (
+                <LeaderboardPage orgId={orgId} />
               )}
 
               {tab === "configuration" && (

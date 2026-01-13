@@ -356,7 +356,8 @@ export async function createRisk(
     );
     await logEvent(
       "Error",
-      `Unexpected error during project risk creation: ${(error as Error).message}`,
+      `Unexpected error during project risk creation: ${(error as Error).message
+      }`,
       req.userId!,
       req.tenantId!
     );
@@ -498,7 +499,8 @@ export async function updateRiskById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during update for project risk ID ${projectRiskId}: ${(error as Error).message}`,
+      `Unexpected error during update for project risk ID ${projectRiskId}: ${(error as Error).message
+      }`,
       req.userId!,
       req.tenantId!
     );
@@ -574,7 +576,8 @@ export async function deleteRiskById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during delete for project risk ID ${projectRiskId}: ${(error as Error).message}`,
+      `Unexpected error during delete for project risk ID ${projectRiskId}: ${(error as Error).message
+      }`,
       req.userId!,
       req.tenantId!
     );

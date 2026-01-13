@@ -199,13 +199,13 @@ export class NotesService {
     attachedToId: string,
     organizationId: number,
     tenantId: string,
-    userId: number | undefined = undefined,
+    userId: number
   ): Promise<NotesModel[]> {
     logProcessing({
       description: "Starting NotesService.getNotes",
       functionName: "getNotes",
       fileName: "notesService.ts",
-      userId: userId!,
+      userId: userId,
       tenantId: tenantId,
     });
 
@@ -245,7 +245,7 @@ export class NotesService {
         description: `Retrieved ${notes.length} notes for ${attachedTo}:${attachedToId}`,
         functionName: "getNotes",
         fileName: "notesService.ts",
-        userId: userId!,
+        userId: userId,
         tenantId: tenantId,
       });
 
@@ -257,7 +257,7 @@ export class NotesService {
         functionName: "getNotes",
         fileName: "notesService.ts",
         error: error as Error,
-        userId: userId!,
+        userId: userId,
         tenantId: tenantId,
       });
       throw error;
@@ -427,10 +427,10 @@ export class NotesService {
           functionName: "deleteNote",
           fileName: "notesService.ts",
           error: new Error(
-            `Note with ID ${noteId} not found in tenant ${tenantId}`
+            `Note with ID ${noteId} not found in tenant ${tenantId}`,
           ),
           userId: userId,
-          tenantId: tenantId,
+          tenantId: tenantId
         });
         throw new Error(`Note with ID ${noteId} not found`);
       }

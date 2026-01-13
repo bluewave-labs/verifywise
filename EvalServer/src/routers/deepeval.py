@@ -95,7 +95,7 @@ async def get_evaluation_status(eval_id: str, request: Request):
     """
     return await get_deepeval_evaluation_status_controller(
         eval_id,
-        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        request.state.tenant
     )
 
 
@@ -128,7 +128,7 @@ async def get_evaluation_results(eval_id: str, request: Request):
     """
     return await get_deepeval_evaluation_results_controller(
         eval_id,
-        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        request.state.tenant
     )
 
 
@@ -153,7 +153,7 @@ async def get_all_evaluations(request: Request):
     }
     """
     return await get_all_deepeval_evaluations_controller(
-        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        request.state.tenant
     )
 
 
@@ -170,7 +170,7 @@ async def delete_evaluation(eval_id: str, request: Request):
     """
     return await delete_deepeval_evaluation_controller(
         eval_id,
-        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        request.state.tenant
     )
 
 
@@ -269,7 +269,7 @@ async def list_uploaded_datasets(request: Request):
     List uploaded JSON datasets for the current tenant from EvaluationModule/data/uploads/{tenant}.
     """
     try:
-        tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        tenant = request.state.tenant
         uploads_dir = Path(__file__).parents[2] / "EvaluationModule" / "data" / "uploads" / tenant
         uploads = []
         if uploads_dir.is_dir():
@@ -291,7 +291,7 @@ async def list_user_datasets(request: Request, org_id: str | None = None):
     List user-uploaded datasets from DB for the current tenant.
     Optionally filter by org_id.
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     return await list_user_datasets_controller(tenant=tenant, org_id=org_id)
 
 @router.delete("/datasets/user")
@@ -300,7 +300,7 @@ async def delete_user_datasets(request: Request):
     Delete user-uploaded datasets from DB and filesystem for the current tenant.
     Expects JSON body with {"paths": ["path1", "path2", ...]}
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     body = await request.json()
     paths = body.get("paths", [])
     return await delete_user_datasets_controller(tenant=tenant, paths=paths)
@@ -313,7 +313,7 @@ async def list_scorers_endpoint(request: Request, org_id: str | None = None):
     """
     List scorer definitions for the current tenant (optionally for a single project).
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     return await list_deepeval_scorers_controller(tenant=tenant, org_id=org_id)
 
 
@@ -322,7 +322,7 @@ async def create_scorer_endpoint(request: Request, payload: dict = Body(...)):
     """
     Create a new scorer definition.
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     # Add user_id from headers if not already in payload
     if "createdBy" not in payload:
         user_id = request.headers.get("x-user-id")
@@ -336,7 +336,7 @@ async def update_scorer_endpoint(request: Request, scorer_id: str, payload: dict
     """
     Update an existing scorer definition.
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     return await update_deepeval_scorer_controller(scorer_id, tenant=tenant, payload=payload)
 
 
@@ -345,7 +345,7 @@ async def delete_scorer_endpoint(request: Request, scorer_id: str):
     """
     Delete a scorer definition.
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     return await delete_deepeval_scorer_controller(scorer_id, tenant=tenant)
 
 
@@ -361,6 +361,6 @@ async def test_scorer_endpoint(request: Request, scorer_id: str, payload: dict =
       "expected": "Optional expected output..."
     }
     """
-    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    tenant = request.state.tenant
     return await test_deepeval_scorer_controller(scorer_id, tenant=tenant, payload=payload)
 

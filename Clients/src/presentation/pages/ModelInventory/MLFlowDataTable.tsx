@@ -21,8 +21,9 @@ import {
   Chip,
   useTheme,
 } from "@mui/material";
+import type { GridProps } from "@mui/material";
 import { RefreshCw, XCircle, Eye, ChevronsUpDown } from "lucide-react";
-import { apiServices } from "../../../infrastructure/api/networkServices";
+import { getMlflowModels } from "../../../application/repository/integration.repository";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import VWChip from "../../components/Chip";
 import EmptyState from "../../components/EmptyState";
@@ -41,7 +42,12 @@ import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+interface SelectorVerticalProps {
+  className?: string;
+  [key: string]: unknown;
+}
+
+const SelectorVertical = (props: SelectorVerticalProps) => <ChevronsUpDown size={16} {...props} />;
 
 const MLFlowDataTable: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -91,31 +97,31 @@ const MLFlowDataTable: React.FC = () => {
     setWarning(null);
 
     try {
-      const response = await apiServices.get<{ configured: boolean; connected?: boolean; models: any[]; message?: string; error?: string }>("/integrations/mlflow/models");
+      const data = await getMlflowModels({});
 
-      if (response.data) {
+      if (data) {
         // Handle new response format: { configured: boolean, connected?: boolean, models: [], message?: string }
-        if ('models' in response.data && Array.isArray(response.data.models)) {
+        if ('models' in data && Array.isArray(data.models)) {
           // Check various states
-          if (!response.data.configured) {
+          if (!data.configured) {
             setWarning("Configure the MLFlow integration to start syncing live data.");
-          } else if (response.data.connected === false) {
+          } else if (data.connected === false) {
             // MLFlow is configured but server is not reachable
-            setWarning(response.data.message || "MLFlow server is not reachable.");
-          } else if (response.data.error) {
-            setWarning(response.data.error);
+            setWarning(data.message || "MLFlow server is not reachable.");
+          } else if (data.error) {
+            setWarning(data.error);
           }
-          setMlflowData(response.data.models);
-        } else if (Array.isArray(response.data)) {
+          setMlflowData(data.models);
+        } else if (Array.isArray(data)) {
           // Backwards compatibility: handle old format where response is directly an array
-          setMlflowData(response.data as unknown as any[]);
+          setMlflowData(data as unknown as MLFlowModel[]);
         } else {
           setMlflowData([]);
         }
       } else {
         setMlflowData([]);
       }
-    } catch (err: any) {
+    } catch {
       // Only show warning for actual errors - backend should return 200 for most cases now
       setWarning("Unable to reach the MLFlow backend.");
       setMlflowData([]);
@@ -372,7 +378,7 @@ const MLFlowDataTable: React.FC = () => {
               </Box>
 
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid {...({ item: true, xs: 12, sm: 6 } as GridProps & { item: boolean; xs: number; sm: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Basic Information
                   </Typography>
@@ -391,7 +397,7 @@ const MLFlowDataTable: React.FC = () => {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid {...({ item: true, xs: 12, sm: 6 } as GridProps & { item: boolean; xs: number; sm: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Description
                   </Typography>
@@ -399,7 +405,7 @@ const MLFlowDataTable: React.FC = () => {
                     {selectedModel.description || "No description available"}
                   </Typography>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid {...({ item: true, xs: 12 } as GridProps & { item: boolean; xs: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Tags
                   </Typography>
@@ -418,7 +424,7 @@ const MLFlowDataTable: React.FC = () => {
                     ))}
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid {...({ item: true, xs: 12, sm: 6 } as GridProps & { item: boolean; xs: number; sm: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Metrics
                   </Typography>
@@ -430,7 +436,7 @@ const MLFlowDataTable: React.FC = () => {
                     ))}
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid {...({ item: true, xs: 12, sm: 6 } as GridProps & { item: boolean; xs: number; sm: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Parameters
                   </Typography>
@@ -442,7 +448,7 @@ const MLFlowDataTable: React.FC = () => {
                     ))}
                   </Box>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid {...({ item: true, xs: 12 } as GridProps & { item: boolean; xs: number })}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                     Experiment Information
                   </Typography>

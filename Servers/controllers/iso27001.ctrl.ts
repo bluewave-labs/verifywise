@@ -70,6 +70,8 @@ export async function getAllClauses(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -117,6 +119,8 @@ export async function getAllClausesStructForProject(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -164,6 +168,8 @@ export async function getAllAnnexesStructForProject(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -201,6 +207,8 @@ export async function getAllAnnexes(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -256,6 +264,8 @@ export async function getSubClausesByClauseId(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -311,6 +321,8 @@ export async function getAnnexControlsByAnnexId(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -370,6 +382,8 @@ export async function getSubClauseById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -429,6 +443,8 @@ export async function getAnnexControlById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -486,6 +502,8 @@ export async function getClausesByProjectId(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -543,6 +561,8 @@ export async function getAnnexesByProjectId(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -689,6 +709,8 @@ export async function saveClauses(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -724,8 +746,7 @@ export async function saveAnnexes(
     );
     logger.debug(`Files to delete: ${annexControl.delete}`);
     logger.debug(
-      `Files in request: ${
-        Array.isArray(req.files) ? req.files.length : req.files ? 1 : 0
+      `Files in request: ${Array.isArray(req.files) ? req.files.length : req.files ? 1 : 0
       }`
     );
 
@@ -804,6 +825,8 @@ export async function saveAnnexes(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -856,6 +879,8 @@ export async function deleteManagementSystemClauses(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: new Error("Delete operation failed"),
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(400).json(STATUS_CODE[400](result));
   } catch (error) {
@@ -868,6 +893,8 @@ export async function deleteManagementSystemClauses(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -920,6 +947,8 @@ export async function deleteReferenceControls(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: new Error("Delete operation failed"),
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(400).json(STATUS_CODE[400](result));
   } catch (error) {
@@ -932,6 +961,8 @@ export async function deleteReferenceControls(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -982,6 +1013,8 @@ export async function getProjectClausesProgress(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -1032,6 +1065,8 @@ export async function getProjectAnnxesProgress(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -1065,6 +1100,8 @@ export async function getAllProjectsClausesProgress(
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: new Error("Unauthorized"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -1123,6 +1160,8 @@ export async function getAllProjectsClausesProgress(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -1156,6 +1195,8 @@ export async function getAllProjectsAnnxesProgress(
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: new Error("Unauthorized"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -1214,6 +1255,8 @@ export async function getAllProjectsAnnxesProgress(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

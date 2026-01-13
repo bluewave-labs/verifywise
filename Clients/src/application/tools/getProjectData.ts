@@ -15,7 +15,7 @@
  * @returns {number} return.controlsCompleted - The number of completed controls.
  * @returns {number} return.requirementsCompleted - The number of completed assessments.
  */
-import { Assessments, AssessmentsProject, Controls, ControlsProject } from "../hooks/useProjectStatus";
+import { Assessments, AssessmentsProject, Controls, ControlsProject } from "../../domain/types/projectStatus.types";
 
 const DEFAULT_DONE_COUNT = 0;
 const DEFAULT_TOTAL_COUNT = 1;

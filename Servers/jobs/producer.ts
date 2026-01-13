@@ -1,5 +1,4 @@
 export * from "../services/slack/slackProducer";
-// import { logFailure } from "../utils/logger/logHelper";
 
 import { scheduleDailyNotification } from "../services/slack/slackProducer";
 import logger from "../utils/logger/fileLogger";
@@ -26,8 +25,6 @@ if (require.main === module) {
       //   functionName: "addAllJobs",
       //   fileName: "producer.ts",
       //   error: error,
-      //   userId: req.userId!,
-      //   tenantId: req.tenantId!,
       // });
       process.exit(1);
     });

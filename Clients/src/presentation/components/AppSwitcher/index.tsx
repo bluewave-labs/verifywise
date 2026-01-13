@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Stack, Tooltip, Box, Typography } from "@mui/material";
-import { Shield, FlaskConical, Network } from "lucide-react";
+import { Shield, FlaskConical, Network, ScanSearch } from "lucide-react";
 import { AppModule } from "../../../application/redux/ui/uiSlice";
 import "./index.css";
 
@@ -31,15 +31,25 @@ const modules: ModuleItem[] = [
     description: "Evaluate LLM quality, performance and reliability over time",
   },
   {
+    id: "ai-detection",
+    icon: <ScanSearch size={16} strokeWidth={1.5} />,
+    label: "AI Detection",
+    description: "Scan repositories to detect AI/ML libraries and frameworks",
+  },
+  {
     id: "gateway",
     icon: <Network size={16} strokeWidth={1.5} />,
     label: "Gateway",
-    description: "Control, monitor, and govern all LLM traffic across your organization.",
+    description:
+      "Control, monitor, and govern all LLM traffic across your organization.",
     disabled: true,
   },
 ];
 
-const AppSwitcher: FC<AppSwitcherProps> = ({ activeModule, onModuleChange }) => {
+const AppSwitcher: FC<AppSwitcherProps> = ({
+  activeModule,
+  onModuleChange,
+}) => {
   return (
     <Stack className="app-switcher">
       <Stack className="app-switcher-modules">
@@ -74,14 +84,31 @@ const AppSwitcher: FC<AppSwitcherProps> = ({ activeModule, onModuleChange }) => 
               },
             }}
           >
-            <button
-              className={`app-switcher-icon ${activeModule === module.id ? "active" : ""} ${module.disabled ? "disabled" : ""}`}
-              onClick={() => !module.disabled && onModuleChange(module.id)}
-              disabled={module.disabled}
-              aria-label={module.label}
-            >
-              {module.icon}
-            </button>
+            {module.disabled ? (
+              <span style={{ display: "inline-block" }}>
+                <button
+                  className={`app-switcher-icon ${
+                    activeModule === module.id ? "active" : ""
+                  } ${module.disabled ? "disabled" : ""}`}
+                  onClick={() => !module.disabled && onModuleChange(module.id)}
+                  disabled={module.disabled}
+                  aria-label={module.label}
+                >
+                  {module.icon}
+                </button>
+              </span>
+            ) : (
+              <button
+                className={`app-switcher-icon ${
+                  activeModule === module.id ? "active" : ""
+                } ${module.disabled ? "disabled" : ""}`}
+                onClick={() => !module.disabled && onModuleChange(module.id)}
+                disabled={module.disabled}
+                aria-label={module.label}
+              >
+                {module.icon}
+              </button>
+            )}
           </Tooltip>
         ))}
       </Stack>

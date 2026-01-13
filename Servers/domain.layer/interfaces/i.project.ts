@@ -21,6 +21,9 @@ export interface IProjectAttributes {
   framework?: IProjectFramework[];
   is_organizational?: boolean;
   status?: ProjectStatus;
+  approval_workflow_id?: number;
+  pending_frameworks?: number[];
+  enable_ai_data_insertion?: boolean;
 
   // Statistical fields
   doneSubcontrols?: number;

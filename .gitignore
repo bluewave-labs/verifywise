@@ -21,6 +21,7 @@ CLAUDE.md
 .vscode
 agent.md
 agent-output.md
+plan.md
 
 
 FILE_MANAGER_WORKFLOW.md
@@ -30,4 +31,8 @@ FILE_STORAGE_ARCHITECTURE.md
 Authentication_Authorization_Workflow_Documentation.md
 scripts/sync-docs-to-website.sh
 
-nul
+nulGateway/data/config.json
+Gateway/data/config.json.bak
+
+# Node modules
+node_modules/

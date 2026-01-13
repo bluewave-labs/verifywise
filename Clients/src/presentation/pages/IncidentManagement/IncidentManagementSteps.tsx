@@ -1,5 +1,5 @@
 import { BarChart3, Filter, ShieldAlert, AlertCircle } from "lucide-react";
-import { IPageTourStep } from "../../../domain/interfaces/i.tour";
+import { IPageTourStep } from "../../types/interfaces/i.tour";
 
 const IncidentManagementSteps: IPageTourStep[] = [
   {

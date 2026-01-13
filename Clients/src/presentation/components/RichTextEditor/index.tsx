@@ -4,7 +4,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Bold, Italic, List, ListOrdered } from "lucide-react";
 import "./index.css";
-import { IRichTextEditorProps } from "../../../domain/interfaces/i.editor";
+import { IRichTextEditorProps } from "../../types/interfaces/i.editor";
 
 const FormatBold = () => <Bold size={20} />;
 const FormatItalic = () => <Italic size={20} />;
@@ -28,7 +28,7 @@ const RichTextEditor: React.FC<IRichTextEditorProps> = ({
     autofocus: false,
     immediatelyRender: true,
     editable: isEditable,
-    onUpdate: ({ editor }) => {
+    onUpdate: ({ editor }: { editor: NonNullable<ReturnType<typeof useEditor>> }) => {
       onContentChange?.(editor.getHTML());
     },
   });
@@ -94,19 +94,37 @@ const RichTextEditor: React.FC<IRichTextEditorProps> = ({
             aria-label={title}
             sx={{ fontSize: 13 }}
           >
-            <IconButton
-              onClick={() => applyFormatting(action)}
-              disableRipple
-              color={
-                (action === "bullets" && activeList === "bulleted") ||
-                (action === "numbers" && activeList === "numbered")
-                  ? "primary"
-                  : "default"
-              }
-              disabled={!isEditable}
-            >
-              {icon}
-            </IconButton>
+            {!isEditable ? (
+              <span style={{ display: "inline-block" }}>
+                <IconButton
+                  onClick={() => applyFormatting(action)}
+                  disableRipple
+                  color={
+                    (action === "bullets" && activeList === "bulleted") ||
+                    (action === "numbers" && activeList === "numbered")
+                      ? "primary"
+                      : "default"
+                  }
+                  disabled={!isEditable}
+                >
+                  {icon}
+                </IconButton>
+              </span>
+            ) : (
+              <IconButton
+                onClick={() => applyFormatting(action)}
+                disableRipple
+                color={
+                  (action === "bullets" && activeList === "bulleted") ||
+                  (action === "numbers" && activeList === "numbered")
+                    ? "primary"
+                    : "default"
+                }
+                disabled={!isEditable}
+              >
+                {icon}
+              </IconButton>
+            )}
           </Tooltip>
         ))}
       </Box>

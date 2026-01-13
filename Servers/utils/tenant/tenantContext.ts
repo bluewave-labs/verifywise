@@ -3,9 +3,9 @@ import path from 'path';
 import fs from 'fs';
 
 export interface TenantContext {
-    tenantId?: string;
-    organizationId?: number;
-    userId?: number;
+  tenantId?: string;
+  organizationId?: number;
+  userId?: number;
 }
 
 /**

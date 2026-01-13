@@ -1,9 +1,4 @@
 import { PolicyManagerModel } from "../../domain.layer/models/policy/policy.model";
-// import {
-//   logProcessing,
-//   logSuccess,
-//   logFailure,
-// } from "../../utils/logger/logHelper";
 import { getAllPoliciesDueSoonQuery } from "../../utils/policyManager.utils";
 import { getAllOrganizationsQuery } from "../../utils/organization.utils";
 import { getTenantHash } from "../../tools/getTenantHash";
@@ -62,13 +57,13 @@ export const sendPolicyDueSoonNotification = async (): Promise<number> => {
               // Format the notification message
               const reviewDate = policy.next_review_date
                 ? new Date(policy.next_review_date).toLocaleDateString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    },
-                  )
+                  "en-US",
+                  {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  },
+                )
                 : "Not set";
 
               const message = {

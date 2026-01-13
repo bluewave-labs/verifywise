@@ -38,7 +38,6 @@ type SortConfig = {
 const titleOfTableColumns = [
   { id: "risk_name", label: "risk name", sortable: true },
   { id: "model_name", label: "model name", sortable: true },
-  { id: "risk_category", label: "category", sortable: true },
   { id: "risk_level", label: "risk level", sortable: true },
   { id: "status", label: "status", sortable: true },
   { id: "owner", label: "owner", sortable: true },
@@ -333,12 +332,6 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                   backgroundColor: sortConfig.key === "model_name" ? "#f5f5f5" : "inherit",
                 }}>
                   {getModelName(row.model_id)}
-                </TableCell>
-                <TableCell sx={{
-                  ...getCellStyle(row),
-                  backgroundColor: sortConfig.key === "risk_category" ? "#f5f5f5" : "inherit",
-                }}>
-                  {row.risk_category}
                 </TableCell>
                 <TableCell sx={{
                   ...getCellStyle(row),

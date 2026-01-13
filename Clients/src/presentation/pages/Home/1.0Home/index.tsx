@@ -180,6 +180,7 @@ const Home = () => {
       {/* Projects List */}
       <ProjectList
         projects={projects}
+        onProjectDeleted={() => setRefreshProjectsFlag((prev) => !prev)}
         newProjectButton={
           <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
             <CustomizableButton

@@ -1,5 +1,5 @@
 import { Building2, CirclePlus } from "lucide-react";
-import { IPageTourStep } from "../../../domain/interfaces/i.tour";
+import { IPageTourStep } from "../../types/interfaces/i.tour";
 
 const VendorsSteps: IPageTourStep[] = [
   {

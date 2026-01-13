@@ -495,6 +495,7 @@ export class RiskModel extends Model<RiskModel> implements IRisk {
       date_of_assessment: this.date_of_assessment,
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
+      updated_at: this.updated_at?.toISOString(),
     };
   }
 

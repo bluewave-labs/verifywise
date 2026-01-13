@@ -238,6 +238,8 @@ export async function createNewTopic(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     logStructured(
       "error",
@@ -387,6 +389,8 @@ export async function updateTopicById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     logStructured(
       "error",
@@ -475,6 +479,8 @@ export async function deleteTopicById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     logStructured(
       "error",

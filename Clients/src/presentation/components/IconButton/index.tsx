@@ -20,8 +20,8 @@ import { Typography } from "@mui/material";
 import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
-import { IconButtonProps } from "../../../domain/interfaces/i.widget";
-import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { IconButtonProps } from "../../types/widget.types";
+import { AlertProps } from "../../types/alert.types";
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,
@@ -48,6 +48,9 @@ const IconButton: React.FC<IconButtonProps> = ({
   onLinkedObjects,
   hardDeleteWarningTitle,
   hardDeleteWarningMessage,
+  // Policy export props
+  onDownloadPDF,
+  onDownloadDOCX,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -133,7 +136,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     onEdit();
     if (e) {
       closeDropDownMenu(e);
-      onMouseEvent(e);
+      onMouseEvent?.(e);
     }
   };
 
@@ -220,6 +223,24 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
+  const handleDownloadPDF = async (e?: React.SyntheticEvent) => {
+    if (onDownloadPDF) {
+      await onDownloadPDF();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleDownloadDOCX = async (e?: React.SyntheticEvent) => {
+    if (onDownloadDOCX) {
+      await onDownloadDOCX();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
   function handleCancle(e?: React.SyntheticEvent) {
     setIsOpenRemoveModal(false);
     if (e) {
@@ -255,7 +276,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     resource: ["edit", "make visible", "download", "remove"],
     incident: ["edit", "view", "archive"],
     integration: ["Send Test", "Activate/Deactivate", "remove"],
-    policy: ["edit", "link_objects", "remove"],
+    policy: ["edit", "link_objects", "download_pdf", "download_docx", "remove"],
     linkedobjectstype: ["remove"],
     risk: ["edit", "linked_policies", "remove"],
   };
@@ -264,21 +285,21 @@ const IconButton: React.FC<IconButtonProps> = ({
 
   const getListOfButtons = () => {
     const normalizedType = type?.toLowerCase();
-  
+
     if (normalizedType === "task") {
       return isArchived
         ? ["restore", "delete"]
         : ["edit", "archive", "delete"];
     }
-  
+
     if (normalizedType === "vendor") {
       return canDelete ? ["edit", "remove"] : ["edit"];
     }
-  
-    if (normalizedType in BUTTONS_BY_TYPE) {
+
+    if (normalizedType && normalizedType in BUTTONS_BY_TYPE) {
       return BUTTONS_BY_TYPE[normalizedType as ButtonType];
     }
-  
+
     return ["edit", "remove"];
   };
   
@@ -310,10 +331,12 @@ const IconButton: React.FC<IconButtonProps> = ({
     const COMMON_ITEM_LABELS: Record<string, string> = {
       link_objects: "Linked objects",
       linked_policies: "Linked policies",
+      download_pdf: "Download PDF",
+      download_docx: "Download Word",
     };
   
-    // Type-specific 
-    const typeLabel = LABELS_BY_TYPE[normalizedType]?.[item];
+    // Type-specific
+    const typeLabel = normalizedType ? LABELS_BY_TYPE[normalizedType]?.[item] : undefined;
     if (typeLabel) {
       return typeLabel;
     }
@@ -389,7 +412,11 @@ const IconButton: React.FC<IconButtonProps> = ({
                 handleLinkedObjects(e);
               } else if (item === "linked_policies") {
                 handleOpenLinkedPolicies(e);
-              }else if (item === "delete" && (type === "Task" || type === "task")) {
+              } else if (item === "download_pdf") {
+                await handleDownloadPDF(e);
+              } else if (item === "download_docx") {
+                await handleDownloadDOCX(e);
+              } else if (item === "delete" && (type === "Task" || type === "task")) {
                 // Task hard delete action
                 if (hardDeleteWarningTitle && hardDeleteWarningMessage) {
                   setIsOpenHardDeleteModal(true);

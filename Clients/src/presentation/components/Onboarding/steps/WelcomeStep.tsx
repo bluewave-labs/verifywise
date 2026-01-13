@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
-import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
+import { OnboardingStepProps } from "../../../types/interfaces/i.onboarding";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const WELCOME_FEATURES = [

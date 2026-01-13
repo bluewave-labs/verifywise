@@ -287,3 +287,25 @@ export async function deleteAITrustCentreSubprocessor(
     throw error;
   }
 }
+
+/**
+ * Fetches the AI Trust Center logo for a specific tenant.
+ *
+ * @param {string} tenantId - The tenant ID to fetch the logo for.
+ * @returns {Promise<any>} The logo data from the API.
+ */
+export async function getAITrustCentreLogo(tenantId: string): Promise<any> {
+  try {
+    const response = await apiServices.get(`/aiTrustCentre/${tenantId}/logo`, {
+      responseType: "json",
+    });
+    return response.data;
+  } catch (error: any) {
+    // 404 is expected when no logo has been uploaded - don't log as error
+    if (error?.response?.status === 404 || error?.status === 404) {
+      return null;
+    }
+    console.error("Error fetching AI Trust Center logo:", error);
+    throw error;
+  }
+}

@@ -33,7 +33,6 @@ import {
 } from "../controllers/organization.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
-import { checkMultiTenancy } from "../middleware/multiTenancy.middleware";
 
 /**
  * GET /organizations/exists
@@ -86,8 +85,8 @@ router.get("/:id", authenticateJWT, getOrganizationById);
  * @param {express.Response} res - Express response object
  * @returns {Object} Created organization with admin user and access token
  */
-router.post("/", checkMultiTenancy, createOrganization);
-router.post("/with-google", checkMultiTenancy, createOrganizationWithGoogle);
+router.post("/", createOrganization);
+router.post("/with-google", createOrganizationWithGoogle);
 
 /**
  * PATCH /organizations/:id

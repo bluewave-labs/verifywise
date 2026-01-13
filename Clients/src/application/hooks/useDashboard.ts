@@ -5,7 +5,7 @@ import { Dashboard } from "../../domain/types/Dashboard";
 
 export const useDashboard = () => {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchDashboard = useCallback(async () => {
     try {

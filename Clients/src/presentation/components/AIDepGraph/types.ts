@@ -1,0 +1,88 @@
+/**
+ * @fileoverview AI Dependency Graph Type Definitions
+ *
+ * Types for the AI Dependency Graph visualization component.
+ */
+
+import type {
+  DependencyNodeType as DomainDependencyNodeType,
+  EdgeRelationship,
+  ConfidenceLevel,
+  RiskLevel,
+  FilePath,
+  GovernanceStatus,
+} from "../../../domain/ai-detection/types";
+
+// Re-export for convenience
+export type DependencyNodeType = DomainDependencyNodeType;
+
+// ReactFlow node data with index signature for compatibility
+export interface AIDepNodeData {
+  label: string;
+  sublabel?: string;
+  nodeType: DependencyNodeType;
+  color: string;
+  provider: string;
+  confidence: ConfidenceLevel;
+  riskLevel: RiskLevel;
+  fileCount: number;
+  filePaths: FilePath[];
+  governanceStatus?: GovernanceStatus | null;
+  connectionCount?: number;
+  isHighlighted?: boolean;
+  findingId: number;
+  // Index signature for ReactFlow compatibility
+  [key: string]: unknown;
+}
+
+// ReactFlow edge data
+export interface AIDepEdgeData {
+  relationship: EdgeRelationship;
+  confidence: ConfidenceLevel;
+}
+
+// Node type colors
+export const NODE_TYPE_COLORS: Record<DependencyNodeType, string> = {
+  library: "#3b82f6", // Blue
+  model: "#8b5cf6", // Purple
+  api: "#f59e0b", // Amber
+  secret: "#ef4444", // Red
+  rag: "#10b981", // Emerald
+  agent: "#6366f1", // Indigo
+  repository: "#64748b", // Slate
+};
+
+// Node type labels
+export const NODE_TYPE_LABELS: Record<DependencyNodeType, string> = {
+  library: "Library",
+  model: "Model",
+  api: "API call",
+  secret: "Secret",
+  rag: "RAG",
+  agent: "Agent",
+  repository: "Repository",
+};
+
+// Edge relationship labels
+export const EDGE_RELATIONSHIP_LABELS: Record<EdgeRelationship, string> = {
+  uses: "Uses",
+  calls: "Calls",
+  requires: "Requires",
+  exposes: "Exposes",
+  orchestrates: "Orchestrates",
+  contains: "Contains",
+};
+
+// Risk level colors
+export const RISK_LEVEL_COLORS: Record<RiskLevel, string> = {
+  high: "#ef4444",
+  medium: "#f59e0b",
+  low: "#10b981",
+};
+
+// Confidence level colors
+export const CONFIDENCE_COLORS: Record<ConfidenceLevel, string> = {
+  high: "#10b981",
+  medium: "#f59e0b",
+  low: "#94a3b8",
+};

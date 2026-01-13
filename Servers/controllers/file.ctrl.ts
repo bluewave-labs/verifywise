@@ -5,6 +5,7 @@ import {
   getFileById,
   getFileMetadataByProjectId,
   uploadFile,
+  canUserAccessFile,
 } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { FileType } from "../domain.layer/models/file/file.model";
@@ -21,7 +22,24 @@ export async function getFileContentById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const fileId = parseInt(req.params.id);
+  const fileId = parseInt(req.params.id, 10);
+
+  // Validate fileId is a valid number
+  if (isNaN(fileId)) {
+    return res.status(400).json({ message: "Invalid file ID" });
+  }
+
+  // Validate authentication - these should be set by authenticateJWT middleware
+  if (!req.userId) {
+    return res.status(401).json({ message: "Unauthenticated" });
+  }
+  if (!req.tenantId) {
+    return res.status(400).json({ message: "Missing tenant" });
+  }
+
+  const userId = req.userId;
+  const role = req.role || "";
+  const tenantId = req.tenantId;
 
   logProcessing({
     description: `starting getFileContentById for ID ${fileId}`,
@@ -32,7 +50,23 @@ export async function getFileContentById(
   });
 
   try {
-    const file = await getFileById(fileId, req.tenantId!);
+    // Authorization check: verify user has access to this file
+    const orgId = req.organizationId ? Number(req.organizationId) : undefined;
+    const hasAccess = await canUserAccessFile(fileId, userId, role, tenantId, orgId);
+    if (!hasAccess) {
+      await logFailure({
+        eventType: "Read",
+        description: `Access denied to file ID ${fileId} for user ${userId}`,
+        functionName: "getFileContentById",
+        fileName: "file.ctrl.ts",
+        error: new Error(`User ${userId} with role '${role}' denied access to file ${fileId}`),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const file = await getFileById(fileId, tenantId);
     if (file) {
       await logSuccess({
         eventType: "Read",
@@ -70,6 +104,8 @@ export async function getFileContentById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -114,6 +150,8 @@ export async function getFileMetaByProjectId(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -172,6 +210,8 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json({ error: "Internal server error" });
@@ -258,6 +298,8 @@ export async function postFileContent(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

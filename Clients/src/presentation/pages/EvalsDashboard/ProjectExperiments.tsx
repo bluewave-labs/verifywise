@@ -1,14 +1,22 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Box, Card, CardContent, Typography, Stack } from "@mui/material";
 import { Play } from "lucide-react";
-import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
+import {
+  getAllExperiments,
+  createExperiment,
+  deleteExperiment,
+  getExperiment,
+  getLogs,
+  type Experiment,
+  type EvaluationLog,
+} from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import NewExperimentModal from "./NewExperimentModal";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { useNavigate } from "react-router-dom";
 import EvaluationTable from "../../components/Table/EvaluationTable";
 import PerformanceChart from "./components/PerformanceChart";
-import type { IEvaluationRow } from "../../../domain/interfaces/i.table";
+import type { IEvaluationRow } from "../../types/interfaces/i.table";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
@@ -16,6 +24,7 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 
@@ -23,6 +32,8 @@ interface ProjectExperimentsProps {
   projectId: string;
   orgId?: string | null;
   onViewExperiment?: (experimentId: string) => void;
+  /** Project's use case for the experiment modal (required) */
+  useCase: "chatbot" | "rag" | "agent";
 }
 
 interface ExperimentWithMetrics extends Experiment {
@@ -47,7 +58,7 @@ function shortenModelName(modelName: string): string {
   return modelName.replace(/-\d{8}$/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '');
 }
 
-export default function ProjectExperiments({ projectId, orgId, onViewExperiment }: ProjectExperimentsProps) {
+export default function ProjectExperiments({ projectId, orgId, onViewExperiment, useCase }: ProjectExperimentsProps) {
   const navigate = useNavigate();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
   const [, setLoading] = useState(true);
@@ -133,7 +144,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
   const loadExperiments = async () => {
     try {
       setLoading(true);
-      const data = await experimentsService.getAllExperiments({
+      const data = await getAllExperiments({
         project_id: projectId
       });
 
@@ -157,7 +168,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
 
           try {
             // Get logs for this experiment to calculate metrics
-            const logsData = await evaluationLogsService.getLogs({
+            const logsData = await getLogs({
               experiment_id: exp.id,
               limit: 1000
             });
@@ -276,7 +287,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
 
       setAlert({ variant: "success", body: "Starting new evaluation run..." });
       
-      const response = await experimentsService.createExperiment(payload);
+      const response = await createExperiment(payload);
 
       if (response?.experiment?.id) {
         // Add the new experiment to the list optimistically
@@ -299,12 +310,44 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
 
   const handleDeleteExperiment = async (experimentId: string) => {
     try {
-      await experimentsService.deleteExperiment(experimentId);
+      await deleteExperiment(experimentId);
       setAlert({ variant: "success", body: "Eval deleted" });
       setTimeout(() => setAlert(null), 3000);
       loadExperiments();
     } catch {
       setAlert({ variant: "error", body: "Failed to delete" });
+      setTimeout(() => setAlert(null), 5000);
+    }
+  };
+
+  const handleDownloadExperiment = async (row: IEvaluationRow) => {
+    try {
+      const experimentData = await getExperiment(row.id);
+      const blob = new Blob([JSON.stringify(experimentData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(row.name || row.id).replace(/[^a-z0-9]/gi, "_").toLowerCase()}_results.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setAlert({ variant: "success", body: "Experiment results downloaded" });
+      setTimeout(() => setAlert(null), 3000);
+    } catch {
+      setAlert({ variant: "error", body: "Failed to download results" });
+      setTimeout(() => setAlert(null), 5000);
+    }
+  };
+
+  const handleCopyExperiment = async (row: IEvaluationRow) => {
+    try {
+      const experimentData = await getExperiment(row.id);
+      await navigator.clipboard.writeText(JSON.stringify(experimentData, null, 2));
+      setAlert({ variant: "success", body: "Results copied to clipboard" });
+      setTimeout(() => setAlert(null), 3000);
+    } catch {
+      setAlert({ variant: "error", body: "Failed to copy results" });
       setTimeout(() => setAlert(null), 5000);
     }
   };
@@ -428,7 +471,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
   }, [experiments, filterData, searchTerm]);
 
   // Transform to table format
-  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
+  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE", "ACTION"];
 
   const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => {
     // Get dataset name from config - try multiple sources
@@ -538,6 +581,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Experiments run evaluations on your models using datasets and scorers. Track performance metrics over time and compare different model configurations.
         </Typography>
+        <TipBox entityName="evals-experiments" />
       </Stack>
 
       {/* Performance Chart */}
@@ -639,6 +683,8 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
               setCurrentPagingation={setCurrentPage}
               onShowDetails={handleViewExperiment}
               onRerun={canCreateExperiment ? handleRerunExperiment : undefined}
+              onDownload={handleDownloadExperiment}
+              onCopy={handleCopyExperiment}
               hidePagination={options?.hidePagination}
             />
           )}
@@ -656,6 +702,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment 
           loadExperiments();
         }}
         onStarted={handleStarted}
+        useCase={useCase}
       />
     </Box>
   );

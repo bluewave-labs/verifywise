@@ -2,11 +2,6 @@ import path from "path";
 import fs from "fs/promises";
 import { sendEmail } from "./emailService";
 import { TEMPLATES_DIR } from "../constants/emailTemplates";
-// import {
-//   logProcessing,
-//   logSuccess,
-//   logFailure,
-// } from "../utils/logger/logHelper";
 
 interface QueuedEmail {
   recipientEmail: string;
@@ -265,6 +260,12 @@ export class NotificationService {
     templateFileName: string,
     templateData: Record<string, string>
   ): Promise<void> {
+    // logProcessing({
+    //   description: `Sending email with template: ${templateFileName}`,
+    //   functionName: "sendEmailWithTemplate",
+    //   fileName: "NotificationService.ts",
+    // });
+
     try {
       // Read the template file
       const templatePath = path.join(TEMPLATES_DIR, path.basename(templateFileName));
@@ -282,17 +283,31 @@ export class NotificationService {
         throw new Error(`${result.error.name}: ${result.error.message}`);
       }
 
+      // await logSuccess({
+      //   eventType: "Create",
+      //   description: `Email sent successfully to ${maskEmail(recipientEmail)}`,
+      //   functionName: "sendEmailWithTemplate",
+      //   fileName: "NotificationService.ts",
+      // });
     } catch (error) {
 
       // Sanitize the error to remove any email addresses
-      // const sanitized = new Error(
-      //   String((error as any)?.message ?? error).replace(
-      //     /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
-      //     "[redacted]"
-      //   )
-      // );
+      const sanitized = new Error(
+        String((error as any)?.message ?? error).replace(
+          /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
+          "[redacted]"
+        )
+      );
 
-      throw error;
+      // await logFailure({
+      //   eventType: "Create",
+      //   description: `Failed to send email to ${maskEmail(recipientEmail)}`,
+      //   functionName: "sendEmailWithTemplate",
+      //   fileName: "NotificationService.ts",
+      //   error: sanitized,
+      // });
+      (sanitized as any).cause = error;
+      throw sanitized;
     }
   }
 }

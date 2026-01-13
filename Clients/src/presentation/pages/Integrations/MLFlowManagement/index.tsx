@@ -22,7 +22,7 @@ import Select from '../../../components/Inputs/Select';
 import PageBreadcrumbs from '../../../components/Breadcrumbs/PageBreadcrumbs';
 import HeaderCard from '../../../components/Cards/DashboardHeaderCard';
 import Chip from '@mui/material/Chip';
-import useTheme from '@mui/material/styles/useTheme';
+import { useTheme } from '@mui/material/styles';
 import { apiServices } from '../../../../infrastructure/api/networkServices';
 
 type AuthMethod = 'none' | 'basic' | 'token';

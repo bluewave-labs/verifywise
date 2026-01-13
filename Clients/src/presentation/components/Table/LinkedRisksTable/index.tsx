@@ -14,7 +14,7 @@ import EmptyState from "../../EmptyState";
 import LinkedRisksTableBody from "./TableBody";
 
 import { tableWrapper } from "../styles";
-import { ILinkedRisksTableProps } from "../../../../domain/interfaces/i.table";
+import { ILinkedRisksTableProps } from "../../../types/interfaces/i.table";
 
 const LinkedRisksTable: React.FC<ILinkedRisksTableProps> = ({
   projectRisksGroup,

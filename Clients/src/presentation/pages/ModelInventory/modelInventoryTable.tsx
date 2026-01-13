@@ -19,6 +19,7 @@ import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
+import ViewRelationshipsButton from "../../components/ViewRelationshipsButton";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
@@ -67,7 +68,7 @@ const TABLE_COLUMNS = [
   { id: "model", label: "MODEL", sortable: true },
   { id: "version", label: "VERSION", sortable: true },
   { id: "approver", label: "APPROVER", sortable: true },
-  { id: "security_assessment", label: "SECURITY ASSESSMENT", sortable: true },
+  { id: "security_assessment", label: "ASSESSMENT", sortable: true },
   { id: "risks", label: "RISKS", sortable: true },
   { id: "status", label: "STATUS", sortable: true },
   { id: "status_date", label: "STATUS DATE", sortable: true },
@@ -137,6 +138,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   deletingId,
   hidePagination = false,
   modelRisks = [],
+  flashRowId,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -409,6 +411,15 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   ...tableRowHoverStyle,
                   ...(deletingId === modelInventory.id?.toString() &&
                     tableRowDeletingStyle),
+                  ...(flashRowId === modelInventory.id && {
+                    backgroundColor: singleTheme.flashColors.background,
+                    "& td": {
+                      backgroundColor: "transparent !important",
+                    },
+                    "&:hover": {
+                      backgroundColor: singleTheme.flashColors.backgroundHover,
+                    },
+                  }),
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -419,7 +430,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key === "provider" ? "#e8e8e8" : "#fafafa",
+                    backgroundColor: sortConfig.key === "provider" ? singleTheme.tableColors.sortedColumnFirst : undefined,
                   }}
                 >
                   <TooltipCell value={modelInventory.provider} />
@@ -428,7 +439,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key === "model" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "model" ? singleTheme.tableColors.sortedColumn : undefined,
                   }}
                 >
                   <TooltipCell value={modelInventory.model} />
@@ -437,7 +448,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key === "version" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "version" ? singleTheme.tableColors.sortedColumn : undefined,
                   }}
                 >
                   <TooltipCell value={modelInventory.version} />
@@ -446,7 +457,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key === "approver" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "approver" ? singleTheme.tableColors.sortedColumn : undefined,
                   }}
                 >
                   <TooltipCell
@@ -460,7 +471,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key === "security_assessment" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "security_assessment" ? singleTheme.tableColors.sortedColumn : undefined,
                   }}
                 >
                   <SecurityAssessmentBadge
@@ -471,7 +482,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key === "risks" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "risks" ? singleTheme.tableColors.sortedColumn : undefined,
                   }}
                 >
                   {(() => {
@@ -500,7 +511,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key === "status" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "status" ? singleTheme.tableColors.sortedColumn : undefined,
                   }}
                 >
                   <StatusBadge status={modelInventory.status} />
@@ -509,7 +520,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key === "status_date" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "status_date" ? singleTheme.tableColors.sortedColumn : undefined,
                   }}
                 >
                   <TooltipCell
@@ -525,44 +536,51 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    minWidth: "50px",
+                    minWidth: "80px",
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
                 >
-                  {isDeletingAllowed && (
-                    <CustomIconButton
-                      id={modelInventory.id || 0}
-                      onDelete={() =>
-                        onDelete?.(modelInventory.id?.toString() || "")
-                      }
-                      onEdit={() => {
-                        onEdit?.(modelInventory.id?.toString() || "");
-                      }}
-                      onMouseEvent={() => {}}
-                      warningTitle="Delete this model?"
-                      warningMessage="When you delete this model, all data related to this model will be removed. This action is non-recoverable."
-                      type=""
-                      checkForRisks={
-                        onCheckModelHasRisks
-                          ? () =>
-                              onCheckModelHasRisks(
-                                modelInventory.id?.toString() || "0"
-                              )
-                          : undefined
-                      }
-                      onDeleteWithRisks={
-                        onDelete
-                          ? (deleteRisks: boolean) =>
-                              onDelete(
-                                modelInventory.id?.toString() || "",
-                                deleteRisks
-                              )
-                          : undefined
-                      }
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <ViewRelationshipsButton
+                      entityId={modelInventory.id || 0}
+                      entityType="model"
+                      entityLabel={modelInventory.model || undefined}
                     />
-                  )}
+                    {isDeletingAllowed && (
+                      <CustomIconButton
+                        id={modelInventory.id || 0}
+                        onDelete={() =>
+                          onDelete?.(modelInventory.id?.toString() || "")
+                        }
+                        onEdit={() => {
+                          onEdit?.(modelInventory.id?.toString() || "");
+                        }}
+                        onMouseEvent={() => {}}
+                        warningTitle="Delete this model?"
+                        warningMessage="When you delete this model, all data related to this model will be removed. This action is non-recoverable."
+                        type=""
+                        checkForRisks={
+                          onCheckModelHasRisks
+                            ? () =>
+                                onCheckModelHasRisks(
+                                  modelInventory.id?.toString() || "0"
+                                )
+                            : undefined
+                        }
+                        onDeleteWithRisks={
+                          onDelete
+                            ? (deleteRisks: boolean) =>
+                                onDelete(
+                                  modelInventory.id?.toString() || "",
+                                  deleteRisks
+                                )
+                            : undefined
+                        }
+                      />
+                    )}
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))
@@ -593,6 +611,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       getModelRiskCount,
       hidePagination,
       openModelRisksDialog,
+      flashRowId,
     ]
   );
 

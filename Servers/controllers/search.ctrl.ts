@@ -72,8 +72,8 @@ export async function search(req: Request, res: Response): Promise<any> {
       description: `Wise Search completed: "${query}" returned ${totalCount} results`,
       functionName: "search",
       fileName: "search.ctrl.ts",
-      userId,
-      tenantId,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(

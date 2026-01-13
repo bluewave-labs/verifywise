@@ -31,11 +31,11 @@ import {
   likelihoodItems,
   riskSeverityItems,
 } from "./projectRiskValue";
-import { AddNewRiskFormProps } from "../../../domain/interfaces/i.riskForm";
+import { AddNewRiskFormProps } from "../../types/riskForm.types";
 import { ApiResponse } from "../../../domain/interfaces/i.response";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
-import { apiServices } from "../../../infrastructure/api/networkServices";
+import { createProjectRisk, updateProjectRisk } from "../../../application/repository/projectRisk.repository";
 import useUsers from "../../../application/hooks/useUsers";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -64,7 +64,7 @@ const COMPONENT_CONSTANTS = {
 } as const;
 
 const VALIDATION_LIMITS = {
-  RISK_NAME: { MIN: 3, MAX: 50 },
+  RISK_NAME: { MIN: 3, MAX: 255 },
   RISK_DESCRIPTION: { MIN: 1, MAX: 256 },
   POTENTIAL_IMPACT: { MIN: 1, MAX: 256 },
   REVIEW_NOTES: { MIN: 0, MAX: 1024 },
@@ -686,8 +686,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       try {
         const response =
           popupStatus !== "new"
-            ? await apiServices.put("/projectRisks/" + inputValues.id, formData)
-            : await apiServices.post("/projectRisks", formData);
+            ? await updateProjectRisk({ id: Number(inputValues.id), body: formData })
+            : await createProjectRisk({ body: formData });
 
         if (response && response.status === 201) {
           // risk create success

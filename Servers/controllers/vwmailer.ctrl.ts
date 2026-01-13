@@ -90,6 +90,8 @@ export const invite = async (
         userId: _req.userId!,
         tenantId: _req.tenantId!,
         error: new Error(`${info.error.name}: ${info.error.message}`),
+        userId: _req.userId!,
+        tenantId: _req.tenantId!,
       });
       return res.status(206).json({
         error: `${info.error.name}: ${info.error.message}`,
@@ -116,6 +118,8 @@ export const invite = async (
       userId: _req.userId!,
       tenantId: _req.tenantId!,
       error: error as Error,
+      userId: _req.userId!,
+      tenantId: _req.tenantId!,
     });
     return res.status(500).json({
       error: "Failed to send email",

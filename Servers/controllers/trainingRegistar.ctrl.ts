@@ -64,6 +64,8 @@ export async function getAllTrainingRegistar(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -121,6 +123,8 @@ export async function getTrainingRegistarById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -173,6 +177,8 @@ export async function createNewTrainingRegistar(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: new Error("Creation failed"),
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
@@ -185,6 +191,8 @@ export async function createNewTrainingRegistar(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -245,6 +253,8 @@ export async function updateTrainingRegistarById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: new Error("Training registrar not found"),
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
@@ -257,6 +267,8 @@ export async function updateTrainingRegistarById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -307,6 +319,8 @@ export async function deleteTrainingRegistarById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: new Error("Training registrar not found"),
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
@@ -319,6 +333,8 @@ export async function deleteTrainingRegistarById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

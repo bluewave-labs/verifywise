@@ -2,11 +2,11 @@ import { notificationService } from "../notificationService";
 import { getUserByIdQuery } from "../../utils/user.utils";
 import { frontEndUrl } from "../../config/constants";
 import { EMAIL_TEMPLATES } from "../../constants/emailTemplates";
-// import {
-//   logProcessing,
-//   logSuccess,
-//   logFailure,
-// } from "../../utils/logger/logHelper";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../../utils/logger/logHelper";
 
 // ============================================================================
 // TYPES
@@ -94,14 +94,18 @@ const ROLE_TEMPLATES: Record<ProjectRole, string> = {
 
 async function sendProjectNotification(
   data: ProjectNotificationData,
-  _functionName: string,
-  _fileName: string
+  functionName: string,
+  fileName: string,
+  tenantId: string,
+  userId: number
 ): Promise<void> {
-  // logProcessing({
-  //   description: `Sending ${data.type} notification for project: ${data.projectName}`,
-  //   functionName,
-  //   fileName,
-  // });
+  logProcessing({
+    description: `Sending ${data.type} notification for project: ${data.projectName}`,
+    functionName,
+    fileName,
+    userId: userId,
+    tenantId: tenantId,
+  });
 
   try {
     let actorUser;
@@ -177,20 +181,24 @@ async function sendProjectNotification(
       templateData
     );
 
-    // await logSuccess({
-    //   eventType: "Create",
-    //   description: logMessage,
-    //   functionName,
-    //   fileName,
-    // });
+    await logSuccess({
+      eventType: "Create",
+      description: logMessage,
+      functionName,
+      fileName,
+      userId: userId,
+      tenantId: tenantId,
+    });
   } catch (error) {
-    // await logFailure({
-    //   eventType: "Create",
-    //   description: `Failed to send ${data.type} notification`,
-    //   functionName,
-    //   fileName,
-    //   error: error as Error,
-    // });
+    await logFailure({
+      eventType: "Create",
+      description: `Failed to send ${data.type} notification`,
+      functionName,
+      fileName,
+      error: error as Error,
+      userId: userId,
+      tenantId: tenantId,
+    });
     throw error;
   }
 }
@@ -219,6 +227,7 @@ export const sendUserAddedToProjectNotification = async (
     adminId: number;
     userId: number;
     role: ProjectRole;
+    tenantId: string;
   }
 ): Promise<void> => {
   return sendProjectNotification(
@@ -228,7 +237,9 @@ export const sendUserAddedToProjectNotification = async (
       type: "user_added"
     },
     "sendUserAddedToProjectNotification",
-    "projectNotifications.ts"
+    "projectNotifications.ts",
+    data.tenantId,
+    data.userId
   );
 };
 
@@ -250,12 +261,15 @@ export const sendMemberRoleChangedEditorToAdminNotification = async (
     projectName: string;
     actorId: number;
     userId: number;
+    tenantId: string;
   }
 ): Promise<void> => {
   return sendProjectNotification(
     { ...data, type: "role_changed_to_admin" },
     "sendMemberRoleChangedEditorToAdminNotification",
-    "projectNotifications.ts"
+    "projectNotifications.ts",
+    data.tenantId,
+    data.userId
   );
 };
 
@@ -275,11 +289,15 @@ export const sendProjectCreatedNotification = async (
     projectId: number;
     projectName: string;
     adminId: number;
+    tenantId: string;
+    userId: number;
   }
 ): Promise<void> => {
   return sendProjectNotification(
     { ...data, type: "project_created" },
     "sendProjectCreatedNotification",
-    "projectNotifications.ts"
+    "projectNotifications.ts",
+    data.tenantId,
+    data.userId
   );
 };

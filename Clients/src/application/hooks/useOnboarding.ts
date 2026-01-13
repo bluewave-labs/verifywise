@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useContext } from "react";
-import { OnboardingState, UserPreferences, SampleProjectData } from "../../domain/interfaces/i.onboarding";
+import { OnboardingState, UserPreferences, SampleProjectData } from "../../presentation/types/interfaces/i.onboarding";
 import { VerifyWiseContext } from "../contexts/VerifyWise.context";
 import { useAuth } from "./useAuth";
 
@@ -11,7 +11,7 @@ const initialState: OnboardingState = {
   skippedSteps: [],
   preferences: {},
   sampleProject: {},
-  isComplete: false,
+  isComplete: true, // Temporarily set to true to disable onboarding modal
   lastUpdated: new Date().toISOString(),
 };
 
@@ -181,12 +181,9 @@ export const useOnboarding = () => {
 
   // Check if onboarding should be shown
   const shouldShowOnboarding = useCallback(() => {
-    if (!userId || isLoading) return false;
-
-    // Simply check if onboarding is complete in state
-    // No session storage needed - localStorage persistence handles everything
-    return !state.isComplete;
-  }, [state.isComplete, userId, isLoading]);
+    // Onboarding is temporarily disabled
+    return false;
+  }, []);
 
   return {
     state,

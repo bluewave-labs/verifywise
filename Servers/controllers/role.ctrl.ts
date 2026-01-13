@@ -254,9 +254,9 @@ export async function createRole(req: Request, res: Response): Promise<any> {
       description: "Role creation returned null",
       functionName: "createRole",
       fileName: "role.ctrl.ts",
+      error: new Error("Role creation returned null"),
       userId: req.userId!,
       tenantId: req.tenantId!,
-      error: new Error("Role creation returned null")
     });
 
     return res.status(503).json(STATUS_CODE[503]({}));

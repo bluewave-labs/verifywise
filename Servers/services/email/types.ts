@@ -204,7 +204,7 @@ export interface RefreshableCredentials {
   getTimeSinceLastRefresh(): number;
 }
 
-export type EmailProviderType = 'resend' | 'smtp' | 'exchange-online' | 'exchange-onprem' | 'amazon-ses';
+export type EmailProviderType = 'resend' | 'smtp' | 'exchange-online' | 'exchange-onprem' | 'amazon-ses' | 'azure-communication-services';
 
 export interface SMTPConfig {
   host: string;

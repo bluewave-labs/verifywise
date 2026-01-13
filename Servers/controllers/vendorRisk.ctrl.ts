@@ -23,7 +23,7 @@ export async function getAllVendorRisksAllProjects(
   res: Response
 ): Promise<any> {
   const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
-  
+
   logProcessing({
     description: `starting getAllVendorRisksAllProjects with filter: ${filter}`,
     functionName: 'getAllVendorRisksAllProjects',
@@ -49,9 +49,9 @@ export async function getAllVendorRisksAllProjects(
       description: 'Failed to retrieve vendor risks',
       functionName: 'getAllVendorRisksAllProjects',
       fileName: 'vendorRisk.ctrl.ts',
+      error: error as Error,
       userId: req.userId!,
       tenantId: req.tenantId!,
-      error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -102,9 +102,9 @@ export async function getAllVendorRisks(
       description: 'Failed to retrieve vendor risks by project',
       functionName: 'getAllVendorRisks',
       fileName: 'vendorRisk.ctrl.ts',
+      error: error as Error,
       userId: req.userId!,
       tenantId: req.tenantId!,
-      error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -207,9 +207,9 @@ export async function getVendorRiskById(
       description: 'Failed to retrieve vendor risk by ID',
       functionName: 'getVendorRiskById',
       fileName: 'vendorRisk.ctrl.ts',
+      error: error as Error,
       userId: req.userId!,
       tenantId: req.tenantId!,
-      error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -280,9 +280,9 @@ export async function createVendorRisk(
       description: 'Failed to create vendor risk',
       functionName: 'createVendorRisk',
       fileName: 'vendorRisk.ctrl.ts',
+      error: error as Error,
       userId: req.userId!,
       tenantId: req.tenantId!,
-      error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -378,9 +378,9 @@ export async function updateVendorRiskById(
       description: 'Failed to update vendor risk',
       functionName: 'updateVendorRiskById',
       fileName: 'vendorRisk.ctrl.ts',
+      error: error as Error,
       userId: req.userId!,
       tenantId: req.tenantId!,
-      error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -437,9 +437,9 @@ export async function deleteVendorRiskById(
       description: 'Failed to delete vendor risk',
       functionName: 'deleteVendorRiskById',
       fileName: 'vendorRisk.ctrl.ts',
+      error: error as Error,
       userId: req.userId!,
       tenantId: req.tenantId!,
-      error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

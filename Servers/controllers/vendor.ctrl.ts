@@ -68,6 +68,8 @@ export async function getAllVendors(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -117,6 +119,8 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -169,6 +173,8 @@ export async function getVendorByProjectId(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -265,6 +271,8 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -278,6 +286,8 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -290,6 +300,8 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -322,6 +334,8 @@ export async function updateVendorById(
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: new Error("Unauthorized"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -426,6 +440,8 @@ export async function updateVendorById(
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -439,6 +455,8 @@ export async function updateVendorById(
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -451,6 +469,8 @@ export async function updateVendorById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -510,6 +530,8 @@ export async function deleteVendorById(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

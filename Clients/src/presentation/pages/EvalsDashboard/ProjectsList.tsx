@@ -15,12 +15,9 @@ import {
   TablePagination,
   TableFooter,
   IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
+  Popover,
 } from "@mui/material";
-import { Plus, Pencil, Trash2, FileSearch, MessageSquare, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, FileSearch, MessageSquare, Bot, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
 import SelectableCard from "../../components/SelectableCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
@@ -33,8 +30,14 @@ import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
-import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
+import {
+  getAllProjects,
+  getProjectStats,
+  createProject,
+  updateProject,
+  deleteProject,
+  getAllExperiments,
+} from "../../../application/repository/deepEval.repository";
 import singleTheme from "../../themes/v1SingleTheme";
 import type { DeepEvalProject } from "./types";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -77,17 +80,22 @@ export default function ProjectsList() {
     return saved ? parseInt(saved, 10) : 10;
   });
 
-  // Sorting state
+  // Sorting state - default to date desc
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
     const saved = localStorage.getItem(EVALS_PROJECTS_SORTING_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // If saved state is empty, use the default
+        if (!parsed.key || !parsed.direction) {
+          return { key: "created", direction: "desc" };
+        }
+        return parsed;
       } catch {
-        return { key: "", direction: null };
+        return { key: "created", direction: "desc" };
       }
     }
-    return { key: "", direction: null };
+    return { key: "created", direction: "desc" };
   });
 
   // Save preferences to localStorage
@@ -169,7 +177,7 @@ export default function ProjectsList() {
 
   const loadProjects = useCallback(async () => {
     try {
-      const data = await deepEvalProjectsService.getAllProjects();
+      const data = await getAllProjects();
       const list = data.projects || [];
       setProjects(list);
 
@@ -177,12 +185,12 @@ export default function ProjectsList() {
       const statsArray = await Promise.all(
         (list || []).map(async (p) => {
           try {
-            const res = await experimentsService.getAllExperiments({ project_id: p.id });
+            const res = await getAllExperiments({ project_id: p.id });
             const total = Array.isArray(res?.experiments) ? res.experiments.length : (res?.length ?? 0);
             return { id: p.id, total };
           } catch {
             try {
-              const res = await deepEvalProjectsService.getProjectStats(p.id);
+              const res = await getProjectStats(p.id);
               return { id: p.id, total: res.stats.totalExperiments ?? 0 };
             } catch {
               return { id: p.id, total: 0 };
@@ -286,7 +294,7 @@ export default function ProjectsList() {
         defaultDataset: newProject.useCase,
       };
 
-      await deepEvalProjectsService.createProject(projectConfig);
+      await createProject(projectConfig);
 
       setAlert({
         variant: "success",
@@ -317,7 +325,7 @@ export default function ProjectsList() {
     if (!editingProject) return;
     setLoading(true);
     try {
-      await deepEvalProjectsService.updateProject(editingProject.id, editProjectData);
+      await updateProject(editingProject.id, editProjectData);
       setAlert({
         variant: "success",
         body: `Project "${editProjectData.name}" updated successfully!`,
@@ -341,7 +349,7 @@ export default function ProjectsList() {
     if (!projectToDelete) return;
     setLoading(true);
     try {
-      await deepEvalProjectsService.deleteProject(projectToDelete.id);
+      await deleteProject(projectToDelete.id);
       setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
       setRunsByProject((prev) => {
         const next = { ...prev };
@@ -769,45 +777,73 @@ export default function ProjectsList() {
       )}
 
       {/* Action Menu */}
-      <Menu
-        anchorEl={menuAnchorEl}
+      <Popover
         open={Boolean(menuAnchorEl)}
+        anchorEl={menuAnchorEl}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        PaperProps={{
-          sx: {
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        sx={{
+          "& .MuiPopover-paper": {
             minWidth: 140,
-            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-            borderRadius: "8px",
-            border: "1px solid #E5E7EB",
+            borderRadius: "4px",
+            border: "1px solid #d0d5dd",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            overflow: "hidden",
+            mt: 0.5,
+            p: 1,
           },
         }}
       >
-        {canEditProject && (
-          <MenuItem onClick={handleMenuEdit} sx={{ fontSize: "13px", py: 1 }}>
-            <ListItemIcon sx={{ minWidth: 32 }}>
-              <Pencil size={16} color="#6B7280" />
-            </ListItemIcon>
-            <ListItemText primary="Edit" primaryTypographyProps={{ fontSize: "13px" }} />
-          </MenuItem>
-        )}
-        {canDeleteProject && (
-          <MenuItem onClick={handleMenuDelete} sx={{ fontSize: "13px", py: 1, color: "#DC2626" }}>
-            <ListItemIcon sx={{ minWidth: 32 }}>
-              <Trash2 size={16} color="#DC2626" />
-            </ListItemIcon>
-            <ListItemText primary="Delete" primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }} />
-          </MenuItem>
-        )}
-      </Menu>
+        <Stack spacing={1}>
+          {canEditProject && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleMenuEdit}
+              startIcon={<Pencil size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+              }}
+            >
+              Edit
+            </CustomizableButton>
+          )}
+          {canDeleteProject && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleMenuDelete}
+              startIcon={<Trash2 size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#DC2626",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#FEF2F2",
+                  borderColor: "#DC2626",
+                },
+              }}
+            >
+              Delete
+            </CustomizableButton>
+          )}
+        </Stack>
+      </Popover>
 
       {/* Create Project Modal */}
       <StandardModal
@@ -847,6 +883,13 @@ export default function ProjectsList() {
                 icon={<MessageSquare size={16} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
                 title="Chatbots"
                 description="Evaluate conversational experiences for coherence, correctness and safety."
+              />
+              <SelectableCard
+                isSelected={newProject.useCase === "agent"}
+                onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
+                icon={<Bot size={16} color={newProject.useCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                title="Agent"
+                description="Evaluate AI agents for planning, tool usage, and task completion."
               />
             </Stack>
           </Box>

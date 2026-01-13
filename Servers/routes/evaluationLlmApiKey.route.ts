@@ -7,7 +7,7 @@
  */
 
 import express from 'express';
-import { getAllKeys, addKey, deleteKey, getDecryptedKeys } from '../controllers/evaluationLlmApiKey.ctrl';
+import { getAllKeys, addKey, deleteKey, getDecryptedKeys, verifyKey } from '../controllers/evaluationLlmApiKey.ctrl';
 import authenticateJWT from '../middleware/auth.middleware';
 
 /**
@@ -48,6 +48,20 @@ router.get('/', authenticateJWT, getAllKeys);
  * - apiKey: string (will be encrypted before storage)
  */
 router.post('/', authenticateJWT, addKey);
+
+/**
+ * POST /api/evaluation-llm-keys/verify
+ * Verify an LLM API key by making a test call to the provider
+ *
+ * Body:
+ * - provider: string (openai, anthropic, google, xai, mistral, huggingface, openrouter)
+ * - apiKey: string (plain text API key to verify)
+ *
+ * Returns:
+ * - valid: boolean (whether the key is valid)
+ * - message: string (verification result message)
+ */
+router.post('/verify', authenticateJWT, verifyKey);
 
 /**
  * DELETE /api/evaluation-llm-keys/:provider

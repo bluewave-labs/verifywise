@@ -41,7 +41,7 @@ import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 import { STATUSES } from "../../../../domain/types/Status";
 import Alert from "../../Alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../../types/alert.types";
 import allowedRoles from "../../../../application/constants/permissions";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";

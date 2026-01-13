@@ -4,6 +4,7 @@ import { Outlet, useLocation } from "react-router";
 import { useContext, useEffect, FC, useState } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { EvalsSidebarProvider } from "../../../application/contexts/EvalsSidebar.context";
+import { AIDetectionSidebarProvider } from "../../../application/contexts/AIDetectionSidebar.context";
 import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 import { getAllProjects } from "../../../application/repository/project.repository";
 import {
@@ -274,181 +275,204 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
 
   return (
     <EvalsSidebarProvider>
-      <Stack
-        maxWidth="100%"
-        className="home-layout"
-        flexDirection="row"
-        gap={0}
-        sx={{ backgroundColor: "#FCFCFD" }}
-      >
-        <AppSwitcher
-          activeModule={activeModule}
-          onModuleChange={setActiveModule}
-        />
-        <ContextSidebar
-          activeModule={activeModule}
-          onOpenCreateDemoData={() => setOpenDemoDataModal(true)}
-          onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
-          hasDemoData={hasDemoData}
-        />
-        <Stack sx={{ flex: 1, minWidth: 0 }}>
-          <DemoAppBanner />
-          {alertState && (
-            <Alert
-              variant={alertState.variant}
-              title={alertState.title}
-              body={alertState.body}
-              isToast={true}
-              onClick={() => setAlertState(undefined)}
-            />
-          )}
-          {showToastNotification && <CustomizableToast title={toastMessage} />}
-          <Outlet />
-        </Stack>
-
-      {/* Demo Data Modals */}
-      <StandardModal
-        isOpen={openDemoDataModal}
-        onClose={() => setOpenDemoDataModal(false)}
-        title="Create demo data"
-        description="Generate sample data to explore VerifyWise features"
-        submitButtonText="Create demo data"
-        onSubmit={handleCreateDemoData}
-        isSubmitting={showToastNotification}
-      >
-        <Stack gap="16px">
-          <Box
-            sx={{
-              padding: "12px 16px",
-              backgroundColor: "#F5F7F6",
-              borderRadius: "4px",
-              border: "1px solid #D9E0DD",
+      <AIDetectionSidebarProvider>
+        <Stack
+          maxWidth="100%"
+          className="home-layout"
+          flexDirection="row"
+          gap={0}
+          sx={{ backgroundColor: "#FCFCFD", height: "100vh", overflow: "hidden" }}
+        >
+          <AppSwitcher
+            activeModule={activeModule}
+            onModuleChange={setActiveModule}
+          />
+          <ContextSidebar
+            activeModule={activeModule}
+            onOpenCreateDemoData={() => setOpenDemoDataModal(true)}
+            onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
+            hasDemoData={hasDemoData}
+          />
+          <Stack 
+            className="main-content-area" 
+            sx={{ 
+              flex: 1, 
+              minWidth: 0, 
+              height: "100vh", 
+              display: "flex", 
+              flexDirection: "column",
+              overflow: "hidden"
             }}
           >
-            <Typography variant="body2" sx={{ color: "rgba(0, 0, 0, 0.87)" }}>
-              This will generate demo (mock) data for you, allowing you to
-              explore and get a hands-on understanding of how VerifyWise works.
-              We highly recommend this option.
-            </Typography>
-          </Box>
+            <DemoAppBanner />
+            {alertState && (
+              <Alert
+                variant={alertState.variant}
+                title={alertState.title}
+                body={alertState.body}
+                isToast={true}
+                onClick={() => setAlertState(undefined)}
+              />
+            )}
+            {showToastNotification && <CustomizableToast title={toastMessage} />}
+            <Box 
+              className="scrollable-content"
+              sx={{ 
+                flex: 1, 
+                minHeight: 0,
+                overflowY: "auto", 
+                overflowX: "hidden",
+                padding: "24px"
+              }}
+            >
+              <Outlet />
+            </Box>
+          </Stack>
 
-          <Stack gap="8px">
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              What will be created:
-            </Typography>
-            <Stack gap="4px" sx={{ pl: 2 }}>
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                • A sample use case:
-              </Typography>
-              <Stack gap="2px" sx={{ pl: 2 }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "text.secondary", fontSize: "13px" }}
-                >
-                  - "AI Recruitment Screening Platform" with EU AI Act framework
+          {/* Demo Data Modals */}
+          <StandardModal
+            isOpen={openDemoDataModal}
+            onClose={() => setOpenDemoDataModal(false)}
+            title="Create demo data"
+            description="Generate sample data to explore VerifyWise features"
+            submitButtonText="Create demo data"
+            onSubmit={handleCreateDemoData}
+            isSubmitting={showToastNotification}
+          >
+            <Stack gap="16px">
+              <Box
+                sx={{
+                  padding: "12px 16px",
+                  backgroundColor: "#F5F7F6",
+                  borderRadius: "4px",
+                  border: "1px solid #D9E0DD",
+                }}
+              >
+                <Typography variant="body2" sx={{ color: "rgba(0, 0, 0, 0.87)" }}>
+                  This will generate demo (mock) data for you, allowing you to
+                  explore and get a hands-on understanding of how VerifyWise works.
+                  We highly recommend this option.
                 </Typography>
+              </Box>
+
+              <Stack gap="8px">
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  What will be created:
+                </Typography>
+                <Stack gap="4px" sx={{ pl: 2 }}>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    • A sample use case:
+                  </Typography>
+                  <Stack gap="2px" sx={{ pl: 2 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "text.secondary", fontSize: "13px" }}
+                    >
+                      - "AI Recruitment Screening Platform" with EU AI Act framework
+                    </Typography>
+                  </Stack>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "text.secondary", mt: 1 }}
+                  >
+                    • Sample risks and vendors with realistic compliance scenarios
+                  </Typography>
+                </Stack>
               </Stack>
+
               <Typography
                 variant="body2"
-                sx={{ color: "text.secondary", mt: 1 }}
+                sx={{ color: "text.secondary", fontStyle: "italic" }}
               >
-                • Sample risks and vendors with realistic compliance scenarios
+                Note: You can remove this demo data at any time.
               </Typography>
             </Stack>
-          </Stack>
+          </StandardModal>
 
-          <Typography
-            variant="body2"
-            sx={{ color: "text.secondary", fontStyle: "italic" }}
+          <StandardModal
+            isOpen={openDeleteDemoDataModal}
+            onClose={() => setOpenDeleteDemoDataModal(false)}
+            title="Delete demo data"
+            description="Remove all demo data from your workspace"
+            customFooter={
+              <>
+                <CustomizableButton
+                  variant="outlined"
+                  text="Cancel"
+                  onClick={() => setOpenDeleteDemoDataModal(false)}
+                  sx={{
+                    minWidth: "80px",
+                    height: "34px",
+                    border: "1px solid #D0D5DD",
+                    color: "#344054",
+                    "&:hover": {
+                      backgroundColor: "#F9FAFB",
+                      border: "1px solid #D0D5DD",
+                    },
+                  }}
+                />
+                <CustomizableButton
+                  variant="contained"
+                  text="Delete demo data"
+                  onClick={handleDeleteDemoData}
+                  isDisabled={showToastNotification}
+                  sx={{
+                    minWidth: "80px",
+                    height: "34px",
+                    backgroundColor: "#D32F2F",
+                    "&:hover:not(.Mui-disabled)": {
+                      backgroundColor: "#B71C1C",
+                    },
+                    "&.Mui-disabled": {
+                      backgroundColor: "#E5E7EB",
+                      color: "#9CA3AF",
+                      cursor: "not-allowed",
+                    },
+                  }}
+                />
+              </>
+            }
           >
-            Note: You can remove this demo data at any time.
-          </Typography>
-        </Stack>
-      </StandardModal>
+            <Stack gap="16px">
+              <Box
+                sx={{
+                  padding: "12px 16px",
+                  backgroundColor: "#FEEDED",
+                  borderRadius: "4px",
+                  border: "1px solid #F5C2C2",
+                }}
+              >
+                <Typography variant="body2" sx={{ color: "rgba(0, 0, 0, 0.87)" }}>
+                  This action will permanently delete all demo data from your
+                  workspace. This cannot be undone.
+                </Typography>
+              </Box>
 
-      <StandardModal
-        isOpen={openDeleteDemoDataModal}
-        onClose={() => setOpenDeleteDemoDataModal(false)}
-        title="Delete demo data"
-        description="Remove all demo data from your workspace"
-        customFooter={
-          <>
-            <CustomizableButton
-              variant="outlined"
-              text="Cancel"
-              onClick={() => setOpenDeleteDemoDataModal(false)}
-              sx={{
-                minWidth: "80px",
-                height: "34px",
-                border: "1px solid #D0D5DD",
-                color: "#344054",
-                "&:hover": {
-                  backgroundColor: "#F9FAFB",
-                  border: "1px solid #D0D5DD",
-                },
-              }}
-            />
-            <CustomizableButton
-              variant="contained"
-              text="Delete demo data"
-              onClick={handleDeleteDemoData}
-              isDisabled={showToastNotification}
-              sx={{
-                minWidth: "80px",
-                height: "34px",
-                backgroundColor: "#D32F2F",
-                "&:hover:not(.Mui-disabled)": {
-                  backgroundColor: "#B71C1C",
-                },
-                "&.Mui-disabled": {
-                  backgroundColor: "#E5E7EB",
-                  color: "#9CA3AF",
-                  cursor: "not-allowed",
-                },
-              }}
-            />
-          </>
-        }
-      >
-        <Stack gap="16px">
-          <Box
-            sx={{
-              padding: "12px 16px",
-              backgroundColor: "#FEEDED",
-              borderRadius: "4px",
-              border: "1px solid #F5C2C2",
-            }}
-          >
-            <Typography variant="body2" sx={{ color: "rgba(0, 0, 0, 0.87)" }}>
-              This action will permanently delete all demo data from your
-              workspace. This cannot be undone.
-            </Typography>
-          </Box>
+              <Stack gap="8px">
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  What will be deleted:
+                </Typography>
+                <Stack gap="4px" sx={{ pl: 2 }}>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    • All demo use cases and frameworks
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    • All associated demo risks and vendors
+                  </Typography>
+                </Stack>
+              </Stack>
 
-          <Stack gap="8px">
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              What will be deleted:
-            </Typography>
-            <Stack gap="4px" sx={{ pl: 2 }}>
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                • All demo use cases and frameworks
-              </Typography>
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                • All associated demo risks and vendors
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", fontStyle: "italic" }}
+              >
+                Note: Only demo data will be removed. Your real data will remain
+                untouched.
               </Typography>
             </Stack>
-          </Stack>
-
-          <Typography
-            variant="body2"
-            sx={{ color: "text.secondary", fontStyle: "italic" }}
-          >
-            Note: Only demo data will be removed. Your real data will remain
-            untouched.
-          </Typography>
+          </StandardModal>
         </Stack>
-      </StandardModal>
-      </Stack>
+      </AIDetectionSidebarProvider>
     </EvalsSidebarProvider>
   );
 };

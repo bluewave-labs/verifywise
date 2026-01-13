@@ -99,6 +99,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -112,6 +114,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -124,6 +128,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -238,6 +244,8 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -306,6 +314,8 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -404,6 +414,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -417,6 +429,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
         userId: req.userId!,
         tenantId: req.tenantId!,
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -429,6 +443,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     const statusCode = (error as Error).message.includes("not found") ? 404 :
@@ -507,6 +523,8 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     const statusCode = (error as Error).message.includes("not found") ? 404 :

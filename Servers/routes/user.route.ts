@@ -33,6 +33,7 @@ const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
 import rateLimit from "express-rate-limit";
+import { authLimiter } from "../middleware/rateLimit.middleware";
 
 import {
   checkUserExists,
@@ -110,7 +111,7 @@ router.get("/:id", authenticateJWT, getUserById);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.post("/register", registerJWT, createNewUser);
+router.post("/register", authLimiter, registerJWT, createNewUser);
 
 router.post("/register-google", createNewUserWithGoogle);
 
@@ -137,7 +138,7 @@ router.post("/login", loginLimiter, loginUser);
 
 router.post("/login-google", loginUserWithGoogle);
 
-router.post("/refresh-token", refreshAccessToken);
+router.post("/refresh-token", authLimiter, refreshAccessToken);
 
 /**
  * POST /users/reset-password
@@ -151,7 +152,21 @@ router.post("/refresh-token", refreshAccessToken);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.post("/reset-password", resetPasswordMiddleware, resetPassword);
+router.post("/reset-password", authLimiter, resetPasswordMiddleware, resetPassword);
+
+/**
+ * PATCH /users/chng-pass/:id
+ *
+ * Changes a user's password.
+ *
+ * @name patch/chng-pass/:id
+ * @function
+ * @memberof module:routes/user.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ */
+router.patch("/chng-pass/:id", authLimiter, authenticateJWT, ChangePassword);
 
 /**
  * PATCH /users/:id
@@ -166,8 +181,6 @@ router.post("/reset-password", resetPasswordMiddleware, resetPassword);
  * @param {express.Response} res - Express response object
  */
 router.patch("/:id", authenticateJWT, updateUserById);
-
-router.patch("/chng-pass/:id", ChangePassword);
 
 /**
  * DELETE /users/:id

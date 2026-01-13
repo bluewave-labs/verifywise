@@ -55,9 +55,9 @@ export async function getAllAssessments(
       description: "Failed to retrieve assessments",
       functionName: "getAllAssessments",
       fileName: "assessment.ctrl.ts",
+      error: error as Error,
       userId: req.userId!,
-      tenantId: req.tenantId!,
-      error: error as Error
+      tenantId: req.tenantId!
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -90,7 +90,7 @@ export async function getAssessmentById(
       functionName: "getAssessmentById",
       fileName: "assessment.ctrl.ts",
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.tenantId!
     });
 
     return res
@@ -121,7 +121,7 @@ export async function createAssessment(
     functionName: "createAssessment",
     fileName: "assessment.ctrl.ts",
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.tenantId!
   });
 
   try {
@@ -149,7 +149,7 @@ export async function createAssessment(
         functionName: "createAssessment",
         fileName: "assessment.ctrl.ts",
         userId: req.userId!,
-        tenantId: req.tenantId!,
+        tenantId: req.tenantId!
       });
 
       return res.status(201).json(
@@ -168,7 +168,7 @@ export async function createAssessment(
       functionName: "createAssessment",
       fileName: "assessment.ctrl.ts",
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.tenantId!
     });
 
     return res.status(503).json(
@@ -208,7 +208,7 @@ export async function updateAssessmentById(
     functionName: "updateAssessmentById",
     fileName: "assessment.ctrl.ts",
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.tenantId!
   });
 
   try {
@@ -235,7 +235,7 @@ export async function updateAssessmentById(
         functionName: "updateAssessmentById",
         fileName: "assessment.ctrl.ts",
         userId: req.userId!,
-        tenantId: req.tenantId!,
+        tenantId: req.tenantId!
       });
 
       return res.status(202).json(
@@ -254,7 +254,7 @@ export async function updateAssessmentById(
       functionName: "updateAssessmentById",
       fileName: "assessment.ctrl.ts",
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.tenantId!
     });
 
     return res.status(404).json(
@@ -295,7 +295,7 @@ export async function deleteAssessmentById(
     functionName: "deleteAssessmentById",
     fileName: "assessment.ctrl.ts",
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.tenantId!
   });
 
   try {
@@ -314,7 +314,7 @@ export async function deleteAssessmentById(
         functionName: "deleteAssessmentById",
         fileName: "assessment.ctrl.ts",
         userId: req.userId!,
-        tenantId: req.tenantId!,
+        tenantId: req.tenantId!
       });
 
       return res.status(202).json(STATUS_CODE[202](deletedAssessment));
@@ -326,7 +326,7 @@ export async function deleteAssessmentById(
       functionName: "deleteAssessmentById",
       fileName: "assessment.ctrl.ts",
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.tenantId!
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -355,7 +355,7 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
     functionName: "getAnswers",
     fileName: "assessment.ctrl.ts",
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.tenantId!
   });
 
   try {
@@ -391,7 +391,7 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
       functionName: "getAnswers",
       fileName: "assessment.ctrl.ts",
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.tenantId!
     });
 
     return res.status(200).json(STATUS_CODE[200]({ message: assessment }));
@@ -421,7 +421,7 @@ export async function getAssessmentByProjectId(
     functionName: "getAssessmentByProjectId",
     fileName: "assessment.ctrl.ts",
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.tenantId!
   });
 
   try {
@@ -436,7 +436,7 @@ export async function getAssessmentByProjectId(
       functionName: "getAssessmentByProjectId",
       fileName: "assessment.ctrl.ts",
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.tenantId!
     });
 
     return res

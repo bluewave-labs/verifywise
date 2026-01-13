@@ -308,8 +308,7 @@ export async function createControlCategory(
     );
     await logEvent(
       "Error",
-      `Unexpected error during control category creation: ${
-        (error as Error).message
+      `Unexpected error during control category creation: ${(error as Error).message
       }`,
       req.userId!,
       req.tenantId!
@@ -502,8 +501,7 @@ export async function updateControlCategoryById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during control category update for ID ${controlCategoryId}: ${
-        (error as Error).message
+      `Unexpected error during control category update for ID ${controlCategoryId}: ${(error as Error).message
       }`,
       req.userId!,
       req.tenantId!
@@ -628,8 +626,7 @@ export async function deleteControlCategoryById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during control category deletion for ID ${controlCategoryId}: ${
-        (error as Error).message
+      `Unexpected error during control category deletion for ID ${controlCategoryId}: ${(error as Error).message
       }`,
       req.userId!,
       req.tenantId!

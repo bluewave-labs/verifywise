@@ -28,6 +28,7 @@ export interface FormValues {
   geography: number;
   target_industry: string;
   description: string;
+  approval_workflow_id: number;
 }
 
 export interface FormErrors {
@@ -44,6 +45,7 @@ export interface FormErrors {
   geography?: string;
   targetIndustry?: string;
   description?: string;
+  approvalWorkflow?: string;
 }
 
 export const initialState: FormValues = {
@@ -61,6 +63,7 @@ export const initialState: FormValues = {
   geography: 1,
   target_industry: "",
   description: "",
+  approval_workflow_id: 0,
 };
 
 export interface ProjectFormProps {

@@ -50,7 +50,7 @@ const ALLOWED_TABLE_NAMES = new Set([
   "model_inventories",
   "evidence_hub",
   "risks",
-  "file_manager",
+  "files",
   "policy_manager",
   "ai_trust_center_resources",
   "ai_trust_center_subprocessor",
@@ -202,12 +202,14 @@ const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     // Tenant schema isolation provides security
   },
   file_manager: {
-    tableName: "file_manager",
+    tableName: "files",
     searchColumns: ["filename"],
     titleColumn: "filename",
     icon: "Folder",
     route: (id) => `/file-manager?fileId=${id}`,
     organizationColumn: "org_id",
+    // Note: For file manager, we only search org-level files (project_id IS NULL)
+    // This is handled via additionalWhereClause in the search query
   },
   policy_manager: {
     tableName: "policy_manager",
@@ -386,6 +388,11 @@ async function searchEntity(
     if (vendorIds.length === 0) return [];
     conditions.push(`vendor_id IN (:vendorIds)`);
     replacements.vendorIds = vendorIds;
+  }
+
+  // For file_manager searches, only include org-level files (project_id IS NULL)
+  if (entityType === "file_manager") {
+    conditions.push(`project_id IS NULL`);
   }
 
   // Validate table name against whitelist (SQL injection prevention)

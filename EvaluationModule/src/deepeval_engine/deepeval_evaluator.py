@@ -331,11 +331,17 @@ class DeepEvalEvaluator:
             "context_precision": 0.5,
             "context_recall": 0.5,
             "faithfulness": 0.5,
-            # Agent-specific
+            # Agent-specific (legacy)
             "tool_selection": 0.5,
             "tool_correctness": 0.5,
             "action_relevance": 0.5,
             "planning_quality": 0.5,
+            # Agent-specific (comprehensive - per DeepEval docs)
+            "plan_quality": 0.5,
+            "plan_adherence": 0.5,
+            "argument_correctness": 0.5,
+            "task_completion": 0.5,
+            "step_efficiency": 0.5,
         }
         for key, value in default_thresholds.items():
             if key not in self.metric_thresholds:
@@ -394,12 +400,23 @@ class DeepEvalEvaluator:
                     "description": "Multi-turn RAG evaluation with context awareness"
                 }
             elif use_case == "agent":
-                # Agent multi-turn: add tool/action metrics
+                # Agent multi-turn: comprehensive agent metrics per DeepEval docs
+                # https://deepeval.com/docs/getting-started-agents
                 return {
-                    "metric_names": base_metrics + ["Tool Usage", "Action Correctness"],
+                    "metric_names": base_metrics + [
+                        # Reasoning Layer
+                        "Plan Quality",
+                        "Plan Adherence",
+                        # Action Layer
+                        "Tool Correctness",
+                        "Argument Correctness",
+                        # Execution
+                        "Task Completion",
+                        "Step Efficiency"
+                    ],
                     "is_multi_turn": True,
                     "use_case": use_case,
-                    "description": "Multi-turn Agent evaluation with tool tracking"
+                    "description": "Multi-turn Agent evaluation with reasoning, action, and execution metrics"
                 }
             else:
                 # Chatbot multi-turn: base conversational metrics
@@ -435,15 +452,23 @@ class DeepEvalEvaluator:
                     "description": "Single-turn RAG evaluation with retrieval metrics"
                 }
             elif use_case == "agent":
-                # Agent single-turn: add tool metrics
+                # Agent single-turn: comprehensive agent metrics per DeepEval docs
+                # https://deepeval.com/docs/getting-started-agents
                 return {
                     "metric_names": base_metrics + [
-                        "Tool Selection",
-                        "Tool Correctness"
+                        # Reasoning Layer
+                        "Plan Quality",
+                        "Plan Adherence",
+                        # Action Layer
+                        "Tool Correctness",
+                        "Argument Correctness",
+                        # Execution
+                        "Task Completion",
+                        "Step Efficiency"
                     ],
                     "is_multi_turn": False,
                     "use_case": use_case,
-                    "description": "Single-turn Agent evaluation with tool metrics"
+                    "description": "Single-turn Agent evaluation with reasoning, action, and execution metrics"
                 }
             else:
                 # Chatbot single-turn: universal core metrics
@@ -1060,7 +1085,7 @@ class DeepEvalEvaluator:
                 )
             ))
         
-        # Planning Quality
+        # Planning Quality (legacy name support)
         if metrics_config.get("planning_quality", False):
             metrics_to_use.append((
                 "Planning Quality",
@@ -1071,6 +1096,153 @@ class DeepEvalEvaluator:
                     max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                     rubric="Planning Quality: Evaluate the quality and efficiency of the agent's multi-step plan. Score 1.0 if optimal planning, 0.5 if functional but inefficient, 0.0 if poor or illogical planning."
+                )
+            ))
+        
+        # ============================================
+        # COMPREHENSIVE AGENT METRICS (DeepEval Agent Evaluation)
+        # Based on: https://deepeval.com/docs/getting-started-agents
+        # ============================================
+        
+        # --- Reasoning Layer Metrics ---
+        
+        # Plan Quality Metric (comprehensive version)
+        if metrics_config.get("plan_quality", False):
+            metrics_to_use.append((
+                "Plan Quality",
+                GEvalLikeMetric(
+                    threshold=self.metric_thresholds.get("plan_quality", 0.5),
+                    model_name=judge_model_name,
+                    provider=judge_provider,
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
+                    temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
+                    rubric="""Plan Quality: Evaluate how well the agent plans to accomplish the task.
+                    
+Consider these aspects:
+1. Task Understanding: Does the agent correctly understand what the user wants?
+2. Task Decomposition: Does the agent break complex tasks into manageable sub-tasks?
+3. Dependency Handling: Does the plan respect dependencies between sub-tasks?
+4. Completeness: Does the plan cover all requirements to accomplish the goal?
+5. Efficiency: Is the plan optimal without unnecessary steps?
+
+Scoring:
+- 1.0: Excellent plan - logical, complete, efficient, handles dependencies
+- 0.7-0.9: Good plan with minor inefficiencies
+- 0.4-0.6: Acceptable plan but missing some aspects or inefficient
+- 0.1-0.3: Poor plan - illogical or incomplete
+- 0.0: No discernible plan or completely wrong approach"""
+                )
+            ))
+        
+        # Plan Adherence Metric
+        if metrics_config.get("plan_adherence", False):
+            metrics_to_use.append((
+                "Plan Adherence",
+                GEvalLikeMetric(
+                    threshold=self.metric_thresholds.get("plan_adherence", 0.5),
+                    model_name=judge_model_name,
+                    provider=judge_provider,
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
+                    temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
+                    rubric="""Plan Adherence: Evaluate how well the agent follows its own plan during execution.
+
+Consider these aspects:
+1. Consistency: Does the agent execute steps as planned?
+2. Order: Are steps executed in the planned sequence?
+3. Completion: Does the agent complete all planned steps?
+4. Adaptation: If the agent deviates, is it justified (e.g., handling errors)?
+
+Scoring:
+- 1.0: Perfect adherence - all planned steps executed correctly
+- 0.7-0.9: Minor deviations but justified and effective
+- 0.4-0.6: Some unjustified deviations or skipped steps
+- 0.1-0.3: Significant deviation from plan without justification
+- 0.0: Completely ignores the plan"""
+                )
+            ))
+        
+        # --- Action Layer Metrics ---
+        
+        # Argument Correctness Metric
+        if metrics_config.get("argument_correctness", False):
+            metrics_to_use.append((
+                "Argument Correctness",
+                GEvalLikeMetric(
+                    threshold=self.metric_thresholds.get("argument_correctness", 0.5),
+                    model_name=judge_model_name,
+                    provider=judge_provider,
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
+                    temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
+                    rubric="""Argument Correctness: Evaluate if the agent provided correct arguments/parameters to tools.
+
+Consider these aspects:
+1. Parameter Types: Are arguments of the correct type (string, number, etc.)?
+2. Parameter Values: Are values correctly extracted from context?
+3. Required Fields: Are all required parameters provided?
+4. Format: Are arguments in the expected format?
+
+Scoring:
+- 1.0: All arguments correct - types, values, and formats are perfect
+- 0.7-0.9: Minor argument issues that don't affect functionality
+- 0.4-0.6: Some incorrect arguments but tool still functions
+- 0.1-0.3: Significant argument errors causing tool failures
+- 0.0: Completely wrong arguments or missing required parameters"""
+                )
+            ))
+        
+        # --- Execution Layer Metrics ---
+        
+        # Task Completion Metric
+        if metrics_config.get("task_completion", False):
+            metrics_to_use.append((
+                "Task Completion",
+                GEvalLikeMetric(
+                    threshold=self.metric_thresholds.get("task_completion", 0.5),
+                    model_name=judge_model_name,
+                    provider=judge_provider,
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
+                    temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
+                    rubric="""Task Completion: Evaluate whether the agent successfully completed the requested task.
+
+Consider these aspects:
+1. Goal Achievement: Did the agent accomplish what the user asked for?
+2. Correctness: Is the final result correct and accurate?
+3. Completeness: Are all parts of the task addressed?
+4. User Satisfaction: Would the user be satisfied with the outcome?
+
+Scoring:
+- 1.0: Task fully completed - all goals achieved correctly
+- 0.7-0.9: Task mostly completed with minor omissions
+- 0.4-0.6: Partial completion - some goals achieved
+- 0.1-0.3: Minimal progress toward task completion
+- 0.0: Task not completed or completely wrong result"""
+                )
+            ))
+        
+        # Step Efficiency Metric
+        if metrics_config.get("step_efficiency", False):
+            metrics_to_use.append((
+                "Step Efficiency",
+                GEvalLikeMetric(
+                    threshold=self.metric_thresholds.get("step_efficiency", 0.5),
+                    model_name=judge_model_name,
+                    provider=judge_provider,
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
+                    temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
+                    rubric="""Step Efficiency: Evaluate if the agent completed the task with optimal efficiency.
+
+Consider these aspects:
+1. Minimal Steps: Did the agent use the minimum necessary steps?
+2. No Redundancy: Were there any redundant or repeated actions?
+3. Direct Path: Did the agent take a direct path to the goal?
+4. Resource Usage: Were tools used efficiently without waste?
+
+Scoring:
+- 1.0: Optimal efficiency - minimal steps, no redundancy
+- 0.7-0.9: Efficient with minor unnecessary steps
+- 0.4-0.6: Moderately efficient but with some wasted effort
+- 0.1-0.3: Inefficient with many unnecessary steps
+- 0.0: Extremely inefficient or circuitous approach"""
                 )
             ))
         

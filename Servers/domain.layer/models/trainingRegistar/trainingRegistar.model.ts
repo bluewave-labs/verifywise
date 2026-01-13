@@ -359,6 +359,8 @@ export class TrainingRegistarModel
       numberOfPeople: this.numberOfPeople,
       description: this.description,
       progressPercentage: this.getProgressPercentage(),
+      createdAt: this.getDataValue("createdAt"),
+      updatedAt: this.getDataValue("updatedAt"),
     };
   }
 

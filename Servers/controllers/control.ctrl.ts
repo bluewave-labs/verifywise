@@ -391,8 +391,7 @@ export async function updateControlById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during control update for ID ${controlId}: ${
-        (error as Error).message
+      `Unexpected error during control update for ID ${controlId}: ${(error as Error).message
       }`,
       req.userId!,
       req.tenantId!
@@ -556,8 +555,7 @@ export async function deleteControlById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during control deletion for ID ${controlId}: ${
-        (error as Error).message
+      `Unexpected error during control deletion for ID ${controlId}: ${(error as Error).message
       }`,
       req.userId!,
       req.tenantId!
@@ -837,8 +835,7 @@ export async function saveControls(
     );
     await logEvent(
       "Error",
-      `Unexpected error during control save for ID ${req.params.id}: ${
-        (error as Error).message
+      `Unexpected error during control save for ID ${req.params.id}: ${(error as Error).message
       }`,
       req.userId!,
       req.tenantId!

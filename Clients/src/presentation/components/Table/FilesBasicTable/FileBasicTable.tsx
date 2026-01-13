@@ -25,7 +25,7 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
-import { IFileBasicTableProps } from "../../../../domain/interfaces/i.table";
+import { IFileBasicTableProps } from "../../../types/interfaces/i.table";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
 import ProjectRiskLinkedPolicies from "../../ProjectRiskMitigation/ProjectRiskLinkedPolicies";
 
@@ -327,9 +327,9 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
 
   // Create delete handler for a specific file
   const createDeleteHandler = useCallback(
-    (fileId: string, source?: string) => async () => {
+    (fileId: string) => async () => {
       try {
-        await deleteFileFromManager({ id: fileId, source });
+        await deleteFileFromManager({ id: fileId });
         // After successful delete, refresh the list
         if (onFileDeleted) {
           onFileDeleted();
@@ -368,7 +368,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
                   height: "36px",
-                  "&:hover": { backgroundColor: "#FBFBFB" },
+                  "&:hover": { backgroundColor: "#f5f5f5" },
                 }}
               >
                 <TableCell
@@ -478,9 +478,9 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     type="report"
                     onEdit={() => {}}
                     onDownload={() =>
-                      handleDownload(row.id, row.fileName, row.source)
+                      handleDownload(row.id, row.fileName)
                     }
-                    onDelete={createDeleteHandler(row.id, row.source)}
+                    onDelete={createDeleteHandler(row.id)}
                     openLinkedPolicies={() => handleViewLinkedPolicies(Number(row.id!))}
                     warningTitle="Delete this file?"
                     warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."

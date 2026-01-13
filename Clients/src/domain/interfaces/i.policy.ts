@@ -1,5 +1,5 @@
-import { PolicyManagerModel } from "../models/Common/policy/policyManager.model";
 import { User } from "../types/User";
+import { PolicyManagerModel } from "../models/Common/policy/policyManager.model";
 
 export interface PolicyTableProps {
   data: PolicyManagerModel[];
@@ -10,6 +10,7 @@ export interface PolicyTableProps {
   isLoading?: boolean;
   error?: Error | null;
   hidePagination?: boolean;
+  flashRowId?: number | string | null;
 }
 
 export interface PolicyInput {
@@ -17,14 +18,13 @@ export interface PolicyInput {
   status: string;
   tags?: string[];
   content_html: string;
-  next_review_date?: Date | undefined; // ISO date string
+  next_review_date?: Date | undefined;
   assigned_reviewer_ids?: number[];
 }
 
-export interface PolicyStatusCardProps {
-  policies: PolicyManagerModel[];
-}
-
+/**
+ * Form data structure for policy editing
+ */
 export interface PolicyFormData {
   title: string;
   status: string;
@@ -34,20 +34,18 @@ export interface PolicyFormData {
   content: string;
 }
 
+/**
+ * Policy template structure
+ */
 export interface PolicyTemplate {
   title: string;
   tags: string[];
   content: string;
 }
 
-export interface PolicyDetailModalProps {
-  policy: PolicyManagerModel | null;
-  tags: string[];
-  template?: PolicyTemplate;
-  onClose: () => void;
-  onSaved: (successMessage?: string) => void;
-}
-
+/**
+ * Form validation errors structure
+ */
 export interface PolicyFormErrors {
   title?: string;
   status?: string;
@@ -57,21 +55,6 @@ export interface PolicyFormErrors {
   content?: string;
 }
 
-export interface PolicyFormProps {
-  formData: PolicyFormData;
-  setFormData: React.Dispatch<React.SetStateAction<PolicyFormData>>;
-  tags: string[];
-  errors: PolicyFormErrors;
-  setErrors: React.Dispatch<React.SetStateAction<PolicyFormErrors>>;
-}
-
-export interface PolicyManagerProps {
-  policies: PolicyManagerModel[];
-  tags: string[];
-  fetchAll: () => void;
-}
-
-export interface PolicyTemplatesProps {
-  tags: string[];
-  fetchAll: () => void;
-}
+// Note: Presentation-specific interfaces (PolicyTableProps, PolicyStatusCardProps,
+// PolicyDetailModalProps, PolicyFormProps, PolicyManagerProps, PolicyTemplatesProps)
+// have been moved to: presentation/types/interfaces/i.policy.ts

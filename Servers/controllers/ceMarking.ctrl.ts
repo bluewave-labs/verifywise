@@ -278,9 +278,19 @@ export const getCEMarking = async (req: Request, res: Response) => {
 
     return res.status(200).json(response);
   } catch (error) {
-    logger.error('Error in getCEMarking:', error);
-    await logEvent('Error', `Failed to get CE Marking data: ${(error as Error).message}`, req.userId!, req.tenantId!);
-    res.status(500).json({ error: 'Failed to get CE Marking data', details: (error as Error).message });
+    logger.error("Error in getCEMarking:", error);
+    await logEvent(
+      "Error",
+      `Failed to get CE Marking data: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
+    );
+    return res
+      .status(500)
+      .json({
+        error: "Failed to get CE Marking data",
+        details: (error as Error).message,
+      });
   }
 };
 
@@ -682,8 +692,18 @@ export const updateCEMarking = async (req: Request, res: Response) => {
     return await getCEMarking(req, res);
   } catch (error) {
     await transaction.rollback();
-    logger.error('Error in updateCEMarking:', error);
-    await logEvent('Error', `Failed to update CE Marking data: ${(error as Error).message}`, req.userId!, req.tenantId!);
-    res.status(500).json({ error: 'Failed to update CE Marking data', details: (error as Error).message });
+    logger.error("Error in updateCEMarking:", error);
+    await logEvent(
+      "Error",
+      `Failed to update CE Marking data: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
+    );
+    return res
+      .status(500)
+      .json({
+        error: "Failed to update CE Marking data",
+        details: (error as Error).message,
+      });
   }
 };

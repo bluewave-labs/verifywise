@@ -51,14 +51,14 @@ function getTenantLogger(tenantId: string = 'default') {
     level: isDev ? 'debug' : 'info',
     format: combine(timestamp({ format: () => new Date().toISOString() }), logFormat),
     transports: isDev ? [consoleTransport, fileTransport] : [fileTransport],
-  });
+});
 }
 
 export default logger;
 
 let logId = 1;
 
-export function logStructured(
+export function   logStructured(
   state: 'processing' | 'successful' | 'error',
   description: string,
   functionName: string,

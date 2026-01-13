@@ -32,6 +32,7 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import logger from "../utils/logger/fileLogger";
+import { hasPendingApprovalQuery } from "../utils/approvalRequest.utils";
 
 export async function getAssessmentsByProjectId(
   req: Request,
@@ -43,7 +44,7 @@ export async function getAssessmentsByProjectId(
     functionName: "getAssessmentsByProjectId",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Fetching assessments for project framework ID ${projectFrameworkId}`
@@ -90,7 +91,7 @@ export async function getCompliancesByProjectId(
     functionName: "getCompliancesByProjectId",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Fetching compliances for project framework ID ${projectFrameworkId}`
@@ -136,7 +137,7 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
     functionName: "getTopicById",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Looking up topic ID ${topicId} for project framework ID ${projectFrameworkId}`
@@ -156,7 +157,7 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
         functionName: "getTopicById",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](topic));
     }
@@ -205,7 +206,7 @@ export async function getControlById(
     functionName: "getControlById",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Looking up control ID ${controlId} for project framework ID ${projectFrameworkId}`
@@ -228,7 +229,7 @@ export async function getControlById(
         functionName: "getControlById",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](topic));
     }
@@ -268,7 +269,7 @@ export async function saveControls(
     functionName: "saveControls",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(`💾 Saving controls for control ID ${controlId}`);
 
@@ -279,6 +280,34 @@ export async function saveControls(
       project_id: number;
       delete: string;
     };
+
+    // Check for pending approval
+    if (Control.project_id) {
+      const hasPendingApproval = await hasPendingApprovalQuery(
+        Control.project_id,
+        "use_case",
+        req.tenantId!,
+        transaction
+      );
+
+      if (hasPendingApproval) {
+        await transaction.rollback();
+        await logFailure({
+          eventType: "Update",
+          description: `Cannot save controls for project with pending approval: project ID ${Control.project_id}, control ID ${controlId}`,
+          functionName: "saveControls",
+          fileName: "eu.ctrl.ts",
+          error: new Error("Project has pending approval and controls cannot be modified"),
+          userId: req.userId!,
+          tenantId: req.tenantId!,
+        });
+        return res.status(403).json(
+          STATUS_CODE[403](
+            "This use case has a pending approval request. Controls cannot be modified until the approval process is complete."
+          )
+        );
+      }
+    }
 
     // Control-level status fields are no longer managed here - they exist only at subcontrol level
     // The control record in database doesn't need to be updated - all editable fields are at subcontrol level
@@ -428,7 +457,7 @@ export async function updateQuestionById(
     functionName: "updateQuestionById",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(`✏️ Updating question ID ${questionId}`);
 
@@ -442,6 +471,39 @@ export async function updateQuestionById(
         delete: string;
       }
     > = req.body;
+
+    // Get project ID and check for pending approval
+    const projectId =
+      typeof body.project_id === "string"
+        ? parseInt(body.project_id)
+        : (body.project_id as number);
+
+    if (projectId) {
+      const hasPendingApproval = await hasPendingApprovalQuery(
+        projectId,
+        "use_case",
+        req.tenantId!,
+        transaction
+      );
+
+      if (hasPendingApproval) {
+        await transaction.rollback();
+        await logFailure({
+          eventType: "Update",
+          description: `Cannot update question for project with pending approval: project ID ${projectId}, question ID ${questionId}`,
+          functionName: "updateQuestionById",
+          fileName: "eu.ctrl.ts",
+          error: new Error("Project has pending approval and assessments cannot be modified"),
+          userId: req.userId!,
+          tenantId: req.tenantId!,
+        });
+        return res.status(403).json(
+          STATUS_CODE[403](
+            "This use case has a pending approval request. Assessments cannot be modified until the approval process is complete."
+          )
+        );
+      }
+    }
 
     // Handle file deletions
     const filesToDelete = JSON.parse(body.delete || "[]") as number[];
@@ -482,10 +544,7 @@ export async function updateQuestionById(
       typeof body.user_id === "string"
         ? parseInt(body.user_id)
         : (body.user_id as number);
-    const projectId =
-      typeof body.project_id === "string"
-        ? parseInt(body.project_id)
-        : (body.project_id as number);
+    // projectId already declared above for pending approval check
 
     logger.debug(
       `👤 userId: ${userId}, projectId: ${projectId}, evidenceFiles.length: ${evidenceFiles.length}`
@@ -581,7 +640,7 @@ export async function updateQuestionById(
         functionName: "updateQuestionById",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
         error: new Error("Question not found"),
       });
       return res.status(404).json(STATUS_CODE[404]({}));
@@ -633,7 +692,7 @@ export async function deleteAssessmentsByProjectId(
     functionName: "deleteAssessmentsByProjectId",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🗑️ Deleting assessments for project framework ID ${projectFrameworkId}`
@@ -654,7 +713,7 @@ export async function deleteAssessmentsByProjectId(
         functionName: "deleteAssessmentsByProjectId",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](result));
     }
@@ -697,7 +756,7 @@ export async function deleteCompliancesByProjectId(
     functionName: "deleteCompliancesByProjectId",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🗑️ Deleting compliances for project framework ID ${projectFrameworkId}`
@@ -718,7 +777,7 @@ export async function deleteCompliancesByProjectId(
         functionName: "deleteCompliancesByProjectId",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](result));
     }
@@ -760,7 +819,7 @@ export async function getProjectAssessmentProgress(
     functionName: "getProjectAssessmentProgress",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `📊 Calculating assessment progress for project framework ID ${projectFrameworkId}`
@@ -816,7 +875,7 @@ export async function getProjectComplianceProgress(
     functionName: "getProjectComplianceProgress",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `📊 Calculating compliance progress for project framework ID ${projectFrameworkId}`
@@ -873,7 +932,7 @@ export async function getAllProjectsAssessmentProgress(
     functionName: "getAllProjectsAssessmentProgress",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("📊 Calculating assessment progress across all projects");
 
@@ -887,7 +946,7 @@ export async function getAllProjectsAssessmentProgress(
         functionName: "getAllProjectsAssessmentProgress",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
         error: new Error("Unauthorized"),
       });
       return res.status(401).json({ message: "Unauthorized" });
@@ -919,7 +978,7 @@ export async function getAllProjectsAssessmentProgress(
         functionName: "getAllProjectsAssessmentProgress",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(
@@ -935,7 +994,7 @@ export async function getAllProjectsAssessmentProgress(
         functionName: "getAllProjectsAssessmentProgress",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](projects));
     }
@@ -965,7 +1024,7 @@ export async function getAllProjectsComplianceProgress(
     functionName: "getAllProjectsComplianceProgress",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("📊 Calculating compliance progress across all projects");
 
@@ -979,7 +1038,7 @@ export async function getAllProjectsComplianceProgress(
         functionName: "getAllProjectsComplianceProgress",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
         error: new Error("Unauthorized"),
       });
       return res.status(401).json({ message: "Unauthorized" });
@@ -1014,7 +1073,7 @@ export async function getAllProjectsComplianceProgress(
         functionName: "getAllProjectsComplianceProgress",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(
@@ -1030,7 +1089,7 @@ export async function getAllProjectsComplianceProgress(
         functionName: "getAllProjectsComplianceProgress",
         fileName: "eu.ctrl.ts",
         userId: req.userId!,
-      tenantId: req.tenantId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](projects));
     }
@@ -1057,7 +1116,7 @@ export async function getAllControlCategories(
     functionName: "getAllControlCategories",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("🔍 Fetching all control categories");
 
@@ -1112,7 +1171,7 @@ export async function getControlsByControlCategoryId(
     functionName: "getControlsByControlCategoryId",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Fetching controls for control category ID ${controlCategoryId} and project framework ID ${projectFrameworkId}`
@@ -1158,7 +1217,7 @@ export async function getAllTopics(req: Request, res: Response): Promise<any> {
     functionName: "getAllTopics",
     fileName: "eu.ctrl.ts",
     userId: req.userId!,
-      tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("🔍 Fetching all topics");
 

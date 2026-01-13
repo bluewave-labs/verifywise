@@ -2,7 +2,6 @@ import { Worker, Job } from "bullmq";
 import redisClient from "../../database/redis";
 
 import { sendPolicyDueSoonNotification } from "./policyDueSoonNotification";
-// import { logSuccess, logFailure } from "../../utils/logger/logHelper";
 
 export const createNotificationWorker = () => {
   const worker = new Worker(

@@ -105,7 +105,7 @@ const Reports: React.FC<ReportsProps> = ({
     const project = projects.find(
       (p) => p.id.toString() === report.project_id?.toString()
     );
-    if (project && project.framework.some((f) => f.framework_id !== 1)) {
+    if (project && project.framework?.some((f) => f.framework_id !== 1)) {
       return {
         ...report,
         project_title: organizationName,

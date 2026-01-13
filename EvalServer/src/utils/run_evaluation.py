@@ -545,10 +545,9 @@ async def run_evaluation(
             # 3B. Single-turn path (existing)
             print(f"\n🤖 Generating {len(prompts)} responses...\n")
             for idx, prompt_data in enumerate(prompts, 1):
+                start_time = datetime.now()  # Set before try block so it's always defined
                 try:
                     print(f"  [{idx}/{len(prompts)}] Processing: {prompt_data['prompt'][:50]}...")
-                    
-                    start_time = datetime.now()
                     
                     # Generate response (first attempt)
                     response = model_runner.generate(
@@ -635,8 +634,11 @@ async def run_evaluation(
                     
                 except Exception as e:
                     print(f"     ❌ Error: {e}")
-                    
-                    # Log the error
+
+                    # Calculate latency even for errors (time spent before error)
+                    error_latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+
+                    # Log the error with latency
                     await crud.create_log(
                         db=db,
                         project_id=config.get("project_id"),
@@ -644,6 +646,8 @@ async def run_evaluation(
                         experiment_id=experiment_id,
                         input_text=prompt_data.get("prompt", str(prompt_data)[:200]),
                         model_name=model_name,
+                        latency_ms=error_latency_ms,
+                        token_count=0,
                         status="error",
                         error_message=str(e),
                     )

@@ -24,7 +24,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { CloudUpload as CloudUploadIcon } from "lucide-react";
-import { ImageFieldProps } from "../../../../domain/interfaces/i.widget";
+import { ImageFieldProps } from "../../../types/widget.types";
 import { checkImage, IconButtonStack, TextFieldStyles } from "./constants";
 
 const ImageField: React.FC<ImageFieldProps> = ({

@@ -155,6 +155,7 @@ export class ProjectModel
    * Convert to JSON representation
    */
   toJSON(): any {
+    const dataValues = this.dataValues as any;
     return {
       id: this.id,
       uc_id: this.uc_id,
@@ -173,6 +174,11 @@ export class ProjectModel
       created_at: this.created_at?.toISOString(),
       is_organizational: this.is_organizational,
       status: this.status,
+      // Include dynamically added properties from queries
+      framework: dataValues?.framework,
+      members: dataValues?.members,
+      has_pending_approval: dataValues?.has_pending_approval,
+      approval_status: dataValues?.approval_status,
     };
   }
 

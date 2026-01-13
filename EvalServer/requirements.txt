@@ -1,5 +1,5 @@
 aiohappyeyeballs==2.6.1
-aiohttp==3.13.2
+aiohttp==3.13.3
 aiosignal==1.4.0
 alembic==1.17.1
 annotated-doc==0.0.3
@@ -18,7 +18,7 @@ distro==1.9.0
 docstring_parser==0.17.0
 eval_type_backport==0.2.2
 fastapi==0.121.0
-filelock==3.20.1
+filelock==3.20.3
 frozenlist==1.8.0
 fsspec==2025.10.0
 google-ai-generativelanguage==0.6.15
@@ -95,7 +95,7 @@ tabulate==0.9.0
 tenacity==9.1.2
 threadpoolctl==3.6.0
 tokenizers==0.22.1
-torch==2.5.1
+torch==2.8.0
 tqdm==4.67.1
 transformers==4.57.1
 typer==0.20.0
@@ -103,7 +103,7 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2025.2
 uritemplate==4.2.0
-urllib3==2.6.0
+urllib3==2.6.3
 uvicorn==0.38.0
 watchfiles==1.1.1
 websockets==15.0.1

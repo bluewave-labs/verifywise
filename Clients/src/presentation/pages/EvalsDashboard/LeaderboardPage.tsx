@@ -15,7 +15,7 @@ import {
   MenuItem,
   FormControl,
 } from "@mui/material";
-import { Search, Trophy, Info } from "lucide-react";
+import { Search, Info, BarChart3 } from "lucide-react";
 import { getAllExperiments } from "../../../application/repository/deepEval.repository";
 import LeaderboardTable from "../../components/Table/LeaderboardTable";
 import { LeaderboardEntry, METRIC_CONFIG } from "../../components/Table/LeaderboardTable/leaderboardConfig";
@@ -42,7 +42,6 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [availableMetrics, setAvailableMetrics] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("overall");
 
   // Load leaderboard data from experiments
@@ -206,11 +205,6 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
       // Merge real entries with sample entries (real data takes priority)
       const combinedEntries = [...leaderboardEntries, ...sampleEntries];
       
-      // Add sample metrics to available metrics
-      const sampleMetrics = ["bias", "toxicity", "correctness", "completeness", "hallucination", "answerRelevancy"];
-      sampleMetrics.forEach(m => allMetrics.add(m));
-      setAvailableMetrics(Array.from(allMetrics).sort());
-      
       setEntries(combinedEntries);
     } catch (err) {
       console.error("Failed to load leaderboard data:", err);
@@ -249,22 +243,19 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
           pt: 2,
         }}
       >
-        {/* Logo/Icon */}
+        {/* Favicon */}
         <Box
           sx={{
             width: 64,
             height: 64,
-            borderRadius: "16px",
-            background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             mx: "auto",
             mb: 2,
-            boxShadow: "0 4px 14px rgba(245, 158, 11, 0.3)",
           }}
         >
-          <Trophy size={32} color="#78350f" />
+          <img src="/favicon64x64.svg" alt="VerifyWise" style={{ width: 64, height: 64 }} />
         </Box>
 
         {/* Title */}
@@ -334,10 +325,10 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             sx={{ minWidth: 150, bgcolor: "#fff" }}
-            startAdornment={<Trophy size={14} color="#f59e0b" style={{ marginRight: 8 }} />}
+            startAdornment={<BarChart3 size={14} color="#13715B" style={{ marginRight: 8 }} />}
           >
             <MenuItem value="overall">Overall</MenuItem>
-            {availableMetrics.map((m) => (
+            {displayMetrics.map((m) => (
               <MenuItem key={m} value={m}>
                 {METRIC_CONFIG[m]?.name || m}
               </MenuItem>

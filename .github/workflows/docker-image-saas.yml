@@ -8,6 +8,7 @@ jobs:
   build-and-push:
     if: ${{ endsWith(github.event.release.tag_name, '-saas') }}
     runs-on: ubuntu-latest
+    environment: Build
 
     env:
       FULL_TAG: ${{ github.event.release.tag_name }}
@@ -56,6 +57,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:${{ env.TAG }}
             ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:latest
           build-args: |
+            VITE_SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
             VITE_APP_VERSION=${{ env.TAG }}
 
       - name: Build and push Servers image
@@ -91,3 +93,15 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/verifywise-eval-server-saas:${{ env.TAG }}
             ghcr.io/${{ github.repository_owner }}/verifywise-eval-server-saas:latest
+
+      # - name: Deploy to Production
+      #   uses: appleboy/ssh-action@v0.1.5
+      #   with:
+      #     host: ${{ secrets.PROD_HOST }}
+      #     username: ${{ secrets.PROD_USER }}
+      #     key: ${{ secrets.PROD_SSH_KEY }}
+      #     script: |
+      #       cd /root/verifywise/_saas_deployment
+      #       docker-compose --env-file .env.prod down
+      #       docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}" | grep -v -E "(redis|postgres|admin)" | awk 'NR>1 {print $2}' | xargs -r docker rmi -f || true
+      #       ./install.sh

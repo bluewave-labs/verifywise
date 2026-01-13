@@ -281,8 +281,8 @@ export default function LeaderboardTable({
                   : score >= 0.90  // For most metrics, higher is better (>=90%)
               );
               
-              // Best gets blue highlight, excellent gets green
-              const showBestHighlight = isBest && !isExcellent;
+              // Best gets yellow highlight (priority), excellent (not best) gets green
+              const showExcellentHighlight = isExcellent && !isBest;
               
               return (
                 <Cell key={metric}>
@@ -294,11 +294,11 @@ export default function LeaderboardTable({
                       px: (isBest || isExcellent) ? 1 : 0,
                       py: (isBest || isExcellent) ? 0.25 : 0,
                       borderRadius: "4px",
-                      bgcolor: isExcellent ? "#ecfdf5" : showBestHighlight ? "#eff6ff" : "transparent",
+                      bgcolor: isBest ? "#fde047" : showExcellentHighlight ? "#ecfdf5" : "transparent",
                     }}
                   >
                     {isBest && (
-                      <Crown size={11} color="#3b82f6" style={{ flexShrink: 0 }} />
+                      <Crown size={11} color="#f59e0b" style={{ flexShrink: 0 }} />
                     )}
                     <Typography
                       variant="body2"
@@ -307,7 +307,7 @@ export default function LeaderboardTable({
                         fontWeight: (isBest || isExcellent) ? 600 : 400,
                         fontSize: "12.5px",
                         color: hasScore 
-                          ? (isExcellent ? "#059669" : showBestHighlight ? "#2563eb" : "#4b5563") 
+                          ? (showExcellentHighlight ? "#059669" : "#4b5563") 
                           : "#d1d5db",
                       }}
                     >

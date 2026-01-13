@@ -132,7 +132,7 @@ try {
     if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments") && !req.url.includes("/arena/compare")) {
       return next();
     }
-    express.json()(req, res, next);
+    express.json({ limit: '10mb' })(req, res, next);
   });
   app.use(cookieParser());
   // app.use(csrf());

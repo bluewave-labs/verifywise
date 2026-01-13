@@ -6,7 +6,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Box, Typography, CircularProgress, SxProps, Theme, Stack, TablePagination } from "@mui/material";
-import { ChevronUp, ChevronDown, BarChart3 } from "lucide-react";
+import { ChevronUp, ChevronDown, BarChart3, Crown } from "lucide-react";
 import { METRIC_CONFIG, LeaderboardEntry } from "./leaderboardConfig";
 import TablePaginationActions from "../../TablePagination";
 
@@ -109,7 +109,7 @@ export default function LeaderboardTable({
   // Format score as percentage
   const formatScore = (score: number): string => (score * 100).toFixed(1) + "%";
 
-  // Calculate best score for each metric (for highlighting)
+  // Calculate best score for each metric (for crown indicator)
   const bestScores = useMemo(() => {
     const best: Record<string, { value: number; model: string }> = {};
     
@@ -123,13 +123,11 @@ export default function LeaderboardTable({
         if (score === undefined) return;
         
         if (config && !config.higherIsBetter) {
-          // Lower is better
           if (score < bestValue) {
             bestValue = score;
             bestModel = entry.model;
           }
         } else {
-          // Higher is better
           if (score > bestValue) {
             bestValue = score;
             bestModel = entry.model;
@@ -149,6 +147,7 @@ export default function LeaderboardTable({
   const isBestInMetric = (model: string, metric: string): boolean => {
     return bestScores[metric]?.model === model;
   };
+
 
   // Grid columns: Rank, Model, Score, then metrics
   const gridColumns = `80px minmax(200px, 1fr) 100px ${displayMetrics.map(() => "minmax(110px, 130px)").join(" ")}`;
@@ -282,7 +281,8 @@ export default function LeaderboardTable({
                   : score >= 0.90  // For most metrics, higher is better (>=90%)
               );
               
-              const shouldHighlight = isBest || isExcellent;
+              // Best gets blue highlight, excellent gets green
+              const showBestHighlight = isBest && !isExcellent;
               
               return (
                 <Cell key={metric}>
@@ -291,19 +291,24 @@ export default function LeaderboardTable({
                       display: "flex",
                       alignItems: "center",
                       gap: 0.5,
-                      px: shouldHighlight ? 1 : 0,
-                      py: shouldHighlight ? 0.25 : 0,
+                      px: (isBest || isExcellent) ? 1 : 0,
+                      py: (isBest || isExcellent) ? 0.25 : 0,
                       borderRadius: "4px",
-                      bgcolor: shouldHighlight ? "#ecfdf5" : "transparent",
+                      bgcolor: isExcellent ? "#ecfdf5" : showBestHighlight ? "#eff6ff" : "transparent",
                     }}
                   >
+                    {isBest && (
+                      <Crown size={11} color="#3b82f6" style={{ flexShrink: 0 }} />
+                    )}
                     <Typography
                       variant="body2"
                       sx={{
                         fontFamily: "monospace",
-                        fontWeight: shouldHighlight ? 600 : 400,
+                        fontWeight: (isBest || isExcellent) ? 600 : 400,
                         fontSize: "12.5px",
-                        color: hasScore ? (shouldHighlight ? "#059669" : "#4b5563") : "#d1d5db",
+                        color: hasScore 
+                          ? (isExcellent ? "#059669" : showBestHighlight ? "#2563eb" : "#4b5563") 
+                          : "#d1d5db",
                       }}
                     >
                       {hasScore ? formatScore(score) : "—"}

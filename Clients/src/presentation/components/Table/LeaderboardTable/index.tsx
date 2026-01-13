@@ -44,10 +44,6 @@ export default function LeaderboardTable({
     localStorage.setItem(LEADERBOARD_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
   }, [rowsPerPage]);
 
-  // Reset page when search changes
-  useEffect(() => {
-    setPage(0);
-  }, [searchQuery]);
 
   // Filter and sort entries
   const sortedEntries = useMemo(() => {
@@ -73,11 +69,22 @@ export default function LeaderboardTable({
     return filtered.map((entry, index) => ({ ...entry, rank: index + 1 }));
   }, [entries, searchQuery, sortBy, sortDirection]);
 
-  // Paginated entries
+  // Paginated entries - auto-adjust if page is out of bounds
   const paginatedEntries = useMemo(() => {
-    const start = page * rowsPerPage;
+    const maxPage = Math.max(0, Math.ceil(sortedEntries.length / rowsPerPage) - 1);
+    const effectivePage = Math.min(page, maxPage);
+    const start = effectivePage * rowsPerPage;
     return sortedEntries.slice(start, start + rowsPerPage);
   }, [sortedEntries, page, rowsPerPage]);
+
+  // Reset to first page when search/sort changes entries
+  useEffect(() => {
+    const maxPage = Math.max(0, Math.ceil(sortedEntries.length / rowsPerPage) - 1);
+    if (page > maxPage) {
+      setPage(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortedEntries.length]);
 
   // Handle column sort
   const handleSort = (column: string) => {
@@ -102,15 +109,45 @@ export default function LeaderboardTable({
   // Format score as percentage
   const formatScore = (score: number): string => (score * 100).toFixed(1) + "%";
 
-  // Get light pastel color for metric score
-  const getMetricColor = (score: number, metric: string): string => {
-    const config = METRIC_CONFIG[metric];
-    const normalized = config && !config.higherIsBetter ? (1 - score) : score;
+  // Calculate best score for each metric (for highlighting)
+  const bestScores = useMemo(() => {
+    const best: Record<string, { value: number; model: string }> = {};
     
-    if (normalized >= 0.8) return "#16a34a";
-    if (normalized >= 0.6) return "#65a30d";
-    if (normalized >= 0.4) return "#ca8a04";
-    return "#dc2626";
+    displayMetrics.forEach(metric => {
+      const config = METRIC_CONFIG[metric];
+      let bestValue = config && !config.higherIsBetter ? Infinity : -Infinity;
+      let bestModel = "";
+      
+      sortedEntries.forEach(entry => {
+        const score = entry.metricScores[metric];
+        if (score === undefined) return;
+        
+        if (config && !config.higherIsBetter) {
+          // Lower is better
+          if (score < bestValue) {
+            bestValue = score;
+            bestModel = entry.model;
+          }
+        } else {
+          // Higher is better
+          if (score > bestValue) {
+            bestValue = score;
+            bestModel = entry.model;
+          }
+        }
+      });
+      
+      if (bestModel) {
+        best[metric] = { value: bestValue, model: bestModel };
+      }
+    });
+    
+    return best;
+  }, [sortedEntries, displayMetrics]);
+
+  // Check if this is the best score for a metric
+  const isBestInMetric = (model: string, metric: string): boolean => {
+    return bestScores[metric]?.model === model;
   };
 
   // Grid columns: Rank, Model, Score, then metrics
@@ -235,20 +272,43 @@ export default function LeaderboardTable({
             {displayMetrics.map((metric) => {
               const score = entry.metricScores[metric];
               const hasScore = score !== undefined;
+              const isBest = hasScore && isBestInMetric(entry.model, metric);
+              
+              // Check if score is excellent (>=90% for higher-is-better, <=5% for lower-is-better)
+              const config = METRIC_CONFIG[metric];
+              const isExcellent = hasScore && (
+                config && !config.higherIsBetter 
+                  ? score <= 0.05  // For bias/toxicity/hallucination, lower is better (<=5%)
+                  : score >= 0.90  // For most metrics, higher is better (>=90%)
+              );
+              
+              const shouldHighlight = isBest || isExcellent;
               
               return (
                 <Cell key={metric}>
-                  <Typography
-                    variant="body2"
+                  <Box
                     sx={{
-                      fontFamily: "monospace",
-                      fontWeight: 500,
-                      fontSize: "12.5px",
-                      color: hasScore ? getMetricColor(score, metric) : "#d1d5db",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.5,
+                      px: shouldHighlight ? 1 : 0,
+                      py: shouldHighlight ? 0.25 : 0,
+                      borderRadius: "4px",
+                      bgcolor: shouldHighlight ? "#ecfdf5" : "transparent",
                     }}
                   >
-                    {hasScore ? formatScore(score) : "—"}
-                  </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: "monospace",
+                        fontWeight: shouldHighlight ? 600 : 400,
+                        fontSize: "12.5px",
+                        color: hasScore ? (shouldHighlight ? "#059669" : "#4b5563") : "#d1d5db",
+                      }}
+                    >
+                      {hasScore ? formatScore(score) : "—"}
+                    </Typography>
+                  </Box>
                 </Cell>
               );
             })}

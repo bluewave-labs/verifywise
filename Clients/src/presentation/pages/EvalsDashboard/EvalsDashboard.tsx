@@ -1621,7 +1621,7 @@ export default function EvalsDashboard() {
               )}
 
               {tab === "leaderboard" && (
-                <LeaderboardPage orgId={orgId} />
+                <LeaderboardPage />
               )}
 
               {tab === "configuration" && (

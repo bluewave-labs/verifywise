@@ -33,12 +33,7 @@ interface ExperimentData {
   avgScores?: Record<string, number>;
 }
 
-interface LeaderboardPageProps {
-  orgId?: string | null;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
+export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState("");

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schema/manifest.schema.json",
+  "title": "DatasetManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["dataset_name", "dataset_version", "created_at", "generation", "files"],
+  "properties": {
+    "dataset_name": { "type": "string", "minLength": 1 },
+    "dataset_version": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "minLength": 1 },
+    "generation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["seed", "scenario_counts", "template_versions"],
+      "properties": {
+        "seed": { "type": "integer" },
+        "scenario_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["compliance_policy", "ambiguous_prompt", "multi_step_reasoning"],
+          "properties": {
+            "compliance_policy": { "type": "integer", "minimum": 0 },
+            "ambiguous_prompt": { "type": "integer", "minimum": 0 },
+            "multi_step_reasoning": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "template_versions": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarios", "candidates"],
+      "properties": {
+        "scenarios": { "type": "string", "minLength": 1 },
+        "candidates": { "type": "string", "minLength": 1 }
+      }
+    },
+    "checksums": {
+      "type": "object",
+      "additionalProperties": true,
+      "default": {}
+    }
+  }
+}

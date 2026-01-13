@@ -83,6 +83,8 @@ export async function getAllGeneratedReports(
     description: "starting getAllGeneratedReports",
     functionName: "getAllGeneratedReports",
     fileName: "reporting.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("📄 Fetching all generated reports");
 
@@ -95,6 +97,8 @@ export async function getAllGeneratedReports(
         functionName: "getAllGeneratedReports",
         fileName: "reporting.ctrl.ts",
         error: new Error("Unauthorized"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -112,6 +116,8 @@ export async function getAllGeneratedReports(
           : "No generated reports found",
       functionName: "getAllGeneratedReports",
       fileName: "reporting.ctrl.ts",
+      userId: req.userId!,
+    tenantId: req.tenantId!,
     });
 
     // Return 200 with empty array if no reports, not 404
@@ -125,6 +131,8 @@ export async function getAllGeneratedReports(
       functionName: "getAllGeneratedReports",
       fileName: "reporting.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+    tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -141,6 +149,8 @@ export async function deleteGeneratedReportById(
     description: `starting deleteGeneratedReportById for report ID ${reportId}`,
     functionName: "deleteGeneratedReportById",
     fileName: "reporting.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(`🗑️ Deleting generated report ID ${reportId}`);
 
@@ -153,6 +163,8 @@ export async function deleteGeneratedReportById(
         functionName: "deleteGeneratedReportById",
         fileName: "reporting.ctrl.ts",
         error: new Error("Report not found"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(404).json(STATUS_CODE[404]("Report not found"));
     }
@@ -169,6 +181,8 @@ export async function deleteGeneratedReportById(
         description: `Successfully deleted generated report ID ${reportId}`,
         functionName: "deleteGeneratedReportById",
         fileName: "reporting.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](deletedReport));
     }
@@ -179,6 +193,8 @@ export async function deleteGeneratedReportById(
       description: `No report to delete: ID ${reportId}`,
       functionName: "deleteGeneratedReportById",
       fileName: "reporting.ctrl.ts",
+      userId: req.userId!,
+    tenantId: req.tenantId!,
     });
     return res.status(204).json(STATUS_CODE[204](deletedReport));
   } catch (error) {
@@ -189,6 +205,8 @@ export async function deleteGeneratedReportById(
       functionName: "deleteGeneratedReportById",
       fileName: "reporting.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+    tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -221,6 +239,8 @@ export async function generateReportsV2(
     description: `starting generateReportsV2 for project ID ${projectId}, report type: ${reportType}, format: ${reportFormat}`,
     functionName: "generateReportsV2",
     fileName: "reporting.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `📄 Generating ${reportType} report (${reportFormat}) for project ID ${projectId}`
@@ -235,6 +255,8 @@ export async function generateReportsV2(
         functionName: "generateReportsV2",
         fileName: "reporting.ctrl.ts",
         error: new Error("User not found"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(404).json(STATUS_CODE[404]("User not found"));
     }
@@ -266,6 +288,8 @@ export async function generateReportsV2(
         functionName: "generateReportsV2",
         fileName: "reporting.ctrl.ts",
         error: new Error(result.error || "Unknown error"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res
         .status(500)
@@ -297,6 +321,8 @@ export async function generateReportsV2(
         functionName: "generateReportsV2",
         fileName: "reporting.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res
         .status(500)
@@ -309,6 +335,8 @@ export async function generateReportsV2(
         description: `Successfully generated ${reportType} report (${reportFormat}) for project ID ${projectId}`,
         functionName: "generateReportsV2",
         fileName: "reporting.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       res.setHeader(
@@ -325,6 +353,8 @@ export async function generateReportsV2(
         functionName: "generateReportsV2",
         fileName: "reporting.ctrl.ts",
         error: new Error("Upload failed"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res
         .status(500)
@@ -337,6 +367,8 @@ export async function generateReportsV2(
       functionName: "generateReportsV2",
       fileName: "reporting.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+    tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

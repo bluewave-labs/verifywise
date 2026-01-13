@@ -86,6 +86,7 @@ export class PolicyManagerModel extends Model<PolicyManagerModel> implements IPo
       author_id: this.author_id,
       last_updated_by: this.last_updated_by,
       last_updated_at: this.last_updated_at,
+      created_at: this.created_at?.toISOString(),
     };
   }
 

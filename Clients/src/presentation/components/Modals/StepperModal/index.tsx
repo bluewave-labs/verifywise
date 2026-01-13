@@ -70,6 +70,9 @@ interface StepperModalProps {
 
   /** Maximum width of the modal (default: "900px") */
   maxWidth?: string;
+
+  /** Optional badge to display next to the title (e.g., use case indicator) */
+  headerBadge?: React.ReactNode;
 }
 
 const StepperModal: React.FC<StepperModalProps> = ({
@@ -86,6 +89,7 @@ const StepperModal: React.FC<StepperModalProps> = ({
   canProceed = true,
   submitButtonText = "Submit",
   maxWidth = "1000px",
+  headerBadge,
 }) => {
   const isLastStep = activeStep === steps.length - 1;
   const isFirstStep = activeStep === 0;
@@ -142,16 +146,19 @@ const StepperModal: React.FC<StepperModalProps> = ({
             alignItems="flex-start"
           >
             <Stack spacing={0.5}>
-              <Typography
-                sx={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: "#101828",
-                  lineHeight: "28px",
-                }}
-              >
-                {title}
-              </Typography>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Typography
+                  sx={{
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: "#101828",
+                    lineHeight: "28px",
+                  }}
+                >
+                  {title}
+                </Typography>
+                {headerBadge}
+              </Stack>
               <Typography
                 sx={{
                   fontSize: 13,

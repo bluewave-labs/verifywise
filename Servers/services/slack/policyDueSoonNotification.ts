@@ -1,9 +1,4 @@
 import { PolicyManagerModel } from "../../domain.layer/models/policy/policy.model";
-import {
-  logProcessing,
-  logSuccess,
-  logFailure,
-} from "../../utils/logger/logHelper";
 import { getAllPoliciesDueSoonQuery } from "../../utils/policyManager.utils";
 import { getAllOrganizationsQuery } from "../../utils/organization.utils";
 import { getTenantHash } from "../../tools/getTenantHash";
@@ -13,25 +8,25 @@ import logger from "../../utils/logger/fileLogger";
 import { getAllUsersQuery } from "../../utils/user.utils";
 
 export const sendPolicyDueSoonNotification = async (): Promise<number> => {
-  const functionName = "sendPolicyDueSoonNotification";
-  const fileName = "policyDueSoonNotification.ts";
-  logProcessing({
-    description: `Sending Slack Notification for Policies due soon across all organizations.`,
-    functionName,
-    fileName,
-  });
+  // const functionName = "sendPolicyDueSoonNotification";
+  // const fileName = "policyDueSoonNotification.ts";
+  // logProcessing({
+  //   description: `Sending Slack Notification for Policies due soon across all organizations.`,
+  //   functionName,
+  //   fileName,
+  // });
 
   try {
     // Get all organizations
     const organizations = await getAllOrganizationsQuery();
 
     if (!organizations || organizations.length === 0) {
-      await logSuccess({
-        eventType: "Read",
-        description: `No organizations found to check for policies due soon.`,
-        functionName,
-        fileName,
-      });
+      // await logSuccess({
+      //   eventType: "Read",
+      //   description: `No organizations found to check for policies due soon.`,
+      //   functionName,
+      //   fileName,
+      // });
       return 0;
     }
 
@@ -62,13 +57,13 @@ export const sendPolicyDueSoonNotification = async (): Promise<number> => {
               // Format the notification message
               const reviewDate = policy.next_review_date
                 ? new Date(policy.next_review_date).toLocaleDateString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    },
-                  )
+                  "en-US",
+                  {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  },
+                )
                 : "Not set";
 
               const message = {
@@ -115,20 +110,20 @@ export const sendPolicyDueSoonNotification = async (): Promise<number> => {
       }
     }
 
-    await logSuccess({
-      eventType: "Read",
-      description: `Processed ${totalPoliciesProcessed} policies across ${organizations.length} organizations.`,
-      functionName,
-      fileName,
-    });
+    // await logSuccess({
+    //   eventType: "Read",
+    //   description: `Processed ${totalPoliciesProcessed} policies across ${organizations.length} organizations.`,
+    //   functionName,
+    //   fileName,
+    // });
   } catch (error) {
-    await logFailure({
-      eventType: "Read",
-      description: `Failed to send Slack Notifications for Policies due soon.`,
-      functionName,
-      fileName,
-      error: error as Error,
-    });
+    // await logFailure({
+    //   eventType: "Read",
+    //   description: `Failed to send Slack Notifications for Policies due soon.`,
+    //   functionName,
+    //   fileName,
+    //   error: error as Error,
+    // });
     throw error;
   }
   return 0;

@@ -63,6 +63,9 @@ import ExperimentDetailContent from "./ExperimentDetailContent";
 import ArenaPage from "./ArenaPage";
 import type { DeepEvalProject } from "./types";
 
+// Track if Evals dashboard has been loaded before (persists across module switches)
+let hasLoadedEvalsBefore = false;
+
 const LLM_PROVIDERS = [
   { _id: "openrouter", name: "OpenRouter", Logo: OpenRouterLogo },
   { _id: "openai", name: "OpenAI", Logo: OpenAILogo },
@@ -200,13 +203,17 @@ export default function EvalsDashboard() {
   const [allProjects, setAllProjects] = useState<DeepEvalProject[]>([]);
   const [createProjectModalOpen, setCreateProjectModalOpen] = useState(false);
   const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({ name: "", description: "", useCase: "chatbot" });
+  const [createProjectError, setCreateProjectError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
   const [scorersCount, setScorersCount] = useState<number>(0);
   const [arenaCount, setArenaCount] = useState<number>(0);
-  const [initialLoading, setInitialLoading] = useState(true);
+  // Skip initial loading state if we've loaded before AND we're on a specific project
+  // If no projectId, we might redirect to last project, so keep loading to prevent flash
+  const shouldSkipLoading = hasLoadedEvalsBefore && !!projectId;
+  const [initialLoading, setInitialLoading] = useState(!shouldSkipLoading);
   const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null);
   const [recentExperiments, setRecentExperiments] = useState<RecentExperiment[]>(() => {
     try {
@@ -518,6 +525,7 @@ export default function EvalsDashboard() {
         if (location.hash === "#projects") {
           setOnboardingStep(null);
           setInitialLoading(false);
+          hasLoadedEvalsBefore = true;
           return;
         }
 
@@ -528,6 +536,7 @@ export default function EvalsDashboard() {
           try {
             const projectData = await getProject(lastProjectId);
             if (projectData?.project) {
+              // Don't set initialLoading to false - keep showing nothing while redirecting
               navigate(`/evals/${lastProjectId}#overview`, { replace: true });
               return;
             }
@@ -543,8 +552,10 @@ export default function EvalsDashboard() {
         if (!projectIds || projectIds.length === 0) {
           // Org exists but no projects - go to project step
           setOnboardingStep("project");
+          setInitialLoading(false);
+          hasLoadedEvalsBefore = true;
         } else if (projectIds.length > 0) {
-          // Redirect to first project in org
+          // Don't set initialLoading to false - keep showing nothing while redirecting
           navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
           return;
         }
@@ -553,8 +564,8 @@ export default function EvalsDashboard() {
         // On error, set server connection error instead of forcing onboarding
         setServerConnectionError(true);
         setOnboardingStep(null);
-      } finally {
         setInitialLoading(false);
+        hasLoadedEvalsBefore = true;
       }
     };
 
@@ -563,6 +574,7 @@ export default function EvalsDashboard() {
       loadAndCheckOnboarding();
     } else {
       setInitialLoading(false);
+      hasLoadedEvalsBefore = true;
     }
   }, [projectId, navigate, location.hash]);
 
@@ -821,6 +833,7 @@ export default function EvalsDashboard() {
       setServerConnectionError(true);
     } finally {
       setInitialLoading(false);
+      hasLoadedEvalsBefore = true;
     }
   };
 
@@ -898,7 +911,7 @@ export default function EvalsDashboard() {
       setNewProject({ name: "", description: "", useCase: "chatbot" });
     } catch (err) {
       console.error("Failed to create project:", err);
-      alert("Failed to create project");
+      setCreateProjectError("Failed to create project. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -1584,13 +1597,14 @@ export default function EvalsDashboard() {
                     projectId={projectId || ""}
                     onBack={() => setSelectedExperimentId(null)}
                   />
-                ) : (
+                ) : currentProject ? (
                   <ProjectExperiments
                     projectId={projectId}
                     orgId={orgId}
                     onViewExperiment={(experimentId) => setSelectedExperimentId(experimentId)}
+                    useCase={(currentProject.useCase || "chatbot") as "chatbot" | "rag" | "agent"}
                   />
-                )
+                ) : null
               )}
 
               {tab === "datasets" && (
@@ -1627,9 +1641,72 @@ export default function EvalsDashboard() {
                       boxShadow: "none",
                     }}
                   >
-                    <Typography sx={{ fontWeight: 600, fontSize: 16, mb: 3, color: "#344054" }}>
-                      LLM use case
-                    </Typography>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
+                      <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
+                        LLM use case
+                      </Typography>
+                      {experimentsCount > 0 && (
+                        <Chip
+                          label="Locked"
+                          size="small"
+                          sx={{
+                            backgroundColor: "#FEF3C7",
+                            color: "#92400E",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            height: "22px",
+                          }}
+                        />
+                      )}
+                    </Stack>
+                    
+                    {/* Locked notice when experiments exist */}
+                    {experimentsCount > 0 && (
+                      <Box
+                        sx={{
+                          backgroundColor: "#FFFBEB",
+                          border: "1px solid #FDE68A",
+                          borderRadius: "6px",
+                          p: 2,
+                          mb: 3,
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 1.5,
+                        }}
+                      >
+                        <Box sx={{ color: "#D97706", mt: 0.25 }}>
+                          <Settings size={16} />
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#92400E", mb: 0.5 }}>
+                            Use case is locked
+                          </Typography>
+                          <Typography sx={{ fontSize: "12px", color: "#B45309", lineHeight: 1.5, mb: 1.5 }}>
+                            This project has {experimentsCount} experiment{experimentsCount !== 1 ? "s" : ""}. 
+                            To evaluate a different use case, create a new project. This ensures your metrics and results remain consistent and comparable.
+                          </Typography>
+                          <CustomizableButton
+                            variant="outlined"
+                            onClick={() => setCreateProjectModalOpen(true)}
+                            icon={<PlusIcon size={14} />}
+                            text="Create new project"
+                            sx={{
+                              height: "32px",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              color: "#92400E",
+                              borderColor: "#F59E0B",
+                              backgroundColor: "transparent",
+                              "&:hover": {
+                                backgroundColor: "#FEF3C7",
+                                borderColor: "#D97706",
+                              },
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    )}
+                    
                     <Box
                       sx={{
                         display: "grid",
@@ -1643,30 +1720,35 @@ export default function EvalsDashboard() {
                       <Box>
                         <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Use case type</Typography>
                         <Typography sx={{ fontSize: 12, color: "#888" }}>
-                          Select the type of LLM application you want to evaluate
+                          {experimentsCount > 0 
+                            ? "Use case cannot be changed after experiments are created"
+                            : "Select the type of LLM application you want to evaluate"
+                          }
                         </Typography>
                       </Box>
                       <RadioGroup
                         value={currentProject?.useCase || "chatbot"}
                         onChange={(e) => {
-                          if (currentProject) {
+                          if (currentProject && experimentsCount === 0) {
                             setCurrentProject({ ...currentProject, useCase: e.target.value as "rag" | "chatbot" | "agent" });
                           }
                         }}
                       >
                         <FormControlLabel
                           value="rag"
+                          disabled={experimentsCount > 0}
                           control={
                             <Radio
                               sx={{
                                 color: "#d0d5dd",
                                 "&.Mui-checked": { color: "#13715B" },
+                                "&.Mui-disabled": { color: "#e5e7eb" },
                                 "& .MuiSvgIcon-root": { fontSize: 20 },
                               }}
                             />
                           }
                           label={
-                            <Box>
+                            <Box sx={{ opacity: experimentsCount > 0 ? 0.6 : 1 }}>
                               <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>RAG</Typography>
                               <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
                                 Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
@@ -1677,20 +1759,45 @@ export default function EvalsDashboard() {
                         />
                         <FormControlLabel
                           value="chatbot"
+                          disabled={experimentsCount > 0}
                           control={
                             <Radio
                               sx={{
                                 color: "#d0d5dd",
                                 "&.Mui-checked": { color: "#13715B" },
+                                "&.Mui-disabled": { color: "#e5e7eb" },
                                 "& .MuiSvgIcon-root": { fontSize: 20 },
                               }}
                             />
                           }
                           label={
-                            <Box>
+                            <Box sx={{ opacity: experimentsCount > 0 ? 0.6 : 1 }}>
                               <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Chatbot</Typography>
                               <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
                                 Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ alignItems: "flex-start", mb: 1.5 }}
+                        />
+                        <FormControlLabel
+                          value="agent"
+                          disabled={experimentsCount > 0}
+                          control={
+                            <Radio
+                              sx={{
+                                color: "#d0d5dd",
+                                "&.Mui-checked": { color: "#13715B" },
+                                "&.Mui-disabled": { color: "#e5e7eb" },
+                                "& .MuiSvgIcon-root": { fontSize: 20 },
+                              }}
+                            />
+                          }
+                          label={
+                            <Box sx={{ opacity: experimentsCount > 0 ? 0.6 : 1 }}>
+                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Agent</Typography>
+                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                                Evaluate AI agents for planning, tool usage, task completion, and step efficiency.
                               </Typography>
                             </Box>
                           }
@@ -1705,25 +1812,27 @@ export default function EvalsDashboard() {
                     <Alert variant={configAlert.variant} body={configAlert.body} />
                   )}
 
-                  {/* Save Button */}
-                  <Stack>
-                    <CustomizableButton
-                      sx={{
-                        alignSelf: "flex-end",
-                        width: "fit-content",
-                        gap: 2,
-                        backgroundColor: hasUseCaseChanged ? "#13715B" : "#ccc",
-                        border: hasUseCaseChanged ? "1px solid #13715B" : "1px solid #ccc",
-                        "&:hover": hasUseCaseChanged ? { backgroundColor: "#0e5c47" } : {},
-                      }}
-                      icon={<Save size={16} />}
-                      variant="contained"
-                      onClick={handleSaveConfiguration}
-                      isDisabled={!hasUseCaseChanged || savingConfig}
-                      loading={savingConfig}
-                      text={savingConfig ? "Saving..." : "Save changes"}
-                    />
-                  </Stack>
+                  {/* Save Button - only show when use case is not locked */}
+                  {experimentsCount === 0 && (
+                    <Stack>
+                      <CustomizableButton
+                        sx={{
+                          alignSelf: "flex-end",
+                          width: "fit-content",
+                          gap: 2,
+                          backgroundColor: hasUseCaseChanged ? "#13715B" : "#ccc",
+                          border: hasUseCaseChanged ? "1px solid #13715B" : "1px solid #ccc",
+                          "&:hover": hasUseCaseChanged ? { backgroundColor: "#0e5c47" } : {},
+                        }}
+                        icon={<Save size={16} />}
+                        variant="contained"
+                        onClick={handleSaveConfiguration}
+                        isDisabled={!hasUseCaseChanged || savingConfig}
+                        loading={savingConfig}
+                        text={savingConfig ? "Saving..." : "Save changes"}
+                      />
+                    </Stack>
+                  )}
                 </Box>
               )}
 
@@ -1737,6 +1846,7 @@ export default function EvalsDashboard() {
         onClose={() => {
           setCreateProjectModalOpen(false);
           setNewProject({ name: "", description: "", useCase: "chatbot" });
+          setCreateProjectError(null);
         }}
         title="Create project"
         description="Create a new project to organize your LLM evaluations"
@@ -1745,10 +1855,17 @@ export default function EvalsDashboard() {
         isSubmitting={loading || !newProject.name}
       >
         <Stack spacing={3}>
+          {createProjectError && (
+            <Alert variant="error" body={createProjectError} />
+          )}
+          
           <Field
             label="Project name"
             value={newProject.name}
-            onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+            onChange={(e) => {
+              setNewProject({ ...newProject, name: e.target.value });
+              setCreateProjectError(null); // Clear error when user starts typing
+            }}
             placeholder="e.g., Coding Tasks Evaluation"
             isRequired
           />
@@ -1772,6 +1889,13 @@ export default function EvalsDashboard() {
                 icon={<Bot size={14} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
                 title="Chatbot"
                 description="Evaluate conversational experiences for coherence, correctness and safety"
+              />
+              <SelectableCard
+                isSelected={newProject.useCase === "agent"}
+                onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
+                icon={<Workflow size={14} color={newProject.useCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                title="Agent"
+                description="Evaluate AI agents for planning, tool usage, and task completion"
               />
             </Stack>
           </Box>
@@ -1816,6 +1940,13 @@ export default function EvalsDashboard() {
                 icon={<Bot size={16} color={onboardingProjectUseCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
                 title="Chatbot"
                 description="Evaluate conversational experiences"
+              />
+              <SelectableCard
+                isSelected={onboardingProjectUseCase === "agent"}
+                onClick={() => setOnboardingProjectUseCase("agent")}
+                icon={<Workflow size={16} color={onboardingProjectUseCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                title="Agent"
+                description="Evaluate AI agents for planning and tool usage"
               />
             </Stack>
           </Box>

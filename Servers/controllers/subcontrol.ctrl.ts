@@ -199,7 +199,9 @@ export async function createNewSubcontrol(
       );
       await logEvent(
         "Create",
-        `Subcontrol created: ID ${newSubcontrol.id}, title: ${subcontrolData.title}`
+        `Subcontrol created: ID ${newSubcontrol.id}, title: ${subcontrolData.title}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(201).json(STATUS_CODE[201](newSubcontrol));
     }
@@ -212,7 +214,9 @@ export async function createNewSubcontrol(
     );
     await logEvent(
       "Error",
-      `Subcontrol creation failed: ${subcontrolData.title}`
+      `Subcontrol creation failed: ${subcontrolData.title}`,
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res
@@ -230,7 +234,9 @@ export async function createNewSubcontrol(
       );
       await logEvent(
         "Error",
-        `Validation error during subcontrol creation: ${error.message}`
+        `Validation error during subcontrol creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -244,7 +250,9 @@ export async function createNewSubcontrol(
       );
       await logEvent(
         "Error",
-        `Business logic error during subcontrol creation: ${error.message}`
+        `Business logic error during subcontrol creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -257,7 +265,9 @@ export async function createNewSubcontrol(
     );
     await logEvent(
       "Error",
-      `Unexpected error during subcontrol creation: ${(error as Error).message}`
+      `Unexpected error during subcontrol creation: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createNewSubcontrol:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -294,7 +304,9 @@ export async function updateSubcontrolById(
       );
       await logEvent(
         "Error",
-        `Update failed — subcontrol not found: ID ${subcontrolId}`
+        `Update failed — subcontrol not found: ID ${subcontrolId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Subcontrol not found"));
@@ -341,7 +353,9 @@ export async function updateSubcontrolById(
       );
       await logEvent(
         "Update",
-        `Subcontrol updated: ID ${subcontrolId}, title: ${existingSubcontrol.title}`
+        `Subcontrol updated: ID ${subcontrolId}, title: ${existingSubcontrol.title}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(202).json(STATUS_CODE[202](updatedSubcontrol));
     }
@@ -352,7 +366,7 @@ export async function updateSubcontrolById(
       "updateSubcontrolById",
       "subcontrol.ctrl.ts"
     );
-    await logEvent("Error", `Subcontrol update failed: ID ${subcontrolId}`);
+    await logEvent("Error", `Subcontrol update failed: ID ${subcontrolId}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -369,7 +383,9 @@ export async function updateSubcontrolById(
       );
       await logEvent(
         "Error",
-        `Validation error during subcontrol update: ${error.message}`
+        `Validation error during subcontrol update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -383,7 +399,9 @@ export async function updateSubcontrolById(
       );
       await logEvent(
         "Error",
-        `Business logic error during subcontrol update: ${error.message}`
+        `Business logic error during subcontrol update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -397,7 +415,9 @@ export async function updateSubcontrolById(
       );
       await logEvent(
         "Error",
-        `Update failed — subcontrol not found: ID ${subcontrolId}`
+        `Update failed — subcontrol not found: ID ${subcontrolId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(404).json(STATUS_CODE[404](error.message));
     }
@@ -410,7 +430,9 @@ export async function updateSubcontrolById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during subcontrol update for ID ${subcontrolId}: ${(error as Error).message}`
+      `Unexpected error during subcontrol update for ID ${subcontrolId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateSubcontrolById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -447,7 +469,9 @@ export async function deleteSubcontrolById(
         );
         await logEvent(
           "Error",
-          `Blocked deletion of demo subcontrol ID ${subcontrolId}`
+          `Blocked deletion of demo subcontrol ID ${subcontrolId}`,
+          req.userId!,
+          req.tenantId!
         );
         await transaction.rollback();
         return res
@@ -471,7 +495,9 @@ export async function deleteSubcontrolById(
         );
         await logEvent(
           "Delete",
-          `Subcontrol deleted: ID ${subcontrolId}, title: ${subcontrol.title}`
+          `Subcontrol deleted: ID ${subcontrolId}, title: ${subcontrol.title}`,
+          req.userId!,
+          req.tenantId!
         );
         return res.status(202).json(STATUS_CODE[202](deletedSubcontrol));
       }
@@ -485,7 +511,9 @@ export async function deleteSubcontrolById(
     );
     await logEvent(
       "Error",
-      `Delete failed — subcontrol not found: ID ${subcontrolId}`
+      `Delete failed — subcontrol not found: ID ${subcontrolId}`,
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]("Subcontrol not found"));
@@ -520,7 +548,9 @@ export async function deleteSubcontrolById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during subcontrol delete for ID ${subcontrolId}: ${(error as Error).message}`
+      `Unexpected error during subcontrol delete for ID ${subcontrolId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteSubcontrolById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

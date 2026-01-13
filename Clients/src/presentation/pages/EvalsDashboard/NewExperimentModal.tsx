@@ -18,7 +18,7 @@ import {
   FormHelperText,
   Chip as MuiChip,
 } from "@mui/material";
-import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
+import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown, FileSearch, MessageSquare, Bot } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import SelectableCard from "../../components/SelectableCard";
 import Field from "../../components/Inputs/Field";
@@ -59,6 +59,8 @@ interface NewExperimentModalProps {
   orgId?: string | null;
   onSuccess: () => void;
   onStarted?: (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => void;
+  /** Project's use case - determines default metrics and datasets (required) */
+  useCase: "chatbot" | "rag" | "agent";
 }
 
 const steps = ["Model", "Dataset", "Scorer / Judge", "Metrics"];
@@ -70,6 +72,7 @@ export default function NewExperimentModal({
   orgId,
   onSuccess,
   onStarted,
+  useCase,
 }: NewExperimentModalProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -114,10 +117,10 @@ export default function NewExperimentModal({
   const [loadingApiKeys, setLoadingApiKeys] = useState(true);
   
 
-  // Configuration state
+  // Configuration state - taskType initialized from project's useCase prop
   const [config, setConfig] = useState({
-    // High-level task type for builtin dataset presets
-    taskType: "chatbot" as "chatbot" | "rag" | "agent",
+    // High-level task type for builtin dataset presets - synced with project use case
+    taskType: useCase as "chatbot" | "rag" | "agent",
     // Step 1: Model to be evaluated
     model: {
       name: "",
@@ -162,11 +165,17 @@ export default function NewExperimentModal({
       contextPrecision: false,
       contextRecall: false,
       faithfulness: false,
-      // Agent-specific (requires tools)
+      // Agent-specific - Reasoning Layer (requires tools)
+      planQuality: false,
+      planAdherence: false,
+      // Agent-specific - Action Layer (requires tools)
       toolSelection: false,
       toolCorrectness: false,
+      argumentCorrectness: false,
+      // Agent-specific - Execution (requires tools)
       actionRelevance: false,
       planningQuality: false,
+      stepEfficiency: false,
       // Conversational metrics (multi-turn datasets)
       turnRelevancy: true,
       knowledgeRetention: true,
@@ -187,10 +196,14 @@ export default function NewExperimentModal({
       contextPrecision: 0.5,
       contextRecall: 0.5,
       faithfulness: 0.5,
+      planQuality: 0.5,
+      planAdherence: 0.5,
       toolSelection: 0.5,
       toolCorrectness: 0.5,
+      argumentCorrectness: 0.5,
       actionRelevance: 0.5,
       planningQuality: 0.5,
+      stepEfficiency: 0.5,
       turnRelevancy: 0.5,
       knowledgeRetention: 0.5,
       conversationCoherence: 0.5,
@@ -227,11 +240,19 @@ export default function NewExperimentModal({
       };
 
       // Agent-specific metrics (disabled by default)
+      // Per DeepEval docs: https://deepeval.com/docs/getting-started-agents
       const agentMetrics = {
+        // Reasoning Layer
+        planQuality: false,
+        planAdherence: false,
+        // Action Layer
         toolSelection: false,
         toolCorrectness: false,
+        argumentCorrectness: false,
+        // Execution Layer
         actionRelevance: false,
         planningQuality: false,
+        stepEfficiency: false,
       };
       
       // Conversational metrics (for multi-turn - enabled by default)
@@ -267,11 +288,18 @@ export default function NewExperimentModal({
             ...ragMetrics,
             ...agentMetrics,
             ...conversationalMetrics,
-            // Enable Agent metrics
+            // Enable Agent metrics (comprehensive per DeepEval docs)
+            // Reasoning Layer
+            planQuality: true,
+            planAdherence: true,
+            // Action Layer
             toolSelection: true,
             toolCorrectness: true,
+            argumentCorrectness: true,
+            // Execution Layer
             actionRelevance: true,
-            planningQuality: true,
+            stepEfficiency: true,
+            taskCompletion: true,
           },
         };
       } else {
@@ -288,6 +316,14 @@ export default function NewExperimentModal({
       }
     });
   }, [config.taskType]);
+
+  // Sync taskType with useCase prop when modal opens
+  useEffect(() => {
+    if (isOpen && useCase !== config.taskType) {
+      setConfig(prev => ({ ...prev, taskType: useCase }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, useCase]);
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
@@ -601,7 +637,7 @@ export default function NewExperimentModal({
     setJudgeMode("standard");
     setSelectedScorer(null);
     setConfig({
-      taskType: "chatbot",
+      taskType: useCase,
       model: {
         name: "",
         accessMethod: "",
@@ -639,11 +675,17 @@ export default function NewExperimentModal({
         contextPrecision: false,
         contextRecall: false,
         faithfulness: false,
-        // Agent-specific
+        // Agent-specific - Reasoning Layer
+        planQuality: false,
+        planAdherence: false,
+        // Agent-specific - Action Layer
         toolSelection: false,
         toolCorrectness: false,
+        argumentCorrectness: false,
+        // Agent-specific - Execution
         actionRelevance: false,
         planningQuality: false,
+        stepEfficiency: false,
         // Conversational metrics (multi-turn)
         turnRelevancy: true,
         knowledgeRetention: true,
@@ -664,10 +706,14 @@ export default function NewExperimentModal({
         contextPrecision: 0.5,
         contextRecall: 0.5,
         faithfulness: 0.5,
+        planQuality: 0.5,
+        planAdherence: 0.5,
         toolSelection: 0.5,
         toolCorrectness: 0.5,
+        argumentCorrectness: 0.5,
         actionRelevance: 0.5,
         planningQuality: 0.5,
+        stepEfficiency: 0.5,
         turnRelevancy: 0.5,
         knowledgeRetention: 0.5,
         conversationCoherence: 0.5,
@@ -2084,7 +2130,58 @@ export default function NewExperimentModal({
                   Agent Metrics
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                  Specifically designed for evaluating AI agents with tool usage
+                  Comprehensive agent evaluation based on{" "}
+                  <a href="https://deepeval.com/docs/getting-started-agents" target="_blank" rel="noopener noreferrer" style={{ color: "#1976d2" }}>
+                    DeepEval Agent Evaluation
+                  </a>
+                </Typography>
+                
+                {/* Reasoning Layer */}
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
+                  🧠 Reasoning Layer
+                </Typography>
+                {Object.entries({
+                  planQuality: {
+                    label: "Plan Quality",
+                    desc: "Evaluates task understanding, decomposition, and planning coherence.",
+                  },
+                  planAdherence: {
+                    label: "Plan Adherence",
+                    desc: "Measures how well the agent follows its own plan during execution.",
+                  },
+                }).map(([key, meta]) => (
+                  <Box key={key} sx={{ mb: 1.5 }}>
+                    <Stack spacing={0.5}>
+                      <Checkbox
+                        id={`metric-${key}`}
+                        label={(meta as { label: string }).label}
+                        size="small"
+                        value={key}
+                        isChecked={config.metrics[key as keyof typeof config.metrics]}
+                        onChange={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            metrics: {
+                              ...prev.metrics,
+                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                            },
+                          }))
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                      >
+                        {(meta as { desc: string }).desc}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
+                
+                {/* Action Layer */}
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
+                  🔧 Action Layer
                 </Typography>
                 {Object.entries({
                   toolSelection: {
@@ -2093,15 +2190,58 @@ export default function NewExperimentModal({
                   },
                   toolCorrectness: {
                     label: "Tool Correctness",
-                    desc: "Measures whether the agent used tools with correct parameters.",
+                    desc: "Measures whether the agent used tools with correct parameters and sequence.",
+                  },
+                  argumentCorrectness: {
+                    label: "Argument Correctness",
+                    desc: "Evaluates if tool arguments are correctly typed, formatted, and extracted from context.",
+                  },
+                }).map(([key, meta]) => (
+                  <Box key={key} sx={{ mb: 1.5 }}>
+                    <Stack spacing={0.5}>
+                      <Checkbox
+                        id={`metric-${key}`}
+                        label={(meta as { label: string }).label}
+                        size="small"
+                        value={key}
+                        isChecked={config.metrics[key as keyof typeof config.metrics]}
+                        onChange={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            metrics: {
+                              ...prev.metrics,
+                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                            },
+                          }))
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                      >
+                        {(meta as { desc: string }).desc}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
+                
+                {/* Execution Layer */}
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
+                  ✅ Execution Layer
+                </Typography>
+                {Object.entries({
+                  taskCompletion: {
+                    label: "Task Completion",
+                    desc: "Measures whether the agent successfully completed the requested task.",
+                  },
+                  stepEfficiency: {
+                    label: "Step Efficiency",
+                    desc: "Evaluates if the agent completed the task with minimal unnecessary steps.",
                   },
                   actionRelevance: {
                     label: "Action Relevance",
-                    desc: "Checks if the agent's actions are relevant to achieving the goal.",
-                  },
-                  planningQuality: {
-                    label: "Planning Quality",
-                    desc: "Evaluates the quality and efficiency of the agent's multi-step plan.",
+                    desc: "Checks if all agent actions directly contribute to the goal.",
                   },
                 }).map(([key, meta]) => (
                   <Box key={key} sx={{ mb: 1.5 }}>
@@ -2218,6 +2358,38 @@ export default function NewExperimentModal({
         canProceed={canProceed}
         submitButtonText="Start Experiment"
         maxWidth="700px"
+        headerBadge={
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.5,
+              px: 1,
+              py: 0.25,
+              borderRadius: "4px",
+              backgroundColor: config.taskType === "agent" ? "#EDE9FE" : config.taskType === "rag" ? "#FEF3C7" : "#DCFCE7",
+              border: `1px solid ${config.taskType === "agent" ? "#C4B5FD" : config.taskType === "rag" ? "#FCD34D" : "#86EFAC"}`,
+            }}
+          >
+            {config.taskType === "agent" ? (
+              <Bot size={12} color="#7C3AED" />
+            ) : config.taskType === "rag" ? (
+              <FileSearch size={12} color="#D97706" />
+            ) : (
+              <MessageSquare size={12} color="#16A34A" />
+            )}
+            <Typography
+              sx={{
+                fontSize: "11px",
+                fontWeight: 600,
+                color: config.taskType === "agent" ? "#7C3AED" : config.taskType === "rag" ? "#D97706" : "#16A34A",
+                textTransform: "capitalize",
+              }}
+            >
+              {config.taskType}
+            </Typography>
+          </Box>
+        }
       >
         {renderStepContent()}
       </StepperModal>

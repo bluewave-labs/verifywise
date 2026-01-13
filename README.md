@@ -162,10 +162,11 @@ cp .env.example .env
 
 #### Step 3: Start the application
 
-Navigate to the EvalServer/src directory and start the server:
+Navigate to the EvalServer/src directory, activate the virtual environment (if not already activated), and start the server:
 
 ```
 cd EvalServer/src
+source ../venv/bin/activate
 python app.py
 ```
 
@@ -357,4 +358,3 @@ You’ll need to open ports 80 and 443 so VerifyWise can be accessed from the in
 ## Security
 
 If you find a vulnerability, please report it [here](https://github.com/bluewave-labs/verifywise/security/advisories/new).
-

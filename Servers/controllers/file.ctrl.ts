@@ -45,6 +45,8 @@ export async function getFileContentById(
     description: `starting getFileContentById for ID ${fileId}`,
     functionName: "getFileContentById",
     fileName: "file.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -58,6 +60,8 @@ export async function getFileContentById(
         functionName: "getFileContentById",
         fileName: "file.ctrl.ts",
         error: new Error(`User ${userId} with role '${role}' denied access to file ${fileId}`),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json({ message: "Access denied" });
     }
@@ -69,6 +73,8 @@ export async function getFileContentById(
         description: `Retrieved file content for ID ${req.params.id}`,
         functionName: "getFileContentById",
         fileName: "file.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       res.setHeader("Content-Type", file.type);
@@ -84,6 +90,8 @@ export async function getFileContentById(
       description: `File not found: ID ${req.params.id}`,
       functionName: "getFileContentById",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -94,6 +102,8 @@ export async function getFileContentById(
       functionName: "getFileContentById",
       fileName: "file.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -110,6 +120,8 @@ export async function getFileMetaByProjectId(
     description: `starting getFileMetaByProjectId for project ID ${projectId}`,
     functionName: "getFileMetaByProjectId",
     fileName: "file.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -119,6 +131,8 @@ export async function getFileMetaByProjectId(
       description: `Retrieved file metadata for project ID ${projectId}`,
       functionName: "getFileMetaByProjectId",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (files && files.length > 0) {
@@ -132,6 +146,8 @@ export async function getFileMetaByProjectId(
       functionName: "getFileMetaByProjectId",
       fileName: "file.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -149,6 +165,8 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
     description: `starting getUserFilesMetaData for user ID ${userId}`,
     functionName: "getUserFilesMetaData",
     fileName: "file.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -174,6 +192,8 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
       description: `Retrieved user files metadata for user ID ${userId}`,
       functionName: "getUserFilesMetaData",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).send(files);
@@ -184,6 +204,8 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
       functionName: "getUserFilesMetaData",
       fileName: "file.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json({ error: "Internal server error" });
@@ -200,6 +222,8 @@ export async function postFileContent(
     description: "starting postFileContent",
     functionName: "postFileContent",
     fileName: "file.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -252,6 +276,8 @@ export async function postFileContent(
       description: "Posted file content and updated answer evidence",
       functionName: "postFileContent",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(201).json(STATUS_CODE[201](question.evidence_files));
@@ -264,6 +290,8 @@ export async function postFileContent(
       functionName: "postFileContent",
       fileName: "file.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

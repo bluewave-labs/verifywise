@@ -48,6 +48,10 @@ import {
   recordMultipleFieldChanges,
   recordUseCaseDeletion,
 } from "../utils/useCaseChangeHistory.utils";
+import { getApprovalWorkflowByIdQuery } from "../utils/approvalWorkflow.utils";
+import { createApprovalRequestQuery, hasPendingApprovalQuery, getPendingApprovalRequestIdQuery, withdrawApprovalRequestQuery } from "../utils/approvalRequest.utils";
+import { notifyStepApprovers } from "../services/notification.service";
+import { ApprovalRequestStatus } from "../domain.layer/enums/approval-workflow.enum";
 
 export async function getAllProjects(
   req: Request,
@@ -57,6 +61,8 @@ export async function getAllProjects(
     description: "starting getAllProjects",
     functionName: "getAllProjects",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -70,11 +76,40 @@ export async function getAllProjects(
       req.tenantId!
     )) as IProjectAttributes[];
 
+    // Add approval status fields to each project
+    const { getApprovalStatusQuery } = require("../utils/approvalRequest.utils");
+
+    await Promise.all(
+      projects.map(async (project) => {
+        if (project.id) {
+          // Check if project has a pending approval request
+          const hasPendingApproval = await hasPendingApprovalQuery(
+            project.id,
+            "use_case",
+            req.tenantId!
+          );
+
+          // Get the approval status (pending, rejected, or null)
+          const approvalStatus = await getApprovalStatusQuery(
+            project.id,
+            "use_case",
+            req.tenantId!
+          );
+
+          // Add approval status to project response
+          ((project as any).dataValues as any).has_pending_approval = hasPendingApproval;
+          ((project as any).dataValues as any).approval_status = approvalStatus;
+        }
+      })
+    );
+
     await logSuccess({
       eventType: "Read",
       description: "Retrieved all projects",
       functionName: "getAllProjects",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](projects));
@@ -85,6 +120,8 @@ export async function getAllProjects(
       functionName: "getAllProjects",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -101,19 +138,43 @@ export async function getProjectById(
     description: `starting getProjectById for ID ${projectId}`,
     functionName: "getProjectById",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
     const project = await getProjectByIdQuery(projectId, req.tenantId!);
 
-    await logSuccess({
-      eventType: "Read",
-      description: `Retrieved project ID ${projectId}`,
-      functionName: "getProjectById",
-      fileName: "project.ctrl.ts",
-    });
-
     if (project) {
+      // Check if project has a pending approval request
+      const hasPendingApproval = await hasPendingApprovalQuery(
+        projectId,
+        "use_case",
+        req.tenantId!
+      );
+
+      // Get the approval status (pending, rejected, or null)
+      const { getApprovalStatusQuery } = require("../utils/approvalRequest.utils");
+      const approvalStatus = await getApprovalStatusQuery(
+        projectId,
+        "use_case",
+        req.tenantId!
+      );
+
+      // Add approval status to project response
+      // Must add to dataValues for Sequelize model serialization
+      ((project as any).dataValues as any).has_pending_approval = hasPendingApproval;
+      ((project as any).dataValues as any).approval_status = approvalStatus;
+
+      await logSuccess({
+        eventType: "Read",
+        description: `Retrieved project ID ${projectId}`,
+        functionName: "getProjectById",
+        fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+
       return res.status(200).json(STATUS_CODE[200](project));
     }
 
@@ -122,6 +183,8 @@ export async function getProjectById(
       description: `Project not found: ID ${projectId}`,
       functionName: "getProjectById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -132,6 +195,8 @@ export async function getProjectById(
       functionName: "getProjectById",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -149,6 +214,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     description: "starting createProject",
     functionName: "createProject",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -166,41 +233,52 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       req.userId!,
       transaction
     );
+
+    // Only create frameworks immediately if NO approval workflow is assigned
+    // Otherwise, store frameworks for creation after approval
     const frameworks: { [key: string]: Object } = {};
-    for (const framework of newProject.framework) {
-      if (framework === 1) {
-        const eu = await createEUFrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction
-        );
-        frameworks["eu"] = eu;
-      } else if (framework === 2) {
-        const iso42001 = await createISOFrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction
-        );
-        frameworks["iso42001"] = iso42001;
-      } else if (framework === 3) {
-        const iso27001 = await createISO27001FrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction
-        );
-        frameworks["iso27001"] = iso27001;
-      } else if (framework === 4) {
-        const nist = await createNISTAI_RMFFrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction
-        );
-        frameworks["nist_ai_rmf"] = nist;
+    if (!createdProject.approval_workflow_id) {
+      // No approval workflow - create frameworks immediately
+      for (const framework of newProject.framework) {
+        if (framework === 1) {
+          const eu = await createEUFrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction
+          );
+          frameworks["eu"] = eu;
+        } else if (framework === 2) {
+          const iso42001 = await createISOFrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction
+          );
+          frameworks["iso42001"] = iso42001;
+        } else if (framework === 3) {
+          const iso27001 = await createISO27001FrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction
+          );
+          frameworks["iso27001"] = iso27001;
+        } else if (framework === 4) {
+          const nist = await createNISTAI_RMFFrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction
+          );
+          frameworks["nist_ai_rmf"] = nist;
+        }
       }
+    } else {
+      // Approval workflow assigned - defer framework creation until approval
+      console.log("Approval workflow detected - deferring framework creation until approval");
+      console.log("Pending frameworks:", newProject.framework);
+      console.log("enable_ai_data_insertion:", newProject.enable_ai_data_insertion);
     }
 
     if (createdProject) {
@@ -226,6 +304,80 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         );
       }
 
+      // Create approval request if approval_workflow_id is provided
+      console.log("=== CHECKING APPROVAL WORKFLOW ===");
+      console.log("createdProject.approval_workflow_id:", createdProject.approval_workflow_id);
+      console.log("createdProject.id:", createdProject.id);
+      console.log("req.userId:", req.userId);
+
+      if (createdProject.approval_workflow_id && createdProject.id && req.userId) {
+        console.log("All conditions met, fetching workflow...");
+        console.log("Fetching workflow ID:", createdProject.approval_workflow_id);
+
+        const workflow = await getApprovalWorkflowByIdQuery(
+          createdProject.approval_workflow_id,
+          req.tenantId!,
+          transaction
+        );
+
+        console.log("Workflow fetched:", workflow ? "YES" : "NO");
+        if (workflow) {
+          const workflowSteps = workflow.get('steps') as any;
+          console.log("Workflow ID:", (workflow as any).id);
+          console.log("Workflow steps:", workflowSteps);
+          console.log("Number of steps:", workflowSteps?.length);
+        }
+
+        const workflowSteps = workflow ? workflow.get('steps') as any : null;
+        if (workflow && workflowSteps && workflowSteps.length > 0) {
+          console.log("Creating approval request...");
+          const approvalRequestData = {
+            request_name: `Use Case: ${createdProject.project_title}`,
+            workflow_id: createdProject.approval_workflow_id,
+            entity_id: createdProject.id,
+            entity_type: "use_case",
+            entity_data: {
+              project_title: createdProject.project_title,
+              owner: createdProject.owner,
+              ai_risk_classification: createdProject.ai_risk_classification,
+            },
+            status: ApprovalRequestStatus.PENDING,
+            requested_by: req.userId,
+          };
+          console.log("Approval request data:", JSON.stringify(approvalRequestData, null, 2));
+
+          const createdApprovalRequest = await createApprovalRequestQuery(
+            approvalRequestData,
+            workflowSteps,
+            req.tenantId!,
+            transaction
+          );
+          console.log("Approval request created successfully!");
+
+          // Store approval request info for notification after transaction commits
+          (createdProject as any)._approvalRequestId = createdApprovalRequest.id;
+          (createdProject as any)._approvalRequestName = approvalRequestData.request_name;
+        } else {
+          console.log("ERROR: Workflow not found or has no steps!");
+          if (!workflow) {
+            console.log("Workflow is null/undefined");
+          } else if (!workflowSteps || workflowSteps.length === 0) {
+            console.log("Workflow has no steps or empty steps array");
+          }
+        }
+      } else {
+        console.log("Conditions NOT met for creating approval request:");
+        if (!createdProject.approval_workflow_id) {
+          console.log("  - approval_workflow_id is missing");
+        }
+        if (!createdProject.id) {
+          console.log("  - createdProject.id is missing");
+        }
+        if (!req.userId) {
+          console.log("  - req.userId is missing");
+        }
+      }
+
       await transaction.commit();
 
       await logSuccess({
@@ -233,13 +385,29 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         description: "Created new project",
         functionName: "createProject",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
+
+      // Notify Step 1 approvers AFTER transaction commits (fire-and-forget)
+      if ((createdProject as any)._approvalRequestId) {
+        notifyStepApprovers(
+          req.tenantId!,
+          (createdProject as any)._approvalRequestId,
+          1, // Step 1
+          (createdProject as any)._approvalRequestName
+        ).catch(error => {
+          console.error("Error sending approval notification:", error);
+        });
+      }
 
       // Send project creation notification to admin (fire-and-forget, don't block response)
       sendProjectCreatedNotification({
         projectId: createdProject.id!,
         projectName: createdProject.project_title,
         adminId: createdProject.owner,
+        tenantId: req.tenantId!,
+        userId: req.userId!,
       }).catch(async (emailError) => {
         // Log the email error but don't fail the project creation
         await logFailure({
@@ -248,6 +416,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           functionName: "createProject",
           fileName: "project.ctrl.ts",
           error: emailError as Error,
+          userId: req.userId!,
+          tenantId: req.tenantId!,
         });
       });
 
@@ -269,6 +439,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           functionName: "createProject",
           fileName: "project.ctrl.ts",
           error: slackError as Error,
+          userId: req.userId!,
+          tenantId: req.tenantId!,
         });
       });
 
@@ -285,6 +457,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       description: "Project creation returned null",
       functionName: "createProject",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(503).json(STATUS_CODE[503]({}));
@@ -298,6 +472,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         functionName: "createProject",
         fileName: "project.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -309,6 +485,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         functionName: "createProject",
         fileName: "project.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -319,6 +497,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       functionName: "createProject",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -337,6 +517,8 @@ export async function updateProjectById(
     description: `starting updateProjectById for ID ${projectId}`,
     functionName: "updateProjectById",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -348,6 +530,8 @@ export async function updateProjectById(
         functionName: "updateProjectById",
         fileName: "project.ctrl.ts",
         error: new Error("Unauthorized"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -361,6 +545,8 @@ export async function updateProjectById(
         description: `Project not found for update: ID ${projectId}`,
         functionName: "updateProjectById",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(404).json(STATUS_CODE[404]({}));
     }
@@ -422,6 +608,8 @@ export async function updateProjectById(
         description: `Updated project ID ${projectId}`,
         functionName: "updateProjectById",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       // Calculate which members actually got added (both new and re-added)
@@ -451,6 +639,8 @@ export async function updateProjectById(
                 error: new Error(
                   `Invalid role_id type: ${typeof memberUser.role_id}`
                 ),
+                userId: req.userId!,
+                tenantId: req.tenantId!,
               });
               continue;
             }
@@ -472,6 +662,7 @@ export async function updateProjectById(
                 adminId: req.userId!,
                 userId: memberId,
                 role: role,
+                tenantId: req.tenantId!,
               }).catch(async (emailError) => {
                 await logFailure({
                   eventType: "Update",
@@ -479,6 +670,8 @@ export async function updateProjectById(
                   functionName: "updateProjectById",
                   fileName: "project.ctrl.ts",
                   error: emailError as Error,
+                  userId: req.userId!,
+                  tenantId: req.tenantId!,
                 });
               });
             } else {
@@ -488,6 +681,8 @@ export async function updateProjectById(
                 functionName: "updateProjectById",
                 fileName: "project.ctrl.ts",
                 error: new Error(`Unmapped role_id: ${memberUser.role_id}`),
+                userId: req.userId!,
+                tenantId: req.tenantId!,
               });
             }
           }
@@ -498,6 +693,8 @@ export async function updateProjectById(
             functionName: "updateProjectById",
             fileName: "project.ctrl.ts",
             error: userLookupError as Error,
+            userId: req.userId!,
+            tenantId: req.tenantId!,
           });
         }
       }
@@ -510,6 +707,8 @@ export async function updateProjectById(
       description: `Project not found for update: ID ${projectId}`,
       functionName: "updateProjectById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -523,6 +722,8 @@ export async function updateProjectById(
         functionName: "updateProjectById",
         fileName: "project.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -534,6 +735,8 @@ export async function updateProjectById(
         functionName: "updateProjectById",
         fileName: "project.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -544,6 +747,8 @@ export async function updateProjectById(
       functionName: "updateProjectById",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -561,9 +766,29 @@ export async function deleteProjectById(
     description: `starting deleteProjectById for ID ${projectId}`,
     functionName: "deleteProjectById",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
+    // Check if project has a pending approval request and withdraw it
+    const pendingApprovalRequestId = await getPendingApprovalRequestIdQuery(
+      projectId,
+      "use_case",
+      req.tenantId!,
+      transaction
+    );
+
+    if (pendingApprovalRequestId) {
+      console.log(`Withdrawing approval request ${pendingApprovalRequestId} for project ${projectId} before deletion`);
+      await withdrawApprovalRequestQuery(
+        pendingApprovalRequestId,
+        req.tenantId!,
+        transaction
+      );
+      console.log(`Approval request ${pendingApprovalRequestId} withdrawn successfully`);
+    }
+
     // Record deletion in change history BEFORE deleting the project
     // (due to foreign key constraint on use_case_change_history table)
     if (req.userId) {
@@ -589,6 +814,8 @@ export async function deleteProjectById(
         description: `Deleted project ID ${projectId}`,
         functionName: "deleteProjectById",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(202).json(STATUS_CODE[202](deletedProject));
@@ -599,6 +826,8 @@ export async function deleteProjectById(
       description: `Project not found for deletion: ID ${projectId}`,
       functionName: "deleteProjectById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -611,6 +840,8 @@ export async function deleteProjectById(
       functionName: "deleteProjectById",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -627,6 +858,8 @@ export async function getProjectStatsById(
     description: `starting getProjectStatsById for project ID ${projectId}`,
     functionName: "getProjectStatsById",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -652,6 +885,8 @@ export async function getProjectStatsById(
       description: `Retrieved project stats for project ID ${projectId}`,
       functionName: "getProjectStatsById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(202).json(STATUS_CODE[202](overviewDetails));
@@ -662,6 +897,8 @@ export async function getProjectStatsById(
       functionName: "getProjectStatsById",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -678,6 +915,8 @@ export async function getProjectRisksCalculations(
     description: `starting getProjectRisksCalculations for project ID ${projectId}`,
     functionName: "getProjectRisksCalculations",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -691,6 +930,8 @@ export async function getProjectRisksCalculations(
       description: `Calculated risks for project ID ${projectId}`,
       functionName: "getProjectRisksCalculations",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res
@@ -707,6 +948,8 @@ export async function getProjectRisksCalculations(
       functionName: "getProjectRisksCalculations",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -723,6 +966,8 @@ export async function getVendorRisksCalculations(
     description: `starting getVendorRisksCalculations for project ID ${projectId}`,
     functionName: "getVendorRisksCalculations",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -736,6 +981,8 @@ export async function getVendorRisksCalculations(
       description: `Calculated vendor risks for project ID ${projectId}`,
       functionName: "getVendorRisksCalculations",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res
@@ -752,6 +999,8 @@ export async function getVendorRisksCalculations(
       functionName: "getVendorRisksCalculations",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -765,6 +1014,8 @@ export async function getCompliances(req: Request, res: Response) {
     description: `starting getCompliances for project ID ${projectId}`,
     functionName: "getCompliances",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -802,6 +1053,8 @@ export async function getCompliances(req: Request, res: Response) {
         description: `Retrieved compliance data for project ID ${projectId}`,
         functionName: "getCompliances",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(STATUS_CODE[200](controlCategories));
@@ -812,6 +1065,8 @@ export async function getCompliances(req: Request, res: Response) {
       description: `Project not found for compliance lookup: ID ${projectId}`,
       functionName: "getCompliances",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -822,6 +1077,8 @@ export async function getCompliances(req: Request, res: Response) {
       functionName: "getCompliances",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -835,6 +1092,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
     description: `starting projectComplianceProgress for ID ${projectId}`,
     functionName: "projectComplianceProgress",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -848,6 +1107,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
         description: `Compliance progress calculated for project ID ${projectId}`,
         functionName: "projectComplianceProgress",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(
@@ -863,6 +1124,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
       description: `Project not found: ID ${projectId}`,
       functionName: "projectComplianceProgress",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -873,6 +1136,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
       functionName: "projectComplianceProgress",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -886,6 +1151,8 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
     description: `starting projectAssessmentProgress for ID ${projectId}`,
     functionName: "projectAssessmentProgress",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -899,6 +1166,8 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
         description: `Assessment progress calculated for project ID ${projectId}`,
         functionName: "projectAssessmentProgress",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(
@@ -914,6 +1183,8 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
       description: `Project not found: ID ${projectId}`,
       functionName: "projectAssessmentProgress",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -924,6 +1195,8 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
       functionName: "projectAssessmentProgress",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -940,6 +1213,8 @@ export async function allProjectsComplianceProgress(
     description: "starting allProjectsComplianceProgress",
     functionName: "allProjectsComplianceProgress",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -964,6 +1239,8 @@ export async function allProjectsComplianceProgress(
         description: "Compliance progress calculated across all projects",
         functionName: "allProjectsComplianceProgress",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(
@@ -979,6 +1256,8 @@ export async function allProjectsComplianceProgress(
       description: "No projects found for compliance progress",
       functionName: "allProjectsComplianceProgress",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](projects));
@@ -989,6 +1268,8 @@ export async function allProjectsComplianceProgress(
       functionName: "allProjectsComplianceProgress",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -1005,6 +1286,8 @@ export async function allProjectsAssessmentProgress(
     description: "starting allProjectsAssessmentProgress",
     functionName: "allProjectsAssessmentProgress",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -1029,6 +1312,8 @@ export async function allProjectsAssessmentProgress(
         description: "Assessment progress calculated across all projects",
         functionName: "allProjectsAssessmentProgress",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(
@@ -1044,6 +1329,8 @@ export async function allProjectsAssessmentProgress(
       description: "No projects found for assessment progress",
       functionName: "allProjectsAssessmentProgress",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](projects));
@@ -1054,6 +1341,8 @@ export async function allProjectsAssessmentProgress(
       functionName: "allProjectsAssessmentProgress",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -1072,6 +1361,8 @@ export async function updateProjectStatus(
     description: `starting updateProjectStatus for ID ${projectId}`,
     functionName: "updateProjectStatus",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -1083,6 +1374,8 @@ export async function updateProjectStatus(
         description: `Project not found for status update: ID ${projectId}`,
         functionName: "updateProjectStatus",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(404).json(STATUS_CODE[404]({}));
@@ -1122,6 +1415,8 @@ export async function updateProjectStatus(
         description: `Updated project status to ${status} for ID ${projectId}`,
         functionName: "updateProjectStatus",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(STATUS_CODE[200](updatedProject));
@@ -1140,6 +1435,8 @@ export async function updateProjectStatus(
       functionName: "updateProjectStatus",
       fileName: "project.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

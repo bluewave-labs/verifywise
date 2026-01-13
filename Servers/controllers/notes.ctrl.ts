@@ -47,6 +47,8 @@ export async function createNote(req: Request, res: Response): Promise<any> {
     description: "Starting createNote",
     functionName: "createNote",
     fileName: "notes.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -98,6 +100,8 @@ export async function createNote(req: Request, res: Response): Promise<any> {
       functionName: "createNote",
       fileName: "notes.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     let statusCode = 500;
@@ -131,6 +135,8 @@ export async function getNotes(req: Request, res: Response): Promise<any> {
     description: "Starting getNotes",
     functionName: "getNotes",
     fileName: "notes.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -160,7 +166,8 @@ export async function getNotes(req: Request, res: Response): Promise<any> {
       attachedTo as NotesAttachedToEnum,
       attachedToId as string,
       organization_id,
-      tenant_id
+      tenant_id,
+      req.userId!
     );
 
     const responseData = notes.map((note) => note.toJSON());
@@ -173,6 +180,8 @@ export async function getNotes(req: Request, res: Response): Promise<any> {
       functionName: "getNotes",
       fileName: "notes.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof ValidationException) {
@@ -210,6 +219,8 @@ export async function updateNote(req: Request, res: Response): Promise<any> {
     description: `Starting updateNote for ID ${noteId}`,
     functionName: "updateNote",
     fileName: "notes.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -248,6 +259,8 @@ export async function updateNote(req: Request, res: Response): Promise<any> {
       functionName: "updateNote",
       fileName: "notes.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof ValidationException) {
@@ -281,6 +294,8 @@ export async function deleteNote(req: Request, res: Response): Promise<any> {
     description: `Starting deleteNote for ID ${noteId}`,
     functionName: "deleteNote",
     fileName: "notes.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -304,6 +319,8 @@ export async function deleteNote(req: Request, res: Response): Promise<any> {
       functionName: "deleteNote",
       fileName: "notes.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (error instanceof BusinessLogicException) {

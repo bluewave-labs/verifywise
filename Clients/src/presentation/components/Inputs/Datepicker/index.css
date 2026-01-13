@@ -2,32 +2,90 @@
   height: 34px;
 }
 
-.mui-date-picker .MuiInputBase-root {
+.mui-date-picker .MuiInputBase-root,
+.mui-date-picker .MuiPickersInputBase-root,
+.mui-date-picker .MuiPickersOutlinedInput-root {
   height: 34px;
 }
 
-.mui-date-picker .MuiInputBase-root input {
-  padding: 5px;
-  font-size: 13px;
-  padding-right: 1px;
+.mui-date-picker .MuiInputBase-root input,
+.mui-date-picker .MuiPickersInputBase-input,
+.mui-date-picker .MuiPickersOutlinedInput-input {
+  padding: 6px 8px 6px 0 !important;
+  font-size: 13px !important;
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+}
+
+/* MUI v8 uses sectionsContainer for date display */
+.mui-date-picker .MuiPickersOutlinedInput-root {
+  padding-left: 40px !important;
+}
+
+.mui-date-picker .MuiPickersInputBase-sectionsContainer {
+  font-size: 13px !important;
+}
+
+.mui-date-picker .MuiPickersInputBase-sectionContent {
+  font-size: 13px !important;
 }
 
 .mui-date-picker > .MuiFormLabel-root {
   font-size: 13px;
 }
 
-.mui-date-picker .MuiTouchRipple-root, 
+.mui-date-picker .MuiTouchRipple-root,
 .MuiPickersPopper-root .MuiTouchRipple-root,
-.MuiPickersDay-root.Mui-selected .MuiTouchRipple-root { 
+.MuiPickersDay-root.Mui-selected .MuiTouchRipple-root {
   display: none
 }
 
 .MuiPickersCalendarHeader-switchViewButton:hover,
-.MuiPickersArrowSwitcher-button:hover,
-.MuiPickersDay-root:hover {
+.MuiPickersArrowSwitcher-button:hover {
   background-color: transparent!important;
-} 
+}
+
+/* Regular day hover - light gray background */
+.MuiPickersDay-root:hover {
+  background-color: #f5f5f5 !important;
+}
+
+/* Selected day should keep green background on hover */
+.MuiPickersDay-root.Mui-selected:hover {
+  background-color: #13715B !important;
+  color: #FFFFFF !important;
+}
 
 .MuiButtonBase-root.MuiIconButton-root.MuiIconButton-edgeEnd.MuiPickersArrowSwitcher-previousIconButton{
   margin-right: 0;
+}
+
+/* DatePicker popup/popper font size fixes for MUI v8 */
+/* MUI v8 uses MuiPickerPopper-root (no 's'), v7 uses MuiPickersPopper-root */
+.MuiPickerPopper-root,
+.MuiPickersPopper-root {
+  font-size: 13px !important;
+}
+
+.MuiPickerPopper-root .MuiPickersCalendarHeader-label,
+.MuiPickersPopper-root .MuiPickersCalendarHeader-label {
+  font-size: 13px !important;
+}
+
+.MuiPickerPopper-root .MuiDayCalendar-weekDayLabel,
+.MuiPickersPopper-root .MuiDayCalendar-weekDayLabel {
+  font-size: 11px !important;
+}
+
+.MuiPickerPopper-root .MuiPickersDay-root,
+.MuiPickerPopper-root .MuiPickersDay-dayWithMargin,
+.MuiPickersPopper-root .MuiPickersDay-root,
+.MuiPickersPopper-root .MuiPickersDay-dayWithMargin {
+  font-size: 12px !important;
+}
+
+.MuiPickerPopper-root .MuiPickersYear-yearButton,
+.MuiPickersPopper-root .MuiPickersYear-yearButton {
+  font-size: 12px !important;
 }

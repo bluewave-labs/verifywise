@@ -281,7 +281,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
           className="home-layout"
           flexDirection="row"
           gap={0}
-          sx={{ backgroundColor: "#FCFCFD" }}
+          sx={{ backgroundColor: "#FCFCFD", height: "100vh", overflow: "hidden" }}
         >
           <AppSwitcher
             activeModule={activeModule}
@@ -293,7 +293,17 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
             hasDemoData={hasDemoData}
           />
-          <Stack sx={{ flex: 1, minWidth: 0 }}>
+          <Stack 
+            className="main-content-area" 
+            sx={{ 
+              flex: 1, 
+              minWidth: 0, 
+              height: "100vh", 
+              display: "flex", 
+              flexDirection: "column",
+              overflow: "hidden"
+            }}
+          >
             <DemoAppBanner />
             {alertState && (
               <Alert
@@ -305,7 +315,18 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
               />
             )}
             {showToastNotification && <CustomizableToast title={toastMessage} />}
-            <Outlet />
+            <Box 
+              className="scrollable-content"
+              sx={{ 
+                flex: 1, 
+                minHeight: 0,
+                overflowY: "auto", 
+                overflowX: "hidden",
+                padding: "24px"
+              }}
+            >
+              <Outlet />
+            </Box>
           </Stack>
 
           {/* Demo Data Modals */}

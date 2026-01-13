@@ -16,18 +16,21 @@ async def create_project(
     org_id: str,
     tenant: str,
     created_by: str,
-    db: AsyncSession
+    db: AsyncSession,
+    use_case: str = "chatbot"
 ) -> Optional[Dict[str, Any]]:
     """
-    Create a new DeepEval project (simplified - just name and description).
+    Create a new DeepEval project.
 
     Args:
         project_id: Unique project identifier
         name: Project name
         description: Project description
+        org_id: Organization ID
         tenant: Tenant ID (used for schema selection)
         created_by: Creator identifier
         db: Database session
+        use_case: Use case type (chatbot, rag, agent)
 
     Returns:
         Created project as dictionary, or None if failed
@@ -37,31 +40,33 @@ async def create_project(
         result = await db.execute(
             text(f'''
                 INSERT INTO "{tenant}".deepeval_projects
-                (id, name, description, org_id, created_by)
-                VALUES (:id, :name, :description, :org_id, :created_by)
-                RETURNING id, name, description, org_id, created_at, updated_at, created_by
+                (id, name, description, org_id, created_by, use_case)
+                VALUES (:id, :name, :description, :org_id, :created_by, :use_case)
+                RETURNING id, name, description, org_id, created_at, updated_at, created_by, use_case
             '''),
             {
                 "id": project_id,
                 "name": name,
                 "description": description,
                 "org_id": org_id,
-                "created_by": created_by
+                "created_by": created_by,
+                "use_case": use_case
             }
         )
     else:
         result = await db.execute(
             text(f'''
                 INSERT INTO "{tenant}".deepeval_projects
-                (id, name, description, created_by)
-                VALUES (:id, :name, :description, :created_by)
-                RETURNING id, name, description, NULL::varchar as org_id, created_at, updated_at, created_by
+                (id, name, description, created_by, use_case)
+                VALUES (:id, :name, :description, :created_by, :use_case)
+                RETURNING id, name, description, NULL::varchar as org_id, created_at, updated_at, created_by, use_case
             '''),
             {
                 "id": project_id,
                 "name": name,
                 "description": description,
-                "created_by": created_by
+                "created_by": created_by,
+                "use_case": use_case
             }
         )
 
@@ -72,6 +77,7 @@ async def create_project(
             "name": row["name"],
             "description": row["description"],
             "orgId": row["org_id"],
+            "useCase": row["use_case"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
             "createdBy": row["created_by"]
@@ -93,7 +99,7 @@ async def get_all_projects(tenant: str, db: AsyncSession) -> List[Dict[str, Any]
 
     result = await db.execute(
         text(f'''
-            SELECT id, name, description, org_id, created_at, updated_at, created_by
+            SELECT id, name, description, org_id, created_at, updated_at, created_by, use_case
             FROM "{tenant}".deepeval_projects
             ORDER BY created_at DESC
         ''')
@@ -107,6 +113,7 @@ async def get_all_projects(tenant: str, db: AsyncSession) -> List[Dict[str, Any]
             "name": row["name"],
             "description": row["description"],
             "orgId": row["org_id"],
+            "useCase": row["use_case"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
             "createdBy": row["created_by"]
@@ -133,7 +140,7 @@ async def get_project_by_id(
 
     result = await db.execute(
         text(f'''
-            SELECT id, name, description, created_at, updated_at, created_by
+            SELECT id, name, description, org_id, created_at, updated_at, created_by, use_case
             FROM "{tenant}".deepeval_projects
             WHERE id = :id
         '''),
@@ -146,6 +153,8 @@ async def get_project_by_id(
             "id": row["id"],
             "name": row["name"],
             "description": row["description"],
+            "orgId": row.get("org_id"),
+            "useCase": row["use_case"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
             "createdBy": row["created_by"]
@@ -158,10 +167,11 @@ async def update_project(
     name: Optional[str],
     description: Optional[str],
     tenant: str,
-    db: AsyncSession
+    db: AsyncSession,
+    use_case: Optional[str] = None
 ) -> Optional[Dict[str, Any]]:
     """
-    Update a project (simplified - only name and description).
+    Update a project.
 
     Args:
         project_id: Project ID
@@ -169,6 +179,7 @@ async def update_project(
         description: New description (optional)
         tenant: Tenant ID (used for schema selection and filtering)
         db: Database session
+        use_case: New use case (optional)
 
     Returns:
         Updated project as dictionary, or None if not found
@@ -186,6 +197,10 @@ async def update_project(
         updates.append("description = :description")
         params["description"] = description
 
+    if use_case is not None:
+        updates.append("use_case = :use_case")
+        params["use_case"] = use_case
+
     if not updates:
         # Nothing to update, just return existing project
         return await get_project_by_id(project_id, tenant, db)
@@ -197,7 +212,7 @@ async def update_project(
             UPDATE "{tenant}".deepeval_projects
             SET {", ".join(updates)}
             WHERE id = :id
-            RETURNING id, name, description, created_at, updated_at, created_by
+            RETURNING id, name, description, org_id, created_at, updated_at, created_by, use_case
         '''),
         params
     )
@@ -208,6 +223,8 @@ async def update_project(
             "id": row["id"],
             "name": row["name"],
             "description": row["description"],
+            "orgId": row.get("org_id"),
+            "useCase": row["use_case"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
             "createdBy": row["created_by"]

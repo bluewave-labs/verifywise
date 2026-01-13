@@ -15,6 +15,7 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import { hasPendingApprovalQuery } from "../utils/approvalRequest.utils";
 
 export async function getAllFrameworks(
   req: Request,
@@ -57,7 +58,9 @@ export async function getAllFrameworks(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve frameworks: ${(error as Error).message}`
+      `Failed to retrieve frameworks: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllFrameworks:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -110,7 +113,9 @@ export async function getFrameworkById(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve framework by ID: ${frameworkId}`
+      `Failed to retrieve framework by ID: ${frameworkId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getFrameworkById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -133,6 +138,28 @@ export async function addFrameworkToProject(
     );
     logger.debug(`🔗 Adding framework ${frameworkId} to project ${projectId}`);
 
+    // Check if project has a pending approval request
+    const hasPendingApproval = await hasPendingApprovalQuery(
+      projectId,
+      "use_case",
+      req.tenantId!
+    );
+
+    if (hasPendingApproval) {
+      logStructured(
+        "error",
+        `project ${projectId} has pending approval request`,
+        "addFrameworkToProject",
+        "framework.ctrl.ts"
+      );
+      await transaction.rollback();
+      return res.status(403).json(
+        STATUS_CODE[403](
+          "This use case has a pending approval request and cannot be modified until the approval process is complete."
+        )
+      );
+    }
+
     // Validate framework exists
     const framework = await FrameworkModel.findByIdWithValidation(frameworkId);
     if (!framework) {
@@ -144,7 +171,9 @@ export async function addFrameworkToProject(
       );
       await logEvent(
         "Error",
-        `Framework not found during project addition: ID ${frameworkId}`
+        `Framework not found during project addition: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Framework not found"));
@@ -167,7 +196,9 @@ export async function addFrameworkToProject(
       );
       await logEvent(
         "Create",
-        `Framework ${frameworkId} added to project ${projectId}`
+        `Framework ${frameworkId} added to project ${projectId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(STATUS_CODE[200](result));
     }
@@ -181,7 +212,9 @@ export async function addFrameworkToProject(
     );
     await logEvent(
       "Error",
-      `Failed to add framework ${frameworkId} to project ${projectId}`
+      `Failed to add framework ${frameworkId} to project ${projectId}`,
+      req.userId!,
+      req.tenantId!
     );
     return res
       .status(404)
@@ -202,7 +235,9 @@ export async function addFrameworkToProject(
       "Error",
       `Unexpected error adding framework to project: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
 
     if (error instanceof ValidationException) {
@@ -236,6 +271,32 @@ export async function deleteFrameworkFromProject(
       `🔗 Removing framework ${frameworkId} from project ${projectId}`
     );
 
+    // Check if project has a pending approval request
+    console.log("=== deleteFrameworkFromProject - Checking pending approval ===");
+    console.log("projectId:", projectId);
+    console.log("tenantId:", req.tenantId);
+
+    const hasPendingApproval = await hasPendingApprovalQuery(
+      projectId,
+      "use_case",
+      req.tenantId!
+    );
+
+    if (hasPendingApproval) {
+      logStructured(
+        "error",
+        `project ${projectId} has pending approval request`,
+        "deleteFrameworkFromProject",
+        "framework.ctrl.ts"
+      );
+      await transaction.rollback();
+      return res.status(403).json(
+        STATUS_CODE[403](
+          "This use case has a pending approval request and cannot be modified until the approval process is complete."
+        )
+      );
+    }
+
     // Validate framework exists
     const framework = await FrameworkModel.findByIdWithValidation(frameworkId);
     if (!framework) {
@@ -247,7 +308,9 @@ export async function deleteFrameworkFromProject(
       );
       await logEvent(
         "Error",
-        `Framework not found during project removal: ID ${frameworkId}`
+        `Framework not found during project removal: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Framework not found"));
@@ -270,7 +333,9 @@ export async function deleteFrameworkFromProject(
       );
       await logEvent(
         "Delete",
-        `Framework ${frameworkId} removed from project ${projectId}`
+        `Framework ${frameworkId} removed from project ${projectId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(STATUS_CODE[200](result));
     }
@@ -284,7 +349,9 @@ export async function deleteFrameworkFromProject(
     );
     await logEvent(
       "Error",
-      `Failed to remove framework ${frameworkId} from project ${projectId}`
+      `Failed to remove framework ${frameworkId} from project ${projectId}`,
+      req.userId!,
+      req.tenantId!
     );
     return res
       .status(404)
@@ -305,7 +372,9 @@ export async function deleteFrameworkFromProject(
       "Error",
       `Unexpected error removing framework from project: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
 
     if (error instanceof ValidationException) {

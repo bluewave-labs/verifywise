@@ -167,6 +167,8 @@ export function controllerWrapper<T>(
       description: processingDescription || `starting ${functionName}`,
       functionName,
       fileName,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     try {
@@ -183,6 +185,8 @@ export function controllerWrapper<T>(
         description: successMsg,
         functionName,
         fileName,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res
@@ -197,6 +201,8 @@ export function controllerWrapper<T>(
         functionName,
         fileName,
         error: err,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       // Handle custom exceptions with their defined status codes

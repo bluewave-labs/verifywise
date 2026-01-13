@@ -12,6 +12,12 @@ router.get('/', authenticateJWT, PolicyController.getAllPolicies);
 // GET /policies/tags - Get available policy tags
 router.get('/tags', authenticateJWT, PolicyController.getPolicyTags);
 
+// GET /policies/:id/export/pdf - Export policy as PDF
+router.get('/:id/export/pdf', authenticateJWT, PolicyController.exportPolicyPDF);
+
+// GET /policies/:id/export/docx - Export policy as DOCX
+router.get('/:id/export/docx', authenticateJWT, PolicyController.exportPolicyDOCX);
+
 // GET /policies/:id - Get policy by ID
 router.get('/:id', authenticateJWT, PolicyController.getPolicyById);
 
@@ -21,7 +27,7 @@ router.post('/', authenticateJWT, PolicyController.createPolicy);
 // PUT /policies/:id - Update policy
 router.put('/:id', authenticateJWT, PolicyController.updatePolicy);
 
-// In routes file
+// DELETE /policies/:id - Delete policy by ID
 router.delete('/:id', authenticateJWT, PolicyController.deletePolicyById);
 
 

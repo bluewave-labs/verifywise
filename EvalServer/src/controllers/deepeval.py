@@ -81,6 +81,69 @@ METRICS = [
         "requires_context": False,
         "requires_openai_key": True,
         "score_interpretation": "Lower is better (0.0 - 1.0)"
+    },
+    # Agent-specific metrics (Reasoning Layer)
+    {
+        "name": "plan_quality",
+        "display_name": "Plan Quality",
+        "description": "Evaluates the quality and coherence of the agent's planning and task decomposition",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_reasoning",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "plan_adherence",
+        "display_name": "Plan Adherence",
+        "description": "Measures how well the agent follows its own plan during execution",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_reasoning",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    # Agent-specific metrics (Action Layer)
+    {
+        "name": "tool_correctness",
+        "display_name": "Tool Correctness",
+        "description": "Evaluates if the agent selected the correct tools for the task",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_action",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "argument_correctness",
+        "display_name": "Argument Correctness",
+        "description": "Evaluates if the agent provided correct arguments/parameters to tools",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_action",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    # Agent-specific metrics (Execution)
+    {
+        "name": "task_completion",
+        "display_name": "Task Completion",
+        "description": "Measures whether the agent successfully completed the requested task",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_execution",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "step_efficiency",
+        "display_name": "Step Efficiency",
+        "description": "Evaluates if the agent completed the task with minimal unnecessary steps",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_execution",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
     }
 ]
 

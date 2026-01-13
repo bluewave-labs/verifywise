@@ -26,6 +26,8 @@ interface MetricsCache {
   evidenceHubMetrics?: CacheEntry<any>;
   modelLifecycleMetrics?: CacheEntry<any>;
   organizationalFrameworks?: CacheEntry<any>;
+  taskMetrics?: CacheEntry<any>;
+  useCaseMetrics?: CacheEntry<any>;
 }
 
 // Cache utility functions
@@ -81,6 +83,7 @@ export interface RiskMetrics {
     title: string;
     severity: "high" | "medium" | "low";
     created_at: string;
+    updated_at?: string;
     project_name: string;
   }>;
 }
@@ -91,6 +94,7 @@ export interface EvidenceMetrics {
     id: number;
     title: string;
     uploaded_at: string;
+    updated_at?: string;
     project_name: string;
     user_name: string;
   }>;
@@ -110,6 +114,7 @@ export interface VendorRiskMetrics {
     title: string;
     severity: "high" | "medium" | "low";
     created_at: string;
+    updated_at?: string;
     vendor_name: string;
   }>;
   statusDistribution?: Array<{ name: string; value: number; color: string }>;
@@ -121,6 +126,7 @@ export interface VendorMetrics {
     id: number;
     name: string;
     created_at: string;
+    updated_at?: string;
     status: string;
   }>;
   statusDistribution?: Array<{ name: string; value: number; color: string }>;
@@ -160,6 +166,7 @@ export interface IncidentMetrics {
     severity: string;
     status: string;
     created_at: string;
+    updated_at?: string;
   }>;
   statusDistribution?: Array<{ name: string; value: number; color: string }>;
 }
@@ -177,6 +184,7 @@ export interface ModelRiskMetrics {
     title: string;
     severity: "critical" | "high" | "medium" | "low";
     created_at: string;
+    updated_at?: string;
     model_name?: string;
   }>;
 }
@@ -190,6 +198,36 @@ export interface TrainingMetrics {
   };
   completionPercentage: number;
   totalPeople: number;
+  recent: Array<{
+    id: number;
+    title: string;
+    status: string;
+    created_at: string;
+    updated_at?: string;
+  }>;
+}
+
+export interface TaskMetrics {
+  total: number;
+  recent: Array<{
+    id: number;
+    title: string;
+    status: string;
+    priority: string;
+    created_at: string;
+    updated_at?: string;
+  }>;
+}
+
+export interface UseCaseMetrics {
+  total: number;
+  recent: Array<{
+    id: number;
+    title: string;
+    status: string;
+    created_at: string;
+    last_updated?: string;
+  }>;
 }
 
 export interface PolicyStatusMetrics {
@@ -302,6 +340,12 @@ export const useDashboardMetrics = () => {
   );
   const [organizationalFrameworks, setOrganizationalFrameworks] = useState<OrganizationalFrameworkData[]>(
     () => getCachedValue<OrganizationalFrameworkData[]>("organizationalFrameworks").data || []
+  );
+  const [taskMetrics, setTaskMetrics] = useState<TaskMetrics | null>(
+    () => getCachedValue<TaskMetrics>("taskMetrics").data
+  );
+  const [useCaseMetrics, setUseCaseMetrics] = useState<UseCaseMetrics | null>(
+    () => getCachedValue<UseCaseMetrics>("useCaseMetrics").data
   );
   const [loading, setLoading] = useState(false);
   const [isRevalidating, setIsRevalidating] = useState(false);
@@ -742,6 +786,15 @@ export const useDashboardMetrics = () => {
         distribution,
         completionPercentage,
         totalPeople,
+        recent: trainingsArray
+          .filter((training: any) => training.created_at || training.createdAt)
+          .slice(0, 5)
+          .map((training: any, index: number) => ({
+            id: training.id || index + 1,
+            title: training.training_name || training.name || "Untitled Training",
+            status: training.status || "Planned",
+            created_at: training.created_at || training.createdAt,
+          })),
       };
       setTrainingMetrics(metrics);
       setCachedValue("trainingMetrics", metrics);
@@ -750,6 +803,71 @@ export const useDashboardMetrics = () => {
       if (!trainingMetrics) setTrainingMetrics(null);
     }
   }, [trainingMetrics]);
+
+  // Fetch task metrics - for Recent Activity
+  const fetchTaskMetrics = useCallback(async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/tasks" });
+      const tasksData = response.data || response;
+      const tasksArray = Array.isArray(tasksData) ? tasksData : [];
+
+      const metrics = {
+        total: tasksArray.length,
+        recent: tasksArray
+          .filter((task: any) => task.created_at || task.createdAt)
+          .slice(0, 5)
+          .map((task: any, index: number) => ({
+            id: task.id || index + 1,
+            title: task.title || "Untitled Task",
+            status: task.status || "Open",
+            priority: task.priority || "Medium",
+            created_at: task.created_at || task.createdAt,
+          })),
+      };
+      setTaskMetrics(metrics);
+      setCachedValue("taskMetrics", metrics);
+    } catch (err) {
+      console.warn("Failed to fetch task metrics:", err);
+      if (!taskMetrics) setTaskMetrics(null);
+    }
+  }, [taskMetrics]);
+
+  // Fetch use case metrics - for Recent Activity
+  const fetchUseCaseMetrics = useCallback(async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/projects" });
+      const projectsData = response.data || response;
+      const projectsArray = Array.isArray(projectsData) ? projectsData : [];
+
+      // Filter out organizational projects (use cases are non-organizational projects)
+      const useCases = projectsArray.filter((project: any) => !project.is_organizational);
+
+      const metrics = {
+        total: useCases.length,
+        recent: useCases
+          .filter((project: any) => project.created_at || project.createdAt || project.last_updated)
+          .sort((a: any, b: any) => {
+            // Sort by most recent activity (prefer last_updated, fall back to created_at)
+            const dateA = new Date(a.last_updated || a.created_at || a.createdAt);
+            const dateB = new Date(b.last_updated || b.created_at || b.createdAt);
+            return dateB.getTime() - dateA.getTime();
+          })
+          .slice(0, 5)
+          .map((project: any, index: number) => ({
+            id: project.id || index + 1,
+            title: project.project_title || project.name || "Untitled Use Case",
+            status: project.status || "Active",
+            created_at: project.created_at || project.createdAt,
+            last_updated: project.last_updated,
+          })),
+      };
+      setUseCaseMetrics(metrics);
+      setCachedValue("useCaseMetrics", metrics);
+    } catch (err) {
+      console.warn("Failed to fetch use case metrics:", err);
+      if (!useCaseMetrics) setUseCaseMetrics(null);
+    }
+  }, [useCaseMetrics]);
 
   // Fetch evidence hub metrics - for Evidence Coverage card
   const fetchEvidenceHubMetrics = useCallback(async () => {
@@ -1013,7 +1131,7 @@ export const useDashboardMetrics = () => {
 
     try {
       // Fetch each metric individually and catch errors
-      // 12 API calls (reduced by deduplicating policy and incident endpoints)
+      // 14 API calls (reduced by deduplicating policy and incident endpoints)
       const results = await Promise.allSettled([
         fetchRiskMetrics(),
         fetchEvidenceMetrics(),
@@ -1027,6 +1145,8 @@ export const useDashboardMetrics = () => {
         fetchEvidenceHubMetrics(),
         fetchModelLifecycleMetrics(),
         fetchOrganizationalFrameworks(),
+        fetchTaskMetrics(),
+        fetchUseCaseMetrics(),
       ]);
 
       // Log which ones failed (only in development)
@@ -1045,6 +1165,8 @@ export const useDashboardMetrics = () => {
             "evidenceHubMetrics",
             "modelLifecycleMetrics",
             "organizationalFrameworks",
+            "taskMetrics",
+            "useCaseMetrics",
           ];
 
           if (result.status === "rejected") {
@@ -1073,6 +1195,8 @@ export const useDashboardMetrics = () => {
     fetchEvidenceHubMetrics,
     fetchModelLifecycleMetrics,
     fetchOrganizationalFrameworks,
+    fetchTaskMetrics,
+    fetchUseCaseMetrics,
   ]);
 
   // Initialize data on mount
@@ -1096,6 +1220,8 @@ export const useDashboardMetrics = () => {
     evidenceHubMetrics,
     modelLifecycleMetrics,
     organizationalFrameworks,
+    taskMetrics,
+    useCaseMetrics,
 
     // State
     loading,
@@ -1116,5 +1242,7 @@ export const useDashboardMetrics = () => {
     fetchEvidenceHubMetrics,
     fetchModelLifecycleMetrics,
     fetchOrganizationalFrameworks,
+    fetchTaskMetrics,
+    fetchUseCaseMetrics,
   };
 };

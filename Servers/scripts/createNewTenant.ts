@@ -82,6 +82,93 @@ export const createNewTenant = async (
         $$ LANGUAGE plpgsql;`,
       { transaction }
     );
+
+    // Create approval workflows tables
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".approval_workflows (
+        id SERIAL PRIMARY KEY,
+        workflow_title VARCHAR(255) NOT NULL,
+        entity_type VARCHAR(50) NOT NULL CHECK (entity_type IN ('use_case', 'project')),
+        description TEXT,
+        created_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        is_active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".approval_workflow_steps (
+        id SERIAL PRIMARY KEY,
+        workflow_id INTEGER NOT NULL REFERENCES "${tenantHash}".approval_workflows(id) ON DELETE CASCADE,
+        step_number INTEGER NOT NULL,
+        step_name VARCHAR(255) NOT NULL,
+        description TEXT,
+        requires_all_approvers BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        UNIQUE(workflow_id, step_number)
+      );`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".approval_step_approvers (
+        id SERIAL PRIMARY KEY,
+        workflow_step_id INTEGER NOT NULL REFERENCES "${tenantHash}".approval_workflow_steps(id) ON DELETE CASCADE,
+        approver_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        UNIQUE(workflow_step_id, approver_id)
+      );`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".approval_requests (
+        id SERIAL PRIMARY KEY,
+        request_name VARCHAR(255) NOT NULL,
+        workflow_id INTEGER NOT NULL REFERENCES "${tenantHash}".approval_workflows(id) ON DELETE CASCADE,
+        entity_id INTEGER,
+        entity_type VARCHAR(50),
+        entity_data JSONB,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'withdrawn')),
+        requested_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        current_step_number INTEGER,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".approval_request_steps (
+        id SERIAL PRIMARY KEY,
+        request_id INTEGER NOT NULL REFERENCES "${tenantHash}".approval_requests(id) ON DELETE CASCADE,
+        step_number INTEGER NOT NULL,
+        step_name VARCHAR(255) NOT NULL,
+        requires_all_approvers BOOLEAN NOT NULL DEFAULT false,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        UNIQUE(request_id, step_number)
+      );`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".approval_request_step_approvals (
+        id SERIAL PRIMARY KEY,
+        request_step_id INTEGER NOT NULL REFERENCES "${tenantHash}".approval_request_steps(id) ON DELETE CASCADE,
+        approver_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        approval_result VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (approval_result IN ('pending', 'approved', 'rejected')),
+        comments TEXT,
+        approved_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        UNIQUE(request_step_id, approver_id)
+      );`,
+      { transaction }
+    );
+
     await Promise.all(
       [
         `CREATE SEQUENCE IF NOT EXISTS "${tenantHash}".project_uc_id_seq;`,
@@ -103,6 +190,9 @@ export const createNewTenant = async (
         is_demo boolean NOT NULL DEFAULT false,
         is_organizational boolean NOT NULL DEFAULT false,
         status projects_status_enum NOT NULL DEFAULT 'Not started',
+        approval_workflow_id INTEGER REFERENCES "${tenantHash}".approval_workflows(id) ON DELETE SET NULL,
+        pending_frameworks JSONB DEFAULT NULL,
+        enable_ai_data_insertion BOOLEAN DEFAULT FALSE,
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT projects_pkey PRIMARY KEY (id),
         CONSTRAINT projects_owner_fkey FOREIGN KEY (owner)

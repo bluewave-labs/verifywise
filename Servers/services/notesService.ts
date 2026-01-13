@@ -73,6 +73,8 @@ export class NotesService {
       description: "Starting NotesService.createNote",
       functionName: "createNote",
       fileName: "notesService.ts",
+      userId: authorId,
+      tenantId: tenantId,
     });
 
     try {
@@ -155,6 +157,8 @@ export class NotesService {
         description: `Note created on ${attachedTo}:${attachedToId}`,
         functionName: "createNote",
         fileName: "notesService.ts",
+        userId: authorId,
+        tenantId: tenantId,
       });
 
       return savedNote;
@@ -165,6 +169,8 @@ export class NotesService {
         functionName: "createNote",
         fileName: "notesService.ts",
         error: error as Error,
+        userId: authorId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -192,12 +198,15 @@ export class NotesService {
     attachedTo: NotesAttachedToEnum,
     attachedToId: string,
     organizationId: number,
-    tenantId: string
+    tenantId: string,
+    userId: number
   ): Promise<NotesModel[]> {
     logProcessing({
       description: "Starting NotesService.getNotes",
       functionName: "getNotes",
       fileName: "notesService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -236,6 +245,8 @@ export class NotesService {
         description: `Retrieved ${notes.length} notes for ${attachedTo}:${attachedToId}`,
         functionName: "getNotes",
         fileName: "notesService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return notes;
@@ -246,6 +257,8 @@ export class NotesService {
         functionName: "getNotes",
         fileName: "notesService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -284,6 +297,8 @@ export class NotesService {
       description: `Starting NotesService.updateNote for ID ${noteId}`,
       functionName: "updateNote",
       fileName: "notesService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -349,6 +364,8 @@ export class NotesService {
         description: `Note ${noteId} updated`,
         functionName: "updateNote",
         fileName: "notesService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return updatedNote;
@@ -359,6 +376,8 @@ export class NotesService {
         functionName: "updateNote",
         fileName: "notesService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }
@@ -389,6 +408,8 @@ export class NotesService {
       description: `Starting NotesService.deleteNote for ID ${noteId}`,
       functionName: "deleteNote",
       fileName: "notesService.ts",
+      userId: userId,
+      tenantId: tenantId,
     });
 
     try {
@@ -406,8 +427,10 @@ export class NotesService {
           functionName: "deleteNote",
           fileName: "notesService.ts",
           error: new Error(
-            `Note with ID ${noteId} not found in tenant ${tenantId}`
+            `Note with ID ${noteId} not found in tenant ${tenantId}`,
           ),
+          userId: userId,
+          tenantId: tenantId
         });
         throw new Error(`Note with ID ${noteId} not found`);
       }
@@ -436,6 +459,8 @@ export class NotesService {
         description: `Note ${noteId} deleted`,
         functionName: "deleteNote",
         fileName: "notesService.ts",
+        userId: userId,
+        tenantId: tenantId,
       });
 
       return true;
@@ -446,6 +471,8 @@ export class NotesService {
         functionName: "deleteNote",
         fileName: "notesService.ts",
         error: error as Error,
+        userId: userId,
+        tenantId: tenantId,
       });
       throw error;
     }

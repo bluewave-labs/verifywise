@@ -1,10 +1,19 @@
-import React, { useMemo, memo, useCallback } from 'react';
-import { Stack, IconButton } from '@mui/material';
+import React, { useMemo, memo, useCallback, useEffect } from 'react';
+import { Stack, IconButton, ListItemIcon } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Puzzle, Zap } from 'lucide-react';
+import { Search, Puzzle, Zap, Workflow } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
+import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
+import ApprovalButton from './ApprovalButton';
+import {
+  getPendingApprovals,
+  getMyApprovalRequests,
+} from '../../../application/repository/approvalRequest.repository';
+import Button from '../Button';
+import { approvalButtonStyle } from './style';
+import { useNotifications } from '../../../application/hooks/useNotifications';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -79,11 +88,14 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   const isMac = useMemo(() => {
     if (typeof navigator !== 'undefined') {
       return navigator.platform?.toLowerCase().includes('mac') ||
-             navigator.userAgent?.toLowerCase().includes('mac');
+        navigator.userAgent?.toLowerCase().includes('mac');
     }
     return false;
   }, []);
 
+  const [isRequestModalOpen, setIsRequestModalOpen] = React.useState(false);
+
+  // Check if we're on the main dashboard - memoized to prevent unnecessary re-renders
   const isMainDashboard = useMemo(
     () => location.pathname === '/' || location.pathname === '',
     [location.pathname]
@@ -108,6 +120,44 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     transition: 'all 0.2s ease',
   };
 
+  const [totalApprovalCount, setTotalApprovalCount] = React.useState(0);
+
+  // Function to fetch approval counts
+  const fetchApprovalCounts = useCallback(async () => {
+    try {
+      const [approvalsResponse, myRequestsResponse] = await Promise.all([
+        getPendingApprovals(),
+        getMyApprovalRequests(),
+      ]);
+
+      const approvalsCount = approvalsResponse?.data?.length || 0;
+      const myRequestsCount = myRequestsResponse?.data?.length || 0;
+
+      setTotalApprovalCount(approvalsCount + myRequestsCount);
+    } catch (error) {
+      console.error("Failed to fetch approval counts:", error);
+      setTotalApprovalCount(0);
+    }
+  }, []);
+
+  // Listen for approval notifications and refresh count
+  useNotifications({
+    enabled: true,
+    onNotification: useCallback((notification: any) => {
+      // Refresh count when approval-related notifications are received
+      const approvalTypes = ['approval_request', 'approval_approved', 'approval_rejected', 'approval_complete'];
+      if (approvalTypes.includes(notification?.type)) {
+        fetchApprovalCounts();
+      }
+    }, [fetchApprovalCounts]),
+  });
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchApprovalCounts();
+  }, [fetchApprovalCounts]);
+
+
   return (
     <Stack
       direction="row"
@@ -126,6 +176,36 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
           <Search size={16} />
         </IconButton>
       </VWTooltip>
+
+      <>
+        {isAdmin && <Button
+          variant="contained"
+          size="small"
+          onClick={() => navigate('/approval-workflows')}
+          sx={approvalButtonStyle}
+        >
+          {<ListItemIcon
+            sx={{
+              minWidth: '20px',
+              color: 'inherit',
+            }}
+            >
+              {<Workflow size={16} strokeWidth={1.5} />}
+            </ListItemIcon>}
+          Approval workflows
+        </Button>
+      }
+      </>
+
+      <ApprovalButton
+        label="Approval requests"
+        count={totalApprovalCount}
+        onClick={() => {
+          setIsRequestModalOpen(true);
+          // Refresh count when modal is opened to ensure it's up-to-date
+          fetchApprovalCounts();
+        }}
+      />
 
       {/* Integrations */}
       <VWTooltip
@@ -152,6 +232,12 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
           <Zap size={16} />
         </IconButton>
       </VWTooltip>
+
+
+      <RequestorApprovalModal
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
+        onRefresh={fetchApprovalCounts} />
     </Stack>
   );
 });

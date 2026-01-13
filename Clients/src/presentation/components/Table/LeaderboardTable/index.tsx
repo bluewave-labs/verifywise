@@ -4,13 +4,17 @@
  * A reusable grid-style table for displaying LLM leaderboard rankings.
  */
 
-import { useState, useMemo } from "react";
-import { Box, Typography, CircularProgress, SxProps, Theme } from "@mui/material";
+import { useState, useMemo, useEffect } from "react";
+import { Box, Typography, CircularProgress, SxProps, Theme, Stack, TablePagination } from "@mui/material";
 import { ChevronUp, ChevronDown, BarChart3 } from "lucide-react";
 import { METRIC_CONFIG, LeaderboardEntry } from "./leaderboardConfig";
+import TablePaginationActions from "../../TablePagination";
 
 // Re-export for convenience
 export { METRIC_CONFIG, type LeaderboardEntry } from "./leaderboardConfig";
+
+const DEFAULT_ROWS_PER_PAGE = 10;
+const LEADERBOARD_ROWS_PER_PAGE_KEY = "verifywise_leaderboard_rows_per_page";
 
 export interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
@@ -29,6 +33,21 @@ export default function LeaderboardTable({
 }: LeaderboardTableProps) {
   const [sortBy, setSortBy] = useState<string>("score");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    const saved = localStorage.getItem(LEADERBOARD_ROWS_PER_PAGE_KEY);
+    return saved ? parseInt(saved, 10) : DEFAULT_ROWS_PER_PAGE;
+  });
+
+  // Save rowsPerPage to localStorage
+  useEffect(() => {
+    localStorage.setItem(LEADERBOARD_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
+  }, [rowsPerPage]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery]);
 
   // Filter and sort entries
   const sortedEntries = useMemo(() => {
@@ -54,6 +73,12 @@ export default function LeaderboardTable({
     return filtered.map((entry, index) => ({ ...entry, rank: index + 1 }));
   }, [entries, searchQuery, sortBy, sortDirection]);
 
+  // Paginated entries
+  const paginatedEntries = useMemo(() => {
+    const start = page * rowsPerPage;
+    return sortedEntries.slice(start, start + rowsPerPage);
+  }, [sortedEntries, page, rowsPerPage]);
+
   // Handle column sort
   const handleSort = (column: string) => {
     let newDirection: "asc" | "desc" = "desc";
@@ -65,21 +90,31 @@ export default function LeaderboardTable({
     onSort?.(column, newDirection);
   };
 
+  const handleChangePage = (_: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   // Format score as percentage
   const formatScore = (score: number): string => (score * 100).toFixed(1) + "%";
 
-  // Get color based on score
-  const getScoreColor = (score: number, metric: string): string => {
+  // Get light pastel color for metric score
+  const getMetricColor = (score: number, metric: string): string => {
     const config = METRIC_CONFIG[metric];
-    const effective = config && !config.higherIsBetter ? (1 - score) : score;
-    if (effective >= 0.8) return "#059669";
-    if (effective >= 0.6) return "#65a30d";
-    if (effective >= 0.4) return "#d97706";
+    const normalized = config && !config.higherIsBetter ? (1 - score) : score;
+    
+    if (normalized >= 0.8) return "#16a34a";
+    if (normalized >= 0.6) return "#65a30d";
+    if (normalized >= 0.4) return "#ca8a04";
     return "#dc2626";
   };
 
-  // Grid columns definition
-  const gridColumns = `80px 200px 100px ${displayMetrics.map(() => "100px").join(" ")} 80px 120px`;
+  // Grid columns: Rank, Model, Score, then metrics
+  const gridColumns = `80px minmax(200px, 1fr) 100px ${displayMetrics.map(() => "minmax(110px, 130px)").join(" ")}`;
 
   // Loading state
   if (loading) {
@@ -106,107 +141,157 @@ export default function LeaderboardTable({
   }
 
   return (
-    <Box sx={{ border: "1px solid #d1d5db", borderRadius: "8px", overflow: "hidden", bgcolor: "#fff" }}>
-      {/* Table Header */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: gridColumns,
-          bgcolor: "#f8fafc",
-          borderBottom: "2px solid #e2e8f0",
-        }}
-      >
-        <HeaderCell onClick={() => handleSort("score")} active={sortBy === "score"} direction={sortDirection}>
-          Rank
-        </HeaderCell>
-        <HeaderCell>Model</HeaderCell>
-        <HeaderCell onClick={() => handleSort("score")} active={sortBy === "score"} direction={sortDirection}>
-          Score ↓
-        </HeaderCell>
-        {displayMetrics.map((metric) => (
-          <HeaderCell
-            key={metric}
-            onClick={() => handleSort(metric)}
-            active={sortBy === metric}
-            direction={sortDirection}
-          >
-            {METRIC_CONFIG[metric]?.shortName || metric}
-          </HeaderCell>
-        ))}
-        <HeaderCell
-          onClick={() => handleSort("experimentCount")}
-          active={sortBy === "experimentCount"}
-          direction={sortDirection}
-        >
-          Evals
-        </HeaderCell>
-        <HeaderCell>Provider</HeaderCell>
-      </Box>
-
-      {/* Table Rows */}
-      {sortedEntries.map((entry, idx) => (
+    <Box 
+      sx={{ 
+        border: "1px solid #e2e8f0", 
+        borderRadius: "8px", 
+        overflow: "hidden", 
+        bgcolor: "#fff" 
+      }}
+    >
+      {/* Scrollable Table Container */}
+      <Box sx={{ overflowX: "auto" }}>
+        {/* Table Header */}
         <Box
-          key={entry.model}
           sx={{
             display: "grid",
             gridTemplateColumns: gridColumns,
-            borderBottom: idx < sortedEntries.length - 1 ? "1px solid #e5e7eb" : "none",
-            "&:hover": { bgcolor: "#f8fafc" },
-            transition: "background 0.15s",
+            bgcolor: "#f8fafc",
+            borderBottom: "2px solid #e2e8f0",
+            minWidth: "fit-content",
           }}
         >
-          {/* Rank */}
-          <Cell>
-            <RankBadge rank={entry.rank} />
-          </Cell>
-
-          {/* Model */}
-          <Cell sx={{ justifyContent: "flex-start", pl: 2 }}>
-            <Typography variant="body2" fontWeight={600} sx={{ fontFamily: "monospace", color: "#1f2937" }}>
-              {entry.model}
-            </Typography>
-          </Cell>
-
-          {/* Score */}
-          <Cell>
-            <Typography variant="body2" fontWeight={700} sx={{ fontFamily: "monospace", color: "#1f2937" }}>
-              {formatScore(entry.score)}
-            </Typography>
-          </Cell>
-
-          {/* Metrics */}
+          <HeaderCell onClick={() => handleSort("score")} active={sortBy === "score"} direction={sortDirection}>
+            Rank
+          </HeaderCell>
+          <HeaderCell onClick={() => handleSort("model")} active={sortBy === "model"} direction={sortDirection}>
+            Model
+          </HeaderCell>
+          <HeaderCell onClick={() => handleSort("score")} active={sortBy === "score"} direction={sortDirection}>
+            Score
+          </HeaderCell>
           {displayMetrics.map((metric) => (
-            <Cell key={metric}>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontFamily: "monospace",
-                  color:
-                    entry.metricScores[metric] !== undefined
-                      ? getScoreColor(entry.metricScores[metric], metric)
-                      : "#d1d5db",
+            <HeaderCell
+              key={metric}
+              onClick={() => handleSort(metric)}
+              active={sortBy === metric}
+              direction={sortDirection}
+            >
+              {METRIC_CONFIG[metric]?.shortName || metric.charAt(0).toUpperCase() + metric.slice(1)}
+            </HeaderCell>
+          ))}
+        </Box>
+
+        {/* Table Rows */}
+        {paginatedEntries.map((entry, idx) => (
+          <Box
+            key={entry.model}
+            sx={{
+              display: "grid",
+              gridTemplateColumns: gridColumns,
+              borderBottom: idx < paginatedEntries.length - 1 ? "1px solid #f1f5f9" : "none",
+              minWidth: "fit-content",
+              "&:hover": { bgcolor: "#fafbfc" },
+              transition: "background 0.15s",
+            }}
+          >
+            {/* Rank */}
+            <Cell>
+              <RankBadge rank={entry.rank} />
+            </Cell>
+
+            {/* Model */}
+            <Cell>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontFamily: "'SF Mono', 'Roboto Mono', monospace", 
+                  color: "#111827",
+                  fontWeight: 500,
+                  fontSize: "13px",
+                  textAlign: "center"
                 }}
               >
-                {entry.metricScores[metric] !== undefined ? formatScore(entry.metricScores[metric]) : "—"}
+                {entry.model}
               </Typography>
             </Cell>
-          ))}
 
-          {/* Evals */}
-          <Cell>
-            <Typography variant="body2" sx={{ fontFamily: "monospace", color: "#6b7280" }}>
-              {entry.experimentCount}
-            </Typography>
-          </Cell>
+            {/* Score */}
+            <Cell>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontFamily: "monospace", 
+                  fontWeight: 600,
+                  color: "#1f2937",
+                  fontSize: "13px"
+                }}
+              >
+                {formatScore(entry.score)}
+              </Typography>
+            </Cell>
 
-          {/* Provider */}
-          <Cell sx={{ justifyContent: "flex-start", pl: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              {entry.provider || "—"}
-            </Typography>
-          </Cell>
-        </Box>
-      ))}
+            {/* Metrics */}
+            {displayMetrics.map((metric) => {
+              const score = entry.metricScores[metric];
+              const hasScore = score !== undefined;
+              
+              return (
+                <Cell key={metric}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: "monospace",
+                      fontWeight: 500,
+                      fontSize: "12.5px",
+                      color: hasScore ? getMetricColor(score, metric) : "#d1d5db",
+                    }}
+                  >
+                    {hasScore ? formatScore(score) : "—"}
+                  </Typography>
+                </Cell>
+              );
+            })}
+          </Box>
+        ))}
+      </Box>
+
+      {/* Pagination - Inside table container */}
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ 
+          px: 2, 
+          py: 1.5,
+          borderTop: "1px solid #e2e8f0",
+          bgcolor: "#fafafa"
+        }}
+      >
+        <Typography variant="body2" sx={{ fontSize: 12, color: "#6b7280" }}>
+          Showing {page * rowsPerPage + 1} - {Math.min((page + 1) * rowsPerPage, sortedEntries.length)} of {sortedEntries.length} models
+        </Typography>
+        <Stack direction="row" alignItems="center" gap={2}>
+          <TablePagination
+            component="div"
+            count={sortedEntries.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[5, 10, 15, 25]}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            ActionsComponent={TablePaginationActions}
+            labelRowsPerPage="Rows per page"
+            sx={{
+              "& .MuiTablePagination-toolbar": { minHeight: 36, p: 0 },
+              "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
+                fontSize: 12,
+                color: "#6b7280",
+              },
+            }}
+          />
+        </Stack>
+      </Stack>
     </Box>
   );
 }
@@ -228,7 +313,7 @@ function HeaderCell({ children, onClick, active, direction }: HeaderCellProps) {
       onClick={onClick}
       sx={{
         px: 2,
-        py: 1.5,
+        py: 2,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -236,6 +321,8 @@ function HeaderCell({ children, onClick, active, direction }: HeaderCellProps) {
         borderRight: "1px solid #e2e8f0",
         cursor: onClick ? "pointer" : "default",
         userSelect: "none",
+        whiteSpace: "nowrap",
+        minHeight: 48,
         "&:last-child": { borderRight: "none" },
         "&:hover": onClick ? { bgcolor: "#f1f5f9" } : {},
       }}
@@ -245,14 +332,15 @@ function HeaderCell({ children, onClick, active, direction }: HeaderCellProps) {
         sx={{
           fontWeight: 600,
           color: active ? "#1f2937" : "#64748b",
-          fontSize: 11,
+          fontSize: 12,
           textTransform: "uppercase",
           letterSpacing: 0.5,
+          lineHeight: 1.2,
         }}
       >
         {children}
       </Typography>
-      {active && (direction === "desc" ? <ChevronDown size={12} /> : <ChevronUp size={12} />)}
+      {active && (direction === "desc" ? <ChevronDown size={14} /> : <ChevronUp size={14} />)}
     </Box>
   );
 }
@@ -266,7 +354,7 @@ function Cell({ children, sx = {} }: CellProps) {
   return (
     <Box
       sx={{
-        px: 2,
+        px: 1.5,
         py: 1.5,
         display: "flex",
         alignItems: "center",

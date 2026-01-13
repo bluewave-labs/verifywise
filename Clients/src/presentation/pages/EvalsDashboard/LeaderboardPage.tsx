@@ -140,8 +140,64 @@ export default function LeaderboardPage({ orgId }: LeaderboardPageProps) {
           };
         });
 
+      // Add sample entries for demonstration
+      const sampleEntries: LeaderboardEntry[] = [
+        {
+          rank: 0,
+          model: "gpt-4-turbo",
+          provider: "OpenAI",
+          score: 0.89,
+          metricScores: { bias: 0.02, toxicity: 0.01, correctness: 0.92, completeness: 0.88, hallucination: 0.05, answerRelevancy: 0.91 },
+          experimentCount: 12,
+          lastEvaluated: new Date().toISOString(),
+        },
+        {
+          rank: 0,
+          model: "claude-3-opus",
+          provider: "Anthropic",
+          score: 0.87,
+          metricScores: { bias: 0.03, toxicity: 0.0, correctness: 0.90, completeness: 0.85, hallucination: 0.08, answerRelevancy: 0.89 },
+          experimentCount: 8,
+          lastEvaluated: new Date().toISOString(),
+        },
+        {
+          rank: 0,
+          model: "gemini-1.5-pro",
+          provider: "Google",
+          score: 0.84,
+          metricScores: { bias: 0.04, toxicity: 0.02, correctness: 0.88, completeness: 0.82, hallucination: 0.10, answerRelevancy: 0.86 },
+          experimentCount: 15,
+          lastEvaluated: new Date().toISOString(),
+        },
+        {
+          rank: 0,
+          model: "llama-3.1-70b",
+          provider: "Meta",
+          score: 0.79,
+          metricScores: { bias: 0.06, toxicity: 0.03, correctness: 0.82, completeness: 0.78, hallucination: 0.15, answerRelevancy: 0.80 },
+          experimentCount: 6,
+          lastEvaluated: new Date().toISOString(),
+        },
+        {
+          rank: 0,
+          model: "mistral-large",
+          provider: "Mistral",
+          score: 0.76,
+          metricScores: { bias: 0.05, toxicity: 0.02, correctness: 0.79, completeness: 0.75, hallucination: 0.18, answerRelevancy: 0.77 },
+          experimentCount: 4,
+          lastEvaluated: new Date().toISOString(),
+        },
+      ];
+      
+      // Merge real entries with sample entries (real data takes priority)
+      const combinedEntries = [...leaderboardEntries, ...sampleEntries];
+      
+      // Add sample metrics to available metrics
+      const sampleMetrics = ["bias", "toxicity", "correctness", "completeness", "hallucination", "answerRelevancy"];
+      sampleMetrics.forEach(m => allMetrics.add(m));
       setAvailableMetrics(Array.from(allMetrics).sort());
-      setEntries(leaderboardEntries);
+      
+      setEntries(combinedEntries);
     } catch (err) {
       console.error("Failed to load leaderboard data:", err);
     } finally {

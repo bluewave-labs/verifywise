@@ -16,7 +16,7 @@
  * @returns {JSX.Element} The rendered select component.
  */
 
-import React, { cloneElement } from "react";
+import React from "react";
 import {
   MenuItem,
   Select as MuiSelect,
@@ -85,7 +85,7 @@ const Select: React.FC<SelectProps> = ({
 
     return (
       <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
-        {selectedItem?.icon && (selectedItem.color ? cloneElement(selectedItem.icon as React.ReactElement, {color: selectedItem.color}) : selectedItem.icon)}
+        {selectedItem?.icon && <selectedItem.icon color={selectedItem.color} size={16} />}
         <span
           style={{
             display: "block",
@@ -202,7 +202,7 @@ const Select: React.FC<SelectProps> = ({
             name: string;
             email?: string;
             surname?: string;
-            icon?: React.ReactNode;
+            icon?: React.ComponentType<{ color?: string; size?: number }>;
             color?: string;
           }) => (
             <MenuItem
@@ -216,7 +216,7 @@ const Select: React.FC<SelectProps> = ({
               }}
             >
               <Stack direction="row" alignItems="center" spacing={1}>
-                {item.icon && (item.color ? cloneElement(item.icon as React.ReactElement, {color: item.color}) : item.icon)}
+                {item.icon && <item.icon color={item.color} size={16} />}
                 <span>{`${item.name} ${item.surname ? item.surname : ""}`}</span>
               </Stack>
               {item.email && (

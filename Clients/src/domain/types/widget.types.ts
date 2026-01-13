@@ -65,7 +65,7 @@ export interface SelectCorProps {
     name: string;
     email?: string;
     surname?: string;
-    icon?: React.ReactNode;
+    icon?: React.ComponentType<{ color?: string; size?: number }>;
     color?: string;
   }[];
   isRequired?: boolean;
@@ -143,7 +143,7 @@ export interface IHeaderProps {
 export interface CustomSelectOptionWithIcon {
   value: string;
   label: string;
-  icon?: React.ReactNode;
+  icon?: React.ComponentType<any>; // Use 'any' to accept Lucide icons
   color?: string;
 }
 

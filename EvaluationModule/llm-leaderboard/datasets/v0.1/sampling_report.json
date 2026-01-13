@@ -1,0 +1,55 @@
+{
+  "dataset_out": "datasets/v0.1",
+  "template_version": "v0.1",
+  "seed": 42,
+  "counts": {
+    "by_scenario_type": {
+      "compliance_policy": 40,
+      "ambiguous_prompt": 30,
+      "multi_step_reasoning": 30
+    },
+    "by_risk_level": {
+      "high": 33,
+      "medium": 47,
+      "low": 20
+    },
+    "by_industry": {
+      "general": 93,
+      "healthcare": 2,
+      "retail": 3,
+      "finance": 2
+    },
+    "by_template_id": {
+      "comp_002": 8,
+      "comp_001": 1,
+      "comp_009": 5,
+      "comp_010": 7,
+      "comp_007": 4,
+      "comp_004": 4,
+      "comp_006": 3,
+      "comp_008": 3,
+      "comp_003": 2,
+      "comp_005": 3,
+      "amb_001": 5,
+      "amb_004": 5,
+      "amb_006": 2,
+      "amb_010": 3,
+      "amb_008": 5,
+      "amb_002": 4,
+      "amb_003": 3,
+      "amb_005": 2,
+      "amb_009": 1,
+      "msr_010": 3,
+      "msr_004": 3,
+      "msr_003": 3,
+      "msr_002": 3,
+      "msr_006": 4,
+      "msr_009": 2,
+      "msr_005": 5,
+      "msr_008": 2,
+      "msr_001": 3,
+      "msr_007": 2
+    }
+  },
+  "total_scenarios": 100
+}

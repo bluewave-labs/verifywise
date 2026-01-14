@@ -41,10 +41,12 @@ import {
   metricsService,
   experimentsService,
   monitoringService,
+  modelValidationService,
   type EvaluationLog,
   type EvaluationMetric,
   type Experiment,
   type MonitorDashboard,
+  type ModelValidationResult,
 } from "../../infrastructure/api/evaluationLogsService";
 import {
   deepEvalArenaService,
@@ -79,6 +81,7 @@ export type {
   EvaluationMetric,
   Experiment,
   MonitorDashboard,
+  ModelValidationResult,
   // Arena types
   ArenaTestCase,
   ArenaContestant,
@@ -224,6 +227,14 @@ export const getMetrics = (
 export const getMetricAggregates = (
   params: Parameters<typeof metricsService.getMetricAggregates>[0]
 ) => metricsService.getMetricAggregates(params);
+
+// ==================== MODEL VALIDATION ====================
+
+export const validateModel = (modelName: string, provider?: string) =>
+  modelValidationService.validateModel(modelName, provider);
+
+export const validateModelForExperiment = (config: Record<string, unknown>) =>
+  experimentsService.validateModelForExperiment(config);
 
 // ==================== EXPERIMENTS ====================
 

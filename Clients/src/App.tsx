@@ -26,7 +26,7 @@ import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
-import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
+import { SetupModal, useOnboarding } from "./presentation/components/Onboarding";
 import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
 import { AdvisorConversationProvider } from './application/contexts/AdvisorConversation.context';
 import { useNotifications } from "./application/hooks/useNotifications";
@@ -268,7 +268,7 @@ function App() {
                   />
                 </CommandPaletteErrorBoundary>
                 {showModal && (
-                  <OnboardingModal
+                  <SetupModal
                     onComplete={handleOnboardingComplete}
                     onSkip={handleOnboardingSkip}
                   />

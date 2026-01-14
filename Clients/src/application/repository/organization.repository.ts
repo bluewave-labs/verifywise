@@ -81,3 +81,20 @@ export async function checkOrganizationExists(): Promise<boolean> {
     throw error;
   }
 }
+
+/**
+ * Updates the onboarding status of an organization to 'completed'.
+ * Called after user selects demo data or blank dashboard option.
+ *
+ * @param {number} organizationId - The ID of the organization to update.
+ * @returns {Promise<any>} The response from the API.
+ * @throws Will throw an error if the request fails.
+ */
+export async function updateOnboardingStatus(organizationId: number): Promise<any> {
+  try {
+    const response = await apiServices.patch(`/organizations/${organizationId}/onboarding-status`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}

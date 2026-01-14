@@ -2154,6 +2154,15 @@ const ModelInventory: React.FC = () => {
                     onFilterChange={handleModelRiskFilterChange}
                   />
                 </div>
+                <GroupBy
+                  options={[
+                    { id: "risk_level", label: "Risk level" },
+                    { id: "status", label: "Status" },
+                    { id: "model_name", label: "Model" },
+                    { id: "owner", label: "Owner" },
+                  ]}
+                  onGroupChange={handleGroupChangeRisk}
+                />
                 <SelectComponent
                   id="risk-status-filter"
                   value={modelRiskStatusFilter}
@@ -2170,15 +2179,6 @@ const ModelInventory: React.FC = () => {
                     }
                     return `Show: ${selectedItem.name.toLowerCase()}`;
                   }}
-                />
-                <GroupBy
-                  options={[
-                    { id: "risk_level", label: "Risk level" },
-                    { id: "status", label: "Status" },
-                    { id: "model_name", label: "Model" },
-                    { id: "owner", label: "Owner" },
-                  ]}
-                  onGroupChange={handleGroupChangeRisk}
                 />
               </Stack>
               <Stack direction="row" gap="8px" alignItems="center">

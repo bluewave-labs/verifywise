@@ -36,6 +36,28 @@ const preprocessLatex = (text: string): string => {
   return processed;
 };
 
+// Convert camelCase or concatenated metric names to proper display format
+// e.g., "turnRelevancy" → "Turn Relevancy", "Knowledgeretention" → "Knowledge Retention"
+const formatMetricName = (name: string): string => {
+  if (!name) return name;
+  
+  // First, insert spaces before capital letters (handles camelCase)
+  // Also handles concatenated words like "Turnrelevancy" → "Turn relevancy"
+  let formatted = name
+    // Insert space before uppercase letters that follow lowercase letters
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    // Insert space before uppercase letters at the start of common words
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2');
+  
+  // Capitalize first letter of each word
+  formatted = formatted
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+  
+  return formatted;
+};
+
 // Markdown renderer with LaTeX support
 const MarkdownRenderer = ({ content }: { content: string }) => {
   if (!content) return null;
@@ -1042,13 +1064,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                     <TableCell sx={{ fontWeight: 600, fontSize: "11px", width: 40, textAlign: "center", padding: "8px 6px" }}>#</TableCell>
                     <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 200, textAlign: "left", padding: "8px 12px" }}>Input</TableCell>
                     <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 200, textAlign: "left", padding: "8px 12px" }}>Output</TableCell>
-                    {metricColumns.map(metric => {
-                      // Capitalize first letter of each word
-                      const capitalizedMetric = metric
-                        .split(" ")
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                        .join(" ");
-                      return (
+                    {metricColumns.map(metric => (
                         <TableCell 
                           key={metric} 
                           sx={{ 
@@ -1059,10 +1075,9 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                             whiteSpace: "nowrap",
                           }}
                         >
-                          {capitalizedMetric}
+                          {formatMetricName(metric)}
                         </TableCell>
-                      );
-                    })}
+                      ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>

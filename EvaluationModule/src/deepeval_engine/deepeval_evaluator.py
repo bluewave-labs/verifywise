@@ -287,19 +287,28 @@ class GEvalLikeMetric:
                 expected_output=getattr(test_case, "expected_output", None),
             )
             raw = self._runner.generate(prompt, max_tokens=self.max_tokens, temperature=self.temperature)
+            
+            # Handle None or empty response
+            if raw is None or raw == "":
+                self.score = None
+                self._reason = "Judge LLM returned empty response"
+                return
+                
             parsed_score = None
             parsed_reason = ""
             try:
                 data = json.loads(raw)
-                parsed_score = float(data.get("score"))
+                score_val = data.get("score")
+                if score_val is not None:
+                    parsed_score = float(score_val)
                 parsed_reason = str(data.get("reason", ""))
             except Exception:
                 # Fallback: try to extract a number between 0 and 1
                 import re
-                m = re.search(r"0?\.\d+|1(?:\.0+)?", raw)
+                m = re.search(r"0?\.\d+|1(?:\.0+)?", str(raw))
                 if m:
                     parsed_score = float(m.group(0))
-                parsed_reason = raw[:300]
+                parsed_reason = str(raw)[:300] if raw else ""
 
             if parsed_score is None:
                 self.score = None
@@ -309,8 +318,11 @@ class GEvalLikeMetric:
                 self.score = max(0.0, min(1.0, parsed_score))
                 self._reason = parsed_reason
         except Exception as e:
+            import traceback
             self.score = None
             self._reason = f"G-Eval error: {e}"
+            # Print detailed traceback for debugging
+            print(f"G-Eval detailed error: {traceback.format_exc()}")
 
 
 class DeepEvalEvaluator:
@@ -626,15 +638,21 @@ class DeepEvalEvaluator:
                             score = metric.score
                             passed = metric.is_successful()
                             
+                            # Invert scores for "lower is better" metrics (Bias, Toxicity, Hallucination)
+                            # Claude returns 1.0 for "no bias" but we want to display 0% bias
+                            is_inverse_metric = metric_name.lower() in ['bias', 'toxicity', 'hallucination']
+                            display_score = (1.0 - score) if (score is not None and is_inverse_metric) else score
+                            
                             metric_scores[metric_name] = {
-                                "score": round(score, 3) if score is not None else None,
+                                "score": round(display_score, 3) if display_score is not None else None,
                                 "passed": passed,
                                 "threshold": getattr(metric, "threshold", None),
                                 "reason": getattr(metric, 'reason', 'N/A')
                             }
                             
                             status = "✓ PASS" if passed else "✗ FAIL"
-                            print(f"{status} (score: {score:.3f})")
+                            score_display = f"{display_score:.3f}" if display_score is not None else "N/A"
+                            print(f"{status} (score: {score_display})")
                         except Exception as e:
                             print(f"✗ Error: {str(e)}")
                             metric_scores[metric_name] = {
@@ -787,15 +805,21 @@ class DeepEvalEvaluator:
                         score = metric.score
                         passed = metric.is_successful()
 
+                        # Invert scores for "lower is better" metrics (Bias, Toxicity, Hallucination)
+                        # Claude returns 1.0 for "no bias" but we want to display 0% bias
+                        is_inverse_metric = metric_name.lower() in ['bias', 'toxicity', 'hallucination']
+                        display_score = (1.0 - score) if (score is not None and is_inverse_metric) else score
+
                         metric_scores[metric_name] = {
-                            "score": round(score, 3) if score is not None else None,
+                            "score": round(display_score, 3) if display_score is not None else None,
                             "passed": passed,
                             "threshold": getattr(metric, "threshold", None),
                             "reason": getattr(metric, 'reason', 'N/A')
                         }
 
                         status = "✓ PASS" if passed else "✗ FAIL"
-                        print(f"{status} (score: {score:.3f})")
+                        score_display = f"{display_score:.3f}" if display_score is not None else "N/A"
+                        print(f"{status} (score: {score_display})")
 
                     except Exception as e:
                         error_msg = str(e)

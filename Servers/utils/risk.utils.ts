@@ -583,7 +583,7 @@ export const createRiskQuery = async (
       final_risk_level, risk_approval, approval_status, date_of_assessment
     ) VALUES (
       :risk_name, :risk_owner, :ai_lifecycle_phase, :risk_description,
-      ARRAY[:risk_category], :impact, :assessment_mapping, :controls_mapping, :likelihood,
+      :risk_category::enum_projectrisks_risk_category[], :impact, :assessment_mapping, :controls_mapping, :likelihood,
       :severity, :risk_level_autocalculated, :review_notes, :mitigation_status,
       :current_risk_level, :deadline, :mitigation_plan, :implementation_strategy,
       :mitigation_evidence_document, :likelihood_mitigation, :risk_severity,
@@ -595,7 +595,7 @@ export const createRiskQuery = async (
         risk_owner: projectRisk.risk_owner,
         ai_lifecycle_phase: projectRisk.ai_lifecycle_phase,
         risk_description: projectRisk.risk_description,
-        risk_category: projectRisk.risk_category,
+        risk_category: `{${(projectRisk.risk_category || []).join(',')}}`,
         impact: projectRisk.impact,
         assessment_mapping: projectRisk.assessment_mapping,
         controls_mapping: projectRisk.controls_mapping,
@@ -772,15 +772,21 @@ export const updateRiskByIdQuery = async (
         projectRisk[f as keyof RiskModel] !== undefined &&
         projectRisk[f as keyof RiskModel]
       ) {
-        updateProjectRisk[f as keyof RiskModel] =
-          projectRisk[f as keyof RiskModel];
+        if (f === "risk_category") {
+          // Format array for PostgreSQL
+          const arr = projectRisk[f as keyof RiskModel] as string[];
+          updateProjectRisk[f as keyof RiskModel] = `{${(arr || []).join(',')}}` as any;
+        } else {
+          updateProjectRisk[f as keyof RiskModel] =
+            projectRisk[f as keyof RiskModel];
+        }
         return true;
       }
       return false;
     })
     .map((f) => {
       if (f === "risk_category") {
-        return `${f} = ARRAY[:${f}]`;
+        return `${f} = :${f}::enum_projectrisks_risk_category[]`;
       }
       return `${f} = :${f}`;
     });

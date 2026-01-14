@@ -7,8 +7,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
-import { setAuthToken } from "../../../../application/redux/auth/authSlice";
-import { setExpiration } from "../../../../application/redux/auth/authSlice";
+import { setAuthToken, setExpiration, setOnboardingStatus, setIsOrgCreator } from "../../../../application/redux/auth/authSlice";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 import { loginUser } from "../../../../application/repository/user.repository";
@@ -148,6 +147,8 @@ const Login: React.FC = () => {
 
         if (response.status === 202) {
           const token = response.data.data.token;
+          const onboardingStatus = response.data.data.onboarding_status || "completed";
+          const isOrgCreatorFlag = response.data.data.is_org_creator || false;
 
           if (values.rememberMe) {
             const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
@@ -157,6 +158,10 @@ const Login: React.FC = () => {
             dispatch(setAuthToken(token));
             dispatch(setExpiration(null));
           }
+
+          // Store onboarding status from server
+          dispatch(setOnboardingStatus(onboardingStatus));
+          dispatch(setIsOrgCreator(isOrgCreatorFlag));
 
           localStorage.setItem("root_version", __APP_VERSION__);
 

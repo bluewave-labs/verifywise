@@ -27,7 +27,8 @@ import {
   processApprovalQuery,
   withdrawApprovalRequestQuery,
 } from "../utils/approvalRequest.utils";
-import { notifyRequesterRejected, notifyStepApprovers, notifyRequesterApproved } from "../services/notification.service";
+// SSE notifications disabled for now - can be re-enabled later if needed
+// import { notifyRequesterRejected, notifyStepApprovers, notifyRequesterApproved } from "../services/notification.service";
 import { getApprovalWorkflowByIdQuery, getWorkflowStepsQuery } from "../utils/approvalWorkflow.utils";
 import { ApprovalResult } from "../domain.layer/enums/approval-workflow.enum";
 
@@ -313,7 +314,8 @@ export async function approveRequest(
       return res.status(400).json(STATUS_CODE[400]("Invalid request ID"));
     }
 
-    const notificationInfo = await processApprovalQuery(
+    // Process the approval (SSE notifications disabled, so we ignore the return value)
+    await processApprovalQuery(
       requestId,
       userId,
       ApprovalResult.APPROVED,
@@ -331,28 +333,28 @@ export async function approveRequest(
       "approvalRequest.ctrl.ts"
     );
 
-    // Send notification AFTER transaction commits (fire-and-forget)
-    if (notificationInfo) {
-      if (notificationInfo.type === 'step_approvers') {
-        notifyStepApprovers(
-          notificationInfo.tenantId,
-          notificationInfo.requestId,
-          notificationInfo.stepNumber!,
-          notificationInfo.requestName
-        ).catch(error => {
-          console.error("Error sending step approvers notification:", error);
-        });
-      } else if (notificationInfo.type === 'requester_approved') {
-        notifyRequesterApproved(
-          notificationInfo.tenantId,
-          notificationInfo.requesterId!,
-          notificationInfo.requestId,
-          notificationInfo.requestName
-        ).catch(error => {
-          console.error("Error sending requester approved notification:", error);
-        });
-      }
-    }
+    // SSE notifications disabled for now - can be re-enabled later if needed
+    // if (notificationInfo) {
+    //   if (notificationInfo.type === 'step_approvers') {
+    //     notifyStepApprovers(
+    //       notificationInfo.tenantId,
+    //       notificationInfo.requestId,
+    //       notificationInfo.stepNumber!,
+    //       notificationInfo.requestName
+    //     ).catch(error => {
+    //       console.error("Error sending step approvers notification:", error);
+    //     });
+    //   } else if (notificationInfo.type === 'requester_approved') {
+    //     notifyRequesterApproved(
+    //       notificationInfo.tenantId,
+    //       notificationInfo.requesterId!,
+    //       notificationInfo.requestId,
+    //       notificationInfo.requestName
+    //     ).catch(error => {
+    //       console.error("Error sending requester approved notification:", error);
+    //     });
+    //   }
+    // }
 
     return res
       .status(200)
@@ -403,7 +405,8 @@ export async function rejectRequest(
       return res.status(400).json(STATUS_CODE[400]("Invalid request ID"));
     }
 
-    const notificationInfo = await processApprovalQuery(
+    // Process the rejection (SSE notifications disabled, so we ignore the return value)
+    await processApprovalQuery(
       requestId,
       userId,
       ApprovalResult.REJECTED,
@@ -421,17 +424,17 @@ export async function rejectRequest(
       "approvalRequest.ctrl.ts"
     );
 
-    // Send notification AFTER transaction commits (fire-and-forget)
-    if (notificationInfo && notificationInfo.type === 'requester_rejected') {
-      notifyRequesterRejected(
-        notificationInfo.tenantId,
-        notificationInfo.requesterId!,
-        notificationInfo.requestId,
-        notificationInfo.requestName
-      ).catch(error => {
-        console.error("Error sending requester rejected notification:", error);
-      });
-    }
+    // SSE notifications disabled for now - can be re-enabled later if needed
+    // if (notificationInfo && notificationInfo.type === 'requester_rejected') {
+    //   notifyRequesterRejected(
+    //     notificationInfo.tenantId,
+    //     notificationInfo.requesterId!,
+    //     notificationInfo.requestId,
+    //     notificationInfo.requestName
+    //   ).catch(error => {
+    //     console.error("Error sending requester rejected notification:", error);
+    //   });
+    // }
 
     return res
       .status(200)

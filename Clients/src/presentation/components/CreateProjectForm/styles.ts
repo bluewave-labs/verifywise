@@ -106,7 +106,6 @@ export const createProjectFormStyles = {
   
   datePicker: {
     width: "130px",
-    "& input": { width: "85px" },
   },
   
   goalField: (theme: Theme) => ({

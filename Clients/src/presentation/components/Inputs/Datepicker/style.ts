@@ -34,9 +34,12 @@ export const DatePickerStyle = {
   "& .MuiPickersInputBase-sectionContent": {
     fontSize: "13px !important",
   },
-  // Fallback for hidden input element
+  // Hide the input element - MUI v8 uses sectionsContainer for visible date display
   "& .MuiPickersInputBase-input, & .MuiPickersOutlinedInput-input": {
     fontSize: "13px !important",
+    position: "absolute !important",
+    opacity: 0,
+    pointerEvents: "none",
   },
   "& .MuiOutlinedInput-root": {
     backgroundColor: "#FFFFFF",

@@ -560,16 +560,59 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     },
   ];
 
+  // Convert Slate-specific HTML markup to standard HTML tags for proper deserialization
+  const normalizeSlateHtml = (html: string): string => {
+    // Convert <div data-slate-type="p"> to <p>
+    let normalized = html.replace(/<div([^>]*?)data-slate-type="p"([^>]*)>/gi, '<p$1$2>');
+    normalized = normalized.replace(/<\/div>/gi, (match, offset) => {
+      // Check if this closing div corresponds to a paragraph we converted
+      const before = normalized.substring(0, offset);
+      const openParagraphs = (before.match(/<p[^>]*>/gi) || []).length;
+      const closedParagraphs = (before.match(/<\/p>/gi) || []).length;
+      if (openParagraphs > closedParagraphs) {
+        return '</p>';
+      }
+      return match;
+    });
+
+    // Convert <div data-slate-type="lic"> (list item content) to just extract the content
+    normalized = normalized.replace(/<div[^>]*data-slate-type="lic"[^>]*>/gi, '');
+
+    // Remove Slate wrapper spans that don't add semantic meaning
+    normalized = normalized.replace(/<span[^>]*data-slate-string="true"[^>]*>([^<]*)<\/span>/gi, '$1');
+    normalized = normalized.replace(/<span[^>]*data-slate-leaf="true"[^>]*>([^<]*)<\/span>/gi, '$1');
+    normalized = normalized.replace(/<span[^>]*data-slate-node="text"[^>]*>/gi, '');
+    normalized = normalized.replace(/<\/span>/gi, (match, offset) => {
+      // Only remove closing spans that were wrapping text nodes
+      const before = normalized.substring(0, offset);
+      const textNodeSpans = (before.match(/<span[^>]*data-slate-node="text"[^>]*>/gi) || []).length;
+      const closedTextSpans = before.substring(0, offset).split('</span>').length - 1;
+      if (textNodeSpans > closedTextSpans) {
+        return '';
+      }
+      return match;
+    });
+
+    // Remove the outer slate-editor wrapper div
+    normalized = normalized.replace(/<div[^>]*class="slate-editor"[^>]*>/gi, '');
+
+    return normalized;
+  };
+
   useEffect(() => {
     if ((policy || template) && editor) {
       const api = editor.api.html;
       const content = policy?.content_html || template?.content;
+
+      // First normalize Slate-specific HTML to standard HTML tags
+      let processedContent = typeof content === "string" ? normalizeSlateHtml(content) : content;
+
       // Replace img src with data-src to prevent browser from loading images during deserialization
       // The browser automatically tries to fetch <img src="..."> when setting innerHTML,
       // which fails for authenticated API URLs. Our ImageElement component handles the auth fetch.
-      const processedContent = typeof content === "string"
-        ? content.replace(/<img\s+([^>]*)src=/gi, "<img $1data-src=")
-        : content;
+      processedContent = typeof processedContent === "string"
+        ? processedContent.replace(/<img\s+([^>]*)src=/gi, "<img $1data-src=")
+        : processedContent;
       const nodes =
         typeof processedContent === "string"
           ? api.deserialize({
@@ -914,6 +957,15 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       }
 
       setIsSaving(false);
+
+      // Close modal and notify parent to refresh the table
+      if (isNew && template) {
+        _onSaved("Policy created successfully from template");
+      } else if (isNew) {
+        _onSaved("Policy created successfully");
+      } else {
+        _onSaved("Policy updated successfully");
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setIsSaving(false);

@@ -88,12 +88,14 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             display: "flex",
           }}
         >
-          <CustomizableButton
-            text={cancelText}
-            variant="text"
-            sx={{ color: "#344054", px: "32px", width: 120 }}
-            onClick={onCancel}
-          />
+          {cancelText && (
+            <CustomizableButton
+              text={cancelText}
+              variant="text"
+              sx={{ color: "#344054", px: "32px", width: 120 }}
+              onClick={onCancel}
+            />
+          )}
           <CustomizableButton
             text={proceedText}
             color={proceedButtonColor}

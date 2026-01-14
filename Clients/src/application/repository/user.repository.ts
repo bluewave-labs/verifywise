@@ -162,6 +162,8 @@ export async function checkUserExists(): Promise<UserExistsResponse> {
 interface LoginResponse {
   data: {
     token: string;
+    onboarding_status?: string;
+    is_org_creator?: boolean;
   };
 }
 

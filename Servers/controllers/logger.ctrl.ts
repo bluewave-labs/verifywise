@@ -2,21 +2,29 @@ import { Request, Response } from "express";
 import { getEventsQuery, getLogsQuery } from "../utils/logger.util";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 
-async function getEvents(_req: Request, res: Response) {
+async function getEvents(req: Request, res: Response): Promise<any> {
   try {
-    const events = await getEventsQuery();
-    res.status(200).json(STATUS_CODE[200](events));
+    const tenantId = req.tenantId;
+    if (!tenantId) {
+      return res.status(401).json(STATUS_CODE[401]("Unauthorized"));
+    }
+    const events = await getEventsQuery(tenantId);
+    return res.status(200).json(STATUS_CODE[200](events));
   } catch (error) {
-    res.status(500).json({ message: "Failed to get events" });
+    return res.status(500).json({ message: "Failed to get events" });
   }
 }
 
-async function getLogs(_req: Request, res: Response) {
+async function getLogs(req: Request, res: Response): Promise<any> {
   try {
-    const logs = await getLogsQuery();
-    res.status(200).json(STATUS_CODE[200](logs));
+    const tenantId = req.tenantId;
+    if (!tenantId) {
+      return res.status(401).json(STATUS_CODE[401]("Unauthorized"));
+    }
+    const logs = await getLogsQuery(tenantId);
+    return res.status(200).json(STATUS_CODE[200](logs));
   } catch (error) {
-    res.status(500).json({ message: "Failed to get logs" });
+    return res.status(500).json({ message: "Failed to get logs" });
   }
 }
 

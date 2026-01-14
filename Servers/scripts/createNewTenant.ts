@@ -301,6 +301,19 @@ export const createNewTenant = async (
     );
 
     await sequelize.query(
+      `CREATE TABLE "${tenantHash}".event_logs (
+        id SERIAL PRIMARY KEY,
+        event_type public.enum_event_logs_event_type NOT NULL,
+        description TEXT,
+        user_id INTEGER,
+        timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_event_logs_user FOREIGN KEY (user_id)
+          REFERENCES public.users (id)
+          ON UPDATE CASCADE
+          ON DELETE SET NULL
+      );`, { transaction });
+
+    await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".vendors_projects
     (
       vendor_id integer NOT NULL,

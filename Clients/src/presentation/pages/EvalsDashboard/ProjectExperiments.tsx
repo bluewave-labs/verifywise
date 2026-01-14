@@ -6,9 +6,7 @@ import {
   createExperiment,
   deleteExperiment,
   getExperiment,
-  getLogs,
   type Experiment,
-  type EvaluationLog,
 } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import NewExperimentModal from "./NewExperimentModal";
@@ -148,93 +146,24 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         project_id: projectId
       });
 
-      // Load metrics for each experiment (skip for running/pending experiments)
-      const experimentsWithMetrics = await Promise.all(
-        (data.experiments || []).map(async (exp: Experiment) => {
-          // Get prompt count from config (available immediately)
-          const configPromptCount = exp.config?.dataset?.count || 
-                                    exp.config?.dataset?.prompts?.length || 
-                                    exp.results?.total_prompts || 
-                                    0;
-          
-          // Skip log fetching for running/pending experiments to avoid timeout
-          if (exp.status === "running" || exp.status === "pending") {
-            return {
-              ...exp,
-              avgMetrics: {},
-              sampleCount: configPromptCount,
-            };
-          }
+      // Use pre-computed avg_scores from experiment results (no need to fetch logs)
+      const experimentsWithMetrics = (data.experiments || []).map((exp: Experiment) => {
+        // Get prompt count from config or results
+        const sampleCount = exp.results?.total_prompts || 
+                           exp.config?.dataset?.count || 
+                           exp.config?.dataset?.prompts?.length || 
+                           0;
+        
+        // Use pre-computed avg_scores from results (computed when experiment completes)
+        // This eliminates N individual log requests!
+        const avgMetrics = exp.results?.avg_scores || {};
 
-          try {
-            // Get logs for this experiment to calculate metrics
-            const logsData = await getLogs({
-              experiment_id: exp.id,
-              limit: 1000
-            });
-
-            const logs = logsData.logs || [];
-
-            // Map display names to camelCase keys for backwards compatibility
-            const displayNameToKey: Record<string, string> = {
-              "Answer Relevancy": "answerRelevancy",
-              "Faithfulness": "faithfulness",
-              "Contextual Relevancy": "contextualRelevancy",
-              "Bias": "bias",
-              "Toxicity": "toxicity",
-              "Hallucination": "hallucination",
-              "Knowledge Retention": "knowledgeRetention",
-              "Conversation Completeness": "conversationCompleteness",
-              "Conversation Relevancy": "conversationRelevancy",
-              "Role Adherence": "roleAdherence",
-              "Task Completion": "taskCompletion",
-              "Tool Correctness": "toolCorrectness",
-              "Answer Correctness": "answerCorrectness",
-              "Coherence": "coherence",
-              "Tonality": "tonality",
-              "Safety": "safety",
-            };
-
-            // Calculate average metrics from logs
-            const metricsSum: Record<string, { sum: number; count: number }> = {};
-            logs.forEach((log: EvaluationLog) => {
-              if (log.metadata?.metric_scores) {
-                Object.entries(log.metadata.metric_scores).forEach(([rawKey, value]) => {
-                  // Normalize key: convert display names to camelCase
-                  const key = displayNameToKey[rawKey] || rawKey;
-                  if (typeof value === "number" || (typeof value === "object" && value !== null && "score" in value)) {
-                    const scoreValue = typeof value === "number" ? value : (value as { score: number }).score;
-                    if (typeof scoreValue === "number") {
-                      if (!metricsSum[key]) {
-                        metricsSum[key] = { sum: 0, count: 0 };
-                      }
-                      metricsSum[key].sum += scoreValue;
-                      metricsSum[key].count += 1;
-                    }
-                  }
-                });
-              }
-            });
-
-            const avgMetrics: Record<string, number> = {};
-            Object.entries(metricsSum).forEach(([key, { sum, count }]) => {
-              avgMetrics[key] = count > 0 ? sum / count : 0;
-            });
-
-            return {
-              ...exp,
-              avgMetrics,
-              sampleCount: logs.length,
-            };
-          } catch {
-            return {
-              ...exp,
-              avgMetrics: {},
-              sampleCount: configPromptCount,
-            };
-          }
-        })
-      );
+        return {
+          ...exp,
+          avgMetrics,
+          sampleCount,
+        };
+      });
 
       setExperiments(experimentsWithMetrics);
     } catch (err) {

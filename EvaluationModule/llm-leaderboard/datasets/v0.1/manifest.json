@@ -1,7 +1,7 @@
 {
   "dataset_name": "enterprise_poc",
   "dataset_version": "v0.1",
-  "created_at": "2026-01-13T22:03:01.031774+00:00",
+  "created_at": "2026-01-14T19:06:35.120441+00:00",
   "generation": {
     "seed": 42,
     "scenario_counts": {
@@ -25,6 +25,7 @@
     "candidates": "candidates.jsonl"
   },
   "checksums": {
-    "scenarios.jsonl": "sha256:f41e1afd542f55c67e3f7c80051fccb9c6e4c863eed992331d660f37bb07c7c0"
+    "scenarios.jsonl": "sha256:f41e1afd542f55c67e3f7c80051fccb9c6e4c863eed992331d660f37bb07c7c0",
+    "candidates.jsonl": "sha256:5c03f3455f2556dd3e73ae1cacd0a1abf4c96f457789ebff99b55f1eb0b9cfcd"
   }
 }

@@ -120,8 +120,8 @@ async def main():
     judge_api_key_env = judge_config.get("api_key_env", "OPENAI_API_KEY")
     
     if not os.getenv(judge_api_key_env) and not args.dry_run:
-        print(f"ERROR: {judge_api_key_env} is required for {judge_model} judge")
-        print("Set it in your .env file or environment")
+        print(f"ERROR: API key not found for {judge_model} judge")
+        print(f"Please set the required API key environment variable in your .env file")
         sys.exit(1)
     
     # Load configurations

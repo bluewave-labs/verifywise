@@ -145,9 +145,9 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       // Show notification for each completed/failed experiment
       completedExps.forEach((exp) => {
         if (exp.status === "completed") {
-          setAlert({ variant: "success", body: `✅ Experiment "${exp.name}" completed successfully!` });
+          setAlert({ variant: "success", body: `Experiment "${exp.name}" completed successfully` });
         } else {
-          setAlert({ variant: "error", body: `❌ Experiment "${exp.name}" failed. Check logs for details.` });
+          setAlert({ variant: "error", body: `Experiment "${exp.name}" failed. Check logs for details.` });
         }
         // Clear alert after 5 seconds
         setTimeout(() => setAlert(null), 5000);

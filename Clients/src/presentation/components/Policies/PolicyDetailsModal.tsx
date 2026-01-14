@@ -966,9 +966,13 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
       setIsSaving(false);
 
-      // If creating from template, close modal and notify parent
+      // Close modal and notify parent to refresh the table
       if (isNew && template) {
         _onSaved("Policy created successfully from template");
+      } else if (isNew) {
+        _onSaved("Policy created successfully");
+      } else {
+        _onSaved("Policy updated successfully");
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {

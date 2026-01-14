@@ -444,6 +444,18 @@ export default function NewExperimentModal({
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      // Validate dataset has prompts before creating experiment
+      if (datasetPrompts.length === 0) {
+        setAlert({
+          show: true,
+          variant: "error",
+          title: "No prompts in dataset",
+          body: "Cannot run experiment without prompts. Please select a dataset with prompts or upload a valid dataset file.",
+        });
+        setLoading(false);
+        return;
+      }
+
       // Validate model API key availability before creating experiment
       const modelName = config.model.name;
       const modelProvider = config.model.accessMethod;

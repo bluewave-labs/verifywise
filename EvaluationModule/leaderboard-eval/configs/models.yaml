@@ -1,0 +1,254 @@
+# VerifyWise Arena - Model Configuration
+# 200 models organized by provider
+
+providers:
+  # ============================================================================
+  # GROQ - Free tier (30 req/min)
+  # ============================================================================
+  groq:
+    api_key_env: GROQ_API_KEY
+    rate_limit: 30  # requests per minute
+    models:
+      - id: llama-3.1-70b-versatile
+        name: Llama 3.1 70B
+        provider: Meta
+      - id: llama-3.1-8b-instant
+        name: Llama 3.1 8B
+        provider: Meta
+      - id: llama-3.2-90b-text-preview
+        name: Llama 3.2 90B
+        provider: Meta
+      - id: llama-3.2-11b-text-preview
+        name: Llama 3.2 11B
+        provider: Meta
+      - id: mixtral-8x7b-32768
+        name: Mixtral 8x7B
+        provider: Mistral
+      - id: gemma2-9b-it
+        name: Gemma 2 9B
+        provider: Google
+      - id: gemma-7b-it
+        name: Gemma 7B
+        provider: Google
+
+  # ============================================================================
+  # OPENROUTER - Pay as you go (aggregates many providers)
+  # ============================================================================
+  openrouter:
+    api_key_env: OPENROUTER_API_KEY
+    base_url: https://openrouter.ai/api/v1
+    rate_limit: 60
+    models:
+      # Meta Llama
+      - id: meta-llama/llama-3.1-405b-instruct
+        name: Llama 3.1 405B
+        provider: Meta
+      - id: meta-llama/llama-3.1-70b-instruct
+        name: Llama 3.1 70B
+        provider: Meta
+      - id: meta-llama/llama-3.2-90b-vision-instruct
+        name: Llama 3.2 90B Vision
+        provider: Meta
+      
+      # Anthropic
+      - id: anthropic/claude-3-haiku
+        name: Claude 3 Haiku
+        provider: Anthropic
+      - id: anthropic/claude-3-sonnet
+        name: Claude 3 Sonnet
+        provider: Anthropic
+      
+      # Google
+      - id: google/gemini-flash-1.5
+        name: Gemini 1.5 Flash
+        provider: Google
+      - id: google/gemini-pro-1.5
+        name: Gemini 1.5 Pro
+        provider: Google
+      
+      # Qwen
+      - id: qwen/qwen-2.5-72b-instruct
+        name: Qwen 2.5 72B
+        provider: Alibaba
+      - id: qwen/qwen-2.5-32b-instruct
+        name: Qwen 2.5 32B
+        provider: Alibaba
+      - id: qwen/qwen-2.5-14b-instruct
+        name: Qwen 2.5 14B
+        provider: Alibaba
+      - id: qwen/qwen-2.5-7b-instruct
+        name: Qwen 2.5 7B
+        provider: Alibaba
+      
+      # DeepSeek
+      - id: deepseek/deepseek-chat
+        name: DeepSeek V3
+        provider: DeepSeek
+      - id: deepseek/deepseek-coder
+        name: DeepSeek Coder
+        provider: DeepSeek
+      
+      # Microsoft
+      - id: microsoft/phi-3-medium-128k-instruct
+        name: Phi-3 Medium
+        provider: Microsoft
+      - id: microsoft/phi-3-mini-128k-instruct
+        name: Phi-3 Mini
+        provider: Microsoft
+      
+      # Mistral
+      - id: mistralai/mistral-large
+        name: Mistral Large
+        provider: Mistral
+      - id: mistralai/mistral-medium
+        name: Mistral Medium
+        provider: Mistral
+      - id: mistralai/mistral-small
+        name: Mistral Small
+        provider: Mistral
+      - id: mistralai/mixtral-8x22b-instruct
+        name: Mixtral 8x22B
+        provider: Mistral
+      - id: mistralai/codestral-latest
+        name: Codestral
+        provider: Mistral
+      
+      # Cohere
+      - id: cohere/command-r-plus
+        name: Command R+
+        provider: Cohere
+      - id: cohere/command-r
+        name: Command R
+        provider: Cohere
+      
+      # 01.AI
+      - id: 01-ai/yi-large
+        name: Yi Large
+        provider: 01.AI
+      - id: 01-ai/yi-34b-chat
+        name: Yi 34B
+        provider: 01.AI
+      
+      # Perplexity
+      - id: perplexity/llama-3.1-sonar-large-128k-online
+        name: Sonar Large
+        provider: Perplexity
+      
+      # NousResearch
+      - id: nousresearch/hermes-3-llama-3.1-405b
+        name: Hermes 3 405B
+        provider: NousResearch
+      
+      # Databricks
+      - id: databricks/dbrx-instruct
+        name: DBRX
+        provider: Databricks
+
+  # ============================================================================
+  # TOGETHER.AI - $25 free credit
+  # ============================================================================
+  together:
+    api_key_env: TOGETHER_API_KEY
+    base_url: https://api.together.xyz/v1
+    rate_limit: 60
+    models:
+      - id: meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
+        name: Llama 3.1 70B Turbo
+        provider: Meta
+      - id: meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo
+        name: Llama 3.1 8B Turbo
+        provider: Meta
+      - id: Qwen/Qwen2.5-72B-Instruct-Turbo
+        name: Qwen 2.5 72B Turbo
+        provider: Alibaba
+      - id: mistralai/Mixtral-8x22B-Instruct-v0.1
+        name: Mixtral 8x22B
+        provider: Mistral
+      - id: mistralai/Mixtral-8x7B-Instruct-v0.1
+        name: Mixtral 8x7B
+        provider: Mistral
+      - id: databricks/dbrx-instruct
+        name: DBRX
+        provider: Databricks
+      - id: google/gemma-2-27b-it
+        name: Gemma 2 27B
+        provider: Google
+      - id: google/gemma-2-9b-it
+        name: Gemma 2 9B
+        provider: Google
+      - id: Snowflake/snowflake-arctic-instruct
+        name: Arctic
+        provider: Snowflake
+      - id: upstage/SOLAR-10.7B-Instruct-v1.0
+        name: SOLAR 10.7B
+        provider: Upstage
+
+  # ============================================================================
+  # DIRECT APIS - Premium models
+  # ============================================================================
+  direct:
+    models:
+      # OpenAI
+      - id: gpt-4o
+        name: GPT-4o
+        provider: OpenAI
+        api_key_env: OPENAI_API_KEY
+      - id: gpt-4o-mini
+        name: GPT-4o Mini
+        provider: OpenAI
+        api_key_env: OPENAI_API_KEY
+      - id: gpt-4-turbo
+        name: GPT-4 Turbo
+        provider: OpenAI
+        api_key_env: OPENAI_API_KEY
+      - id: o1-preview
+        name: o1 Preview
+        provider: OpenAI
+        api_key_env: OPENAI_API_KEY
+      - id: o1-mini
+        name: o1 Mini
+        provider: OpenAI
+        api_key_env: OPENAI_API_KEY
+      
+      # Anthropic
+      - id: claude-3-5-sonnet-20241022
+        name: Claude 3.5 Sonnet
+        provider: Anthropic
+        api_key_env: ANTHROPIC_API_KEY
+      - id: claude-3-opus-20240229
+        name: Claude 3 Opus
+        provider: Anthropic
+        api_key_env: ANTHROPIC_API_KEY
+      
+      # Google
+      - id: gemini-1.5-pro
+        name: Gemini 1.5 Pro
+        provider: Google
+        api_key_env: GOOGLE_API_KEY
+      - id: gemini-2.0-flash-exp
+        name: Gemini 2.0 Flash
+        provider: Google
+        api_key_env: GOOGLE_API_KEY
+
+# ============================================================================
+# JUDGE CONFIGURATION
+# ============================================================================
+# Options:
+#   - "gpt-4o"      : Best quality, ~$135 for full run
+#   - "gpt-4o-mini" : Good quality, ~$8 for full run (RECOMMENDED)
+#   - "groq"        : Free but less accurate (Llama 3.1 70B)
+judge:
+  # BUDGET MODE: Use gpt-4o-mini (~$8 total)
+  model: gpt-4o-mini
+  api_key_env: OPENAI_API_KEY
+  temperature: 0.0
+  max_tokens: 300
+  rate_limit: 500
+  
+  # PREMIUM MODE: Uncomment for best accuracy (~$135 total)
+  # model: gpt-4o
+  
+  # FREE MODE: Uncomment to use Groq (requires GROQ_API_KEY)
+  # model: groq/llama-3.1-70b-versatile
+  # api_key_env: GROQ_API_KEY
+  # rate_limit: 30

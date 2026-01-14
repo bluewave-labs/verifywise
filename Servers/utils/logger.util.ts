@@ -3,9 +3,9 @@ import { QueryTypes } from "sequelize";
 import * as fs from "fs";
 import * as path from "path";
 
-export const getEventsQuery = async () => {
+export const getEventsQuery = async (tenantId: string) => {
   const events = await sequelize.query(
-    "SELECT * FROM event_logs ORDER BY timestamp DESC",
+    `SELECT * FROM "${tenantId}".event_logs ORDER BY timestamp DESC`,
     {
       type: QueryTypes.SELECT,
     }
@@ -13,15 +13,14 @@ export const getEventsQuery = async () => {
   return events;
 };
 
-export const getLogsQuery = async () => {
+export const getLogsQuery = async (tenantId: string) => {
   try {
-    // Get current date in YYYY-MM-DD format
+    // Get current date in YYYY-MM-DD format (UTC to match the logger)
     const currentDate = new Date().toISOString().split("T")[0];
     const logFileName = `app-${currentDate}.log`;
-    const logFilePath = path.join(__dirname, "..", "..", "logs", logFileName);
+    const logFilePath = path.join(__dirname, "..", "..", "logs", tenantId, logFileName);
 
-    console.log("logFilePath ==>", logFilePath);
-    // Check if the current day's log file exists
+    // Check if the log file exists
     if (!fs.existsSync(logFilePath)) {
       return {
         success: false,

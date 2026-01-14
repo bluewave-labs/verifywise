@@ -18,7 +18,7 @@ import {
   FormHelperText,
   Chip as MuiChip,
 } from "@mui/material";
-import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown, FileSearch, MessageSquare, Bot } from "lucide-react";
+import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown, FileSearch, MessageSquare, Bot, Clock } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import SelectableCard from "../../components/SelectableCard";
 import Field from "../../components/Inputs/Field";
@@ -839,6 +839,19 @@ export default function NewExperimentModal({
   const availableModelProviders = allModelProviders;
 
   const selectedModelProvider = availableModelProviders.find(p => p.id === config.model.accessMethod);
+
+  // Helper function to estimate experiment duration based on prompt count
+  // Each prompt takes ~20-30 seconds (model call + judge evaluations for each metric)
+  const getEstimatedTimeRange = (promptCount: number): string => {
+    if (promptCount <= 0) return "";
+    if (promptCount <= 3) return "~1-2 minutes";
+    if (promptCount <= 5) return "~2-3 minutes";
+    if (promptCount <= 10) return "~4-6 minutes";
+    if (promptCount <= 20) return "~7-12 minutes";
+    if (promptCount <= 30) return "~12-18 minutes";
+    if (promptCount <= 50) return "~18-30 minutes";
+    return "~30+ minutes";
+  };
 
   const renderStepContent = () => {
     switch (activeStep) {
@@ -1858,10 +1871,35 @@ export default function NewExperimentModal({
                   No metrics available
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
-                  Standard metrics require a Judge LLM. 
+                  Standard metrics require a Judge LLM.
                   <br /> Your custom scorer will be used instead.
                 </Typography>
               </Box>
+
+              {/* Estimated time display */}
+              {datasetPrompts.length > 0 && (
+                <Box
+                  sx={{
+                    p: "8px",
+                    borderRadius: "4px",
+                    backgroundColor: "#F0FDF4",
+                    border: "1px solid #BBF7D0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Clock size={16} color="#13715B" />
+                  <Box>
+                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                      Estimated time: {getEstimatedTimeRange(datasetPrompts.length)}
+                    </Typography>
+                    <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                      Based on {datasetPrompts.length} prompt{datasetPrompts.length !== 1 ? "s" : ""} in your dataset
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
             </Stack>
           );
         }
@@ -2318,6 +2356,32 @@ export default function NewExperimentModal({
                     </Stack>
                   </Box>
                 ))}
+              </Box>
+            )}
+
+            {/* Estimated time display */}
+            {datasetPrompts.length > 0 && (
+              <Box
+                sx={{
+                  mt: "16px",
+                  p: "8px",
+                  borderRadius: "4px",
+                  backgroundColor: "#F0FDF4",
+                  border: "1px solid #BBF7D0",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Clock size={16} color="#13715B" />
+                <Box>
+                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                    Estimated time: {getEstimatedTimeRange(datasetPrompts.length)}
+                  </Typography>
+                  <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                    Based on {datasetPrompts.length} prompt{datasetPrompts.length !== 1 ? "s" : ""} in your dataset
+                  </Typography>
+                </Box>
               </Box>
             )}
           </Stack>

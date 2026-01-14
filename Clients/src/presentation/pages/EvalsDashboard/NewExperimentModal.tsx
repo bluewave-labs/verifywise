@@ -46,6 +46,7 @@ import {
   listScorers,
   getAllLlmApiKeys,
   addLlmApiKey,
+  validateModel,
   type DeepEvalScorer,
   type LLMApiKey,
   type LLMProvider,
@@ -85,6 +86,9 @@ export default function NewExperimentModal({
     title: string;
     body: string;
   } | null>(null);
+
+  // Track if user acknowledged API key warning and wants to proceed anyway
+  const [apiKeyWarningAcknowledged, setApiKeyWarningAcknowledged] = useState(false);
 
   // Dataset prompts state
   interface DatasetPrompt {
@@ -212,7 +216,12 @@ export default function NewExperimentModal({
       conversationSafety: 0.5,
     },
   });
-  
+
+  // Reset warning acknowledgment when model changes
+  useEffect(() => {
+    setApiKeyWarningAcknowledged(false);
+  }, [config.model.name, config.model.accessMethod]);
+
   // Track if selected dataset is multi-turn
   const isMultiTurnDataset = selectedUserDataset?.turnType === "multi-turn" || 
     (selectedPresetPath && selectedPresetPath.includes("multiturn"));
@@ -435,11 +444,36 @@ export default function NewExperimentModal({
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      // Validate model API key availability before creating experiment
+      const modelName = config.model.name;
+      const modelProvider = config.model.accessMethod;
+
+      // Skip validation if user already acknowledged the warning
+      if (!apiKeyWarningAcknowledged && modelName && modelProvider !== "ollama" && modelProvider !== "huggingface") {
+        try {
+          const validation = await validateModel(modelName, modelProvider);
+          if (!validation.valid) {
+            // Show warning but allow user to proceed by clicking again
+            setAlert({
+              show: true,
+              variant: "warning",
+              title: "API key may not be configured",
+              body: `${validation.error_message || `The API key for ${validation.provider || modelProvider} may not be configured.`} Click "Run experiment" again to proceed anyway.`,
+            });
+            setApiKeyWarningAcknowledged(true);
+            setLoading(false);
+            return;
+          }
+        } catch (validationError) {
+          console.warn("Model validation check failed, proceeding anyway:", validationError);
+          // Don't block if validation endpoint fails - let the experiment try to run
+        }
+      }
+
       // Auto-save any new API keys entered
       const saveApiKeyPromises: Promise<void>[] = [];
-      
+
       // Save model provider API key if entered (only for cloud providers with saved model lists)
-      const modelProvider = config.model.accessMethod;
       if (config.model.apiKey && modelProvider && PROVIDERS[modelProvider] && !hasApiKey(modelProvider)) {
         saveApiKeyPromises.push(
           addLlmApiKey({
@@ -486,12 +520,12 @@ export default function NewExperimentModal({
         hour12: true,
       });
       const dateTimeStr = `${dateStr}, ${timeStr}`;
-      const modelName = config.model.name || "Unknown Model";
-      
+      const experimentModelName = modelName || "Unknown Model";
+
       const experimentConfig = {
         project_id: projectId,
-        name: `${modelName} - ${dateTimeStr}`,
-        description: `Evaluating ${modelName} with ${datasetPrompts.length} prompts`,
+        name: `${experimentModelName} - ${dateTimeStr}`,
+        description: `Evaluating ${experimentModelName} with ${datasetPrompts.length} prompts`,
         config: {
           project_id: projectId,  // Include in config for runner
           model: {

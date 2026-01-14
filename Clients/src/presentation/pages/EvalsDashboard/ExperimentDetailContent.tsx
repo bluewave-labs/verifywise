@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw, AlertTriangle, Download, Copy } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -148,6 +149,7 @@ import {
   getLogs,
   updateExperiment,
   createExperiment,
+  validateModel,
   type Experiment,
   type EvaluationLog,
 } from "../../../application/repository/deepEval.repository";
@@ -280,15 +282,16 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
   };
 
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+  const [apiKeyWarning, setApiKeyWarning] = useState<string | null>(null);
 
-  const handleRerunExperiment = async () => {
+  const executeRerun = async () => {
     if (!experiment || !projectId) return;
-    if (rerunLoading) return;
 
     try {
       setRerunLoading(true);
       setAlert(null);
       const baseConfig = (experiment as unknown as { config?: Record<string, Record<string, unknown>> }).config || {};
+
       const nextName = `${experiment.name || "Eval"} (rerun ${new Date().toLocaleDateString()})`;
 
       const payload = {
@@ -313,10 +316,39 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     } catch (err) {
       console.error("Failed to rerun experiment:", err);
       setAlert({ variant: "error", body: "Failed to start rerun" });
-      setTimeout(() => setAlert(null), 5000);
+      // Error alerts persist until user dismisses them
     } finally {
       setRerunLoading(false);
     }
+  };
+
+  const handleRerunExperiment = async () => {
+    if (!experiment || !projectId) return;
+    if (rerunLoading) return;
+
+    const baseConfig = (experiment as unknown as { config?: Record<string, Record<string, unknown>> }).config || {};
+
+    // Validate model API key availability before rerunning
+    const modelName = baseConfig.model?.name as string | undefined;
+    const modelProvider = baseConfig.model?.accessMethod as string | undefined;
+
+    if (modelName && modelProvider !== "ollama" && modelProvider !== "huggingface") {
+      try {
+        const validation = await validateModel(modelName, modelProvider);
+        if (!validation.valid) {
+          // Show warning modal but allow user to proceed
+          setApiKeyWarning(
+            validation.error_message || `API key for ${validation.provider || modelProvider} is not configured.`
+          );
+          return;
+        }
+      } catch (validationError) {
+        console.warn("Model validation check failed, proceeding anyway:", validationError);
+      }
+    }
+
+    // If validation passed or skipped, execute the rerun
+    await executeRerun();
   };
 
   if (loading) {
@@ -341,6 +373,29 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} isToast onClick={() => setAlert(null)} />}
+
+      {/* API Key Warning Modal */}
+      {apiKeyWarning && (
+        <ConfirmationModal
+          title="API key may not be configured"
+          body={
+            <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6 }}>
+              {apiKeyWarning}
+              <br /><br />
+              Do you want to run the experiment anyway?
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Run anyway"
+          onCancel={() => setApiKeyWarning(null)}
+          onProceed={async () => {
+            setApiKeyWarning(null);
+            await executeRerun();
+          }}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
 
       {/* Back button */}
       <Box sx={{ mb: 2 }}>

@@ -6,7 +6,6 @@ import {
   SxProps,
   Theme,
 } from "@mui/material";
-import { usePostHog } from "../../../application/hooks/usePostHog";
 
 /**
  * Extended props interface for the Button component
@@ -22,33 +21,33 @@ export interface ButtonProps extends Omit<MUIButtonProps, 'sx'> {
 
 /**
  * A custom Button component that wraps the Material-UI Button with consistent theming.
- * 
+ *
  * This component provides a standardized button with the application's default styling
  * while allowing full customization through the sx prop and other MUI Button props.
- * 
+ *
  * Features:
  * - Consistent theme-based styling
  * - Responsive design with flexible dimensions
  * - Full accessibility support
  * - Performance optimized with memoization
  * - TypeScript support with proper typing
- * 
+ *
  * @component
  * @example
  * ```tsx
  * <Button variant="contained" onClick={handleClick}>
  *   Click me
  * </Button>
- * 
- * <Button 
- *   variant="outlined" 
+ *
+ * <Button
+ *   variant="outlined"
  *   sx={{ width: '200px' }}
  *   testId="submit-button"
  * >
  *   Submit
  * </Button>
  * ```
- * 
+ *
  * @param {ButtonProps} props - The props for the Button component
  * @returns {React.ReactElement} A styled Material-UI Button component
  */
@@ -64,28 +63,15 @@ const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(({
   ...rest
 }, ref) => {
   const theme = useTheme();
-  const { trackButtonClick } = usePostHog();
 
-  // Enhanced click handler with analytics tracking
+  // Click handler
   const handleClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    // Track button click
-    const buttonText = typeof children === 'string' ? children : 'unknown';
-    const buttonIdentifier = testId || buttonText || 'unknown_button';
-
-    trackButtonClick(buttonIdentifier, {
-      button_text: buttonText,
-      test_id: testId,
-      variant: rest.variant,
-      disabled: rest.disabled,
-      url: window.location.pathname,
-    });
-
     // Call original onClick handler if provided
     if (onClick) {
       onClick(event);
     }
-  }, [onClick, children, testId, rest.variant, rest.disabled, trackButtonClick]);
-  
+  }, [onClick]);
+
   // Define default styles using theme values
   const defaultStyles: SxProps<Theme> = {
     mt: 2,
@@ -110,7 +96,7 @@ const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(({
     ], {
       duration: theme.transitions.duration.short,
     }),
-    
+
     // Hover effects
     '&:hover': {
       backgroundColor: theme.palette.primary.dark || '#0f5d4a',
@@ -118,26 +104,26 @@ const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(({
       transform: 'translateY(-1px)',
       boxShadow: theme.shadows[2],
     },
-    
+
     // Focus effects for accessibility
     '&:focus': {
       outline: `2px solid ${theme.palette.primary.main || '#13715B'}`,
       outlineOffset: '2px',
     },
-    
+
     // Active state
     '&:active': {
       transform: 'translateY(0)',
       boxShadow: theme.shadows[1],
     },
-    
+
     // Disabled state
     '&.Mui-disabled': {
       backgroundColor: theme.palette.action.disabledBackground,
       borderColor: theme.palette.action.disabled,
       color: theme.palette.action.disabled,
     },
-    
+
     // Ensure text doesn't wrap awkwardly
     whiteSpace: 'nowrap',
     overflow: 'hidden',

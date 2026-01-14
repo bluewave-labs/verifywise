@@ -35,7 +35,6 @@ import { createModelInventory } from "../../../application/repository/modelInven
 import { getMlflowModels } from "../../../application/repository/integration.repository";
 import { getShareLinksForResource } from "../../../application/repository/share.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { usePostHog } from "../../../application/hooks/usePostHog";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
@@ -134,7 +133,6 @@ const ModelInventory: React.FC = () => {
   const [isMlflowLoading, setIsMlflowLoading] = useState(false);
 
   const { userRoleName } = useAuth();
-  const { trackDashboard, trackFeature, trackAIModel } = usePostHog();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
   const theme = useTheme();
@@ -872,13 +870,6 @@ const ModelInventory: React.FC = () => {
   };
 
   useEffect(() => {
-    // Track model inventory page load
-    trackDashboard('model_inventory', {
-      user_role: userRoleName,
-      page_type: 'ai_model_registry',
-      has_url_filters: !!searchParams.toString(),
-    });
-
     fetchModelInventoryData();
     fetchModelRisksData();
     fetchMLFlowData();
@@ -990,18 +981,6 @@ const ModelInventory: React.FC = () => {
   ]);
 
   const handleNewModelInventoryClick = () => {
-    // Track AI model creation start
-    trackAIModel('new_model_creation', 'start', {
-      user_role: userRoleName,
-      total_existing_models: modelInventoryData.length,
-      source: 'model_inventory_page',
-    });
-
-    trackFeature('model_creation', 'started', {
-      form_type: 'ai_model_registration',
-      user_role: userRoleName,
-    });
-
     setSelectedModelInventory(null);
     setIsNewModelInventoryModalOpen(true);
   };

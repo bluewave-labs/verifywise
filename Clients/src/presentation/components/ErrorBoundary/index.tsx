@@ -1,6 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Box, Typography, Button, Stack } from '@mui/material';
-import { trackReactError } from '../../../application/utils/error-tracking';
 
 interface Props {
   children: ReactNode;
@@ -15,7 +14,7 @@ interface State {
 }
 
 /**
- * Error Boundary component that catches React errors and tracks them with PostHog
+ * Error Boundary component that catches React errors
  * Provides a fallback UI when errors occur
  */
 class ErrorBoundary extends Component<Props, State> {
@@ -34,23 +33,12 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Track the error to PostHog
-    trackReactError(
-      error,
-      { componentStack: errorInfo.componentStack || '' },
-      {
-        component_stack: errorInfo.componentStack,
-        url: window.location.href,
-        timestamp: new Date().toISOString(),
-      }
-    );
-
     // Store error info in state for display
     this.setState({
       errorInfo,
     });
 
-    // Also log to console in development
+    // Log to console in development
     if (import.meta.env.DEV) {
       console.error('Error Boundary caught an error:', error, errorInfo);
     }

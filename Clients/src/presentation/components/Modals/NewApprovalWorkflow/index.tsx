@@ -7,7 +7,6 @@ import SelectComponent from "../../Inputs/Select";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-dark_grey.svg";
 import { ChevronDown } from "lucide-react";
-import { getAutocompleteStyles } from "../../../utils/inputStyles";
 import {
     addNewStep,
     stepNumberStyle,
@@ -89,7 +88,8 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
         setWorkflowTitle("");
         setEntity(0);
         setWorkflowSteps([new ApprovalWorkflowStepModel()]);
-        setStepsCount(1)
+        setStepsCount(1);
+        setErrors({ steps: [] });
     }
 
     const validateForm = (): boolean => {
@@ -302,6 +302,10 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                                             "& ::placeholder": {
                                                                 fontSize: "13px",
                                                             },
+                                                            // Override MUI's default error border color to match other fields
+                                                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
+                                                                borderColor: theme.palette.status.error.border,
+                                                            },
                                                         }}
                                                     />
                                                 )}
@@ -328,16 +332,16 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                                     },
                                                 }}
                                                 sx={{
-                                                    ...getAutocompleteStyles(theme, { hasError: !!errors.steps[stepIndex]?.approver }),
                                                     ...approverAutocompleteStyle(theme),
                                                 }}
                                             />
                                             {errors.steps[stepIndex]?.approver && (
                                                 <Typography
-                                                    variant="caption"
+                                                    component="span"
                                                     sx={{
-                                                        color: theme.palette.error.main,
-                                                        fontSize: "var(--env-var-font-size-small)",
+                                                        color: theme.palette.status.error.text,
+                                                        opacity: 0.8,
+                                                        fontSize: 11,
                                                     }}
                                                 >
                                                     {errors.steps[stepIndex]?.approver}

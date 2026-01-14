@@ -1186,8 +1186,7 @@ const ModelInventory: React.FC = () => {
     }
   };
 
-  const handleCopyLink = (link: string) => {
-    console.log("Link copied:", link);
+  const handleCopyLink = (_link: string) => {
     setAlert({
       variant: "success",
       body: "Share link copied to clipboard!",

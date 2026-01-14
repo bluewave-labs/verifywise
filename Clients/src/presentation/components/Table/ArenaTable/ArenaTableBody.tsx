@@ -384,7 +384,7 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
                 },
               }}
             >
-              Download JSON
+              Download results as JSON
             </CustomizableButton>
           )}
           {onCopy && menuRow?.status === "completed" && (
@@ -407,7 +407,7 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
                 },
               }}
             >
-              Copy to clipboard
+              Copy results to clipboard
             </CustomizableButton>
           )}
           {onDelete && (

@@ -6,9 +6,11 @@ import {
   createExperiment,
   deleteExperiment,
   getExperiment,
+  validateModel,
   type Experiment,
 } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import NewExperimentModal from "./NewExperimentModal";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { useNavigate } from "react-router-dom";
@@ -63,6 +65,10 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   const [currentPage, setCurrentPage] = useState(0);
   const [newEvalModalOpen, setNewEvalModalOpen] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
+  const [apiKeyWarning, setApiKeyWarning] = useState<{
+    message: string;
+    pendingExperiment: ExperimentWithMetrics;
+  } | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [chartRefreshKey, setChartRefreshKey] = useState(0);
@@ -146,11 +152,12 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       completedExps.forEach((exp) => {
         if (exp.status === "completed") {
           setAlert({ variant: "success", body: `Experiment "${exp.name}" completed successfully` });
+          // Auto-dismiss success alerts after 5 seconds
+          setTimeout(() => setAlert(null), 5000);
         } else {
+          // Error alerts persist until user dismisses them
           setAlert({ variant: "error", body: `Experiment "${exp.name}" failed. Check logs for details.` });
         }
-        // Clear alert after 5 seconds
-        setTimeout(() => setAlert(null), 5000);
       });
     }
   }, [experiments]);
@@ -197,17 +204,10 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     }
   };
 
-  const handleRerunExperiment = async (row: IEvaluationRow) => {
-    // Find the original experiment to get its config
-    const originalExp = experiments.find((e) => e.id === row.id);
-    if (!originalExp) {
-      setAlert({ variant: "error", body: "Could not find experiment to rerun" });
-      setTimeout(() => setAlert(null), 4000);
-      return;
-    }
-
+  const executeRerun = async (originalExp: ExperimentWithMetrics) => {
     try {
       const baseConfig = originalExp.config || {};
+
       const now = new Date();
       const dateStr = now.toLocaleDateString("en-US", {
         month: "short",
@@ -231,7 +231,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       };
 
       setAlert({ variant: "success", body: "Starting new evaluation run..." });
-      
+
       const response = await createExperiment(payload);
 
       if (response?.experiment?.id) {
@@ -242,15 +242,50 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
           status: "running",
           created_at: new Date().toISOString(),
         });
-        
+
         setAlert({ variant: "success", body: `Rerun started: ${nextName}` });
         setTimeout(() => setAlert(null), 3000);
       }
     } catch (err) {
       console.error("Failed to rerun experiment:", err);
       setAlert({ variant: "error", body: "Failed to start rerun" });
-      setTimeout(() => setAlert(null), 5000);
+      // Error alerts persist until user dismisses them
     }
+  };
+
+  const handleRerunExperiment = async (row: IEvaluationRow) => {
+    // Find the original experiment to get its config
+    const originalExp = experiments.find((e) => e.id === row.id);
+    if (!originalExp) {
+      setAlert({ variant: "error", body: "Could not find experiment to rerun" });
+      // Error alerts persist until user dismisses them
+      return;
+    }
+
+    const baseConfig = originalExp.config || {};
+
+    // Validate model API key availability before rerunning
+    const modelName = baseConfig.model?.name;
+    const modelProvider = baseConfig.model?.accessMethod;
+
+    if (modelName && modelProvider !== "ollama" && modelProvider !== "huggingface") {
+      try {
+        const validation = await validateModel(modelName, modelProvider);
+        if (!validation.valid) {
+          // Show warning modal but allow user to proceed
+          setApiKeyWarning({
+            message: validation.error_message || `API key for ${validation.provider || modelProvider} is not configured.`,
+            pendingExperiment: originalExp,
+          });
+          return;
+        }
+      } catch (validationError) {
+        console.warn("Model validation check failed, proceeding anyway:", validationError);
+      }
+    }
+
+    // If validation passed or skipped, execute the rerun
+    await executeRerun(originalExp);
   };
 
   const handleDeleteExperiment = async (experimentId: string) => {
@@ -261,7 +296,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       loadExperiments();
     } catch {
       setAlert({ variant: "error", body: "Failed to delete" });
-      setTimeout(() => setAlert(null), 5000);
+      // Error alerts persist until user dismisses them
     }
   };
 
@@ -281,7 +316,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       setTimeout(() => setAlert(null), 3000);
     } catch {
       setAlert({ variant: "error", body: "Failed to download results" });
-      setTimeout(() => setAlert(null), 5000);
+      // Error alerts persist until user dismisses them
     }
   };
 
@@ -293,7 +328,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       setTimeout(() => setAlert(null), 3000);
     } catch {
       setAlert({ variant: "error", body: "Failed to copy results" });
-      setTimeout(() => setAlert(null), 5000);
+      // Error alerts persist until user dismisses them
     }
   };
 
@@ -514,6 +549,30 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
+
+      {/* API Key Warning Modal */}
+      {apiKeyWarning && (
+        <ConfirmationModal
+          title="API key may not be configured"
+          body={
+            <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6 }}>
+              {apiKeyWarning.message}
+              <br /><br />
+              Do you want to run the experiment anyway?
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Run anyway"
+          onCancel={() => setApiKeyWarning(null)}
+          onProceed={async () => {
+            const exp = apiKeyWarning.pendingExperiment;
+            setApiKeyWarning(null);
+            await executeRerun(exp);
+          }}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
 
       {/* Header + description */}
       <Stack spacing={1} mb={4}>

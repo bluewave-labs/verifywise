@@ -313,7 +313,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 },
               }}
             >
-              Download JSON
+              Download results as JSON
             </CustomizableButton>
           )}
           {onCopy && menuRow?.status === "Completed" && (
@@ -336,7 +336,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 },
               }}
             >
-              Copy to clipboard
+              Copy results to clipboard
             </CustomizableButton>
           )}
           {onRemoveModel && (

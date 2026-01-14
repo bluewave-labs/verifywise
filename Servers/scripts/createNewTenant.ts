@@ -2154,6 +2154,40 @@ export const createNewTenant = async (
     );
 
     console.log(`✅ AI Detection tables created successfully for tenant: ${tenantHash}`);
+
+    // Create change history table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".incident_change_history (
+        id SERIAL PRIMARY KEY,
+        incident_id INTEGER NOT NULL REFERENCES "${tenantHash}".ai_incident_managements(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    // Create index on incident_id for faster lookups
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_incident_change_history_incident_id
+      ON "${tenantHash}".incident_change_history(incident_id);
+    `, { transaction });
+
+    // Create index on changed_at for time-based queries
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_incident_change_history_changed_at
+      ON "${tenantHash}".incident_change_history(changed_at DESC);
+    `, { transaction });
+
+    // Create composite index for incident_id + changed_at (most common query pattern)
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_incident_change_history_incident_changed
+      ON "${tenantHash}".incident_change_history(incident_id, changed_at DESC);
+    `, { transaction });
+
   } catch (error) {
     throw error;
   }

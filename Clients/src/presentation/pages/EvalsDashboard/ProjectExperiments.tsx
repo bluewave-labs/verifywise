@@ -256,7 +256,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   const handleDeleteExperiment = async (experimentId: string) => {
     try {
       await deleteExperiment(experimentId);
-      setAlert({ variant: "success", body: "Eval deleted" });
+      setAlert({ variant: "success", body: "Experiment deleted" });
       setTimeout(() => setAlert(null), 3000);
       loadExperiments();
     } catch {

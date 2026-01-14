@@ -305,7 +305,10 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
       if (response?.experiment?.id) {
         setAlert({ variant: "success", body: `Rerun started: "${nextName}"` });
-        setTimeout(() => setAlert(null), 5000);
+        // Navigate back to experiments page after successful rerun
+        setTimeout(() => {
+          onBack();
+        }, 500);
       }
     } catch (err) {
       console.error("Failed to rerun experiment:", err);
@@ -436,7 +439,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         </Box>
 
         {/* Action buttons */}
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 3 }}>
           <CustomizableButton
             variant="outlined"
             onClick={async () => {

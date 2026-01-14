@@ -1020,10 +1020,7 @@ const ProjectSettings = React.memo(
                     label=""
                     date={values.startDate ? dayjs(values.startDate) : null}
                     handleDateChange={handleDateChange}
-                    sx={{
-                      width: "130px",
-                      "& input": { width: "85px" },
-                    }}
+                    sx={{ width: "130px" }}
                     isRequired
                     error={errors.startDate}
                   />

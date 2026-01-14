@@ -315,7 +315,7 @@ const FileManager: React.FC = (): JSX.Element => {
           />
         </>
       ) : (
-        <Stack gap={"16px"}>
+        <Stack gap={"16px"} data-joyride-id="file-manager-content">
           <Box
             sx={{
               display: "flex",
@@ -349,15 +349,17 @@ const FileManager: React.FC = (): JSX.Element => {
             </Box>
             {/* RBAC: Only show upload button for non-Auditors */}
             {isUploadAllowed && (
-              <CustomizableButton
-                variant="contained"
-                text="Upload new file"
-                sx={{
-                  gap: 2,
-                }}
-                icon={<UploadIcon size={16} />}
-                onClick={handleUploadClick}
-              />
+              <Box data-joyride-id="upload-file-button">
+                <CustomizableButton
+                  variant="contained"
+                  text="Upload new file"
+                  sx={{
+                    gap: 2,
+                  }}
+                  icon={<UploadIcon size={16} />}
+                  onClick={handleUploadClick}
+                />
+              </Box>
             )}
           </Box>
           <Box sx={boxStyles}>

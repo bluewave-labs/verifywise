@@ -108,7 +108,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [experiments]);
 
-  // Detect when running experiments complete and refresh the chart
+  // Detect when running experiments complete and refresh the chart + notify user
   useEffect(() => {
     const currentRunningIds = new Set(
       experiments
@@ -116,9 +116,10 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         .map((exp) => exp.id)
     );
 
-    // Check if any previously running experiments are now completed
+    // Check if any previously running experiments are now completed or failed
     const prevRunning = prevRunningIdsRef.current;
     let anyCompleted = false;
+    const completedExps: { name: string; status: string }[] = [];
     
     prevRunning.forEach((id) => {
       if (!currentRunningIds.has(id)) {
@@ -126,6 +127,10 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         const exp = experiments.find((e) => e.id === id);
         if (exp && (exp.status === "completed" || exp.status === "failed")) {
           anyCompleted = true;
+          completedExps.push({ 
+            name: exp.name || exp.id, 
+            status: exp.status 
+          });
         }
       }
     });
@@ -133,9 +138,20 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     // Update the ref with current running IDs
     prevRunningIdsRef.current = currentRunningIds;
 
-    // If any experiment just completed, refresh the chart
+    // If any experiment just completed/failed, refresh the chart and show notification
     if (anyCompleted) {
       setChartRefreshKey((prev) => prev + 1);
+      
+      // Show notification for each completed/failed experiment
+      completedExps.forEach((exp) => {
+        if (exp.status === "completed") {
+          setAlert({ variant: "success", body: `✅ Experiment "${exp.name}" completed successfully!` });
+        } else {
+          setAlert({ variant: "error", body: `❌ Experiment "${exp.name}" failed. Check logs for details.` });
+        }
+        // Clear alert after 5 seconds
+        setTimeout(() => setAlert(null), 5000);
+      });
     }
   }, [experiments]);
 

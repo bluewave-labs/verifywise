@@ -11,6 +11,22 @@ module.exports = {
       )
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
+
+        // Check if event_logs table exists
+        const [approvalTableExists] = await queryInterface.sequelize.query(
+          `SELECT EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = '${tenantHash}'
+            AND table_name = 'event_logs'
+          )`,
+          { type: Sequelize.QueryTypes.SELECT, transaction }
+        );
+
+        if (approvalTableExists.exists) {
+          console.log(`Table ${tenantHash}.event_logs already exists, skipping...`);
+          continue;
+        }
+
         await queryInterface.sequelize.query(
           `CREATE TABLE "${tenantHash}".event_logs (
             id SERIAL PRIMARY KEY,

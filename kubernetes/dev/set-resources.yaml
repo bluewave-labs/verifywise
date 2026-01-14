@@ -36,7 +36,7 @@ spec:
             limits:
               cpu: "200m"
               memory: "768Mi"
-        - name: verifywise-biasandfairness-backend
+        - name: verifywise-eval-server
           resources:
             requests:
               cpu: "100m"

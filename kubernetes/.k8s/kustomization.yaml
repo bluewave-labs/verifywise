@@ -21,7 +21,7 @@ resources:
   - backend-deployment.yaml
   - frontend-deployment.yaml
   - worker-deployment.yaml
-  - bias-fairness-deployment.yaml
+  - eval-server-deployment.yaml
 
   # Ingress for external access
   # - ingress.yaml
@@ -44,7 +44,7 @@ images:
     newTag: latest
   - name: ghcr.io/bluewave-labs/verifywise-frontend
     newTag: latest
-  - name: ghcr.io/bluewave-labs/verifywise-bias-fairness
+  - name: ghcr.io/bluewave-labs/verifywise-eval-server
     newTag: latest
 
 # ConfigMap generator (optional - alternative to using configmap-generated.yaml)

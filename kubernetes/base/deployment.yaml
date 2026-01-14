@@ -150,8 +150,8 @@ spec:
             seccompProfile:
               type: RuntimeDefault
 
-        - name: verifywise-biasandfairness-backend
-          image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
+        - name: verifywise-eval-server
+          image: ghcr.io/bluewave-labs/verifywise-eval-server:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Box, Card, CardContent, Typography, Stack } from "@mui/material";
-import { Play } from "lucide-react";
+import { Play, Clock } from "lucide-react";
 import {
   getAllExperiments,
   createExperiment,
@@ -69,6 +69,10 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     message: string;
     pendingExperiment: ExperimentWithMetrics;
   } | null>(null);
+  const [rerunConfirm, setRerunConfirm] = useState<{
+    experiment: ExperimentWithMetrics;
+    promptCount: number;
+  } | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [chartRefreshKey, setChartRefreshKey] = useState(0);
@@ -81,6 +85,19 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // Helper function to estimate experiment duration based on prompt count
+  // Each prompt takes ~20-30 seconds (model call + judge evaluations for each metric)
+  const getEstimatedTimeRange = (promptCount: number): string => {
+    if (promptCount <= 0) return "unknown";
+    if (promptCount <= 3) return "~1-2 minutes";
+    if (promptCount <= 5) return "~2-3 minutes";
+    if (promptCount <= 10) return "~4-6 minutes";
+    if (promptCount <= 20) return "~7-12 minutes";
+    if (promptCount <= 30) return "~12-18 minutes";
+    if (promptCount <= 50) return "~18-30 minutes";
+    return "~30+ minutes";
+  };
 
   useEffect(() => {
     loadExperiments();
@@ -262,6 +279,17 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       return;
     }
 
+    // Get prompt count from sampleCount or config
+    const promptCount = originalExp.sampleCount || 0;
+
+    // Show rerun confirmation with estimated time
+    setRerunConfirm({
+      experiment: originalExp,
+      promptCount,
+    });
+  };
+
+  const proceedWithRerun = async (originalExp: ExperimentWithMetrics) => {
     const baseConfig = originalExp.config || {};
 
     // Validate model API key availability before rerunning
@@ -549,6 +577,53 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
+
+      {/* Rerun Confirmation Modal */}
+      {rerunConfirm && (
+        <ConfirmationModal
+          title="Rerun experiment"
+          body={
+            <Box>
+              <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6, mb: 2 }}>
+                This will create a new experiment run using the same configuration as "{rerunConfirm.experiment.name}".
+              </Typography>
+              {rerunConfirm.promptCount > 0 && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    p: "8px",
+                    borderRadius: "4px",
+                    backgroundColor: "#F0FDF4",
+                    border: "1px solid #BBF7D0",
+                  }}
+                >
+                  <Clock size={16} color="#13715B" />
+                  <Box>
+                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                      Estimated time: {getEstimatedTimeRange(rerunConfirm.promptCount)}
+                    </Typography>
+                    <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                      Based on {rerunConfirm.promptCount} prompt{rerunConfirm.promptCount !== 1 ? "s" : ""} from the original run
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          }
+          cancelText="Cancel"
+          proceedText="Rerun"
+          onCancel={() => setRerunConfirm(null)}
+          onProceed={async () => {
+            const exp = rerunConfirm.experiment;
+            setRerunConfirm(null);
+            await proceedWithRerun(exp);
+          }}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
 
       {/* API Key Warning Modal */}
       {apiKeyWarning && (

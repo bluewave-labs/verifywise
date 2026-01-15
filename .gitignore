@@ -36,3 +36,7 @@ Gateway/data/config.json.bak
 
 # Node modules
 node_modules/
+
+# EvalServer user uploads (keep directory structure, ignore uploaded files)
+EvaluationModule/data/uploads/*
+!EvaluationModule/data/uploads/.gitkeep

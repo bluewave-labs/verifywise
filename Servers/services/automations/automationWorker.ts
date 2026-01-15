@@ -1,5 +1,5 @@
 import { Worker, Job } from "bullmq";
-import redisClient from "../../database/redis";
+import { REDIS_URL } from "../../database/redis";
 import sendEmail from "./actions/sendEmail";
 import { getTenantHash } from "../../tools/getTenantHash";
 import { getAllOrganizationsQuery } from "../../utils/organization.utils";
@@ -396,7 +396,7 @@ export const createAutomationWorker = () => {
         throw error;
       }
     },
-    { connection: redisClient, concurrency: 10 }
+    { connection: { url: REDIS_URL }, concurrency: 10 }
   );
   automationWorker.on("completed", (job) => {
     console.log(`Job ${job.id} of type ${job.name} has been completed`);

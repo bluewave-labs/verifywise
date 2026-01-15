@@ -3,7 +3,7 @@ const { getTenantHash } = require("../../dist/tools/getTenantHash");
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
+  async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
       const organizations = await queryInterface.sequelize.query(
@@ -11,6 +11,20 @@ module.exports = {
       )
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
+
+        // Check if columns already exist
+        const [columns] = await queryInterface.sequelize.query(`
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_schema = '${tenantHash}'
+          AND table_name = 'deepeval_projects'
+          AND column_name = 'use_case';
+        `, { transaction });
+
+        if (columns.length > 0) {
+          logger.info(`use_case column already exists for tenant ${tenantHash}, skipping`);
+          continue;
+        }
 
         await queryInterface.sequelize.query(
           `ALTER TABLE "${tenantHash}".deepeval_projects ADD COLUMN use_case VARCHAR(50) DEFAULT 'chatbot';`, { transaction }
@@ -23,7 +37,7 @@ module.exports = {
     }
   },
 
-  async down (queryInterface, Sequelize) {
+  async down(queryInterface, Sequelize) {
     /**
      * Add reverting commands here.
      *

@@ -1,4 +1,4 @@
-import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
+import TablePaginationActions from "../../../components/TablePagination";
 import { singleTheme } from "../../../themes";
 import { ChevronsUpDown } from "lucide-react";
 
@@ -122,7 +122,7 @@ const SlackIntegrationsTable = ({
         "Slack Integration has been successfully deleted.",
       );
       refreshSlackIntegrations();
-    } catch (error) {
+    } catch {
       showAlert(
         "error",
         "Error",
@@ -152,7 +152,12 @@ const SlackIntegrationsTable = ({
     }
   };
 
-  const handleSaveNotificationRouting = useCallback(async (routingData: any[], originalIds: number[]) => {
+  interface RoutingDataItem {
+    id: number[];
+    routingType: string;
+  }
+
+  const handleSaveNotificationRouting = useCallback(async (routingData: RoutingDataItem[], originalIds: number[]) => {
     const transformedData = routingData.reduce(
       (acc: { id: number; routingType: string[] }[], item) => {
         item.id.forEach((id: number) => {

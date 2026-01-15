@@ -28,7 +28,7 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
-import { IReportTablePropsExtended } from "../../../../domain/interfaces/i.table";
+import { IReportTablePropsExtended } from "../../../types/interfaces/i.table";
 
 const REPORTS_SORTING_KEY = "verifywise_reports_sorting";
 

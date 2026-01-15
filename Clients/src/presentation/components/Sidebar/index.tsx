@@ -27,12 +27,15 @@ interface SidebarProps {
   onOpenCreateDemoData?: () => void;
   onOpenDeleteDemoData?: () => void;
   hasDemoData?: boolean;
+  /** Only show demo data options to admins */
+  isAdmin?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
   hasDemoData = false,
+  isAdmin = false,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -169,6 +172,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           icon: <AlertCircle size={16} strokeWidth={1.5} />,
           path: "/ai-incident-managements",
         },
+        // {
+        //   id: "approval-workflows",
+        //   label: "Approval Workflows",
+        //   icon: <Workflow size={16} strokeWidth={1.5} />,
+        //   path: "/approval-workflows",
+        // },
       ],
     },
   ];
@@ -212,6 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       onOpenDeleteDemoData={onOpenDeleteDemoData}
       showReadyToSubscribe={true}
       openUserGuide={openUserGuide}
+      isAdmin={isAdmin}
       enableFlyingHearts={true}
     />
   );

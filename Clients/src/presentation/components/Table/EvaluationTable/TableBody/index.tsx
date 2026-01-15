@@ -1,66 +1,22 @@
 import { useState } from "react";
-import { TableBody, TableRow, TableCell, Chip, IconButton, Typography, Popover, Stack } from "@mui/material";
-import { Trash2 as TrashIcon, RotateCcw, MoreVertical } from "lucide-react";
+import { TableBody, TableRow, TableCell, IconButton, Typography, Popover, Stack, Box, keyframes } from "@mui/material";
+import { MoreVertical, RotateCcw, Download, Copy, Trash2, Loader2 } from "lucide-react";
+
+// Pulse animation for running text
+const pulse = keyframes`
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+`;
+
+// Spin animation for loader icon
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
 import CustomizableButton from "../../../Button/CustomizableButton";
-import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../../domain/interfaces/i.table";
-
-const StatusChip: React.FC<{
-  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" | "Available";
-}> = ({ status }) => {
-  const getStatusStyles = () => {
-    switch (status) {
-      case "In Progress":
-      case "Running":
-        return {
-          backgroundColor: "#fff3e0",
-          color: "#ef6c00",
-        };
-      case "Completed":
-        return {
-          backgroundColor: "#c8e6c9",
-          color: "#388e3c",
-        };
-      case "Failed":
-        return {
-          backgroundColor: "#ffebee",
-          color: "#c62828",
-        };
-      case "Pending":
-        return {
-          backgroundColor: "#e0e0e0",
-          color: "#616161",
-        };
-      case "Available":
-        return {
-          backgroundColor: "#e3f2fd",
-          color: "#1565c0",
-        };
-      default:
-        return {
-          backgroundColor: "#e0e0e0",
-          color: "#616161",
-        };
-    }
-  };
-
-  const style = getStatusStyles();
-
-  return (
-    <Chip
-      label={status}
-      size="small"
-      sx={{
-        ...style,
-        fontWeight: 500,
-        fontSize: "11px",
-        height: "22px",
-        borderRadius: "4px",
-      }}
-    />
-  );
-};
+import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../types/interfaces/i.table";
 
 const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   rows,
@@ -69,6 +25,8 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   onShowDetails,
   onRemoveModel,
   onRerun,
+  onDownload,
+  onCopy,
 }) => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<IEvaluationRow | null>(null);
@@ -89,6 +47,20 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   const handleRerunClick = () => {
     if (menuRow && onRerun) {
       onRerun(menuRow);
+    }
+    handleMenuClose();
+  };
+
+  const handleDownloadClick = () => {
+    if (menuRow && onDownload) {
+      onDownload(menuRow);
+    }
+    handleMenuClose();
+  };
+
+  const handleCopyClick = () => {
+    if (menuRow && onCopy) {
+      onCopy(menuRow);
     }
     handleMenuClose();
   };
@@ -135,10 +107,35 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 paddingLeft: "12px",
                 paddingRight: "12px",
                 textTransform: "none",
-                width: "18%",
+                width: "20%",
               }}
             >
-              {isRunning ? "Pending..." : row.id}
+              {isRunning ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box
+                    component={Loader2}
+                    size={14}
+                    sx={{
+                      color: "#ef6c00",
+                      animation: `${spin} 1s linear infinite`,
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      color: "#ef6c00",
+                      fontWeight: 500,
+                      animation: `${pulse} 1.5s ease-in-out infinite`,
+                    }}
+                  >
+                    Running...
+                  </Typography>
+                </Box>
+              ) : row.status === "Failed" ? (
+                <Typography sx={{ fontSize: 13, color: "#c62828", fontWeight: 500 }}>Failed</Typography>
+              ) : (
+                row.id
+              )}
             </TableCell>
 
             {/* MODEL - center aligned */}
@@ -195,24 +192,10 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 paddingRight: "12px",
                 textTransform: "none",
                 textAlign: "center",
-                width: "12%",
+                width: "14%",
               }}
             >
               {row.dataset}
-            </TableCell>
-
-            {/* STATUS - center aligned */}
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-                textTransform: "none",
-                textAlign: "center",
-                width: "9%",
-              }}
-            >
-              <StatusChip status={row.status} />
             </TableCell>
 
             {/* DATE - center aligned */}
@@ -244,6 +227,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   maxWidth: "60px",
                   textAlign: "center",
                 }}
+                onClick={(e) => e.stopPropagation()}
               >
                 <IconButton
                   size="small"
@@ -274,7 +258,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         sx={{
           "& .MuiPopover-paper": {
-            minWidth: 120,
+            minWidth: 140,
             borderRadius: "4px",
             border: "1px solid #d0d5dd",
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
@@ -304,20 +288,62 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   borderColor: "#13715B",
                   color: "#13715B",
                 },
-                "&.Mui-disabled": {
-                  color: "#9CA3AF",
-                  borderColor: "#E5E7EB",
-                },
               }}
             >
               Rerun
+            </CustomizableButton>
+          )}
+          {onDownload && menuRow?.status === "Completed" && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleDownloadClick}
+              startIcon={<Download size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+              }}
+            >
+              Download results as JSON
+            </CustomizableButton>
+          )}
+          {onCopy && menuRow?.status === "Completed" && (
+            <CustomizableButton
+              variant="outlined"
+              onClick={handleCopyClick}
+              startIcon={<Copy size={14} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#d0d5dd",
+                backgroundColor: "transparent",
+                justifyContent: "flex-start",
+                "&:hover": {
+                  backgroundColor: "#F0FDF4",
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                },
+              }}
+            >
+              Copy results to clipboard
             </CustomizableButton>
           )}
           {onRemoveModel && (
             <CustomizableButton
               variant="outlined"
               onClick={handleDeleteClick}
-              startIcon={<TrashIcon size={14} />}
+              startIcon={<Trash2 size={14} />}
               sx={{
                 height: "34px",
                 fontSize: "13px",

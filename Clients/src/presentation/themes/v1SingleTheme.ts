@@ -65,6 +65,19 @@ const colors = {
   infoHover: "#2563EB",
 };
 
+// Flash indicator colors for table row updates
+const flashColors = {
+  background: "rgba(5, 150, 105, 0.1)",
+  backgroundHover: "rgba(5, 150, 105, 0.15)",
+};
+
+// Table colors for consistent styling
+const tableColors = {
+  rowHover: "#f5f5f5",
+  sortedColumn: "#f5f5f5",
+  sortedColumnFirst: "#e8e8e8",
+};
+
 const buttons = {
   // Primary buttons - main actions
   primary: {
@@ -80,7 +93,7 @@ const buttons = {
       transition: "all 0.2s ease",
       "&:hover": {
         backgroundColor: colors.primaryHover,
-        boxShadow: "0px 2px 4px rgba(19, 113, 91, 0.2)",
+        boxShadow: "none",
       },
       "&:active": {
         backgroundColor: colors.primaryHover,
@@ -104,7 +117,7 @@ const buttons = {
       "&:hover": {
         backgroundColor: `${colors.primary}08`,
         borderColor: colors.primaryHover,
-        boxShadow: "0px 1px 2px rgba(19, 113, 91, 0.1)",
+        boxShadow: "none",
       },
       "&:active": {
         backgroundColor: `${colors.primary}12`,
@@ -150,7 +163,7 @@ const buttons = {
       transition: "all 0.2s ease",
       "&:hover": {
         backgroundColor: colors.secondaryHover,
-        boxShadow: "0px 2px 4px rgba(107, 114, 128, 0.2)",
+        boxShadow: "none",
       },
       "&:active": {
         backgroundColor: colors.secondaryHover,
@@ -211,7 +224,7 @@ const buttons = {
       transition: "all 0.2s ease",
       "&:hover": {
         backgroundColor: colors.successHover,
-        boxShadow: "0px 2px 4px rgba(5, 150, 105, 0.2)",
+        boxShadow: "none",
       },
       "&:active": {
         backgroundColor: colors.successHover,
@@ -262,7 +275,7 @@ const buttons = {
       transition: "all 0.2s ease",
       "&:hover": {
         backgroundColor: colors.warningHover,
-        boxShadow: "0px 2px 4px rgba(217, 119, 6, 0.2)",
+        boxShadow: "none",
       },
     },
     outlined: {
@@ -309,7 +322,7 @@ const buttons = {
       transition: "all 0.2s ease",
       "&:hover": {
         backgroundColor: colors.errorHover,
-        boxShadow: "0px 2px 4px rgba(219, 80, 74, 0.2)",
+        boxShadow: "none",
       },
       "&:active": {
         backgroundColor: colors.errorHover,
@@ -360,7 +373,7 @@ const buttons = {
       transition: "all 0.2s ease",
       "&:hover": {
         backgroundColor: colors.infoHover,
-        boxShadow: "0px 2px 4px rgba(59, 130, 246, 0.2)",
+        boxShadow: "none",
       },
     },
     outlined: {
@@ -448,6 +461,8 @@ const singleTheme = {
   iconButtons,
   alertStyles,
   textColors,
+  flashColors,
+  tableColors,
 };
 
 export default singleTheme;

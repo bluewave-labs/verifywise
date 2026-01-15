@@ -46,8 +46,6 @@ const TABLE_COLUMNS = [
   { id: "severity", label: "SEVERITY" },
   { id: "status", label: "STATUS" },
   { id: "occurred_date", label: "OCCURRED DATE" },
-  { id: "reporter", label: "REPORTER" },
-  { id: "approval_status", label: "APPROVAL STATUS" },
   { id: "approved_by", label: "APPROVED BY" },
   { id: "actions", label: "" },
 ];
@@ -194,12 +192,6 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
         } else if (sortKey.includes("occurred") || sortKey.includes("date")) {
           aValue = a.occurred_date ? new Date(a.occurred_date).getTime() : 0;
           bValue = b.occurred_date ? new Date(b.occurred_date).getTime() : 0;
-        } else if (sortKey.includes("reporter")) {
-          aValue = a.reporter?.toLowerCase() || "";
-          bValue = b.reporter?.toLowerCase() || "";
-        } else if (sortKey.includes("approval")) {
-          aValue = a.approval_status?.toLowerCase() || "";
-          bValue = b.approval_status?.toLowerCase() || "";
         } else if (sortKey.includes("approved") && sortKey.includes("by")) {
           aValue = a.approved_by?.toLowerCase() || "";
           bValue = b.approved_by?.toLowerCase() || "";
@@ -429,31 +421,6 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                   {incident.occurred_date
                     ? dayjs.utc(incident.occurred_date).format("YYYY-MM-DD")
                     : "-"}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...cellStyle,
-                    backgroundColor:
-                      sortConfig.key &&
-                      sortConfig.key.toLowerCase().includes("reporter")
-                        ? "#f5f5f5"
-                        : "inherit",
-                  }}
-                >
-                  <TooltipCell value={incident.reporter} />
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...cellStyle,
-                    backgroundColor:
-                      sortConfig.key &&
-                      sortConfig.key.toLowerCase().includes("approval") &&
-                      sortConfig.key.toLowerCase().includes("status")
-                        ? "#f5f5f5"
-                        : "inherit",
-                  }}
-                >
-                  <Chip label={incident.approval_status} />
                 </TableCell>
                 <TableCell
                   sx={{

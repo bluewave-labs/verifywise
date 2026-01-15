@@ -10,8 +10,8 @@ import {
   Alert,
 } from "@mui/material";
 import { useStyles } from "./styles";
-import Toggle from "../../../components/Inputs/Toggle";
 import Field from "../../../components/Inputs/Field";
+import ButtonToggle from "../../../components/ButtonToggle";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Save as SaveIcon } from "lucide-react";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
@@ -94,13 +94,14 @@ const AITrustCenterSettings: React.FC = () => {
               setFormData(updatedData);
               setOriginalData(updatedData);
             } else {
-              // No logo found, use the original data
-              setLogoLoadError(true);
+              // No logo found, use the original data (this is not an error)
+              setLogoLoadError(false);
               setFormData(overviewData);
               setOriginalData(overviewData);
             }
           } catch (error) {
-              setLogoLoadError(true);
+            // Logo fetch failed - this could be a network error or no logo exists
+            setLogoLoadError(false);
             // Use the original data even if logo fetch fails
             setFormData(overviewData);
             setOriginalData(overviewData);
@@ -560,7 +561,7 @@ const AITrustCenterSettings: React.FC = () => {
                   variant="outlined"
                   sx={styles.removeButton}
                   onClick={handleRemoveLogo}
-                  disabled={logoRemoving || logoUploading || logoLoading}
+                  disabled={logoRemoving || logoUploading || logoLoading || (!selectedLogoPreview && !formData?.info?.logo_url)}
                 >
                   {logoRemoving ? (
                     <>
@@ -656,7 +657,7 @@ const AITrustCenterSettings: React.FC = () => {
           </Box>
 
           {/* Trust Center Title Row */}
-          <Box sx={{ mb: 10 }}>
+          <Box>
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
               Trust center title
             </Typography>
@@ -677,26 +678,19 @@ const AITrustCenterSettings: React.FC = () => {
 
       {/* Visibility Card */}
       <Box sx={styles.card}>
-        <Box sx={{ mb: 10 }}>
+        <Box sx={{ mb: 3 }}>
           <Typography sx={styles.sectionTitle}>Visibility</Typography>
         </Box>
-        <Box sx={{ ...styles.toggleRow }}>
-          <Stack direction="column" gap={1}>
-            <Typography sx={styles.toggleLabel}>
-              Enable AI Trust Center
-            </Typography>
-            <Typography sx={{ color: "#888", fontWeight: 400, fontSize: 12 }}>
-              If enabled, page will be available under <b>/ai-trust-center</b>{" "}
-              directory.
-            </Typography>
-          </Stack>
-          <Toggle
-            checked={formData?.info?.visible || false}
-            onChange={(_, checked) =>
-              handleFieldChange("info", "visible", checked)
-            }
-          />
-        </Box>
+        <ButtonToggle
+          options={[
+            { label: "Published", value: "published" },
+            { label: "Unpublished", value: "unpublished" },
+          ]}
+          value={formData?.info?.visible ? "published" : "unpublished"}
+          onChange={(value) =>
+            handleFieldChange("info", "visible", value === "published")
+          }
+        />
       </Box>
 
       {/* Save Button Row */}

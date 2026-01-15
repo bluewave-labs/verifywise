@@ -366,20 +366,35 @@ export const getRiskByIdQuery = async (
   )) as [IRisk[], number];
   const projectRisk = result[0][0];
   if (!projectRisk) return null;
-  const owner_name = (await sequelize.query(
-    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
-    {
-      replacements: { owner_id: projectRisk.risk_owner },
-    }
-  )) as [{ full_name: string }[], number];
-  (projectRisk as any).owner_name = owner_name[0][0].full_name;
-  const approver_name = (await sequelize.query(
-    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
-    {
-      replacements: { approver_id: projectRisk.risk_approval },
-    }
-  )) as [{ full_name: string }[], number];
-  (projectRisk as any).approver_name = approver_name[0][0].full_name;
+
+    let ownerFullName = "";
+
+  // Run query ONLY if risk_owner exists
+  if (projectRisk.risk_owner) {
+    const ownerResult = await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name 
+      FROM public.users 
+      WHERE id = :owner_id;`,
+      {
+        replacements: { owner_id: projectRisk.risk_owner }
+      }
+    ) as [{ full_name: string }[], number];
+
+    ownerFullName = ownerResult?.[0]?.[0]?.full_name ?? "";
+  }
+  (projectRisk as any).owner_name = ownerFullName;
+
+  let approverFullName = "";
+  if (projectRisk.risk_approval) {
+    const approver_name = (await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+      {
+        replacements: { approver_id: projectRisk.risk_approval },
+      }
+    )) as [{ full_name: string }[], number];
+    approverFullName = approver_name?.[0]?.[0]?.full_name ?? "";
+  }
+  (projectRisk as any).approver_name = approverFullName;
 
   (projectRisk as any).projects = [];
   (projectRisk as any).frameworks = [];
@@ -568,7 +583,7 @@ export const createRiskQuery = async (
       final_risk_level, risk_approval, approval_status, date_of_assessment
     ) VALUES (
       :risk_name, :risk_owner, :ai_lifecycle_phase, :risk_description,
-      ARRAY[:risk_category], :impact, :assessment_mapping, :controls_mapping, :likelihood,
+      :risk_category::enum_projectrisks_risk_category[], :impact, :assessment_mapping, :controls_mapping, :likelihood,
       :severity, :risk_level_autocalculated, :review_notes, :mitigation_status,
       :current_risk_level, :deadline, :mitigation_plan, :implementation_strategy,
       :mitigation_evidence_document, :likelihood_mitigation, :risk_severity,
@@ -580,7 +595,7 @@ export const createRiskQuery = async (
         risk_owner: projectRisk.risk_owner,
         ai_lifecycle_phase: projectRisk.ai_lifecycle_phase,
         risk_description: projectRisk.risk_description,
-        risk_category: projectRisk.risk_category,
+        risk_category: `{${(projectRisk.risk_category || []).join(',')}}`,
         impact: projectRisk.impact,
         assessment_mapping: projectRisk.assessment_mapping,
         controls_mapping: projectRisk.controls_mapping,
@@ -666,8 +681,8 @@ export const createRiskQuery = async (
       // Build replacements
       const replacements = buildRiskReplacements({
         ...createdRisk.dataValues,
-        owner_name: owner_name[0][0].full_name,
-        approver_name: approver_name[0][0].full_name,
+        owner_name: owner_name?.[0]?.[0]?.full_name ?? "",
+        approver_name: approver_name?.[0]?.[0]?.full_name ?? "",
       });
 
       // Replace variables in subject and body
@@ -757,15 +772,21 @@ export const updateRiskByIdQuery = async (
         projectRisk[f as keyof RiskModel] !== undefined &&
         projectRisk[f as keyof RiskModel]
       ) {
-        updateProjectRisk[f as keyof RiskModel] =
-          projectRisk[f as keyof RiskModel];
+        if (f === "risk_category") {
+          // Format array for PostgreSQL
+          const arr = projectRisk[f as keyof RiskModel] as string[];
+          updateProjectRisk[f as keyof RiskModel] = `{${(arr || []).join(',')}}` as any;
+        } else {
+          updateProjectRisk[f as keyof RiskModel] =
+            projectRisk[f as keyof RiskModel];
+        }
         return true;
       }
       return false;
     })
     .map((f) => {
       if (f === "risk_category") {
-        return `${f} = ARRAY[:${f}]`;
+        return `${f} = :${f}::enum_projectrisks_risk_category[]`;
       }
       return `${f} = :${f}`;
     });
@@ -963,28 +984,40 @@ export const updateRiskByIdQuery = async (
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "risk_updated") {
-      const owner_name = (await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
-        {
-          replacements: { owner_id: updatedRisk.dataValues.risk_owner },
-          transaction,
+      let ownerFullName = "";
+
+        if (updatedRisk.dataValues.risk_owner) {
+          const ownerResult = await sequelize.query(
+            `SELECT name || ' ' || surname AS full_name 
+            FROM public.users 
+            WHERE id = :owner_id;`,
+            {
+              replacements: { owner_id: updatedRisk.dataValues.risk_owner },
+              transaction
+            }
+          ) as [{ full_name: string }[], any];
+
+          ownerFullName = ownerResult?.[0]?.[0]?.full_name ?? "";
         }
-      )) as [{ full_name: string }[], number];
-      const approver_name = (await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
-        {
-          replacements: { approver_id: updatedRisk.dataValues.risk_approval },
-          transaction,
+
+        let approverFullName = "";
+        if (updatedRisk.dataValues.risk_approval) {
+          const approver_name = await sequelize.query(
+            `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+            {
+              replacements: { approver_id: updatedRisk.dataValues.risk_approval }, transaction
+            }
+          ) as [{ full_name: string }[], number];
+          approverFullName = approver_name?.[0]?.[0]?.full_name ?? "";
         }
-      )) as [{ full_name: string }[], number];
 
       const params = automation.params!;
 
       // Build replacements
       const replacements = buildRiskUpdateReplacements(existingRisk, {
         ...updatedRisk.dataValues,
-        owner_name: owner_name[0][0].full_name,
-        approver_name: approver_name[0][0].full_name,
+        owner_name: ownerFullName,
+        approver_name: approverFullName
       });
 
       // Replace variables in subject and body
@@ -1095,8 +1128,8 @@ export const deleteRiskByIdQuery = async (
       // Build replacements
       const replacements = buildRiskReplacements({
         ...deletedRisk,
-        owner_name: owner_name[0][0].full_name,
-        approver_name: approver_name[0][0].full_name,
+        owner_name: owner_name?.[0]?.[0]?.full_name ?? "",
+        approver_name: approver_name?.[0]?.[0]?.full_name ?? "",
       });
 
       // Replace variables in subject and body

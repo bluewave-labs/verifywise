@@ -24,7 +24,17 @@ import {
 import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check, MessageSquare, GitBranch } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
-import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset, type DatasetType, type SingleTurnPrompt, type MultiTurnConversation, isSingleTurnPrompt, isMultiTurnConversation } from "../../../infrastructure/api/deepEvalDatasetsService";
+import {
+  listMyDatasets,
+  listDatasets,
+  readDataset,
+  uploadDataset,
+  deleteDatasets,
+  type DatasetPromptRecord,
+  type ListedDataset,
+  type DatasetType,
+} from "../../../application/repository/deepEval.repository";
+import { isSingleTurnPrompt, isMultiTurnConversation, type SingleTurnPrompt, type MultiTurnConversation } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import Chip from "../../components/Chip";
 import ModalStandard from "../../components/Modals/StandardModal";
@@ -40,6 +50,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import DatasetsTable, { type DatasetRow } from "../../components/Table/DatasetsTable";
 import TemplatesTable from "../../components/Table/TemplatesTable";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import SelectableCard from "../../components/SelectableCard";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
@@ -140,75 +151,13 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   const [newDatasetUseCase, setNewDatasetUseCase] = useState<"chatbot" | "rag">("chatbot");
   const [newDatasetTurnType, setNewDatasetTurnType] = useState<"single-turn" | "multi-turn">("single-turn");
 
-  // State for dataset metadata (prompt counts, difficulty)
-  const [datasetMetadata, setDatasetMetadata] = useState<Record<string, { promptCount: number; avgDifficulty: string; loading: boolean }>>({});
-
-  // Calculate average difficulty from prompts (only for single-turn prompts)
-  const calculateAvgDifficulty = (prompts: DatasetPromptRecord[]): string => {
-    const difficulties = prompts
-      .filter(p => isSingleTurnPrompt(p) && p.difficulty)
-      .map(p => (p as SingleTurnPrompt).difficulty!.toLowerCase());
-    if (difficulties.length === 0) return "Medium"; // Default to Medium if no difficulty data
-    
-    const counts = { easy: 0, medium: 0, hard: 0 };
-    difficulties.forEach(d => {
-      if (d === "easy") counts.easy++;
-      else if (d === "medium") counts.medium++;
-      else if (d === "hard") counts.hard++;
-    });
-    
-    // Return the most common difficulty
-    const max = Math.max(counts.easy, counts.medium, counts.hard);
-    if (max === 0) return "-";
-    if (counts.hard === max) return "Hard";
-    if (counts.medium === max) return "Medium";
-    return "Easy";
-  };
-
-  // Load metadata for a single dataset
-  const loadDatasetMetadata = useCallback(async (dataset: BuiltInDataset) => {
-    if (datasetMetadata[dataset.path]?.loading || datasetMetadata[dataset.path]?.promptCount !== undefined) {
-      return; // Already loading or loaded
-    }
-    
-    setDatasetMetadata(prev => ({
-      ...prev,
-      [dataset.path]: { promptCount: 0, avgDifficulty: "Medium", loading: true }
-    }));
-    
-    try {
-      const res = await deepEvalDatasetsService.read(dataset.path);
-      const prompts = res.prompts || [];
-      // Count only prompts with actual content
-      const validPromptCount = prompts.filter((p) => {
-        if (isSingleTurnPrompt(p)) {
-          return p.prompt && p.prompt.trim().length > 0;
-        } else if (isMultiTurnConversation(p)) {
-          return p.turns && p.turns.length > 0 && p.turns.some(t => t.content && t.content.trim().length > 0);
-        }
-        return false;
-      }).length;
-      setDatasetMetadata(prev => ({
-        ...prev,
-        [dataset.path]: {
-          promptCount: validPromptCount,
-          avgDifficulty: calculateAvgDifficulty(prompts),
-          loading: false
-        }
-      }));
-    } catch {
-      setDatasetMetadata(prev => ({
-        ...prev,
-        [dataset.path]: { promptCount: 0, avgDifficulty: "Medium", loading: false }
-      }));
-    }
-  }, [datasetMetadata]);
+  // Note: promptCount is now returned by the API - no need to load metadata individually
 
   // Load user's datasets (My datasets tab)
   const loadMyDatasets = useCallback(async () => {
     try {
       setLoading(true);
-      const userRes = await deepEvalDatasetsService.listMy().catch(() => ({ datasets: [] }));
+      const userRes = await listMyDatasets().catch(() => ({ datasets: [] }));
       const userDatasets = userRes.datasets || [];
       const allDatasets: BuiltInDataset[] = userDatasets.map((ud) => ({
         key: `user_${ud.id}`,
@@ -219,6 +168,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
         turnType: ud.turnType,
         isUserDataset: true,
         createdAt: ud.createdAt,
+        promptCount: ud.promptCount || 0, // Use pre-computed count from API
       }));
       setDatasets(allDatasets);
     } catch (err) {
@@ -238,7 +188,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   const loadTemplateDatasets = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await deepEvalDatasetsService.list();
+      const res = await listDatasets();
       setTemplateGroups(res as Record<"chatbot" | "rag" | "agent", BuiltInDataset[]>);
     } catch (err) {
       console.error("Failed to load template datasets", err);
@@ -355,7 +305,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     (async () => {
       try {
         setLoadingTemplatePrompts(true);
-        const res = await deepEvalDatasetsService.read(selectedTemplate.path);
+        const res = await readDataset(selectedTemplate.path);
         setTemplatePrompts(res.prompts || []);
       } catch (err) {
         console.error("Failed to load template prompts", err);
@@ -371,7 +321,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     try {
       setCopyingTemplate(true);
       // Load the template content
-      const res = await deepEvalDatasetsService.read(template.path);
+      const res = await readDataset(template.path);
       const prompts = res.prompts || [];
 
       // Create a new file and upload it
@@ -380,7 +330,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
       const fileName = `${template.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}.json`;
       const file = new File([blob], fileName, { type: "application/json" });
 
-      await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
+      await uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
       setAlert({ variant: "success", body: `"${template.name}" copied to your datasets` });
       setTimeout(() => setAlert(null), 3000);
 
@@ -477,7 +427,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     setDrawerOpen(true);
     try {
       setLoadingPrompts(true);
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       setDatasetPrompts(res.prompts || []);
     } catch (err) {
       console.error("Failed to load dataset prompts", err);
@@ -491,7 +441,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     handleActionMenuClose();
     try {
       setLoadingEditor(true);
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       setEditablePrompts(res.prompts || []);
       // Use the dataset name directly (already cleaned by backend)
       setEditDatasetName(dataset.name);
@@ -526,14 +476,14 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
       // If editing an existing user dataset, delete the old one first
       if (editingDataset?.isUserDataset && editingDataset?.path) {
         try {
-          await deepEvalDatasetsService.deleteDatasets([editingDataset.path]);
+          await deleteDatasets([editingDataset.path]);
         } catch (deleteErr) {
           console.warn("Could not delete old dataset, proceeding with save:", deleteErr);
         }
       }
       
       const turnType = editablePrompts.length > 0 && !isSingleTurnPrompt(editablePrompts[0]) ? "multi-turn" : "single-turn";
-      await deepEvalDatasetsService.uploadDataset(file, datasetType, turnType, orgId || undefined);
+      await uploadDataset(file, datasetType, turnType, orgId || undefined);
       setAlert({ variant: "success", body: `Dataset "${editDatasetName}" saved successfully!` });
       setTimeout(() => setAlert(null), 3000);
       handleCloseEditor();
@@ -600,7 +550,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   const handleConfirmDelete = async () => {
     if (!datasetToDelete) return;
     try {
-      await deepEvalDatasetsService.deleteDatasets([datasetToDelete.path]);
+      await deleteDatasets([datasetToDelete.path]);
       setAlert({ variant: "success", body: "Dataset removed" });
       setTimeout(() => setAlert(null), 3000);
       void loadMyDatasets();
@@ -622,7 +572,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   const handleDownloadDataset = async (dataset: BuiltInDataset) => {
     handleActionMenuClose();
     try {
-      const res = await deepEvalDatasetsService.read(dataset.path);
+      const res = await readDataset(dataset.path);
       const json = JSON.stringify(res.prompts || [], null, 2);
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -642,16 +592,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   };
 
 
-  // Load metadata for datasets in "My datasets" tab
-  useEffect(() => {
-    if (activeTab === "my" && filteredDatasets.length > 0) {
-      filteredDatasets.forEach(dataset => {
-        if (!datasetMetadata[dataset.path]) {
-          void loadDatasetMetadata(dataset);
-        }
-      });
-    }
-  }, [activeTab, filteredDatasets, datasetMetadata, loadDatasetMetadata]);
+  // Metadata is now pre-computed by backend - no need to load individually
 
   const handleCloseDrawer = () => {
     setDrawerOpen(false);
@@ -849,7 +790,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     try {
       setUploading(true);
       setUploadModalOpen(false);
-      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType, datasetTurnType, orgId || undefined);
+      const resp = await uploadDataset(file, exampleDatasetType, datasetTurnType, orgId || undefined);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
       void loadMyDatasets();
@@ -1516,6 +1457,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Datasets contain the prompts or conversations used to evaluate your models. Create custom datasets or use templates to get started quickly.
         </Typography>
+        <TipBox entityName="evals-datasets" />
       </Stack>
 
       {/* Hidden file input for uploads */}
@@ -1608,7 +1550,11 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                     type: dataset.turnType,
                     useCase: dataset.use_case || dataset.datasetType,
                     createdAt: dataset.createdAt,
-                    metadata: datasetMetadata[dataset.path],
+                    metadata: {
+                      promptCount: dataset.promptCount ?? 0,
+                      avgDifficulty: "Medium", // Default - only shown for user datasets
+                      loading: false,
+                    },
                   }))}
                   onRowClick={canUploadDataset ? (row) => {
                     const dataset = data.find((d) => d.path === row.path);
@@ -1901,8 +1847,8 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               Use case
             </Typography>
             <Stack direction="row" spacing={1}>
-              {/* "agent" commented out - not supported yet */}
-              {(["chatbot", "rag" /*, "agent" */] as const).map((type) => {
+              {/* Agent evaluation now supported per DeepEval docs */}
+              {(["chatbot", "rag", "agent"] as const).map((type) => {
                 const isSelected = exampleDatasetType === type;
                 return (
                   <Box
@@ -1915,12 +1861,12 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                       uppercase={false}
                       backgroundColor={
                         isSelected
-                          ? type === "chatbot" ? "#DBEAFE" : "#E0E7FF"
+                          ? type === "chatbot" ? "#DBEAFE" : type === "rag" ? "#E0E7FF" : "#FEE2E2"
                           : "#F3F4F6"
                       }
                       textColor={
                         isSelected
-                          ? type === "chatbot" ? "#1E40AF" : "#3730A3"
+                          ? type === "chatbot" ? "#1E40AF" : type === "rag" ? "#3730A3" : "#991B1B"
                           : "#6B7280"
                       }
                     />
@@ -1931,8 +1877,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
             <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1 }}>
               {exampleDatasetType === "chatbot" && "Standard Q&A datasets for evaluating chatbot responses."}
               {exampleDatasetType === "rag" && "Datasets with retrieval_context for RAG faithfulness & relevancy metrics."}
-              {/* Agent not supported yet */}
-              {/* {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent task completion."} */}
+              {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent reasoning, tool usage, and task completion."}
             </Typography>
           </Box>
 

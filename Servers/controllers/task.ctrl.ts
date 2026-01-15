@@ -29,6 +29,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
     description: "starting createTask",
     functionName: "createTask",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   const transaction = await sequelize.transaction();
@@ -80,6 +82,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       description: `Created new task: ${title}`,
       functionName: "createTask",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(201).json(STATUS_CODE[201](taskResponse));
@@ -93,6 +97,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
         functionName: "createTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -104,6 +110,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
         functionName: "createTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -114,6 +122,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       functionName: "createTask",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -125,6 +135,8 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     description: "starting getAllTasks",
     functionName: "getAllTasks",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -207,6 +219,8 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       description: "Retrieved tasks list",
       functionName: "getAllTasks",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(
@@ -222,6 +236,8 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       functionName: "getAllTasks",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -235,6 +251,8 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
     description: `starting getTaskById for ID ${taskId}`,
     functionName: "getTaskById",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -262,6 +280,8 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
         description: `Retrieved task ID ${taskId}`,
         functionName: "getTaskById",
         fileName: "task.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(STATUS_CODE[200](taskResponse));
@@ -272,6 +292,8 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
       description: `Task not found: ID ${taskId}`,
       functionName: "getTaskById",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -282,6 +304,8 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
       functionName: "getTaskById",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -306,6 +330,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
     description: `starting updateTask for ID ${taskId}`,
     functionName: "updateTask",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   const transaction = await sequelize.transaction();
@@ -355,6 +381,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       description: `Updated task ID ${taskId}`,
       functionName: "updateTask",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     // Add assignees to response (manually from dataValues)
@@ -374,6 +402,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
         functionName: "updateTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -385,6 +415,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
         functionName: "updateTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -395,6 +427,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       functionName: "updateTask",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     const statusCode = (error as Error).message.includes("not found")
@@ -416,6 +450,8 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
     description: `starting deleteTask for ID ${taskId}`,
     functionName: "deleteTask",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   const transaction = await sequelize.transaction();
@@ -444,6 +480,8 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
         description: `Deleted task ID ${taskId}`,
         functionName: "deleteTask",
         fileName: "task.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res
@@ -456,6 +494,8 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
       description: `Task not found for deletion: ID ${taskId}`,
       functionName: "deleteTask",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -468,6 +508,8 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
       functionName: "deleteTask",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     const statusCode = (error as Error).message.includes("not found")
@@ -489,6 +531,8 @@ export async function restoreTask(req: Request, res: Response): Promise<any> {
     description: `starting restoreTask for ID ${taskId}`,
     functionName: "restoreTask",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   const transaction = await sequelize.transaction();
@@ -517,6 +561,8 @@ export async function restoreTask(req: Request, res: Response): Promise<any> {
         description: `Restored task ID ${taskId}`,
         functionName: "restoreTask",
         fileName: "task.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       // Add assignees to response
@@ -533,6 +579,8 @@ export async function restoreTask(req: Request, res: Response): Promise<any> {
       description: `Task not found for restoration: ID ${taskId}`,
       functionName: "restoreTask",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -546,6 +594,8 @@ export async function restoreTask(req: Request, res: Response): Promise<any> {
         functionName: "restoreTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -557,6 +607,8 @@ export async function restoreTask(req: Request, res: Response): Promise<any> {
         functionName: "restoreTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -568,6 +620,8 @@ export async function restoreTask(req: Request, res: Response): Promise<any> {
         functionName: "restoreTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -578,6 +632,8 @@ export async function restoreTask(req: Request, res: Response): Promise<any> {
       functionName: "restoreTask",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     const statusCode = (error as Error).message.includes("not found")
@@ -602,6 +658,8 @@ export async function hardDeleteTask(
     description: `starting hardDeleteTask for ID ${taskId}`,
     functionName: "hardDeleteTask",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   const transaction = await sequelize.transaction();
@@ -630,6 +688,8 @@ export async function hardDeleteTask(
         description: `Permanently deleted task ID ${taskId}`,
         functionName: "hardDeleteTask",
         fileName: "task.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res
@@ -642,6 +702,8 @@ export async function hardDeleteTask(
       description: `Task not found for permanent deletion: ID ${taskId}`,
       functionName: "hardDeleteTask",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -655,6 +717,8 @@ export async function hardDeleteTask(
         functionName: "hardDeleteTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -666,6 +730,8 @@ export async function hardDeleteTask(
         functionName: "hardDeleteTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -677,6 +743,8 @@ export async function hardDeleteTask(
         functionName: "hardDeleteTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -687,6 +755,8 @@ export async function hardDeleteTask(
       functionName: "hardDeleteTask",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     const statusCode = (error as Error).message.includes("not found")

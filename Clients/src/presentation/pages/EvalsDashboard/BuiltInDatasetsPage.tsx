@@ -1,15 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Box, Stack, Typography, Chip, Paper, Divider, Button, CircularProgress, IconButton, Select, MenuItem, useTheme } from "@mui/material";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { deepEvalDatasetsService, DatasetPromptRecord, isSingleTurnPrompt, SingleTurnPrompt } from "../../../infrastructure/api/deepEvalDatasetsService";
-import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
-import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
+import {
+  listDatasets,
+  readDataset,
+  getCurrentOrg,
+  getAllProjects,
+  getAllExperiments,
+  uploadDataset,
+  type DatasetPromptRecord,
+} from "../../../application/repository/deepEval.repository";
+import { isSingleTurnPrompt, type SingleTurnPrompt } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import { ArrowLeft, X, Settings, ChevronDown, Upload } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TabBar from "../../components/TabBar";
 import { TabContext } from "@mui/lab";
-import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { getSelectStyles } from "../../utils/inputStyles";
 
 type ListedDataset = {
@@ -158,7 +164,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
   useEffect(() => {
     (async () => {
       try {
-        const { org } = await deepEvalOrgsService.getCurrentOrg();
+        const { org } = await getCurrentOrg();
         if (org) setOrgId(org.id);
       } catch {
         // Ignore - org might not be set
@@ -171,7 +177,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
       try {
         // load projects for header dropdown
         try {
-          const data = await deepEvalProjectsService.getAllProjects();
+          const data = await getAllProjects();
           setAllProjects(data.projects || []);
         } catch {
           setAllProjects([]);
@@ -180,12 +186,12 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
         // counts for TabBar, matching EvalsDashboard
         if (projectId) {
           try {
-            const ex = await experimentsService.getAllExperiments({ project_id: projectId });
+            const ex = await getAllExperiments({ project_id: projectId });
             setExperimentsCount(ex.experiments?.length || 0);
           } catch { setExperimentsCount(0); }
         }
 
-        const res = await deepEvalDatasetsService.list();
+        const res = await listDatasets();
         setGroups(res);
         try {
           const totalCount = Object.values(res).reduce((sum, arr) => sum + (arr?.length || 0), 0);
@@ -213,7 +219,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
     (async () => {
       try {
         setLoadingPreview(true);
-        const data = await deepEvalDatasetsService.read(path);
+        const data = await readDataset(path);
         setPreviewPrompts(data.prompts || []);
         if (!embed) {
           setParams((p) => {
@@ -247,11 +253,11 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
 
     try {
       setUploading(true);
-      const resp = await deepEvalDatasetsService.uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
+      const resp = await uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
       // Reload groups so any new datasets that are exposed via list() appear
-      const res = await deepEvalDatasetsService.list();
+      const res = await listDatasets();
       setGroups(res);
     } catch (err) {
       console.error("Upload failed", err);

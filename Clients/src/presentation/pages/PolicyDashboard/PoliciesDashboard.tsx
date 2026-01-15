@@ -16,7 +16,7 @@ import {
 import PolicyManager from "./PolicyManager";
 import PolicyTemplates from "./PolicyTemplates";
 import PolicySteps from "./PolicySteps";
-import policyTemplates from "../../assets/PolicyTemplates.json";
+import policyTemplates from "../../../application/data/PolicyTemplates.json";
 
 const PolicyDashboard: React.FC = () => {
   const [policies, setPolicies] = useState<PolicyManagerModel[]>([]);

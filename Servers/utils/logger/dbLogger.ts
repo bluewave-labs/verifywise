@@ -8,7 +8,8 @@ type EventType = 'Create' | 'Read' | 'Update' | 'Delete' | 'Error';
 export async function logEvent(
     eventType: EventType,
     description: string,
-    userId?: number
+    userId: number,
+    tenant: string
 ): Promise<void> {
     const store = asyncLocalStorage.getStore();
     const effectiveUserId = store?.userId || userId;
@@ -18,7 +19,7 @@ export async function logEvent(
     }
     try {
         await sequelize.query(
-            'INSERT INTO event_logs (event_type, description, user_id) VALUES (:eventType, :description, :userId)',
+            `INSERT INTO "${tenant}".event_logs (event_type, description, user_id) VALUES (:eventType, :description, :userId)`,
             {
                 replacements: { eventType, description, userId: effectiveUserId },
                 type: QueryTypes.INSERT,

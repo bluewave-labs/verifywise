@@ -38,7 +38,7 @@ export async function CreateMyOrganization({
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.post(routeUrl, body);
-    return response.data;
+    return response;
   } catch (error) {
     throw error;
   }
@@ -60,6 +60,39 @@ export async function UpdateMyOrganization({
     const response = await apiServices.patch(routeUrl, body, {
       headers: { ...headers },
     });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Checks if any organization exists in the system.
+ *
+ * @returns {Promise<boolean>} True if at least one organization exists.
+ * @throws Will throw an error if the request fails.
+ */
+export async function checkOrganizationExists(): Promise<boolean> {
+  try {
+    const response = await apiServices.get("/organizations/exists");
+    const data = response.data as { data?: { exists?: boolean } };
+    return data?.data?.exists ?? false;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Updates the onboarding status of an organization to 'completed'.
+ * Called after user selects demo data or blank dashboard option.
+ *
+ * @param {number} organizationId - The ID of the organization to update.
+ * @returns {Promise<any>} The response from the API.
+ * @throws Will throw an error if the request fails.
+ */
+export async function updateOnboardingStatus(organizationId: number): Promise<any> {
+  try {
+    const response = await apiServices.patch(`/organizations/${organizationId}/onboarding-status`);
     return response.data;
   } catch (error) {
     throw error;

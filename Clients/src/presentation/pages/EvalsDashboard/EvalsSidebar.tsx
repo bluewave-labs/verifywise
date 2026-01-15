@@ -5,6 +5,7 @@ import {
   Award,
   Settings,
   KeyRound,
+  Swords,
 } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
@@ -34,6 +35,7 @@ interface EvalsSidebarProps {
   experimentsCount?: number;
   datasetsCount?: number;
   scorersCount?: number;
+  arenaCount?: number;
   disabled?: boolean;
   recentExperiments?: RecentExperiment[];
   recentProjects?: RecentProject[];
@@ -51,6 +53,7 @@ export default function EvalsSidebar({
   experimentsCount = 0,
   datasetsCount = 0,
   scorersCount = 0,
+  arenaCount = 0,
   disabled = false,
   recentExperiments = [],
   recentProjects = [],
@@ -91,6 +94,14 @@ export default function EvalsSidebar({
       value: "scorers",
       icon: <Award size={16} strokeWidth={1.5} />,
       count: scorersCount,
+      disabled: false, // Always enabled - org-scoped
+    },
+    {
+      id: "arena",
+      label: "Arena",
+      value: "arena",
+      icon: <Swords size={16} strokeWidth={1.5} />,
+      count: arenaCount,
       disabled: false, // Always enabled - org-scoped
     },
     {
@@ -142,11 +153,12 @@ export default function EvalsSidebar({
     }
   };
 
-  // Build project selector config if we have the data
+  // Build project selector config - always show if we have a change handler
+  // This allows users to select a project or create one even when on the projects list page
   const projectSelectorConfig: ProjectSelectorConfig | undefined =
-    currentProject && onProjectChange
+    onProjectChange
       ? {
-          currentProject,
+          currentProject: currentProject || null,
           allProjects,
           onProjectChange,
         }

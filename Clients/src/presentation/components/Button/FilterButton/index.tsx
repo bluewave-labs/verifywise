@@ -8,7 +8,7 @@
 import React from "react";
 import { Box } from "@mui/material";
 import CustomizableButton from "../CustomizableButton";
-import { IFilterButtonProps } from "../../../../domain/interfaces/i.button";
+import { IFilterButtonProps } from "../../../types/button.types";
 
 const FilterIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
   <svg

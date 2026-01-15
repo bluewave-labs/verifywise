@@ -32,8 +32,9 @@ import {
   createNewUser,
 } from "../../../application/repository/entity.repository";
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
+import { getMlflowModels } from "../../../application/repository/integration.repository";
+import { getShareLinksForResource } from "../../../application/repository/share.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { apiServices } from "../../../infrastructure/api/networkServices";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
@@ -149,6 +150,7 @@ const ModelInventory: React.FC = () => {
   const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [flashRowId, setFlashRowId] = useState<number | string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -331,18 +333,6 @@ const ModelInventory: React.FC = () => {
         options: getUniqueRiskModels(),
       },
       {
-        id: "risk_category",
-        label: "Category",
-        type: "select" as const,
-        options: [
-          { value: "Performance", label: "Performance" },
-          { value: "Bias & Fairness", label: "Bias & Fairness" },
-          { value: "Security", label: "Security" },
-          { value: "Data Quality", label: "Data Quality" },
-          { value: "Compliance", label: "Compliance" },
-        ],
-      },
-      {
         id: "risk_level",
         label: "Risk level",
         type: "select" as const,
@@ -390,8 +380,6 @@ const ModelInventory: React.FC = () => {
           return item.risk_name;
         case "model_id":
           return item.model_id?.toString();
-        case "risk_category":
-          return item.risk_category;
         case "risk_level":
           return item.risk_level;
         case "status":
@@ -858,17 +846,14 @@ const ModelInventory: React.FC = () => {
   const fetchMLFlowData = async () => {
     setIsMlflowLoading(true);
     try {
-      const response = await apiServices.get<{
-        configured: boolean;
-        models: any[];
-      }>("/integrations/mlflow/models");
-      if (response.data) {
+      const data = await getMlflowModels({});
+      if (data) {
         // Handle new response format: { configured: boolean, models: [] }
-        if ("models" in response.data && Array.isArray(response.data.models)) {
-          setMlflowData(response.data.models);
-        } else if (Array.isArray(response.data)) {
+        if ("models" in data && Array.isArray(data.models)) {
+          setMlflowData(data.models);
+        } else if (Array.isArray(data)) {
           // Backwards compatibility: handle old format where response is directly an array
-          setMlflowData(response.data as unknown as any[]);
+          setMlflowData(data as unknown as any[]);
         } else {
           setMlflowData([]);
         }
@@ -1201,8 +1186,7 @@ const ModelInventory: React.FC = () => {
     }
   };
 
-  const handleCopyLink = (link: string) => {
-    console.log("Link copied:", link);
+  const handleCopyLink = (_link: string) => {
     setAlert({
       variant: "success",
       body: "Share link copied to clipboard!",
@@ -1220,8 +1204,9 @@ const ModelInventory: React.FC = () => {
     try {
       // Fetch ALL existing share links for this resource and disable them
       console.log("Fetching all share links for model/0...");
-      const existingLinksResponse: any = await apiServices.get(
-        "/shares/model/0"
+      const existingLinksResponse: any = await getShareLinksForResource(
+        "model",
+        0
       );
       const existingLinks = existingLinksResponse?.data?.data || [];
 
@@ -1285,6 +1270,8 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
+    let modelId: number | null = null;
+
     if (selectedModelInventory) {
       // Update existing model inventory
       // Check if projects or frameworks are being deleted
@@ -1305,19 +1292,27 @@ const ModelInventory: React.FC = () => {
           deleteFrameworks,
         },
       });
+      modelId = selectedModelInventory.id || null;
       setAlert({
         variant: "success",
         body: "Model inventory updated successfully!",
       });
     } else {
       // Create new model inventory
-      await createModelInventory("/modelInventory", formData);
+      const response = await createModelInventory("/modelInventory", formData);
+      modelId = response?.data?.id || null;
       setAlert({
         variant: "success",
         body: "New model inventory added successfully!",
       });
     }
     await fetchModelInventoryData();
+
+    // Flash the updated/created row
+    if (modelId) {
+      setFlashRowId(modelId);
+      setTimeout(() => setFlashRowId(null), 3000);
+    }
   };
 
   const handleModelInventoryError = (error: any) => {
@@ -1529,8 +1524,6 @@ const ModelInventory: React.FC = () => {
     field: string
   ): string | string[] => {
     switch (field) {
-      case "risk_category":
-        return risk.risk_category || "Unknown";
       case "risk_level":
         return risk.risk_level || "Unknown";
       case "status":
@@ -2059,7 +2052,7 @@ const ModelInventory: React.FC = () => {
                   options={[
                     { id: "provider", label: "Provider" },
                     { id: "status", label: "Status" },
-                    { id: "security_assessment", label: "Security Assessment" },
+                    { id: "security_assessment", label: "Assessment" },
                     { id: "hosting_provider", label: "Hosting Provider" },
                     { id: "approver", label: "Approver" },
                   ]}
@@ -2137,6 +2130,7 @@ const ModelInventory: React.FC = () => {
                   deletingId={deletingId}
                   hidePagination={options?.hidePagination}
                   modelRisks={modelRisksData}
+                  flashRowId={flashRowId}
                 />
               )}
             />
@@ -2159,6 +2153,15 @@ const ModelInventory: React.FC = () => {
                     onFilterChange={handleModelRiskFilterChange}
                   />
                 </div>
+                <GroupBy
+                  options={[
+                    { id: "risk_level", label: "Risk level" },
+                    { id: "status", label: "Status" },
+                    { id: "model_name", label: "Model" },
+                    { id: "owner", label: "Owner" },
+                  ]}
+                  onGroupChange={handleGroupChangeRisk}
+                />
                 <SelectComponent
                   id="risk-status-filter"
                   value={modelRiskStatusFilter}
@@ -2175,16 +2178,6 @@ const ModelInventory: React.FC = () => {
                     }
                     return `Show: ${selectedItem.name.toLowerCase()}`;
                   }}
-                />
-                <GroupBy
-                  options={[
-                    { id: "risk_category", label: "Category" },
-                    { id: "risk_level", label: "Risk level" },
-                    { id: "status", label: "Status" },
-                    { id: "model_name", label: "Model" },
-                    { id: "owner", label: "Owner" },
-                  ]}
-                  onGroupChange={handleGroupChangeRisk}
                 />
               </Stack>
               <Stack direction="row" gap="8px" alignItems="center">

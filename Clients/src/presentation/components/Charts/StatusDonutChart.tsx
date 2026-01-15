@@ -1,12 +1,12 @@
 import React from "react";
 import { PieChart } from "@mui/x-charts";
 import { Box, Typography } from "@mui/material";
-import { IStatusDonutChartProps } from "../../../domain/interfaces/i.chart";
+import { IStatusDonutChartProps } from "../../types/interfaces/i.chart";
 
 const StatusDonutChart: React.FC<IStatusDonutChartProps> = ({
   data,
   total,
-  size = 80,
+  size = 100,
 }) => {
   // Filter out zero values for cleaner visualization
   const filteredData = data.filter((item) => item.value > 0);
@@ -50,6 +50,17 @@ const StatusDonutChart: React.FC<IStatusDonutChartProps> = ({
         alignItems: "center",
       }}
     >
+      {/* Background shadow ring */}
+      <Box
+        sx={{
+          position: "absolute",
+          width: size * 0.96,
+          height: size * 0.96,
+          borderRadius: "50%",
+          backgroundColor: "#F3F4F6",
+          boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)",
+        }}
+      />
       <PieChart
         series={[
           {
@@ -59,10 +70,10 @@ const StatusDonutChart: React.FC<IStatusDonutChartProps> = ({
               label: item.label,
               color: item.color,
             })),
-            innerRadius: size * 0.35,
-            outerRadius: size * 0.45,
-            paddingAngle: 2,
-            cornerRadius: 2,
+            innerRadius: size * 0.28,
+            outerRadius: size * 0.48,
+            paddingAngle: 1,
+            cornerRadius: 3,
           },
         ]}
         width={size}
@@ -92,18 +103,11 @@ const StatusDonutChart: React.FC<IStatusDonutChartProps> = ({
           "& .MuiChartsLegend-root": {
             display: "none !important",
           },
-          "& .MuiChartsTooltip-root": {
-            fontSize: "13px !important",
-          },
-          "& .MuiChartsTooltip-table": {
-            fontSize: "13px !important",
-          },
-          "& .MuiChartsTooltip-cell": {
-            fontSize: "13px !important",
-          },
+          position: "relative",
+          zIndex: 1,
         }}
       />
-      {/* Center text showing total */}
+      {/* Center circle with total */}
       <Box
         sx={{
           position: "absolute",
@@ -115,18 +119,32 @@ const StatusDonutChart: React.FC<IStatusDonutChartProps> = ({
           alignItems: "center",
           justifyContent: "center",
           pointerEvents: "none",
+          zIndex: 2,
         }}
       >
-        <Typography
-          variant="h6"
+        <Box
           sx={{
-            fontWeight: 600,
-            fontSize: "14px",
-            color: "#1F2937",
+            width: size * 0.52,
+            height: size * 0.52,
+            borderRadius: "50%",
+            backgroundColor: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
-          {total}
-        </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              fontSize: "16px",
+              color: "#1F2937",
+            }}
+          >
+            {total}
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );

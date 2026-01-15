@@ -1,0 +1,770 @@
+/**
+ * @fileoverview AI Detection Controller
+ *
+ * HTTP request handlers for AI Detection endpoints.
+ * Follows the established controller pattern with logging and status codes.
+ *
+ * @module controllers/aiDetection
+ */
+
+import { Request, Response } from "express";
+import { logProcessing, logSuccess, logFailure as logError } from "../utils/logger/logHelper";
+import { STATUS_CODE } from "../utils/statusCode.utils";
+import { getTenantHash } from "../tools/getTenantHash";
+import {
+  ValidationException,
+  NotFoundException,
+  BusinessLogicException,
+  ExternalServiceException,
+} from "../domain.layer/exceptions/custom.exception";
+import {
+  startScan,
+  getScanStatus,
+  getScan,
+  getScanFindings,
+  getScans,
+  getActiveScan,
+  cancelScan,
+  deleteScan,
+  getSecurityFindings,
+  getSecuritySummary,
+  updateFindingGovernanceStatus,
+  getGovernanceSummary,
+  getAIDetectionStats,
+  exportScanAsAIBOM,
+  getDependencyGraph,
+  getComplianceMapping,
+} from "../services/aiDetection.service";
+import { IServiceContext, ScanStatus } from "../domain.layer/interfaces/i.aiDetection";
+
+const FILE_NAME = "aiDetection.ctrl.ts";
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Build service context from request
+ */
+function buildServiceContext(req: Request): IServiceContext {
+  return {
+    userId: (req as unknown as { userId: number }).userId,
+    role: (req as unknown as { role: string }).role,
+    tenantId: getTenantHash(
+      (req as unknown as { organizationId: number }).organizationId
+    ),
+  };
+}
+
+/**
+ * Handle service exceptions and send appropriate response
+ */
+function handleException(res: Response, error: unknown): Response {
+  if (error instanceof ValidationException) {
+    return res.status(400).json(STATUS_CODE[400](error.message));
+  }
+  if (error instanceof NotFoundException) {
+    return res.status(404).json(STATUS_CODE[404](error.message));
+  }
+  if (error instanceof BusinessLogicException) {
+    return res.status(422).json(STATUS_CODE[422](error.message));
+  }
+  if (error instanceof ExternalServiceException) {
+    return res.status(502).json(STATUS_CODE[502](error.message));
+  }
+
+  const errorMessage = error instanceof Error ? error.message : "Unknown error";
+  return res.status(500).json(STATUS_CODE[500](errorMessage));
+}
+
+// ============================================================================
+// Controller Functions
+// ============================================================================
+
+/**
+ * Start a new repository scan
+ *
+ * POST /ai-detection/scans
+ * Body: { repository_url: string }
+ */
+export async function startScanController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Starting AI detection scan",
+    functionName: "startScanController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const { repository_url } = req.body;
+
+    if (!repository_url) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("repository_url is required"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const scan = await startScan(repository_url, ctx);
+
+    await logSuccess({
+      eventType: "Create",
+      description: `Started AI detection scan for ${scan.repository_owner}/${scan.repository_name}`,
+      functionName: "startScanController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(201).json(STATUS_CODE[201](scan));
+  } catch (error) {
+    await logError({
+      error: error as Error,
+      eventType: "Create",
+      description: "Failed to start AI detection scan",
+      functionName: "startScanController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get scan status (for polling)
+ *
+ * GET /ai-detection/scans/:scanId/status
+ */
+export async function getScanStatusController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting AI detection scan status",
+    functionName: "getScanStatusController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const status = await getScanStatus(scanId, ctx);
+
+    return res.status(200).json(STATUS_CODE[200](status));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get scan details with summary
+ *
+ * GET /ai-detection/scans/:scanId
+ */
+export async function getScanController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting AI detection scan details",
+    functionName: "getScanController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const scanResponse = await getScan(scanId, ctx);
+
+    return res.status(200).json(STATUS_CODE[200](scanResponse));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get findings for a scan
+ *
+ * GET /ai-detection/scans/:scanId/findings
+ * Query: page, limit, confidence, finding_type
+ */
+export async function getScanFindingsController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting AI detection scan findings",
+    functionName: "getScanFindingsController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string, 10) || 50, 100);
+    const confidence = req.query.confidence as string | undefined;
+    const findingType = req.query.finding_type as string | undefined;
+
+    // Validate confidence if provided
+    if (confidence && !["high", "medium", "low"].includes(confidence)) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("confidence must be 'high', 'medium', or 'low'"));
+    }
+
+    // Validate finding_type if provided
+    const validFindingTypes = ["library", "dependency", "api_call", "secret", "model_ref", "rag_component", "agent"];
+    if (findingType && !validFindingTypes.includes(findingType)) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400](`finding_type must be one of: ${validFindingTypes.join(", ")}`));
+    }
+
+    const ctx = buildServiceContext(req);
+    const findings = await getScanFindings(scanId, ctx, page, limit, confidence, findingType);
+
+    return res.status(200).json(STATUS_CODE[200](findings));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get scan history list
+ *
+ * GET /ai-detection/scans
+ * Query: page, limit, status
+ */
+export async function getScansController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting AI detection scan history",
+    functionName: "getScansController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string, 10) || 20, 100);
+    const status = req.query.status as ScanStatus | undefined;
+
+    // Validate status if provided
+    if (
+      status &&
+      !["pending", "cloning", "scanning", "completed", "failed", "cancelled"].includes(
+        status
+      )
+    ) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid status filter"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const scans = await getScans(ctx, page, limit, status);
+
+    return res.status(200).json(STATUS_CODE[200](scans));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get active scan (pending, cloning, or scanning)
+ * Single efficient endpoint to check for active scans
+ *
+ * GET /ai-detection/scans/active
+ */
+export async function getActiveScanController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  // No processing log to reduce noise since this is polled frequently
+
+  try {
+    const ctx = buildServiceContext(req);
+    const activeScan = await getActiveScan(ctx);
+
+    // Return null if no active scan (not 404, as this is expected)
+    return res.status(200).json(STATUS_CODE[200](activeScan));
+  } catch (error) {
+    // Error handling delegated to handleException
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Cancel an in-progress scan
+ *
+ * POST /ai-detection/scans/:scanId/cancel
+ */
+export async function cancelScanController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Cancelling AI detection scan",
+    functionName: "cancelScanController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const result = await cancelScan(scanId, ctx);
+
+    await logSuccess({
+      eventType: "Update",
+      description: `Cancelled AI detection scan ${scanId}`,
+      functionName: "cancelScanController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](result));
+  } catch (error) {
+    await logError({
+      error: error as Error,
+      eventType: "Update",
+      description: `Failed to cancel AI detection scan`,
+      functionName: "cancelScanController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Delete a completed/failed/cancelled scan
+ *
+ * DELETE /ai-detection/scans/:scanId
+ */
+export async function deleteScanController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Deleting AI detection scan",
+    functionName: "deleteScanController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const result = await deleteScan(scanId, ctx);
+
+    await logSuccess({
+      eventType: "Delete",
+      description: `Deleted AI detection scan ${scanId}`,
+      functionName: "deleteScanController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](result));
+  } catch (error) {
+    await logError({
+      error: error as Error,
+      eventType: "Delete",
+      description: `Failed to delete AI detection scan`,
+      functionName: "deleteScanController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get security findings for a scan
+ *
+ * GET /ai-detection/scans/:scanId/security-findings
+ * Query: page, limit, severity
+ */
+export async function getSecurityFindingsController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting AI detection security findings",
+    functionName: "getSecurityFindingsController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string, 10) || 50, 100);
+    const severity = req.query.severity as string | undefined;
+
+    // Validate severity if provided
+    if (severity && !["critical", "high", "medium", "low"].includes(severity)) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("severity must be 'critical', 'high', 'medium', or 'low'"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const findings = await getSecurityFindings(scanId, ctx, page, limit, severity);
+
+    return res.status(200).json(STATUS_CODE[200](findings));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get security summary for a scan
+ *
+ * GET /ai-detection/scans/:scanId/security-summary
+ */
+export async function getSecuritySummaryController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting AI detection security summary",
+    functionName: "getSecuritySummaryController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const summary = await getSecuritySummary(scanId, ctx);
+
+    return res.status(200).json(STATUS_CODE[200](summary));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Update governance status for a finding
+ *
+ * PATCH /ai-detection/scans/:scanId/findings/:findingId/governance
+ * Body: { governance_status: "reviewed" | "approved" | "flagged" | null }
+ */
+export async function updateGovernanceStatusController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Updating finding governance status",
+    functionName: "updateGovernanceStatusController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+    const findingId = parseInt(req.params.findingId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    if (isNaN(findingId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid finding ID"));
+    }
+
+    const { governance_status } = req.body;
+
+    // Validate governance_status if provided
+    if (governance_status !== null && governance_status !== undefined &&
+      !["reviewed", "approved", "flagged"].includes(governance_status)) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("governance_status must be 'reviewed', 'approved', 'flagged', or null"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const result = await updateFindingGovernanceStatus(
+      scanId,
+      findingId,
+      governance_status ?? null,
+      ctx
+    );
+
+    await logSuccess({
+      eventType: "Update",
+      description: `Updated governance status for finding ${findingId} to ${governance_status || 'cleared'}`,
+      functionName: "updateGovernanceStatusController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](result));
+  } catch (error) {
+    await logError({
+      error: error as Error,
+      eventType: "Update",
+      description: "Failed to update finding governance status",
+      functionName: "updateGovernanceStatusController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get governance summary for a scan
+ *
+ * GET /ai-detection/scans/:scanId/governance-summary
+ */
+export async function getGovernanceSummaryController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting governance summary",
+    functionName: "getGovernanceSummaryController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const summary = await getGovernanceSummary(scanId, ctx);
+
+    return res.status(200).json(STATUS_CODE[200](summary));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get overall AI Detection statistics
+ *
+ * GET /ai-detection/stats
+ */
+export async function getAIDetectionStatsController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting AI Detection statistics",
+    functionName: "getAIDetectionStatsController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const ctx = buildServiceContext(req);
+    const stats = await getAIDetectionStats(ctx);
+
+    return res.status(200).json(STATUS_CODE[200](stats));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Export scan results as AI Bill of Materials (AI-BOM)
+ *
+ * GET /ai-detection/scans/:scanId/export/ai-bom
+ *
+ * Returns an AI-BOM formatted JSON document containing all
+ * detected AI/ML components from the scan.
+ */
+export async function exportAIBOMController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Exporting scan as AI-BOM",
+    functionName: "exportAIBOMController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const aibom = await exportScanAsAIBOM(scanId, ctx);
+
+    // Set response headers for JSON download
+    const filename = `ai-bom-${aibom.metadata.repository.owner}-${aibom.metadata.repository.name}-${scanId}.json`;
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `AI-BOM export for scan ${scanId}`,
+      functionName: "exportAIBOMController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](aibom));
+  } catch (error) {
+    await logError({
+      error: error as Error,
+      eventType: "Read",
+      description: "Failed to export AI-BOM",
+      functionName: "exportAIBOMController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get AI Dependency Graph for a scan
+ *
+ * GET /ai-detection/scans/:scanId/dependency-graph
+ *
+ * Returns graph nodes and edges for visualizing AI component relationships.
+ */
+export async function getDependencyGraphController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting AI dependency graph",
+    functionName: "getDependencyGraphController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const graph = await getDependencyGraph(scanId, ctx);
+
+    return res.status(200).json(STATUS_CODE[200](graph));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get Compliance Mapping for a scan
+ *
+ * GET /ai-detection/scans/:scanId/compliance
+ *
+ * Returns EU AI Act compliance requirements mapped to scan findings,
+ * along with a generated compliance checklist.
+ */
+export async function getComplianceMappingController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting compliance mapping for scan",
+    functionName: "getComplianceMappingController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(req.params.scanId, 10);
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const compliance = await getComplianceMapping(scanId, ctx);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved compliance mapping with ${compliance.checklist.length} checklist items`,
+      functionName: "getComplianceMappingController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](compliance));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}

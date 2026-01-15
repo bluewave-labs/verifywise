@@ -16,10 +16,10 @@ from typing import Dict, Any, Optional
 from fastapi import HTTPException, BackgroundTasks, UploadFile
 from fastapi.responses import JSONResponse
 
-# Add BiasAndFairnessModule to path
-bias_fairness_path = str(Path(__file__).parent.parent.parent.parent / "BiasAndFairnessModule")
-if bias_fairness_path not in sys.path:
-    sys.path.insert(0, bias_fairness_path)
+# Add EvaluationModule to path
+eval_module_path = str(Path(__file__).parent.parent.parent.parent / "EvaluationModule" / "src")
+if eval_module_path not in sys.path:
+    sys.path.insert(0, eval_module_path)
 
 from database.redis import get_job_status, set_job_status, delete_job_status
 from database.db import get_db
@@ -81,6 +81,69 @@ METRICS = [
         "requires_context": False,
         "requires_openai_key": True,
         "score_interpretation": "Lower is better (0.0 - 1.0)"
+    },
+    # Agent-specific metrics (Reasoning Layer)
+    {
+        "name": "plan_quality",
+        "display_name": "Plan Quality",
+        "description": "Evaluates the quality and coherence of the agent's planning and task decomposition",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_reasoning",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "plan_adherence",
+        "display_name": "Plan Adherence",
+        "description": "Measures how well the agent follows its own plan during execution",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_reasoning",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    # Agent-specific metrics (Action Layer)
+    {
+        "name": "tool_correctness",
+        "display_name": "Tool Correctness",
+        "description": "Evaluates if the agent selected the correct tools for the task",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_action",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "argument_correctness",
+        "display_name": "Argument Correctness",
+        "description": "Evaluates if the agent provided correct arguments/parameters to tools",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_action",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    # Agent-specific metrics (Execution)
+    {
+        "name": "task_completion",
+        "display_name": "Task Completion",
+        "description": "Measures whether the agent successfully completed the requested task",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_execution",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
+    },
+    {
+        "name": "step_efficiency",
+        "display_name": "Step Efficiency",
+        "description": "Evaluates if the agent completed the task with minimal unnecessary steps",
+        "requires_context": False,
+        "requires_openai_key": True,
+        "requires_tools": True,
+        "category": "agent_execution",
+        "score_interpretation": "Higher is better (0.0 - 1.0)"
     }
 ]
 
@@ -154,21 +217,27 @@ async def run_deepeval_evaluation_task(
 ):
     """
     Background task to run DeepEval evaluation.
-    
+
     Args:
         eval_id: Unique evaluation ID
         config_data: Evaluation configuration
         tenant: Tenant ID
     """
     try:
+        # Force use of asyncio event loop (not uvloop)
+        import os
+        os.environ['PYTHONASYNCIODEBUG'] = '1'
+
         # Update status to running
         DEEPEVAL_STATUS[eval_id]["status"] = "running"
         DEEPEVAL_STATUS[eval_id]["updated_at"] = datetime.now().isoformat()
-        
+
         print(f"[DeepEval] Starting evaluation {eval_id} for tenant {tenant}")
-        
+
         # Import DeepEval components
-        from src.deepeval_engine import DeepEvalEvaluator, EvaluationDataset, ModelRunner
+        from deepeval_engine.deepeval_evaluator import DeepEvalEvaluator
+        from deepeval_engine.evaluation_dataset import EvaluationDataset
+        from deepeval_engine.model_runner import ModelRunner
         from deepeval.test_case import LLMTestCase
         
         # Load evaluation dataset
@@ -261,7 +330,25 @@ async def run_deepeval_evaluation_task(
                 continue
         
         print(f"[DeepEval] Generated {len(test_cases_data)} test cases")
-        
+
+        # Extract and set LLM API keys from config for metrics evaluation
+        judge_config = config_data.get("judgeLlm", {})
+        if judge_config and judge_config.get("apiKey"):
+            judge_provider = judge_config.get("provider", "").lower()
+            judge_key = judge_config["apiKey"]
+
+            # Map provider to environment variable name
+            provider_env_map = {
+                "openai": "OPENAI_API_KEY",
+                "anthropic": "ANTHROPIC_API_KEY",
+                "google": "GEMINI_API_KEY",
+                "xai": "XAI_API_KEY",
+            }
+
+            if judge_provider in provider_env_map:
+                os.environ[provider_env_map[judge_provider]] = judge_key
+                print(f"[DeepEval] Set {provider_env_map[judge_provider]} for judge LLM")
+
         # Initialize evaluator
         class SimpleConfig:
             def __init__(self):
@@ -530,8 +617,8 @@ async def get_evaluation_dataset_info_controller() -> JSONResponse:
         JSONResponse with dataset statistics
     """
     try:
-        from src.deepeval_engine import EvaluationDataset
-        
+        from deepeval_engine.evaluation_dataset import EvaluationDataset
+
         dataset = EvaluationDataset()
         stats = dataset.get_statistics()
         
@@ -611,10 +698,9 @@ async def upload_deepeval_dataset_controller(
         if not isinstance(data, list):
             raise HTTPException(status_code=400, detail="Dataset JSON must be an array of prompt objects")
 
-        # Build upload path within EvaluationModule
-        root_path = Path(__file__).parent.parent.parent.parent
-        evaluation_module_path = root_path / "EvaluationModule"
-        uploads_dir = evaluation_module_path / "data" / "uploads" / tenant
+        # Build upload path (Docker: /app/data/uploads, Local: EvaluationModule/data/uploads)
+        uploads_root = _get_uploads_root()
+        uploads_dir = uploads_root / tenant
         uploads_dir.mkdir(parents=True, exist_ok=True)
 
         # Use only the original filename, no timestamp prefix
@@ -732,6 +818,22 @@ def _get_evaluation_module_path() -> Path:
     return root_path / "EvaluationModule" / "data"
 
 
+def _get_uploads_root() -> Path:
+    """
+    Returns the path to user uploads directory.
+    In Docker: /app/data/uploads (mounted as volume for persistence)
+    In development: EvaluationModule/data/uploads (relative to repo root)
+    """
+    # Check for Docker environment first
+    docker_uploads = Path("/app/data/uploads")
+    if docker_uploads.exists():
+        return docker_uploads
+
+    # Fallback for local development
+    root_path = Path(__file__).parent.parent.parent.parent
+    return root_path / "EvaluationModule" / "data" / "uploads"
+
+
 def _extract_dataset_stats(file_path: Path) -> dict:
     """
     Extract statistics from a dataset JSON file.
@@ -841,9 +943,16 @@ async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
 
         # Check if it's a user upload path (starts with "data/uploads/")
         if path.startswith("data/uploads/"):
-            eval_data_path = _get_evaluation_module_path()
-            target = (eval_data_path.parent / path).resolve()
-            allowed_base = eval_data_path.resolve()
+            # Extract tenant and filename from path: "data/uploads/{tenant}/{filename}"
+            path_parts = path.split("/")
+            if len(path_parts) >= 4:
+                tenant = path_parts[2]
+                filename = "/".join(path_parts[3:])
+                uploads_root = _get_uploads_root()
+                target = (uploads_root / tenant / filename).resolve()
+                allowed_base = (uploads_root / tenant).resolve()
+            else:
+                raise HTTPException(status_code=400, detail="Invalid upload path format")
         else:
             # Built-in dataset path (e.g., "chatbot/chatbot_basic.json")
             datasets_base = _safe_evalmodule_data_root()
@@ -892,27 +1001,35 @@ async def list_user_datasets_controller(
 async def delete_user_datasets_controller(tenant: str, paths: list[str]) -> JSONResponse:
     """
     Delete user-uploaded datasets by paths (tenant-scoped).
+    Security: Only allows deletion within the tenant's own uploads directory.
     """
     try:
-        root_path = Path(__file__).parent.parent.parent.parent
-        evaluation_module_path = root_path / "EvaluationModule"
+        uploads_root = _get_uploads_root()
+        tenant_uploads_dir = (uploads_root / tenant).resolve()
         deleted_count = 0
-        
+
         async with get_db() as db:
             from crud.deepeval_datasets import delete_user_datasets
-            
+
             # Delete from database
             await delete_user_datasets(tenant=tenant, db=db, paths=paths)
-            
+
             # Delete physical files
             for path in paths:
                 try:
-                    file_path = (evaluation_module_path / path).resolve()
-                    # Security check: ensure it's in uploads folder
-                    uploads_dir = (evaluation_module_path / "data" / "uploads" / tenant).resolve()
-                    if uploads_dir in file_path.parents and file_path.is_file():
-                        file_path.unlink()
-                        deleted_count += 1
+                    # Path format: "data/uploads/{tenant}/{filename}"
+                    path_parts = path.split("/")
+                    if len(path_parts) >= 4 and path_parts[2] == tenant:
+                        filename = "/".join(path_parts[3:])
+                        file_path = (tenant_uploads_dir / filename).resolve()
+                        # Security check: ensure file is within tenant's uploads directory
+                        if file_path.is_relative_to(tenant_uploads_dir) and file_path.is_file():
+                            file_path.unlink()
+                            deleted_count += 1
+                        else:
+                            print(f"Security: Blocked deletion of {path} - outside tenant directory")
+                    else:
+                        print(f"Security: Blocked deletion of {path} - invalid path or wrong tenant")
                 except Exception as e:
                     print(f"Failed to delete file {path}: {e}")
             

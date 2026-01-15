@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Stack, FormControl, RadioGroup, FormControlLabel, Radio } from "@mui/material";
-import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
+import { OnboardingStepProps } from "../../../types/interfaces/i.onboarding";
 import { OnboardingUseCase } from "../../../../domain/enums/onboarding.enum";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";
 

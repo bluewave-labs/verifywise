@@ -3,22 +3,30 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Chip,
   Card,
   CardContent,
   useTheme,
   Stack,
 } from "@mui/material";
-import { Play, Beaker, ChevronRight, Activity, CheckCircle, Clock, Star, Coins, LucideIcon } from "lucide-react";
+import { Play, Beaker, Activity, CheckCircle, Clock, Star, Coins, LucideIcon } from "lucide-react";
 import { cardStyles } from "../../themes";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import VWLink from "../../components/Link/VWLink";
-import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import { experimentsService, monitoringService, evaluationLogsService, type Experiment, type MonitorDashboard, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
+import EvaluationTable from "../../components/Table/EvaluationTable";
+import type { IEvaluationRow } from "../../types/interfaces/i.table";
+import {
+  getProject,
+  getExperiments,
+  getMonitorDashboard,
+  getLogs,
+  type Experiment,
+  type MonitorDashboard,
+  type EvaluationLog,
+} from "../../../application/repository/deepEval.repository";
 import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 
@@ -161,15 +169,15 @@ export default function ProjectOverview({
 
       // Load project if not provided
       if (!project) {
-        const projectData = await deepEvalProjectsService.getProject(projectId);
+        const projectData = await getProject(projectId);
         onProjectUpdate(projectData.project);
       }
 
       // Load experiments, logs, and dashboard data in parallel
       const [experimentsData, logsData, dashboardResponse] = await Promise.all([
-        experimentsService.getExperiments({ project_id: projectId, limit: 100 }),
-        evaluationLogsService.getLogs({ project_id: projectId, limit: 1000 }).catch(() => ({ logs: [] })),
-        monitoringService.getDashboard(projectId).catch(() => ({ data: null })),
+        getExperiments({ project_id: projectId, limit: 100 }),
+        getLogs({ project_id: projectId, limit: 1000 }).catch(() => ({ logs: [] })),
+        getMonitorDashboard(projectId).catch(() => ({ data: null })),
       ]);
 
       setExperiments(experimentsData.experiments || []);
@@ -231,19 +239,22 @@ export default function ProjectOverview({
   
   // Success rate: completed / (completed + failed) - ignore running/pending
   const finishedExperiments = completedExperiments + failedExperiments;
-  const successRate = finishedExperiments > 0 
+  const successRate = finishedExperiments > 0
     ? `${((completedExperiments / finishedExperiments) * 100).toFixed(0)}%`
-    : "-";
+    : "No data";
+  const successRateSubtitle = finishedExperiments > 0 ? `${finishedExperiments} finished` : "Run an experiment";
   
   // Calculate avg latency from evaluation logs (each log = one prompt evaluation)
-  const logsWithLatency = evaluationLogs.filter(log => 
+  const logsWithLatency = evaluationLogs.filter(log =>
     typeof log.latency_ms === 'number' && !isNaN(log.latency_ms) && log.latency_ms > 0
   );
-  const avgLatency = logsWithLatency.length > 0
+  const avgLatencyValue = logsWithLatency.length > 0
     ? formatLatency(logsWithLatency.reduce((sum, log) => sum + (log.latency_ms || 0), 0) / logsWithLatency.length)
     : dashboardData?.metrics?.latency?.average !== undefined
       ? formatLatency(dashboardData.metrics.latency.average)
-      : "-";
+      : null;
+  const avgLatency = avgLatencyValue ?? "No data";
+  const avgLatencySubtitle = avgLatencyValue ? `${logsWithLatency.length} logs` : "Run a successful experiment";
   
   // Calculate avg score from experiment results (avg_scores contains metric averages)
   const experimentsWithResults = experiments.filter(e => e.results && typeof e.results === 'object');
@@ -259,24 +270,114 @@ export default function ProjectOverview({
       }
     }
   });
-  const avgScore = allScores.length > 0
+  const avgScoreValue = allScores.length > 0
     ? formatScore(allScores.reduce((a, b) => a + b, 0) / allScores.length)
     : dashboardData?.metrics?.score_average?.average !== undefined
       ? formatScore(dashboardData.metrics.score_average.average)
-      : "-";
+      : null;
+  const avgScore = avgScoreValue ?? "No data";
+  const avgScoreSubtitle = avgScoreValue ? `${allScores.length} experiments` : "Run a successful experiment";
   
   // Calculate total tokens from evaluation logs
-  const logsWithTokens = evaluationLogs.filter(log => 
+  const logsWithTokens = evaluationLogs.filter(log =>
     typeof log.token_count === 'number' && !isNaN(log.token_count) && log.token_count > 0
   );
-  const totalTokens = logsWithTokens.length > 0
+  const totalTokensValue = logsWithTokens.length > 0
     ? formatNumber(logsWithTokens.reduce((sum, log) => sum + (log.token_count || 0), 0))
     : dashboardData?.metrics?.token_count?.average !== undefined && dashboardData?.logs?.total
       ? formatNumber(dashboardData.metrics.token_count.average * dashboardData.logs.total)
-      : "-";
+      : null;
+  const totalTokens = totalTokensValue ?? "No data";
+  const totalTokensSubtitle = totalTokensValue ? "Across all experiments" : "Run a successful experiment";
+
+  // Transform experiments to table rows (top 5 recent)
+  const recentExperimentsRows: IEvaluationRow[] = [...experiments]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5)
+    .map((exp) => {
+      // Get dataset name from config
+      let datasetName = "Dataset";
+      const datasetConfig = exp.config?.dataset;
+      if (datasetConfig) {
+        if (datasetConfig.name) {
+          datasetName = datasetConfig.name;
+        } else if (datasetConfig.path) {
+          const pathParts = datasetConfig.path.split("/");
+          const fileName = pathParts[pathParts.length - 1]?.replace(/\.json$/i, "") || "";
+          datasetName = fileName
+            .split("_")
+            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+        } else if (datasetConfig.datasetId) {
+          datasetName = datasetConfig.datasetId;
+        } else if (datasetConfig.categories?.[0]) {
+          datasetName = datasetConfig.categories[0];
+        } else if (datasetConfig.useBuiltin) {
+          datasetName = "Template";
+        }
+      }
+
+      // Format date
+      const createdDate = exp.created_at
+        ? new Date(exp.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "-";
+
+      // Judge/scorer display
+      const judgeModel = exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "";
+      const scorerName = exp.config?.scorerName || "";
+      const evaluationMode = exp.config?.evaluationMode || "standard";
+      let judgeDisplay = "-";
+      if (evaluationMode === "scorer" && scorerName) {
+        judgeDisplay = scorerName;
+      } else if (evaluationMode === "standard" && judgeModel) {
+        judgeDisplay = judgeModel;
+      } else if (evaluationMode === "both" && judgeModel && scorerName) {
+        judgeDisplay = `${judgeModel} + ${scorerName}`;
+      } else if (judgeModel) {
+        judgeDisplay = judgeModel;
+      } else if (scorerName) {
+        judgeDisplay = scorerName;
+      }
+
+      // Calculate prompt count from config or results
+      const promptCount = exp.config?.dataset?.count ||
+        exp.config?.dataset?.prompts?.length ||
+        exp.results?.total_prompts ||
+        0;
+
+      return {
+        id: exp.id,
+        name: exp.name,
+        model: exp.config?.model?.name || "Unknown",
+        judge: judgeDisplay,
+        dataset: datasetName,
+        prompts: promptCount,
+        date: createdDate,
+        status:
+          exp.status === "completed" ? "Completed" :
+          exp.status === "failed" ? "Failed" :
+          exp.status === "running" ? "Running" :
+          "Pending",
+      };
+    });
+
+  // Handle viewing experiment details
+  const handleViewExperiment = (row: IEvaluationRow) => {
+    if (onViewExperiment) {
+      onViewExperiment(row.id);
+    } else {
+      navigate(`/evals/${projectId}/experiment/${row.id}`);
+    }
+  };
 
   return (
-    <Box>
+    <Box sx={{ width: "100%", overflow: "hidden" }}>
       {/* Header + description */}
       <Stack spacing={1} mb={4}>
         <Box display="flex" alignItems="center" gap={1}>
@@ -288,6 +389,7 @@ export default function ProjectOverview({
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance.
         </Typography>
+        <TipBox entityName="evals-overview" />
       </Stack>
 
       {/* Header with New Experiment button */}
@@ -309,8 +411,13 @@ export default function ProjectOverview({
         />
       </Box>
 
-      {/* Top row: 4 stat cards */}
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", mb: "16px" }}>
+      {/* Stat cards: 3x2 grid */}
+      <Box sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)" },
+        gap: "16px",
+        mb: "24px"
+      }}>
         <StatCard
           title="Experiments"
           value={formatNumber(totalExperiments)}
@@ -321,200 +428,108 @@ export default function ProjectOverview({
           title="Success rate"
           value={successRate}
           Icon={CheckCircle}
-          subtitle={finishedExperiments > 0 ? `${finishedExperiments} finished` : undefined}
+          subtitle={successRateSubtitle}
         />
         <StatCard
           title="Avg latency"
           value={avgLatency}
           Icon={Clock}
+          subtitle={avgLatencySubtitle}
         />
         <StatCard
           title="Avg score"
           value={avgScore}
           Icon={Star}
+          subtitle={avgScoreSubtitle}
+        />
+        <StatCard
+          title="Total tokens"
+          value={totalTokens}
+          Icon={Coins}
+          subtitle={totalTokensSubtitle}
+        />
+        <StatCard
+          title="Running"
+          value={experiments.filter(e => e.status === "running").length}
+          Icon={Activity}
+          subtitle="Experiments in progress"
         />
       </Box>
 
-      {/* Bottom row: Experiments table (left 50%) + Stats cards (right 50%) */}
-      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-        {/* Recent experiments */}
-        <Box sx={{ flex: 1 }}>
-          <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "14px" }}>
-              Recent experiments
-            </Typography>
-            {hasExperiments && (
-              <VWLink
-                onClick={() => navigate(`/evals/${projectId}#experiments`)}
-                showIcon={false}
-                sx={{ fontSize: "12px" }}
-              >
-                View all
-              </VWLink>
-            )}
-          </Box>
+      {/* Recent experiments table */}
+      <Box>
+        <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "14px" }}>
+            Recent experiments
+          </Typography>
+        </Box>
 
-          {/* Recent experiments list */}
+        {!hasExperiments ? (
           <Box sx={{
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
             backgroundColor: "#FFFFFF",
-            // Fixed height to match two stat cards (90px each) + gap between them
-            minHeight: "214px",
+            textAlign: "center",
+            py: 4,
+            px: 2,
           }}>
-            {!hasExperiments ? (
-              /* Empty state inside the consistent layout */
-              <Box sx={{ textAlign: "center", py: 4, px: 2 }}>
-                <Box sx={{ mb: 2 }}>
-                  <Beaker size={32} color="#9CA3AF" strokeWidth={1} />
-                </Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, mb: 1, fontSize: "13px" }}
-                >
-                  No experiments yet
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2, fontSize: "12px", maxWidth: 320, mx: "auto", lineHeight: 1.5 }}
-                >
-                  Run your first experiment to start evaluating your LLM.
-                </Typography>
-                <CustomizableButton
-                  onClick={handleNewExperiment}
-                  variant="contained"
-                  text="Run first experiment"
-                  icon={<Play size={14} />}
-                  isDisabled={!canCreateExperiment}
-                  sx={{
-                    backgroundColor: "#13715B",
-                    border: "1px solid #13715B",
-                    gap: 1,
-                    fontSize: "12px",
-                    height: "32px",
-                    "&:hover": {
-                      backgroundColor: "#0f5a47",
-                    },
-                  }}
-                />
-              </Box>
-            ) : (
-              <Box sx={{ padding: "8px" }}>
-              {[...experiments]
-                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .slice(0, 4)
-                .map((exp, index, arr) => {
-                  const cfg = exp.config as { model?: { name?: string }; judgeLlm?: { model?: string; provider?: string } } | undefined;
-                  const modelName = cfg?.model?.name || "-";
-                  const statusLabel = exp.status === "completed" ? "Completed" :
-                    exp.status === "failed" ? "Failed" :
-                    exp.status === "running" ? "Running" : "Pending";
-                  const statusColor = exp.status === "completed" ? "#065F46" :
-                    exp.status === "failed" ? "#991B1B" :
-                    exp.status === "running" ? "#1E40AF" : "#6B7280";
-                  const statusBg = exp.status === "completed" ? "#D1FAE5" :
-                    exp.status === "failed" ? "#FEE2E2" :
-                    exp.status === "running" ? "#DBEAFE" : "#F3F4F6";
-
-                  const createdDate = new Date(exp.created_at);
-                  const formattedDate = createdDate.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  });
-
-                  return (
-                    <Box
-                      key={exp.id}
-                      onClick={() => {
-                                        if (onViewExperiment) {
-                                          onViewExperiment(exp.id);
-                                        } else {
-                                          navigate(`/evals/${projectId}/experiment/${exp.id}`);
-                                        }
-                                      }}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        py: 1.5,
-                        cursor: "pointer",
-                        borderBottom: index < arr.length - 1 ? "1px solid #E5E7EB" : "none",
-                        "&:hover": {
-                          backgroundColor: "#F9FAFB",
-                          borderRadius: "4px",
-                        },
-                      }}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-                        <Box sx={{ minWidth: 0, flex: 1 }}>
-                          <Typography
-                            sx={{
-                              fontSize: "13px",
-                              fontWeight: 500,
-                              color: "#111827",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {exp.name || exp.id}
-                          </Typography>
-                          <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                            {modelName} · {formattedDate}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        <Chip
-                          label={statusLabel}
-                          size="small"
-                          sx={{
-                            backgroundColor: statusBg,
-                            color: statusColor,
-                            fontWeight: 500,
-                            fontSize: "11px",
-                            height: "22px",
-                            borderRadius: "4px",
-                          }}
-                        />
-                        <ChevronRight size={16} color="#9CA3AF" />
-                      </Box>
-                    </Box>
-                  );
-                })}
-              </Box>
-            )}
+            <Box sx={{ mb: 2 }}>
+              <Beaker size={32} color="#9CA3AF" strokeWidth={1} />
+            </Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, mb: 1, fontSize: "13px" }}
+            >
+              No experiments yet
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mb: 2, fontSize: "12px", maxWidth: 320, mx: "auto", lineHeight: 1.5 }}
+            >
+              Run your first experiment to start evaluating your LLM.
+            </Typography>
+            <CustomizableButton
+              onClick={handleNewExperiment}
+              variant="contained"
+              text="Run first experiment"
+              icon={<Play size={14} />}
+              isDisabled={!canCreateExperiment}
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 1,
+                fontSize: "12px",
+                height: "32px",
+                "&:hover": {
+                  backgroundColor: "#0f5a47",
+                },
+              }}
+            />
           </Box>
-        </Box>
-
-        {/* Right side: Two stat cards stacked */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <Box sx={{ height: 24 }} /> {/* Spacer to align with table header */}
-          <StatCard
-            title="Total tokens"
-            value={totalTokens}
-            Icon={Coins}
-            subtitle="Across all experiments"
+        ) : (
+          <EvaluationTable
+            columns={["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE"]}
+            rows={recentExperimentsRows}
+            page={0}
+            setCurrentPagingation={() => {}}
+            onShowDetails={handleViewExperiment}
+            hidePagination
           />
-          <StatCard
-            title="Running"
-            value={experiments.filter(e => e.status === "running").length}
-            Icon={Activity}
-            subtitle="Experiments in progress"
-          />
-        </Box>
+        )}
       </Box>
 
-      {/* New Experiment Modal */}
-      <NewExperimentModal
-        isOpen={newExperimentModalOpen}
-        onClose={() => setNewExperimentModalOpen(false)}
-        projectId={projectId}
-        orgId={orgId}
-        onSuccess={handleExperimentSuccess}
-      />
+      {/* New Experiment Modal - only render when project useCase is available */}
+      {project?.useCase && (
+        <NewExperimentModal
+          isOpen={newExperimentModalOpen}
+          onClose={() => setNewExperimentModalOpen(false)}
+          projectId={projectId}
+          orgId={orgId}
+          onSuccess={handleExperimentSuccess}
+          useCase={project.useCase as "chatbot" | "rag" | "agent"}
+        />
+      )}
     </Box>
   );
 }

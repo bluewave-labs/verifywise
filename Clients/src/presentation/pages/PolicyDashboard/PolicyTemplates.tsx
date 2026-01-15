@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Box, Stack, TableRow, TableCell } from "@mui/material";
 import EmptyState from "../../components/EmptyState";
-import policyTemplates from "../../assets/PolicyTemplates.json";
+import policyTemplates from "../../../application/data/PolicyTemplates.json";
 import {
   PolicyTemplate,
   PolicyTemplatesProps,
-} from "../../../domain/interfaces/i.policy";
+} from "../../types/interfaces/i.policy";
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
-import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../types/alert.types";
 import { SearchBox } from "../../components/Search";
 import { PolicyTemplateCategory } from "../../../domain/enums/policy.enum";
 import TagChip from "../../components/Tags/TagChip";
@@ -34,6 +34,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   tags,
   fetchAll,
 }) => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasProcessedUrlParam = useRef(false);
   const [showModal, setShowModal] = useState(false);
@@ -90,6 +91,9 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   const handleSaved = (successMessage?: string) => {
     fetchAll();
     handleClose();
+
+    // Navigate to organizational policies tab to show the newly created policy
+    navigate("/policies");
 
     // Show success alert if message is provided
     if (successMessage) {

@@ -1,9 +1,18 @@
 /**
  * Incident Change History Utilities
  *
- * Wrapper functions that use the generic change history system.
- * These functions maintain backward compatibility while leveraging
- * the new generic utilities.
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * Use the generic change history functions from `changeHistory.base.utils.ts` directly instead.
+ *
+ * Migration guide:
+ * - Replace `recordIncidentChange()` with `recordEntityChange("incident", ...)`
+ * - Replace `recordMultipleFieldChanges()` with `recordMultipleFieldChanges("incident", ...)`
+ * - Replace `getIncidentChangeHistory()` with `getEntityChangeHistory("incident", ...)`
+ * - Replace `trackIncidentChanges()` with `trackEntityChanges("incident", ...)`
+ * - Replace `recordIncidentCreation()` with `recordEntityCreation("incident", ...)`
+ * - Replace `recordIncidentDeletion()` with `recordEntityDeletion("incident", ...)`
+ *
+ * These wrapper functions are maintained for backward compatibility only.
  */
 
 import { IAIIncidentManagement } from "../domain.layer/interfaces/i.aiIncidentManagement";
@@ -19,6 +28,7 @@ import {
 
 /**
  * Record a change in incident
+ * @deprecated Use `recordEntityChange("incident", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordIncidentChange = async (
   incidentId: number,
@@ -45,6 +55,7 @@ export const recordIncidentChange = async (
 
 /**
  * Record multiple field changes for an incident
+ * @deprecated Use `recordMultipleFieldChanges("incident", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordMultipleFieldChanges = async (
   incidentId: number,
@@ -65,6 +76,7 @@ export const recordMultipleFieldChanges = async (
 
 /**
  * Get change history for a specific incident with pagination support
+ * @deprecated Use `getEntityChangeHistory("incident", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const getIncidentChangeHistory = async (
   incidentId: number,
@@ -83,6 +95,7 @@ export const getIncidentChangeHistory = async (
 
 /**
  * Track changes between old and new incident data
+ * @deprecated Use `trackEntityChanges("incident", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const trackIncidentChanges = async (
   oldModel: IAIIncidentManagement,
@@ -93,6 +106,7 @@ export const trackIncidentChanges = async (
 
 /**
  * Record creation of an incident
+ * @deprecated Use `recordEntityCreation("incident", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordIncidentCreation = async (
   incidentId: number,
@@ -113,6 +127,7 @@ export const recordIncidentCreation = async (
 
 /**
  * Record deletion of an incident
+ * @deprecated Use `recordEntityDeletion("incident", ...)` from `changeHistory.base.utils.ts` instead
  */
 export const recordIncidentDeletion = async (
   incidentId: number,

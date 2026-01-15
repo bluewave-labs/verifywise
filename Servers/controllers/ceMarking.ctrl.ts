@@ -280,7 +280,9 @@ export const getCEMarking = async (req: Request, res: Response) => {
     logger.error("Error in getCEMarking:", error);
     await logEvent(
       "Error",
-      `Failed to get CE Marking data: ${(error as Error).message}`
+      `Failed to get CE Marking data: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     return res
       .status(500)
@@ -691,7 +693,9 @@ export const updateCEMarking = async (req: Request, res: Response) => {
     logger.error("Error in updateCEMarking:", error);
     await logEvent(
       "Error",
-      `Failed to update CE Marking data: ${(error as Error).message}`
+      `Failed to update CE Marking data: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     return res
       .status(500)

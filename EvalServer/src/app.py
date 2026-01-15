@@ -8,6 +8,7 @@ from routers.deepeval import router as deepeval
 from routers.deepeval_projects import router as deepeval_projects
 from routers.evaluation_logs import router as evaluation_logs
 from routers.deepeval_orgs import router as deepeval_orgs
+from routers.deepeval_arena import router as deepeval_arena
 from middlewares.middleware import TenantMiddleware
 from database.redis import close_redis
 from alembic.config import Config
@@ -19,10 +20,21 @@ logger = logging.getLogger('uvicorn')
 def run_migrations():
     logger.info("Running migrations...")
     try:
-        alembic_cfg = Config("alembic.ini")
-        command.upgrade(alembic_cfg, "head")
+        import subprocess
+        result = subprocess.run(
+            ["alembic", "upgrade", "head"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        if result.returncode == 0:
+            logger.info("Migrations completed successfully")
+        else:
+            logger.warning(f"Migrations failed: {result.stderr}")
+    except subprocess.TimeoutExpired:
+        logger.warning("Migrations timed out, continuing anyway")
     except Exception as e:
-        logger.info(f"Error running migrations: {e}")
+        logger.warning(f"Migrations skipped or failed: {e}")
 
 async def shutdown_redis():
     await close_redis()
@@ -53,8 +65,10 @@ def root():
 app.include_router(deepeval, prefix="/deepeval", tags=["DeepEval"])
 app.include_router(deepeval_projects, prefix="/deepeval", tags=["DeepEval Projects"])
 app.include_router(deepeval_orgs, prefix="/deepeval", tags=["DeepEval Orgs"])
+app.include_router(deepeval_arena, prefix="/deepeval", tags=["DeepEval Arena"])
 app.include_router(evaluation_logs, tags=["Evaluation Logs & Monitoring"])
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("LLM_EVALS_PORT", 8000))
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=True)

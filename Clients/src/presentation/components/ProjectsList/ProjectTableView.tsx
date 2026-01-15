@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useContext } from "react";
 import {
   Table,
   TableBody,
@@ -11,15 +11,23 @@ import {
   Typography,
   useTheme,
   Box,
+  Stack,
 } from "@mui/material";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
 import EmptyState from "../EmptyState";
 import Chip from "../Chip";
+import ViewRelationshipsButton from "../ViewRelationshipsButton";
+import IconButton from "../IconButton";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { IProjectTableViewProps } from "../../../domain/interfaces/i.project";
 import { Project } from "../../../domain/types/Project";
+import { deleteProject } from "../../../application/repository/project.repository";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import Alert from "../Alert";
+import allowedRoles from "../../../application/constants/permissions";
+import { useAuth } from "../../../application/hooks/useAuth";
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
@@ -41,6 +49,7 @@ const columns = [
   { id: "role", label: "Role", minWidth: 150, sortable: true },
   { id: "startDate", label: "Start Date", minWidth: 120, sortable: true },
   { id: "lastUpdated", label: "Last Updated", minWidth: 120, sortable: true },
+  { id: "actions", label: "", minWidth: 80, sortable: false },
 ];
 
 // Sortable Table Header Component
@@ -65,11 +74,13 @@ const SortableTableHeader: React.FC<{
             sx={{
               ...singleTheme.tableStyles.primary.header.cell,
               minWidth: column.minWidth,
-              cursor: "pointer",
-              userSelect: "none",
-              "&:hover": {
-                backgroundColor: "rgba(0, 0, 0, 0.04)",
-              },
+              ...(column.sortable && {
+                cursor: "pointer",
+                userSelect: "none",
+                "&:hover": {
+                  backgroundColor: "rgba(0, 0, 0, 0.04)",
+                },
+              }),
               ...(column.id === "ucId" && {
                 width: column.minWidth,
                 maxWidth: column.minWidth,
@@ -95,20 +106,22 @@ const SortableTableHeader: React.FC<{
               >
                 {column.label}
               </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  color:
-                    sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
-                }}
-              >
-                {sortConfig.key === column.id &&
-                  sortConfig.direction === "asc" && <ChevronUp size={16} />}
-                {sortConfig.key === column.id &&
-                  sortConfig.direction === "desc" && <ChevronDown size={16} />}
-                {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
-              </Box>
+              {column.sortable && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color:
+                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                  }}
+                >
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "asc" && <ChevronUp size={16} />}
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "desc" && <ChevronDown size={16} />}
+                  {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
+                </Box>
+              )}
             </Box>
           </TableCell>
         ))}
@@ -117,10 +130,17 @@ const SortableTableHeader: React.FC<{
   );
 };
 
-const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagination = false }) => {
+const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagination = false, onProjectDeleted }) => {
   const theme = useTheme();
   const navigate = useNavigateSearch();
+  const { setProjects } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
 
   // Initialize rowsPerPage from localStorage or default to 10
   const [rowsPerPage, setRowsPerPage] = useState(() => {
@@ -190,6 +210,49 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
   const handleRowClick = (projectId: number) => {
     navigate("/project-view", { projectId: projectId.toString() });
   };
+
+  const handleEditProject = useCallback((projectId: number) => {
+    navigate("/project-view", { projectId: projectId.toString(), tab: "settings" });
+  }, [navigate]);
+
+  const handleDeleteProject = useCallback(async (projectId: number) => {
+    try {
+      const response = await deleteProject({ id: projectId });
+      const isError = response.status === 404 || response.status === 500;
+
+      setAlert({
+        variant: isError ? "error" : "success",
+        title: isError ? "Error" : "Success",
+        body: isError
+          ? "Failed to delete use case. Please try again."
+          : "Use case deleted successfully.",
+      });
+
+      if (!isError) {
+        setProjects((prevProjects) =>
+          prevProjects.filter((project) => project.id !== projectId)
+        );
+        // Call the callback if provided to refresh the parent component
+        if (onProjectDeleted) {
+          onProjectDeleted();
+        }
+      }
+
+      setTimeout(() => {
+        setAlert(null);
+      }, 3000);
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to delete use case. Please try again.",
+      });
+      setTimeout(() => {
+        setAlert(null);
+      }, 3000);
+    }
+  }, [setProjects, onProjectDeleted]);
 
   // Sort the projects based on current sort configuration
   const sortedProjects = useMemo(() => {
@@ -303,9 +366,19 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
   }
 
   return (
-    <TableContainer>
-      <Table sx={singleTheme.tableStyles.primary.frame}>
-        <SortableTableHeader
+    <>
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
+      <TableContainer>
+        <Table sx={singleTheme.tableStyles.primary.frame}>
+          <SortableTableHeader
           columns={columns}
           sortConfig={sortConfig}
           onSort={handleSort}
@@ -403,6 +476,31 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
               >
                 {formatDate(project.last_updated)}
               </TableCell>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Stack direction="row" alignItems="center" gap={0.5}>
+                  <ViewRelationshipsButton
+                    entityId={project.id}
+                    entityType="useCase"
+                    entityLabel={project.project_title}
+                  />
+                  {allowedRoles.projects.delete.includes(userRoleName) && (
+                    <IconButton
+                      id={project.id}
+                      type="use case"
+                      onEdit={() => handleEditProject(project.id)}
+                      onDelete={() => handleDeleteProject(project.id)}
+                      onMouseEvent={() => {}}
+                      warningTitle="Delete this use case?"
+                      warningMessage="Note that deleting a use case will remove all data related to that use case from your system. This is permanent and non-recoverable."
+                    />
+                  )}
+                </Stack>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -493,8 +591,9 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
             </TableRow>
           </TableFooter>
         )}
-      </Table>
-    </TableContainer>
+        </Table>
+      </TableContainer>
+    </>
   );
 };
 

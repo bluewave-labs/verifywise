@@ -156,13 +156,11 @@ export async function uploadFileToManager({
 export async function downloadFileFromManager({
   id,
   signal,
-  source,
 }: {
   id: string;
   signal?: AbortSignal;
-  source?: string;
 }): Promise<Blob> {
-  const response = await apiServices.get<Blob>(`/file-manager/${id}?isFileManagerFile=${source === "File Manager"}`, {
+  const response = await apiServices.get<Blob>(`/file-manager/${id}`, {
     signal,
     responseType: "blob",
   });
@@ -180,14 +178,48 @@ export async function downloadFileFromManager({
 export async function deleteFileFromManager({
   id,
   signal,
-  source,
 }: {
   id: string;
   signal?: AbortSignal;
-  source?: string;
 }): Promise<any> {
-  const response = await apiServices.delete<any>(`/file-manager/${id}?isFileManagerFile=${source === "File Manager"}`, {
+  const response = await apiServices.delete<any>(`/file-manager/${id}`, {
     signal,
   });
   return response.data;
+}
+
+/**
+ * Delete question evidence file(s) using multipart form data
+ *
+ * @param {number[]} deleteFileIds - Array of file IDs to delete
+ * @param {string} questionId - The question ID
+ * @param {string} userId - The user ID
+ * @param {string} projectId - The project ID (optional)
+ * @returns {Promise<any>} Delete response
+ */
+export async function deleteQuestionEvidenceFiles({
+  deleteFileIds,
+  questionId,
+  userId,
+  projectId,
+}: {
+  deleteFileIds: number[];
+  questionId: string;
+  userId: string;
+  projectId?: string;
+}): Promise<any> {
+  const formData = new FormData();
+  formData.append("delete", JSON.stringify(deleteFileIds));
+  formData.append("question_id", questionId);
+  formData.append("user_id", userId);
+  if (projectId) {
+    formData.append("project_id", projectId);
+  }
+
+  const response = await apiServices.post("/files", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response;
 }

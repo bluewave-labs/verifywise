@@ -20,8 +20,8 @@ import { Typography } from "@mui/material";
 import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
-import { IconButtonProps } from "../../../domain/interfaces/i.widget";
-import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { IconButtonProps } from "../../types/widget.types";
+import { AlertProps } from "../../types/alert.types";
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,
@@ -38,6 +38,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   checkForRisks,
   onDeleteWithRisks,
   onView,
+  openLinkedPolicies,
   onSendTest,
   onToggleEnable,
   // Task-specific props
@@ -47,6 +48,9 @@ const IconButton: React.FC<IconButtonProps> = ({
   onLinkedObjects,
   hardDeleteWarningTitle,
   hardDeleteWarningMessage,
+  // Policy export props
+  onDownloadPDF,
+  onDownloadDOCX,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -132,7 +136,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     onEdit();
     if (e) {
       closeDropDownMenu(e);
-      onMouseEvent(e);
+      onMouseEvent?.(e);
     }
   };
 
@@ -142,6 +146,15 @@ const IconButton: React.FC<IconButtonProps> = ({
       if (e) {
         closeDropDownMenu(e);
         onMouseEvent?.(e); // optional chaining just in case
+      }
+    }
+  };
+
+  const handleOpenLinkedPolicies = (e?: React.SyntheticEvent) => {
+    if (openLinkedPolicies) {
+      openLinkedPolicies();
+      if (e) {
+        closeDropDownMenu(e);
       }
     }
   };
@@ -210,6 +223,24 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
+  const handleDownloadPDF = async (e?: React.SyntheticEvent) => {
+    if (onDownloadPDF) {
+      await onDownloadPDF();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleDownloadDOCX = async (e?: React.SyntheticEvent) => {
+    if (onDownloadDOCX) {
+      await onDownloadDOCX();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
   function handleCancle(e?: React.SyntheticEvent) {
     setIsOpenRemoveModal(false);
     if (e) {
@@ -228,62 +259,96 @@ const IconButton: React.FC<IconButtonProps> = ({
    * - For type "Task" (archived), the menu item will be "restore", "delete".
    * - For other types (e.g. "Vendor"), the menu item will be "edit", "remove".
    */
-  const getListOfButtons = () => {
-    if (type === "report") {
-      return ["download", "remove"];
-    } else if (type === "evidence") {
-        return ["download", "remove"];
-    } else if (type === "Resource") {
-      return ["edit", "make visible", "download", "remove"];
-    } else if (type === "Vendor") {
-      return canDelete ? ["edit", "remove"] : ["edit"]; //  conditional delete
-    } else if (type === "Incident") {
-      return ["edit", "view", "archive"];
-    } else if (type === "integration") {
-      // slack integration
-      return ["Send Test", "Activate/Deactivate", "remove"];
-    } else if (type === "Task" || type === "task") {
-      // Task-specific actions based on archived status
-      if (isArchived) {
-        return ["restore", "delete"];
-      }
-      return ["edit", "archive", "delete"];
-    } else if (type === "Policy") {
-      return ["edit", "link_objects" , "remove"];
-    } else if (type === "LinkedObjectsType") {
-      return ["remove",];
-    } else {
-      return ["edit", "remove"];
-    }
-  };
 
+  type ButtonType =
+  | "report"
+  | "evidence"
+  | "resource"
+  | "incident"
+  | "integration"
+  | "policy"
+  | "linkedobjectstype"
+  | "risk";
+
+  const BUTTONS_BY_TYPE: Record<ButtonType, string[]> = {
+    report: ["download", "linked_policies", "remove"],
+    evidence: ["download", "remove"],
+    resource: ["edit", "make visible", "download", "remove"],
+    incident: ["edit", "view", "archive"],
+    integration: ["Send Test", "Activate/Deactivate", "remove"],
+    policy: ["edit", "link_objects", "download_pdf", "download_docx", "remove"],
+    linkedobjectstype: ["remove"],
+    risk: ["edit", "linked_policies", "remove"],
+  };
+  
+
+
+  const getListOfButtons = () => {
+    const normalizedType = type?.toLowerCase();
+
+    if (normalizedType === "task") {
+      return isArchived
+        ? ["restore", "delete"]
+        : ["edit", "archive", "delete"];
+    }
+
+    if (normalizedType === "vendor") {
+      return canDelete ? ["edit", "remove"] : ["edit"];
+    }
+
+    if (normalizedType && normalizedType in BUTTONS_BY_TYPE) {
+      return BUTTONS_BY_TYPE[normalizedType as ButtonType];
+    }
+
+    return ["edit", "remove"];
+  };
+  
   const listOfButtons = getListOfButtons();
 
   /**
    * Gets the display text for menu items, with special handling for visibility toggle
    */
+
   const getMenuItemText = (item: string) => {
+    const normalizedType = type?.toLowerCase();
+  
+    // Dynamic case stays explicit
     if (item === "make visible") {
       return isVisible ? "Make hidden" : "Make visible";
     }
-    if (item === "archive" && type === "Incident") {
-      return "Archive incident";
+  
+    const LABELS_BY_TYPE: Record<string, Record<string, string>> = {
+      incident: {
+        archive: "Archive incident",
+      },
+      task: {
+        archive: "Archive task",
+        delete: "Delete permanently",
+        restore: "Restore task",
+      },
+    };
+  
+    const COMMON_ITEM_LABELS: Record<string, string> = {
+      link_objects: "Linked objects",
+      linked_policies: "Linked policies",
+      download_pdf: "Download PDF",
+      download_docx: "Download Word",
+    };
+  
+    // Type-specific
+    const typeLabel = normalizedType ? LABELS_BY_TYPE[normalizedType]?.[item] : undefined;
+    if (typeLabel) {
+      return typeLabel;
     }
-    // Task-specific labels
-    if ((type === "Task" || type === "task") && item === "archive") {
-      return "Archive task";
-    }
-    if ((type === "Task" || type === "task") && item === "delete") {
-      return "Delete permanently";
-    }
-    if ((type === "Task" || type === "task") && item === "restore") {
-      return "Restore task";
-    }
-    if ((type === "Policy" || type === "policy") && item === "link_objects") {
-      return "Linked objects";
+  
+    // Shared labels across multiple types
+    if (COMMON_ITEM_LABELS[item]) {
+      return COMMON_ITEM_LABELS[item];
     }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
+  
+
 
   /**
    * Renders a dropdown menu with dynamic options (e.g., Edit, Download, Remove)
@@ -345,6 +410,12 @@ const IconButton: React.FC<IconButtonProps> = ({
                 handleRestore(e);
               } else if (item === "link_objects") {
                 handleLinkedObjects(e);
+              } else if (item === "linked_policies") {
+                handleOpenLinkedPolicies(e);
+              } else if (item === "download_pdf") {
+                await handleDownloadPDF(e);
+              } else if (item === "download_docx") {
+                await handleDownloadDOCX(e);
               } else if (item === "delete" && (type === "Task" || type === "task")) {
                 // Task hard delete action
                 if (hardDeleteWarningTitle && hardDeleteWarningMessage) {
@@ -395,7 +466,7 @@ const IconButton: React.FC<IconButtonProps> = ({
                 if (item === "restore") {
                   return { color: "#13715B" }; // primary color
                 }
-                if (item === "link_objects") {
+                if (item === "link_objects" || item === "linked_policies") {
                   return { color: "#13715B" }; // primary color
                 }
                 return {};

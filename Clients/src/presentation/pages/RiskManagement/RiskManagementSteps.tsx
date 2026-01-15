@@ -1,7 +1,16 @@
 import { BarChart3, Filter, AlertTriangle } from "lucide-react";
-import { IPageTourStep } from "../../../domain/interfaces/i.tour";
+import { IPageTourStep } from "../../types/interfaces/i.tour";
 
 const RiskManagementSteps: IPageTourStep[] = [
+  {
+    target: '[data-joyride-id="add-risk-button"]',
+    content: {
+      header: "Add new risks",
+      body: "Create custom risks specific to your AI projects, or import industry-standard risks from IBM or MIT AI Risk Databases. Assess severity, assign owners, and define mitigation strategies.",
+      icon: <AlertTriangle size={20} color="#ffffff" />,
+    },
+    placement: "bottom-end",
+  },
   {
     target: '[data-joyride-id="risk-summary-cards"]',
     content: {
@@ -19,15 +28,6 @@ const RiskManagementSteps: IPageTourStep[] = [
       icon: <Filter size={20} color="#ffffff" />,
     },
     placement: "bottom",
-  },
-  {
-    target: '[data-joyride-id="add-risk-button"]',
-    content: {
-      header: "Add new risks",
-      body: "Create custom risks specific to your AI projects, or import industry-standard risks from IBM or MIT AI Risk Databases. Assess severity, assign owners, and define mitigation strategies.",
-      icon: <AlertTriangle size={20} color="#ffffff" />,
-    },
-    placement: "bottom-end",
   },
 ];
 

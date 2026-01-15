@@ -64,6 +64,13 @@ export class OrganizationModel
   })
   created_at?: Date;
 
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: false,
+    defaultValue: 'pending',
+  })
+  onboarding_status?: string;
+
   /**
    * Creates a new organization with validation
    *
@@ -350,6 +357,7 @@ export class OrganizationModel
       name: this.name,
       logo: this.logo,
       created_at: this.created_at?.toISOString(),
+      onboarding_status: this.onboarding_status,
     };
   }
 
@@ -362,6 +370,7 @@ export class OrganizationModel
       name: this.name,
       logo: this.logo,
       created_at: this.created_at?.toISOString(),
+      onboarding_status: this.onboarding_status,
       ageInDays: this.getAgeInDays(),
     };
   }

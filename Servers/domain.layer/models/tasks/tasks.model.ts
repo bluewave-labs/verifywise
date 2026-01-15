@@ -8,7 +8,7 @@ import {
 import { UserModel } from "../user/user.model";
 import { TaskPriority } from "../../enums/task-priority.enum";
 import { TaskStatus } from "../../enums/task-status.enum";
-import { ITask, ITaskSafeJSON, ITaskJSON } from "../../interfaces/i.task";
+import { ITask, ITaskSafeJSON } from "../../interfaces/i.task";
 import { stringValidation, enumValidation } from "../../validations/string.valid";
 import { numberValidation } from "../../validations/number.valid";
 import {ValidationException} from "../../exceptions/custom.exception";
@@ -285,7 +285,8 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   /**
    * Convert task model to JSON representation
    */
-  toJSON(): ITaskJSON {
+  toJSON(): any {
+    const dataValues = this.dataValues as any;
     return {
       id: this.id,
       title: this.title,
@@ -299,6 +300,10 @@ export class TasksModel extends Model<TasksModel> implements ITask {
       created_at: this.created_at?.toISOString(),
       updated_at: this.updated_at?.toISOString(),
       isOverdue: this.isOverdue(),
+      // Include dynamically added properties from queries
+      assignees: dataValues?.assignees,
+      creator_name: dataValues?.creator_name,
+      assignee_names: dataValues?.assignee_names,
     };
   }
 

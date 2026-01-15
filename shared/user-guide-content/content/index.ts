@@ -36,6 +36,8 @@ import { llmEvalsOverviewContent } from './llm-evals/llm-evals-overview';
 import { runningExperimentsContent } from './llm-evals/running-experiments';
 import { managingDatasetsContent } from './llm-evals/managing-datasets';
 import { configuringScorersContent } from './llm-evals/configuring-scorers';
+import { scanningContent } from './ai-detection/scanning';
+import { historyContent } from './ai-detection/history';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -87,6 +89,9 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'llm-evals/running-experiments': runningExperimentsContent,
   'llm-evals/managing-datasets': managingDatasetsContent,
   'llm-evals/configuring-scorers': configuringScorersContent,
+  // AI Detection
+  'ai-detection/scanning': scanningContent,
+  'ai-detection/history': historyContent,
 };
 
 // Helper to get article content

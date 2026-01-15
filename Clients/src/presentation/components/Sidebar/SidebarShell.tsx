@@ -11,19 +11,30 @@ import {
   Typography,
   Chip,
   Popover,
+  Slide,
 } from "@mui/material";
 import { useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
-import { Link as MuiLink } from "@mui/material";
-import { PanelLeftClose, PanelLeftOpen, Heart, ChevronDown, FolderKanban, Plus, LayoutGrid } from "lucide-react";
+import {
+  PanelLeftClose,
+  PanelLeftOpen,
+  Heart,
+  ChevronDown,
+  FolderKanban,
+  Plus,
+  LayoutGrid,
+} from "lucide-react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import Logo from "../../assets/imgs/logo.png";
+import VerifyWiseLogo from "../../assets/imgs/verifywise-logo.svg";
 import SidebarFooter from "./SidebarFooter";
 import FlyingHearts from "../FlyingHearts";
 
 declare const __APP_VERSION__: string;
+
+// Track if sidebar has been shown before (persists across module switches)
+let hasShownSidebarBefore = false;
 
 // Types for menu items
 export interface SidebarMenuItem {
@@ -78,6 +89,8 @@ export interface SidebarShellProps {
   onOpenDeleteDemoData?: () => void;
   showReadyToSubscribe?: boolean;
   openUserGuide?: () => void;
+  /** Only show demo data options to admins */
+  isAdmin?: boolean;
 
   // Enable flying hearts Easter egg (only for main sidebar)
   enableFlyingHearts?: boolean;
@@ -97,16 +110,37 @@ const SidebarShell: FC<SidebarShellProps> = ({
   onOpenDeleteDemoData,
   showReadyToSubscribe = false,
   openUserGuide,
+  isAdmin = false,
   enableFlyingHearts = false,
 }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
+
+  // Sidebar mount state for slide-in animation
+  // Skip animation if sidebar has been shown before (e.g., when switching modules)
+  const [isMounted, setIsMounted] = useState(hasShownSidebarBefore);
 
   // Heart icon state (Easter egg)
   const [showHeartIcon, setShowHeartIcon] = useState(false);
   const [showFlyingHearts, setShowFlyingHearts] = useState(false);
   const [heartReturning, setHeartReturning] = useState(false);
   const heartTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Trigger slide-in after initial render (only on first app load)
+  useEffect(() => {
+    if (hasShownSidebarBefore) {
+      // Skip animation on module switch
+      setIsMounted(true);
+      return;
+    }
+
+    // First time showing sidebar - animate it
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+      hasShownSidebarBefore = true;
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   // VerifyWiseContext available for future use
   useContext(VerifyWiseContext);
@@ -117,7 +151,8 @@ const SidebarShell: FC<SidebarShellProps> = ({
   const [delayedCollapsed, setDelayedCollapsed] = useState(collapsed);
 
   // Project selector menu state
-  const [projectMenuAnchor, setProjectMenuAnchor] = useState<null | HTMLElement>(null);
+  const [projectMenuAnchor, setProjectMenuAnchor] =
+    useState<null | HTMLElement>(null);
   const projectMenuOpen = Boolean(projectMenuAnchor);
 
   useEffect(() => {
@@ -176,7 +211,11 @@ const SidebarShell: FC<SidebarShellProps> = ({
       return isItemActive(item);
     }
     if (activeItemId) {
-      return item.id === activeItemId || item.value === activeItemId || item.path === activeItemId;
+      return (
+        item.id === activeItemId ||
+        item.value === activeItemId ||
+        item.path === activeItemId
+      );
     }
     return false;
   };
@@ -209,156 +248,309 @@ const SidebarShell: FC<SidebarShellProps> = ({
         }}
         disableInteractive
       >
-        <ListItemButton
-          disableRipple={theme.components?.MuiListItemButton?.defaultProps?.disableRipple}
-          className={isActive ? "selected-path" : "unselected"}
-          onClick={() => handleItemClick(item)}
-          disabled={isDisabled}
-          sx={{
-            height: "32px",
-            gap: collapsed ? 0 : theme.spacing(4),
-            borderRadius: theme.shape.borderRadius,
-            px: theme.spacing(4),
-            justifyContent: collapsed ? "center" : "flex-start",
-            opacity: isDisabled ? 0.5 : 1,
-            cursor: isDisabled ? "not-allowed" : "pointer",
-            "& .MuiListItemText-root": {
-              display: collapsed ? "none" : "block",
-            },
-            background: isActive && !isDisabled
-              ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
-              : "transparent",
-            border: isActive && !isDisabled
-              ? "1px solid #E8E8E8"
-              : "1px solid transparent",
-            "&:hover": {
-              background: isDisabled
-                ? "transparent"
-                : isActive
-                ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
-                : "#FAFAFA",
-              border: isDisabled
-                ? "1px solid transparent"
-                : isActive
-                ? "1px solid #E8E8E8"
-                : "1px solid transparent",
-            },
-            "&:hover svg": isDisabled ? {} : {
-              color: "#13715B !important",
-              stroke: "#13715B !important",
-            },
-            "&:hover svg path": isDisabled ? {} : {
-              stroke: "#13715B !important",
-            },
-            "&.Mui-disabled": {
-              opacity: 0.5,
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "16px",
-              mr: 0,
-              "& svg": {
-                color: isDisabled
-                  ? `${theme.palette.text.disabled} !important`
-                  : isActive
-                  ? "#13715B !important"
-                  : `${theme.palette.text.tertiary} !important`,
-                stroke: isDisabled
-                  ? `${theme.palette.text.disabled} !important`
-                  : isActive
-                  ? "#13715B !important"
-                  : `${theme.palette.text.tertiary} !important`,
-                transition: "color 0.2s ease, stroke 0.2s ease",
-              },
-              "& svg path": {
-                stroke: isDisabled
-                  ? `${theme.palette.text.disabled} !important`
-                  : isActive
-                  ? "#13715B !important"
-                  : `${theme.palette.text.tertiary} !important`,
-              },
-            }}
-          >
-            {item.icon}
-          </ListItemIcon>
-          {!delayedCollapsed && (
-            <ListItemText
+        {isDisabled ? (
+          <span style={{ display: "inline-block" }}>
+            <ListItemButton
+              disableRipple={
+                theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+              }
+              className={isActive ? "selected-path" : "unselected"}
+              onClick={() => handleItemClick(item)}
+              disabled={isDisabled}
               sx={{
-                "& .MuiListItemText-primary": {
-                  fontSize: "13px",
-                  fontWeight: isActive ? 600 : 400,
-                  color: isDisabled
-                    ? theme.palette.text.disabled
+                height: "32px",
+                gap: collapsed ? 0 : theme.spacing(4),
+                borderRadius: theme.shape.borderRadius,
+                px: theme.spacing(4),
+                justifyContent: collapsed ? "center" : "flex-start",
+                opacity: isDisabled ? 0.5 : 1,
+                cursor: isDisabled ? "not-allowed" : "pointer",
+                "& .MuiListItemText-root": {
+                  display: collapsed ? "none" : "block",
+                },
+                background:
+                  isActive && !isDisabled
+                    ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
+                    : "transparent",
+                border:
+                  isActive && !isDisabled
+                    ? "1px solid #E8E8E8"
+                    : "1px solid transparent",
+                "&:hover": {
+                  background: isDisabled
+                    ? "transparent"
                     : isActive
-                    ? theme.palette.text.primary
-                    : theme.palette.text.secondary,
+                    ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
+                    : "#FAFAFA",
+                  border: isDisabled
+                    ? "1px solid transparent"
+                    : isActive
+                    ? "1px solid #E8E8E8"
+                    : "1px solid transparent",
+                },
+                "&:hover svg": isDisabled
+                  ? {}
+                  : {
+                      color: "#13715B !important",
+                      stroke: "#13715B !important",
+                    },
+                "&:hover svg path": isDisabled
+                  ? {}
+                  : {
+                      stroke: "#13715B !important",
+                    },
+                "&.Mui-disabled": {
+                  opacity: 0.5,
                 },
               }}
             >
-              {item.label}
-            </ListItemText>
-          )}
-          {!collapsed && item.count !== undefined && item.count > 0 && !isDisabled && (
-            <Chip
-              label={item.count > 99 ? "99+" : item.count}
-              size="small"
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "16px",
+                  mr: 0,
+                  "& svg": {
+                    color: isDisabled
+                      ? `${theme.palette.text.disabled} !important`
+                      : isActive
+                      ? "#13715B !important"
+                      : `${theme.palette.text.tertiary} !important`,
+                    stroke: isDisabled
+                      ? `${theme.palette.text.disabled} !important`
+                      : isActive
+                      ? "#13715B !important"
+                      : `${theme.palette.text.tertiary} !important`,
+                    transition: "color 0.2s ease, stroke 0.2s ease",
+                  },
+                  "& svg path": {
+                    stroke: isDisabled
+                      ? `${theme.palette.text.disabled} !important`
+                      : isActive
+                      ? "#13715B !important"
+                      : `${theme.palette.text.tertiary} !important`,
+                  },
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              {!delayedCollapsed && (
+                <ListItemText
+                  sx={{
+                    "& .MuiListItemText-primary": {
+                      fontSize: "13px",
+                      fontWeight: isActive ? 600 : 400,
+                      color: isDisabled
+                        ? theme.palette.text.disabled
+                        : isActive
+                        ? theme.palette.text.primary
+                        : theme.palette.text.secondary,
+                    },
+                  }}
+                >
+                  {item.label}
+                </ListItemText>
+              )}
+              {!collapsed &&
+                item.count !== undefined &&
+                item.count > 0 &&
+                !isDisabled && (
+                  <Chip
+                    label={item.count > 99 ? "99+" : item.count}
+                    size="small"
+                    sx={{
+                      height: "18px",
+                      fontSize: "10px",
+                      fontWeight: 500,
+                      backgroundColor: isActive ? "#f8fafc" : "#e2e8f0",
+                      color: "#475569",
+                      borderRadius: "9px",
+                      minWidth: "18px",
+                      maxWidth: "36px",
+                      "& .MuiChip-label": {
+                        px: "6px",
+                        py: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      },
+                      ml: "auto",
+                    }}
+                  />
+                )}
+            </ListItemButton>
+          </span>
+        ) : (
+          <ListItemButton
+            disableRipple={
+              theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+            }
+            className={isActive ? "selected-path" : "unselected"}
+            onClick={() => handleItemClick(item)}
+            disabled={isDisabled}
+            sx={{
+              height: "32px",
+              gap: collapsed ? 0 : theme.spacing(4),
+              borderRadius: theme.shape.borderRadius,
+              px: theme.spacing(4),
+              justifyContent: collapsed ? "center" : "flex-start",
+              opacity: isDisabled ? 0.5 : 1,
+              cursor: isDisabled ? "not-allowed" : "pointer",
+              "& .MuiListItemText-root": {
+                display: collapsed ? "none" : "block",
+              },
+              background:
+                isActive && !isDisabled
+                  ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
+                  : "transparent",
+              border:
+                isActive && !isDisabled
+                  ? "1px solid #E8E8E8"
+                  : "1px solid transparent",
+              "&:hover": {
+                background: isDisabled
+                  ? "transparent"
+                  : isActive
+                  ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
+                  : "#FAFAFA",
+                border: isDisabled
+                  ? "1px solid transparent"
+                  : isActive
+                  ? "1px solid #E8E8E8"
+                  : "1px solid transparent",
+              },
+              "&:hover svg": isDisabled
+                ? {}
+                : {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+              "&:hover svg path": isDisabled
+                ? {}
+                : {
+                    stroke: "#13715B !important",
+                  },
+              "&.Mui-disabled": {
+                opacity: 0.5,
+              },
+            }}
+          >
+            <ListItemIcon
               sx={{
-                height: "18px",
-                fontSize: "10px",
-                fontWeight: 500,
-                backgroundColor: isActive ? "#f8fafc" : "#e2e8f0",
-                color: "#475569",
-                borderRadius: "9px",
-                minWidth: "18px",
-                maxWidth: "36px",
-                "& .MuiChip-label": {
-                  px: "6px",
-                  py: 0,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
+                minWidth: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "16px",
+                mr: 0,
+                "& svg": {
+                  color: isDisabled
+                    ? `${theme.palette.text.disabled} !important`
+                    : isActive
+                    ? "#13715B !important"
+                    : `${theme.palette.text.tertiary} !important`,
+                  stroke: isDisabled
+                    ? `${theme.palette.text.disabled} !important`
+                    : isActive
+                    ? "#13715B !important"
+                    : `${theme.palette.text.tertiary} !important`,
+                  transition: "color 0.2s ease, stroke 0.2s ease",
                 },
-                ml: "auto",
+                "& svg path": {
+                  stroke: isDisabled
+                    ? `${theme.palette.text.disabled} !important`
+                    : isActive
+                    ? "#13715B !important"
+                    : `${theme.palette.text.tertiary} !important`,
+                },
               }}
-            />
-          )}
-        </ListItemButton>
+            >
+              {item.icon}
+            </ListItemIcon>
+            {!delayedCollapsed && (
+              <ListItemText
+                sx={{
+                  "& .MuiListItemText-primary": {
+                    fontSize: "13px",
+                    fontWeight: isActive ? 600 : 400,
+                    color: isDisabled
+                      ? theme.palette.text.disabled
+                      : isActive
+                      ? theme.palette.text.primary
+                      : theme.palette.text.secondary,
+                  },
+                }}
+              >
+                {item.label}
+              </ListItemText>
+            )}
+            {!collapsed &&
+              item.count !== undefined &&
+              item.count > 0 &&
+              !isDisabled && (
+                <Chip
+                  label={item.count > 99 ? "99+" : item.count}
+                  size="small"
+                  sx={{
+                    height: "18px",
+                    fontSize: "10px",
+                    fontWeight: 500,
+                    backgroundColor: isActive ? "#f8fafc" : "#e2e8f0",
+                    color: "#475569",
+                    borderRadius: "9px",
+                    minWidth: "18px",
+                    maxWidth: "36px",
+                    "& .MuiChip-label": {
+                      px: "6px",
+                      py: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    },
+                    ml: "auto",
+                  }}
+                />
+              )}
+          </ListItemButton>
+        )}
       </Tooltip>
     );
   };
 
   return (
-    <Stack
-      component="aside"
-      className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
-      py={theme.spacing(6)}
-      gap={theme.spacing(2)}
-      sx={{
-        width: collapsed ? "78px" : "260px",
-        minWidth: collapsed ? "78px" : "260px",
-        maxWidth: collapsed ? "78px" : "260px",
-        flexShrink: 0,
-        height: "100vh",
-        border: "none",
-        borderRight: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
-        borderRadius: 0,
-        backgroundColor: theme.palette.background.main,
-        transition: "width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), min-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), max-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77)",
-      }}
-    >
+    <Slide direction="right" in={isMounted} timeout={350} mountOnEnter>
+      <Stack
+        component="aside"
+        className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
+        py={theme.spacing(6)}
+        gap={theme.spacing(2)}
+        sx={{
+          width: collapsed ? "78px" : "260px",
+          minWidth: collapsed ? "78px" : "260px",
+          maxWidth: collapsed ? "78px" : "260px",
+          flexShrink: 0,
+          height: "100vh",
+          overflowY: "auto",
+          overflowX: "hidden",
+          border: "none",
+          borderRight: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
+          borderRadius: 0,
+          backgroundColor: theme.palette.background.main,
+          transition:
+            "width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), min-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77), max-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77)",
+        }}
+      >
       {/* Logo Header */}
       <Stack
         pt={theme.spacing(6)}
         pb={theme.spacing(12)}
         sx={{
           position: "relative",
-          pl: delayedCollapsed ? theme.spacing(8) : `calc(${theme.spacing(8)} + ${theme.spacing(4)})`,
+          pl: delayedCollapsed
+            ? theme.spacing(8)
+            : `calc(${theme.spacing(8)} + ${theme.spacing(4)})`,
           pr: theme.spacing(8),
         }}
       >
@@ -373,7 +565,11 @@ const SidebarShell: FC<SidebarShellProps> = ({
           {!delayedCollapsed && (
             <Box
               onMouseEnter={handleLogoHover}
-              sx={{ position: "relative", display: "flex", alignItems: "center" }}
+              sx={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+              }}
             >
               {/* Heart Icon Easter Egg */}
               {enableFlyingHearts && showHeartIcon && (
@@ -392,56 +588,72 @@ const SidebarShell: FC<SidebarShellProps> = ({
                         ? "slideDownBehind 0.5s ease-in forwards"
                         : "slideUpFromBehind 0.5s ease-out",
                       "@keyframes slideUpFromBehind": {
-                        "0%": { opacity: 0, transform: "translateX(-50%) translateY(28px)", zIndex: -1 },
+                        "0%": {
+                          opacity: 0,
+                          transform: "translateX(-50%) translateY(28px)",
+                          zIndex: -1,
+                        },
                         "60%": { zIndex: -1 },
                         "70%": { opacity: 1, zIndex: 10 },
-                        "100%": { opacity: 1, transform: "translateX(-50%) translateY(0)", zIndex: 10 },
+                        "100%": {
+                          opacity: 1,
+                          transform: "translateX(-50%) translateY(0)",
+                          zIndex: 10,
+                        },
                       },
                       "@keyframes slideDownBehind": {
-                        "0%": { opacity: 1, transform: "translateX(-50%) translateY(0)", zIndex: 10 },
+                        "0%": {
+                          opacity: 1,
+                          transform: "translateX(-50%) translateY(0)",
+                          zIndex: 10,
+                        },
                         "30%": { opacity: 0.7, zIndex: 10 },
                         "40%": { zIndex: -1 },
-                        "100%": { opacity: 0, transform: "translateX(-50%) translateY(28px)", zIndex: -1 },
+                        "100%": {
+                          opacity: 0,
+                          transform: "translateX(-50%) translateY(28px)",
+                          zIndex: -1,
+                        },
                       },
                     }}
                   >
-                    <Heart size={14} color="#FF1493" strokeWidth={1.5} fill="#FF1493" />
+                    <Heart
+                      size={14}
+                      color="#FF1493"
+                      strokeWidth={1.5}
+                      fill="#FF1493"
+                    />
                   </IconButton>
                 </Tooltip>
               )}
-              <RouterLink to="/" style={{ display: "flex", alignItems: "center" }}>
+              <RouterLink
+                to="/"
+                style={{ display: "flex", alignItems: "center" }}
+              >
                 <img
-                  src={Logo}
-                  alt="Logo"
-                  width={20}
+                  src={VerifyWiseLogo}
+                  alt="VerifyWise"
                   height={20}
                   style={{ position: "relative", zIndex: 1, display: "block" }}
                 />
               </RouterLink>
-            </Box>
-          )}
-          {!delayedCollapsed && (
-            <MuiLink
-              component={RouterLink}
-              to="/"
-              sx={{ textDecoration: "none", display: "flex", alignItems: "center" }}
-            >
-              <Typography
-                component="span"
-                sx={{ opacity: 0.8, fontWeight: 500, fontSize: "13px", lineHeight: 1 }}
-                className="app-title"
+              <span
+                style={{
+                  fontSize: "8px",
+                  marginLeft: "4px",
+                  opacity: 0.6,
+                  fontWeight: 400,
+                }}
               >
-                Verify
-                <span style={{ color: "#0f604d" }}>Wise</span>
-                <span style={{ fontSize: "8px", marginLeft: "4px", opacity: 0.6, fontWeight: 400 }}>
-                  {__APP_VERSION__}
-                </span>
-              </Typography>
-            </MuiLink>
+                {__APP_VERSION__}
+              </span>
+            </Box>
           )}
           {/* Sidebar Toggle Button */}
           <IconButton
-            disableRipple={theme.components?.MuiListItemButton?.defaultProps?.disableRipple}
+            disableRipple={
+              theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+            }
             sx={{
               position: "absolute",
               right: delayedCollapsed ? "50%" : 0,
@@ -452,7 +664,8 @@ const SidebarShell: FC<SidebarShellProps> = ({
               alignItems: "center",
               p: theme.spacing(2),
               borderRadius: theme.shape.borderRadius,
-              transition: "right 0.65s cubic-bezier(0.36, -0.01, 0, 0.77), transform 0.65s cubic-bezier(0.36, -0.01, 0, 0.77)",
+              transition:
+                "right 0.65s cubic-bezier(0.36, -0.01, 0, 0.77), transform 0.65s cubic-bezier(0.36, -0.01, 0, 0.77)",
               "& svg": {
                 opacity: 0.9,
                 "& path": { stroke: theme.palette.text.tertiary },
@@ -483,8 +696,13 @@ const SidebarShell: FC<SidebarShellProps> = ({
           overflowX: "hidden",
           "&::-webkit-scrollbar": { width: "4px" },
           "&::-webkit-scrollbar-track": { background: "transparent" },
-          "&::-webkit-scrollbar-thumb": { background: theme.palette.border?.light || "#e0e0e0", borderRadius: "2px" },
-          "&::-webkit-scrollbar-thumb:hover": { background: theme.palette.border?.dark || "#d0d5dd" },
+          "&::-webkit-scrollbar-thumb": {
+            background: theme.palette.border?.light || "#e0e0e0",
+            borderRadius: "2px",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            background: theme.palette.border?.dark || "#d0d5dd",
+          },
         }}
       >
         {/* Project Selector (for Evals sidebar) */}
@@ -532,16 +750,18 @@ const SidebarShell: FC<SidebarShellProps> = ({
               transformOrigin={{ vertical: "top", horizontal: "left" }}
               sx={{
                 "& .MuiPopover-paper": {
-                  minWidth: 200,
-                  maxHeight: 300,
-                  boxShadow: theme.boxShadow,
-                  borderRadius: theme.shape.borderRadius,
+                  minWidth: 220,
+                  maxWidth: 280,
+                  maxHeight: 360,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                  borderRadius: "8px",
+                  border: "1px solid #e5e7eb",
                   mt: 1,
                   overflow: "hidden",
                 },
               }}
             >
-              <Box>
+              <Box sx={{ py: 1 }}>
                 {/* All projects option */}
                 <Box
                   onClick={() => {
@@ -552,88 +772,131 @@ const SidebarShell: FC<SidebarShellProps> = ({
                     display: "flex",
                     alignItems: "center",
                     fontSize: "13px",
-                    py: 1,
+                    py: 1.25,
                     px: 2,
                     mx: 1,
-                    my: 0.5,
-                    borderRadius: theme.shape.borderRadius,
-                    color: theme.palette.text.tertiary,
+                    borderRadius: "6px",
+                    color: theme.palette.text.secondary,
                     cursor: "pointer",
-                    transition: "color 0.2s ease, background-color 0.2s ease",
+                    transition: "all 0.15s ease",
                     "&:hover": {
-                      backgroundColor: theme.palette.background.accent,
-                      color: "#13715B",
+                      backgroundColor: "#f3f4f6",
+                      color: theme.palette.text.primary,
                     },
                   }}
                 >
-                  <LayoutGrid size={14} style={{ marginRight: 8 }} />
+                  <LayoutGrid size={15} style={{ marginRight: 10, opacity: 0.7 }} />
                   All projects
                 </Box>
+
+                {/* Projects section */}
                 {projectSelector.allProjects.length > 0 && (
-                  <Box sx={{ borderTop: `1px solid ${theme.palette.border?.light || "#e0e0e0"}`, my: 0.5 }} />
-                )}
-                {projectSelector.allProjects.map((project) => {
-                  const isSelected = project.id === projectSelector.currentProject?.id;
-                  return (
+                  <>
                     <Box
-                      key={project.id}
-                      onClick={() => {
-                        projectSelector.onProjectChange(project.id);
-                        setProjectMenuAnchor(null);
-                      }}
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        fontSize: "13px",
-                        py: 1,
-                        px: 2,
-                        mx: 1,
-                        my: 0.5,
-                        borderRadius: theme.shape.borderRadius,
-                        cursor: "pointer",
-                        backgroundColor: isSelected ? theme.palette.background.accent : "transparent",
-                        color: isSelected ? "#13715B" : theme.palette.text.primary,
-                        transition: "color 0.2s ease, background-color 0.2s ease",
-                        "&:hover": {
-                          backgroundColor: theme.palette.background.accent,
-                          color: "#13715B",
-                        },
+                        borderTop: "1px solid #e5e7eb",
+                        mx: 2,
+                        my: 1,
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        color: theme.palette.text.tertiary,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        px: 3,
+                        py: 0.75,
                       }}
                     >
-                      <FolderKanban size={14} style={{ marginRight: 8 }} />
-                      {project.name}
+                      Projects
+                    </Typography>
+                    <Box sx={{ maxHeight: 160, overflowY: "auto" }}>
+                      {projectSelector.allProjects.map((project) => {
+                        const isSelected =
+                          project.id === projectSelector.currentProject?.id;
+                        return (
+                          <Box
+                            key={project.id}
+                            onClick={() => {
+                              projectSelector.onProjectChange(project.id);
+                              setProjectMenuAnchor(null);
+                            }}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              fontSize: "13px",
+                              py: 1.25,
+                              px: 2,
+                              mx: 1,
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                              backgroundColor: isSelected ? "#f0fdf4" : "transparent",
+                              borderLeft: isSelected ? "3px solid #13715B" : "3px solid transparent",
+                              color: theme.palette.text.primary,
+                              fontWeight: isSelected ? 500 : 400,
+                              transition: "all 0.15s ease",
+                              "&:hover": {
+                                backgroundColor: isSelected ? "#f0fdf4" : "#f3f4f6",
+                              },
+                            }}
+                          >
+                            <FolderKanban 
+                              size={15} 
+                              style={{ 
+                                marginRight: 10, 
+                                opacity: isSelected ? 1 : 0.6,
+                                color: isSelected ? "#13715B" : "inherit"
+                              }} 
+                            />
+                            <Box sx={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {project.name}
+                            </Box>
+                          </Box>
+                        );
+                      })}
                     </Box>
-                  );
-                })}
-                {projectSelector.allProjects.length > 0 && (
-                  <Box sx={{ borderTop: `1px solid ${theme.palette.border?.light || "#e0e0e0"}`, my: 0.5 }}>
-                    <Box
-                      onClick={() => {
-                        projectSelector.onProjectChange("create_new");
-                        setProjectMenuAnchor(null);
-                      }}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        fontSize: "13px",
-                        py: 1,
-                        px: 2,
-                        mx: 1,
-                        my: 0.5,
-                        borderRadius: theme.shape.borderRadius,
-                        color: "#13715B",
-                        cursor: "pointer",
-                        transition: "background-color 0.2s ease",
-                        "&:hover": {
-                          backgroundColor: theme.palette.background.accent,
-                        },
-                      }}
-                    >
-                      <Plus size={14} style={{ marginRight: 8 }} />
-                      New project
-                    </Box>
-                  </Box>
+                  </>
                 )}
+
+                {/* New project option */}
+                {projectSelector.allProjects.length > 0 && (
+                  <Box
+                    sx={{
+                      borderTop: "1px solid #e5e7eb",
+                      mx: 2,
+                      mt: 1,
+                      mb: 0.5,
+                    }}
+                  />
+                )}
+                <Box
+                  onClick={() => {
+                    projectSelector.onProjectChange("create_new");
+                    setProjectMenuAnchor(null);
+                  }}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    py: 1.25,
+                    px: 2,
+                    mx: 1,
+                    mt: projectSelector.allProjects.length === 0 ? 0.5 : 0,
+                    borderRadius: "6px",
+                    color: "#13715B",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      backgroundColor: "#f0fdf4",
+                    },
+                  }}
+                >
+                  <Plus size={15} style={{ marginRight: 10 }} />
+                  New project
+                </Box>
               </Box>
             </Popover>
           </Box>
@@ -647,7 +910,13 @@ const SidebarShell: FC<SidebarShellProps> = ({
           <Box key={item.id}>
             {renderMenuItem(item)}
             {item.dividerAfter && (
-              <Box sx={{ my: 1.5, mx: theme.spacing(4), borderTop: "1px solid #E5E7EB" }} />
+              <Box
+                sx={{
+                  my: 1.5,
+                  mx: theme.spacing(4),
+                  borderTop: "1px solid #E5E7EB",
+                }}
+              />
             )}
           </Box>
         ))}
@@ -678,71 +947,75 @@ const SidebarShell: FC<SidebarShellProps> = ({
         ))}
 
         {/* Recent Sections - right after menu items */}
-        {recentSections.map((section) => (
-          !delayedCollapsed && section.items.length > 0 && (
-            <Box key={section.title} sx={{ mt: theme.spacing(4) }}>
-              <Typography
-                sx={{
-                  fontSize: "10px",
-                  fontWeight: 500,
-                  color: theme.palette.text.disabled,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  mb: 0.5,
-                  px: theme.spacing(4),
-                }}
-              >
-                {section.title}
-              </Typography>
-              {section.items.slice(0, 3).map((item) => (
-                <ListItemButton
-                  key={item.id}
-                  onClick={item.onClick}
-                  disableRipple
+        {recentSections.map(
+          (section) =>
+            !delayedCollapsed &&
+            section.items.length > 0 && (
+              <Box key={section.title} sx={{ mt: theme.spacing(4) }}>
+                <Typography
                   sx={{
-                    height: "30px",
-                    borderRadius: "4px",
+                    fontSize: "10px",
+                    fontWeight: 500,
+                    color: theme.palette.text.disabled,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    mb: 0.5,
                     px: theme.spacing(4),
-                    mb: 0.25,
-                    "&:hover": { backgroundColor: "#F9F9F9" },
                   }}
                 >
-                  <ListItemText
+                  {section.title}
+                </Typography>
+                {section.items.slice(0, 3).map((item) => (
+                  <ListItemButton
+                    key={item.id}
+                    onClick={item.onClick}
+                    disableRipple
                     sx={{
-                      "& .MuiListItemText-primary": {
-                        fontSize: "12px",
-                        color: theme.palette.text.secondary,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      },
+                      height: "30px",
+                      borderRadius: "4px",
+                      px: theme.spacing(4),
+                      mb: 0.25,
+                      "&:hover": { backgroundColor: "#F9F9F9" },
                     }}
                   >
-                    {item.name}
-                  </ListItemText>
-                </ListItemButton>
-              ))}
-            </Box>
-          )
-        ))}
+                    <ListItemText
+                      sx={{
+                        "& .MuiListItemText-primary": {
+                          fontSize: "12px",
+                          color: theme.palette.text.secondary,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        },
+                      }}
+                    >
+                      {item.name}
+                    </ListItemText>
+                  </ListItemButton>
+                ))}
+              </Box>
+            )
+        )}
       </List>
 
-      {/* Shared Footer */}
-      <SidebarFooter
-        collapsed={collapsed}
-        delayedCollapsed={delayedCollapsed}
-        hasDemoData={hasDemoData}
-        onOpenCreateDemoData={onOpenCreateDemoData}
-        onOpenDeleteDemoData={onOpenDeleteDemoData}
-        showReadyToSubscribe={showReadyToSubscribe}
-        openUserGuide={openUserGuide}
-      />
+        {/* Shared Footer */}
+        <SidebarFooter
+          collapsed={collapsed}
+          delayedCollapsed={delayedCollapsed}
+          hasDemoData={hasDemoData}
+          onOpenCreateDemoData={onOpenCreateDemoData}
+          onOpenDeleteDemoData={onOpenDeleteDemoData}
+          showReadyToSubscribe={showReadyToSubscribe}
+          openUserGuide={openUserGuide}
+          isAdmin={isAdmin}
+        />
 
-      {/* Flying Hearts Animation */}
-      {enableFlyingHearts && showFlyingHearts && (
-        <FlyingHearts onComplete={() => setShowFlyingHearts(false)} />
-      )}
-    </Stack>
+        {/* Flying Hearts Animation */}
+        {enableFlyingHearts && showFlyingHearts && (
+          <FlyingHearts onComplete={() => setShowFlyingHearts(false)} />
+        )}
+      </Stack>
+    </Slide>
   );
 };
 

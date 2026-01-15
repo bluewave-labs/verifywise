@@ -13,7 +13,7 @@ import dayjs, { Dayjs } from "dayjs";
 import useUsers from "../../../application/hooks/useUsers";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useCallback } from "react";
-import { PolicyFormData, PolicyFormProps } from "../../../domain/interfaces/i.policy";
+import { PolicyFormData, PolicyFormProps } from "../../types/interfaces/i.policy";
 import { getAutocompleteStyles } from "../../utils/inputStyles";
 
 
@@ -90,10 +90,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
                 formData.nextReviewDate ? dayjs(formData.nextReviewDate) : null
               }
               handleDateChange={handleDateChange}
-              sx={{
-                width: "100%",
-                "& input": { width: "85px" },
-              }}
+              sx={{ width: "100%" }}
               isRequired
               error={errors.nextReviewDate}
             />

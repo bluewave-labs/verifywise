@@ -33,7 +33,6 @@ import {
 import IncidentTable from "./IncidentTable";
 import NewIncident from "../../components/Modals/NewIncident";
 import {
-  AIIncidentManagementApprovalStatus,
   IncidentManagementStatus,
   Severity,
 } from "../../../domain/enums/aiIncidentManagement.enum";
@@ -110,21 +109,6 @@ const IncidentManagement: React.FC = () => {
       }));
   }, [incidentsData]);
 
-  const getUniqueReporters = useCallback(() => {
-    const reporters = new Set<string>();
-    incidentsData.forEach((incident) => {
-      if (incident.reporter) {
-        reporters.add(incident.reporter);
-      }
-    });
-    return Array.from(reporters)
-      .sort()
-      .map((reporter) => ({
-        value: reporter,
-        label: reporter,
-      }));
-  }, [incidentsData]);
-
   const getUniqueTypes = useCallback(() => {
     const types = new Set<string>();
     incidentsData.forEach((incident) => {
@@ -185,41 +169,12 @@ const IncidentManagement: React.FC = () => {
         ],
       },
       {
-        id: "approval_status",
-        label: "Approval status",
-        type: "select" as const,
-        options: [
-          {
-            value: AIIncidentManagementApprovalStatus.PENDING,
-            label: "Pending",
-          },
-          {
-            value: AIIncidentManagementApprovalStatus.APPROVED,
-            label: "Approved",
-          },
-          {
-            value: AIIncidentManagementApprovalStatus.REJECTED,
-            label: "Rejected",
-          },
-          {
-            value: AIIncidentManagementApprovalStatus.NOT_REQUIRED,
-            label: "Not required",
-          },
-        ],
-      },
-      {
-        id: "reporter",
-        label: "Reporter",
-        type: "select" as const,
-        options: getUniqueReporters(),
-      },
-      {
         id: "occurred_date",
         label: "Occurred date",
         type: "date" as const,
       },
     ],
-    [getUniqueProjects, getUniqueReporters, getUniqueTypes]
+    [getUniqueProjects, getUniqueTypes]
   );
 
   // FilterBy - Field value getter
@@ -239,10 +194,6 @@ const IncidentManagement: React.FC = () => {
           return item.severity;
         case "status":
           return item.status;
-        case "approval_status":
-          return item.approval_status;
-        case "reporter":
-          return item.reporter;
         case "occurred_date":
           return item.occurred_date;
         default:
@@ -290,14 +241,10 @@ const IncidentManagement: React.FC = () => {
         return incident.severity || "Unknown";
       case "status":
         return incident.status || "Unknown";
-      case "approval_status":
-        return incident.approval_status || "Unknown";
       case "type":
         return incident.type || "Unknown";
       case "ai_project":
         return incident.ai_project || "Unknown Project";
-      case "reporter":
-        return incident.reporter || "Unknown";
       default:
         return "Other";
     }
@@ -616,10 +563,8 @@ const IncidentManagement: React.FC = () => {
               options={[
                 { id: "severity", label: "Severity" },
                 { id: "status", label: "Status" },
-                { id: "approval_status", label: "Approval status" },
                 { id: "type", label: "Type" },
                 { id: "ai_project", label: "AI Project" },
-                { id: "reporter", label: "Reporter" },
               ]}
               onGroupChange={handleGroupChange}
             />

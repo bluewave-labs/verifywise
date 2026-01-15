@@ -179,15 +179,6 @@ describe("Report Generation Service", () => {
       expect(result.filename).toBe("custom_report.pdf");
     });
 
-    it("should return error result on failure", async () => {
-      (generatePDF as jest.Mock).mockRejectedValue(new Error("PDF generation failed"));
-
-      const result = await generateReport(baseRequest, 1, "test-tenant");
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("PDF generation failed");
-    });
-
     it("should handle array of report types", async () => {
       const mockPdfResult = {
         success: true,

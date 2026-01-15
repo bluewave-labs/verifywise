@@ -39,7 +39,9 @@ export async function getAllNISTAIRMFCategoriesByfunctionId(
   } catch (error) {
     await logEvent(
       "Error",
-      `Failed to retrieve NIST AI RMF categories by function ID: ${(error as Error).message}`
+      `Failed to retrieve NIST AI RMF categories by function ID: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllNISTAIRMFCategoriesByfunctionId:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

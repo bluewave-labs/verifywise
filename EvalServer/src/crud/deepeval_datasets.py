@@ -60,20 +60,43 @@ async def list_user_datasets(
     """
     List user datasets for a tenant (optionally filtered by org_id).
     Multi-tenancy is handled by the schema name.
+
+    Note: Handles both legacy schema (tenant column) and new schema (org_id column).
     """
+    # First, check which columns exist in the table
+    cols_result = await db.execute(
+        text("""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = :schema
+            AND table_name = 'deepeval_user_datasets'
+        """),
+        {"schema": tenant}
+    )
+    existing_cols = {row[0] for row in cols_result.fetchall()}
+
+    # Use org_id if it exists, otherwise fall back to tenant column
+    has_org_id = "org_id" in existing_cols
+    has_created_by = "created_by" in existing_cols
+
     params: Dict[str, Any] = {}
-    
-    # Build WHERE clause - org_id filter is optional
-    if org_id:
+    where_clause = ""
+
+    if org_id and has_org_id:
         where_clause = "WHERE org_id = :org_id"
         params["org_id"] = org_id
-    else:
-        where_clause = ""
-    
+
+    # Build SELECT clause based on available columns
+    select_cols = ["id", "name", "path", "size", "prompt_count", "dataset_type", "turn_type", "created_at"]
+    if has_org_id:
+        select_cols.append("org_id")
+    if has_created_by:
+        select_cols.append("created_by")
+
     res = await db.execute(
         text(
             f'''
-            SELECT id, name, path, size, prompt_count, dataset_type, turn_type, org_id, created_at, created_by
+            SELECT {", ".join(select_cols)}
             FROM "{tenant}".deepeval_user_datasets
             {where_clause}
             ORDER BY created_at DESC;
@@ -83,20 +106,19 @@ async def list_user_datasets(
     )
     items: List[Dict[str, Any]] = []
     for r in res.mappings().all():
-        items.append(
-            {
-                "id": r["id"],
-                "name": r["name"],
-                "path": r["path"],
-                "size": r["size"],
-                "promptCount": r["prompt_count"] if r["prompt_count"] else 0,
-                "datasetType": r["dataset_type"] if r["dataset_type"] else "chatbot",
-                "turnType": r["turn_type"] if r["turn_type"] else None,
-                "orgId": r["org_id"],
-                "createdAt": r["created_at"].isoformat() if r["created_at"] else None,
-                "createdBy": r["created_by"],
-            }
-        )
+        item = {
+            "id": r["id"],
+            "name": r["name"],
+            "path": r["path"],
+            "size": r["size"],
+            "promptCount": r["prompt_count"] if r["prompt_count"] else 0,
+            "datasetType": r["dataset_type"] if r["dataset_type"] else "chatbot",
+            "turnType": r["turn_type"] if r["turn_type"] else None,
+            "orgId": r.get("org_id") if has_org_id else None,
+            "createdAt": r["created_at"].isoformat() if r["created_at"] else None,
+            "createdBy": r.get("created_by") if has_created_by else None,
+        }
+        items.append(item)
     return items
 
 

@@ -54,12 +54,15 @@ interface SidebarFooterProps {
   onOpenDeleteDemoData?: () => void;
   showReadyToSubscribe?: boolean;
   openUserGuide?: () => void;
+  /** Only show demo data options to admins */
+  isAdmin?: boolean;
 }
 
 const getManagementItems = (
   hasDemoData?: boolean,
   onOpenCreateDemoData?: () => void,
-  onOpenDeleteDemoData?: () => void
+  onOpenDeleteDemoData?: () => void,
+  isAdmin?: boolean
 ): IManagementItem[] => [
   {
     name: "Event Tracker",
@@ -71,21 +74,24 @@ const getManagementItems = (
     icon: <Settings size={16} strokeWidth={1.5} />,
     path: "/settings",
   },
-  ...(hasDemoData
-    ? [
-        {
-          name: "Delete demo data",
-          icon: <Database size={16} strokeWidth={1.5} />,
-          action: onOpenDeleteDemoData,
-        },
-      ]
-    : [
-        {
-          name: "Create demo data",
-          icon: <Database size={16} strokeWidth={1.5} />,
-          action: onOpenCreateDemoData,
-        },
-      ]),
+  // Only show demo data options to admins
+  ...(isAdmin
+    ? hasDemoData
+      ? [
+          {
+            name: "Delete demo data",
+            icon: <Database size={16} strokeWidth={1.5} />,
+            action: onOpenDeleteDemoData,
+          },
+        ]
+      : [
+          {
+            name: "Create demo data",
+            icon: <Database size={16} strokeWidth={1.5} />,
+            action: onOpenCreateDemoData,
+          },
+        ]
+    : []),
 ];
 
 interface User_Avatar {
@@ -111,6 +117,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
   onOpenDeleteDemoData,
   showReadyToSubscribe = false,
   openUserGuide,
+  isAdmin = false,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -179,7 +186,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
     };
   }, [slideoverOpen]);
 
-  const isManagementActive = getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(
+  const isManagementActive = getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData, isAdmin).some(
     (item) => item.path && (location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
   );
 
@@ -314,7 +321,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
             },
           }}
         >
-          {getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).map((item) => (
+          {getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData, isAdmin).map((item) => (
             <MenuItem
               key={item.path || item.name}
               onClick={() => {
@@ -580,8 +587,8 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                     </Box>
                   </ListItemButton>
 
-                  {/* Create Demo Data / Delete Demo Data */}
-                  {hasDemoData ? (
+                  {/* Create Demo Data / Delete Demo Data - Only for admins */}
+                  {isAdmin && (hasDemoData ? (
                     <ListItemButton
                       onClick={() => {
                         if (onOpenDeleteDemoData) {
@@ -649,7 +656,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                         Create demo data
                       </Typography>
                     </ListItemButton>
-                  )}
+                  ))}
                 </Stack>
               </Box>
 
@@ -770,7 +777,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                   {/* Get Support */}
                   <ListItemButton
                     onClick={() => {
-                      window.open("https://cal.com/verifywise/", "_blank", "noreferrer");
+                      window.open("https://verifywise.ai/contact", "_blank", "noreferrer");
                       closePopup();
                     }}
                     sx={{

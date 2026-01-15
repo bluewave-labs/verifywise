@@ -369,18 +369,6 @@ const Vendors = () => {
         ],
       },
       {
-        id: "likelihood",
-        label: "Likelihood",
-        type: "select" as const,
-        options: [
-          { value: "Rare", label: "Rare" },
-          { value: "Unlikely", label: "Unlikely" },
-          { value: "Possible", label: "Possible" },
-          { value: "Likely", label: "Likely" },
-          { value: "Almost Certain", label: "Almost Certain" },
-        ],
-      },
-      {
         id: "risk_level",
         label: "Risk level",
         type: "select" as const,
@@ -413,8 +401,6 @@ const Vendors = () => {
           return item.vendor_id?.toString();
         case "risk_severity":
           return item.risk_severity;
-        case "likelihood":
-          return item.likelihood;
         case "risk_level":
           return item.risk_level;
         case "action_owner":
@@ -863,8 +849,6 @@ const Vendors = () => {
     switch (field) {
       case "risk_severity":
         return risk.risk_severity || "Unknown";
-      case "likelihood":
-        return risk.likelihood || "Unknown";
       case "risk_level":
         return risk.risk_level || "Unknown";
       case "vendor_name":
@@ -1145,7 +1129,6 @@ const Vendors = () => {
                     <GroupBy
                       options={[
                         { id: "risk_severity", label: "Risk severity" },
-                        { id: "likelihood", label: "Likelihood" },
                         { id: "risk_level", label: "Risk level" },
                         { id: "vendor_name", label: "Vendor" },
                         { id: "action_owner", label: "Action owner" },
@@ -1167,21 +1150,23 @@ const Vendors = () => {
                       filename="vendor-risks"
                       title="Vendor Risks"
                     />
-                    <CustomizableButton
-                      variant="contained"
-                      text="Add new risk"
-                      sx={{
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
-                        gap: 2,
-                      }}
-                      icon={<AddCircleOutlineIcon size={16} />}
-                      onClick={() => {
-                        setSelectedRisk(null);
-                        handleRiskModal();
-                      }}
-                      isDisabled={isCreatingDisabled}
-                    />
+                    <Box data-joyride-id="add-vendor-risk-button">
+                      <CustomizableButton
+                        variant="contained"
+                        text="Add new risk"
+                        sx={{
+                          backgroundColor: "#13715B",
+                          border: "1px solid #13715B",
+                          gap: 2,
+                        }}
+                        icon={<AddCircleOutlineIcon size={16} />}
+                        onClick={() => {
+                          setSelectedRisk(null);
+                          handleRiskModal();
+                        }}
+                        isDisabled={isCreatingDisabled}
+                      />
+                    </Box>
                   </Stack>
                 </Stack>
               </Stack>

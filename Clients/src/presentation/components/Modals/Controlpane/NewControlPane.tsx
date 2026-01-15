@@ -43,7 +43,7 @@ import {
   styles,
 } from "../../../pages/ComplianceTracker/1.0ComplianceTracker/styles";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../domain/interfaces/i.alert";
+import { AlertProps } from "../../../types/alert.types";
 import allowedRoles from "../../../../application/constants/permissions";
 import { updateControl } from "../../../../application/repository/control_eu_act.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -905,7 +905,7 @@ const NewControlPane = ({
       icon: "FileText" as keyof typeof LucideIcons,
     },
     {
-      label: "Evidences",
+      label: "Evidence",
       value: "evidences",
       icon: "FolderOpen" as keyof typeof LucideIcons,
     },

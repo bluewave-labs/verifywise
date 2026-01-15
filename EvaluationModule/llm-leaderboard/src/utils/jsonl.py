@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 from pathlib import Path
-from typing import Dict, Iterable, Tuple, Any
+from typing import Dict, Iterable, Tuple, Any, List
 
 def iter_jsonl(path: Path) -> Iterable[Tuple[int, Dict[str, Any]]]:
     """
@@ -20,3 +20,9 @@ def iter_jsonl(path: Path) -> Iterable[Tuple[int, Dict[str, Any]]]:
             if not isinstance(obj, dict):
                 raise RuntimeError(f"Expected JSON object on {path}:{i}, got {type(obj).__name__}")
             yield i, obj
+
+def write_jsonl(path: Path, rows: List[Dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        for r in rows:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")

@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
+from tqdm import tqdm
 
 import yaml
 
@@ -114,26 +115,35 @@ def main() -> int:
     scenarios_path = dataset_dir / "scenarios.jsonl"
     if not scenarios_path.exists():
         raise FileNotFoundError(f"Missing scenarios.jsonl: {scenarios_path}")
+    
+    scenario_rows = [s for _, s in iter_jsonl(scenarios_path)]
+    if args.max_items:
+        scenario_rows = scenario_rows[: args.max_items]
 
     out_path = Path(args.out) if args.out else (dataset_dir / "candidates_llm.jsonl")
 
     styles = load_styles(Path(args.styles))
     client = OpenAICompatibleClient(base_url=args.base_url, api_key=args.api_key, model=args.model)
 
+    total_scenarios = len(scenario_rows)
+    total_calls = total_scenarios * len(styles)
+
     rows: List[Dict[str, Any]] = []
 
-    processed = 0
-    for _, scenario in iter_jsonl(scenarios_path):
-        processed += 1
-        if args.max_items and processed > args.max_items:
-            break
+    pbar = tqdm(total=total_calls, desc="Generating LLM candidates", unit="call")
 
+    processed_scenarios = 0
+    for scenario in scenario_rows:
+        processed_scenarios += 1
         sid = scenario["scenario_id"]
 
         for style in styles:
-            # You can optionally shuffle styles deterministically per scenario
-            # but stable ordering is also fine. We'll keep stable ordering.
             messages = build_messages(scenario=scenario, style=style)
+
+            # show where we are (nice in long runs)
+            pbar.set_postfix_str(
+                f"scenario={sid} style={style.style_id} model={args.model}"
+            )
 
             resp = client.chat(
                 messages,
@@ -143,7 +153,6 @@ def main() -> int:
             text = resp.text
             enforce_basic_heuristics(text)
 
-            # Unique answer_id
             answer_id = f"{sid}_llm_{style.style_id}_{args.model.replace('/', '_')}"
 
             rows.append(
@@ -151,7 +160,7 @@ def main() -> int:
                     "scenario_id": sid,
                     "answer_id": answer_id,
                     "answer_text": text,
-                    "label": style.label,  # good/risky/bad
+                    "label": style.label,
                     "violation_tags": style_violation_tags(style.style_id),
                     "metadata": {
                         "generation_method": "llm_tier1",
@@ -163,15 +172,18 @@ def main() -> int:
                         "seed": args.seed,
                         "max_tokens": args.max_tokens,
                         "generated_at": datetime.now(timezone.utc).isoformat(),
+                        "prompt_messages": messages,
                     },
                 }
             )
 
-        # slight deterministic jitter if you ever want spacing; not needed now
+            pbar.update(1)
+
+    pbar.close()
 
     write_jsonl(out_path, rows)
     print("Generated LLM candidates (Tier 1)")
-    print(f"- scenarios processed: {processed if not args.max_items else min(processed, args.max_items)}")
+    print(f"- scenarios processed: {total_scenarios}")
     print(f"- styles: {len(styles)}")
     print(f"- output rows: {len(rows)}")
     print(f"- out: {out_path}")

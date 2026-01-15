@@ -1546,7 +1546,7 @@ This notification was sent on {{date_and_time}}.`,
       {/* Breadcrumbs with integrated action buttons and divider */}
       <PageBreadcrumbs />
 
-      <Box sx={{ height: "calc(100vh - 180px)" }}>
+      <Box sx={{ height: "calc(100vh - 100px)" }}>
         <Box
           sx={{
             height: "100%",

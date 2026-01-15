@@ -1,10 +1,10 @@
 import { Queue } from "bullmq";
-import redisClient from "../../database/redis"
+import { REDIS_URL } from "../../database/redis"
 import logger from "../../utils/logger/fileLogger";
 
 // Create a new queue (connected to Redis using environment variable)
 export const automationQueue = new Queue("automation-actions", {
-  connection: redisClient
+  connection: { url: REDIS_URL }
 });
 
 export async function enqueueAutomationAction(

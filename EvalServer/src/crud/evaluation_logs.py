@@ -62,7 +62,7 @@ async def create_log(
             "cost": cost,
             "status": status,
             "error_message": error_message,
-            "created_by": int(created_by) if created_by is not None else None,
+            "created_by": str(created_by) if created_by is not None else None,
         }
     )
 
@@ -331,13 +331,13 @@ async def create_experiment(
                 "config_json": config_json,
                 "baseline_experiment_id": baseline_experiment_id,
                 "status": "pending",
-                "created_by": int(created_by) if created_by is not None else None,
+                "created_by": str(created_by) if created_by is not None else None,
             }
         )
-        
+
         await db.commit()
         row = result.mappings().first()
-        
+
         if row:
             print(f"✅ CRUD - Experiment inserted successfully")
             return {

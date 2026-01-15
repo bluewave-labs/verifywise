@@ -344,7 +344,7 @@ const FileManager: React.FC = (): JSX.Element => {
                 value={searchTerm}
                 onChange={setSearchTerm}
                 inputProps={{ "aria-label": "Search files" }}
-                fullWidth={false}
+                sx={{ width: "220px" }}
               />
             </Box>
             {/* RBAC: Only show upload button for non-Auditors */}

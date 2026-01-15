@@ -15,7 +15,8 @@ import {
   TablePagination,
   TableFooter,
   IconButton,
-  Popover,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import { Plus, Pencil, Trash2, FileSearch, MessageSquare, Bot, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
 import SelectableCard from "../../components/SelectableCard";
@@ -777,73 +778,28 @@ export default function ProjectsList() {
       )}
 
       {/* Action Menu */}
-      <Popover
-        open={Boolean(menuAnchorEl)}
+      <Menu
         anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        sx={{
-          "& .MuiPopover-paper": {
-            minWidth: 140,
-            borderRadius: "4px",
-            border: "1px solid #d0d5dd",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            overflow: "hidden",
-            mt: 0.5,
-            p: 1,
+        slotProps={{
+          paper: {
+            sx: singleTheme.dropDownStyles.primary,
           },
         }}
       >
-        <Stack spacing={1}>
-          {canEditProject && (
-            <CustomizableButton
-              variant="outlined"
-              onClick={handleMenuEdit}
-              startIcon={<Pencil size={14} />}
-              sx={{
-                height: "34px",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
-                backgroundColor: "transparent",
-                justifyContent: "flex-start",
-                "&:hover": {
-                  backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
-                },
-              }}
-            >
-              Edit
-            </CustomizableButton>
-          )}
-          {canDeleteProject && (
-            <CustomizableButton
-              variant="outlined"
-              onClick={handleMenuDelete}
-              startIcon={<Trash2 size={14} />}
-              sx={{
-                height: "34px",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#DC2626",
-                borderColor: "#d0d5dd",
-                backgroundColor: "transparent",
-                justifyContent: "flex-start",
-                "&:hover": {
-                  backgroundColor: "#FEF2F2",
-                  borderColor: "#DC2626",
-                },
-              }}
-            >
-              Delete
-            </CustomizableButton>
-          )}
-        </Stack>
-      </Popover>
+        {canEditProject && (
+          <MenuItem onClick={handleMenuEdit}>
+            Edit
+          </MenuItem>
+        )}
+        {canDeleteProject && (
+          <MenuItem onClick={handleMenuDelete} sx={{ color: "#d32f2f" }}>
+            Delete
+          </MenuItem>
+        )}
+      </Menu>
 
       {/* Create Project Modal */}
       <StandardModal

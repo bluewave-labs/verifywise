@@ -1783,6 +1783,7 @@ export const createNewTenant = async (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
+        use_case VARCHAR(50) DEFAULT 'chatbot',
         org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

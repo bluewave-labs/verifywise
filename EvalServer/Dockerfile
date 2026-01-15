@@ -18,4 +18,7 @@ COPY ./EvaluationModule/src/deepeval_engine /app/deepeval_engine
 # Copy the datasets from EvaluationModule
 COPY ./EvaluationModule/data/datasets /app/datasets
 
+# Create uploads directory for user datasets (will be mounted as volume)
+RUN mkdir -p /app/data/uploads
+
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

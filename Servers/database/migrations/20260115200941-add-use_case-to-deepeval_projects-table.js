@@ -12,7 +12,7 @@ module.exports = {
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
 
-        await queryInterface.query(
+        await queryInterface.sequelize.query(
           `ALTER TABLE "${tenantHash}".deepeval_projects ADD COLUMN use_case VARCHAR(50) DEFAULT 'chatbot';`, { transaction }
         )
       }

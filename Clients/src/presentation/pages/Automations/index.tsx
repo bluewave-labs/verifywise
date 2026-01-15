@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, Suspense } from "react";
-import { Grid, Box, Stack, useTheme } from "@mui/material";
+import { Box, Stack, useTheme } from "@mui/material";
 import { Settings } from "lucide-react";
 import AutomationList from "./components/AutomationList";
 import AutomationBuilder from "./components/AutomationBuilder";
@@ -1556,120 +1556,121 @@ This notification was sent on {{date_and_time}}.`,
             display: "flex",
           }}
         >
-          <Grid container spacing={0} sx={{ height: "100%" }}>
-            {/* Left Sidebar - Automation List */}
-            <Grid
-              size={{ xs: 12, md: 3 }}
-              sx={{
-                height: "100%",
-                borderRight: `1px solid ${theme.palette.border.dark}`,
-                background:
-                  "linear-gradient(135deg, rgba(200,200,200,0.1) 0%, rgba(255,255,255,0) 100%) !important",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <AutomationList
-                automations={filteredAutomations}
-                selectedAutomationId={selectedAutomationId}
-                searchQuery={searchQuery}
-                isLoading={isLoading}
-                onSelectAutomation={handleSelectAutomation}
-                onCreateAutomation={handleCreateAutomation}
-                onDeleteAutomation={handleDeleteAutomation}
-                onDiscardAutomation={handleDiscardAutomation}
-                onToggleAutomation={handleToggleAutomation}
-                onSearchChange={setSearchQuery}
-              />
-            </Grid>
+          {/* Left Sidebar - Automation List (fixed width) */}
+          <Box
+            sx={{
+              width: "250px",
+              minWidth: "250px",
+              height: "100%",
+              borderRight: `1px solid ${theme.palette.border.dark}`,
+              background:
+                "linear-gradient(135deg, rgba(200,200,200,0.1) 0%, rgba(255,255,255,0) 100%) !important",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <AutomationList
+              automations={filteredAutomations}
+              selectedAutomationId={selectedAutomationId}
+              searchQuery={searchQuery}
+              isLoading={isLoading}
+              onSelectAutomation={handleSelectAutomation}
+              onCreateAutomation={handleCreateAutomation}
+              onDeleteAutomation={handleDeleteAutomation}
+              onDiscardAutomation={handleDiscardAutomation}
+              onToggleAutomation={handleToggleAutomation}
+              onSearchChange={setSearchQuery}
+            />
+          </Box>
 
-            {/* Center Panel - Automation Builder */}
-            <Grid
-              size={{ xs: 12, md: showConfigurationPanel ? 6 : 9 }}
+          {/* Center Panel - Automation Builder (flexible width) */}
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              height: "100%",
+              ...(showConfigurationPanel
+                ? { borderRight: `1px solid ${theme.palette.border.dark}` }
+                : {}),
+              background:
+                "linear-gradient(135deg, rgba(100,150,255,0.08) 0%, rgba(255,255,255,0) 100%), #F9FAF9 !important",
+              position: "relative",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <AutomationBuilder
+              automation={selectedAutomation ?? null}
+              triggerTemplates={mockTriggerTemplates}
+              actionTemplates={mockActionTemplates}
+              selectedItemId={selectedItemId}
+              selectedItemType={selectedItemType}
+              onAddTrigger={handleAddTrigger}
+              onAddAction={handleAddAction}
+              onSelectItem={handleSelectItem}
+              onDeleteTrigger={handleDeleteTrigger}
+              onDeleteAction={handleDeleteAction}
+              onUpdateAutomationName={(newName) =>
+                selectedAutomation &&
+                handleRenameAutomation(selectedAutomation.id, newName)
+              }
+              onUpdateAutomationDescription={(newDescription) =>
+                selectedAutomation &&
+                handleUpdateAutomationDescription(
+                  selectedAutomation.id,
+                  newDescription
+                )
+              }
+              onSave={handleSaveAutomation}
+              isSaving={isSaving}
+            />
+
+            {/* Large gear icon decoration */}
+            <Box
               sx={{
+                position: "absolute",
+                bottom: "-10%",
+                right: "-10%",
+                transform: "rotate(-15deg)",
+                opacity: 0.025,
+                pointerEvents: "none",
+                zIndex: 0,
+              }}
+            >
+              <Settings size={350} strokeWidth={1} />
+            </Box>
+          </Box>
+
+          {/* Right Panel - Configuration (fixed width, conditional) */}
+          {showConfigurationPanel && (
+            <Box
+              sx={{
+                width: "340px",
+                minWidth: "340px",
                 height: "100%",
-                ...(showConfigurationPanel
-                  ? { borderRight: `1px solid ${theme.palette.border.dark}` }
-                  : {}),
                 background:
-                  "linear-gradient(135deg, rgba(100,150,255,0.08) 0%, rgba(255,255,255,0) 100%), #F9FAF9 !important",
-                position: "relative",
-                overflow: "hidden",
+                  "linear-gradient(135deg, rgba(200,200,200,0.08) 0%, rgba(255,255,255,0) 100%) !important",
                 display: "flex",
                 flexDirection: "column",
               }}
             >
-              <AutomationBuilder
-                automation={selectedAutomation ?? null}
+              <ConfigurationPanel
+                selectedItem={selectedItem}
+                selectedItemType={selectedItemType}
+                trigger={selectedAutomation?.trigger ?? null}
                 triggerTemplates={mockTriggerTemplates}
                 actionTemplates={mockActionTemplates}
-                selectedItemId={selectedItemId}
-                selectedItemType={selectedItemType}
-                onAddTrigger={handleAddTrigger}
-                onAddAction={handleAddAction}
-                onSelectItem={handleSelectItem}
-                onDeleteTrigger={handleDeleteTrigger}
-                onDeleteAction={handleDeleteAction}
-                onUpdateAutomationName={(newName) =>
+                onConfigurationChange={handleUpdateConfiguration}
+                automationName={selectedAutomation?.name}
+                onAutomationNameChange={(newName) =>
                   selectedAutomation &&
                   handleRenameAutomation(selectedAutomation.id, newName)
                 }
-                onUpdateAutomationDescription={(newDescription) =>
-                  selectedAutomation &&
-                  handleUpdateAutomationDescription(
-                    selectedAutomation.id,
-                    newDescription
-                  )
-                }
-                onSave={handleSaveAutomation}
-                isSaving={isSaving}
+                projects={projects}
               />
-
-              {/* Large gear icon decoration */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  bottom: "-10%",
-                  right: "-10%",
-                  transform: "rotate(-15deg)",
-                  opacity: 0.025,
-                  pointerEvents: "none",
-                  zIndex: 0,
-                }}
-              >
-                <Settings size={350} strokeWidth={1} />
-              </Box>
-            </Grid>
-
-            {/* Right Panel - Configuration (conditional) */}
-            {showConfigurationPanel && (
-              <Grid
-                size={{ xs: 12, md: 3 }}
-                sx={{
-                  height: "100%",
-                  background:
-                    "linear-gradient(135deg, rgba(200,200,200,0.08) 0%, rgba(255,255,255,0) 100%) !important",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <ConfigurationPanel
-                  selectedItem={selectedItem}
-                  selectedItemType={selectedItemType}
-                  trigger={selectedAutomation?.trigger ?? null}
-                  triggerTemplates={mockTriggerTemplates}
-                  actionTemplates={mockActionTemplates}
-                  onConfigurationChange={handleUpdateConfiguration}
-                  automationName={selectedAutomation?.name}
-                  onAutomationNameChange={(newName) =>
-                    selectedAutomation &&
-                    handleRenameAutomation(selectedAutomation.id, newName)
-                  }
-                  projects={projects}
-                />
-              </Grid>
-            )}
-          </Grid>
+            </Box>
+          )}
         </Box>
       </Box>
 

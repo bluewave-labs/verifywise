@@ -126,7 +126,7 @@ def main() -> int:
         print(f"==============================")
         sample_and_print(tpls, rng=rng, n=args.samples_per_type)
 
-    print("\n✅ Dry run completed successfully.")
+    print("\nDry run completed successfully.")
     return 0
 
 

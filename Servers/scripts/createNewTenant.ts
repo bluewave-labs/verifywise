@@ -1963,6 +1963,46 @@ export const createNewTenant = async (
       FOR EACH ROW EXECUTE PROCEDURE update_evaluation_llm_api_keys_updated_at();
     `, { transaction });
 
+    // 8. deepeval_arena_comparisons table (for LLM Arena head-to-head comparisons)
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_arena_comparisons (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        org_id VARCHAR(255) REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
+        contestants JSONB NOT NULL DEFAULT '[]',
+        contestant_names JSONB NOT NULL DEFAULT '[]',
+        metric_config JSONB NOT NULL DEFAULT '{}',
+        judge_model VARCHAR(255) DEFAULT 'gpt-4o',
+        status VARCHAR(50) DEFAULT 'pending',
+        progress TEXT,
+        winner VARCHAR(255),
+        win_counts JSONB DEFAULT '{}',
+        detailed_results JSONB DEFAULT '[]',
+        error_message TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP WITH TIME ZONE,
+        created_by VARCHAR(255)
+      );
+    `, { transaction });
+
+    // Create indexes for deepeval_arena_comparisons
+    await Promise.all([
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_org_id ON "${tenantHash}".deepeval_arena_comparisons(org_id);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_status ON "${tenantHash}".deepeval_arena_comparisons(status);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_created_at ON "${tenantHash}".deepeval_arena_comparisons(created_at DESC);`,
+        { transaction }
+      ),
+    ]);
+
     console.log(`✅ EvalServer tables created successfully for tenant: ${tenantHash}`);
 
     // Create change history table

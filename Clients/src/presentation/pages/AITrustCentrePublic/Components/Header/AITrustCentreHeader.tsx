@@ -39,9 +39,12 @@ const AITrustCentreHeader: React.FC<AITrustCentreHeaderProps> = ({
         }
       })
       .catch((err) => {
-        console.error(
-          err?.response?.data?.error || err.message || "Failed to fetch logo"
-        );
+        // 404 is expected when no logo has been uploaded - handle silently
+        if (err?.response?.status !== 404) {
+          console.error(
+            err?.response?.data?.error || err.message || "Failed to fetch logo"
+          );
+        }
       })
       .finally(() => {
         setLoading(false);
@@ -65,11 +68,13 @@ const AITrustCentreHeader: React.FC<AITrustCentreHeaderProps> = ({
             <CircularProgress size={28} />
           ) : (
             <>
-              <img
-                src={logo || data?.info?.logo}
-                alt="Company Logo"
-                style={{ height: 35 }}
-              />
+              {(logo || data?.info?.logo) && (
+                <img
+                  src={logo || data?.info?.logo}
+                  alt="Company Logo"
+                  style={{ height: 35 }}
+                />
+              )}
               <Typography
                 variant="h5"
                 fontWeight="semibold"

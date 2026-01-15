@@ -40,10 +40,10 @@ async def create_log(
             INSERT INTO "{tenant}".evaluation_logs
             (id, project_id, experiment_id, trace_id, parent_trace_id, span_name,
              input_text, output_text, model_name, metadata, latency_ms, token_count,
-             cost, status, error_message, created_by, tenant)
+             cost, status, error_message, created_by)
             VALUES (:id, :project_id, :experiment_id, CAST(:trace_id AS uuid), CAST(:parent_trace_id AS uuid), :span_name,
                     :input_text, :output_text, :model_name, CAST(:metadata_json AS jsonb), :latency_ms, :token_count,
-                    :cost, :status, :error_message, :created_by, :tenant)
+                    :cost, :status, :error_message, :created_by)
             RETURNING id, project_id, experiment_id, trace_id, timestamp, status
         '''),
         {
@@ -63,7 +63,6 @@ async def create_log(
             "status": status,
             "error_message": error_message,
             "created_by": int(created_by) if created_by is not None else None,
-            "tenant": tenant,
         }
     )
 
@@ -213,8 +212,8 @@ async def create_metric(
     result = await db.execute(
         text(f'''
             INSERT INTO "{tenant}".evaluation_metrics
-            (id, project_id, experiment_id, metric_name, metric_type, value, dimensions, tenant)
-            VALUES (:id, :project_id, :experiment_id, :metric_name, :metric_type, :value, CAST(:dimensions_json AS jsonb), :tenant)
+            (id, project_id, experiment_id, metric_name, metric_type, value, dimensions)
+            VALUES (:id, :project_id, :experiment_id, :metric_name, :metric_type, :value, CAST(:dimensions_json AS jsonb))
             RETURNING id, project_id, metric_name, value, timestamp
         '''),
         {
@@ -225,7 +224,6 @@ async def create_metric(
             "metric_type": metric_type,
             "value": value,
             "dimensions_json": dimensions_json,
-            "tenant": tenant,
         }
     )
     
@@ -321,8 +319,8 @@ async def create_experiment(
         result = await db.execute(
             text(f'''
                 INSERT INTO "{tenant}".experiments
-                (id, project_id, name, description, config, baseline_experiment_id, status, created_by, tenant)
-                VALUES (:id, :project_id, :name, :description, CAST(:config_json AS jsonb), :baseline_experiment_id, :status, :created_by, :tenant)
+                (id, project_id, name, description, config, baseline_experiment_id, status, created_by)
+                VALUES (:id, :project_id, :name, :description, CAST(:config_json AS jsonb), :baseline_experiment_id, :status, :created_by)
                 RETURNING id, name, status, created_at
             '''),
             {
@@ -334,7 +332,6 @@ async def create_experiment(
                 "baseline_experiment_id": baseline_experiment_id,
                 "status": "pending",
                 "created_by": int(created_by) if created_by is not None else None,
-                "tenant": tenant,
             }
         )
         

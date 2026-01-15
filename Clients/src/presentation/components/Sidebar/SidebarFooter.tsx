@@ -777,7 +777,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                   {/* Get Support */}
                   <ListItemButton
                     onClick={() => {
-                      window.open("https://cal.com/verifywise/", "_blank", "noreferrer");
+                      window.open("https://verifywise.ai/contact", "_blank", "noreferrer");
                       closePopup();
                     }}
                     sx={{

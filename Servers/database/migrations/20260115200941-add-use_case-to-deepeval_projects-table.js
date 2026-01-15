@@ -22,7 +22,7 @@ module.exports = {
         `, { transaction });
 
         if (columns.length > 0) {
-          logger.info(`use_case column already exists for tenant ${tenantHash}, skipping`);
+          console.log(`use_case column already exists for tenant ${tenantHash}, skipping`);
           continue;
         }
 

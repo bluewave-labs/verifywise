@@ -21,6 +21,7 @@ resources:
   - backend-deployment.yaml
   - frontend-deployment.yaml
   - worker-deployment.yaml
+  - eval-server-pvc.yaml
   - eval-server-deployment.yaml
 
   # Ingress for external access

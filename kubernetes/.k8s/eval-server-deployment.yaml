@@ -91,6 +91,13 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
+        volumeMounts:
+        - name: eval-uploads
+          mountPath: /app/data/uploads
+      volumes:
+      - name: eval-uploads
+        persistentVolumeClaim:
+          claimName: eval-server-uploads
 ---
 apiVersion: v1
 kind: Service

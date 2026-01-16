@@ -1,14 +1,14 @@
 name: Build and Deploy to Testing
 
 on:
-  push:
-    branches:
-      - develop
+  schedule:
+    # Run every 24 hours at midnight UTC
+    - cron: '0 0 * * *'
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: Testing
+    environment: Build
 
     permissions:
       contents: read
@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: develop
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2

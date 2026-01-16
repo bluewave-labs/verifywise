@@ -8,6 +8,7 @@ jobs:
   build-and-push:
     # if: ${{ !endsWith(github.event.release.tag_name, '-saas') }} 
     runs-on: ubuntu-latest
+    environment: Build
 
     permissions:
       contents: read

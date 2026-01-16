@@ -18,7 +18,7 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { Plus, Pencil, Trash2, FileSearch, MessageSquare, Bot, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
+import { Plus, FileSearch, MessageSquare, Bot, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
 import SelectableCard from "../../components/SelectableCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";

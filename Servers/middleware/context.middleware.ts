@@ -3,6 +3,8 @@ import { Request, Response, NextFunction } from 'express';
 
 interface AuthenticatedRequest extends Request {
   userId?: number;
+  tenantId?: string;
+  organizationId?: number;
 }
 
 export default function contextMiddleware(
@@ -10,9 +12,13 @@ export default function contextMiddleware(
   res: Response,
   next: NextFunction
 ): void {
-  const userId = req.userId;
+  const { userId, tenantId, organizationId } = req;
 
-  asyncLocalStorage.run({ userId: typeof userId === 'number' ? userId : undefined }, () => {
+  asyncLocalStorage.run({
+    userId: typeof userId === 'number' ? userId : undefined,
+    tenantId,
+    organizationId
+  }, () => {
     next();
   });
 }

@@ -37,7 +37,7 @@ async def create_log(
     
     result = await db.execute(
         text(f'''
-            INSERT INTO "{tenant}".evaluation_logs 
+            INSERT INTO "{tenant}".evaluation_logs
             (id, project_id, experiment_id, trace_id, parent_trace_id, span_name,
              input_text, output_text, model_name, metadata, latency_ms, token_count,
              cost, status, error_message, created_by)
@@ -62,7 +62,7 @@ async def create_log(
             "cost": cost,
             "status": status,
             "error_message": error_message,
-            "created_by": int(created_by) if created_by is not None else None,
+            "created_by": str(created_by) if created_by is not None else None,
         }
     )
 
@@ -211,7 +211,7 @@ async def create_metric(
     
     result = await db.execute(
         text(f'''
-            INSERT INTO "{tenant}".evaluation_metrics 
+            INSERT INTO "{tenant}".evaluation_metrics
             (id, project_id, experiment_id, metric_name, metric_type, value, dimensions)
             VALUES (:id, :project_id, :experiment_id, :metric_name, :metric_type, :value, CAST(:dimensions_json AS jsonb))
             RETURNING id, project_id, metric_name, value, timestamp
@@ -318,7 +318,7 @@ async def create_experiment(
         
         result = await db.execute(
             text(f'''
-                INSERT INTO "{tenant}".experiments 
+                INSERT INTO "{tenant}".experiments
                 (id, project_id, name, description, config, baseline_experiment_id, status, created_by)
                 VALUES (:id, :project_id, :name, :description, CAST(:config_json AS jsonb), :baseline_experiment_id, :status, :created_by)
                 RETURNING id, name, status, created_at
@@ -331,13 +331,13 @@ async def create_experiment(
                 "config_json": config_json,
                 "baseline_experiment_id": baseline_experiment_id,
                 "status": "pending",
-                "created_by": int(created_by) if created_by is not None else None,
+                "created_by": str(created_by) if created_by is not None else None,
             }
         )
-        
+
         await db.commit()
         row = result.mappings().first()
-        
+
         if row:
             print(f"✅ CRUD - Experiment inserted successfully")
             return {

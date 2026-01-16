@@ -33,21 +33,7 @@
 import React, { useState } from "react";
 import { SelectChangeEvent } from "@mui/material";
 import Select from "../Inputs/Select";
-
-interface CustomSelectProps {
-  /** Current selected value */
-  currentValue: string;
-  /** Value change handler - should return boolean for success/failure */
-  onValueChange: (newValue: string) => Promise<boolean>;
-  /** Array of available options */
-  options: string[];
-  /** Whether the select is disabled */
-  disabled?: boolean;
-  /** Size of the select component */
-  size?: "small" | "medium";
-  /** Additional styling */
-  sx?: object;
-}
+import { CustomSelectProps } from "src/domain/types/widget.types";
 
 const CustomSelect: React.FC<CustomSelectProps> = React.memo(({
   currentValue,
@@ -76,10 +62,21 @@ const CustomSelect: React.FC<CustomSelectProps> = React.memo(({
     }
   };
 
-  const selectItems = options.map(option => ({
-    _id: option,
-    name: option,
-  }));
+  const selectItems = options.map(option => {
+    if (typeof option === 'string') {
+      return {
+        _id: option,
+        name: option,
+      };
+    } else {
+      return {
+        _id: option.value,
+        name: option.label,
+        icon: option.icon,
+        color: option.color,
+      };
+    }
+  });
 
   return (
     <Select

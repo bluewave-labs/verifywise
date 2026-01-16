@@ -26,6 +26,7 @@ from controllers.deepeval import (
     update_deepeval_scorer_controller,
     delete_deepeval_scorer_controller,
     test_deepeval_scorer_controller,
+    _get_uploads_root,
 )
 
 router = APIRouter()
@@ -266,11 +267,14 @@ async def read_dataset(path: str):
 @router.get("/datasets/uploads")
 async def list_uploaded_datasets(request: Request):
     """
-    List uploaded JSON datasets for the current tenant from EvaluationModule/data/uploads/{tenant}.
+    List uploaded JSON datasets for the current tenant.
+    Docker: /app/data/uploads/{tenant}
+    Local: EvaluationModule/data/uploads/{tenant}
     """
     try:
         tenant = request.state.tenant
-        uploads_dir = Path(__file__).parents[2] / "EvaluationModule" / "data" / "uploads" / tenant
+        uploads_root = _get_uploads_root()
+        uploads_dir = uploads_root / tenant
         uploads = []
         if uploads_dir.is_dir():
             for p in uploads_dir.glob("*.json"):

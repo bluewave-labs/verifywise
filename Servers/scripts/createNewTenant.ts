@@ -131,9 +131,9 @@ export const createNewTenant = async (
         entity_id INTEGER,
         entity_type VARCHAR(50),
         entity_data JSONB,
-        status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'withdrawn')),
+        status VARCHAR(50) NOT NULL CHECK (status IN ('Pending', 'Approved', 'Rejected', 'Withdrawn')) DEFAULT 'Pending',
         requested_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-        current_step_number INTEGER,
+        current_step INTEGER NOT NULL DEFAULT 1,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );`,
@@ -146,10 +146,10 @@ export const createNewTenant = async (
         request_id INTEGER NOT NULL REFERENCES "${tenantHash}".approval_requests(id) ON DELETE CASCADE,
         step_number INTEGER NOT NULL,
         step_name VARCHAR(255) NOT NULL,
-        requires_all_approvers BOOLEAN NOT NULL DEFAULT false,
-        status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+        status VARCHAR(50) NOT NULL CHECK (status IN ('Pending', 'Completed', 'Rejected')) DEFAULT 'Pending',
+        date_assigned TIMESTAMP NOT NULL DEFAULT NOW(),
+        date_completed TIMESTAMP,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
         UNIQUE(request_id, step_number)
       );`,
       { transaction }
@@ -160,7 +160,7 @@ export const createNewTenant = async (
         id SERIAL PRIMARY KEY,
         request_step_id INTEGER NOT NULL REFERENCES "${tenantHash}".approval_request_steps(id) ON DELETE CASCADE,
         approver_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-        approval_result VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (approval_result IN ('pending', 'approved', 'rejected')),
+        approval_result VARCHAR(50) NOT NULL CHECK (approval_result IN ('Pending', 'Approved', 'Rejected')) DEFAULT 'Pending',
         comments TEXT,
         approved_at TIMESTAMP,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -299,6 +299,19 @@ export const createNewTenant = async (
         `CREATE INDEX IF NOT EXISTS idx_use_case_change_history_use_case_changed ON "${tenantHash}".use_case_change_history(use_case_id, changed_at DESC);`,
       ].map((query) => sequelize.query(query, { transaction }))
     );
+
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".event_logs (
+        id SERIAL PRIMARY KEY,
+        event_type public.enum_event_logs_event_type NOT NULL,
+        description TEXT,
+        user_id INTEGER,
+        timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_event_logs_user FOREIGN KEY (user_id)
+          REFERENCES public.users (id)
+          ON UPDATE CASCADE
+          ON DELETE SET NULL
+      );`, { transaction });
 
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".vendors_projects
@@ -1770,6 +1783,7 @@ export const createNewTenant = async (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
+        use_case VARCHAR(50) DEFAULT 'chatbot',
         org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -1948,6 +1962,46 @@ export const createNewTenant = async (
       BEFORE UPDATE ON "${tenantHash}".evaluation_llm_api_keys
       FOR EACH ROW EXECUTE PROCEDURE update_evaluation_llm_api_keys_updated_at();
     `, { transaction });
+
+    // 8. deepeval_arena_comparisons table (for LLM Arena head-to-head comparisons)
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_arena_comparisons (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        org_id VARCHAR(255) REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
+        contestants JSONB NOT NULL DEFAULT '[]',
+        contestant_names JSONB NOT NULL DEFAULT '[]',
+        metric_config JSONB NOT NULL DEFAULT '{}',
+        judge_model VARCHAR(255) DEFAULT 'gpt-4o',
+        status VARCHAR(50) DEFAULT 'pending',
+        progress TEXT,
+        winner VARCHAR(255),
+        win_counts JSONB DEFAULT '{}',
+        detailed_results JSONB DEFAULT '[]',
+        error_message TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP WITH TIME ZONE,
+        created_by VARCHAR(255)
+      );
+    `, { transaction });
+
+    // Create indexes for deepeval_arena_comparisons
+    await Promise.all([
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_org_id ON "${tenantHash}".deepeval_arena_comparisons(org_id);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_status ON "${tenantHash}".deepeval_arena_comparisons(status);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_created_at ON "${tenantHash}".deepeval_arena_comparisons(created_at DESC);`,
+        { transaction }
+      ),
+    ]);
 
     console.log(`✅ EvalServer tables created successfully for tenant: ${tenantHash}`);
 
@@ -2141,6 +2195,40 @@ export const createNewTenant = async (
     );
 
     console.log(`✅ AI Detection tables created successfully for tenant: ${tenantHash}`);
+
+    // Create change history table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".incident_change_history (
+        id SERIAL PRIMARY KEY,
+        incident_id INTEGER NOT NULL REFERENCES "${tenantHash}".ai_incident_managements(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    // Create index on incident_id for faster lookups
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_incident_change_history_incident_id
+      ON "${tenantHash}".incident_change_history(incident_id);
+    `, { transaction });
+
+    // Create index on changed_at for time-based queries
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_incident_change_history_changed_at
+      ON "${tenantHash}".incident_change_history(changed_at DESC);
+    `, { transaction });
+
+    // Create composite index for incident_id + changed_at (most common query pattern)
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_incident_change_history_incident_changed
+      ON "${tenantHash}".incident_change_history(incident_id, changed_at DESC);
+    `, { transaction });
+
   } catch (error) {
     throw error;
   }

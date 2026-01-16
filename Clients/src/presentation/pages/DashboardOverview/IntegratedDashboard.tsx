@@ -398,6 +398,7 @@ const IntegratedDashboard: React.FC = () => {
 
       {/* Quick Stats Row */}
       <Box
+        data-joyride-id="dashboard-stats"
         sx={{
           display: "flex",
           flexWrap: "wrap",

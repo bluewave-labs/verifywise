@@ -50,7 +50,8 @@ import {
 } from "../utils/useCaseChangeHistory.utils";
 import { getApprovalWorkflowByIdQuery } from "../utils/approvalWorkflow.utils";
 import { createApprovalRequestQuery, hasPendingApprovalQuery, getPendingApprovalRequestIdQuery, withdrawApprovalRequestQuery } from "../utils/approvalRequest.utils";
-import { notifyStepApprovers } from "../services/notification.service";
+// SSE notifications disabled for now - can be re-enabled later if needed
+// import { notifyStepApprovers } from "../services/notification.service";
 import { ApprovalRequestStatus } from "../domain.layer/enums/approval-workflow.enum";
 
 export async function getAllProjects(
@@ -389,17 +390,17 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         tenantId: req.tenantId!,
       });
 
-      // Notify Step 1 approvers AFTER transaction commits (fire-and-forget)
-      if ((createdProject as any)._approvalRequestId) {
-        notifyStepApprovers(
-          req.tenantId!,
-          (createdProject as any)._approvalRequestId,
-          1, // Step 1
-          (createdProject as any)._approvalRequestName
-        ).catch(error => {
-          console.error("Error sending approval notification:", error);
-        });
-      }
+      // SSE notifications disabled for now - can be re-enabled later if needed
+      // if ((createdProject as any)._approvalRequestId) {
+      //   notifyStepApprovers(
+      //     req.tenantId!,
+      //     (createdProject as any)._approvalRequestId,
+      //     1, // Step 1
+      //     (createdProject as any)._approvalRequestName
+      //   ).catch(error => {
+      //     console.error("Error sending approval notification:", error);
+      //   });
+      // }
 
       // Send project creation notification to admin (fire-and-forget, don't block response)
       sendProjectCreatedNotification({

@@ -18,7 +18,7 @@ import {
   FormHelperText,
   Chip as MuiChip,
 } from "@mui/material";
-import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown, FileSearch, MessageSquare, Bot } from "lucide-react";
+import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown, FileSearch, MessageSquare, Bot, Clock } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import SelectableCard from "../../components/SelectableCard";
 import Field from "../../components/Inputs/Field";
@@ -46,6 +46,7 @@ import {
   listScorers,
   getAllLlmApiKeys,
   addLlmApiKey,
+  validateModel,
   type DeepEvalScorer,
   type LLMApiKey,
   type LLMProvider,
@@ -85,6 +86,9 @@ export default function NewExperimentModal({
     title: string;
     body: string;
   } | null>(null);
+
+  // Track if user acknowledged API key warning and wants to proceed anyway
+  const [apiKeyWarningAcknowledged, setApiKeyWarningAcknowledged] = useState(false);
 
   // Dataset prompts state
   interface DatasetPrompt {
@@ -212,7 +216,12 @@ export default function NewExperimentModal({
       conversationSafety: 0.5,
     },
   });
-  
+
+  // Reset warning acknowledgment when model changes
+  useEffect(() => {
+    setApiKeyWarningAcknowledged(false);
+  }, [config.model.name, config.model.accessMethod]);
+
   // Track if selected dataset is multi-turn
   const isMultiTurnDataset = selectedUserDataset?.turnType === "multi-turn" || 
     (selectedPresetPath && selectedPresetPath.includes("multiturn"));
@@ -435,11 +444,48 @@ export default function NewExperimentModal({
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      // Validate dataset has prompts before creating experiment
+      if (datasetPrompts.length === 0) {
+        setAlert({
+          show: true,
+          variant: "error",
+          title: "No prompts in dataset",
+          body: "Cannot run experiment without prompts. Please select a dataset with prompts or upload a valid dataset file.",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Validate model API key availability before creating experiment
+      const modelName = config.model.name;
+      const modelProvider = config.model.accessMethod;
+
+      // Skip validation if user already acknowledged the warning
+      if (!apiKeyWarningAcknowledged && modelName && modelProvider !== "ollama" && modelProvider !== "huggingface") {
+        try {
+          const validation = await validateModel(modelName, modelProvider);
+          if (!validation.valid) {
+            // Show warning but allow user to proceed by clicking again
+            setAlert({
+              show: true,
+              variant: "warning",
+              title: "API key may not be configured",
+              body: `${validation.error_message || `The API key for ${validation.provider || modelProvider} may not be configured.`} Click "Run experiment" again to proceed anyway.`,
+            });
+            setApiKeyWarningAcknowledged(true);
+            setLoading(false);
+            return;
+          }
+        } catch (validationError) {
+          console.warn("Model validation check failed, proceeding anyway:", validationError);
+          // Don't block if validation endpoint fails - let the experiment try to run
+        }
+      }
+
       // Auto-save any new API keys entered
       const saveApiKeyPromises: Promise<void>[] = [];
-      
+
       // Save model provider API key if entered (only for cloud providers with saved model lists)
-      const modelProvider = config.model.accessMethod;
       if (config.model.apiKey && modelProvider && PROVIDERS[modelProvider] && !hasApiKey(modelProvider)) {
         saveApiKeyPromises.push(
           addLlmApiKey({
@@ -486,12 +532,12 @@ export default function NewExperimentModal({
         hour12: true,
       });
       const dateTimeStr = `${dateStr}, ${timeStr}`;
-      const modelName = config.model.name || "Unknown Model";
-      
+      const experimentModelName = modelName || "Unknown Model";
+
       const experimentConfig = {
         project_id: projectId,
-        name: `${modelName} - ${dateTimeStr}`,
-        description: `Evaluating ${modelName} with ${datasetPrompts.length} prompts`,
+        name: `${experimentModelName} - ${dateTimeStr}`,
+        description: `Evaluating ${experimentModelName} with ${datasetPrompts.length} prompts`,
         config: {
           project_id: projectId,  // Include in config for runner
           model: {
@@ -793,6 +839,19 @@ export default function NewExperimentModal({
   const availableModelProviders = allModelProviders;
 
   const selectedModelProvider = availableModelProviders.find(p => p.id === config.model.accessMethod);
+
+  // Helper function to estimate experiment duration based on prompt count
+  // Each prompt takes ~20-30 seconds (model call + judge evaluations for each metric)
+  const getEstimatedTimeRange = (promptCount: number): string => {
+    if (promptCount <= 0) return "";
+    if (promptCount <= 3) return "~1-2 minutes";
+    if (promptCount <= 5) return "~2-3 minutes";
+    if (promptCount <= 10) return "~4-6 minutes";
+    if (promptCount <= 20) return "~7-12 minutes";
+    if (promptCount <= 30) return "~12-18 minutes";
+    if (promptCount <= 50) return "~18-30 minutes";
+    return "~30+ minutes";
+  };
 
   const renderStepContent = () => {
     switch (activeStep) {
@@ -1812,10 +1871,35 @@ export default function NewExperimentModal({
                   No metrics available
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
-                  Standard metrics require a Judge LLM. 
+                  Standard metrics require a Judge LLM.
                   <br /> Your custom scorer will be used instead.
                 </Typography>
               </Box>
+
+              {/* Estimated time display */}
+              {datasetPrompts.length > 0 && (
+                <Box
+                  sx={{
+                    p: "8px",
+                    borderRadius: "4px",
+                    backgroundColor: "#F0FDF4",
+                    border: "1px solid #BBF7D0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Clock size={16} color="#13715B" />
+                  <Box>
+                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                      Estimated time: {getEstimatedTimeRange(datasetPrompts.length)}
+                    </Typography>
+                    <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                      Based on {datasetPrompts.length} prompt{datasetPrompts.length !== 1 ? "s" : ""} in your dataset
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
             </Stack>
           );
         }
@@ -2272,6 +2356,32 @@ export default function NewExperimentModal({
                     </Stack>
                   </Box>
                 ))}
+              </Box>
+            )}
+
+            {/* Estimated time display */}
+            {datasetPrompts.length > 0 && (
+              <Box
+                sx={{
+                  mt: "16px",
+                  p: "8px",
+                  borderRadius: "4px",
+                  backgroundColor: "#F0FDF4",
+                  border: "1px solid #BBF7D0",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Clock size={16} color="#13715B" />
+                <Box>
+                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                    Estimated time: {getEstimatedTimeRange(datasetPrompts.length)}
+                  </Typography>
+                  <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                    Based on {datasetPrompts.length} prompt{datasetPrompts.length !== 1 ? "s" : ""} in your dataset
+                  </Typography>
+                </Box>
               </Box>
             )}
           </Stack>

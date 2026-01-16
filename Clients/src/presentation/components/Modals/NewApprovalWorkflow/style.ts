@@ -49,17 +49,16 @@ export const removeStepLinkContainer = {
 
 export const removeStepButtonStyle = (isFirstStep: boolean) => ({
     color: "#D92D20",
-    backgroundColor: "#FEF3F2",
-    border: "1px solid #D92D20",
+    backgroundColor: "transparent",
+    border: "none",
     textTransform: "none" as const,
     fontSize: 13,
-    fontWeight: 500,
-    padding: "4px 12px",
+    fontWeight: 400,
+    padding: "4px 8px",
     minWidth: "auto",
-    borderRadius: "6px",
     "&:hover": {
-        backgroundColor: "#FEE4E2",
-        border: "1px solid #D92D20",
+        backgroundColor: "transparent",
+        textDecoration: "underline",
     },
     visibility: isFirstStep ? "hidden" : "visible",
 })
@@ -83,13 +82,6 @@ export const approverAutocompleteStyle = (theme: Theme) => ({
         borderRadius: "3px",
         paddingTop: "3.8px !important",
         paddingBottom: "3.8px !important",
-        "&:hover .MuiOutlinedInput-notchedOutline": {
-            borderColor: "none",
-        },
-        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#888",
-            borderWidth: "1px",
-        },
     },
     "& .MuiChip-root": {
         borderRadius: "4px",

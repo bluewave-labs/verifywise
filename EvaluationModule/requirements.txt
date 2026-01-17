@@ -31,6 +31,7 @@ google-generativeai>=0.3.0
 ollama>=0.1.0
 xai-sdk>=1.0.0
 mistralai>=1.0.0
+boto3>=1.35.0  # AWS Bedrock support
 
 # DeepEval for comprehensive LLM evaluation
 deepeval>=1.0.0

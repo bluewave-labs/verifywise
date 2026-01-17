@@ -777,7 +777,7 @@ const PostMarketMonitoring: React.FC = () => {
               text="Add question"
               icon={<Plus size={16} />}
               onClick={handleAddQuestion}
-              disabled={!isActive || !canEdit}
+              isDisabled={!isActive || !canEdit}
               sx={{
                 height: "34px",
                 border: `1px solid ${theme.palette.border.dark}`,

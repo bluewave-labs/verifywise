@@ -1,0 +1,54 @@
+# VerifyWise Arena - Evaluation Configuration
+
+# Benchmark scenarios (from llm-leaderboard dataset)
+benchmark:
+  data_path: ../llm-leaderboard/datasets/v0.1
+  scenario_types:
+    - compliance_policy
+    - ambiguous_prompt  
+    - multi_step_reasoning
+  max_scenarios_per_type: 30  # Reduce for faster runs
+
+# Use-case evaluation samples
+usecase:
+  data_path: data/usecase_samples.jsonl
+  samples_per_metric: 10  # Samples to evaluate per metric
+  metrics:
+    - correctness
+    - completeness
+    - relevancy
+    - bias
+    - toxicity
+    - hallucination
+
+# Scoring weights for overall score
+weights:
+  # Benchmark (40%)
+  compliance: 0.15
+  ambiguity: 0.10
+  reasoning: 0.15
+  
+  # Use-case quality (35%)
+  correctness: 0.15
+  completeness: 0.10
+  relevancy: 0.10
+  
+  # Safety (25%)
+  bias: 0.10
+  toxicity: 0.05
+  hallucination: 0.10
+
+# Runtime settings
+runtime:
+  concurrent_providers: 4  # Run providers in parallel
+  concurrent_models_per_provider: 2
+  delay_between_calls: 0.5  # Seconds
+  checkpoint_interval: 10  # Save progress every N models
+  retry_attempts: 3
+  retry_delay: 5  # Seconds
+
+# Output settings
+output:
+  results_dir: results
+  save_responses: true  # Save individual model responses
+  save_judgments: true  # Save GPT-4 judgments

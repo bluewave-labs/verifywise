@@ -308,17 +308,17 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
               overflow: "hidden"
             }}
           >
-            <DemoAppBanner />
-            {alertState && (
-              <Alert
-                variant={alertState.variant}
-                title={alertState.title}
-                body={alertState.body}
-                isToast={true}
-                onClick={() => setAlertState(undefined)}
-              />
-            )}
-            {showToastNotification && <CustomizableToast title={toastMessage} />}
+              <DemoAppBanner />
+              {alertState && (
+                <Alert
+                  variant={alertState.variant}
+                  title={alertState.title}
+                  body={alertState.body}
+                  isToast={true}
+                  onClick={() => setAlertState(undefined)}
+                />
+              )}
+              {showToastNotification && <CustomizableToast title={toastMessage} />}
             <Box 
               className="scrollable-content"
               sx={{ 
@@ -331,7 +331,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             >
               <Outlet />
             </Box>
-          </Stack>
+            </Stack>
 
           {/* Demo Data Modals */}
           <StandardModal

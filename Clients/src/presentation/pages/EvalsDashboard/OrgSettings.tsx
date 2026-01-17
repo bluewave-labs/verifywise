@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Stack, Typography, IconButton, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, RadioGroup, FormControlLabel, Radio } from "@mui/material";
+import { Box, Stack, Typography, IconButton, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 import { Home, FlaskConical, Settings, Trash2, Plus } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -393,125 +393,139 @@ export default function OrgSettings() {
               items={availableProviders}
               disabled={availableProviders.length === 0}
             />
-            <Box>
-              <Field
-                label={selectedProvider === "bedrock" ? "AWS Access Key ID" : "API key"}
-                value={newApiKey}
-                onChange={(e) => handleApiKeyChange(e.target.value)}
-                placeholder={selectedProvider === "bedrock"
-                  ? "AKIAIOSFODNN7EXAMPLE"
-                  : selectedProvider
-                    ? `Enter your ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || ''} API key...`
-                    : "Enter your API key..."}
-                type="password"
-                autoComplete="new-password"
-                disabled={!selectedProvider}
-                error={apiKeyError || ""}
-              />
-              {selectedProvider && !apiKeyError && newApiKey.trim() && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#059669",
-                    mt: 0.5,
-                    ml: 0.5,
-                  }}
-                >
-                  Key format looks valid
-                </Typography>
-              )}
-              {selectedProvider && !newApiKey.trim() && API_KEY_PATTERNS[selectedProvider] && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: theme.palette.text.secondary,
-                    mt: 0.5,
-                    ml: 0.5,
-                  }}
-                >
-                  Expected format: {API_KEY_PATTERNS[selectedProvider]?.example || 'API key'}
-                </Typography>
-              )}
-            </Box>
+            {/* API Key - Non-Bedrock providers */}
+            {selectedProvider && selectedProvider !== "bedrock" && (
+              <Box>
+                <Field
+                  label="API key"
+                  value={newApiKey}
+                  onChange={(e) => handleApiKeyChange(e.target.value)}
+                  placeholder={`Enter your ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || ''} API key...`}
+                  type="password"
+                  autoComplete="new-password"
+                  error={apiKeyError || ""}
+                />
+                {!apiKeyError && newApiKey.trim() && (
+                  <Typography sx={{ fontSize: 11, color: "#059669", mt: 0.5, ml: 0.5 }}>
+                    Key format looks valid
+                  </Typography>
+                )}
+                {!newApiKey.trim() && API_KEY_PATTERNS[selectedProvider] && (
+                  <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, mt: 0.5, ml: 0.5 }}>
+                    Expected format: {API_KEY_PATTERNS[selectedProvider]?.example || 'API key'}
+                  </Typography>
+                )}
+              </Box>
+            )}
 
-            {/* AWS Bedrock: Auth Method & Region */}
+            {/* AWS Bedrock Configuration */}
             {selectedProvider === "bedrock" && (
               <Box>
+                {/* Authentication Method */}
                 <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.primary, mb: 1.5 }}>
-                  How should we connect to AWS Bedrock?
+                  Authentication method
                 </Typography>
-                <RadioGroup
-                  value={bedrockAuthMethod}
-                  onChange={(e) => {
-                    setBedrockAuthMethod(e.target.value as "iam" | "apikey");
-                    setNewApiKey("");
-                    setApiKeyError(null);
-                  }}
-                >
-                  <FormControlLabel
-                    value="iam"
-                    control={<Radio size="small" />}
-                    label={
-                      <Box>
-                        <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                          IAM Role
-                          <Typography component="span" sx={{ fontSize: 11, color: "#059669", ml: 1 }}>
-                            Recommended - most secure
-                          </Typography>
-                        </Typography>
-                        <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
-                          Uses AWS credentials from environment or IAM role
-                        </Typography>
+                <Box sx={{ display: "flex", gap: 1.5, mb: 2 }}>
+                  <Box
+                    onClick={() => {
+                      setBedrockAuthMethod("iam");
+                      setNewApiKey("");
+                      setApiKeyError(null);
+                    }}
+                    sx={{
+                      flex: 1,
+                      p: 2,
+                      borderRadius: "8px",
+                      border: bedrockAuthMethod === "iam" ? "2px solid #13715B" : `1px solid ${theme.palette.divider}`,
+                      backgroundColor: bedrockAuthMethod === "iam" ? "#F0FDF4" : theme.palette.background.paper,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      "&:hover": { borderColor: bedrockAuthMethod === "iam" ? "#13715B" : theme.palette.action.hover },
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "iam" ? "#13715B" : theme.palette.text.primary }}>
+                        IAM Role
+                      </Typography>
+                      <Box sx={{ fontSize: 10, fontWeight: 500, color: "#059669", bgcolor: "#DCFCE7", px: 0.75, py: 0.25, borderRadius: "4px" }}>
+                        Recommended
                       </Box>
-                    }
-                    sx={{ alignItems: "flex-start", mb: 1 }}
-                  />
-                  <FormControlLabel
-                    value="apikey"
-                    control={<Radio size="small" />}
-                    label={
-                      <Box>
-                        <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                          API Keys
-                          <Typography component="span" sx={{ fontSize: 11, color: "#D97706", ml: 1 }}>
-                            Advanced - less secure
-                          </Typography>
-                        </Typography>
-                        <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
-                          Uses Bedrock Bearer token from AWS Console
-                        </Typography>
-                      </Box>
-                    }
-                    sx={{ alignItems: "flex-start" }}
-                  />
-                </RadioGroup>
+                    </Box>
+                    <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
+                      Uses AWS credentials from environment
+                    </Typography>
+                  </Box>
+                  <Box
+                    onClick={() => {
+                      setBedrockAuthMethod("apikey");
+                      setNewApiKey("");
+                      setApiKeyError(null);
+                    }}
+                    sx={{
+                      flex: 1,
+                      p: 2,
+                      borderRadius: "8px",
+                      border: bedrockAuthMethod === "apikey" ? "2px solid #13715B" : `1px solid ${theme.palette.divider}`,
+                      backgroundColor: bedrockAuthMethod === "apikey" ? "#F0FDF4" : theme.palette.background.paper,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      "&:hover": { borderColor: bedrockAuthMethod === "apikey" ? "#13715B" : theme.palette.action.hover },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "apikey" ? "#13715B" : theme.palette.text.primary, mb: 0.5 }}>
+                      API Key
+                    </Typography>
+                    <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
+                      Uses Bedrock Bearer token
+                    </Typography>
+                  </Box>
+                </Box>
 
-                {/* IAM Role instructions */}
+                {/* IAM Role Setup Info */}
                 {bedrockAuthMethod === "iam" && (
-                  <Box sx={{ mt: 2, p: 2, bgcolor: "#F0FDF4", borderRadius: 1, border: "1px solid #BBF7D0" }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#166534", mb: 1 }}>
-                      IAM Role Setup
+                  <Box sx={{ p: 2, bgcolor: theme.palette.action.hover, borderRadius: "8px", border: `1px solid ${theme.palette.divider}` }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 500, color: theme.palette.text.primary, mb: 1 }}>
+                      Server environment variables required:
                     </Typography>
-                    <Typography sx={{ fontSize: 11, color: "#166534", mb: 1 }}>
-                      Set these environment variables on your server:
-                    </Typography>
-                    <Box component="code" sx={{
-                      display: "block",
-                      fontSize: 11,
-                      bgcolor: "#DCFCE7",
-                      p: 1,
-                      borderRadius: 0.5,
+                    <Box sx={{
                       fontFamily: "monospace",
-                      color: "#14532D"
+                      fontSize: 11,
+                      bgcolor: theme.palette.background.paper,
+                      p: 1.5,
+                      borderRadius: "6px",
+                      border: `1px solid ${theme.palette.divider}`,
+                      color: theme.palette.text.primary,
+                      lineHeight: 1.8
                     }}>
-                      AWS_ACCESS_KEY_ID=your_access_key<br />
-                      AWS_SECRET_ACCESS_KEY=your_secret_key<br />
-                      AWS_DEFAULT_REGION=us-east-1
+                      AWS_ACCESS_KEY_ID<br />
+                      AWS_SECRET_ACCESS_KEY<br />
+                      AWS_DEFAULT_REGION
                     </Box>
                   </Box>
                 )}
 
-                {/* Region Selection - always shown */}
+                {/* API Key Input */}
+                {bedrockAuthMethod === "apikey" && (
+                  <Box>
+                    <Field
+                      label="Bedrock API key"
+                      value={newApiKey}
+                      onChange={(e) => handleApiKeyChange(e.target.value)}
+                      placeholder="ABSK... or bedrock-api-key-..."
+                      type="password"
+                      autoComplete="new-password"
+                      error={apiKeyError || ""}
+                    />
+                    <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, mt: 0.5 }}>
+                      Get your key from{" "}
+                      <a href="https://console.aws.amazon.com/bedrock/home#/api-keys" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                        AWS Bedrock Console
+                      </a>
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Region Selection */}
                 <Box sx={{ mt: 2 }}>
                   <Select
                     id="aws-region-select"

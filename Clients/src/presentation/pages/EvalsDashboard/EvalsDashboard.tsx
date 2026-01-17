@@ -2131,8 +2131,8 @@ export default function EvalsDashboard() {
             </Grid>
           </Box>
 
-          {/* API Key Input */}
-          {selectedProvider && (
+          {/* API Key Input - Non-Bedrock providers */}
+          {selectedProvider && selectedProvider !== "bedrock" && (
             <Box>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                 <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
@@ -2153,57 +2153,22 @@ export default function EvalsDashboard() {
                 autoComplete="new-password"
                 error={apiKeyError || ""}
               />
-              {selectedProvider && !apiKeyError && newApiKey.trim() && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#059669",
-                    mt: 0.5,
-                    ml: 0.5,
-                  }}
-                >
+              {!apiKeyError && newApiKey.trim() && (
+                <Typography sx={{ fontSize: 11, color: "#059669", mt: 0.5, ml: 0.5 }}>
                   ✓ Key format looks valid
                 </Typography>
               )}
-              {selectedProvider && !newApiKey.trim() && API_KEY_PATTERNS[selectedProvider] && (
+              {!newApiKey.trim() && API_KEY_PATTERNS[selectedProvider] && (
                 <>
-                  <Typography
-                    sx={{
-                      fontSize: 11,
-                      color: "#6B7280",
-                      mt: 0.5,
-                      ml: 0.5,
-                    }}
-                  >
+                  <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 0.5, ml: 0.5 }}>
                     Expected format: {API_KEY_PATTERNS[selectedProvider]?.example}
                   </Typography>
                   {selectedProvider === "custom" && (
-                    <Box
-                      sx={{
-                        mt: 2,
-                        p: 2,
-                        backgroundColor: "#F8FAFC",
-                        border: "1px solid #E2E8F0",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "#334155",
-                          mb: 1,
-                        }}
-                      >
+                    <Box sx={{ mt: 2, p: 2, backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "8px" }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#334155", mb: 1 }}>
                         API Compatibility
                       </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: 12,
-                          color: "#64748B",
-                          lineHeight: 1.5,
-                        }}
-                      >
+                      <Typography sx={{ fontSize: 12, color: "#64748B", lineHeight: 1.5 }}>
                         Your endpoint must be OpenAI-compatible, accepting{" "}
                         <Box component="span" sx={{ fontFamily: "monospace", backgroundColor: "#E2E8F0", px: 0.5, borderRadius: "3px", fontSize: 11 }}>
                           POST /v1/chat/completions
@@ -2213,428 +2178,445 @@ export default function EvalsDashboard() {
                   )}
                 </>
               )}
+            </Box>
+          )}
 
-              {/* AWS Bedrock: Auth Method Selection */}
-              {selectedProvider === "bedrock" && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", mb: 1.5 }}>
-                    How should we connect to AWS Bedrock?
-                  </Typography>
-                  <RadioGroup
-                    value={bedrockAuthMethod}
-                    onChange={(e) => {
-                      setBedrockAuthMethod(e.target.value as "iam" | "apikey");
-                      setNewApiKey("");
-                      setApiKeyError(null);
-                    }}
-                  >
-                    <FormControlLabel
-                      value="iam"
-                      control={<Radio size="small" />}
-                      label={
-                        <Box>
-                          <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                            IAM Role
-                            <Typography component="span" sx={{ fontSize: 11, color: "#059669", ml: 1 }}>
-                              Recommended - most secure
-                            </Typography>
-                          </Typography>
-                          <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-                            Uses AWS credentials from environment or IAM role
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ alignItems: "flex-start", mb: 1 }}
-                    />
-                    <FormControlLabel
-                      value="apikey"
-                      control={<Radio size="small" />}
-                      label={
-                        <Box>
-                          <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                            API Keys
-                            <Typography component="span" sx={{ fontSize: 11, color: "#D97706", ml: 1 }}>
-                              Advanced - less secure
-                            </Typography>
-                          </Typography>
-                          <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-                            Uses Bedrock Bearer token from AWS Console
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ alignItems: "flex-start" }}
-                    />
-                  </RadioGroup>
-
-                  {/* IAM Role instructions */}
-                  {bedrockAuthMethod === "iam" && (
-                    <Box sx={{ mt: 2, p: 2, bgcolor: "#F0FDF4", borderRadius: 1, border: "1px solid #BBF7D0" }}>
-                      <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#166534", mb: 1 }}>
-                        IAM Role Setup
-                      </Typography>
-                      <Typography sx={{ fontSize: 11, color: "#166534", mb: 1 }}>
-                        Set these environment variables on your server:
-                      </Typography>
-                      <Box component="code" sx={{
-                        display: "block",
-                        fontSize: 11,
-                        bgcolor: "#DCFCE7",
-                        p: 1,
-                        borderRadius: 0.5,
-                        fontFamily: "monospace",
-                        color: "#14532D"
-                      }}>
-                        AWS_ACCESS_KEY_ID=your_access_key<br />
-                        AWS_SECRET_ACCESS_KEY=your_secret_key<br />
-                        AWS_DEFAULT_REGION=us-east-1
-                      </Box>
-                      <Typography sx={{ fontSize: 11, color: "#166534", mt: 1 }}>
-                        Or configure an IAM role for EC2/ECS instances.
-                      </Typography>
-                    </Box>
-                  )}
-
-                  {/* API Key input for Bearer token method */}
-                  {bedrockAuthMethod === "apikey" && (
-                    <Box sx={{ mt: 2 }}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", mb: 1 }}>
-                        Bedrock API Key
-                      </Typography>
-                      <Field
-                        label=""
-                        value={newApiKey}
-                        onChange={(e) => handleApiKeyInputChange(e.target.value)}
-                        placeholder="ABSK... or bedrock-api-key-..."
-                        type="password"
-                        autoComplete="new-password"
-                        error={apiKeyError || ""}
-                      />
-                      <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 0.5 }}>
-                        Get your API key from{" "}
-                        <a
-                          href="https://console.aws.amazon.com/bedrock/home#/api-keys"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: "#2563EB" }}
-                        >
-                          AWS Bedrock Console → API Keys
-                        </a>
-                      </Typography>
-                    </Box>
-                  )}
-
-                  {/* Region Selection - always shown */}
-                  <Box sx={{ mt: 2 }}>
-                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", mb: 1 }}>
-                      AWS Region
+          {/* AWS Bedrock Configuration */}
+          {selectedProvider === "bedrock" && (
+            <Box>
+              {/* Authentication Method */}
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", mb: 1.5 }}>
+                Authentication method
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1.5, mb: 2 }}>
+                <Box
+                  onClick={() => {
+                    setBedrockAuthMethod("iam");
+                    setNewApiKey("");
+                    setApiKeyError(null);
+                  }}
+                  sx={{
+                    flex: 1,
+                    p: 2,
+                    borderRadius: "8px",
+                    border: bedrockAuthMethod === "iam" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                    backgroundColor: bedrockAuthMethod === "iam" ? "#F0FDF4" : "#FFFFFF",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": { borderColor: bedrockAuthMethod === "iam" ? "#13715B" : "#D1D5DB" },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "iam" ? "#13715B" : "#374151" }}>
+                      IAM Role
                     </Typography>
-                    <Select
-                      id="aws-region-select-modal"
-                      label=""
-                      value={awsRegion}
-                      onChange={(e) => setAwsRegion(e.target.value as string)}
-                      items={[
-                        { _id: "us-east-1", name: "US East (N. Virginia)" },
-                        { _id: "us-east-2", name: "US East (Ohio)" },
-                        { _id: "us-west-2", name: "US West (Oregon)" },
-                        { _id: "eu-west-1", name: "Europe (Ireland)" },
-                        { _id: "eu-central-1", name: "Europe (Frankfurt)" },
-                        { _id: "ap-southeast-1", name: "Asia Pacific (Singapore)" },
-                        { _id: "ap-northeast-1", name: "Asia Pacific (Tokyo)" },
-                        { _id: "ap-south-1", name: "Asia Pacific (Mumbai)" },
-                      ]}
-                    />
+                    <Box sx={{
+                      fontSize: 10,
+                      fontWeight: 500,
+                      color: "#059669",
+                      bgcolor: "#DCFCE7",
+                      px: 0.75,
+                      py: 0.25,
+                      borderRadius: "4px"
+                    }}>
+                      Recommended
+                    </Box>
+                  </Box>
+                  <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                    Uses AWS credentials from environment
+                  </Typography>
+                </Box>
+                <Box
+                  onClick={() => {
+                    setBedrockAuthMethod("apikey");
+                    setNewApiKey("");
+                    setApiKeyError(null);
+                  }}
+                  sx={{
+                    flex: 1,
+                    p: 2,
+                    borderRadius: "8px",
+                    border: bedrockAuthMethod === "apikey" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                    backgroundColor: bedrockAuthMethod === "apikey" ? "#F0FDF4" : "#FFFFFF",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": { borderColor: bedrockAuthMethod === "apikey" ? "#13715B" : "#D1D5DB" },
+                  }}
+                >
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "apikey" ? "#13715B" : "#374151", mb: 0.5 }}>
+                    API Key
+                  </Typography>
+                  <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                    Uses Bedrock Bearer token
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* IAM Role Setup Info */}
+              {bedrockAuthMethod === "iam" && (
+                <Box sx={{ p: 2, bgcolor: "#F9FAFB", borderRadius: "8px", border: "1px solid #E5E7EB" }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#374151", mb: 1 }}>
+                    Server environment variables required:
+                  </Typography>
+                  <Box sx={{
+                    fontFamily: "monospace",
+                    fontSize: 11,
+                    bgcolor: "#FFFFFF",
+                    p: 1.5,
+                    borderRadius: "6px",
+                    border: "1px solid #E5E7EB",
+                    color: "#374151",
+                    lineHeight: 1.8
+                  }}>
+                    AWS_ACCESS_KEY_ID<br />
+                    AWS_SECRET_ACCESS_KEY<br />
+                    AWS_DEFAULT_REGION
                   </Box>
                 </Box>
               )}
-            </Box>
-          )}
 
-          {apiKeyAlert && (
-            <Alert variant={apiKeyAlert.variant} body={apiKeyAlert.body} />
-          )}
-        </Stack>
-      </ModalStandard>
-
-      {/* Delete LLM API Key Modal */}
-      {deleteKeyModalOpen && keyToDelete && (
-        <ConfirmationModal
-          title="Delete API key"
-          body={
-            <Typography fontSize={13}>
-              Are you sure you want to delete the {getProviderDisplayName(keyToDelete.provider)} API key? Any evaluations using this key will no longer be able to run.
-            </Typography>
-          }
-          cancelText="Cancel"
-          proceedText="Delete"
-          onCancel={() => {
-            setDeleteKeyModalOpen(false);
-            setKeyToDelete(null);
-          }}
-          onProceed={handleDeleteLlmKey}
-          proceedButtonColor="error"
-          proceedButtonVariant="contained"
-          TitleFontSize={0}
-        />
-      )}
-
-      {/* Add Local Provider Modal */}
-      <ModalStandard
-        isOpen={localProviderModalOpen}
-        onClose={() => {
-          setLocalProviderModalOpen(false);
-          setSelectedLocalProviderType("");
-          setLocalProviderName("");
-          setLocalProviderUrl("");
-        }}
-        title="Add local provider"
-        description="Configure a local model provider. No API key required."
-        onSubmit={handleAddLocalProvider}
-        submitButtonText={localProviderSaving ? "Adding..." : "Add provider"}
-        isSubmitting={localProviderSaving || !selectedLocalProviderType || !localProviderUrl.trim()}
-      >
-        <Stack spacing={3}>
-          {/* Provider Type Selection */}
-          <Box>
-            <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-              Select provider type
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1.5 }}>
-              {/* Ollama */}
-              <Card
-                onClick={() => {
-                  setSelectedLocalProviderType("ollama");
-                  setLocalProviderName("llama3.2");
-                  setLocalProviderUrl("http://localhost:11434");
-                }}
-                sx={{
-                  flex: 1,
-                  cursor: "pointer",
-                  border: "1px solid",
-                  borderColor: selectedLocalProviderType === "ollama" ? "#13715B" : "#E5E7EB",
-                  backgroundColor: "#FFFFFF",
-                  boxShadow: "none",
-                  transition: "all 0.2s ease",
-                  position: "relative",
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                  },
-                }}
-              >
-                <CardContent sx={{
-                  textAlign: "center",
-                  py: 3,
-                  px: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                  {selectedLocalProviderType === "ollama" && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: 8,
-                        right: 8,
-                        backgroundColor: "#13715B",
-                        borderRadius: "50%",
-                        width: 20,
-                        height: 20,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Check size={12} color="#FFFFFF" strokeWidth={3} />
-                    </Box>
-                  )}
-                  <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
-                    <OllamaLogo />
-                  </Box>
-                  <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "ollama" ? 600 : 500, color: selectedLocalProviderType === "ollama" ? "#13715B" : "#374151" }}>
-                    Ollama
+              {/* API Key Input */}
+              {bedrockAuthMethod === "apikey" && (
+                <Box>
+                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", mb: 1 }}>
+                    Bedrock API key
                   </Typography>
-                </CardContent>
-              </Card>
-
-              {/* Local Endpoint */}
-              <Card
-                onClick={() => {
-                  setSelectedLocalProviderType("local");
-                  setLocalProviderName("Local Endpoint");
-                  setLocalProviderUrl("http://localhost:8000/api/generate");
-                }}
-                sx={{
-                  flex: 1,
-                  cursor: "pointer",
-                  border: "1px solid",
-                  borderColor: selectedLocalProviderType === "local" ? "#13715B" : "#E5E7EB",
-                  backgroundColor: "#FFFFFF",
-                  boxShadow: "none",
-                  transition: "all 0.2s ease",
-                  position: "relative",
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                  },
-                }}
-              >
-                <CardContent sx={{
-                  textAlign: "center",
-                  py: 3,
-                  px: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                  {selectedLocalProviderType === "local" && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: 8,
-                        right: 8,
-                        backgroundColor: "#13715B",
-                        borderRadius: "50%",
-                        width: 20,
-                        height: 20,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Check size={12} color="#FFFFFF" strokeWidth={3} />
-                    </Box>
-                  )}
-                  <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
-                    <FolderFilledIcon />
-                  </Box>
-                  <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "local" ? 600 : 500, color: selectedLocalProviderType === "local" ? "#13715B" : "#374151" }}>
-                    Local Endpoint
+                  <Field
+                    label=""
+                    value={newApiKey}
+                    onChange={(e) => handleApiKeyInputChange(e.target.value)}
+                    placeholder="ABSK... or bedrock-api-key-..."
+                    type="password"
+                    autoComplete="new-password"
+                    error={apiKeyError || ""}
+                  />
+                  <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 0.5 }}>
+                    Get your key from{" "}
+                    <a href="https://console.aws.amazon.com/bedrock/home#/api-keys" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                      AWS Bedrock Console
+                    </a>
                   </Typography>
-                </CardContent>
-              </Card>
-            </Box>
-          </Box>
+                </Box>
+              )}
 
-          {/* Configuration Fields */}
-          {selectedLocalProviderType && (
-            <>
-              <Field
-                label="Display name"
-                value={localProviderName}
-                onChange={(e) => setLocalProviderName(e.target.value)}
-                placeholder={selectedLocalProviderType === "ollama" ? "llama3.2" : "My Local Server"}
-              />
-              <Box>
-                <Field
-                  label="Endpoint URL"
-                  value={localProviderUrl}
-                  onChange={(e) => setLocalProviderUrl(e.target.value)}
-                  placeholder={selectedLocalProviderType === "ollama" ? "http://localhost:11434" : "http://localhost:8000/api/generate"}
-                  isRequired
+              {/* Region Selection */}
+              <Box sx={{ mt: 2 }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", mb: 1 }}>
+                  AWS Region
+                </Typography>
+                <Select
+                  id="aws-region-select-modal"
+                  label=""
+                  value={awsRegion}
+                  onChange={(e) => setAwsRegion(e.target.value as string)}
+                  items={[
+                    { _id: "us-east-1", name: "US East (N. Virginia)" },
+                    { _id: "us-east-2", name: "US East (Ohio)" },
+                    { _id: "us-west-2", name: "US West (Oregon)" },
+                    { _id: "eu-west-1", name: "Europe (Ireland)" },
+                    { _id: "eu-central-1", name: "Europe (Frankfurt)" },
+                    { _id: "ap-southeast-1", name: "Asia Pacific (Singapore)" },
+                    { _id: "ap-northeast-1", name: "Asia Pacific (Tokyo)" },
+                    { _id: "ap-south-1", name: "Asia Pacific (Mumbai)" },
+                  ]}
                 />
-                {selectedLocalProviderType === "ollama" ? (
-                  <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 0.5, ml: 0.5 }}>
-                    Default Ollama endpoint is http://localhost:11434
-                  </Typography>
-                ) : (
-                  <Box
-                    sx={{
-                      mt: 2,
-                      p: 2,
-                      backgroundColor: "#F8FAFC",
-                      border: "1px solid #E2E8F0",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: "#334155",
-                        mb: 1,
-                      }}
-                    >
-                      API Compatibility
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: 12,
-                        color: "#64748B",
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      Your endpoint must be OpenAI-compatible, accepting{" "}
-                      <Box component="span" sx={{ fontFamily: "monospace", backgroundColor: "#E2E8F0", px: 0.5, borderRadius: "3px", fontSize: 11 }}>
-                        POST /v1/chat/completions
-                      </Box>
-                    </Typography>
-                  </Box>
-                )}
               </Box>
-            </>
+            </Box>
           )}
-        </Stack>
-      </ModalStandard>
-
-      {/* Project action alert */}
-      {projectActionAlert && (
-        <Box sx={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
-          <Alert variant={projectActionAlert.variant} body={projectActionAlert.body} />
         </Box>
-      )}
+          )}
 
-      {/* API key alert */}
-      {apiKeyAlert && (
-        <Box sx={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
+        {apiKeyAlert && (
           <Alert variant={apiKeyAlert.variant} body={apiKeyAlert.body} />
-        </Box>
-      )}
-
-      {/* Rename Project Modal */}
-      <ModalStandard
-        isOpen={renameModalOpen}
-        onClose={() => {
-          setRenameModalOpen(false);
-          setRenameProjectId(null);
-          setRenameProjectName("");
-        }}
-        title="Rename project"
-        description="Enter a new name for this project."
-        onSubmit={handleConfirmRename}
-        submitButtonText="Rename"
-        isSubmitting={renaming || !renameProjectName.trim()}
-      >
-        <Field
-          label="Project name"
-          value={renameProjectName}
-          onChange={(e) => setRenameProjectName(e.target.value)}
-          placeholder="Enter project name..."
-          isRequired
-        />
-      </ModalStandard>
-
-      {/* Delete Project Modal */}
-      <ModalStandard
-        isOpen={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false);
-          setDeleteProjectId(null);
-        }}
-        title="Delete project"
-        description="Are you sure you want to delete this project? This will permanently remove all experiments, datasets, and scorers associated with this project. This action cannot be undone."
-        onSubmit={handleConfirmDelete}
-        submitButtonText="Delete project"
-        isSubmitting={deleting}
-      >
-        <Typography variant="body2" color="text.secondary">
-          To confirm, you are about to delete the project:{" "}
-          <strong>{allProjects.find((p) => p.id === deleteProjectId)?.name}</strong>
-        </Typography>
-      </ModalStandard>
+        )}
     </Stack>
+      </ModalStandard >
+
+    {/* Delete LLM API Key Modal */ }
+  {
+    deleteKeyModalOpen && keyToDelete && (
+      <ConfirmationModal
+        title="Delete API key"
+        body={
+          <Typography fontSize={13}>
+            Are you sure you want to delete the {getProviderDisplayName(keyToDelete.provider)} API key? Any evaluations using this key will no longer be able to run.
+          </Typography>
+        }
+        cancelText="Cancel"
+        proceedText="Delete"
+        onCancel={() => {
+          setDeleteKeyModalOpen(false);
+          setKeyToDelete(null);
+        }}
+        onProceed={handleDeleteLlmKey}
+        proceedButtonColor="error"
+        proceedButtonVariant="contained"
+        TitleFontSize={0}
+      />
+    )
+  }
+
+  {/* Add Local Provider Modal */ }
+  <ModalStandard
+    isOpen={localProviderModalOpen}
+    onClose={() => {
+      setLocalProviderModalOpen(false);
+      setSelectedLocalProviderType("");
+      setLocalProviderName("");
+      setLocalProviderUrl("");
+    }}
+    title="Add local provider"
+    description="Configure a local model provider. No API key required."
+    onSubmit={handleAddLocalProvider}
+    submitButtonText={localProviderSaving ? "Adding..." : "Add provider"}
+    isSubmitting={localProviderSaving || !selectedLocalProviderType || !localProviderUrl.trim()}
+  >
+    <Stack spacing={3}>
+      {/* Provider Type Selection */}
+      <Box>
+        <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+          Select provider type
+        </Typography>
+        <Box sx={{ display: "flex", gap: 1.5 }}>
+          {/* Ollama */}
+          <Card
+            onClick={() => {
+              setSelectedLocalProviderType("ollama");
+              setLocalProviderName("llama3.2");
+              setLocalProviderUrl("http://localhost:11434");
+            }}
+            sx={{
+              flex: 1,
+              cursor: "pointer",
+              border: "1px solid",
+              borderColor: selectedLocalProviderType === "ollama" ? "#13715B" : "#E5E7EB",
+              backgroundColor: "#FFFFFF",
+              boxShadow: "none",
+              transition: "all 0.2s ease",
+              position: "relative",
+              "&:hover": {
+                borderColor: "#13715B",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+              },
+            }}
+          >
+            <CardContent sx={{
+              textAlign: "center",
+              py: 3,
+              px: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              {selectedLocalProviderType === "ollama" && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    backgroundColor: "#13715B",
+                    borderRadius: "50%",
+                    width: 20,
+                    height: 20,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                </Box>
+              )}
+              <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
+                <OllamaLogo />
+              </Box>
+              <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "ollama" ? 600 : 500, color: selectedLocalProviderType === "ollama" ? "#13715B" : "#374151" }}>
+                Ollama
+              </Typography>
+            </CardContent>
+          </Card>
+
+          {/* Local Endpoint */}
+          <Card
+            onClick={() => {
+              setSelectedLocalProviderType("local");
+              setLocalProviderName("Local Endpoint");
+              setLocalProviderUrl("http://localhost:8000/api/generate");
+            }}
+            sx={{
+              flex: 1,
+              cursor: "pointer",
+              border: "1px solid",
+              borderColor: selectedLocalProviderType === "local" ? "#13715B" : "#E5E7EB",
+              backgroundColor: "#FFFFFF",
+              boxShadow: "none",
+              transition: "all 0.2s ease",
+              position: "relative",
+              "&:hover": {
+                borderColor: "#13715B",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+              },
+            }}
+          >
+            <CardContent sx={{
+              textAlign: "center",
+              py: 3,
+              px: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              {selectedLocalProviderType === "local" && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    backgroundColor: "#13715B",
+                    borderRadius: "50%",
+                    width: 20,
+                    height: 20,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                </Box>
+              )}
+              <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
+                <FolderFilledIcon />
+              </Box>
+              <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "local" ? 600 : 500, color: selectedLocalProviderType === "local" ? "#13715B" : "#374151" }}>
+                Local Endpoint
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
+
+      {/* Configuration Fields */}
+      {selectedLocalProviderType && (
+        <>
+          <Field
+            label="Display name"
+            value={localProviderName}
+            onChange={(e) => setLocalProviderName(e.target.value)}
+            placeholder={selectedLocalProviderType === "ollama" ? "llama3.2" : "My Local Server"}
+          />
+          <Box>
+            <Field
+              label="Endpoint URL"
+              value={localProviderUrl}
+              onChange={(e) => setLocalProviderUrl(e.target.value)}
+              placeholder={selectedLocalProviderType === "ollama" ? "http://localhost:11434" : "http://localhost:8000/api/generate"}
+              isRequired
+            />
+            {selectedLocalProviderType === "ollama" ? (
+              <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 0.5, ml: 0.5 }}>
+                Default Ollama endpoint is http://localhost:11434
+              </Typography>
+            ) : (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  backgroundColor: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: "8px",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "#334155",
+                    mb: 1,
+                  }}
+                >
+                  API Compatibility
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    color: "#64748B",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Your endpoint must be OpenAI-compatible, accepting{" "}
+                  <Box component="span" sx={{ fontFamily: "monospace", backgroundColor: "#E2E8F0", px: 0.5, borderRadius: "3px", fontSize: 11 }}>
+                    POST /v1/chat/completions
+                  </Box>
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </>
+      )}
+    </Stack>
+  </ModalStandard>
+
+  {/* Project action alert */ }
+  {
+    projectActionAlert && (
+      <Box sx={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
+        <Alert variant={projectActionAlert.variant} body={projectActionAlert.body} />
+      </Box>
+    )
+  }
+
+  {/* API key alert */ }
+  {
+    apiKeyAlert && (
+      <Box sx={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
+        <Alert variant={apiKeyAlert.variant} body={apiKeyAlert.body} />
+      </Box>
+    )
+  }
+
+  {/* Rename Project Modal */ }
+  <ModalStandard
+    isOpen={renameModalOpen}
+    onClose={() => {
+      setRenameModalOpen(false);
+      setRenameProjectId(null);
+      setRenameProjectName("");
+    }}
+    title="Rename project"
+    description="Enter a new name for this project."
+    onSubmit={handleConfirmRename}
+    submitButtonText="Rename"
+    isSubmitting={renaming || !renameProjectName.trim()}
+  >
+    <Field
+      label="Project name"
+      value={renameProjectName}
+      onChange={(e) => setRenameProjectName(e.target.value)}
+      placeholder="Enter project name..."
+      isRequired
+    />
+  </ModalStandard>
+
+  {/* Delete Project Modal */ }
+  <ModalStandard
+    isOpen={deleteModalOpen}
+    onClose={() => {
+      setDeleteModalOpen(false);
+      setDeleteProjectId(null);
+    }}
+    title="Delete project"
+    description="Are you sure you want to delete this project? This will permanently remove all experiments, datasets, and scorers associated with this project. This action cannot be undone."
+    onSubmit={handleConfirmDelete}
+    submitButtonText="Delete project"
+    isSubmitting={deleting}
+  >
+    <Typography variant="body2" color="text.secondary">
+      To confirm, you are about to delete the project:{" "}
+      <strong>{allProjects.find((p) => p.id === deleteProjectId)?.name}</strong>
+    </Typography>
+  </ModalStandard>
+    </Stack >
   );
 }
 

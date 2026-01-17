@@ -441,7 +441,6 @@ export default function OrgSettings() {
                     : "Enter your API key..."}
                 type="password"
                 autoComplete="off"
-                spellCheck={false}
                 disabled={!selectedProvider}
                 error={apiKeyError || ""}
               />
@@ -481,7 +480,6 @@ export default function OrgSettings() {
                   placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
                   type="password"
                   autoComplete="off"
-                  spellCheck={false}
                   error={awsSecretKeyError || ""}
                 />
                 {!awsSecretKeyError && awsSecretKey.trim() && awsSecretKey.length >= 40 && (

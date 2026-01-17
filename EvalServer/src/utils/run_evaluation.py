@@ -126,15 +126,24 @@ async def run_evaluation(
             }
             
             configured_count = 0
+            bedrock_auth_method = scorer_api_keys.get("bedrock_auth_method", "apikey")
+            
             for provider in list(scorer_api_keys.keys()):
-                # Handle Bedrock region
+                # Handle Bedrock-specific keys
                 if provider.lower() == "bedrock_region":
                     os.environ["AWS_DEFAULT_REGION"] = scorer_api_keys.get(provider)
+                    continue
+                if provider.lower() == "bedrock_auth_method":
+                    os.environ["BEDROCK_AUTH_METHOD"] = scorer_api_keys.get(provider)
                     continue
                     
                 env_var = provider_env_map.get(provider.lower())
                 key_value = scorer_api_keys.get(provider)
                 if env_var and key_value:
+                    # For Bedrock with IAM auth, skip setting the Bearer token
+                    if provider.lower() == "bedrock" and bedrock_auth_method == "iam":
+                        configured_count += 1  # Count as configured but don't set token
+                        continue
                     os.environ[env_var] = key_value
                     configured_count += 1
         

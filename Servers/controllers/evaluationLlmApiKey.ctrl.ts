@@ -56,7 +56,7 @@ export const getAllKeys = async (req: Request, res: Response) => {
 export const addKey = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
   try {
-    const { provider, apiKey, region } = req.body;
+    const { provider, apiKey, region, authMethod } = req.body;
 
     // Validate inputs
     if (!provider) {
@@ -75,8 +75,9 @@ export const addKey = async (req: Request, res: Response) => {
       provider as LLMProvider,
       apiKey,
       transaction,
-      undefined,  // secretKey no longer used (Bedrock uses Bearer tokens)
-      region
+      undefined,  // secretKey no longer used
+      region,
+      authMethod  // For Bedrock: 'iam' or 'apikey'
     );
 
     await logSuccess({

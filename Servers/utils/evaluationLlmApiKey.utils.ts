@@ -129,10 +129,11 @@ export const getAllKeysForOrganizationQuery = async (
 
 /**
  * AWS Bedrock credentials structure (stored encrypted as JSON)
- * Bedrock uses Bearer token API keys, not IAM credentials
+ * Supports both IAM role and Bearer token authentication
  */
 interface BedrockCredentials {
-  apiKey: string;  // Bearer token (ABSK... or bedrock-api-key-...)
+  authMethod: 'iam' | 'apikey';  // Authentication method
+  apiKey: string;                 // Bearer token (empty for IAM)
   region?: string;
 }
 
@@ -143,8 +144,9 @@ interface BedrockCredentials {
  * @param provider - LLM provider name
  * @param apiKey - Plain text API key (will be encrypted)
  * @param transaction - Optional transaction
- * @param secretKey - Optional secret key (required for AWS Bedrock)
+ * @param _deprecated - Deprecated parameter (kept for backward compatibility)
  * @param region - Optional AWS region (for Bedrock)
+ * @param authMethod - Authentication method for Bedrock ('iam' or 'apikey')
  * @returns Created key data
  */
 export const createKeyQuery = async (
@@ -152,9 +154,11 @@ export const createKeyQuery = async (
   provider: LLMProvider,
   apiKey: string,
   transaction: Transaction,
-  secretKey?: string,
-  region?: string
+  _deprecated?: string,  // Kept for backward compatibility
+  region?: string,
+  authMethod?: 'iam' | 'apikey'
 ): Promise<IMaskedKey> => {
+  void _deprecated; // Suppress unused parameter warning
   // Validate inputs
   validateProvider(provider);
 
@@ -187,18 +191,19 @@ export const createKeyQuery = async (
     );
   }
 
-  // For Bedrock, store API key with region; for others, just the key
+  // For Bedrock, store API key with region and auth method; for others, just the key
   let encryptedKey: string;
   let maskedDisplay: string;
 
   if (provider === 'bedrock') {
-    // Bedrock now uses Bearer tokens, store with region
+    const bedrockAuth = authMethod || 'iam';
     const credentials: BedrockCredentials = {
-      apiKey: apiKey.trim(),
+      authMethod: bedrockAuth,
+      apiKey: bedrockAuth === 'iam' ? '' : apiKey.trim(),  // Empty for IAM
       region: region?.trim() || 'us-east-1',
     };
     encryptedKey = encrypt(JSON.stringify(credentials));
-    maskedDisplay = maskApiKey(apiKey.trim());
+    maskedDisplay = bedrockAuth === 'iam' ? 'IAM Role' : maskApiKey(apiKey.trim());
   } else {
     encryptedKey = encrypt(apiKey.trim());
     maskedDisplay = maskApiKey(apiKey.trim());
@@ -255,16 +260,18 @@ export const getDecryptedKeysForOrganizationQuery = async (
       if (key.encrypted_api_key) {
         const decrypted = decrypt(key.encrypted_api_key);
 
-        // For Bedrock, parse the JSON credentials (Bearer token)
+        // For Bedrock, parse the JSON credentials
         if (key.provider === 'bedrock') {
           try {
             const credentials: BedrockCredentials = JSON.parse(decrypted);
-            decryptedKeys['bedrock'] = credentials.apiKey;
+            decryptedKeys['bedrock_auth_method'] = credentials.authMethod || 'apikey';
+            decryptedKeys['bedrock'] = credentials.apiKey || '';
             if (credentials.region) {
               decryptedKeys['bedrock_region'] = credentials.region;
             }
           } catch (parseErr) {
             // Fallback: might be old format or plain key
+            decryptedKeys['bedrock_auth_method'] = 'apikey';
             decryptedKeys['bedrock'] = decrypted;
           }
         } else {

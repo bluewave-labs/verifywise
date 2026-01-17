@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Stack, Typography, IconButton, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+import { Box, Stack, Typography, IconButton, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, RadioGroup, FormControlLabel, Radio } from "@mui/material";
 import { Home, FlaskConical, Settings, Trash2, Plus } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -106,6 +106,7 @@ export default function OrgSettings() {
   const [newApiKey, setNewApiKey] = useState<string>("");
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   // AWS Bedrock specific fields
+  const [bedrockAuthMethod, setBedrockAuthMethod] = useState<"iam" | "apikey">("iam");
   const [awsRegion, setAwsRegion] = useState<string>("us-east-1");
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; provider: string | null }>({
     open: false,
@@ -162,9 +163,10 @@ export default function OrgSettings() {
   const handleProviderChange = (value: string) => {
     setSelectedProvider(value);
 
-    // Reset AWS region when switching away from bedrock
+    // Reset AWS settings when switching away from bedrock
     if (value !== "bedrock") {
       setAwsRegion("us-east-1");
+      setBedrockAuthMethod("iam");
     }
 
     // Re-validate existing API key with new provider
@@ -177,7 +179,10 @@ export default function OrgSettings() {
   };
 
   const handleAddKey = async () => {
-    if (!selectedProvider || !newApiKey.trim()) {
+    // For Bedrock with IAM, we don't need an API key
+    const isBedrockIam = selectedProvider === "bedrock" && bedrockAuthMethod === "iam";
+
+    if (!selectedProvider || (!isBedrockIam && !newApiKey.trim())) {
       setAlert({
         variant: "error",
         body: "Please select a provider and enter an API key",
@@ -186,16 +191,19 @@ export default function OrgSettings() {
       return;
     }
 
-    // Validate API key format
-    const formatError = validateApiKeyFormat(selectedProvider, newApiKey);
-    if (formatError) {
-      setApiKeyError(formatError);
-      setAlert({
-        variant: "error",
-        body: formatError,
-      });
-      setTimeout(() => setAlert(null), 5000);
-      return;
+    // Skip validation for Bedrock IAM (no API key needed)
+    if (!isBedrockIam) {
+      // Validate API key format
+      const formatError = validateApiKeyFormat(selectedProvider, newApiKey);
+      if (formatError) {
+        setApiKeyError(formatError);
+        setAlert({
+          variant: "error",
+          body: formatError,
+        });
+        setTimeout(() => setAlert(null), 5000);
+        return;
+      }
     }
 
     // Check if provider already has a key
@@ -212,12 +220,13 @@ export default function OrgSettings() {
     try {
       const keyPayload: Parameters<typeof addLlmApiKey>[0] = {
         provider: selectedProvider as Parameters<typeof addLlmApiKey>[0]["provider"],
-        apiKey: newApiKey,
+        apiKey: isBedrockIam ? "IAM_ROLE" : newApiKey,
       };
 
-      // Add region for Bedrock
+      // Add region and auth method for Bedrock
       if (selectedProvider === "bedrock") {
         keyPayload.region = awsRegion;
+        keyPayload.authMethod = bedrockAuthMethod;
       }
 
       await addLlmApiKey(keyPayload);
@@ -228,6 +237,7 @@ export default function OrgSettings() {
       setNewApiKey("");
       setApiKeyError(null);
       setAwsRegion("us-east-1");
+      setBedrockAuthMethod("iam");
 
       setAlert({
         variant: "success",
@@ -314,7 +324,7 @@ export default function OrgSettings() {
                 mb: 2,
               }}
             >
-              Configured LLM providers
+              AI Providers
             </Typography>
             <Stack spacing="8px">
               {savedKeys.map((key) => (
@@ -424,36 +434,114 @@ export default function OrgSettings() {
               )}
             </Box>
 
-            {/* AWS Bedrock: Region */}
+            {/* AWS Bedrock: Auth Method & Region */}
             {selectedProvider === "bedrock" && (
               <Box>
-                <Select
-                  id="aws-region-select"
-                  label="AWS Region"
-                  value={awsRegion}
-                  onChange={(e) => setAwsRegion(e.target.value as string)}
-                  items={[
-                    { _id: "us-east-1", name: "US East (N. Virginia)" },
-                    { _id: "us-east-2", name: "US East (Ohio)" },
-                    { _id: "us-west-2", name: "US West (Oregon)" },
-                    { _id: "eu-west-1", name: "Europe (Ireland)" },
-                    { _id: "eu-central-1", name: "Europe (Frankfurt)" },
-                    { _id: "ap-southeast-1", name: "Asia Pacific (Singapore)" },
-                    { _id: "ap-northeast-1", name: "Asia Pacific (Tokyo)" },
-                    { _id: "ap-south-1", name: "Asia Pacific (Mumbai)" },
-                  ]}
-                />
+                <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.primary, mb: 1.5 }}>
+                  How should we connect to AWS Bedrock?
+                </Typography>
+                <RadioGroup
+                  value={bedrockAuthMethod}
+                  onChange={(e) => {
+                    setBedrockAuthMethod(e.target.value as "iam" | "apikey");
+                    setNewApiKey("");
+                    setApiKeyError(null);
+                  }}
+                >
+                  <FormControlLabel
+                    value="iam"
+                    control={<Radio size="small" />}
+                    label={
+                      <Box>
+                        <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                          IAM Role
+                          <Typography component="span" sx={{ fontSize: 11, color: "#059669", ml: 1 }}>
+                            Recommended - most secure
+                          </Typography>
+                        </Typography>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
+                          Uses AWS credentials from environment or IAM role
+                        </Typography>
+                      </Box>
+                    }
+                    sx={{ alignItems: "flex-start", mb: 1 }}
+                  />
+                  <FormControlLabel
+                    value="apikey"
+                    control={<Radio size="small" />}
+                    label={
+                      <Box>
+                        <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                          API Keys
+                          <Typography component="span" sx={{ fontSize: 11, color: "#D97706", ml: 1 }}>
+                            Advanced - less secure
+                          </Typography>
+                        </Typography>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
+                          Uses Bedrock Bearer token from AWS Console
+                        </Typography>
+                      </Box>
+                    }
+                    sx={{ alignItems: "flex-start" }}
+                  />
+                </RadioGroup>
+
+                {/* IAM Role instructions */}
+                {bedrockAuthMethod === "iam" && (
+                  <Box sx={{ mt: 2, p: 2, bgcolor: "#F0FDF4", borderRadius: 1, border: "1px solid #BBF7D0" }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#166534", mb: 1 }}>
+                      IAM Role Setup
+                    </Typography>
+                    <Typography sx={{ fontSize: 11, color: "#166534", mb: 1 }}>
+                      Set these environment variables on your server:
+                    </Typography>
+                    <Box component="code" sx={{
+                      display: "block",
+                      fontSize: 11,
+                      bgcolor: "#DCFCE7",
+                      p: 1,
+                      borderRadius: 0.5,
+                      fontFamily: "monospace",
+                      color: "#14532D"
+                    }}>
+                      AWS_ACCESS_KEY_ID=your_access_key<br />
+                      AWS_SECRET_ACCESS_KEY=your_secret_key<br />
+                      AWS_DEFAULT_REGION=us-east-1
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Region Selection - always shown */}
+                <Box sx={{ mt: 2 }}>
+                  <Select
+                    id="aws-region-select"
+                    label="AWS Region"
+                    value={awsRegion}
+                    onChange={(e) => setAwsRegion(e.target.value as string)}
+                    items={[
+                      { _id: "us-east-1", name: "US East (N. Virginia)" },
+                      { _id: "us-east-2", name: "US East (Ohio)" },
+                      { _id: "us-west-2", name: "US West (Oregon)" },
+                      { _id: "eu-west-1", name: "Europe (Ireland)" },
+                      { _id: "eu-central-1", name: "Europe (Frankfurt)" },
+                      { _id: "ap-southeast-1", name: "Asia Pacific (Singapore)" },
+                      { _id: "ap-northeast-1", name: "Asia Pacific (Tokyo)" },
+                      { _id: "ap-south-1", name: "Asia Pacific (Mumbai)" },
+                    ]}
+                  />
+                </Box>
               </Box>
             )}
             <Box sx={{ pt: 3 }}>
               <CustomizableButton
                 variant="contained"
-                text="Add API key"
+                text="Add provider"
                 loading={saving}
                 onClick={handleAddKey}
                 isDisabled={
                   !selectedProvider ||
-                  !newApiKey.trim() ||
+                  (selectedProvider !== "bedrock" && !newApiKey.trim()) ||
+                  (selectedProvider === "bedrock" && bedrockAuthMethod === "apikey" && !newApiKey.trim()) ||
                   !!apiKeyError
                 }
                 startIcon={<Plus size={16} />}

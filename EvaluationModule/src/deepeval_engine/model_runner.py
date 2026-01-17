@@ -210,18 +210,33 @@ class ModelRunner:
             raise ImportError("openai package not installed. Install with: pip install openai")
     
     def _setup_bedrock(self):
-        """Setup AWS Bedrock with Bearer token authentication."""
-        import requests
-        
-        # Get Bearer token from environment
-        self.bedrock_api_key = os.getenv("AWS_BEARER_TOKEN_BEDROCK")
-        if not self.bedrock_api_key:
-            raise ValueError("AWS_BEARER_TOKEN_BEDROCK environment variable not set. Get your API key from AWS Bedrock console.")
-        
+        """Setup AWS Bedrock with IAM role or Bearer token authentication."""
         self.bedrock_region = os.getenv("AWS_DEFAULT_REGION") or os.getenv("AWS_REGION", "us-east-1")
-        self.bedrock_base_url = f"https://bedrock-runtime.{self.bedrock_region}.amazonaws.com"
+        self.bedrock_auth_method = os.getenv("BEDROCK_AUTH_METHOD", "iam")
         
-        print(f"✓ AWS Bedrock configured (region: {self.bedrock_region}, auth: Bearer token)")
+        if self.bedrock_auth_method == "apikey":
+            # Bearer token authentication
+            import requests
+            self.bedrock_api_key = os.getenv("AWS_BEARER_TOKEN_BEDROCK")
+            if not self.bedrock_api_key:
+                raise ValueError("AWS_BEARER_TOKEN_BEDROCK environment variable not set. Get your API key from AWS Bedrock console.")
+            self.bedrock_base_url = f"https://bedrock-runtime.{self.bedrock_region}.amazonaws.com"
+            self.bedrock_client = None
+            print(f"✓ AWS Bedrock configured (region: {self.bedrock_region}, auth: Bearer token)")
+        else:
+            # IAM role authentication (boto3)
+            try:
+                import boto3
+                self.bedrock_client = boto3.client(
+                    service_name="bedrock-runtime",
+                    region_name=self.bedrock_region
+                )
+                self.bedrock_api_key = None
+                print(f"✓ AWS Bedrock configured (region: {self.bedrock_region}, auth: IAM role)")
+            except ImportError:
+                raise ImportError("boto3 package not installed. Install with: pip install boto3")
+            except Exception as e:
+                raise ValueError(f"Failed to configure AWS Bedrock with IAM: {e}")
     
     def generate(
         self,
@@ -489,60 +504,81 @@ class ModelRunner:
         temperature: float,
         top_p: Optional[float],
     ) -> str:
-        """Generate using AWS Bedrock with Bearer token authentication."""
+        """Generate using AWS Bedrock with IAM or Bearer token authentication."""
         import json
-        import requests
         
         model_id = self.model_name
         
-        def _call_bedrock():
-            # Use the Bedrock Converse API with Bearer token
-            url = f"{self.bedrock_base_url}/model/{model_id}/converse"
+        if self.bedrock_auth_method == "apikey":
+            # Bearer token authentication via HTTP
+            import requests
             
-            headers = {
-                "Authorization": f"Bearer {self.bedrock_api_key}",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            }
-            
-            # Converse API uses a unified format for all models
-            body = {
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [{"text": prompt}]
-                    }
-                ],
-                "inferenceConfig": {
-                    "maxTokens": max_tokens,
-                    "temperature": temperature,
+            def _call_bedrock_api():
+                url = f"{self.bedrock_base_url}/model/{model_id}/converse"
+                
+                headers = {
+                    "Authorization": f"Bearer {self.bedrock_api_key}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
                 }
-            }
+                
+                body = {
+                    "messages": [
+                        {"role": "user", "content": [{"text": prompt}]}
+                    ],
+                    "inferenceConfig": {
+                        "maxTokens": max_tokens,
+                        "temperature": temperature,
+                    }
+                }
+                
+                if top_p is not None:
+                    body["inferenceConfig"]["topP"] = top_p
+                
+                response = requests.post(url, headers=headers, json=body, timeout=120)
+                
+                if response.status_code == 429:
+                    raise Exception(f"Rate limit (429): {response.text}")
+                
+                if response.status_code != 200:
+                    raise Exception(f"Bedrock API error ({response.status_code}): {response.text}")
+                
+                response_body = response.json()
+                output = response_body.get("output", {})
+                message = output.get("message", {})
+                content = message.get("content", [])
+                
+                if content and len(content) > 0:
+                    return content[0].get("text", "").strip()
+                return ""
             
-            if top_p is not None:
-                body["inferenceConfig"]["topP"] = top_p
-            
-            response = requests.post(url, headers=headers, json=body, timeout=120)
-            
-            if response.status_code == 429:
-                raise Exception(f"Rate limit (429): {response.text}")
-            
-            if response.status_code != 200:
-                raise Exception(f"Bedrock API error ({response.status_code}): {response.text}")
-            
-            response_body = response.json()
-            
-            # Parse Converse API response
-            output = response_body.get("output", {})
-            message = output.get("message", {})
-            content = message.get("content", [])
-            
-            if content and len(content) > 0:
-                return content[0].get("text", "").strip()
-            
-            return ""
+            return self._retry_with_backoff(_call_bedrock_api)
         
-        return self._retry_with_backoff(_call_bedrock)
+        else:
+            # IAM role authentication via boto3
+            def _call_bedrock_iam():
+                # Use Converse API for unified interface
+                response = self.bedrock_client.converse(
+                    modelId=model_id,
+                    messages=[
+                        {"role": "user", "content": [{"text": prompt}]}
+                    ],
+                    inferenceConfig={
+                        "maxTokens": max_tokens,
+                        "temperature": temperature,
+                        **({"topP": top_p} if top_p is not None else {})
+                    }
+                )
+                
+                output = response.get("output", {})
+                message = output.get("message", {})
+                content = message.get("content", [])
+                
+                if content and len(content) > 0:
+                    return content[0].get("text", "").strip()
+                return ""
+            
+            return self._retry_with_backoff(_call_bedrock_iam)
     
     def generate_batch(
         self,

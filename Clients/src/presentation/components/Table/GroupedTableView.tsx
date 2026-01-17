@@ -35,6 +35,11 @@ export function GroupedTableView<T>({
   renderTable,
 }: GroupedTableViewProps<T>): React.ReactElement {
   if (groupedData) {
+    // If grouped but no data matches, show empty table with placeholder
+    if (groupedData.length === 0) {
+      return <>{renderTable([])}</>;
+    }
+
     // Render grouped view
     return (
       <Stack spacing={0}>

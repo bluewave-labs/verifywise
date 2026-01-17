@@ -1,9 +1,9 @@
 import { Queue } from "bullmq";
-import redisClient from "../../database/redis";
+import { REDIS_URL } from "../../database/redis";
 import logger from "../../utils/logger/fileLogger";
 
 export const mlflowSyncQueue = new Queue("mlflow-sync", {
-  connection: redisClient,
+  connection: { url: REDIS_URL },
 });
 
 const SYNC_JOB_NAME = "mlflow-sync-all-orgs";

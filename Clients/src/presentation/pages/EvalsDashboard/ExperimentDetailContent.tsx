@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw, AlertTriangle, Download, Copy } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -148,6 +149,7 @@ import {
   getLogs,
   updateExperiment,
   createExperiment,
+  validateModel,
   type Experiment,
   type EvaluationLog,
 } from "../../../application/repository/deepEval.repository";
@@ -244,8 +246,11 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
       setExperiment((prev) => prev ? { ...prev, name: editedName.trim() } : prev);
       setIsEditingName(false);
+      setAlert({ variant: "success", body: "Name saved" });
+      setTimeout(() => setAlert(null), 3000);
     } catch (err) {
       console.error("Failed to update experiment name:", err);
+      setAlert({ variant: "error", body: "Failed to save name" });
     } finally {
       setSaving(false);
     }
@@ -262,8 +267,11 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
       setExperiment((prev) => prev ? { ...prev, description: editedDescription.trim() } : prev);
       setIsEditingDescription(false);
+      setAlert({ variant: "success", body: "Description saved" });
+      setTimeout(() => setAlert(null), 3000);
     } catch (err) {
       console.error("Failed to update experiment description:", err);
+      setAlert({ variant: "error", body: "Failed to save description" });
     } finally {
       setSaving(false);
     }
@@ -280,15 +288,16 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
   };
 
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+  const [apiKeyWarning, setApiKeyWarning] = useState<string | null>(null);
 
-  const handleRerunExperiment = async () => {
+  const executeRerun = async () => {
     if (!experiment || !projectId) return;
-    if (rerunLoading) return;
 
     try {
       setRerunLoading(true);
       setAlert(null);
       const baseConfig = (experiment as unknown as { config?: Record<string, Record<string, unknown>> }).config || {};
+
       const nextName = `${experiment.name || "Eval"} (rerun ${new Date().toLocaleDateString()})`;
 
       const payload = {
@@ -313,10 +322,39 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     } catch (err) {
       console.error("Failed to rerun experiment:", err);
       setAlert({ variant: "error", body: "Failed to start rerun" });
-      setTimeout(() => setAlert(null), 5000);
+      // Error alerts persist until user dismisses them
     } finally {
       setRerunLoading(false);
     }
+  };
+
+  const handleRerunExperiment = async () => {
+    if (!experiment || !projectId) return;
+    if (rerunLoading) return;
+
+    const baseConfig = (experiment as unknown as { config?: Record<string, Record<string, unknown>> }).config || {};
+
+    // Validate model API key availability before rerunning
+    const modelName = baseConfig.model?.name as string | undefined;
+    const modelProvider = baseConfig.model?.accessMethod as string | undefined;
+
+    if (modelName && modelProvider !== "ollama" && modelProvider !== "huggingface") {
+      try {
+        const validation = await validateModel(modelName, modelProvider);
+        if (!validation.valid) {
+          // Show warning modal but allow user to proceed
+          setApiKeyWarning(
+            validation.error_message || `API key for ${validation.provider || modelProvider} is not configured.`
+          );
+          return;
+        }
+      } catch (validationError) {
+        console.warn("Model validation check failed, proceeding anyway:", validationError);
+      }
+    }
+
+    // If validation passed or skipped, execute the rerun
+    await executeRerun();
   };
 
   if (loading) {
@@ -341,6 +379,29 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} isToast onClick={() => setAlert(null)} />}
+
+      {/* API Key Warning Modal */}
+      {apiKeyWarning && (
+        <ConfirmationModal
+          title="API key may not be configured"
+          body={
+            <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6 }}>
+              {apiKeyWarning}
+              <br /><br />
+              Do you want to run the experiment anyway?
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Run anyway"
+          onCancel={() => setApiKeyWarning(null)}
+          onProceed={async () => {
+            setApiKeyWarning(null);
+            await executeRerun();
+          }}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
 
       {/* Back button */}
       <Box sx={{ mb: 2 }}>
@@ -890,7 +951,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 <BackgroundIcon size={96} color="#374151" />
               </Box>
 
-              <CardContent sx={{ p: 2, position: "relative", zIndex: 1, "&:last-child": { pb: 2 } }}>
+              <CardContent sx={{ p: "16px", position: "relative", zIndex: 1, "&:last-child": { pb: "16px" } }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
                   <Typography variant="body2" sx={{ fontSize: "13px", fontWeight: 400, color: "#6B7280" }}>
                     {metric.label}
@@ -954,7 +1015,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
                   Quality metrics
                 </Typography>
-                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
                   {qualityMetrics.map(renderMetricCard)}
                 </Box>
               </Box>
@@ -969,7 +1030,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                     (multi-turn)
                   </Typography>
                 </Typography>
-                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
                   {conversationalMetrics.map(renderMetricCard)}
                 </Box>
               </Box>
@@ -981,7 +1042,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
                   Safety metrics
                 </Typography>
-                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
                   {safetyMetrics.map(renderMetricCard)}
                 </Box>
               </Box>
@@ -993,7 +1054,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
                   Custom scorers
                 </Typography>
-                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
                   {customScorerMetrics.map(renderMetricCard)}
                 </Box>
               </Box>

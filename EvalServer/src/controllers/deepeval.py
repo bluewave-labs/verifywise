@@ -698,10 +698,9 @@ async def upload_deepeval_dataset_controller(
         if not isinstance(data, list):
             raise HTTPException(status_code=400, detail="Dataset JSON must be an array of prompt objects")
 
-        # Build upload path within EvaluationModule
-        root_path = Path(__file__).parent.parent.parent.parent
-        evaluation_module_path = root_path / "EvaluationModule"
-        uploads_dir = evaluation_module_path / "data" / "uploads" / tenant
+        # Build upload path (Docker: /app/data/uploads, Local: EvaluationModule/data/uploads)
+        uploads_root = _get_uploads_root()
+        uploads_dir = uploads_root / tenant
         uploads_dir.mkdir(parents=True, exist_ok=True)
 
         # Use only the original filename, no timestamp prefix
@@ -819,6 +818,22 @@ def _get_evaluation_module_path() -> Path:
     return root_path / "EvaluationModule" / "data"
 
 
+def _get_uploads_root() -> Path:
+    """
+    Returns the path to user uploads directory.
+    In Docker: /app/data/uploads (mounted as volume for persistence)
+    In development: EvaluationModule/data/uploads (relative to repo root)
+    """
+    # Check for Docker environment first
+    docker_uploads = Path("/app/data/uploads")
+    if docker_uploads.exists():
+        return docker_uploads
+
+    # Fallback for local development
+    root_path = Path(__file__).parent.parent.parent.parent
+    return root_path / "EvaluationModule" / "data" / "uploads"
+
+
 def _extract_dataset_stats(file_path: Path) -> dict:
     """
     Extract statistics from a dataset JSON file.
@@ -928,9 +943,16 @@ async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
 
         # Check if it's a user upload path (starts with "data/uploads/")
         if path.startswith("data/uploads/"):
-            eval_data_path = _get_evaluation_module_path()
-            target = (eval_data_path.parent / path).resolve()
-            allowed_base = eval_data_path.resolve()
+            # Extract tenant and filename from path: "data/uploads/{tenant}/{filename}"
+            path_parts = path.split("/")
+            if len(path_parts) >= 4:
+                tenant = path_parts[2]
+                filename = "/".join(path_parts[3:])
+                uploads_root = _get_uploads_root()
+                target = (uploads_root / tenant / filename).resolve()
+                allowed_base = (uploads_root / tenant).resolve()
+            else:
+                raise HTTPException(status_code=400, detail="Invalid upload path format")
         else:
             # Built-in dataset path (e.g., "chatbot/chatbot_basic.json")
             datasets_base = _safe_evalmodule_data_root()
@@ -979,27 +1001,35 @@ async def list_user_datasets_controller(
 async def delete_user_datasets_controller(tenant: str, paths: list[str]) -> JSONResponse:
     """
     Delete user-uploaded datasets by paths (tenant-scoped).
+    Security: Only allows deletion within the tenant's own uploads directory.
     """
     try:
-        root_path = Path(__file__).parent.parent.parent.parent
-        evaluation_module_path = root_path / "EvaluationModule"
+        uploads_root = _get_uploads_root()
+        tenant_uploads_dir = (uploads_root / tenant).resolve()
         deleted_count = 0
-        
+
         async with get_db() as db:
             from crud.deepeval_datasets import delete_user_datasets
-            
+
             # Delete from database
             await delete_user_datasets(tenant=tenant, db=db, paths=paths)
-            
+
             # Delete physical files
             for path in paths:
                 try:
-                    file_path = (evaluation_module_path / path).resolve()
-                    # Security check: ensure it's in uploads folder
-                    uploads_dir = (evaluation_module_path / "data" / "uploads" / tenant).resolve()
-                    if uploads_dir in file_path.parents and file_path.is_file():
-                        file_path.unlink()
-                        deleted_count += 1
+                    # Path format: "data/uploads/{tenant}/{filename}"
+                    path_parts = path.split("/")
+                    if len(path_parts) >= 4 and path_parts[2] == tenant:
+                        filename = "/".join(path_parts[3:])
+                        file_path = (tenant_uploads_dir / filename).resolve()
+                        # Security check: ensure file is within tenant's uploads directory
+                        if file_path.is_relative_to(tenant_uploads_dir) and file_path.is_file():
+                            file_path.unlink()
+                            deleted_count += 1
+                        else:
+                            print(f"Security: Blocked deletion of {path} - outside tenant directory")
+                    else:
+                        print(f"Security: Blocked deletion of {path} - invalid path or wrong tenant")
                 except Exception as e:
                     print(f"Failed to delete file {path}: {e}")
             

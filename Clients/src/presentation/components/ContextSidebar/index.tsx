@@ -14,6 +14,8 @@ interface ContextSidebarProps {
   onOpenCreateDemoData?: () => void;
   onOpenDeleteDemoData?: () => void;
   hasDemoData?: boolean;
+  /** Only show demo data options to admins */
+  isAdmin?: boolean;
 }
 
 /**
@@ -28,6 +30,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
   hasDemoData,
+  isAdmin = false,
 }) => {
   const evalsSidebarContext = useEvalsSidebarContextSafe();
   const aiDetectionSidebarContext = useAIDetectionSidebarContextSafe();
@@ -58,6 +61,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
           hasDemoData={hasDemoData}
+          isAdmin={isAdmin}
         />
       );
     case "evals":
@@ -118,6 +122,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
           hasDemoData={hasDemoData}
+          isAdmin={isAdmin}
         />
       );
   }

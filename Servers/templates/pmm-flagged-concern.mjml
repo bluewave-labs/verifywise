@@ -20,12 +20,7 @@
           </p>
           <p><strong>Flagged items:</strong></p>
           <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin: 15px 0;">
-            {{#each flagged_questions}}
-            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0;">
-              <p style="margin: 0 0 5px 0; font-weight: 500; color: #2c3e50;">{{this.question_text}}</p>
-              <p style="margin: 0; color: #e74c3c;">Response: {{this.response}}</p>
-            </div>
-            {{/each}}
+            {{flagged_questions_html}}
           </div>
           <p style="margin-top: 20px;">Please review the flagged concerns and take appropriate action to address any compliance issues.</p>
           <p style="margin: 20px 0;">

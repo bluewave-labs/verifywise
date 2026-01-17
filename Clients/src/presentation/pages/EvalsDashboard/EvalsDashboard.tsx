@@ -49,7 +49,7 @@ import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
 import { ReactComponent as HuggingFaceLogo } from "../../assets/icons/huggingface_logo.svg";
 import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
 import { ReactComponent as OllamaLogo } from "../../assets/icons/ollama_logo.svg";
-import { ReactComponent as BedrockLogo } from "../../assets/icons/bedrock_logo.svg";
+import { ReactComponent as BedrockLogo } from "../../assets/icons/ai-providers/aws.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 import { ENV_VARs } from "../../../../env.vars";

@@ -30,7 +30,7 @@ const PROVIDER_META: Record<string, { displayName: string; iconColor: string; lo
   mistral: { displayName: "Mistral", iconColor: "#FF7000", logo: "/src/presentation/assets/icons/mistral_logo.svg" },
   xai: { displayName: "xAI", iconColor: "#000000", logo: "/src/presentation/assets/icons/xai_logo.svg" },
   openrouter: { displayName: "OpenRouter", iconColor: "#6366F1", logo: "/src/presentation/assets/icons/openrouter_logo.svg" },
-  bedrock: { displayName: "AWS Bedrock", iconColor: "#FF9900", logo: "/src/presentation/assets/icons/bedrock_logo.svg" },
+  bedrock: { displayName: "AWS Bedrock", iconColor: "#FF9900", logo: "/src/presentation/assets/icons/ai-providers/aws.svg" },
 };
 
 export const PROVIDERS: Record<string, ProviderConfig> = {

@@ -7,7 +7,7 @@
       <mj-section padding="0px"></mj-section>
     </mj-attributes>
   </mj-head>
-  <mj-body width="100%">
+  <mj-body>
     <mj-section text-align="left" padding="0px">
       <mj-column width="100%" vertical-align="top">
         <mj-text align="left">

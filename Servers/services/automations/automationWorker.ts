@@ -15,6 +15,9 @@ import { buildReportingReplacements } from "../../utils/automation/reporting.aut
 import { logAutomationExecution } from "../../utils/automationExecutionLog.utils";
 import { generateReport } from "../reporting";
 import { processPMMHourlyCheck } from "../postMarketMonitoring/pmmScheduler";
+import { compileMjmlToHtml } from "../../tools/mjmlCompiler";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 const handlers = {
   send_email: sendEmail,
@@ -345,30 +348,55 @@ export const createAutomationWorker = () => {
         } else if (name === "pmm_hourly_check") {
           await processPMMHourlyCheck();
         } else if (name === "send_pmm_notification") {
-          // PMM notification handling - send email based on type
-          const { type, data, tenant } = job.data;
+          // PMM notification handling - send email using MJML templates
+          const { type, data } = job.data;
           const handler = handlers["send_email"];
           if (handler) {
             let subject = "";
-            let body = "";
+            let templateFile = "";
+            let recipientEmail = "";
 
             if (type === "initial") {
-              subject = `Post-Market Monitoring Due: ${data.use_case_title}`;
-              body = `Your post-market monitoring for ${data.use_case_title} is due on ${data.due_date}.`;
+              subject = `Post-market monitoring due: ${data.use_case_title}`;
+              templateFile = "pmm-initial-notification.mjml";
+              recipientEmail = data.stakeholder_email;
             } else if (type === "reminder") {
-              subject = `Reminder: Post-Market Monitoring Due Soon - ${data.use_case_title}`;
-              body = `Reminder: The monitoring for ${data.use_case_title} is due in ${data.days_remaining} days.`;
+              subject = `Reminder: Post-market monitoring due soon - ${data.use_case_title}`;
+              templateFile = "pmm-reminder.mjml";
+              recipientEmail = data.stakeholder_email;
             } else if (type === "escalation") {
-              subject = `Escalation: Post-Market Monitoring Overdue - ${data.use_case_title}`;
-              body = `The monitoring for ${data.use_case_title} is overdue by ${data.days_overdue} days.`;
+              subject = `Escalation: Post-market monitoring overdue - ${data.use_case_title}`;
+              templateFile = "pmm-escalation.mjml";
+              recipientEmail = data.escalation_contact_email;
+            } else if (type === "completed") {
+              subject = `Post-market monitoring completed: ${data.use_case_title}`;
+              templateFile = "pmm-completed.mjml";
+              recipientEmail = data.stakeholder_email;
+            } else if (type === "flagged") {
+              subject = `Concern flagged: ${data.use_case_title}`;
+              templateFile = "pmm-flagged-concern.mjml";
+              recipientEmail = data.escalation_contact_email;
             }
 
-            await handler({
-              to: [type === "escalation" ? data.escalation_contact_email : data.stakeholder_email],
-              subject,
-              body,
-              tenant,
-            });
+            if (templateFile && recipientEmail) {
+              // Read and compile MJML template
+              const templatePath = join(__dirname, "../../templates", templateFile);
+              const mjmlTemplate = readFileSync(templatePath, "utf-8");
+
+              // Convert data values to strings for template replacement
+              const templateData: Record<string, string> = {};
+              Object.entries(data).forEach(([key, value]) => {
+                templateData[key] = String(value ?? "");
+              });
+
+              const htmlBody = compileMjmlToHtml(mjmlTemplate, templateData);
+
+              await handler({
+                to: [recipientEmail],
+                subject,
+                body: htmlBody,
+              });
+            }
           }
         } else {
           // For standard automation actions (like send_email triggered by entity changes)

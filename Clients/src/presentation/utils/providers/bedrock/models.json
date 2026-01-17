@@ -3,20 +3,6 @@
   "displayName": "AWS Bedrock",
   "models": [
     {
-      "id": "us.anthropic.claude-opus-4-20250514-v1:0",
-      "name": "Claude Opus 4",
-      "description": "Anthropic's most powerful model with hybrid reasoning",
-      "inputCost": 15.0,
-      "outputCost": 75.0
-    },
-    {
-      "id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
-      "name": "Claude Sonnet 4",
-      "description": "High performance model with hybrid reasoning",
-      "inputCost": 3.0,
-      "outputCost": 15.0
-    },
-    {
       "id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
       "name": "Claude 3.5 Sonnet v2",
       "description": "Latest Claude 3.5 with enhanced capabilities",
@@ -29,13 +15,6 @@
       "description": "Fast and efficient Claude model",
       "inputCost": 0.8,
       "outputCost": 4.0
-    },
-    {
-      "id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
-      "name": "Claude 3.7 Sonnet",
-      "description": "Extended thinking capabilities",
-      "inputCost": 3.0,
-      "outputCost": 15.0
     },
     {
       "id": "anthropic.claude-3-opus-20240229-v1:0",
@@ -80,25 +59,11 @@
       "outputCost": 0.14
     },
     {
-      "id": "us.amazon.nova-premier-v1:0",
-      "name": "Nova Premier",
-      "description": "Amazon's most capable model",
-      "inputCost": 2.5,
-      "outputCost": 10.0
-    },
-    {
       "id": "mistral.mistral-large-2407-v1:0",
       "name": "Mistral Large 2",
       "description": "Mistral's flagship model",
       "inputCost": 3.0,
       "outputCost": 9.0
-    },
-    {
-      "id": "mistral.mistral-large-2411-v1:0",
-      "name": "Mistral Large 3",
-      "description": "Latest Mistral Large model",
-      "inputCost": 2.0,
-      "outputCost": 6.0
     },
     {
       "id": "mistral.mistral-small-2402-v1:0",
@@ -108,60 +73,11 @@
       "outputCost": 0.3
     },
     {
-      "id": "mistral.mixtral-8x7b-instruct-v0:1",
-      "name": "Mixtral 8x7B",
-      "description": "Mixture of experts model",
-      "inputCost": 0.45,
-      "outputCost": 0.7
-    },
-    {
-      "id": "mistral.pixtral-large-2502-v1:0",
-      "name": "Pixtral Large",
-      "description": "Mistral's multimodal model",
-      "inputCost": 2.0,
-      "outputCost": 6.0
-    },
-    {
       "id": "meta.llama3-3-70b-instruct-v1:0",
       "name": "Llama 3.3 70B",
       "description": "Meta's latest large instruction model",
       "inputCost": 0.72,
       "outputCost": 0.72
-    },
-    {
-      "id": "meta.llama3-2-90b-instruct-v1:0",
-      "name": "Llama 3.2 90B",
-      "description": "Meta's multimodal vision model",
-      "inputCost": 2.0,
-      "outputCost": 2.0
-    },
-    {
-      "id": "meta.llama3-2-11b-instruct-v1:0",
-      "name": "Llama 3.2 11B",
-      "description": "Efficient multimodal model",
-      "inputCost": 0.16,
-      "outputCost": 0.16
-    },
-    {
-      "id": "meta.llama3-2-3b-instruct-v1:0",
-      "name": "Llama 3.2 3B",
-      "description": "Lightweight instruction model",
-      "inputCost": 0.15,
-      "outputCost": 0.15
-    },
-    {
-      "id": "meta.llama3-2-1b-instruct-v1:0",
-      "name": "Llama 3.2 1B",
-      "description": "Ultra-lightweight model",
-      "inputCost": 0.1,
-      "outputCost": 0.1
-    },
-    {
-      "id": "meta.llama3-1-405b-instruct-v1:0",
-      "name": "Llama 3.1 405B",
-      "description": "Meta's largest open model",
-      "inputCost": 2.4,
-      "outputCost": 2.4
     },
     {
       "id": "meta.llama3-1-70b-instruct-v1:0",
@@ -199,20 +115,6 @@
       "outputCost": 1.5
     },
     {
-      "id": "amazon.titan-text-express-v1",
-      "name": "Titan Text Express",
-      "description": "Fast Amazon text model",
-      "inputCost": 0.2,
-      "outputCost": 0.6
-    },
-    {
-      "id": "amazon.titan-text-lite-v1",
-      "name": "Titan Text Lite",
-      "description": "Lightweight Amazon text model",
-      "inputCost": 0.15,
-      "outputCost": 0.2
-    },
-    {
       "id": "ai21.jamba-1-5-large-v1:0",
       "name": "Jamba 1.5 Large",
       "description": "AI21's hybrid SSM-Transformer",
@@ -225,13 +127,6 @@
       "description": "Efficient hybrid model",
       "inputCost": 0.2,
       "outputCost": 0.4
-    },
-    {
-      "id": "deepseek.deepseek-r1-v1:0",
-      "name": "DeepSeek R1",
-      "description": "DeepSeek's reasoning model",
-      "inputCost": 1.35,
-      "outputCost": 5.4
     }
   ]
 }

@@ -113,6 +113,9 @@ async def run_evaluation(
         # G_EVAL_PROVIDER is set later based on the Judge LLM config (user's explicit selection)
         scorer_api_keys = config.get("scorerApiKeys")
         if scorer_api_keys and isinstance(scorer_api_keys, dict):
+            # Debug: Print available scorer API keys (without values)
+            print(f"🔑 Available scorer API keys: {list(scorer_api_keys.keys())}")
+            
             # Map provider names to environment variable names
             provider_env_map = {
                 "openai": "OPENAI_API_KEY",
@@ -130,28 +133,34 @@ async def run_evaluation(
             # Handle Bedrock-specific credentials
             if "bedrock_auth_method" in scorer_api_keys:
                 os.environ["BEDROCK_AUTH_METHOD"] = bedrock_auth_method
+                print(f"🔑 Bedrock auth method: {bedrock_auth_method}")
                 configured_count += 1
                 
             if "bedrock_region" in scorer_api_keys:
                 os.environ["AWS_DEFAULT_REGION"] = scorer_api_keys.get("bedrock_region")
+                print(f"🔑 Bedrock region: {scorer_api_keys.get('bedrock_region')}")
                 
             # Set Bedrock credentials based on auth method
             if bedrock_auth_method == "iam_role":
                 # IAM Role (AssumeRole) authentication
                 if "bedrock_role_arn" in scorer_api_keys:
                     os.environ["AWS_ROLE_ARN"] = scorer_api_keys.get("bedrock_role_arn")
+                    print(f"🔑 Bedrock IAM Role ARN set")
                 if "bedrock_external_id" in scorer_api_keys:
                     os.environ["AWS_EXTERNAL_ID"] = scorer_api_keys.get("bedrock_external_id")
             elif bedrock_auth_method == "api_key":
                 # Bedrock API Key (Bearer token) authentication
                 if "bedrock" in scorer_api_keys:
                     os.environ["AWS_BEARER_TOKEN_BEDROCK"] = scorer_api_keys.get("bedrock")
+                    print(f"🔑 Bedrock API Key (Bearer token) set")
             elif bedrock_auth_method == "access_keys":
                 # AWS Access Keys (IAM User) authentication
                 if "bedrock_access_key_id" in scorer_api_keys:
                     os.environ["AWS_ACCESS_KEY_ID"] = scorer_api_keys.get("bedrock_access_key_id")
+                    print(f"🔑 Bedrock Access Key ID set")
                 if "bedrock_secret_access_key" in scorer_api_keys:
                     os.environ["AWS_SECRET_ACCESS_KEY"] = scorer_api_keys.get("bedrock_secret_access_key")
+                    print(f"🔑 Bedrock Secret Access Key set")
             
             # Handle other providers
             for provider in list(scorer_api_keys.keys()):
@@ -209,8 +218,18 @@ async def run_evaluation(
             print(f"✅ G_EVAL_MAX_TOKENS set to {max_tokens}")
         
         # Model API keys (for the model being tested)
-        if model_config.get("apiKey") and model_config["apiKey"] != "***":
-            provider = (model_config.get("provider") or model_config.get("accessMethod") or "").lower()
+        # For most providers, use the model config's apiKey if provided
+        # For Bedrock, use the scorer_api_keys since credentials are stored there
+        model_provider_for_key = (model_config.get("provider") or model_config.get("accessMethod") or "").lower()
+        
+        # Handle Bedrock model - use scorer_api_keys (already set up above)
+        if model_provider_for_key == "bedrock":
+            # Bedrock credentials are already set from scorer_api_keys above
+            # Just ensure region is set if provided in model config
+            if model_config.get("region") and not os.environ.get("AWS_DEFAULT_REGION"):
+                os.environ["AWS_DEFAULT_REGION"] = model_config["region"]
+        elif model_config.get("apiKey") and model_config["apiKey"] != "***":
+            provider = model_provider_for_key
             if provider == "openai":
                 os.environ["OPENAI_API_KEY"] = model_config["apiKey"]
             elif provider == "anthropic":
@@ -223,12 +242,6 @@ async def run_evaluation(
                 os.environ["MISTRAL_API_KEY"] = model_config["apiKey"]
             elif provider == "openrouter":
                 os.environ["OPENROUTER_API_KEY"] = model_config["apiKey"]
-            elif provider == "bedrock":
-                # AWS Bedrock uses Access Key ID; Secret Access Key should be set separately
-                os.environ["AWS_ACCESS_KEY_ID"] = model_config["apiKey"]
-                # Optional: AWS region can be passed in config
-                if model_config.get("region"):
-                    os.environ["AWS_DEFAULT_REGION"] = model_config["region"]
             elif provider == "custom_api":
                 # For custom API, we'll set as OPENAI_API_KEY since we use OpenAI client
                 os.environ["OPENAI_API_KEY"] = model_config["apiKey"]

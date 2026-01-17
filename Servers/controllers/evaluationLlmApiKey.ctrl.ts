@@ -336,6 +336,203 @@ export const verifyKey = async (req: Request, res: Response) => {
 };
 
 /**
+ * Get available AWS Bedrock models for the user
+ * 
+ * Uses the user's stored Bedrock credentials to fetch available inference profiles
+ * from AWS Bedrock API. This allows dynamic model discovery instead of hardcoded lists.
+ * 
+ * Returns an array of models with id, name, and description
+ */
+export const getBedrockModels = async (req: Request, res: Response) => {
+  try {
+    // Get the user's Bedrock credentials
+    const decryptedKeys = await getDecryptedKeysForOrganizationQuery(req.tenantId!);
+
+    const authMethod = decryptedKeys['bedrock_auth_method'];
+    const region = decryptedKeys['bedrock_region'] || 'us-east-1';
+
+    if (!authMethod) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bedrock credentials not configured. Please add Bedrock API credentials in Settings.',
+        models: [],
+      });
+    }
+
+    // Dynamically import AWS SDK
+    let BedrockClient: any, ListInferenceProfilesCommand: any;
+    try {
+      const bedrockModule = await import('@aws-sdk/client-bedrock');
+      BedrockClient = bedrockModule.BedrockClient;
+      ListInferenceProfilesCommand = bedrockModule.ListInferenceProfilesCommand;
+    } catch {
+      return res.status(500).json({
+        success: false,
+        message: 'AWS SDK not installed. Run: npm install @aws-sdk/client-bedrock',
+        models: [],
+      });
+    }
+
+    let client: any;
+
+    // Configure AWS client based on auth method
+    if (authMethod === 'api_key') {
+      // Bearer token authentication - need to use custom fetch with Authorization header
+      // AWS SDK doesn't directly support bearer tokens, so we'll use direct HTTP call
+      const apiKey = decryptedKeys['bedrock'];
+      if (!apiKey) {
+        return res.status(400).json({
+          success: false,
+          message: 'Bedrock API key not found',
+          models: [],
+        });
+      }
+
+      // Use fetch directly for bearer token auth
+      const response = await fetch(
+        `https://bedrock.${region}.amazonaws.com/inference-profiles?maxResults=100`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Bedrock API error:', response.status, errorText);
+        return res.status(response.status).json({
+          success: false,
+          message: `Bedrock API error: ${response.status}`,
+          models: [],
+        });
+      }
+
+      const data = await response.json();
+      const models = (data.inferenceProfileSummaries || []).map((profile: any) => ({
+        id: profile.inferenceProfileId,
+        name: profile.inferenceProfileName || profile.inferenceProfileId,
+        description: profile.description || `${profile.type || 'Inference'} profile`,
+        status: profile.status,
+        type: profile.type,
+      }));
+
+      return res.status(200).json({
+        success: true,
+        models,
+        region,
+      });
+
+    } else if (authMethod === 'iam_role') {
+      // IAM Role (AssumeRole) authentication
+      const roleArn = decryptedKeys['bedrock_role_arn'];
+      const externalId = decryptedKeys['bedrock_external_id'];
+
+      if (!roleArn) {
+        return res.status(400).json({
+          success: false,
+          message: 'IAM Role ARN not configured',
+          models: [],
+        });
+      }
+
+      // First assume the role
+      const { STSClient, AssumeRoleCommand } = await import('@aws-sdk/client-sts');
+      const stsClient = new STSClient({ region });
+
+      const assumeRoleParams: any = {
+        RoleArn: roleArn,
+        RoleSessionName: 'VerifyWiseBedrockModels',
+        DurationSeconds: 900, // 15 minutes
+      };
+      if (externalId) {
+        assumeRoleParams.ExternalId = externalId;
+      }
+
+      const assumeRoleResponse = await stsClient.send(new AssumeRoleCommand(assumeRoleParams));
+      const credentials = assumeRoleResponse.Credentials;
+
+      if (!credentials) {
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to assume IAM role',
+          models: [],
+        });
+      }
+
+      client = new BedrockClient({
+        region,
+        credentials: {
+          accessKeyId: credentials.AccessKeyId!,
+          secretAccessKey: credentials.SecretAccessKey!,
+          sessionToken: credentials.SessionToken,
+        },
+      });
+
+    } else if (authMethod === 'access_keys') {
+      // AWS Access Keys authentication
+      const accessKeyId = decryptedKeys['bedrock_access_key_id'];
+      const secretAccessKey = decryptedKeys['bedrock_secret_access_key'];
+
+      if (!accessKeyId || !secretAccessKey) {
+        return res.status(400).json({
+          success: false,
+          message: 'AWS Access Keys not configured',
+          models: [],
+        });
+      }
+
+      client = new BedrockClient({
+        region,
+        credentials: {
+          accessKeyId,
+          secretAccessKey,
+        },
+      });
+    }
+
+    // If we have an SDK client (IAM role or access keys), use it
+    if (client) {
+      const command = new ListInferenceProfilesCommand({
+        maxResults: 100,
+      });
+
+      const response = await client.send(command);
+
+      const models = (response.inferenceProfileSummaries || []).map((profile: any) => ({
+        id: profile.inferenceProfileId,
+        name: profile.inferenceProfileName || profile.inferenceProfileId,
+        description: profile.description || `${profile.type || 'Inference'} profile`,
+        status: profile.status,
+        type: profile.type,
+      }));
+
+      return res.status(200).json({
+        success: true,
+        models,
+        region,
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid Bedrock authentication method',
+      models: [],
+    });
+
+  } catch (error: any) {
+    console.error('Error fetching Bedrock models:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to fetch Bedrock models',
+      models: [],
+    });
+  }
+};
+
+/**
  * Delete an LLM API key
  *
  * URL params:

@@ -2,7 +2,7 @@ import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import authenticateJWT from "../middleware/auth.middleware";
 import express, { NextFunction, Request, Response } from "express";
 import { LLMProvider, VALID_PROVIDERS } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
-import { getDecryptedKeyForProviderQuery } from "../utils/evaluationLlmApiKey.utils";
+import { getDecryptedKeyForProviderQuery, getDecryptedKeysForOrganizationQuery } from "../utils/evaluationLlmApiKey.utils";
 
 // JSON body parser for routes that need to inspect/modify the body before proxying
 const jsonParser = express.json({ limit: "50mb" });
@@ -37,19 +37,35 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
       }
       
       const apiKeys: Record<string, string> = {};
+      let hasBedrockContestant = false;
       
       // Get providers from contestants
       const contestants = body.contestants || [];
       for (const contestant of contestants) {
         const provider = contestant.hyperparameters?.provider?.toLowerCase();
         if (provider && VALID_PROVIDERS.includes(provider as LLMProvider) && !apiKeys[provider]) {
-          try {
-            const apiKey = await getDecryptedKeyForProviderQuery(tenantId!, provider as LLMProvider);
-            if (apiKey) {
-              apiKeys[provider] = apiKey;
+          if (provider === "bedrock") {
+            hasBedrockContestant = true;
+          } else {
+            try {
+              const apiKey = await getDecryptedKeyForProviderQuery(tenantId!, provider as LLMProvider);
+              if (apiKey) {
+                apiKeys[provider] = apiKey;
+              }
+            } catch {
+              // Skip providers without keys
             }
-          } catch {
-            // Skip providers without keys
+          }
+        }
+      }
+      
+      // If Bedrock contestant is present, inject Bedrock credentials
+      if (hasBedrockContestant) {
+        const allKeys = await getDecryptedKeysForOrganizationQuery(tenantId!);
+        const bedrockKeys = ['bedrock_auth_method', 'bedrock_region', 'bedrock_role_arn', 'bedrock_external_id', 'bedrock', 'bedrock_access_key_id', 'bedrock_secret_access_key'];
+        for (const key of bedrockKeys) {
+          if (allKeys[key]) {
+            apiKeys[key] = allKeys[key];
           }
         }
       }
@@ -132,7 +148,37 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
       const modelProvider = (body.config.model.provider || body.config.model.accessMethod || "").toLowerCase();
       const hasModelApiKey = body.config.model.apiKey && body.config.model.apiKey !== "***" && body.config.model.apiKey !== "";
       
-      if (modelProvider && !hasModelApiKey && VALID_PROVIDERS.includes(modelProvider as LLMProvider)) {
+      console.log(`[DeepEval Proxy] Model injection check: provider=${modelProvider}, hasApiKey=${hasModelApiKey}, apiKey=${body.config.model.apiKey ? '***' : 'none'}`);
+      
+      // For Bedrock, always inject credentials regardless of hasModelApiKey 
+      // (Bedrock needs special multi-field credentials in scorerApiKeys)
+      if (modelProvider === "bedrock") {
+        // Get all decrypted keys for the organization (handles Bedrock's JSON format)
+        const allKeys = await getDecryptedKeysForOrganizationQuery(tenantId!);
+        
+        console.log(`[DeepEval Proxy] Bedrock keys from DB: ${Object.keys(allKeys).filter(k => k.startsWith('bedrock')).join(', ') || 'none found'}`);
+        
+        // Initialize scorerApiKeys if not already set
+        if (!req.body.config.scorerApiKeys) {
+          req.body.config.scorerApiKeys = {};
+        }
+        
+        // Inject Bedrock-specific keys
+        const bedrockKeys = ['bedrock_auth_method', 'bedrock_region', 'bedrock_role_arn', 'bedrock_external_id', 'bedrock', 'bedrock_access_key_id', 'bedrock_secret_access_key'];
+        for (const key of bedrockKeys) {
+          if (allKeys[key]) {
+            req.body.config.scorerApiKeys[key] = allKeys[key];
+          }
+        }
+        
+        console.log(`[DeepEval Proxy] Injecting Bedrock credentials (auth_method: ${allKeys['bedrock_auth_method'] || 'not set'})`);
+        
+        // Set provider explicitly
+        req.body.config.model.provider = "bedrock";
+        // Set a placeholder for apiKey so downstream code knows we have credentials
+        req.body.config.model.apiKey = "BEDROCK_AUTH";
+      } else if (modelProvider && !hasModelApiKey && VALID_PROVIDERS.includes(modelProvider as LLMProvider)) {
+        // Standard provider - just get the API key
         const apiKey = await getDecryptedKeyForProviderQuery(
           tenantId!,
           modelProvider as LLMProvider,

@@ -55,6 +55,21 @@ export interface VerifyKeyResponse {
   message: string;
 }
 
+export interface BedrockModel {
+  id: string;
+  name: string;
+  description: string;
+  status?: string;
+  type?: string;
+}
+
+export interface GetBedrockModelsResponse {
+  success: boolean;
+  models: BedrockModel[];
+  region?: string;
+  message?: string;
+}
+
 class EvaluationLlmApiKeysService {
   private baseUrl = "/evaluation-llm-keys";
 
@@ -105,7 +120,7 @@ class EvaluationLlmApiKeysService {
     try {
       const keys = await this.getAllKeys();
       return keys.some(k => k.provider === provider);
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -125,6 +140,24 @@ class EvaluationLlmApiKeysService {
       console.error("Failed to verify LLM API key:", error);
       // If backend verification fails, assume valid to not block user
       return { valid: true };
+    }
+  }
+
+  /**
+   * Get available AWS Bedrock models for the user
+   * Fetches inference profiles from AWS using stored credentials
+   */
+  async getBedrockModels(): Promise<BedrockModel[]> {
+    try {
+      const response = await CustomAxios.get<GetBedrockModelsResponse>(`${this.baseUrl}/bedrock/models`);
+      if (response.data.success) {
+        return response.data.models;
+      }
+      console.warn("Failed to fetch Bedrock models:", response.data.message);
+      return [];
+    } catch (error: any) {
+      console.error("Failed to fetch Bedrock models:", error);
+      return [];
     }
   }
 }

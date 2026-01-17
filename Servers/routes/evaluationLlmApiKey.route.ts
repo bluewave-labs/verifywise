@@ -7,7 +7,7 @@
  */
 
 import express from 'express';
-import { getAllKeys, addKey, deleteKey, getDecryptedKeys, verifyKey } from '../controllers/evaluationLlmApiKey.ctrl';
+import { getAllKeys, addKey, deleteKey, getDecryptedKeys, verifyKey, getBedrockModels } from '../controllers/evaluationLlmApiKey.ctrl';
 import authenticateJWT from '../middleware/auth.middleware';
 
 /**
@@ -17,13 +17,13 @@ import authenticateJWT from '../middleware/auth.middleware';
 const internalOnly = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const ip = req.ip || req.socket?.remoteAddress || '';
   const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip.includes('localhost');
-  
+
   // In development, allow all requests; in production, require localhost
   const isDev = process.env.NODE_ENV !== 'production';
   if (isDev || isLocalhost) {
     return next();
   }
-  
+
   return res.status(403).json({
     success: false,
     message: 'This endpoint is only accessible from internal services',
@@ -83,5 +83,16 @@ router.delete('/:provider', authenticateJWT, deleteKey);
  * Note: This endpoint is restricted to internal services (localhost in production)
  */
 router.get('/internal/decrypted', internalOnly, getDecryptedKeys);
+
+/**
+ * GET /api/evaluation-llm-keys/bedrock/models
+ * Get available AWS Bedrock models for the user
+ * Uses stored Bedrock credentials to fetch inference profiles from AWS
+ *
+ * Returns:
+ * - models: array of { id, name, description, status, type }
+ * - region: string (the configured AWS region)
+ */
+router.get('/bedrock/models', authenticateJWT, getBedrockModels);
 
 export default router;

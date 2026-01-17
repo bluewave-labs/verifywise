@@ -440,7 +440,7 @@ export default function OrgSettings() {
                     ? `Enter your ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || ''} API key...` 
                     : "Enter your API key..."}
                 type="password"
-                autoComplete="off"
+                autoComplete="new-password"
                 disabled={!selectedProvider}
                 error={apiKeyError || ""}
               />
@@ -479,7 +479,7 @@ export default function OrgSettings() {
                   onChange={(e) => handleAwsSecretKeyChange(e.target.value)}
                   placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
                   type="password"
-                  autoComplete="off"
+                  autoComplete="new-password"
                   error={awsSecretKeyError || ""}
                 />
                 {!awsSecretKeyError && awsSecretKey.trim() && awsSecretKey.length >= 40 && (

@@ -2184,7 +2184,7 @@ export default function EvalsDashboard() {
                 onChange={(e) => handleApiKeyInputChange(e.target.value)}
                 placeholder={`Enter your ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || ''} API key...`}
                 type="password"
-                autoComplete="off"
+                autoComplete="new-password"
                 error={apiKeyError || ""}
               />
               {selectedProvider && !apiKeyError && newApiKey.trim() && (
@@ -2260,7 +2260,7 @@ export default function EvalsDashboard() {
                     onChange={(e) => handleAwsSecretKeyChange(e.target.value)}
                     placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
                     type="password"
-                    autoComplete="off"
+                    autoComplete="new-password"
                     error={awsSecretKeyError || ""}
                   />
                   {!awsSecretKeyError && awsSecretKey.trim() && awsSecretKey.length >= 40 && (

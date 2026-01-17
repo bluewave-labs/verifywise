@@ -83,9 +83,9 @@ export class LLMKeysModel {
     {
       id: "bedrock",
       name: "AWS Bedrock",
-      keyPrefix: "AKIA",
-      keyPlaceholder: "AKIAIOSFODNN7EXAMPLE",
-      apiKeyUrl: "https://console.aws.amazon.com/iam/home#/security_credentials",
+      keyPrefix: "ABSK",
+      keyPlaceholder: "ABSK... or bedrock-api-key-...",
+      apiKeyUrl: "https://console.aws.amazon.com/bedrock/home#/api-keys",
     },
   ];
 

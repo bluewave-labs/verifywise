@@ -78,9 +78,9 @@ export const API_KEY_PATTERNS: Record<LLMProvider, { pattern: RegExp; example: s
     description: 'OpenRouter keys start with "sk-or-v1-"',
   },
   bedrock: {
-    pattern: /^(AKIA|ASIA)[A-Z0-9]{16}$/,
-    example: 'AKIAIOSFODNN7EXAMPLE',
-    description: 'AWS Access Key IDs start with "AKIA" or "ASIA" followed by 16 characters',
+    pattern: /^(ABSK|bedrock-api-key-)[A-Za-z0-9+/=_-]{20,}$/,
+    example: 'ABSK... or bedrock-api-key-...',
+    description: 'Bedrock API keys start with "ABSK" (long-term) or "bedrock-api-key-" (short-term)',
   },
 };
 

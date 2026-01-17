@@ -68,9 +68,9 @@ const API_KEY_PATTERNS: Record<string, { pattern: RegExp; example: string; descr
     description: 'OpenRouter keys start with "sk-or-v1-"',
   },
   bedrock: {
-    pattern: /^(AKIA|ASIA)[A-Z0-9]{16}$/,
-    example: 'AKIAIOSFODNN7EXAMPLE',
-    description: 'AWS Access Key IDs start with "AKIA" or "ASIA" followed by 16 characters',
+    pattern: /^(ABSK|bedrock-api-key-)[A-Za-z0-9+/=_-]{20,}$/,
+    example: 'ABSK... or bedrock-api-key-...',
+    description: 'Bedrock API keys start with "ABSK" (long-term) or "bedrock-api-key-" (short-term)',
   },
 };
 
@@ -85,7 +85,7 @@ function validateApiKeyFormat(provider: string, apiKey: string): string | null {
   }
 
   const trimmedKey = apiKey.trim();
-  
+
   if (!config.pattern.test(trimmedKey)) {
     return `Invalid format. ${config.description}`;
   }
@@ -106,8 +106,6 @@ export default function OrgSettings() {
   const [newApiKey, setNewApiKey] = useState<string>("");
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   // AWS Bedrock specific fields
-  const [awsSecretKey, setAwsSecretKey] = useState<string>("");
-  const [awsSecretKeyError, setAwsSecretKeyError] = useState<string | null>(null);
   const [awsRegion, setAwsRegion] = useState<string>("us-east-1");
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; provider: string | null }>({
     open: false,
@@ -146,13 +144,13 @@ export default function OrgSettings() {
   // Validate API key when it changes
   const handleApiKeyChange = (value: string) => {
     setNewApiKey(value);
-    
+
     // Clear error if field is empty
     if (!value.trim()) {
       setApiKeyError(null);
       return;
     }
-    
+
     // Validate if provider is selected
     if (selectedProvider) {
       const error = validateApiKeyFormat(selectedProvider, value);
@@ -163,37 +161,18 @@ export default function OrgSettings() {
   // Re-validate when provider changes
   const handleProviderChange = (value: string) => {
     setSelectedProvider(value);
-    
-    // Clear AWS-specific fields when switching away from bedrock
+
+    // Reset AWS region when switching away from bedrock
     if (value !== "bedrock") {
-      setAwsSecretKey("");
-      setAwsSecretKeyError(null);
       setAwsRegion("us-east-1");
     }
-    
+
     // Re-validate existing API key with new provider
     if (newApiKey.trim() && value) {
       const error = validateApiKeyFormat(value, newApiKey);
       setApiKeyError(error);
     } else {
       setApiKeyError(null);
-    }
-  };
-
-  // Validate AWS Secret Key
-  const handleAwsSecretKeyChange = (value: string) => {
-    setAwsSecretKey(value);
-    
-    if (!value.trim()) {
-      setAwsSecretKeyError(null);
-      return;
-    }
-    
-    // AWS Secret Access Keys are 40 characters
-    if (value.trim().length < 40) {
-      setAwsSecretKeyError("AWS Secret Access Key should be at least 40 characters");
-    } else {
-      setAwsSecretKeyError(null);
     }
   };
 
@@ -219,28 +198,6 @@ export default function OrgSettings() {
       return;
     }
 
-    // For Bedrock, validate secret key is provided
-    if (selectedProvider === "bedrock") {
-      if (!awsSecretKey.trim()) {
-        setAwsSecretKeyError("AWS Secret Access Key is required");
-        setAlert({
-          variant: "error",
-          body: "AWS Secret Access Key is required for AWS Bedrock",
-        });
-        setTimeout(() => setAlert(null), 5000);
-        return;
-      }
-      if (awsSecretKey.trim().length < 40) {
-        setAwsSecretKeyError("AWS Secret Access Key should be at least 40 characters");
-        setAlert({
-          variant: "error",
-          body: "Invalid AWS Secret Access Key format",
-        });
-        setTimeout(() => setAlert(null), 5000);
-        return;
-      }
-    }
-
     // Check if provider already has a key
     if (savedKeys.some(k => k.provider === selectedProvider)) {
       setAlert({
@@ -258,9 +215,8 @@ export default function OrgSettings() {
         apiKey: newApiKey,
       };
 
-      // Add AWS-specific fields for Bedrock
+      // Add region for Bedrock
       if (selectedProvider === "bedrock") {
-        keyPayload.secretKey = awsSecretKey;
         keyPayload.region = awsRegion;
       }
 
@@ -271,8 +227,6 @@ export default function OrgSettings() {
       setSelectedProvider("");
       setNewApiKey("");
       setApiKeyError(null);
-      setAwsSecretKey("");
-      setAwsSecretKeyError(null);
       setAwsRegion("us-east-1");
 
       setAlert({
@@ -434,10 +388,10 @@ export default function OrgSettings() {
                 label={selectedProvider === "bedrock" ? "AWS Access Key ID" : "API key"}
                 value={newApiKey}
                 onChange={(e) => handleApiKeyChange(e.target.value)}
-                placeholder={selectedProvider === "bedrock" 
-                  ? "AKIAIOSFODNN7EXAMPLE" 
-                  : selectedProvider 
-                    ? `Enter your ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || ''} API key...` 
+                placeholder={selectedProvider === "bedrock"
+                  ? "AKIAIOSFODNN7EXAMPLE"
+                  : selectedProvider
+                    ? `Enter your ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || ''} API key...`
                     : "Enter your API key..."}
                 type="password"
                 autoComplete="new-password"
@@ -470,43 +424,6 @@ export default function OrgSettings() {
               )}
             </Box>
 
-            {/* AWS Bedrock: Secret Access Key */}
-            {selectedProvider === "bedrock" && (
-              <Box>
-                <Field
-                  label="AWS Secret Access Key"
-                  value={awsSecretKey}
-                  onChange={(e) => handleAwsSecretKeyChange(e.target.value)}
-                  placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-                  type="password"
-                  autoComplete="new-password"
-                  error={awsSecretKeyError || ""}
-                />
-                {!awsSecretKeyError && awsSecretKey.trim() && awsSecretKey.length >= 40 && (
-                  <Typography
-                    sx={{
-                      fontSize: 11,
-                      color: "#059669",
-                      mt: 0.5,
-                      ml: 0.5,
-                    }}
-                  >
-                    Secret key format looks valid
-                  </Typography>
-                )}
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: theme.palette.text.secondary,
-                    mt: 0.5,
-                    ml: 0.5,
-                  }}
-                >
-                  Your AWS credentials are encrypted and stored securely.
-                </Typography>
-              </Box>
-            )}
-
             {/* AWS Bedrock: Region */}
             {selectedProvider === "bedrock" && (
               <Box>
@@ -517,6 +434,7 @@ export default function OrgSettings() {
                   onChange={(e) => setAwsRegion(e.target.value as string)}
                   items={[
                     { _id: "us-east-1", name: "US East (N. Virginia)" },
+                    { _id: "us-east-2", name: "US East (Ohio)" },
                     { _id: "us-west-2", name: "US West (Oregon)" },
                     { _id: "eu-west-1", name: "Europe (Ireland)" },
                     { _id: "eu-central-1", name: "Europe (Frankfurt)" },
@@ -534,10 +452,9 @@ export default function OrgSettings() {
                 loading={saving}
                 onClick={handleAddKey}
                 isDisabled={
-                  !selectedProvider || 
-                  !newApiKey.trim() || 
-                  !!apiKeyError ||
-                  (selectedProvider === "bedrock" && (!awsSecretKey.trim() || !!awsSecretKeyError))
+                  !selectedProvider ||
+                  !newApiKey.trim() ||
+                  !!apiKeyError
                 }
                 startIcon={<Plus size={16} />}
                 sx={{

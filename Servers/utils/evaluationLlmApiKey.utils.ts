@@ -53,9 +53,9 @@ const API_KEY_PATTERNS: Record<LLMProvider, { pattern: RegExp; example: string; 
     description: 'OpenRouter keys start with "sk-or-v1-"',
   },
   bedrock: {
-    pattern: /^(AKIA|ASIA)[A-Z0-9]{16}$/,
-    example: 'AKIAIOSFODNN7EXAMPLE',
-    description: 'AWS Access Key IDs start with "AKIA" or "ASIA" followed by 16 characters',
+    pattern: /^(ABSK|bedrock-api-key-)[A-Za-z0-9+/=_-]{20,}$/,
+    example: 'ABSK... or bedrock-api-key-...',
+    description: 'Bedrock API keys start with "ABSK" (long-term) or "bedrock-api-key-" (short-term)',
   },
 };
 
@@ -129,10 +129,10 @@ export const getAllKeysForOrganizationQuery = async (
 
 /**
  * AWS Bedrock credentials structure (stored encrypted as JSON)
+ * Bedrock uses Bearer token API keys, not IAM credentials
  */
 interface BedrockCredentials {
-  accessKeyId: string;
-  secretAccessKey: string;
+  apiKey: string;  // Bearer token (ABSK... or bedrock-api-key-...)
   region?: string;
 }
 
@@ -168,12 +168,7 @@ export const createKeyQuery = async (
     throw new ValidationException(formatError, 'apiKey', '[REDACTED]');
   }
 
-  // For Bedrock, require secret key
-  if (provider === 'bedrock') {
-    if (!secretKey || secretKey.trim().length === 0) {
-      throw new ValidationException('AWS Secret Access Key is required for Bedrock', 'secretKey', '');
-    }
-  }
+  // Bedrock now uses Bearer tokens, no secret key needed
 
   // Check if key already exists for this provider
   const existing = await sequelize.query(
@@ -192,18 +187,18 @@ export const createKeyQuery = async (
     );
   }
 
-  // For Bedrock, encrypt credentials as JSON; for others, encrypt the key directly
+  // For Bedrock, store API key with region; for others, just the key
   let encryptedKey: string;
   let maskedDisplay: string;
 
   if (provider === 'bedrock') {
+    // Bedrock now uses Bearer tokens, store with region
     const credentials: BedrockCredentials = {
-      accessKeyId: apiKey.trim(),
-      secretAccessKey: secretKey!.trim(),
+      apiKey: apiKey.trim(),
       region: region?.trim() || 'us-east-1',
     };
     encryptedKey = encrypt(JSON.stringify(credentials));
-    maskedDisplay = maskApiKey(apiKey.trim()); // Mask the Access Key ID
+    maskedDisplay = maskApiKey(apiKey.trim());
   } else {
     encryptedKey = encrypt(apiKey.trim());
     maskedDisplay = maskApiKey(apiKey.trim());
@@ -259,18 +254,18 @@ export const getDecryptedKeysForOrganizationQuery = async (
     try {
       if (key.encrypted_api_key) {
         const decrypted = decrypt(key.encrypted_api_key);
-        
-        // For Bedrock, parse the JSON credentials
+
+        // For Bedrock, parse the JSON credentials (Bearer token)
         if (key.provider === 'bedrock') {
           try {
             const credentials: BedrockCredentials = JSON.parse(decrypted);
-            decryptedKeys['bedrock'] = credentials.accessKeyId;
-            decryptedKeys['bedrock_secret'] = credentials.secretAccessKey;
+            decryptedKeys['bedrock'] = credentials.apiKey;
             if (credentials.region) {
               decryptedKeys['bedrock_region'] = credentials.region;
             }
           } catch (parseErr) {
-            console.warn('Failed to parse Bedrock credentials:', parseErr);
+            // Fallback: might be old format or plain key
+            decryptedKeys['bedrock'] = decrypted;
           }
         } else {
           decryptedKeys[key.provider] = decrypted;

@@ -122,15 +122,12 @@ async def run_evaluation(
                 "mistral": "MISTRAL_API_KEY",
                 "huggingface": "HF_API_KEY",
                 "openrouter": "OPENROUTER_API_KEY",
-                "bedrock": "AWS_ACCESS_KEY_ID",
+                "bedrock": "AWS_BEARER_TOKEN_BEDROCK",  # Bearer token for Bedrock API
             }
             
             configured_count = 0
             for provider in list(scorer_api_keys.keys()):
-                # Handle Bedrock special keys (bedrock_secret, bedrock_region)
-                if provider.lower() == "bedrock_secret":
-                    os.environ["AWS_SECRET_ACCESS_KEY"] = scorer_api_keys.get(provider)
-                    continue
+                # Handle Bedrock region
                 if provider.lower() == "bedrock_region":
                     os.environ["AWS_DEFAULT_REGION"] = scorer_api_keys.get(provider)
                     continue

@@ -50,14 +50,13 @@ export const getAllKeys = async (req: Request, res: Response) => {
  *
  * Request body:
  * - provider: string (openai, anthropic, google, xai, mistral, huggingface, bedrock)
- * - apiKey: string (plain text - will be encrypted)
- * - secretKey: string (required for bedrock - AWS Secret Access Key)
+ * - apiKey: string (plain text - will be encrypted; for Bedrock, use Bearer token)
  * - region: string (optional for bedrock - AWS region, defaults to us-east-1)
  */
 export const addKey = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
   try {
-    const { provider, apiKey, secretKey, region } = req.body;
+    const { provider, apiKey, region } = req.body;
 
     // Validate inputs
     if (!provider) {
@@ -68,10 +67,7 @@ export const addKey = async (req: Request, res: Response) => {
       throw new ValidationException('API key is required', 'apiKey', '[REDACTED]');
     }
 
-    // For Bedrock, require secret key
-    if (provider === 'bedrock' && !secretKey) {
-      throw new ValidationException('AWS Secret Access Key is required for Bedrock', 'secretKey', '[REDACTED]');
-    }
+    // Bedrock now uses Bearer token API keys, no secret needed
 
     // Create key
     const keyData = await createKeyQuery(
@@ -79,7 +75,7 @@ export const addKey = async (req: Request, res: Response) => {
       provider as LLMProvider,
       apiKey,
       transaction,
-      secretKey,
+      undefined,  // secretKey no longer used (Bedrock uses Bearer tokens)
       region
     );
 
@@ -213,16 +209,15 @@ export const verifyKey = async (req: Request, res: Response) => {
 
     const config = endpoints[provider];
     if (!config) {
-      // For Bedrock, we can't easily verify without the secret key
-      // Just check the format is correct
+      // For Bedrock, validate the Bearer token format
       if (provider === 'bedrock') {
-        const isValidFormat = /^(AKIA|ASIA)[A-Z0-9]{16}$/.test(apiKey);
+        const isValidFormat = /^(ABSK|bedrock-api-key-)[A-Za-z0-9+/=_-]{20,}$/.test(apiKey);
         return res.status(200).json({
           success: true,
           valid: isValidFormat,
-          message: isValidFormat 
-            ? 'AWS Access Key ID format is valid (full verification requires secret key)'
-            : 'Invalid AWS Access Key ID format. Should start with AKIA or ASIA followed by 16 characters.',
+          message: isValidFormat
+            ? 'Bedrock API key format is valid'
+            : 'Invalid Bedrock API key format. Should start with "ABSK" (long-term) or "bedrock-api-key-" (short-term).',
         });
       }
       // Unknown provider, skip verification

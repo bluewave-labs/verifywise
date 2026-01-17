@@ -120,9 +120,9 @@ const API_KEY_PATTERNS: Record<string, { pattern: RegExp; example: string; descr
     description: 'OpenRouter keys start with "sk-or-v1-"',
   },
   bedrock: {
-    pattern: /^(AKIA|ASIA)[A-Z0-9]{16}$/,
-    example: 'AKIAIOSFODNN7EXAMPLE',
-    description: 'AWS Access Key IDs start with "AKIA" or "ASIA" followed by 16 characters',
+    pattern: /^(ABSK|bedrock-api-key-)[A-Za-z0-9+/=_-]{20,}$/,
+    example: 'ABSK... or bedrock-api-key-...',
+    description: 'Bedrock API keys start with "ABSK" (long-term) or "bedrock-api-key-" (short-term)',
   },
   custom: {
     pattern: /^.{10,}$/,
@@ -248,8 +248,7 @@ export default function EvalsDashboard() {
   const [apiKeySaving, setApiKeySaving] = useState(false);
   const [apiKeyAlert, setApiKeyAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
   // AWS Bedrock specific fields
-  const [awsSecretKey, setAwsSecretKey] = useState("");
-  const [awsSecretKeyError, setAwsSecretKeyError] = useState<string | null>(null);
+  const [bedrockAuthMethod, setBedrockAuthMethod] = useState<"iam" | "apikey">("iam");
   const [awsRegion, setAwsRegion] = useState("us-east-1");
 
   // LLM API keys list state (for Settings-style display)
@@ -964,10 +963,8 @@ export default function EvalsDashboard() {
   const handleProviderSelect = (providerId: string) => {
     setSelectedProvider(providerId);
 
-    // Clear AWS-specific fields when switching away from bedrock
+    // Reset AWS region when switching away from bedrock
     if (providerId !== "bedrock") {
-      setAwsSecretKey("");
-      setAwsSecretKeyError(null);
       setAwsRegion("us-east-1");
     }
 
@@ -977,23 +974,6 @@ export default function EvalsDashboard() {
       setApiKeyError(error);
     } else {
       setApiKeyError(null);
-    }
-  };
-
-  // Handle AWS Secret Key input
-  const handleAwsSecretKeyChange = (value: string) => {
-    setAwsSecretKey(value);
-
-    if (!value.trim()) {
-      setAwsSecretKeyError(null);
-      return;
-    }
-
-    // AWS Secret Access Keys are typically 40 characters
-    if (value.trim().length < 40) {
-      setAwsSecretKeyError("AWS Secret Access Key should be at least 40 characters");
-    } else {
-      setAwsSecretKeyError(null);
     }
   };
 
@@ -1028,28 +1008,6 @@ export default function EvalsDashboard() {
       return;
     }
 
-    // For Bedrock, validate secret key is provided
-    if (selectedProvider === "bedrock") {
-      if (!awsSecretKey.trim()) {
-        setAwsSecretKeyError("AWS Secret Access Key is required");
-        setApiKeyAlert({
-          variant: "error",
-          body: "AWS Secret Access Key is required for AWS Bedrock",
-        });
-        setTimeout(() => setApiKeyAlert(null), 5000);
-        return;
-      }
-      if (awsSecretKey.trim().length < 40) {
-        setAwsSecretKeyError("AWS Secret Access Key should be at least 40 characters");
-        setApiKeyAlert({
-          variant: "error",
-          body: "Invalid AWS Secret Access Key format",
-        });
-        setTimeout(() => setApiKeyAlert(null), 5000);
-        return;
-      }
-    }
-
     // Verify the API key actually works
     setVerifyingApiKey(true);
     setApiKeyAlert(null); // Clear any previous alerts
@@ -1075,9 +1033,8 @@ export default function EvalsDashboard() {
         apiKey: newApiKey,
       };
 
-      // Add AWS-specific fields for Bedrock
+      // Add region for Bedrock
       if (selectedProvider === "bedrock") {
-        keyPayload.secretKey = awsSecretKey;
         keyPayload.region = awsRegion;
       }
 
@@ -1095,8 +1052,6 @@ export default function EvalsDashboard() {
         setSelectedProvider("");
         setNewApiKey("");
         setApiKeyError(null);
-        setAwsSecretKey("");
-        setAwsSecretKeyError(null);
         setAwsRegion("us-east-1");
       }, 1500);
     } catch (err) {
@@ -2042,8 +1997,7 @@ export default function EvalsDashboard() {
           apiKeySaving ||
           !selectedProvider ||
           !newApiKey.trim() ||
-          !!apiKeyError ||
-          (selectedProvider === "bedrock" && (!awsSecretKey.trim() || !!awsSecretKeyError))
+          !!apiKeyError
         }
       >
         <Stack spacing={3}>
@@ -2248,32 +2202,6 @@ export default function EvalsDashboard() {
                 </>
               )}
 
-              {/* AWS Bedrock: Secret Access Key */}
-              {selectedProvider === "bedrock" && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", mb: 1 }}>
-                    AWS Secret Access Key
-                  </Typography>
-                  <Field
-                    label=""
-                    value={awsSecretKey}
-                    onChange={(e) => handleAwsSecretKeyChange(e.target.value)}
-                    placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-                    type="password"
-                    autoComplete="new-password"
-                    error={awsSecretKeyError || ""}
-                  />
-                  {!awsSecretKeyError && awsSecretKey.trim() && awsSecretKey.length >= 40 && (
-                    <Typography sx={{ fontSize: 11, color: "#059669", mt: 0.5, ml: 0.5 }}>
-                      Secret key format looks valid
-                    </Typography>
-                  )}
-                  <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 0.5, ml: 0.5 }}>
-                    Your AWS credentials are encrypted and stored securely.
-                  </Typography>
-                </Box>
-              )}
-
               {/* AWS Bedrock: Region Selection */}
               {selectedProvider === "bedrock" && (
                 <Box sx={{ mt: 2 }}>
@@ -2287,6 +2215,7 @@ export default function EvalsDashboard() {
                     onChange={(e) => setAwsRegion(e.target.value as string)}
                     items={[
                       { _id: "us-east-1", name: "US East (N. Virginia)" },
+                      { _id: "us-east-2", name: "US East (Ohio)" },
                       { _id: "us-west-2", name: "US West (Oregon)" },
                       { _id: "eu-west-1", name: "Europe (Ireland)" },
                       { _id: "eu-central-1", name: "Europe (Frankfurt)" },
@@ -2295,6 +2224,9 @@ export default function EvalsDashboard() {
                       { _id: "ap-south-1", name: "Asia Pacific (Mumbai)" },
                     ]}
                   />
+                  <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 1 }}>
+                    Your Bedrock API key is encrypted and stored securely.
+                  </Typography>
                 </Box>
               )}
             </Box>

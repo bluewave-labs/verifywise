@@ -17,6 +17,9 @@
   },
   "dependencies": {
     "@assistant-ui/react": "^0.11.44",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.14.1",
     "@eslint/js": "^9.39.2",

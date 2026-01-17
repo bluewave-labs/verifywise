@@ -14,6 +14,7 @@ import { mapReportTypeToFileSource } from "../../controllers/reporting.ctrl";
 import { buildReportingReplacements } from "../../utils/automation/reporting.automation.utils";
 import { logAutomationExecution } from "../../utils/automationExecutionLog.utils";
 import { generateReport } from "../reporting";
+import { processPMMHourlyCheck } from "../postMarketMonitoring/pmmScheduler";
 
 const handlers = {
   send_email: sendEmail,
@@ -341,6 +342,34 @@ export const createAutomationWorker = () => {
           await sendReportNotification();
         } else if (name === "send_report_notification_daily") {
           await sendReportNotificationEmail(job.data);
+        } else if (name === "pmm_hourly_check") {
+          await processPMMHourlyCheck();
+        } else if (name === "send_pmm_notification") {
+          // PMM notification handling - send email based on type
+          const { type, data, tenant } = job.data;
+          const handler = handlers["send_email"];
+          if (handler) {
+            let subject = "";
+            let body = "";
+
+            if (type === "initial") {
+              subject = `Post-Market Monitoring Due: ${data.use_case_title}`;
+              body = `Your post-market monitoring for ${data.use_case_title} is due on ${data.due_date}.`;
+            } else if (type === "reminder") {
+              subject = `Reminder: Post-Market Monitoring Due Soon - ${data.use_case_title}`;
+              body = `Reminder: The monitoring for ${data.use_case_title} is due in ${data.days_remaining} days.`;
+            } else if (type === "escalation") {
+              subject = `Escalation: Post-Market Monitoring Overdue - ${data.use_case_title}`;
+              body = `The monitoring for ${data.use_case_title} is overdue by ${data.days_overdue} days.`;
+            }
+
+            await handler({
+              to: [type === "escalation" ? data.escalation_contact_email : data.stakeholder_email],
+              subject,
+              body,
+              tenant,
+            });
+          }
         } else {
           // For standard automation actions (like send_email triggered by entity changes)
           const handler = handlers[name as keyof typeof handlers];

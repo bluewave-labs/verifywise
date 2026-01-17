@@ -122,6 +122,7 @@ async def run_evaluation(
                 "mistral": "MISTRAL_API_KEY",
                 "huggingface": "HF_API_KEY",
                 "openrouter": "OPENROUTER_API_KEY",
+                "bedrock": "AWS_ACCESS_KEY_ID",
             }
             
             configured_count = 0
@@ -159,6 +160,12 @@ async def run_evaluation(
                 os.environ["MISTRAL_API_KEY"] = judge_config["apiKey"]
             elif provider == "openrouter":
                 os.environ["OPENROUTER_API_KEY"] = judge_config["apiKey"]
+            elif provider == "bedrock":
+                # AWS Bedrock uses Access Key ID; Secret Access Key should be set separately
+                os.environ["AWS_ACCESS_KEY_ID"] = judge_config["apiKey"]
+                # Optional: AWS region can be passed in config
+                if judge_config.get("region"):
+                    os.environ["AWS_DEFAULT_REGION"] = judge_config["region"]
             # Expose judge provider/model for evaluator (provider-agnostic G‑Eval)
             if provider:
                 os.environ["G_EVAL_PROVIDER"] = provider
@@ -184,6 +191,12 @@ async def run_evaluation(
                 os.environ["MISTRAL_API_KEY"] = model_config["apiKey"]
             elif provider == "openrouter":
                 os.environ["OPENROUTER_API_KEY"] = model_config["apiKey"]
+            elif provider == "bedrock":
+                # AWS Bedrock uses Access Key ID; Secret Access Key should be set separately
+                os.environ["AWS_ACCESS_KEY_ID"] = model_config["apiKey"]
+                # Optional: AWS region can be passed in config
+                if model_config.get("region"):
+                    os.environ["AWS_DEFAULT_REGION"] = model_config["region"]
             elif provider == "custom_api":
                 # For custom API, we'll set as OPENAI_API_KEY since we use OpenAI client
                 os.environ["OPENAI_API_KEY"] = model_config["apiKey"]
@@ -210,6 +223,7 @@ async def run_evaluation(
             "huggingface": "huggingface",  # HuggingFace models
             "ollama": "ollama",        # Ollama local server
             "openrouter": "openrouter",  # OpenRouter (multi-provider gateway)
+            "bedrock": "bedrock",      # AWS Bedrock
         }
         
         runner_provider = provider_mapping.get(model_provider, "ollama")

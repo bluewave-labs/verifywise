@@ -1,7 +1,7 @@
-export type LLMProviderId = "anthropic" | "openai" | "openrouter";
+export type LLMProviderId = "anthropic" | "openai" | "openrouter" | "bedrock";
 
 // Display names for providers (used in forms and UI)
-export type LLMProviderName = "Anthropic" | "OpenAI" | "OpenRouter";
+export type LLMProviderName = "Anthropic" | "OpenAI" | "OpenRouter" | "AWS Bedrock";
 
 interface LLMKeysData {
   id: number;
@@ -79,6 +79,13 @@ export class LLMKeysModel {
       keyPrefix: "sk-or-",
       keyPlaceholder: "sk-or-v1-...",
       apiKeyUrl: "https://openrouter.ai/keys",
+    },
+    {
+      id: "bedrock",
+      name: "AWS Bedrock",
+      keyPrefix: "AKIA",
+      keyPlaceholder: "AKIAIOSFODNN7EXAMPLE",
+      apiKeyUrl: "https://console.aws.amazon.com/iam/home#/security_credentials",
     },
   ];
 

@@ -25,6 +25,7 @@ const LLM_PROVIDERS = [
   { _id: "xai", name: "xAI" },
   { _id: "mistral", name: "Mistral" },
   { _id: "huggingface", name: "Hugging Face" },
+  { _id: "bedrock", name: "AWS Bedrock" },
 ];
 
 /**
@@ -65,6 +66,11 @@ const API_KEY_PATTERNS: Record<string, { pattern: RegExp; example: string; descr
     pattern: /^sk-or-v1-[a-zA-Z0-9]{40,}$/,
     example: 'sk-or-v1-...',
     description: 'OpenRouter keys start with "sk-or-v1-"',
+  },
+  bedrock: {
+    pattern: /^(AKIA|ASIA)[A-Z0-9]{16}$/,
+    example: 'AKIAIOSFODNN7EXAMPLE',
+    description: 'AWS Access Key IDs start with "AKIA" or "ASIA" followed by 16 characters',
   },
 };
 

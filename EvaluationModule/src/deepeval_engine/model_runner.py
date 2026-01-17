@@ -64,6 +64,8 @@ class ModelRunner:
             self._setup_ollama()
         elif self.provider == "openrouter":
             self._setup_openrouter()
+        elif self.provider == "bedrock":
+            self._setup_bedrock()
         else:
             raise ValueError(f"Unsupported provider: {provider}")
         
@@ -207,6 +209,26 @@ class ModelRunner:
         except ImportError:
             raise ImportError("openai package not installed. Install with: pip install openai")
     
+    def _setup_bedrock(self):
+        """Setup AWS Bedrock."""
+        try:
+            import boto3
+            
+            # AWS credentials can come from environment variables, AWS config, or IAM roles
+            # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN (optional)
+            # AWS_DEFAULT_REGION or AWS_REGION
+            region = os.getenv("AWS_DEFAULT_REGION") or os.getenv("AWS_REGION", "us-east-1")
+            
+            self.bedrock_client = boto3.client(
+                service_name="bedrock-runtime",
+                region_name=region
+            )
+            print(f"✓ AWS Bedrock configured (region: {region})")
+        except ImportError:
+            raise ImportError("boto3 package not installed. Install with: pip install boto3")
+        except Exception as e:
+            raise ValueError(f"Failed to configure AWS Bedrock: {e}")
+    
     def generate(
         self,
         prompt: str,
@@ -242,6 +264,8 @@ class ModelRunner:
             return self._generate_ollama(prompt, max_tokens, temperature, top_p)
         elif self.provider == "openrouter":
             return self._generate_openrouter(prompt, max_tokens, temperature, top_p)
+        elif self.provider == "bedrock":
+            return self._generate_bedrock(prompt, max_tokens, temperature, top_p)
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
     
@@ -463,6 +487,146 @@ class ModelRunner:
             return response.choices[0].message.content.strip()
 
         return self._retry_with_backoff(_call_openrouter)
+    
+    def _generate_bedrock(
+        self,
+        prompt: str,
+        max_tokens: int,
+        temperature: float,
+        top_p: Optional[float],
+    ) -> str:
+        """Generate using AWS Bedrock with retry logic for rate limits."""
+        import json
+        
+        # Bedrock uses different request formats depending on the model provider
+        # Common providers: anthropic, meta, amazon, cohere, ai21, mistral
+        model_id = self.model_name
+        
+        def _call_bedrock():
+            # Determine the request body format based on model ID
+            if "anthropic" in model_id.lower() or "claude" in model_id.lower():
+                # Anthropic Claude models on Bedrock
+                body = {
+                    "anthropic_version": "bedrock-2023-05-31",
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "messages": [{"role": "user", "content": prompt}]
+                }
+                if top_p is not None:
+                    body["top_p"] = top_p
+                    
+            elif "meta" in model_id.lower() or "llama" in model_id.lower():
+                # Meta Llama models on Bedrock
+                body = {
+                    "prompt": prompt,
+                    "max_gen_len": max_tokens,
+                    "temperature": temperature,
+                }
+                if top_p is not None:
+                    body["top_p"] = top_p
+                    
+            elif "mistral" in model_id.lower():
+                # Mistral models on Bedrock
+                body = {
+                    "prompt": f"<s>[INST] {prompt} [/INST]",
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                }
+                if top_p is not None:
+                    body["top_p"] = top_p
+                    
+            elif "cohere" in model_id.lower():
+                # Cohere models on Bedrock
+                body = {
+                    "prompt": prompt,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                }
+                if top_p is not None:
+                    body["p"] = top_p
+                    
+            elif "ai21" in model_id.lower() or "jamba" in model_id.lower() or "jurassic" in model_id.lower():
+                # AI21 Labs models on Bedrock
+                body = {
+                    "prompt": prompt,
+                    "maxTokens": max_tokens,
+                    "temperature": temperature,
+                }
+                if top_p is not None:
+                    body["topP"] = top_p
+                    
+            elif "amazon" in model_id.lower() or "titan" in model_id.lower():
+                # Amazon Titan models on Bedrock
+                body = {
+                    "inputText": prompt,
+                    "textGenerationConfig": {
+                        "maxTokenCount": max_tokens,
+                        "temperature": temperature,
+                    }
+                }
+                if top_p is not None:
+                    body["textGenerationConfig"]["topP"] = top_p
+            else:
+                # Default to Anthropic-style format (most common)
+                body = {
+                    "anthropic_version": "bedrock-2023-05-31",
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "messages": [{"role": "user", "content": prompt}]
+                }
+                if top_p is not None:
+                    body["top_p"] = top_p
+            
+            response = self.bedrock_client.invoke_model(
+                modelId=model_id,
+                body=json.dumps(body),
+                contentType="application/json",
+                accept="application/json"
+            )
+            
+            response_body = json.loads(response["body"].read())
+            
+            # Parse response based on model provider
+            if "anthropic" in model_id.lower() or "claude" in model_id.lower():
+                # Anthropic response format
+                if "content" in response_body and len(response_body["content"]) > 0:
+                    return response_body["content"][0]["text"].strip()
+                return ""
+            elif "meta" in model_id.lower() or "llama" in model_id.lower():
+                return response_body.get("generation", "").strip()
+            elif "mistral" in model_id.lower():
+                outputs = response_body.get("outputs", [])
+                if outputs:
+                    return outputs[0].get("text", "").strip()
+                return ""
+            elif "cohere" in model_id.lower():
+                generations = response_body.get("generations", [])
+                if generations:
+                    return generations[0].get("text", "").strip()
+                return ""
+            elif "ai21" in model_id.lower() or "jamba" in model_id.lower() or "jurassic" in model_id.lower():
+                completions = response_body.get("completions", [])
+                if completions:
+                    return completions[0].get("data", {}).get("text", "").strip()
+                return ""
+            elif "amazon" in model_id.lower() or "titan" in model_id.lower():
+                results = response_body.get("results", [])
+                if results:
+                    return results[0].get("outputText", "").strip()
+                return ""
+            else:
+                # Try common response formats
+                if "content" in response_body:
+                    content = response_body["content"]
+                    if isinstance(content, list) and len(content) > 0:
+                        return content[0].get("text", "").strip()
+                if "generation" in response_body:
+                    return response_body["generation"].strip()
+                if "outputs" in response_body:
+                    return response_body["outputs"][0].get("text", "").strip()
+                return str(response_body).strip()
+        
+        return self._retry_with_backoff(_call_bedrock)
     
     def generate_batch(
         self,

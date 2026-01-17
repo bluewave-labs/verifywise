@@ -4,6 +4,7 @@ import googleModels from "./google/models.json";
 import mistralModels from "./mistral/models.json";
 import xaiModels from "./xai/models.json";
 import openrouterModels from "./openrouter/models.json";
+import bedrockModels from "./bedrock/models.json";
 
 export interface ModelInfo {
   id: string;
@@ -29,6 +30,7 @@ const PROVIDER_META: Record<string, { displayName: string; iconColor: string; lo
   mistral: { displayName: "Mistral", iconColor: "#FF7000", logo: "/src/presentation/assets/icons/mistral_logo.svg" },
   xai: { displayName: "xAI", iconColor: "#000000", logo: "/src/presentation/assets/icons/xai_logo.svg" },
   openrouter: { displayName: "OpenRouter", iconColor: "#6366F1", logo: "/src/presentation/assets/icons/openrouter_logo.svg" },
+  bedrock: { displayName: "AWS Bedrock", iconColor: "#FF9900", logo: "/src/presentation/assets/icons/bedrock_logo.svg" },
 };
 
 export const PROVIDERS: Record<string, ProviderConfig> = {
@@ -55,6 +57,10 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
   openrouter: { 
     ...(openrouterModels as { provider: string; displayName: string; models: ModelInfo[] }), 
     ...PROVIDER_META.openrouter 
+  },
+  bedrock: { 
+    ...(bedrockModels as { provider: string; displayName: string; models: ModelInfo[] }), 
+    ...PROVIDER_META.bedrock 
   },
 };
 

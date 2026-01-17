@@ -1,0 +1,413 @@
+# Reporting Domain
+
+## Overview
+
+The Reporting domain in VerifyWise provides comprehensive report generation capabilities for compliance documentation, risk analysis, and organizational oversight. It supports multiple output formats (PDF, DOCX), framework-specific sections, custom branding, and integration with all major domains.
+
+## Key Features
+
+- Multi-format report generation (PDF, DOCX)
+- Framework-specific section selection
+- Custom branding (logo, colors)
+- Organization and project-scoped reports
+- Real-time data collection from all domains
+- SVG chart generation
+- Role-based access control
+
+## Report Types
+
+| Type | Description |
+|------|-------------|
+| `risk-report` | Project risks report |
+| `vendor-report` | Vendors and risks report |
+| `assessment-tracker-report` | EU AI Act assessment tracker |
+| `compliance-tracker-report` | Compliance controls report |
+| `clauses-annexes-report` | ISO clauses and annexes |
+| `clause-report` | Clauses only |
+| `annexes-report` | Annexes only |
+| `report` | All reports combined |
+| `multi-report` | Multiple sections |
+
+## Report Sections
+
+### Section Groups
+
+Reports are organized into three groups:
+
+**Risk Analysis:**
+- Use Case Risks
+- Vendor Risks
+- Model Risks
+
+**Compliance & Governance:**
+- Compliance Controls (EU AI Act)
+- Assessment Tracker (EU AI Act)
+- Clauses & Annexes (ISO 42001, ISO 27001)
+- NIST Subcategories (NIST AI RMF)
+
+**Organization:**
+- AI Models
+- Vendors
+- Training Registry
+- Policy Manager
+- Incident Management
+
+### Framework Section Mapping
+
+| Framework | Available Sections |
+|-----------|-------------------|
+| EU AI Act | Compliance, Assessment, Project Risks, Organization |
+| ISO 42001 | Clauses & Annexes, Project Risks, Organization |
+| ISO 27001 | Clauses & Annexes, Project Risks, Organization |
+| NIST AI RMF | NIST Subcategories, Project Risks, Organization |
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/reporting/v2/generate-report` | Generate report |
+| GET | `/reporting/generate-report` | List generated reports |
+| DELETE | `/reporting/:id` | Delete report |
+
+### Generate Report Request
+
+```typescript
+POST /reporting/v2/generate-report
+{
+  projectId: 1,
+  frameworkId: 1,
+  projectFrameworkId: 5,
+  reportType: ["projectRisks", "compliance"],
+  format: "pdf",
+  reportName: "Q1 2025 Compliance Report",
+  branding: {
+    organizationName: "Acme Corp",
+    organizationLogo: "data:image/png;base64,...",
+    primaryColor: "#13715B",
+    secondaryColor: "#1C2130"
+  }
+}
+```
+
+### Response
+
+Binary file attachment with appropriate Content-Type header:
+- `application/pdf` for PDF
+- `application/vnd.openxmlformats-officedocument.wordprocessingml.document` for DOCX
+
+## Architecture
+
+### Service Components
+
+```
+/services/reporting/
+├── index.ts          - Main entry point
+├── dataCollector.ts  - Data aggregation
+├── pdfGenerator.ts   - PDF rendering
+├── docxGenerator.ts  - DOCX generation
+└── chartUtils.ts     - SVG chart generation
+```
+
+### Data Flow
+
+```
+User Request
+    ↓
+Controller (generateReportsV2)
+    ↓
+Service (generateReport)
+    ├── DataCollector.collectAllData()
+    ├── ChartUtils (generate SVG charts)
+    ├── EJS Template Rendering
+    └── pdfGenerator or docxGenerator
+    ↓
+File Storage (upload)
+    ↓
+Binary Response
+```
+
+## Data Collection
+
+### ReportDataCollector Class
+
+```typescript
+class ReportDataCollector {
+  // Metadata
+  collectMetadata(): ReportMetadata
+  collectBranding(): ReportBranding
+  collectChartData(): ChartData
+
+  // Domain Data
+  collectProjectRisks(): ProjectRisksSectionData
+  collectVendorsList(): VendorsListSectionData
+  collectVendorRisks(): VendorRisksSectionData
+  collectCompliance(): ComplianceSectionData
+  collectAssessment(): AssessmentSectionData
+  collectClausesAndAnnexes(): ClausesAndAnnexesSectionData
+  collectModelsList(): ModelsListSectionData
+  collectModelRisks(): ModelRisksSectionData
+  collectTrainingRegistry(): TrainingRegistrySectionData
+  collectPolicyManager(): PolicyManagerSectionData
+  collectNistSubcategories(): NistSubcategoriesSectionData
+  collectIncidentManagement(): IncidentManagementSectionData
+}
+```
+
+### Data Sources
+
+| Section | Tables | Key Fields |
+|---------|--------|-----------|
+| projectRisks | risks, projects_risks | risk_name, severity, likelihood |
+| vendorRisks | vendor_risks, vendors | risk_level, action_plan |
+| modelRisks | model_risks, model_inventory | risk_name, mitigation_status |
+| compliance | controls, control_categories | status, title |
+| assessment | assessments, topics, questions | answer, progress |
+| clausesAndAnnexes | clauses, annexes | status |
+| nistSubcategories | nist_ai_rmf_subcategories | function, category, status |
+| vendors | vendors, vendors_projects | vendor_name, review_status |
+| models | model_inventory | name, version, status |
+| trainingRegistry | training_registrar | training_name, status |
+| policyManager | policies | title, version, status |
+| incidentManagement | ai_incident_managements | type, severity, status |
+
+## PDF Generation
+
+### Technology
+
+- **Playwright** (headless Chromium)
+- **EJS** templates for HTML rendering
+
+### Template Structure
+
+```
+templates/reports/
+├── report-pdf.ejs    - Main PDF template
+├── report-docx.ejs   - DOCX template
+├── pmm-report.ejs    - PMM-specific template
+└── styles/
+    ├── pdf.css       - PDF styling
+    └── docx.css      - DOCX styling
+```
+
+### PDF Options
+
+```typescript
+{
+  format: 'A4',
+  margin: { top: '0.75in', bottom: '0.75in', left: '0.75in', right: '0.75in' },
+  printBackground: true
+}
+```
+
+### Template Variables
+
+```ejs
+<%- metadata.projectTitle %>
+<%- metadata.frameworkName %>
+<%- branding.organizationName %>
+<%- renderedCharts.riskDistribution %>
+<% for (const risk of sections.projectRisks.risks) { %>
+  <%= risk.risk_name %>
+<% } %>
+```
+
+## DOCX Generation
+
+### Technology
+
+- **docx** npm library for native Word documents
+
+### Document Structure
+
+```typescript
+new Document({
+  sections: [{
+    children: [
+      // Cover page
+      new Paragraph({ children: [/* title, logo */] }),
+      // Table of contents
+      new TableOfContents(),
+      // Sections with tables and charts
+      ...sections
+    ]
+  }]
+})
+```
+
+### Supported Elements
+
+- Paragraphs with text runs
+- Tables with styled cells
+- Multiple heading levels
+- Page breaks
+- Text colors and sizing
+- Shading and borders
+
+## Chart Generation
+
+### Chart Types
+
+| Chart | Function | Usage |
+|-------|----------|-------|
+| Risk Distribution | `generateRiskDistributionChart()` | Horizontal bar chart |
+| Risk Donut | `generateRiskDonutChart()` | Donut chart |
+| Compliance Progress | `generateComplianceProgressChart()` | Progress bar |
+| Assessment Status | `generateAssessmentStatusChart()` | Status chart |
+
+### Chart Colors
+
+```typescript
+const RISK_COLORS = {
+  critical: '#B42318',  // Red
+  high: '#C4320A',      // Orange
+  medium: '#B54708',    // Brown
+  low: '#027A48',       // Green
+  info: '#026AA2'       // Blue
+}
+```
+
+## Report Data Interfaces
+
+### ReportData
+
+```typescript
+interface ReportData {
+  metadata: ReportMetadata;
+  branding: ReportBranding;
+  charts: ChartData;
+  renderedCharts: RenderedCharts;
+  sections: {
+    projectRisks?: ProjectRisksSectionData;
+    vendorRisks?: VendorRisksSectionData;
+    modelRisks?: ModelRisksSectionData;
+    compliance?: ComplianceSectionData;
+    assessment?: AssessmentSectionData;
+    clausesAndAnnexes?: ClausesAndAnnexesSectionData;
+    nistSubcategories?: NistSubcategoriesSectionData;
+    vendors?: VendorsListSectionData;
+    models?: ModelsListSectionData;
+    trainingRegistry?: TrainingRegistrySectionData;
+    policyManager?: PolicyManagerSectionData;
+    incidentManagement?: IncidentManagementSectionData;
+  }
+}
+```
+
+### ReportBranding
+
+```typescript
+interface ReportBranding {
+  organizationName: string;
+  organizationLogo?: string;
+  primaryColor: string;    // Default: #13715B
+  secondaryColor: string;  // Default: #1C2130
+}
+```
+
+## Frontend Structure
+
+### Components
+
+| Component | Purpose |
+|-----------|---------|
+| `GenerateReport` | Main generation interface |
+| `GenerateReportFrom` | Project/format selection |
+| `SectionSelector` | Section selection UI |
+| `DownloadReportFrom` | Download interface |
+| `ReportOverviewHeader` | Page header |
+| `ReportingSteps` | UI tour |
+
+### Section Selection
+
+```typescript
+// LocalStorage persistence
+const SECTION_STORAGE_KEY = 'reportSectionPreferences';
+
+// Framework-aware filtering
+getAvailableSections(frameworkId: number): SectionGroup[]
+
+// Convert UI to API format
+selectionToBackendFormat(selection: Selection): string[]
+```
+
+### Custom Hook
+
+```typescript
+function useGeneratedReports() {
+  // Fetches generated reports
+  // Manages loading/error states
+  return { reports, loading, error, refetch };
+}
+```
+
+## File Storage Integration
+
+Generated reports stored in files table:
+
+| Source Enum Value | Report Type |
+|-------------------|-------------|
+| `"Project risks report"` | risk-report |
+| `"Compliance tracker report"` | compliance-tracker-report |
+| `"Assessment tracker report"` | assessment-tracker-report |
+| `"Vendors and risks report"` | vendor-report |
+| `"Clauses and annexes report"` | clauses-annexes-report |
+| `"Models and risks report"` | model-risks |
+| `"Training registry report"` | trainingRegistry |
+| `"Policy manager report"` | policyManager |
+| `"All reports"` | report |
+
+## Access Control
+
+### Role-Based Access
+
+| Role | Access |
+|------|--------|
+| Admin | All organization reports |
+| Editor | Project reports where member |
+| Reviewer | Project reports where member |
+| Auditor | Project reports where member |
+
+### Report Listing
+
+```typescript
+// Admin sees all reports
+if (user.role === 'Admin') {
+  return getAllOrgReports(orgId);
+}
+
+// Others see only project reports where they're members
+return getMemberProjectReports(userId);
+```
+
+## Key Files
+
+### Backend
+
+| File | Purpose |
+|------|---------|
+| `services/reporting/index.ts` | Entry point |
+| `services/reporting/dataCollector.ts` | Data aggregation |
+| `services/reporting/pdfGenerator.ts` | PDF rendering |
+| `services/reporting/docxGenerator.ts` | DOCX generation |
+| `services/reporting/chartUtils.ts` | Chart generation |
+| `controllers/reporting.ctrl.ts` | Controller |
+| `routes/reporting.route.ts` | Routes |
+| `utils/reporting.utils.ts` | Database queries |
+| `templates/reports/report-pdf.ejs` | PDF template |
+
+### Frontend
+
+| File | Purpose |
+|------|---------|
+| `components/Reporting/GenerateReport/index.tsx` | Main component |
+| `components/Reporting/GenerateReport/SectionSelector/` | Section selector |
+| `components/Reporting/GenerateReport/constants.ts` | Configuration |
+| `hooks/useGeneratedReports.tsx` | Data hook |
+| `repository/entity.repository.ts` | API calls |
+
+## Related Documentation
+
+- [PDF Generation](../infrastructure/pdf-generation.md)
+- [Risk Management](./risk-management.md)
+- [Compliance Frameworks](./compliance-frameworks.md)
+- [Use Cases](./use-cases.md)

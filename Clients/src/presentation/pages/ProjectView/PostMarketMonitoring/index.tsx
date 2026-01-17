@@ -609,7 +609,7 @@ const PostMarketMonitoring: React.FC = () => {
                 onChange={(e) => setFrequencyValue(parseInt(e.target.value, 10) || 1)}
                 width={180}
                 sx={{ ...fieldStyle, minWidth: "unset" }}
-                isDisabled={!isActive || !canEdit}
+                disabled={!isActive || !canEdit}
               />
               <Typography sx={{ fontSize: 13, color: theme.palette.other.icon, ml: "8px" }}>days</Typography>
             </Stack>
@@ -672,7 +672,7 @@ const PostMarketMonitoring: React.FC = () => {
                 onChange={(e) => setReminderDays(parseInt(e.target.value, 10) || 1)}
                 width={180}
                 sx={{ ...fieldStyle, minWidth: "unset" }}
-                isDisabled={!isActive || !canEdit}
+                disabled={!isActive || !canEdit}
               />
               <Typography sx={{ fontSize: 13, color: theme.palette.other.icon, ml: "8px" }}>days</Typography>
             </Stack>
@@ -697,7 +697,7 @@ const PostMarketMonitoring: React.FC = () => {
                 }
                 width={180}
                 sx={{ ...fieldStyle, minWidth: "unset" }}
-                isDisabled={!isActive || !canEdit}
+                disabled={!isActive || !canEdit}
               />
               <Typography sx={{ fontSize: 13, color: theme.palette.other.icon, ml: "8px" }}>days</Typography>
             </Stack>
@@ -777,7 +777,7 @@ const PostMarketMonitoring: React.FC = () => {
               text="Add question"
               icon={<Plus size={16} />}
               onClick={handleAddQuestion}
-              isDisabled={!isActive || !canEdit}
+              disabled={!isActive || !canEdit}
               sx={{
                 height: "34px",
                 border: `1px solid ${theme.palette.border.dark}`,

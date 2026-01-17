@@ -488,14 +488,14 @@ const MonitoringForm: React.FC = () => {
                             size="small"
                             checked={
                               Array.isArray(responses[question.id!])
-                                ? responses[question.id!].includes(option)
+                                ? (responses[question.id!] as string[]).includes(option)
                                 : false
                             }
                             onChange={(e) => {
                               const currentValue = Array.isArray(
                                 responses[question.id!]
                               )
-                                ? responses[question.id!]
+                                ? (responses[question.id!] as string[])
                                 : [];
                               if (e.target.checked) {
                                 handleResponseChange(question.id!, [
@@ -525,7 +525,7 @@ const MonitoringForm: React.FC = () => {
                     id={`question-${question.id}`}
                     label=""
                     type="description"
-                    value={responses[question.id!] ?? ""}
+                    value={(responses[question.id!] as string) ?? ""}
                     onChange={(e) =>
                       handleResponseChange(question.id!, e.target.value)
                     }

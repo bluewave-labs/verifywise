@@ -35,6 +35,7 @@ import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg
 import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
 import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
 import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
+import { ReactComponent as BedrockLogo } from "../../assets/icons/ai-providers/aws.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 import {
@@ -770,7 +771,7 @@ export default function NewExperimentModal({
     });
   };
 
-  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api" | "openrouter";
+  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api" | "openrouter" | "bedrock";
 
   // Check if a provider has a configured API key
   const hasApiKey = (providerId: string): boolean => {
@@ -785,6 +786,7 @@ export default function NewExperimentModal({
     { id: "google" as ProviderType, name: "Gemini", Logo: GeminiLogo, needsApiKey: true },
     { id: "xai" as ProviderType, name: "xAI", Logo: XAILogo, needsApiKey: true },
     { id: "mistral" as ProviderType, name: "Mistral", Logo: MistralLogo, needsApiKey: true },
+    { id: "bedrock" as ProviderType, name: "AWS Bedrock", Logo: BedrockLogo, needsApiKey: true },
   ];
 
   // Local providers that don't need API keys

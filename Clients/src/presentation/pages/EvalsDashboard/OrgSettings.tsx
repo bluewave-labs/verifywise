@@ -656,14 +656,48 @@ export default function OrgSettings() {
                     value={awsRegion}
                     onChange={(e) => setAwsRegion(e.target.value as string)}
                     items={[
+                      // United States
                       { _id: "us-east-1", name: "US East (N. Virginia)" },
                       { _id: "us-east-2", name: "US East (Ohio)" },
+                      { _id: "us-west-1", name: "US West (N. California)" },
                       { _id: "us-west-2", name: "US West (Oregon)" },
+                      // Canada
+                      { _id: "ca-central-1", name: "Canada (Central)" },
+                      { _id: "ca-west-1", name: "Canada (Calgary)" },
+                      // Europe
                       { _id: "eu-west-1", name: "Europe (Ireland)" },
+                      { _id: "eu-west-2", name: "Europe (London)" },
+                      { _id: "eu-west-3", name: "Europe (Paris)" },
                       { _id: "eu-central-1", name: "Europe (Frankfurt)" },
-                      { _id: "ap-southeast-1", name: "Asia Pacific (Singapore)" },
+                      { _id: "eu-north-1", name: "Europe (Stockholm)" },
+                      { _id: "eu-south-1", name: "Europe (Milan)" },
+                      { _id: "eu-south-2", name: "Europe (Spain)" },
+                      { _id: "eu-central-2", name: "Europe (Zurich)" },
+                      // Asia Pacific
                       { _id: "ap-northeast-1", name: "Asia Pacific (Tokyo)" },
+                      { _id: "ap-northeast-2", name: "Asia Pacific (Seoul)" },
+                      { _id: "ap-northeast-3", name: "Asia Pacific (Osaka)" },
+                      { _id: "ap-southeast-1", name: "Asia Pacific (Singapore)" },
+                      { _id: "ap-southeast-2", name: "Asia Pacific (Sydney)" },
+                      { _id: "ap-southeast-3", name: "Asia Pacific (Jakarta)" },
+                      { _id: "ap-southeast-4", name: "Asia Pacific (Melbourne)" },
+                      { _id: "ap-southeast-5", name: "Asia Pacific (Malaysia)" },
+                      { _id: "ap-southeast-7", name: "Asia Pacific (Thailand)" },
                       { _id: "ap-south-1", name: "Asia Pacific (Mumbai)" },
+                      { _id: "ap-south-2", name: "Asia Pacific (Hyderabad)" },
+                      { _id: "ap-east-1", name: "Asia Pacific (Hong Kong)" },
+                      { _id: "ap-northeast-4", name: "Asia Pacific (Taipei)" },
+                      { _id: "ap-southeast-6", name: "Asia Pacific (New Zealand)" },
+                      // South America
+                      { _id: "sa-east-1", name: "South America (São Paulo)" },
+                      // Middle East
+                      { _id: "me-south-1", name: "Middle East (Bahrain)" },
+                      { _id: "me-central-1", name: "Middle East (UAE)" },
+                      { _id: "il-central-1", name: "Israel (Tel Aviv)" },
+                      // Africa
+                      { _id: "af-south-1", name: "Africa (Cape Town)" },
+                      // Mexico
+                      { _id: "mx-central-1", name: "Mexico (Central)" },
                     ]}
                   />
                 </Box>

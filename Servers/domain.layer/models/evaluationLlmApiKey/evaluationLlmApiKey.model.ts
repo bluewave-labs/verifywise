@@ -24,7 +24,7 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript';
 import { IEvaluationLlmApiKey } from '../../interfaces/i.evalutationLlmApiKey';
 
-export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'xai' | 'mistral' | 'huggingface' | 'openrouter';
+export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'xai' | 'mistral' | 'huggingface' | 'openrouter' | 'bedrock';
 
 export const VALID_PROVIDERS: LLMProvider[] = [
   'openai',
@@ -34,6 +34,7 @@ export const VALID_PROVIDERS: LLMProvider[] = [
   'mistral',
   'huggingface',
   'openrouter',
+  'bedrock',
 ];
 
 /**
@@ -75,6 +76,11 @@ export const API_KEY_PATTERNS: Record<LLMProvider, { pattern: RegExp; example: s
     pattern: /^sk-or-v1-[a-zA-Z0-9]{40,}$/,
     example: 'sk-or-v1-...',
     description: 'OpenRouter keys start with "sk-or-v1-"',
+  },
+  bedrock: {
+    pattern: /^(AKIA|ASIA)[A-Z0-9]{16}$/,
+    example: 'AKIAIOSFODNN7EXAMPLE',
+    description: 'AWS Access Key IDs start with "AKIA" or "ASIA" followed by 16 characters',
   },
 };
 

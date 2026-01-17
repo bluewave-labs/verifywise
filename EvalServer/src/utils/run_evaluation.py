@@ -127,6 +127,14 @@ async def run_evaluation(
             
             configured_count = 0
             for provider in list(scorer_api_keys.keys()):
+                # Handle Bedrock special keys (bedrock_secret, bedrock_region)
+                if provider.lower() == "bedrock_secret":
+                    os.environ["AWS_SECRET_ACCESS_KEY"] = scorer_api_keys.get(provider)
+                    continue
+                if provider.lower() == "bedrock_region":
+                    os.environ["AWS_DEFAULT_REGION"] = scorer_api_keys.get(provider)
+                    continue
+                    
                 env_var = provider_env_map.get(provider.lower())
                 key_value = scorer_api_keys.get(provider)
                 if env_var and key_value:

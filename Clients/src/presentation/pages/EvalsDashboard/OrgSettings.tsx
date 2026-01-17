@@ -105,6 +105,10 @@ export default function OrgSettings() {
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const [newApiKey, setNewApiKey] = useState<string>("");
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+  // AWS Bedrock specific fields
+  const [awsSecretKey, setAwsSecretKey] = useState<string>("");
+  const [awsSecretKeyError, setAwsSecretKeyError] = useState<string | null>(null);
+  const [awsRegion, setAwsRegion] = useState<string>("us-east-1");
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; provider: string | null }>({
     open: false,
     provider: null,
@@ -160,12 +164,36 @@ export default function OrgSettings() {
   const handleProviderChange = (value: string) => {
     setSelectedProvider(value);
     
+    // Clear AWS-specific fields when switching away from bedrock
+    if (value !== "bedrock") {
+      setAwsSecretKey("");
+      setAwsSecretKeyError(null);
+      setAwsRegion("us-east-1");
+    }
+    
     // Re-validate existing API key with new provider
     if (newApiKey.trim() && value) {
       const error = validateApiKeyFormat(value, newApiKey);
       setApiKeyError(error);
     } else {
       setApiKeyError(null);
+    }
+  };
+
+  // Validate AWS Secret Key
+  const handleAwsSecretKeyChange = (value: string) => {
+    setAwsSecretKey(value);
+    
+    if (!value.trim()) {
+      setAwsSecretKeyError(null);
+      return;
+    }
+    
+    // AWS Secret Access Keys are 40 characters
+    if (value.trim().length < 40) {
+      setAwsSecretKeyError("AWS Secret Access Key should be at least 40 characters");
+    } else {
+      setAwsSecretKeyError(null);
     }
   };
 
@@ -191,6 +219,28 @@ export default function OrgSettings() {
       return;
     }
 
+    // For Bedrock, validate secret key is provided
+    if (selectedProvider === "bedrock") {
+      if (!awsSecretKey.trim()) {
+        setAwsSecretKeyError("AWS Secret Access Key is required");
+        setAlert({
+          variant: "error",
+          body: "AWS Secret Access Key is required for AWS Bedrock",
+        });
+        setTimeout(() => setAlert(null), 5000);
+        return;
+      }
+      if (awsSecretKey.trim().length < 40) {
+        setAwsSecretKeyError("AWS Secret Access Key should be at least 40 characters");
+        setAlert({
+          variant: "error",
+          body: "Invalid AWS Secret Access Key format",
+        });
+        setTimeout(() => setAlert(null), 5000);
+        return;
+      }
+    }
+
     // Check if provider already has a key
     if (savedKeys.some(k => k.provider === selectedProvider)) {
       setAlert({
@@ -203,16 +253,27 @@ export default function OrgSettings() {
 
     setSaving(true);
     try {
-      await addLlmApiKey({
+      const keyPayload: Parameters<typeof addLlmApiKey>[0] = {
         provider: selectedProvider as Parameters<typeof addLlmApiKey>[0]["provider"],
         apiKey: newApiKey,
-      });
+      };
+
+      // Add AWS-specific fields for Bedrock
+      if (selectedProvider === "bedrock") {
+        keyPayload.secretKey = awsSecretKey;
+        keyPayload.region = awsRegion;
+      }
+
+      await addLlmApiKey(keyPayload);
 
       // Refresh the list
       await fetchSavedKeys();
       setSelectedProvider("");
       setNewApiKey("");
       setApiKeyError(null);
+      setAwsSecretKey("");
+      setAwsSecretKeyError(null);
+      setAwsRegion("us-east-1");
 
       setAlert({
         variant: "success",
@@ -370,12 +431,17 @@ export default function OrgSettings() {
             />
             <Box>
               <Field
-                label="API key"
+                label={selectedProvider === "bedrock" ? "AWS Access Key ID" : "API key"}
                 value={newApiKey}
                 onChange={(e) => handleApiKeyChange(e.target.value)}
-                placeholder={selectedProvider ? `Enter your ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || ''} API key...` : "Enter your API key..."}
+                placeholder={selectedProvider === "bedrock" 
+                  ? "AKIAIOSFODNN7EXAMPLE" 
+                  : selectedProvider 
+                    ? `Enter your ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || ''} API key...` 
+                    : "Enter your API key..."}
                 type="password"
                 autoComplete="off"
+                spellCheck={false}
                 disabled={!selectedProvider}
                 error={apiKeyError || ""}
               />
@@ -388,7 +454,7 @@ export default function OrgSettings() {
                     ml: 0.5,
                   }}
                 >
-                  ✓ Key format looks valid
+                  Key format looks valid
                 </Typography>
               )}
               {selectedProvider && !newApiKey.trim() && API_KEY_PATTERNS[selectedProvider] && (
@@ -404,13 +470,77 @@ export default function OrgSettings() {
                 </Typography>
               )}
             </Box>
+
+            {/* AWS Bedrock: Secret Access Key */}
+            {selectedProvider === "bedrock" && (
+              <Box>
+                <Field
+                  label="AWS Secret Access Key"
+                  value={awsSecretKey}
+                  onChange={(e) => handleAwsSecretKeyChange(e.target.value)}
+                  placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                  type="password"
+                  autoComplete="off"
+                  spellCheck={false}
+                  error={awsSecretKeyError || ""}
+                />
+                {!awsSecretKeyError && awsSecretKey.trim() && awsSecretKey.length >= 40 && (
+                  <Typography
+                    sx={{
+                      fontSize: 11,
+                      color: "#059669",
+                      mt: 0.5,
+                      ml: 0.5,
+                    }}
+                  >
+                    Secret key format looks valid
+                  </Typography>
+                )}
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: theme.palette.text.secondary,
+                    mt: 0.5,
+                    ml: 0.5,
+                  }}
+                >
+                  Your AWS credentials are encrypted and stored securely.
+                </Typography>
+              </Box>
+            )}
+
+            {/* AWS Bedrock: Region */}
+            {selectedProvider === "bedrock" && (
+              <Box>
+                <Select
+                  id="aws-region-select"
+                  label="AWS Region"
+                  value={awsRegion}
+                  onChange={(e) => setAwsRegion(e.target.value as string)}
+                  items={[
+                    { _id: "us-east-1", name: "US East (N. Virginia)" },
+                    { _id: "us-west-2", name: "US West (Oregon)" },
+                    { _id: "eu-west-1", name: "Europe (Ireland)" },
+                    { _id: "eu-central-1", name: "Europe (Frankfurt)" },
+                    { _id: "ap-southeast-1", name: "Asia Pacific (Singapore)" },
+                    { _id: "ap-northeast-1", name: "Asia Pacific (Tokyo)" },
+                    { _id: "ap-south-1", name: "Asia Pacific (Mumbai)" },
+                  ]}
+                />
+              </Box>
+            )}
             <Box sx={{ pt: 3 }}>
               <CustomizableButton
                 variant="contained"
                 text="Add API key"
                 loading={saving}
                 onClick={handleAddKey}
-                isDisabled={!selectedProvider || !newApiKey.trim() || !!apiKeyError}
+                isDisabled={
+                  !selectedProvider || 
+                  !newApiKey.trim() || 
+                  !!apiKeyError ||
+                  (selectedProvider === "bedrock" && (!awsSecretKey.trim() || !!awsSecretKeyError))
+                }
                 startIcon={<Plus size={16} />}
                 sx={{
                   backgroundColor: "#13715B",

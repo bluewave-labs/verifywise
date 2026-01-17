@@ -49,13 +49,15 @@ export const getAllKeys = async (req: Request, res: Response) => {
  * Add a new LLM API key
  *
  * Request body:
- * - provider: string (openai, anthropic, google, xai, mistral, huggingface)
+ * - provider: string (openai, anthropic, google, xai, mistral, huggingface, bedrock)
  * - apiKey: string (plain text - will be encrypted)
+ * - secretKey: string (required for bedrock - AWS Secret Access Key)
+ * - region: string (optional for bedrock - AWS region, defaults to us-east-1)
  */
 export const addKey = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
   try {
-    const { provider, apiKey } = req.body;
+    const { provider, apiKey, secretKey, region } = req.body;
 
     // Validate inputs
     if (!provider) {
@@ -63,7 +65,12 @@ export const addKey = async (req: Request, res: Response) => {
     }
 
     if (!apiKey) {
-      throw new ValidationException('API key is required', 'apiKey', apiKey);
+      throw new ValidationException('API key is required', 'apiKey', '[REDACTED]');
+    }
+
+    // For Bedrock, require secret key
+    if (provider === 'bedrock' && !secretKey) {
+      throw new ValidationException('AWS Secret Access Key is required for Bedrock', 'secretKey', '[REDACTED]');
     }
 
     // Create key
@@ -71,7 +78,9 @@ export const addKey = async (req: Request, res: Response) => {
       req.tenantId!,
       provider as LLMProvider,
       apiKey,
-      transaction
+      transaction,
+      secretKey,
+      region
     );
 
     await logSuccess({
@@ -204,6 +213,18 @@ export const verifyKey = async (req: Request, res: Response) => {
 
     const config = endpoints[provider];
     if (!config) {
+      // For Bedrock, we can't easily verify without the secret key
+      // Just check the format is correct
+      if (provider === 'bedrock') {
+        const isValidFormat = /^(AKIA|ASIA)[A-Z0-9]{16}$/.test(apiKey);
+        return res.status(200).json({
+          success: true,
+          valid: isValidFormat,
+          message: isValidFormat 
+            ? 'AWS Access Key ID format is valid (full verification requires secret key)'
+            : 'Invalid AWS Access Key ID format. Should start with AKIA or ASIA followed by 16 characters.',
+        });
+      }
       // Unknown provider, skip verification
       return res.status(200).json({
         success: true,

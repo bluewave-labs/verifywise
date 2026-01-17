@@ -7,7 +7,7 @@
 
 import CustomAxios from "./customAxios";
 
-export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'xai' | 'mistral' | 'huggingface' | 'openrouter';
+export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'xai' | 'mistral' | 'huggingface' | 'openrouter' | 'bedrock';
 
 export interface LLMApiKey {
   provider: LLMProvider;
@@ -19,6 +19,8 @@ export interface LLMApiKey {
 export interface AddKeyRequest {
   provider: LLMProvider;
   apiKey: string;
+  secretKey?: string;  // Required for AWS Bedrock (AWS Secret Access Key)
+  region?: string;     // Optional AWS region for Bedrock
 }
 
 export interface GetKeysResponse {

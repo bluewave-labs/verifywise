@@ -8,8 +8,16 @@
 import crypto from 'crypto';
 
 const ALGORITHM = 'aes-256-cbc';
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-change-this-in-production-32chars!!'; // Must be 32 characters
 const IV_LENGTH = 16; // For AES, this is always 16
+
+// Encryption key must be set in production via ENCRYPTION_KEY environment variable
+const DEFAULT_KEY = 'default-key-change-this-in-production-32chars!!';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || DEFAULT_KEY;
+
+// Warn if using default key (development only)
+if (ENCRYPTION_KEY === DEFAULT_KEY && process.env.NODE_ENV === 'production') {
+  console.error('SECURITY WARNING: Using default encryption key in production! Set ENCRYPTION_KEY environment variable.');
+}
 
 /**
  * Encrypt sensitive text

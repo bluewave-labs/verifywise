@@ -52,6 +52,11 @@ const API_KEY_PATTERNS: Record<LLMProvider, { pattern: RegExp; example: string; 
     example: 'sk-or-v1-...',
     description: 'OpenRouter keys start with "sk-or-v1-"',
   },
+  bedrock: {
+    pattern: /^(AKIA|ASIA)[A-Z0-9]{16}$/,
+    example: 'AKIAIOSFODNN7EXAMPLE',
+    description: 'AWS Access Key IDs start with "AKIA" or "ASIA" followed by 16 characters',
+  },
 };
 
 /**
@@ -123,31 +128,51 @@ export const getAllKeysForOrganizationQuery = async (
 };
 
 /**
+ * AWS Bedrock credentials structure (stored encrypted as JSON)
+ */
+interface BedrockCredentials {
+  accessKeyId: string;
+  secretAccessKey: string;
+  region?: string;
+}
+
+/**
  * Create a new LLM API key entry
  *
  * @param tenant - Tenant schema name
  * @param provider - LLM provider name
  * @param apiKey - Plain text API key (will be encrypted)
  * @param transaction - Optional transaction
+ * @param secretKey - Optional secret key (required for AWS Bedrock)
+ * @param region - Optional AWS region (for Bedrock)
  * @returns Created key data
  */
 export const createKeyQuery = async (
   tenant: string,
   provider: LLMProvider,
   apiKey: string,
-  transaction: Transaction
+  transaction: Transaction,
+  secretKey?: string,
+  region?: string
 ): Promise<IMaskedKey> => {
   // Validate inputs
   validateProvider(provider);
 
   if (!apiKey || apiKey.trim().length === 0) {
-    throw new ValidationException('API key cannot be empty', 'apiKey', apiKey);
+    throw new ValidationException('API key cannot be empty', 'apiKey', '[REDACTED]');
   }
 
   // Validate API key format
   const formatError = validateApiKeyFormat(provider, apiKey);
   if (formatError) {
-    throw new ValidationException(formatError, 'apiKey', apiKey);
+    throw new ValidationException(formatError, 'apiKey', '[REDACTED]');
+  }
+
+  // For Bedrock, require secret key
+  if (provider === 'bedrock') {
+    if (!secretKey || secretKey.trim().length === 0) {
+      throw new ValidationException('AWS Secret Access Key is required for Bedrock', 'secretKey', '');
+    }
   }
 
   // Check if key already exists for this provider
@@ -167,8 +192,22 @@ export const createKeyQuery = async (
     );
   }
 
-  // Encrypt the API key
-  const encryptedKey = encrypt(apiKey.trim());
+  // For Bedrock, encrypt credentials as JSON; for others, encrypt the key directly
+  let encryptedKey: string;
+  let maskedDisplay: string;
+
+  if (provider === 'bedrock') {
+    const credentials: BedrockCredentials = {
+      accessKeyId: apiKey.trim(),
+      secretAccessKey: secretKey!.trim(),
+      region: region?.trim() || 'us-east-1',
+    };
+    encryptedKey = encrypt(JSON.stringify(credentials));
+    maskedDisplay = maskApiKey(apiKey.trim()); // Mask the Access Key ID
+  } else {
+    encryptedKey = encrypt(apiKey.trim());
+    maskedDisplay = maskApiKey(apiKey.trim());
+  }
 
   // Insert new key
   const result = await sequelize.query(
@@ -188,7 +227,7 @@ export const createKeyQuery = async (
 
   return {
     provider: createdKey.provider,
-    maskedKey: maskApiKey(apiKey.trim()),
+    maskedKey: maskedDisplay,
     createdAt: createdKey.created_at,
     updatedAt: createdKey.updated_at,
   };
@@ -200,9 +239,12 @@ export const createKeyQuery = async (
  * This returns the actual decrypted API keys for use by the evaluation server.
  * Should only be accessible from internal services.
  *
+ * For most providers: Returns { provider: apiKey }
+ * For Bedrock: Returns { bedrock: apiKey, bedrock_secret: secretKey, bedrock_region: region }
+ *
  * @param tenant - Tenant schema name
  * @param transaction - Optional transaction
- * @returns Map of provider -> decrypted API key
+ * @returns Map of provider -> decrypted API key (with special handling for Bedrock)
  */
 export const getDecryptedKeysForOrganizationQuery = async (
   tenant: string,
@@ -216,7 +258,23 @@ export const getDecryptedKeysForOrganizationQuery = async (
   for (const key of keys[0]) {
     try {
       if (key.encrypted_api_key) {
-        decryptedKeys[key.provider] = decrypt(key.encrypted_api_key);
+        const decrypted = decrypt(key.encrypted_api_key);
+        
+        // For Bedrock, parse the JSON credentials
+        if (key.provider === 'bedrock') {
+          try {
+            const credentials: BedrockCredentials = JSON.parse(decrypted);
+            decryptedKeys['bedrock'] = credentials.accessKeyId;
+            decryptedKeys['bedrock_secret'] = credentials.secretAccessKey;
+            if (credentials.region) {
+              decryptedKeys['bedrock_region'] = credentials.region;
+            }
+          } catch (parseErr) {
+            console.warn('Failed to parse Bedrock credentials:', parseErr);
+          }
+        } else {
+          decryptedKeys[key.provider] = decrypted;
+        }
       }
     } catch (err) {
       console.warn(`Failed to decrypt key for provider ${key.provider}:`, err);

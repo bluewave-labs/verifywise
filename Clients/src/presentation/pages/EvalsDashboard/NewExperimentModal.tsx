@@ -1354,10 +1354,12 @@ export default function NewExperimentModal({
                         parsedData = JSON.parse(fileContent);
                       } catch {
                         setAlert({ show: true, variant: "error", title: "Invalid JSON", body: "The file does not contain valid JSON" });
+                        setTimeout(() => setAlert(null), 15000);
                         return;
                       }
                       if (!Array.isArray(parsedData) || parsedData.length === 0) {
                         setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with at least one prompt." });
+                        setTimeout(() => setAlert(null), 15000);
                         return;
                       }
                       // Count only prompts with actual content
@@ -1378,6 +1380,7 @@ export default function NewExperimentModal({
                       }).length;
                       if (validPromptCount === 0) {
                         setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with prompts that have actual content." });
+                        setTimeout(() => setAlert(null), 15000);
                         return;
                       }
                       const resp = await uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
@@ -1393,8 +1396,10 @@ export default function NewExperimentModal({
                         setDatasetPrompts([]);
                       }
                       setAlert({ show: true, variant: "success", title: "Uploaded!", body: `${file.name} is ready to use` });
+                      setTimeout(() => setAlert(null), 5000);
                     } catch (err) {
                       setAlert({ show: true, variant: "error", title: "Upload failed", body: err instanceof Error ? err.message : "Failed to upload" });
+                      setTimeout(() => setAlert(null), 15000);
                     } finally {
                       setUploadingDataset(false);
                       e.target.value = "";

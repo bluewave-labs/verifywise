@@ -2238,7 +2238,7 @@ export default function EvalsDashboard() {
               <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", mb: 1.5 }}>
                 Authentication method
               </Typography>
-              <Stack spacing={1.5} sx={{ mb: 2.5 }}>
+              <Stack spacing={1} sx={{ mb: 2.5 }}>
                 {/* Option 1: IAM Role */}
                 <Box
                   onClick={() => {
@@ -2246,27 +2246,24 @@ export default function EvalsDashboard() {
                     setNewApiKey("");
                     setApiKeyError(null);
                   }}
-                  sx={{
-                    p: 2,
-                    borderRadius: "8px",
-                    border: bedrockAuthMethod === "iam_role" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                    backgroundColor: bedrockAuthMethod === "iam_role" ? "#F0FDF4" : "#FFFFFF",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    "&:hover": { borderColor: bedrockAuthMethod === "iam_role" ? "#13715B" : "#D1D5DB" },
-                  }}
+                  sx={{ display: "flex", alignItems: "center", gap: 1, cursor: "pointer", py: 0.5 }}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "iam_role" ? "#13715B" : "#374151" }}>
-                      IAM Role (AssumeRole)
-                    </Typography>
-                    <Box sx={{ fontSize: 10, fontWeight: 500, color: "#059669", bgcolor: "#DCFCE7", px: 0.75, py: 0.25, borderRadius: "4px" }}>
-                      Recommended
-                    </Box>
-                  </Box>
-                  <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-                    Most secure — no long-lived credentials, full auditability via CloudTrail
+                  <Box
+                    sx={{
+                      width: 14,
+                      height: 14,
+                      borderRadius: "50%",
+                      border: bedrockAuthMethod === "iam_role" ? "4px solid #13715B" : "1.5px solid #9CA3AF",
+                      backgroundColor: "#FFFFFF",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: bedrockAuthMethod === "iam_role" ? "#13715B" : "#374151" }}>
+                    IAM Role
                   </Typography>
+                  <Box sx={{ fontSize: 10, fontWeight: 500, color: "#059669", bgcolor: "#DCFCE7", px: 0.5, py: 0.125, borderRadius: "3px" }}>
+                    Recommended
+                  </Box>
                 </Box>
 
                 {/* Option 2: Bedrock API Key */}
@@ -2276,21 +2273,20 @@ export default function EvalsDashboard() {
                     setNewApiKey("");
                     setApiKeyError(null);
                   }}
-                  sx={{
-                    p: 2,
-                    borderRadius: "8px",
-                    border: bedrockAuthMethod === "api_key" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                    backgroundColor: bedrockAuthMethod === "api_key" ? "#F0FDF4" : "#FFFFFF",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    "&:hover": { borderColor: bedrockAuthMethod === "api_key" ? "#13715B" : "#D1D5DB" },
-                  }}
+                  sx={{ display: "flex", alignItems: "center", gap: 1, cursor: "pointer", py: 0.5 }}
                 >
-                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "api_key" ? "#13715B" : "#374151", mb: 0.5 }}>
+                  <Box
+                    sx={{
+                      width: 14,
+                      height: 14,
+                      borderRadius: "50%",
+                      border: bedrockAuthMethod === "api_key" ? "4px solid #13715B" : "1.5px solid #9CA3AF",
+                      backgroundColor: "#FFFFFF",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: bedrockAuthMethod === "api_key" ? "#13715B" : "#374151" }}>
                     Bedrock API Key
-                  </Typography>
-                  <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-                    Quick setup — scoped to Bedrock, easy to revoke
                   </Typography>
                 </Box>
 
@@ -2301,27 +2297,24 @@ export default function EvalsDashboard() {
                     setNewApiKey("");
                     setApiKeyError(null);
                   }}
-                  sx={{
-                    p: 2,
-                    borderRadius: "8px",
-                    border: bedrockAuthMethod === "access_keys" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                    backgroundColor: bedrockAuthMethod === "access_keys" ? "#F0FDF4" : "#FFFFFF",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    "&:hover": { borderColor: bedrockAuthMethod === "access_keys" ? "#13715B" : "#D1D5DB" },
-                  }}
+                  sx={{ display: "flex", alignItems: "center", gap: 1, cursor: "pointer", py: 0.5 }}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "access_keys" ? "#13715B" : "#374151" }}>
-                      AWS Access Keys
-                    </Typography>
-                    <Box sx={{ fontSize: 10, fontWeight: 500, color: "#92400E", bgcolor: "#FEF3C7", px: 0.75, py: 0.25, borderRadius: "4px" }}>
-                      Advanced
-                    </Box>
-                  </Box>
-                  <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-                    Legacy method — long-lived credentials, requires secure handling
+                  <Box
+                    sx={{
+                      width: 14,
+                      height: 14,
+                      borderRadius: "50%",
+                      border: bedrockAuthMethod === "access_keys" ? "4px solid #13715B" : "1.5px solid #9CA3AF",
+                      backgroundColor: "#FFFFFF",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: bedrockAuthMethod === "access_keys" ? "#13715B" : "#374151" }}>
+                    AWS Access Keys
                   </Typography>
+                  <Box sx={{ fontSize: 10, fontWeight: 500, color: "#92400E", bgcolor: "#FEF3C7", px: 0.5, py: 0.125, borderRadius: "3px" }}>
+                    Legacy
+                  </Box>
                 </Box>
               </Stack>
 

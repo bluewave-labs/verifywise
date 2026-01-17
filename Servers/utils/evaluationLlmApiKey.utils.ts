@@ -129,12 +129,22 @@ export const getAllKeysForOrganizationQuery = async (
 
 /**
  * AWS Bedrock credentials structure (stored encrypted as JSON)
- * Supports both IAM role and Bearer token authentication
+ * Supports three authentication methods:
+ * 1. IAM Role (AssumeRole) - Most secure, recommended
+ * 2. Bedrock API Key - Quick setup, scoped to Bedrock
+ * 3. AWS Access Keys - Legacy/Advanced, long-lived credentials
  */
 interface BedrockCredentials {
-  authMethod: 'iam' | 'apikey';  // Authentication method
-  apiKey: string;                 // Bearer token (empty for IAM)
-  region?: string;
+  authMethod: 'iam_role' | 'api_key' | 'access_keys';
+  region: string;
+  // For iam_role
+  roleArn?: string;
+  externalId?: string;
+  // For api_key
+  apiKey?: string;
+  // For access_keys
+  accessKeyId?: string;
+  secretAccessKey?: string;
 }
 
 /**
@@ -144,9 +154,12 @@ interface BedrockCredentials {
  * @param provider - LLM provider name
  * @param apiKey - Plain text API key (will be encrypted)
  * @param transaction - Optional transaction
- * @param _deprecated - Deprecated parameter (kept for backward compatibility)
  * @param region - Optional AWS region (for Bedrock)
- * @param authMethod - Authentication method for Bedrock ('iam' or 'apikey')
+ * @param authMethod - Authentication method for Bedrock
+ * @param roleArn - IAM Role ARN (for iam_role method)
+ * @param externalId - External ID for cross-account access (for iam_role method)
+ * @param accessKeyId - AWS Access Key ID (for access_keys method)
+ * @param secretAccessKey - AWS Secret Access Key (for access_keys method)
  * @returns Created key data
  */
 export const createKeyQuery = async (
@@ -154,25 +167,28 @@ export const createKeyQuery = async (
   provider: LLMProvider,
   apiKey: string,
   transaction: Transaction,
-  _deprecated?: string,  // Kept for backward compatibility
   region?: string,
-  authMethod?: 'iam' | 'apikey'
+  authMethod?: 'iam_role' | 'api_key' | 'access_keys',
+  roleArn?: string,
+  externalId?: string,
+  accessKeyId?: string,
+  secretAccessKey?: string
 ): Promise<IMaskedKey> => {
-  void _deprecated; // Suppress unused parameter warning
   // Validate inputs
   validateProvider(provider);
 
-  if (!apiKey || apiKey.trim().length === 0) {
-    throw new ValidationException('API key cannot be empty', 'apiKey', '[REDACTED]');
-  }
+  // For non-Bedrock providers, API key is always required
+  if (provider !== 'bedrock') {
+    if (!apiKey || apiKey.trim().length === 0) {
+      throw new ValidationException('API key cannot be empty', 'apiKey', '[REDACTED]');
+    }
 
-  // Validate API key format
-  const formatError = validateApiKeyFormat(provider, apiKey);
-  if (formatError) {
-    throw new ValidationException(formatError, 'apiKey', '[REDACTED]');
+    // Validate API key format
+    const formatError = validateApiKeyFormat(provider, apiKey);
+    if (formatError) {
+      throw new ValidationException(formatError, 'apiKey', '[REDACTED]');
+    }
   }
-
-  // Bedrock now uses Bearer tokens, no secret key needed
 
   // Check if key already exists for this provider
   const existing = await sequelize.query(
@@ -191,19 +207,42 @@ export const createKeyQuery = async (
     );
   }
 
-  // For Bedrock, store API key with region and auth method; for others, just the key
+  // For Bedrock, store credentials based on auth method; for others, just the key
   let encryptedKey: string;
   let maskedDisplay: string;
 
   if (provider === 'bedrock') {
-    const bedrockAuth = authMethod || 'iam';
+    const bedrockAuth = authMethod || 'iam_role';
+    const regionValue = region?.trim() || 'us-east-1';
+
     const credentials: BedrockCredentials = {
       authMethod: bedrockAuth,
-      apiKey: bedrockAuth === 'iam' ? '' : apiKey.trim(),  // Empty for IAM
-      region: region?.trim() || 'us-east-1',
+      region: regionValue,
     };
+
+    // Set credentials based on auth method
+    switch (bedrockAuth) {
+      case 'iam_role':
+        credentials.roleArn = roleArn?.trim();
+        if (externalId?.trim()) {
+          credentials.externalId = externalId.trim();
+        }
+        maskedDisplay = `IAM Role: ${roleArn ? maskApiKey(roleArn) : 'Not configured'}`;
+        break;
+      case 'api_key':
+        credentials.apiKey = apiKey?.trim();
+        maskedDisplay = apiKey ? maskApiKey(apiKey.trim()) : '***';
+        break;
+      case 'access_keys':
+        credentials.accessKeyId = accessKeyId?.trim();
+        credentials.secretAccessKey = secretAccessKey?.trim();
+        maskedDisplay = `Access Keys: ${accessKeyId ? maskApiKey(accessKeyId) : '***'}`;
+        break;
+      default:
+        throw new ValidationException('Invalid authentication method', 'authMethod', authMethod);
+    }
+
     encryptedKey = encrypt(JSON.stringify(credentials));
-    maskedDisplay = bedrockAuth === 'iam' ? 'IAM Role' : maskApiKey(apiKey.trim());
   } else {
     encryptedKey = encrypt(apiKey.trim());
     maskedDisplay = maskApiKey(apiKey.trim());
@@ -240,10 +279,12 @@ export const createKeyQuery = async (
  * Should only be accessible from internal services.
  *
  * For most providers: Returns { provider: apiKey }
- * For Bedrock: Returns { bedrock: apiKey, bedrock_secret: secretKey, bedrock_region: region }
+ * For Bedrock: Returns credentials based on auth method:
+ *   - iam_role: bedrock_auth_method, bedrock_role_arn, bedrock_external_id, bedrock_region
+ *   - api_key: bedrock_auth_method, bedrock, bedrock_region
+ *   - access_keys: bedrock_auth_method, bedrock_access_key_id, bedrock_secret_access_key, bedrock_region
  *
  * @param tenant - Tenant schema name
- * @param transaction - Optional transaction
  * @returns Map of provider -> decrypted API key (with special handling for Bedrock)
  */
 export const getDecryptedKeysForOrganizationQuery = async (
@@ -264,14 +305,36 @@ export const getDecryptedKeysForOrganizationQuery = async (
         if (key.provider === 'bedrock') {
           try {
             const credentials: BedrockCredentials = JSON.parse(decrypted);
-            decryptedKeys['bedrock_auth_method'] = credentials.authMethod || 'apikey';
-            decryptedKeys['bedrock'] = credentials.apiKey || '';
-            if (credentials.region) {
-              decryptedKeys['bedrock_region'] = credentials.region;
+            decryptedKeys['bedrock_auth_method'] = credentials.authMethod;
+            decryptedKeys['bedrock_region'] = credentials.region || 'us-east-1';
+
+            // Set credentials based on auth method
+            switch (credentials.authMethod) {
+              case 'iam_role':
+                if (credentials.roleArn) {
+                  decryptedKeys['bedrock_role_arn'] = credentials.roleArn;
+                }
+                if (credentials.externalId) {
+                  decryptedKeys['bedrock_external_id'] = credentials.externalId;
+                }
+                break;
+              case 'api_key':
+                if (credentials.apiKey) {
+                  decryptedKeys['bedrock'] = credentials.apiKey;
+                }
+                break;
+              case 'access_keys':
+                if (credentials.accessKeyId) {
+                  decryptedKeys['bedrock_access_key_id'] = credentials.accessKeyId;
+                }
+                if (credentials.secretAccessKey) {
+                  decryptedKeys['bedrock_secret_access_key'] = credentials.secretAccessKey;
+                }
+                break;
             }
           } catch (parseErr) {
             // Fallback: might be old format or plain key
-            decryptedKeys['bedrock_auth_method'] = 'apikey';
+            decryptedKeys['bedrock_auth_method'] = 'api_key';
             decryptedKeys['bedrock'] = decrypted;
           }
         } else {

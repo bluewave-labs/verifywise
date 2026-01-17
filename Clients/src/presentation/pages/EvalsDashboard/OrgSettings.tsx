@@ -106,8 +106,12 @@ export default function OrgSettings() {
   const [newApiKey, setNewApiKey] = useState<string>("");
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   // AWS Bedrock specific fields
-  const [bedrockAuthMethod, setBedrockAuthMethod] = useState<"iam" | "apikey">("iam");
+  const [bedrockAuthMethod, setBedrockAuthMethod] = useState<"iam_role" | "api_key" | "access_keys">("iam_role");
   const [awsRegion, setAwsRegion] = useState<string>("us-east-1");
+  const [awsRoleArn, setAwsRoleArn] = useState("");
+  const [awsExternalId, setAwsExternalId] = useState("");
+  const [awsAccessKeyId, setAwsAccessKeyId] = useState("");
+  const [awsSecretAccessKey, setAwsSecretAccessKey] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; provider: string | null }>({
     open: false,
     provider: null,
@@ -166,7 +170,11 @@ export default function OrgSettings() {
     // Reset AWS settings when switching away from bedrock
     if (value !== "bedrock") {
       setAwsRegion("us-east-1");
-      setBedrockAuthMethod("iam");
+      setBedrockAuthMethod("iam_role");
+      setAwsRoleArn("");
+      setAwsExternalId("");
+      setAwsAccessKeyId("");
+      setAwsSecretAccessKey("");
     }
 
     // Re-validate existing API key with new provider
@@ -179,30 +187,45 @@ export default function OrgSettings() {
   };
 
   const handleAddKey = async () => {
-    // For Bedrock with IAM, we don't need an API key
-    const isBedrockIam = selectedProvider === "bedrock" && bedrockAuthMethod === "iam";
-
-    if (!selectedProvider || (!isBedrockIam && !newApiKey.trim())) {
-      setAlert({
-        variant: "error",
-        body: "Please select a provider and enter an API key",
-      });
+    if (!selectedProvider) {
+      setAlert({ variant: "error", body: "Please select a provider" });
       setTimeout(() => setAlert(null), 5000);
       return;
     }
 
-    // Skip validation for Bedrock IAM (no API key needed)
-    if (!isBedrockIam) {
-      // Validate API key format
-      const formatError = validateApiKeyFormat(selectedProvider, newApiKey);
-      if (formatError) {
-        setApiKeyError(formatError);
-        setAlert({
-          variant: "error",
-          body: formatError,
-        });
+    // Bedrock-specific validation
+    if (selectedProvider === "bedrock") {
+      if (bedrockAuthMethod === "iam_role" && !awsRoleArn.trim()) {
+        setAlert({ variant: "error", body: "Please enter the IAM Role ARN" });
         setTimeout(() => setAlert(null), 5000);
         return;
+      }
+      if (bedrockAuthMethod === "api_key" && !newApiKey.trim()) {
+        setAlert({ variant: "error", body: "Please enter the Bedrock API Key" });
+        setTimeout(() => setAlert(null), 5000);
+        return;
+      }
+      if (bedrockAuthMethod === "access_keys" && (!awsAccessKeyId.trim() || !awsSecretAccessKey.trim())) {
+        setAlert({ variant: "error", body: "Please enter both AWS Access Key ID and Secret Access Key" });
+        setTimeout(() => setAlert(null), 5000);
+        return;
+      }
+    } else if (!newApiKey.trim()) {
+      setAlert({ variant: "error", body: "Please enter an API key" });
+      setTimeout(() => setAlert(null), 5000);
+      return;
+    }
+
+    // Validate API key format for non-Bedrock IAM/access_keys methods
+    if (selectedProvider !== "bedrock" || bedrockAuthMethod === "api_key") {
+      if (newApiKey.trim()) {
+        const formatError = validateApiKeyFormat(selectedProvider, newApiKey);
+        if (formatError) {
+          setApiKeyError(formatError);
+          setAlert({ variant: "error", body: formatError });
+          setTimeout(() => setAlert(null), 5000);
+          return;
+        }
       }
     }
 
@@ -220,13 +243,22 @@ export default function OrgSettings() {
     try {
       const keyPayload: Parameters<typeof addLlmApiKey>[0] = {
         provider: selectedProvider as Parameters<typeof addLlmApiKey>[0]["provider"],
-        apiKey: isBedrockIam ? "IAM_ROLE" : newApiKey,
+        apiKey: selectedProvider === "bedrock"
+          ? (bedrockAuthMethod === "api_key" ? newApiKey : "BEDROCK_AUTH")
+          : newApiKey,
       };
 
-      // Add region and auth method for Bedrock
+      // Add Bedrock-specific fields
       if (selectedProvider === "bedrock") {
         keyPayload.region = awsRegion;
         keyPayload.authMethod = bedrockAuthMethod;
+        if (bedrockAuthMethod === "iam_role") {
+          keyPayload.roleArn = awsRoleArn;
+          keyPayload.externalId = awsExternalId || undefined;
+        } else if (bedrockAuthMethod === "access_keys") {
+          keyPayload.accessKeyId = awsAccessKeyId;
+          keyPayload.secretAccessKey = awsSecretAccessKey;
+        }
       }
 
       await addLlmApiKey(keyPayload);
@@ -237,11 +269,20 @@ export default function OrgSettings() {
       setNewApiKey("");
       setApiKeyError(null);
       setAwsRegion("us-east-1");
-      setBedrockAuthMethod("iam");
+      setBedrockAuthMethod("iam_role");
+      setAwsRoleArn("");
+      setAwsExternalId("");
+      setAwsAccessKeyId("");
+      setAwsSecretAccessKey("");
 
+      const successMessages: Record<string, string> = {
+        iam_role: "AWS Bedrock configured with IAM Role",
+        api_key: "AWS Bedrock API key saved successfully",
+        access_keys: "AWS Bedrock configured with Access Keys",
+      };
       setAlert({
         variant: "success",
-        body: "API key added successfully",
+        body: selectedProvider === "bedrock" ? successMessages[bedrockAuthMethod] : "API key added successfully",
       });
       setTimeout(() => setAlert(null), 5000);
     } catch (err) {
@@ -421,94 +462,134 @@ export default function OrgSettings() {
             {/* AWS Bedrock Configuration */}
             {selectedProvider === "bedrock" && (
               <Box>
-                {/* Authentication Method */}
+                {/* Authentication Method Selection */}
                 <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.primary, mb: 1.5 }}>
                   Authentication method
                 </Typography>
-                <Box sx={{ display: "flex", gap: 1.5, mb: 2 }}>
+                <Stack spacing={1.5} sx={{ mb: 2.5 }}>
+                  {/* Option 1: IAM Role */}
                   <Box
                     onClick={() => {
-                      setBedrockAuthMethod("iam");
+                      setBedrockAuthMethod("iam_role");
                       setNewApiKey("");
                       setApiKeyError(null);
                     }}
                     sx={{
-                      flex: 1,
                       p: 2,
                       borderRadius: "8px",
-                      border: bedrockAuthMethod === "iam" ? "2px solid #13715B" : `1px solid ${theme.palette.divider}`,
-                      backgroundColor: bedrockAuthMethod === "iam" ? "#F0FDF4" : theme.palette.background.paper,
+                      border: bedrockAuthMethod === "iam_role" ? "2px solid #13715B" : `1px solid ${theme.palette.divider}`,
+                      backgroundColor: bedrockAuthMethod === "iam_role" ? "#F0FDF4" : theme.palette.background.paper,
                       cursor: "pointer",
                       transition: "all 0.15s ease",
-                      "&:hover": { borderColor: bedrockAuthMethod === "iam" ? "#13715B" : theme.palette.action.hover },
+                      "&:hover": { borderColor: bedrockAuthMethod === "iam_role" ? "#13715B" : theme.palette.action.hover },
                     }}
                   >
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "iam" ? "#13715B" : theme.palette.text.primary }}>
-                        IAM Role
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "iam_role" ? "#13715B" : theme.palette.text.primary }}>
+                        IAM Role (AssumeRole)
                       </Typography>
                       <Box sx={{ fontSize: 10, fontWeight: 500, color: "#059669", bgcolor: "#DCFCE7", px: 0.75, py: 0.25, borderRadius: "4px" }}>
                         Recommended
                       </Box>
                     </Box>
                     <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
-                      Uses AWS credentials from environment
+                      Most secure — no long-lived credentials, full auditability via CloudTrail
                     </Typography>
                   </Box>
+
+                  {/* Option 2: Bedrock API Key */}
                   <Box
                     onClick={() => {
-                      setBedrockAuthMethod("apikey");
+                      setBedrockAuthMethod("api_key");
                       setNewApiKey("");
                       setApiKeyError(null);
                     }}
                     sx={{
-                      flex: 1,
                       p: 2,
                       borderRadius: "8px",
-                      border: bedrockAuthMethod === "apikey" ? "2px solid #13715B" : `1px solid ${theme.palette.divider}`,
-                      backgroundColor: bedrockAuthMethod === "apikey" ? "#F0FDF4" : theme.palette.background.paper,
+                      border: bedrockAuthMethod === "api_key" ? "2px solid #13715B" : `1px solid ${theme.palette.divider}`,
+                      backgroundColor: bedrockAuthMethod === "api_key" ? "#F0FDF4" : theme.palette.background.paper,
                       cursor: "pointer",
                       transition: "all 0.15s ease",
-                      "&:hover": { borderColor: bedrockAuthMethod === "apikey" ? "#13715B" : theme.palette.action.hover },
+                      "&:hover": { borderColor: bedrockAuthMethod === "api_key" ? "#13715B" : theme.palette.action.hover },
                     }}
                   >
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "apikey" ? "#13715B" : theme.palette.text.primary, mb: 0.5 }}>
-                      API Key
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "api_key" ? "#13715B" : theme.palette.text.primary, mb: 0.5 }}>
+                      Bedrock API Key
                     </Typography>
                     <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
-                      Uses Bedrock Bearer token
+                      Quick setup — scoped to Bedrock, easy to revoke
                     </Typography>
                   </Box>
-                </Box>
 
-                {/* IAM Role Setup Info */}
-                {bedrockAuthMethod === "iam" && (
-                  <Box sx={{ p: 2, bgcolor: theme.palette.action.hover, borderRadius: "8px", border: `1px solid ${theme.palette.divider}` }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 500, color: theme.palette.text.primary, mb: 1 }}>
-                      Server environment variables required:
-                    </Typography>
-                    <Box sx={{
-                      fontFamily: "monospace",
-                      fontSize: 11,
-                      bgcolor: theme.palette.background.paper,
-                      p: 1.5,
-                      borderRadius: "6px",
-                      border: `1px solid ${theme.palette.divider}`,
-                      color: theme.palette.text.primary,
-                      lineHeight: 1.8
-                    }}>
-                      AWS_ACCESS_KEY_ID<br />
-                      AWS_SECRET_ACCESS_KEY<br />
-                      AWS_DEFAULT_REGION
+                  {/* Option 3: AWS Access Keys */}
+                  <Box
+                    onClick={() => {
+                      setBedrockAuthMethod("access_keys");
+                      setNewApiKey("");
+                      setApiKeyError(null);
+                    }}
+                    sx={{
+                      p: 2,
+                      borderRadius: "8px",
+                      border: bedrockAuthMethod === "access_keys" ? "2px solid #13715B" : `1px solid ${theme.palette.divider}`,
+                      backgroundColor: bedrockAuthMethod === "access_keys" ? "#F0FDF4" : theme.palette.background.paper,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      "&:hover": { borderColor: bedrockAuthMethod === "access_keys" ? "#13715B" : theme.palette.action.hover },
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: bedrockAuthMethod === "access_keys" ? "#13715B" : theme.palette.text.primary }}>
+                        AWS Access Keys
+                      </Typography>
+                      <Box sx={{ fontSize: 10, fontWeight: 500, color: "#92400E", bgcolor: "#FEF3C7", px: 0.75, py: 0.25, borderRadius: "4px" }}>
+                        Advanced
+                      </Box>
                     </Box>
+                    <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
+                      Legacy method — long-lived credentials, requires secure handling
+                    </Typography>
                   </Box>
+                </Stack>
+
+                {/* IAM Role Configuration */}
+                {bedrockAuthMethod === "iam_role" && (
+                  <Stack spacing={2}>
+                    <Box>
+                      <Field
+                        label="IAM Role ARN"
+                        value={awsRoleArn}
+                        onChange={(e) => setAwsRoleArn(e.target.value)}
+                        placeholder="arn:aws:iam::123456789012:role/VerifyWiseBedrockRole"
+                        autoComplete="off"
+                        error=""
+                      />
+                      <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, mt: 0.5 }}>
+                        The IAM Role in your AWS account that trusts VerifyWise
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Field
+                        label="External ID (optional)"
+                        value={awsExternalId}
+                        onChange={(e) => setAwsExternalId(e.target.value)}
+                        placeholder="verifywise-external-id"
+                        autoComplete="off"
+                        error=""
+                      />
+                      <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, mt: 0.5 }}>
+                        Additional security identifier for cross-account access
+                      </Typography>
+                    </Box>
+                  </Stack>
                 )}
 
-                {/* API Key Input */}
-                {bedrockAuthMethod === "apikey" && (
+                {/* Bedrock API Key Configuration */}
+                {bedrockAuthMethod === "api_key" && (
                   <Box>
                     <Field
-                      label="Bedrock API key"
+                      label="Bedrock API Key"
                       value={newApiKey}
                       onChange={(e) => handleApiKeyChange(e.target.value)}
                       placeholder="ABSK... or bedrock-api-key-..."
@@ -519,13 +600,45 @@ export default function OrgSettings() {
                     <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, mt: 0.5 }}>
                       Get your key from{" "}
                       <a href="https://console.aws.amazon.com/bedrock/home#/api-keys" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
-                        AWS Bedrock Console
+                        AWS Bedrock Console → API Keys
                       </a>
                     </Typography>
                   </Box>
                 )}
 
-                {/* Region Selection */}
+                {/* AWS Access Keys Configuration */}
+                {bedrockAuthMethod === "access_keys" && (
+                  <Stack spacing={2}>
+                    <Box sx={{ p: 1.5, bgcolor: "#FEF3C7", borderRadius: "6px", border: "1px solid #FCD34D" }}>
+                      <Typography sx={{ fontSize: 11, color: "#92400E" }}>
+                        ⚠️ Access keys are long-lived credentials. Rotation is your responsibility. Consider using IAM Role for production.
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Field
+                        label="AWS Access Key ID"
+                        value={awsAccessKeyId}
+                        onChange={(e) => setAwsAccessKeyId(e.target.value)}
+                        placeholder="AKIAIOSFODNN7EXAMPLE"
+                        autoComplete="off"
+                        error=""
+                      />
+                    </Box>
+                    <Box>
+                      <Field
+                        label="AWS Secret Access Key"
+                        value={awsSecretAccessKey}
+                        onChange={(e) => setAwsSecretAccessKey(e.target.value)}
+                        placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                        type="password"
+                        autoComplete="new-password"
+                        error=""
+                      />
+                    </Box>
+                  </Stack>
+                )}
+
+                {/* Region Selection - Always shown */}
                 <Box sx={{ mt: 2 }}>
                   <Select
                     id="aws-region-select"
@@ -555,7 +668,9 @@ export default function OrgSettings() {
                 isDisabled={
                   !selectedProvider ||
                   (selectedProvider !== "bedrock" && !newApiKey.trim()) ||
-                  (selectedProvider === "bedrock" && bedrockAuthMethod === "apikey" && !newApiKey.trim()) ||
+                  (selectedProvider === "bedrock" && bedrockAuthMethod === "iam_role" && !awsRoleArn.trim()) ||
+                  (selectedProvider === "bedrock" && bedrockAuthMethod === "api_key" && !newApiKey.trim()) ||
+                  (selectedProvider === "bedrock" && bedrockAuthMethod === "access_keys" && (!awsAccessKeyId.trim() || !awsSecretAccessKey.trim())) ||
                   !!apiKeyError
                 }
                 startIcon={<Plus size={16} />}

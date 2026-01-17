@@ -19,8 +19,13 @@ export interface LLMApiKey {
 export interface AddKeyRequest {
   provider: LLMProvider;
   apiKey: string;
-  region?: string;                // Optional AWS region for Bedrock
-  authMethod?: "iam" | "apikey";  // For AWS Bedrock auth method
+  // AWS Bedrock-specific fields
+  region?: string;                                   // AWS region (e.g., us-east-1)
+  authMethod?: "iam_role" | "api_key" | "access_keys";  // Bedrock auth method
+  roleArn?: string;                                  // IAM Role ARN for iam_role method
+  externalId?: string;                               // External ID for cross-account access
+  accessKeyId?: string;                              // AWS Access Key ID for access_keys method
+  secretAccessKey?: string;                          // AWS Secret Access Key for access_keys method
 }
 
 export interface GetKeysResponse {

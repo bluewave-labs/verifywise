@@ -50,34 +50,70 @@ export const getAllKeys = async (req: Request, res: Response) => {
  *
  * Request body:
  * - provider: string (openai, anthropic, google, xai, mistral, huggingface, bedrock)
- * - apiKey: string (plain text - will be encrypted; for Bedrock, use Bearer token)
- * - region: string (optional for bedrock - AWS region, defaults to us-east-1)
+ * - apiKey: string (plain text - will be encrypted)
+ * - region: string (optional for bedrock - AWS region)
+ * 
+ * AWS Bedrock-specific fields:
+ * - authMethod: 'iam_role' | 'api_key' | 'access_keys'
+ * - roleArn: string (for iam_role method)
+ * - externalId: string (optional, for iam_role method)
+ * - accessKeyId: string (for access_keys method)
+ * - secretAccessKey: string (for access_keys method)
  */
 export const addKey = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
   try {
-    const { provider, apiKey, region, authMethod } = req.body;
+    const {
+      provider,
+      apiKey,
+      region,
+      authMethod,
+      roleArn,
+      externalId,
+      accessKeyId,
+      secretAccessKey
+    } = req.body;
 
     // Validate inputs
     if (!provider) {
       throw new ValidationException('Provider is required', 'provider', provider);
     }
 
-    if (!apiKey) {
+    // Bedrock validation based on auth method
+    if (provider === 'bedrock') {
+      if (!authMethod) {
+        throw new ValidationException('Authentication method is required for Bedrock', 'authMethod', authMethod);
+      }
+      if (authMethod === 'iam_role' && !roleArn) {
+        throw new ValidationException('IAM Role ARN is required', 'roleArn', roleArn);
+      }
+      if (authMethod === 'api_key' && !apiKey) {
+        throw new ValidationException('Bedrock API key is required', 'apiKey', '[REDACTED]');
+      }
+      if (authMethod === 'access_keys') {
+        if (!accessKeyId) {
+          throw new ValidationException('AWS Access Key ID is required', 'accessKeyId', '[REDACTED]');
+        }
+        if (!secretAccessKey) {
+          throw new ValidationException('AWS Secret Access Key is required', 'secretAccessKey', '[REDACTED]');
+        }
+      }
+    } else if (!apiKey) {
       throw new ValidationException('API key is required', 'apiKey', '[REDACTED]');
     }
 
-    // Bedrock now uses Bearer token API keys, no secret needed
-
-    // Create key
+    // Create key with all Bedrock-specific fields
     const keyData = await createKeyQuery(
       req.tenantId!,
       provider as LLMProvider,
       apiKey,
       transaction,
-      undefined,  // secretKey no longer used
       region,
-      authMethod  // For Bedrock: 'iam' or 'apikey'
+      authMethod,
+      roleArn,
+      externalId,
+      accessKeyId,
+      secretAccessKey
     );
 
     await logSuccess({

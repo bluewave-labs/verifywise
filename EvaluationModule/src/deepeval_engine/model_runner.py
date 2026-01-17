@@ -210,33 +210,94 @@ class ModelRunner:
             raise ImportError("openai package not installed. Install with: pip install openai")
     
     def _setup_bedrock(self):
-        """Setup AWS Bedrock with IAM role or Bearer token authentication."""
+        """
+        Setup AWS Bedrock with one of three authentication methods:
+        1. iam_role: AssumeRole with Role ARN (most secure)
+        2. api_key: Bedrock API Key / Bearer token
+        3. access_keys: AWS Access Key ID + Secret (legacy)
+        """
         self.bedrock_region = os.getenv("AWS_DEFAULT_REGION") or os.getenv("AWS_REGION", "us-east-1")
-        self.bedrock_auth_method = os.getenv("BEDROCK_AUTH_METHOD", "iam")
+        self.bedrock_auth_method = os.getenv("BEDROCK_AUTH_METHOD", "api_key")
         
-        if self.bedrock_auth_method == "apikey":
-            # Bearer token authentication
-            import requests
+        if self.bedrock_auth_method == "api_key":
+            # Bedrock API Key (Bearer token) authentication
             self.bedrock_api_key = os.getenv("AWS_BEARER_TOKEN_BEDROCK")
             if not self.bedrock_api_key:
                 raise ValueError("AWS_BEARER_TOKEN_BEDROCK environment variable not set. Get your API key from AWS Bedrock console.")
             self.bedrock_base_url = f"https://bedrock-runtime.{self.bedrock_region}.amazonaws.com"
             self.bedrock_client = None
-            print(f"✓ AWS Bedrock configured (region: {self.bedrock_region}, auth: Bearer token)")
-        else:
-            # IAM role authentication (boto3)
+            print(f"✓ AWS Bedrock configured (region: {self.bedrock_region}, auth: Bedrock API Key)")
+            
+        elif self.bedrock_auth_method == "iam_role":
+            # IAM Role (AssumeRole) authentication - most secure
             try:
                 import boto3
+                from botocore.credentials import AssumeRoleCredentialFetcher, DeferredRefreshableCredentials
+                
+                role_arn = os.getenv("AWS_ROLE_ARN")
+                external_id = os.getenv("AWS_EXTERNAL_ID")
+                
+                if not role_arn:
+                    raise ValueError("AWS_ROLE_ARN environment variable not set for IAM Role authentication.")
+                
+                # Create STS client to assume role
+                sts_client = boto3.client('sts', region_name=self.bedrock_region)
+                
+                # Assume role parameters
+                assume_role_params = {
+                    'RoleArn': role_arn,
+                    'RoleSessionName': 'VerifyWiseBedrockSession',
+                    'DurationSeconds': 3600,  # 1 hour
+                }
+                if external_id:
+                    assume_role_params['ExternalId'] = external_id
+                
+                # Assume the role and get temporary credentials
+                response = sts_client.assume_role(**assume_role_params)
+                credentials = response['Credentials']
+                
+                # Create Bedrock client with assumed role credentials
                 self.bedrock_client = boto3.client(
                     service_name="bedrock-runtime",
-                    region_name=self.bedrock_region
+                    region_name=self.bedrock_region,
+                    aws_access_key_id=credentials['AccessKeyId'],
+                    aws_secret_access_key=credentials['SecretAccessKey'],
+                    aws_session_token=credentials['SessionToken']
                 )
                 self.bedrock_api_key = None
-                print(f"✓ AWS Bedrock configured (region: {self.bedrock_region}, auth: IAM role)")
+                print(f"✓ AWS Bedrock configured (region: {self.bedrock_region}, auth: IAM Role AssumeRole)")
+                
             except ImportError:
                 raise ImportError("boto3 package not installed. Install with: pip install boto3")
             except Exception as e:
-                raise ValueError(f"Failed to configure AWS Bedrock with IAM: {e}")
+                raise ValueError(f"Failed to configure AWS Bedrock with IAM Role: {e}")
+                
+        elif self.bedrock_auth_method == "access_keys":
+            # AWS Access Keys (IAM User) authentication - legacy
+            try:
+                import boto3
+                
+                access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+                secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+                
+                if not access_key_id or not secret_access_key:
+                    raise ValueError("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables must be set.")
+                
+                self.bedrock_client = boto3.client(
+                    service_name="bedrock-runtime",
+                    region_name=self.bedrock_region,
+                    aws_access_key_id=access_key_id,
+                    aws_secret_access_key=secret_access_key
+                )
+                self.bedrock_api_key = None
+                print(f"✓ AWS Bedrock configured (region: {self.bedrock_region}, auth: AWS Access Keys)")
+                
+            except ImportError:
+                raise ImportError("boto3 package not installed. Install with: pip install boto3")
+            except Exception as e:
+                raise ValueError(f"Failed to configure AWS Bedrock with Access Keys: {e}")
+        else:
+            raise ValueError(f"Unknown Bedrock auth method: {self.bedrock_auth_method}. Must be 'iam_role', 'api_key', or 'access_keys'.")
     
     def generate(
         self,
@@ -504,13 +565,15 @@ class ModelRunner:
         temperature: float,
         top_p: Optional[float],
     ) -> str:
-        """Generate using AWS Bedrock with IAM or Bearer token authentication."""
-        import json
-        
+        """
+        Generate using AWS Bedrock with one of three authentication methods.
+        - api_key: Uses Bedrock API Key (Bearer token) via HTTP
+        - iam_role or access_keys: Uses boto3 client
+        """
         model_id = self.model_name
         
-        if self.bedrock_auth_method == "apikey":
-            # Bearer token authentication via HTTP
+        if self.bedrock_auth_method == "api_key":
+            # Bedrock API Key (Bearer token) authentication via HTTP
             import requests
             
             def _call_bedrock_api():
@@ -555,9 +618,9 @@ class ModelRunner:
             return self._retry_with_backoff(_call_bedrock_api)
         
         else:
-            # IAM role authentication via boto3
-            def _call_bedrock_iam():
-                # Use Converse API for unified interface
+            # iam_role or access_keys: Use boto3 client
+            def _call_bedrock_boto3():
+                # Use Converse API for unified interface across all Bedrock models
                 response = self.bedrock_client.converse(
                     modelId=model_id,
                     messages=[
@@ -578,7 +641,7 @@ class ModelRunner:
                     return content[0].get("text", "").strip()
                 return ""
             
-            return self._retry_with_backoff(_call_bedrock_iam)
+            return self._retry_with_backoff(_call_bedrock_boto3)
     
     def generate_batch(
         self,

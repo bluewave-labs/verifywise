@@ -67,6 +67,7 @@ import approvalRequestRoutes from "./routes/approvalRequest.route";
 import aiDetectionRoutes from "./routes/aiDetection.route";
 import githubIntegrationRoutes from "./routes/githubIntegration.route";
 import notificationRoutes from "./routes/notification.route";
+import postMarketMonitoringRoutes from "./routes/postMarketMonitoring.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -213,6 +214,7 @@ try {
   app.use("/api/ai-detection", aiDetectionRoutes);
   app.use("/api/integrations/github", githubIntegrationRoutes);
   app.use("/api/notifications", notificationRoutes);
+  app.use("/api/pmm", postMarketMonitoringRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {

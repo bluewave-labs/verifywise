@@ -45,3 +45,19 @@ export async function scheduleReportNotification() {
     },
   );
 }
+
+export async function schedulePMMHourlyCheck() {
+  logger.info("Adding PMM hourly check jobs to the queue...");
+  // PMM hourly check - runs every hour at minute 0 to handle timezone-aware notifications
+  await automationQueue.add(
+    "pmm_hourly_check",
+    { type: "pmm" },
+    {
+      repeat: {
+        pattern: "0 * * * *", // Every hour at minute 0
+      },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  );
+}

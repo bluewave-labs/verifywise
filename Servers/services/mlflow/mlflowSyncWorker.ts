@@ -1,5 +1,5 @@
 import { Job, Worker } from "bullmq";
-import redisClient from "../../database/redis";
+import { REDIS_URL } from "../../database/redis";
 import logger from "../../utils/logger/fileLogger";
 import { MLFlowService } from "../../src/services/mlflow.service";
 import { ValidationException } from "../../domain.layer/exceptions/custom.exception";
@@ -146,7 +146,7 @@ export const createMlflowSyncWorker = () => {
       return [];
     },
     {
-      connection: redisClient,
+      connection: { url: REDIS_URL },
       concurrency: 1,
     }
   );

@@ -275,10 +275,6 @@ export const createNewProjectQuery = async (
 
   const ucId = await generateNextUcId(tenant, transaction);
 
-  console.log("=== CREATING PROJECT ===");
-  console.log("project.approval_workflow_id:", project.approval_workflow_id);
-  console.log("project object:", JSON.stringify(project, null, 2));
-
   // If approval workflow is assigned, store frameworks for later creation
   const pendingFrameworks = project.approval_workflow_id ? frameworks : null;
   const enableAiDataInsertion = project.approval_workflow_id ? (project.enable_ai_data_insertion || false) : false;

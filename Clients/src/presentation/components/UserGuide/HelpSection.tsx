@@ -86,10 +86,10 @@ const HelpSection: React.FC = () => {
             marginBottom: spacing.md,
           }}
         >
-          Questions about features, how-tos, or use cases? There are thousands of discussions in our community forums.
+          Questions about features, how-tos, or use cases? Join our Discord community to connect with other users and get help.
         </p>
         <a
-          href="https://github.com/verifywise/verifywise/discussions"
+          href="https://discord.com/invite/d3k3E4uEpR"
           target="_blank"
           rel="noopener noreferrer"
           className="help-button"
@@ -111,7 +111,7 @@ const HelpSection: React.FC = () => {
             color: colors.text.primary,
           }}
         >
-          Ask the community
+          Join our Discord
           <ExternalLink size={14} strokeWidth={1.5} color={colors.text.muted} />
         </a>
       </div>

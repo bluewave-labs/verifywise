@@ -13,9 +13,13 @@
 .mui-date-picker .MuiPickersOutlinedInput-input {
   padding: 6px 8px 6px 0 !important;
   font-size: 13px !important;
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  opacity: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
 }
 
 /* MUI v8 uses sectionsContainer for date display */

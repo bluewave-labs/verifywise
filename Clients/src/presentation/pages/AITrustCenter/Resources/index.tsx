@@ -617,7 +617,14 @@ const TrustCenterResources: React.FC = () => {
           </Box>
           <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
             <Box sx={styles.toggleRow}>
-              <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
+              <Typography
+                sx={{ ...styles.toggleLabel, cursor: "pointer" }}
+                onClick={() =>
+                  handleFieldChange("info", "resources_visible", !formData?.info?.resources_visible)
+                }
+              >
+                Visible?
+              </Typography>
               <Toggle
                 checked={formData?.info?.resources_visible ?? false}
                 onChange={(_, checked) =>

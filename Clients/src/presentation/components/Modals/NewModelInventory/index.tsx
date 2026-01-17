@@ -257,7 +257,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   // Use the useProjects hook to get approved projects
   const { approvedProjects } = useProjects();
 
-  // Filter to get only non-organizational approved projects
+  // Filter to get only non-organizational approved projects (use cases)
   const projectList = useMemo(() => {
     return Array.isArray(approvedProjects)
       ? approvedProjects.filter((project: Project) => !project.is_organizational)
@@ -268,12 +268,19 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     return projectList.map((project: Project) => project.project_title.trim());
   }, [projectList]);
 
-  // Create a mapping from framework ID to framework name
+  // Get organizational projects to extract enabled frameworks
+  const organizationalProjects = useMemo(() => {
+    return Array.isArray(approvedProjects)
+      ? approvedProjects.filter((project: Project) => project.is_organizational)
+      : [];
+  }, [approvedProjects]);
+
+  // Create a mapping from framework ID to framework name (from organizational projects)
   const frameworkIdToNameMap = useMemo(() => {
     const map = new Map<number, string>();
     const targetFrameworks = ["ISO 42001", "ISO 27001", "NIST AI RMF"];
 
-    projectList.forEach((project) => {
+    organizationalProjects.forEach((project) => {
       project.framework?.forEach((f) => {
         if (targetFrameworks.includes(f.name)) {
           map.set(f.framework_id, f.name);
@@ -282,7 +289,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     });
 
     return map;
-  }, [projectList]);
+  }, [organizationalProjects]);
 
   const frameworksList = useMemo(() => {
     return Array.from(frameworkIdToNameMap.values());

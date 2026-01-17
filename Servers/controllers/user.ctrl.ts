@@ -539,6 +539,33 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           res
         );
 
+        // Get organization onboarding status for setup modal
+        const orgId = (userData as any).organization_id;
+        let onboardingStatus = 'completed';
+        let isOrgCreator = false;
+
+        if (orgId) {
+          // Get organization onboarding status
+          const [orgResult] = await sequelize.query(
+            `SELECT onboarding_status FROM organizations WHERE id = :orgId`,
+            { replacements: { orgId }, type: 'SELECT' as any }
+          );
+          if (orgResult && (orgResult as any).onboarding_status) {
+            onboardingStatus = (orgResult as any).onboarding_status;
+          }
+
+          // Check if user is the org creator (first admin by creation date)
+          const [creatorResult] = await sequelize.query(
+            `SELECT id FROM users
+             WHERE organization_id = :orgId AND role_id = 1
+             ORDER BY created_at ASC LIMIT 1`,
+            { replacements: { orgId }, type: 'SELECT' as any }
+          );
+          if (creatorResult && (creatorResult as any).id === user.id) {
+            isOrgCreator = true;
+          }
+        }
+
         logStructured(
           "successful",
           `login successful for ${email}`,
@@ -549,6 +576,8 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         return res.status(202).json(
           STATUS_CODE[202]({
             token: accessToken,
+            onboarding_status: onboardingStatus,
+            is_org_creator: isOrgCreator,
           })
         );
       } else {

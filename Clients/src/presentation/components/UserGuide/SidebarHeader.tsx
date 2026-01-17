@@ -139,7 +139,8 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
 
               {/* Home button */}
               <button
-                onClick={onHomeClick}
+                onClick={breadcrumbs.length > 1 ? onHomeClick : undefined}
+                disabled={breadcrumbs.length <= 1}
                 className="header-icon-button"
                 style={{
                   display: 'flex',
@@ -150,9 +151,10 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
                   backgroundColor: 'transparent',
                   border: 'none',
                   borderRadius: border.radius,
-                  cursor: 'pointer',
-                  color: colors.text.secondary,
+                  cursor: breadcrumbs.length > 1 ? 'pointer' : 'default',
+                  color: breadcrumbs.length > 1 ? colors.text.secondary : colors.border.default,
                   flexShrink: 0,
+                  opacity: breadcrumbs.length > 1 ? 1 : 0.5,
                 }}
                 title="Home"
               >
@@ -164,7 +166,7 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
           {/* Breadcrumb dropdown */}
           <div ref={dropdownRef} style={{ position: 'relative', flex: 1, minWidth: 0 }}>
             <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              onClick={() => breadcrumbs.length > 1 && setIsDropdownOpen(!isDropdownOpen)}
               className="breadcrumb-dropdown-trigger"
               style={{
                 display: 'flex',
@@ -174,7 +176,7 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
                 backgroundColor: 'transparent',
                 border: 'none',
                 borderRadius: border.radius,
-                cursor: 'pointer',
+                cursor: breadcrumbs.length > 1 ? 'pointer' : 'default',
                 maxWidth: '100%',
               }}
             >
@@ -191,16 +193,18 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
               >
                 {currentBreadcrumb?.label || 'User guide'}
               </span>
-              <ChevronDown
-                size={14}
-                strokeWidth={1.5}
-                color={colors.text.muted}
-                style={{
-                  flexShrink: 0,
-                  transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
-                  transition: 'transform 150ms ease',
-                }}
-              />
+              {breadcrumbs.length > 1 && (
+                <ChevronDown
+                  size={14}
+                  strokeWidth={1.5}
+                  color={colors.text.muted}
+                  style={{
+                    flexShrink: 0,
+                    transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
+                    transition: 'transform 150ms ease',
+                  }}
+                />
+              )}
             </button>
 
             {/* Dropdown menu */}

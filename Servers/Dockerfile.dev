@@ -1,6 +1,10 @@
 FROM node:20-alpine
 
 WORKDIR /app
+
+# Install git for AI detection repository scanning
+RUN apk add --no-cache git
+
 COPY ./package.json ./
 RUN npm install
 

@@ -568,21 +568,24 @@ const Tasks: React.FC = () => {
       <TipBox entityName="tasks" />
 
       {/* Summary Cards */}
-      <TaskSummaryCards summary={summary} />
+      <Box data-joyride-id="task-summary-cards">
+        <TaskSummaryCards summary={summary} />
+      </Box>
 
       {/* Filter Controls */}
       <Stack
         direction="row"
         justifyContent="space-between"
         alignItems="center"
-        data-joyride-id="task-filters"
       >
         <Stack direction="row" gap={2} alignItems="center">
           {/* FilterBy */}
-          <FilterBy
-            columns={taskFilterColumns}
-            onFilterChange={handleTaskFilterChange}
-          />
+          <Box data-joyride-id="task-filters">
+            <FilterBy
+              columns={taskFilterColumns}
+              onFilterChange={handleTaskFilterChange}
+            />
+          </Box>
 
           {/* GroupBy */}
           <GroupBy

@@ -90,14 +90,18 @@ export const createOrganizationQuery = async (
   organization: Partial<OrganizationModel>,
   transaction: Transaction
 ): Promise<OrganizationModel> => {
+  // Generate a unique slug for the organization
+  const slug = Math.random().toString(36).substring(2, 10);
+
   const result = await sequelize.query(
-    `INSERT INTO organizations(name, logo, created_at) 
-     VALUES (:name, :logo, :created_at) RETURNING *`,
+    `INSERT INTO organizations(name, logo, created_at, slug)
+     VALUES (:name, :logo, :created_at, :slug) RETURNING *`,
     {
       replacements: {
         name: organization.name,
         logo: organization.logo || null,
         created_at: new Date(),
+        slug,
       },
       mapToModel: true,
       model: OrganizationModel,

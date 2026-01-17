@@ -1,4 +1,4 @@
-import { BarChart3, Filter, ShieldAlert, AlertCircle } from "lucide-react";
+import { BarChart3, AlertCircle, Search } from "lucide-react";
 import { IPageTourStep } from "../../types/interfaces/i.tour";
 
 const IncidentManagementSteps: IPageTourStep[] = [
@@ -14,36 +14,18 @@ const IncidentManagementSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="incident-status-cards"]',
     content: {
-      header: "Incident Lifecycle Overview",
+      header: "Incident lifecycle overview",
       body: "Monitor incidents across their lifecycle: Open, Investigating, Mitigated, and Closed. Track resolution progress and identify incidents requiring immediate attention.",
       icon: <BarChart3 size={20} color="#ffffff" />,
     },
     placement: "bottom",
   },
   {
-    target: '[data-joyride-id="incident-status-filter"]',
+    target: '[data-joyride-id="incident-search"]',
     content: {
-      header: "Filter by status",
-      body: "Focus on incidents at specific stages of resolution. Filter by Open, Investigating, Mitigated, or Closed to manage your incident response workflow.",
-      icon: <Filter size={20} color="#ffffff" />,
-    },
-    placement: "bottom",
-  },
-  {
-    target: '[data-joyride-id="incident-severity-filter"]',
-    content: {
-      header: "Prioritize by Severity",
-      body: "Filter incidents by severity level: Minor, Serious, or Very Serious. Focus on high-severity incidents that require immediate investigation and mitigation.",
-      icon: <ShieldAlert size={20} color="#ffffff" />,
-    },
-    placement: "bottom",
-  },
-  {
-    target: '[data-joyride-id="incident-approval-filter"]',
-    content: {
-      header: "Track Approval Status",
-      body: "Monitor incident approval workflow. Filter by Pending, Approved, Rejected, or Not Required to ensure proper incident review and sign-off.",
-      icon: <Filter size={20} color="#ffffff" />,
+      header: "Search incidents",
+      body: "Quickly find specific incidents by searching titles or descriptions. Perfect for locating incidents in large lists.",
+      icon: <Search size={20} color="#ffffff" />,
     },
     placement: "bottom",
   },

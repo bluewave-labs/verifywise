@@ -44,7 +44,7 @@ async def list_scorers(
              created_at,
              updated_at,
              created_by
-      FROM "{tenant}".deepeval_scorers
+      FROM "{tenant}".llm_evals_scorers
       {where_clause}
       ORDER BY created_at DESC
       '''
@@ -98,7 +98,7 @@ async def create_scorer(
   result = await db.execute(
     text(
       f'''
-      INSERT INTO "{tenant}".deepeval_scorers
+      INSERT INTO "{tenant}".llm_evals_scorers
       (id, org_id, name, description, type, metric_key, config, enabled,
        default_threshold, weight, created_by)
       VALUES
@@ -197,7 +197,7 @@ async def update_scorer(
         f'''
         SELECT id, org_id, name, description, type, metric_key, config, enabled,
                default_threshold, weight, created_at, updated_at, created_by
-        FROM "{tenant}".deepeval_scorers
+        FROM "{tenant}".llm_evals_scorers
         WHERE id = :id
         '''
       ),
@@ -208,7 +208,7 @@ async def update_scorer(
     result = await db.execute(
       text(
         f'''
-        UPDATE "{tenant}".deepeval_scorers
+        UPDATE "{tenant}".llm_evals_scorers
         SET {", ".join(updates)}
         WHERE id = :id
         RETURNING id, org_id, name, description, type, metric_key, config, enabled,
@@ -265,7 +265,7 @@ async def get_scorer_by_id(
              created_at,
              updated_at,
              created_by
-      FROM "{tenant}".deepeval_scorers
+      FROM "{tenant}".llm_evals_scorers
       WHERE id = :id
       '''
     ),
@@ -306,7 +306,7 @@ async def delete_scorer(
   result = await db.execute(
     text(
       f'''
-      DELETE FROM "{tenant}".deepeval_scorers
+      DELETE FROM "{tenant}".llm_evals_scorers
       WHERE id = :id
       RETURNING id
       '''
@@ -354,7 +354,7 @@ async def get_latest_scorer(
              created_at,
              updated_at,
              created_by
-      FROM "{tenant}".deepeval_scorers
+      FROM "{tenant}".llm_evals_scorers
       {where_clause}
       ORDER BY updated_at DESC NULLS LAST
       LIMIT 1

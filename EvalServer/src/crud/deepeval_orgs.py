@@ -15,7 +15,7 @@ async def create_org(
     result = await db.execute(
         text(
             f'''
-            INSERT INTO "{tenant}".deepeval_organizations (id, name)
+            INSERT INTO "{tenant}".llm_evals_organizations (id, name)
             VALUES (:id, :name)
             ON CONFLICT (name) DO NOTHING
             RETURNING id, name, created_at
@@ -32,7 +32,7 @@ async def create_org(
         }
     # If conflict (existing), fetch it
     res2 = await db.execute(
-        text(f'SELECT id, name, created_at FROM "{tenant}".deepeval_organizations WHERE name=:name'),
+        text(f'SELECT id, name, created_at FROM "{tenant}".llm_evals_organizations WHERE name=:name'),
         {"name": name},
     )
     row2 = res2.mappings().first()
@@ -47,7 +47,7 @@ async def create_org(
 
 async def get_all_orgs(tenant: str, db: AsyncSession) -> List[Dict[str, Any]]:
     res = await db.execute(
-        text(f'SELECT id, name, created_at FROM "{tenant}".deepeval_organizations ORDER BY created_at DESC')
+        text(f'SELECT id, name, created_at FROM "{tenant}".llm_evals_organizations ORDER BY created_at DESC')
     )
     orgs: List[Dict[str, Any]] = []
     for row in res.mappings().all():
@@ -83,7 +83,7 @@ async def update_org(
     result = await db.execute(
         text(
             f'''
-            UPDATE "{tenant}".deepeval_organizations
+            UPDATE "{tenant}".llm_evals_organizations
             SET name = :name
             WHERE id = :id
             RETURNING id, name, created_at
@@ -107,7 +107,7 @@ async def delete_org(org_id: str, tenant: str, db: AsyncSession) -> bool:
     Delete an organization by ID. Returns True if a row was removed.
     """
     res = await db.execute(
-        text(f'DELETE FROM "{tenant}".deepeval_organizations WHERE id = :id'),
+        text(f'DELETE FROM "{tenant}".llm_evals_organizations WHERE id = :id'),
         {"id": org_id},
     )
     # res.rowcount may be None on some DB backends; treat None as 0

@@ -36,7 +36,7 @@ async def list_models(
                    created_at,
                    updated_at,
                    created_by
-            FROM "{tenant}".deepeval_models
+            FROM "{tenant}".llm_evals_models
             {where_clause}
             ORDER BY created_at DESC
             '''
@@ -80,7 +80,7 @@ async def create_model(
     result = await db.execute(
         text(
             f'''
-            INSERT INTO "{tenant}".deepeval_models
+            INSERT INTO "{tenant}".llm_evals_models
             (id, org_id, name, provider, endpoint_url, created_by)
             VALUES
             (:id, :org_id, :name, :provider, :endpoint_url, :created_by)
@@ -145,7 +145,7 @@ async def update_model(
             text(
                 f'''
                 SELECT id, org_id, name, provider, endpoint_url, created_at, updated_at, created_by
-                FROM "{tenant}".deepeval_models
+                FROM "{tenant}".llm_evals_models
                 WHERE id = :id
                 '''
             ),
@@ -156,7 +156,7 @@ async def update_model(
         result = await db.execute(
             text(
                 f'''
-                UPDATE "{tenant}".deepeval_models
+                UPDATE "{tenant}".llm_evals_models
                 SET {", ".join(updates)}
                 WHERE id = :id
                 RETURNING id, org_id, name, provider, endpoint_url, created_at, updated_at, created_by
@@ -202,7 +202,7 @@ async def get_model_by_id(
                    created_at,
                    updated_at,
                    created_by
-            FROM "{tenant}".deepeval_models
+            FROM "{tenant}".llm_evals_models
             WHERE id = :id
             '''
         ),
@@ -238,7 +238,7 @@ async def delete_model(
     result = await db.execute(
         text(
             f'''
-            DELETE FROM "{tenant}".deepeval_models
+            DELETE FROM "{tenant}".llm_evals_models
             WHERE id = :id
             RETURNING id
             '''
@@ -280,7 +280,7 @@ async def get_latest_model(
                    created_at,
                    updated_at,
                    created_by
-            FROM "{tenant}".deepeval_models
+            FROM "{tenant}".llm_evals_models
             {where_clause}
             ORDER BY updated_at DESC NULLS LAST
             LIMIT 1

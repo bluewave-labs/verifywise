@@ -56,7 +56,7 @@ const ALLOWED_TABLE_NAMES = new Set([
   "ai_trust_center_subprocessor",
   "trainingregistar",
   "ai_incident_managements",
-  "deepeval_projects",
+  "llm_evals_projects",
 ]);
 
 /**
@@ -250,8 +250,8 @@ const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     icon: "AlertCircle",
     route: (id) => `/ai-incident-managements?incidentId=${id}`,
   },
-  deepeval_projects: {
-    tableName: "deepeval_projects",
+  llm_evals_projects: {
+    tableName: "llm_evals_projects",
     searchColumns: ["name", "description"],
     titleColumn: "name",
     subtitleColumn: "description",

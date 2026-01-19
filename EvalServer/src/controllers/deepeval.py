@@ -1315,6 +1315,8 @@ async def create_deepeval_model_controller(
     name = payload.get("name")
     provider = payload.get("provider")
 
+    if not org_id:
+        raise HTTPException(status_code=400, detail="'orgId' is required")
     if not name or not provider:
         raise HTTPException(status_code=400, detail="Both 'name' and 'provider' are required")
 

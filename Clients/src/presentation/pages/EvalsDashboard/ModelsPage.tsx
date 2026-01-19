@@ -60,7 +60,7 @@ const MODEL_PROVIDERS = [
 ];
 
 export interface ModelsPageProps {
-    orgId?: string | null;
+    orgId: string;
 }
 
 interface AlertState {
@@ -134,7 +134,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
     const loadModels = useCallback(async () => {
         try {
             setLoading(true);
-            const allModels = await evalModelsService.listModels(orgId ?? undefined);
+            const allModels = await evalModelsService.listModels(orgId);
             setModels(allModels);
         } catch (err) {
             console.error("Failed to load models", err);
@@ -277,7 +277,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
 
             // Create model using the new API
             const created = await evalModelsService.createModel({
-                orgId: orgId ?? undefined,
+                orgId: orgId,
                 name: newModel.modelName,
                 provider: newModel.accessMethod,
                 endpointUrl: newModel.endpointUrl || undefined,

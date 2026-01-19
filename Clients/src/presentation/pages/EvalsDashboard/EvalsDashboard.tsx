@@ -1617,19 +1617,19 @@ export default function EvalsDashboard() {
                 ) : null
               )}
 
-              {tab === "datasets" && (
+              {tab === "datasets" && orgId && (
                 <ProjectDatasets projectId={projectId} orgId={orgId} />
               )}
 
-              {tab === "scorers" && projectId && (
+              {tab === "scorers" && projectId && orgId && (
                 <ProjectScorers projectId={projectId} orgId={orgId} />
               )}
 
-              {tab === "models" && (
+              {tab === "models" && orgId && (
                 <ModelsPage orgId={orgId} />
               )}
 
-              {tab === "arena" && (
+              {tab === "arena" && orgId && (
                 <ArenaPage orgId={orgId} />
               )}
 

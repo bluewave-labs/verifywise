@@ -318,3 +318,67 @@ async def delete_scorer(
   return row is not None
 
 
+async def get_latest_scorer(
+  tenant: str,
+  db: AsyncSession,
+  org_id: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+  """
+  Get the most recently added/updated scorer.
+  Used for auto-populating experiment forms with the last used judge settings.
+  """
+
+  params: Dict[str, Any] = {}
+  where_clauses = []
+
+  # org_id filter is optional
+  if org_id:
+    where_clauses.append("org_id = :org_id")
+    params["org_id"] = org_id
+
+  where_clause = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+
+  result = await db.execute(
+    text(
+      f'''
+      SELECT id,
+             org_id,
+             name,
+             description,
+             type,
+             metric_key,
+             config,
+             enabled,
+             default_threshold,
+             weight,
+             created_at,
+             updated_at,
+             created_by
+      FROM "{tenant}".deepeval_scorers
+      {where_clause}
+      ORDER BY updated_at DESC NULLS LAST
+      LIMIT 1
+      '''
+    ),
+    params if params else {},
+  )
+
+  row = result.mappings().first()
+  if not row:
+    return None
+
+  return {
+    "id": row["id"],
+    "orgId": row["org_id"],
+    "name": row["name"],
+    "description": row["description"],
+    "type": row["type"],
+    "metricKey": row["metric_key"],
+    "config": row["config"] or {},
+    "enabled": row["enabled"],
+    "defaultThreshold": float(row["default_threshold"]) if row["default_threshold"] is not None else None,
+    "weight": float(row["weight"]) if row["weight"] is not None else None,
+    "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
+    "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
+    "createdBy": row["created_by"],
+  }

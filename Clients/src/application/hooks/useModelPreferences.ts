@@ -1,13 +1,12 @@
 /**
- * Hook for managing saved model and judge preferences for experiments
+ * Hook for auto-populating model settings in experiment forms
  * 
- * Stores preferences in the database per project, allowing:
- * - Auto-population of model/judge settings in new experiments
- * - Persistence across browser sessions and devices
+ * Fetches the most recently used model from the Models table.
+ * For judge LLM, uses the most recently used scorer's config if available.
  */
 
 import { useCallback, useState, useEffect } from "react";
-import { evalModelPreferencesService } from "../../infrastructure/api/evalModelPreferencesService";
+import { evalModelsService } from "../../infrastructure/api/evalModelsService";
 
 export interface ModelPreferences {
   // Model being evaluated
@@ -16,7 +15,7 @@ export interface ModelPreferences {
     accessMethod: string;
     endpointUrl?: string;
   };
-  // Judge LLM settings
+  // Judge LLM settings (from scorer config or defaults)
   judgeLlm: {
     provider: string;
     model: string;
@@ -28,31 +27,46 @@ export interface ModelPreferences {
 }
 
 /**
- * Hook to manage model preferences for experiments
+ * Hook to get the most recently used model for auto-populating experiments
  */
-export function useModelPreferences(projectId: string) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useModelPreferences(_projectId: string) {
   const [preferences, setPreferences] = useState<ModelPreferences | null>(null);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   /**
-   * Load preferences from the API
+   * Load the latest model from the API
    */
   const loadPreferences = useCallback(async (): Promise<ModelPreferences | null> => {
-    if (!projectId) return null;
-    
     setLoading(true);
     try {
-      const apiPrefs = await evalModelPreferencesService.getPreferences(projectId);
-      if (apiPrefs) {
+      // Fetch the most recently used model
+      const models = await evalModelsService.listModels();
+
+      if (models.length > 0) {
+        // Models are already sorted by updated_at DESC from the API
+        const latestModel = models[0];
+
         const prefs: ModelPreferences = {
-          model: apiPrefs.model,
-          judgeLlm: apiPrefs.judgeLlm,
-          savedAt: apiPrefs.updatedAt,
+          model: {
+            name: latestModel.name,
+            accessMethod: latestModel.provider,
+            endpointUrl: latestModel.endpointUrl,
+          },
+          // Default judge settings - user can change these
+          judgeLlm: {
+            provider: "openai",
+            model: "gpt-4o",
+            temperature: 0.7,
+            maxTokens: 2048,
+          },
+          savedAt: latestModel.updatedAt,
         };
         setPreferences(prefs);
         return prefs;
       }
+
       setPreferences(null);
       return null;
     } catch (err) {
@@ -63,64 +77,65 @@ export function useModelPreferences(projectId: string) {
       setLoading(false);
       setLoaded(true);
     }
-  }, [projectId]);
+  }, []);
 
   /**
    * Get preferences (from cache or fetch from API)
    */
   const getPreferences = useCallback(async (): Promise<ModelPreferences | null> => {
-    // If already loaded, return cached preferences
     if (loaded) {
       return preferences;
     }
-    // Otherwise fetch from API
     return loadPreferences();
   }, [loaded, preferences, loadPreferences]);
 
   /**
-   * Save preferences to the API
+   * Save model to the models table
+   * Called when experiment is submitted - saves the model config for next time
    */
   const savePreferences = useCallback(async (prefs: Omit<ModelPreferences, "savedAt">): Promise<boolean> => {
-    if (!projectId) return false;
-    
     try {
-      const success = await evalModelPreferencesService.savePreferences({
-        projectId,
-        model: prefs.model,
-        judgeLlm: prefs.judgeLlm,
-      });
-      
-      if (success) {
-        // Update local cache
-        setPreferences({
-          ...prefs,
-          savedAt: new Date().toISOString(),
+      // Check if this model already exists
+      const models = await evalModelsService.listModels();
+      const existingModel = models.find(
+        m => m.name === prefs.model.name && m.provider === prefs.model.accessMethod
+      );
+
+      if (!existingModel) {
+        // Create new model entry
+        const created = await evalModelsService.createModel({
+          name: prefs.model.name,
+          provider: prefs.model.accessMethod,
+          endpointUrl: prefs.model.endpointUrl,
         });
+
+        if (created) {
+          setPreferences({
+            ...prefs,
+            savedAt: new Date().toISOString(),
+          });
+          return true;
+        }
       }
-      return success;
+
+      // Model already exists, just update local state
+      setPreferences({
+        ...prefs,
+        savedAt: new Date().toISOString(),
+      });
+      return true;
     } catch (err) {
       console.error("Failed to save model preferences:", err);
       return false;
     }
-  }, [projectId]);
+  }, []);
 
   /**
-   * Clear saved preferences
+   * Clear saved preferences - not implemented for this simplified version
    */
   const clearPreferences = useCallback(async (): Promise<boolean> => {
-    if (!projectId) return false;
-    
-    try {
-      const success = await evalModelPreferencesService.deletePreferences(projectId);
-      if (success) {
-        setPreferences(null);
-      }
-      return success;
-    } catch (err) {
-      console.error("Failed to clear model preferences:", err);
-      return false;
-    }
-  }, [projectId]);
+    return false;
+  }, []);
 
   /**
    * Check if preferences exist
@@ -129,13 +144,10 @@ export function useModelPreferences(projectId: string) {
     return preferences !== null;
   }, [preferences]);
 
-  // Auto-load preferences when projectId changes
+  // Auto-load preferences on mount
   useEffect(() => {
-    if (projectId) {
-      setLoaded(false);
-      loadPreferences();
-    }
-  }, [projectId, loadPreferences]);
+    loadPreferences();
+  }, [loadPreferences]);
 
   return {
     preferences,

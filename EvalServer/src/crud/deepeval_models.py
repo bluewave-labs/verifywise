@@ -248,3 +248,58 @@ async def delete_model(
 
     row = result.fetchone()
     return row is not None
+
+
+async def get_latest_model(
+    tenant: str,
+    db: AsyncSession,
+    org_id: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Get the most recently added/updated model.
+    Used for auto-populating experiment forms.
+    """
+
+    params: Dict[str, Any] = {}
+
+    # Build WHERE clause - org_id filter is optional
+    if org_id:
+        where_clause = "WHERE org_id = :org_id"
+        params["org_id"] = org_id
+    else:
+        where_clause = ""
+
+    result = await db.execute(
+        text(
+            f'''
+            SELECT id,
+                   org_id,
+                   name,
+                   provider,
+                   endpoint_url,
+                   created_at,
+                   updated_at,
+                   created_by
+            FROM "{tenant}".deepeval_models
+            {where_clause}
+            ORDER BY updated_at DESC NULLS LAST
+            LIMIT 1
+            '''
+        ),
+        params if params else {},
+    )
+
+    row = result.mappings().first()
+    if not row:
+        return None
+
+    return {
+        "id": row["id"],
+        "orgId": row["org_id"],
+        "name": row["name"],
+        "provider": row["provider"],
+        "endpointUrl": row["endpoint_url"],
+        "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
+        "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
+        "createdBy": row["created_by"],
+    }

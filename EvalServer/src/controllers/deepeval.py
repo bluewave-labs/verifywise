@@ -1405,3 +1405,48 @@ async def delete_deepeval_model_controller(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete model: {e}")
 
+
+# ==================== LATEST MODEL/SCORER FOR EXPERIMENTS ====================
+
+
+async def get_latest_model_controller(
+    tenant: str,
+    org_id: Optional[str] = None,
+) -> JSONResponse:
+    """
+    Get the most recently added/updated model configuration.
+    Used for auto-populating experiment forms.
+    """
+    from crud.deepeval_models import get_latest_model
+
+    try:
+        async with get_db() as db:
+            model = await get_latest_model(tenant=tenant, db=db, org_id=org_id)
+            return JSONResponse(status_code=200, content={"model": model})
+    except Exception as e:
+        error_str = str(e).lower()
+        if "does not exist" in error_str or "undefined" in error_str or "relation" in error_str:
+            return JSONResponse(status_code=200, content={"model": None})
+        raise HTTPException(status_code=500, detail=f"Failed to get latest model: {e}")
+
+
+async def get_latest_scorer_controller(
+    tenant: str,
+    org_id: Optional[str] = None,
+) -> JSONResponse:
+    """
+    Get the most recently added/updated scorer (judge) configuration.
+    Used for auto-populating experiment forms.
+    """
+    from crud.deepeval_scorers import get_latest_scorer
+
+    try:
+        async with get_db() as db:
+            scorer = await get_latest_scorer(tenant=tenant, db=db, org_id=org_id)
+            return JSONResponse(status_code=200, content={"scorer": scorer})
+    except Exception as e:
+        error_str = str(e).lower()
+        if "does not exist" in error_str or "undefined" in error_str or "relation" in error_str:
+            return JSONResponse(status_code=200, content={"scorer": None})
+        raise HTTPException(status_code=500, detail=f"Failed to get latest scorer: {e}")
+

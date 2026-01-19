@@ -30,6 +30,8 @@ from controllers.deepeval import (
     create_deepeval_model_controller,
     update_deepeval_model_controller,
     delete_deepeval_model_controller,
+    get_latest_model_controller,
+    get_latest_scorer_controller,
     _get_uploads_root,
 )
 
@@ -414,3 +416,25 @@ async def delete_model_endpoint(request: Request, model_id: str):
     """
     tenant = request.state.tenant
     return await delete_deepeval_model_controller(model_id, tenant=tenant)
+
+
+# ==================== LATEST MODEL/SCORER FOR EXPERIMENTS ====================
+
+@router.get("/models/latest")
+async def get_latest_model_endpoint(request: Request, org_id: str | None = None):
+    """
+    Get the most recently added/updated model configuration.
+    Used for auto-populating experiment forms.
+    """
+    tenant = request.state.tenant
+    return await get_latest_model_controller(tenant=tenant, org_id=org_id)
+
+
+@router.get("/scorers/latest")
+async def get_latest_scorer_endpoint(request: Request, org_id: str | None = None):
+    """
+    Get the most recently added/updated scorer (judge) configuration.
+    Used for auto-populating experiment forms.
+    """
+    tenant = request.state.tenant
+    return await get_latest_scorer_controller(tenant=tenant, org_id=org_id)

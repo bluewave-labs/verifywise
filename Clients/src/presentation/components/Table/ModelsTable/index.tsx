@@ -58,7 +58,7 @@ const columns = [
     { id: "modelName", label: "MODEL", sortable: true },
     { id: "modelProvider", label: "PROVIDER", sortable: true },
     { id: "judgeModel", label: "JUDGE", sortable: true },
-    { id: "updatedAt", label: "LAST UPDATED", sortable: true },
+    { id: "updatedAt", label: "DATE", sortable: true },
     { id: "actions", label: "ACTION", sortable: false },
 ];
 

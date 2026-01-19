@@ -62,6 +62,12 @@ import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
 import policyLinkedObjects from "./routes/policyLinkedObjects.route";
+import approvalWorkflowRoutes from "./routes/approvalWorkflow.route";
+import approvalRequestRoutes from "./routes/approvalRequest.route";
+import aiDetectionRoutes from "./routes/aiDetection.route";
+import githubIntegrationRoutes from "./routes/githubIntegration.route";
+import notificationRoutes from "./routes/notification.route";
+import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -121,12 +127,12 @@ try {
       // Let the proxy handle the raw body for bias/fairness
       return next();
     }
-    // For deepeval experiment creation, we need to parse body to inject API keys
+    // For deepeval experiment creation and arena comparisons, we need to parse body to inject API keys
     // For other deepeval routes, let proxy handle raw body
-    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments")) {
+    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments") && !req.url.includes("/arena/compare")) {
       return next();
     }
-    express.json()(req, res, next);
+    express.json({ limit: '10mb' })(req, res, next);
   });
   app.use(cookieParser());
   // app.use(csrf());
@@ -202,6 +208,20 @@ try {
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
   app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
   app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
+  app.use("/api/approval-workflows", approvalWorkflowRoutes);
+  app.use("/api/approval-requests", approvalRequestRoutes);
+  app.use("/api/ai-detection", aiDetectionRoutes);
+  app.use("/api/integrations/github", githubIntegrationRoutes);
+  app.use("/api/notifications", notificationRoutes);
+
+  // Setup notification subscriber for real-time notifications
+  (async () => {
+    try {
+      await setupNotificationSubscriber();
+    } catch (error) {
+      console.error("Failed to setup notification subscriber:", error);
+    }
+  })();
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Box, SxProps, Theme } from "@mui/material";
+import { Box, SxProps, Theme, Tooltip } from "@mui/material";
 import Tab from "@mui/material/Tab";
 import TabList from "@mui/lab/TabList";
 import { createTabLabelWithCount } from "../../utils/tabUtils";
@@ -29,6 +29,8 @@ export interface TabBarProps {
   indicatorColor?: string;
   /** Optional data attribute for page tours/testing */
   dataJoyrideId?: string;
+  /** Optional tooltip message for disabled tabs */
+  disabledTabTooltip?: string;
 }
 
 // Constants for consistent styling
@@ -66,6 +68,7 @@ const TabBar: React.FC<TabBarProps> = ({
   disableRipple = true,
   indicatorColor = DEFAULT_INDICATOR_COLOR,
   dataJoyrideId,
+  disabledTabTooltip = "This tab is currently unavailable",
 }) => {
   // Memoize styles to prevent unnecessary recalculations
   const standardTabStyle = useMemo<SxProps<Theme>>(() => ({
@@ -81,6 +84,15 @@ const TabBar: React.FC<TabBarProps> = ({
     },
     ...tabSx,
   }), [indicatorColor, tabSx]);
+
+  const getTabStyle = (isDisabled: boolean): SxProps<Theme> => ({
+    ...standardTabStyle,
+    ...(isDisabled && {
+      opacity: 0.38,
+      pointerEvents: "auto",
+      cursor: "not-allowed",
+    }),
+  });
 
   const standardTabListStyle = useMemo<SxProps<Theme>>(() => ({
     minHeight: "20px",
@@ -100,10 +112,21 @@ const TabBar: React.FC<TabBarProps> = ({
     }
   }
 
+  // Wrap onChange to prevent tab changes for disabled tabs
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    const targetTab = tabs.find(tab => tab.value === newValue);
+    if (targetTab?.disabled) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    onChange(event, newValue);
+  };
+
   return (
     <Box sx={{ borderBottom: 1, borderColor: "#d0d5dd" }}>
       <TabList
-        onChange={onChange}
+        onChange={handleChange}
         TabIndicatorProps={{ style: { backgroundColor: indicatorColor } }}
         sx={standardTabListStyle}
         data-joyride-id={dataJoyrideId}
@@ -119,7 +142,7 @@ const TabBar: React.FC<TabBarProps> = ({
             />
           ) : undefined;
 
-          return (
+          const tabElement = (
             <Tab
               key={tab.value}
               label={createTabLabelWithCount({
@@ -129,11 +152,48 @@ const TabBar: React.FC<TabBarProps> = ({
                 isLoading: tab.isLoading,
               })}
               value={tab.value}
-              sx={standardTabStyle}
+              sx={getTabStyle(!!tab.disabled)}
               disableRipple={disableRipple}
-              disabled={tab.disabled}
+              onClick={(e) => {
+                if (tab.disabled) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
             />
           );
+
+          // Wrap disabled tabs with tooltip
+          if (tab.disabled) {
+            return (
+              <Tooltip
+                key={tab.value}
+                title={disabledTabTooltip}
+                arrow
+                placement="top"
+                slotProps={{
+                  tooltip: {
+                    sx: {
+                      maxWidth: "280px",
+                      fontSize: "12px !important",
+                      padding: "6px 10px !important",
+                      lineHeight: "1.3 !important",
+                      margin: "4px !important",
+                    },
+                  },
+                  arrow: {
+                    sx: {
+                      fontSize: "12px",
+                    },
+                  },
+                }}
+              >
+                <span>{tabElement}</span>
+              </Tooltip>
+            );
+          }
+
+          return tabElement;
         })}
       </TabList>
     </Box>

@@ -47,7 +47,6 @@ const LAYOUT = {
 
 // Constants
 const FORM_FIELD_WIDTH = LAYOUT.FIELD_WIDTH;
-const DATE_INPUT_WIDTH = 85;
 const MIN_HEIGHT = 500;
 const MAX_HEIGHT = 500;
 
@@ -234,24 +233,19 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   disabled={isEditingDisabled}
                 />
                 {/* Deadline */}
-                <Stack style={{ width: fieldWidth }}>
-                  <DatePicker
-                    label="Deadline"
-                    date={
-                      mitigationValues.deadline
-                        ? dayjs(mitigationValues.deadline)
-                        : dayjs(new Date())
-                    }
-                    handleDateChange={(e) => handleDateChange("deadline", e)}
-                    sx={{
-                      width: fieldWidth,
-                      "& input": { width: DATE_INPUT_WIDTH },
-                    }}
-                    isRequired
-                    error={mitigationErrors?.deadline}
-                    disabled={isEditingDisabled}
-                  />
-                </Stack>
+                <DatePicker
+                  label="Deadline"
+                  date={
+                    mitigationValues.deadline
+                      ? dayjs(mitigationValues.deadline)
+                      : dayjs(new Date())
+                  }
+                  handleDateChange={(e) => handleDateChange("deadline", e)}
+                  sx={{ width: fieldWidth }}
+                  isRequired
+                  error={mitigationErrors?.deadline}
+                  disabled={isEditingDisabled}
+                />
               </Stack>
               {/* Row 2: Mitigation Plan and Implementation Strategy */}
               <Stack sx={formRowStyles}>
@@ -344,24 +338,19 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               error={mitigationErrors?.approvalStatus}
               disabled={isEditingDisabled}
             />
-            <Stack style={{ width: fieldWidth }}>
-              <DatePicker
-                label="Assessment date"
-                date={
-                  mitigationValues.dateOfAssessment
-                    ? dayjs(mitigationValues.dateOfAssessment)
-                    : dayjs(new Date())
-                }
-                handleDateChange={(e) => handleDateChange("dateOfAssessment", e)}
-                sx={{
-                  width: fieldWidth,
-                  "& input": { width: DATE_INPUT_WIDTH },
-                }}
-                isRequired
-                error={mitigationErrors?.dateOfAssessment}
-                disabled={isEditingDisabled}
-              />
-            </Stack>
+            <DatePicker
+              label="Assessment date"
+              date={
+                mitigationValues.dateOfAssessment
+                  ? dayjs(mitigationValues.dateOfAssessment)
+                  : dayjs(new Date())
+              }
+              handleDateChange={(e) => handleDateChange("dateOfAssessment", e)}
+              sx={{ width: fieldWidth }}
+              isRequired
+              error={mitigationErrors?.dateOfAssessment}
+              disabled={isEditingDisabled}
+            />
           </Stack>
           <Stack sx={{ mt: `${LAYOUT.VERTICAL_GAP}px`, width: contentWidth }}>
             <Field

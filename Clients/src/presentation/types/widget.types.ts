@@ -64,6 +64,8 @@ export interface IconButtonProps {
   onLinkedObjects?: () => void;
   hardDeleteWarningTitle?: string;
   hardDeleteWarningMessage?: string | React.ReactNode;
+  onDownloadPDF?: () => void | Promise<void>;
+  onDownloadDOCX?: () => void | Promise<void>;
 }
 
 /**

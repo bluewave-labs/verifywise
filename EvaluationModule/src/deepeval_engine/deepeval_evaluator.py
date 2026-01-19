@@ -7,9 +7,10 @@ Documentation: https://docs.confident-ai.com/docs/metrics-introduction
 
 import os
 import json
+import time
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable
 
 import pandas as pd
 from deepeval.metrics import (
@@ -32,6 +33,50 @@ from deepeval.test_case import LLMTestCase, LLMTestCaseParams, ConversationalTes
 from deepeval.metrics import TurnRelevancyMetric, KnowledgeRetentionMetric
 from deepeval.metrics import ConversationalGEval
 print("✅ Native multi-turn metrics available (TurnRelevancyMetric, KnowledgeRetentionMetric, ConversationalGEval)")
+
+
+def retry_on_rate_limit(
+    func: Callable,
+    max_retries: int = 3,
+    initial_delay: float = 5.0,
+    backoff_factor: float = 2.0,
+) -> Any:
+    """
+    Retry a function call with exponential backoff on rate limit (429) errors.
+    
+    Args:
+        func: The function to call (should take no arguments)
+        max_retries: Maximum number of retry attempts
+        initial_delay: Initial delay in seconds before first retry
+        backoff_factor: Multiplier for delay on each subsequent retry
+        
+    Returns:
+        The result of the function call
+        
+    Raises:
+        The last exception if all retries fail
+    """
+    last_exception = None
+    delay = initial_delay
+    
+    for attempt in range(max_retries + 1):
+        try:
+            return func()
+        except Exception as e:
+            error_str = str(e)
+            # Check if this is a rate limit error (429) or quota error
+            is_rate_limit = "429" in error_str or "rate" in error_str.lower() or "quota" in error_str.lower()
+            
+            if is_rate_limit and attempt < max_retries:
+                print(f"\n  ⏳ Rate limit hit, waiting {delay:.1f}s before retry ({attempt + 1}/{max_retries})...", end=" ")
+                time.sleep(delay)
+                delay *= backoff_factor
+                last_exception = e
+            else:
+                raise e
+    
+    if last_exception:
+        raise last_exception
 
 
 class CustomDeepEvalLLM(DeepEvalBaseLLM):
@@ -242,19 +287,28 @@ class GEvalLikeMetric:
                 expected_output=getattr(test_case, "expected_output", None),
             )
             raw = self._runner.generate(prompt, max_tokens=self.max_tokens, temperature=self.temperature)
+            
+            # Handle None or empty response
+            if raw is None or raw == "":
+                self.score = None
+                self._reason = "Judge LLM returned empty response"
+                return
+                
             parsed_score = None
             parsed_reason = ""
             try:
                 data = json.loads(raw)
-                parsed_score = float(data.get("score"))
+                score_val = data.get("score")
+                if score_val is not None:
+                    parsed_score = float(score_val)
                 parsed_reason = str(data.get("reason", ""))
             except Exception:
                 # Fallback: try to extract a number between 0 and 1
                 import re
-                m = re.search(r"0?\.\d+|1(?:\.0+)?", raw)
+                m = re.search(r"0?\.\d+|1(?:\.0+)?", str(raw))
                 if m:
                     parsed_score = float(m.group(0))
-                parsed_reason = raw[:300]
+                parsed_reason = str(raw)[:300] if raw else ""
 
             if parsed_score is None:
                 self.score = None
@@ -264,8 +318,11 @@ class GEvalLikeMetric:
                 self.score = max(0.0, min(1.0, parsed_score))
                 self._reason = parsed_reason
         except Exception as e:
+            import traceback
             self.score = None
             self._reason = f"G-Eval error: {e}"
+            # Print detailed traceback for debugging
+            print(f"G-Eval detailed error: {traceback.format_exc()}")
 
 
 class DeepEvalEvaluator:
@@ -331,11 +388,17 @@ class DeepEvalEvaluator:
             "context_precision": 0.5,
             "context_recall": 0.5,
             "faithfulness": 0.5,
-            # Agent-specific
+            # Agent-specific (legacy)
             "tool_selection": 0.5,
             "tool_correctness": 0.5,
             "action_relevance": 0.5,
             "planning_quality": 0.5,
+            # Agent-specific (comprehensive - per DeepEval docs)
+            "plan_quality": 0.5,
+            "plan_adherence": 0.5,
+            "argument_correctness": 0.5,
+            "task_completion": 0.5,
+            "step_efficiency": 0.5,
         }
         for key, value in default_thresholds.items():
             if key not in self.metric_thresholds:
@@ -394,12 +457,23 @@ class DeepEvalEvaluator:
                     "description": "Multi-turn RAG evaluation with context awareness"
                 }
             elif use_case == "agent":
-                # Agent multi-turn: add tool/action metrics
+                # Agent multi-turn: comprehensive agent metrics per DeepEval docs
+                # https://deepeval.com/docs/getting-started-agents
                 return {
-                    "metric_names": base_metrics + ["Tool Usage", "Action Correctness"],
+                    "metric_names": base_metrics + [
+                        # Reasoning Layer
+                        "Plan Quality",
+                        "Plan Adherence",
+                        # Action Layer
+                        "Tool Correctness",
+                        "Argument Correctness",
+                        # Execution
+                        "Task Completion",
+                        "Step Efficiency"
+                    ],
                     "is_multi_turn": True,
                     "use_case": use_case,
-                    "description": "Multi-turn Agent evaluation with tool tracking"
+                    "description": "Multi-turn Agent evaluation with reasoning, action, and execution metrics"
                 }
             else:
                 # Chatbot multi-turn: base conversational metrics
@@ -435,15 +509,23 @@ class DeepEvalEvaluator:
                     "description": "Single-turn RAG evaluation with retrieval metrics"
                 }
             elif use_case == "agent":
-                # Agent single-turn: add tool metrics
+                # Agent single-turn: comprehensive agent metrics per DeepEval docs
+                # https://deepeval.com/docs/getting-started-agents
                 return {
                     "metric_names": base_metrics + [
-                        "Tool Selection",
-                        "Tool Correctness"
+                        # Reasoning Layer
+                        "Plan Quality",
+                        "Plan Adherence",
+                        # Action Layer
+                        "Tool Correctness",
+                        "Argument Correctness",
+                        # Execution
+                        "Task Completion",
+                        "Step Efficiency"
                     ],
                     "is_multi_turn": False,
                     "use_case": use_case,
-                    "description": "Single-turn Agent evaluation with tool metrics"
+                    "description": "Single-turn Agent evaluation with reasoning, action, and execution metrics"
                 }
             else:
                 # Chatbot single-turn: universal core metrics
@@ -546,19 +628,31 @@ class DeepEvalEvaluator:
                     for metric_name, metric in conversational_metrics:
                         try:
                             print(f"  Evaluating {metric_name}...", end=" ")
-                            metric.measure(test_case)
+                            # Use retry wrapper for rate limit errors
+                            retry_on_rate_limit(
+                                lambda m=metric, tc=test_case: m.measure(tc),
+                                max_retries=3,
+                                initial_delay=5.0,
+                                backoff_factor=2.0
+                            )
                             score = metric.score
                             passed = metric.is_successful()
                             
+                            # Invert scores for "lower is better" metrics (Bias, Toxicity, Hallucination)
+                            # Claude returns 1.0 for "no bias" but we want to display 0% bias
+                            is_inverse_metric = metric_name.lower() in ['bias', 'toxicity', 'hallucination']
+                            display_score = (1.0 - score) if (score is not None and is_inverse_metric) else score
+                            
                             metric_scores[metric_name] = {
-                                "score": round(score, 3) if score is not None else None,
+                                "score": round(display_score, 3) if display_score is not None else None,
                                 "passed": passed,
                                 "threshold": getattr(metric, "threshold", None),
                                 "reason": getattr(metric, 'reason', 'N/A')
                             }
                             
                             status = "✓ PASS" if passed else "✗ FAIL"
-                            print(f"{status} (score: {score:.3f})")
+                            score_display = f"{display_score:.3f}" if display_score is not None else "N/A"
+                            print(f"{status} (score: {score_display})")
                         except Exception as e:
                             print(f"✗ Error: {str(e)}")
                             metric_scores[metric_name] = {
@@ -601,7 +695,12 @@ class DeepEvalEvaluator:
                                         model=judge_llm  # Use judge_llm wrapper for any provider
                                     )
                                     try:
-                                        bias_metric.measure(turn_test_case)
+                                        # Use retry wrapper for rate limit errors
+                                        retry_on_rate_limit(
+                                            lambda bm=bias_metric, tc=turn_test_case: bm.measure(tc),
+                                            max_retries=2,
+                                            initial_delay=3.0
+                                        )
                                         if bias_metric.score is not None:
                                             bias_scores.append(bias_metric.score)
                                     except:
@@ -643,7 +742,12 @@ class DeepEvalEvaluator:
                                         model=judge_llm  # Use judge_llm wrapper for any provider
                                     )
                                     try:
-                                        toxicity_metric.measure(turn_test_case)
+                                        # Use retry wrapper for rate limit errors
+                                        retry_on_rate_limit(
+                                            lambda tm=toxicity_metric, tc=turn_test_case: tm.measure(tc),
+                                            max_retries=2,
+                                            initial_delay=3.0
+                                        )
                                         if toxicity_metric.score is not None:
                                             toxicity_scores.append(toxicity_metric.score)
                                     except:
@@ -701,15 +805,21 @@ class DeepEvalEvaluator:
                         score = metric.score
                         passed = metric.is_successful()
 
+                        # Invert scores for "lower is better" metrics (Bias, Toxicity, Hallucination)
+                        # Claude returns 1.0 for "no bias" but we want to display 0% bias
+                        is_inverse_metric = metric_name.lower() in ['bias', 'toxicity', 'hallucination']
+                        display_score = (1.0 - score) if (score is not None and is_inverse_metric) else score
+
                         metric_scores[metric_name] = {
-                            "score": round(score, 3) if score is not None else None,
+                            "score": round(display_score, 3) if display_score is not None else None,
                             "passed": passed,
                             "threshold": getattr(metric, "threshold", None),
                             "reason": getattr(metric, 'reason', 'N/A')
                         }
 
                         status = "✓ PASS" if passed else "✗ FAIL"
-                        print(f"{status} (score: {score:.3f})")
+                        score_display = f"{display_score:.3f}" if display_score is not None else "N/A"
+                        print(f"{status} (score: {score_display})")
 
                     except Exception as e:
                         error_msg = str(e)
@@ -1060,7 +1170,7 @@ class DeepEvalEvaluator:
                 )
             ))
         
-        # Planning Quality
+        # Planning Quality (legacy name support)
         if metrics_config.get("planning_quality", False):
             metrics_to_use.append((
                 "Planning Quality",
@@ -1071,6 +1181,153 @@ class DeepEvalEvaluator:
                     max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                     rubric="Planning Quality: Evaluate the quality and efficiency of the agent's multi-step plan. Score 1.0 if optimal planning, 0.5 if functional but inefficient, 0.0 if poor or illogical planning."
+                )
+            ))
+        
+        # ============================================
+        # COMPREHENSIVE AGENT METRICS (DeepEval Agent Evaluation)
+        # Based on: https://deepeval.com/docs/getting-started-agents
+        # ============================================
+        
+        # --- Reasoning Layer Metrics ---
+        
+        # Plan Quality Metric (comprehensive version)
+        if metrics_config.get("plan_quality", False):
+            metrics_to_use.append((
+                "Plan Quality",
+                GEvalLikeMetric(
+                    threshold=self.metric_thresholds.get("plan_quality", 0.5),
+                    model_name=judge_model_name,
+                    provider=judge_provider,
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
+                    temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
+                    rubric="""Plan Quality: Evaluate how well the agent plans to accomplish the task.
+                    
+Consider these aspects:
+1. Task Understanding: Does the agent correctly understand what the user wants?
+2. Task Decomposition: Does the agent break complex tasks into manageable sub-tasks?
+3. Dependency Handling: Does the plan respect dependencies between sub-tasks?
+4. Completeness: Does the plan cover all requirements to accomplish the goal?
+5. Efficiency: Is the plan optimal without unnecessary steps?
+
+Scoring:
+- 1.0: Excellent plan - logical, complete, efficient, handles dependencies
+- 0.7-0.9: Good plan with minor inefficiencies
+- 0.4-0.6: Acceptable plan but missing some aspects or inefficient
+- 0.1-0.3: Poor plan - illogical or incomplete
+- 0.0: No discernible plan or completely wrong approach"""
+                )
+            ))
+        
+        # Plan Adherence Metric
+        if metrics_config.get("plan_adherence", False):
+            metrics_to_use.append((
+                "Plan Adherence",
+                GEvalLikeMetric(
+                    threshold=self.metric_thresholds.get("plan_adherence", 0.5),
+                    model_name=judge_model_name,
+                    provider=judge_provider,
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
+                    temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
+                    rubric="""Plan Adherence: Evaluate how well the agent follows its own plan during execution.
+
+Consider these aspects:
+1. Consistency: Does the agent execute steps as planned?
+2. Order: Are steps executed in the planned sequence?
+3. Completion: Does the agent complete all planned steps?
+4. Adaptation: If the agent deviates, is it justified (e.g., handling errors)?
+
+Scoring:
+- 1.0: Perfect adherence - all planned steps executed correctly
+- 0.7-0.9: Minor deviations but justified and effective
+- 0.4-0.6: Some unjustified deviations or skipped steps
+- 0.1-0.3: Significant deviation from plan without justification
+- 0.0: Completely ignores the plan"""
+                )
+            ))
+        
+        # --- Action Layer Metrics ---
+        
+        # Argument Correctness Metric
+        if metrics_config.get("argument_correctness", False):
+            metrics_to_use.append((
+                "Argument Correctness",
+                GEvalLikeMetric(
+                    threshold=self.metric_thresholds.get("argument_correctness", 0.5),
+                    model_name=judge_model_name,
+                    provider=judge_provider,
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
+                    temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
+                    rubric="""Argument Correctness: Evaluate if the agent provided correct arguments/parameters to tools.
+
+Consider these aspects:
+1. Parameter Types: Are arguments of the correct type (string, number, etc.)?
+2. Parameter Values: Are values correctly extracted from context?
+3. Required Fields: Are all required parameters provided?
+4. Format: Are arguments in the expected format?
+
+Scoring:
+- 1.0: All arguments correct - types, values, and formats are perfect
+- 0.7-0.9: Minor argument issues that don't affect functionality
+- 0.4-0.6: Some incorrect arguments but tool still functions
+- 0.1-0.3: Significant argument errors causing tool failures
+- 0.0: Completely wrong arguments or missing required parameters"""
+                )
+            ))
+        
+        # --- Execution Layer Metrics ---
+        
+        # Task Completion Metric
+        if metrics_config.get("task_completion", False):
+            metrics_to_use.append((
+                "Task Completion",
+                GEvalLikeMetric(
+                    threshold=self.metric_thresholds.get("task_completion", 0.5),
+                    model_name=judge_model_name,
+                    provider=judge_provider,
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
+                    temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
+                    rubric="""Task Completion: Evaluate whether the agent successfully completed the requested task.
+
+Consider these aspects:
+1. Goal Achievement: Did the agent accomplish what the user asked for?
+2. Correctness: Is the final result correct and accurate?
+3. Completeness: Are all parts of the task addressed?
+4. User Satisfaction: Would the user be satisfied with the outcome?
+
+Scoring:
+- 1.0: Task fully completed - all goals achieved correctly
+- 0.7-0.9: Task mostly completed with minor omissions
+- 0.4-0.6: Partial completion - some goals achieved
+- 0.1-0.3: Minimal progress toward task completion
+- 0.0: Task not completed or completely wrong result"""
+                )
+            ))
+        
+        # Step Efficiency Metric
+        if metrics_config.get("step_efficiency", False):
+            metrics_to_use.append((
+                "Step Efficiency",
+                GEvalLikeMetric(
+                    threshold=self.metric_thresholds.get("step_efficiency", 0.5),
+                    model_name=judge_model_name,
+                    provider=judge_provider,
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "2048")),
+                    temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
+                    rubric="""Step Efficiency: Evaluate if the agent completed the task with optimal efficiency.
+
+Consider these aspects:
+1. Minimal Steps: Did the agent use the minimum necessary steps?
+2. No Redundancy: Were there any redundant or repeated actions?
+3. Direct Path: Did the agent take a direct path to the goal?
+4. Resource Usage: Were tools used efficiently without waste?
+
+Scoring:
+- 1.0: Optimal efficiency - minimal steps, no redundancy
+- 0.7-0.9: Efficient with minor unnecessary steps
+- 0.4-0.6: Moderately efficient but with some wasted effort
+- 0.1-0.3: Inefficient with many unnecessary steps
+- 0.0: Extremely inefficient or circuitous approach"""
                 )
             ))
         

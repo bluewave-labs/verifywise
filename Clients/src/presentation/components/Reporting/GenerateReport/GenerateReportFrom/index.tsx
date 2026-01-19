@@ -74,8 +74,17 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
       // For organizational reports, show only organizational projects
       return projects.filter((p: Project) => p.is_organizational === true);
     } else {
-      // For use case reports, show non-organizational projects
-      return projects.filter((p: Project) => !p.is_organizational);
+      // For use case reports, show only approved non-organizational use-cases
+      return projects.filter((p: Project) => {
+        const hasPendingApproval = (p as any).has_pending_approval;
+        const approvalStatus = (p as any).approval_status;
+        return (
+          !p.is_organizational &&
+          !hasPendingApproval &&
+          approvalStatus !== 'pending' &&
+          approvalStatus !== 'rejected'
+        );
+      });
     }
   }, [dashboardValues.projects, isOrganizational]);
 

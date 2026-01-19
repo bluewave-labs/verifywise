@@ -2,8 +2,10 @@ import { FC } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AppModule } from "../../../application/redux/ui/uiSlice";
 import { useEvalsSidebarContextSafe } from "../../../application/contexts/EvalsSidebar.context";
+import { useAIDetectionSidebarContextSafe } from "../../../application/contexts/AIDetectionSidebar.context";
 import Sidebar from "../Sidebar";
 import EvalsSidebar from "../../pages/EvalsDashboard/EvalsSidebar";
+import AIDetectionSidebar from "../../pages/AIDetection/AIDetectionSidebar";
 import GatewaySidebar from "./GatewaySidebar";
 
 interface ContextSidebarProps {
@@ -12,12 +14,15 @@ interface ContextSidebarProps {
   onOpenCreateDemoData?: () => void;
   onOpenDeleteDemoData?: () => void;
   hasDemoData?: boolean;
+  /** Only show demo data options to admins */
+  isAdmin?: boolean;
 }
 
 /**
  * ContextSidebar renders the appropriate sidebar based on the active module.
  * - 'main': Renders the main VerifyWise sidebar
  * - 'evals': Renders EvalsSidebar (state provided via EvalsSidebarContext)
+ * - 'ai-detection': Renders AIDetectionSidebar
  * - 'gateway': Renders the Gateway sidebar placeholder
  */
 const ContextSidebar: FC<ContextSidebarProps> = ({
@@ -25,8 +30,10 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
   hasDemoData,
+  isAdmin = false,
 }) => {
   const evalsSidebarContext = useEvalsSidebarContextSafe();
+  const aiDetectionSidebarContext = useAIDetectionSidebarContextSafe();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -38,12 +45,12 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
   const handleTabChange = (newTab: string) => {
     const pathParts = location.pathname.split("/");
     const hasProjectInUrl = pathParts.length > 2 && pathParts[2]; // /evals/:projectId
-    
+
     // If there's no project in URL but we have a selected project, navigate to that project
     if (!hasProjectInUrl && evalsSidebarContext?.currentProject) {
-      navigate(`/evals/${evalsSidebarContext.currentProject.id}#${newTab}`, { replace: true });
+      navigate(`/evals/${evalsSidebarContext.currentProject.id}#${newTab}`);
     } else {
-      navigate(`${location.pathname}#${newTab}`, { replace: true });
+      navigate(`${location.pathname}#${newTab}`);
     }
   };
 
@@ -54,6 +61,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
           hasDemoData={hasDemoData}
+          isAdmin={isAdmin}
         />
       );
     case "evals":
@@ -65,6 +73,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           experimentsCount={evalsSidebarContext?.experimentsCount ?? 0}
           datasetsCount={evalsSidebarContext?.datasetsCount ?? 0}
           scorersCount={evalsSidebarContext?.scorersCount ?? 0}
+          arenaCount={evalsSidebarContext?.arenaCount ?? 0}
           disabled={evalsSidebarContext?.disabled ?? true}
           recentExperiments={evalsSidebarContext?.recentExperiments ?? []}
           recentProjects={evalsSidebarContext?.recentProjects ?? []}
@@ -75,6 +84,36 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           onProjectChange={evalsSidebarContext?.onProjectChange}
         />
       );
+    case "ai-detection": {
+      // Get active tab from URL path for ai-detection
+      const aiDetectionTab = location.pathname.includes("/ai-detection/history")
+        ? "history"
+        : location.pathname.includes("/ai-detection/settings")
+        ? "settings"
+        : location.pathname.includes("/ai-detection/scans/")
+        ? "history"
+        : "scan";
+
+      const handleAIDetectionTabChange = (newTab: string) => {
+        if (newTab === "scan") {
+          navigate("/ai-detection");
+        } else if (newTab === "history") {
+          navigate("/ai-detection/history");
+        } else if (newTab === "settings") {
+          navigate("/ai-detection/settings");
+        }
+      };
+
+      return (
+        <AIDetectionSidebar
+          activeTab={aiDetectionTab}
+          onTabChange={handleAIDetectionTabChange}
+          historyCount={aiDetectionSidebarContext?.historyCount ?? 0}
+          recentScans={aiDetectionSidebarContext?.recentScans ?? []}
+          onScanClick={(scanId) => navigate(`/ai-detection/scans/${scanId}`)}
+        />
+      );
+    }
     case "gateway":
       return <GatewaySidebar />;
     default:
@@ -83,6 +122,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
           hasDemoData={hasDemoData}
+          isAdmin={isAdmin}
         />
       );
   }

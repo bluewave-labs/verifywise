@@ -31,6 +31,7 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import { getTenantHash } from "../tools/getTenantHash";
 import { doesUserBelongsToOrganizationQuery, getUserByIdQuery } from "../utils/user.utils";
 import { asyncLocalStorage } from '../utils/context/context';
+import { isValidTenantHash } from "../utils/security.utils";
 
 /**
  * Role ID to role name mapping for validation
@@ -149,7 +150,12 @@ const authenticateJWT = async (
       return res.status(403).json({ message: 'Not allowed to access' });
     }
 
-    // Verify tenant hash for multi-tenancy security
+    // Verify tenant hash format (defense-in-depth against SQL injection)
+    if (!isValidTenantHash(decoded.tenantId)) {
+      return res.status(400).json({ message: 'Invalid tenant format' });
+    }
+
+    // Verify tenant hash matches organization for multi-tenancy security
     if (decoded.tenantId !== getTenantHash(decoded.organizationId)) {
       return res.status(400).json({ message: 'Invalid token' });
     }
@@ -160,8 +166,12 @@ const authenticateJWT = async (
     req.tenantId = decoded.tenantId;
     req.organizationId = decoded.organizationId;
 
-    // Initialize AsyncLocalStorage context for request tracing
-    asyncLocalStorage.run({ userId: decoded.id }, () => {
+    // Initialize AsyncLocalStorage context for request tracing (includes tenantId for logging)
+    asyncLocalStorage.run({
+      userId: decoded.id,
+      tenantId: decoded.tenantId,
+      organizationId: decoded.organizationId
+    }, () => {
       next();
     });
   } catch (error) {

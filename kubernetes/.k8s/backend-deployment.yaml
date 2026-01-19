@@ -105,12 +105,12 @@ spec:
               name: verifywise-config
               key: REDIS_PORT
 
-        # Bias and Fairness Backend URL
-        - name: FAIRNESS_AND_BIAS_URL
+        # LLM Evals Server URL
+        - name: LLM_EVALS_URL
           valueFrom:
             configMapKeyRef:
               name: verifywise-config
-              key: FAIRNESS_AND_BIAS_URL
+              key: LLM_EVALS_URL
 
         # Feature Flags
         - name: MOCK_DATA_ON

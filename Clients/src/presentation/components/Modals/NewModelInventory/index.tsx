@@ -38,7 +38,7 @@ import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import modelInventoryOptions from "../../../utils/model-inventory.json";
-import { getAllProjects } from "../../../../application/repository/project.repository";
+import { useProjects } from "../../../../application/hooks/useProjects";
 import { Project } from "../../../../domain/types/Project";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
 import FileManagerUploadModal from "../FileManagerUpload";
@@ -254,39 +254,33 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     }
   };
 
-  const [projectList, setProjects] = useState<Project[]>([]);
-  const [, setProjectsLoading] = useState(true);
+  // Use the useProjects hook to get approved projects
+  const { approvedProjects } = useProjects();
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        setProjectsLoading(true);
-        const response = await getAllProjects();
-        if (response?.data) {
-          setProjects(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      } finally {
-        setProjectsLoading(false);
-      }
-    };
-
-    fetchProjects();
-  }, []);
+  // Filter to get only non-organizational approved projects (use cases)
+  const projectList = useMemo(() => {
+    return Array.isArray(approvedProjects)
+      ? approvedProjects.filter((project: Project) => !project.is_organizational)
+      : [];
+  }, [approvedProjects]);
 
   const projectsList = useMemo(() => {
-    return projectList
-      .filter((project) => !project.is_organizational)
-      .map((project) => project.project_title.trim());
+    return projectList.map((project: Project) => project.project_title.trim());
   }, [projectList]);
 
-  // Create a mapping from framework ID to framework name
+  // Get organizational projects to extract enabled frameworks
+  const organizationalProjects = useMemo(() => {
+    return Array.isArray(approvedProjects)
+      ? approvedProjects.filter((project: Project) => project.is_organizational)
+      : [];
+  }, [approvedProjects]);
+
+  // Create a mapping from framework ID to framework name (from organizational projects)
   const frameworkIdToNameMap = useMemo(() => {
     const map = new Map<number, string>();
     const targetFrameworks = ["ISO 42001", "ISO 27001", "NIST AI RMF"];
 
-    projectList.forEach((project) => {
+    organizationalProjects.forEach((project) => {
       project.framework?.forEach((f) => {
         if (targetFrameworks.includes(f.name)) {
           map.set(f.framework_id, f.name);
@@ -295,7 +289,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     });
 
     return map;
-  }, [projectList]);
+  }, [organizationalProjects]);
 
   const frameworksList = useMemo(() => {
     return Array.from(frameworkIdToNameMap.values());

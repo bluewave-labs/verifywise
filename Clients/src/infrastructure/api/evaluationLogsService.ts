@@ -150,9 +150,43 @@ export const metricsService = {
   },
 };
 
+// ==================== MODEL VALIDATION ====================
+
+export interface ModelValidationResult {
+  valid: boolean;
+  model_name: string;
+  provider: string | null;
+  has_api_key: boolean;
+  has_openrouter_fallback: boolean;
+  error_message: string | null;
+}
+
+export const modelValidationService = {
+  // Validate that a model's API key is available
+  async validateModel(modelName: string, provider?: string): Promise<ModelValidationResult> {
+    const response = await CustomAxios.post("/deepeval/models/validate", {
+      model_name: modelName,
+      provider,
+    });
+    return response.data;
+  },
+};
+
 // ==================== EXPERIMENTS ====================
 
 export const experimentsService = {
+  // Validate model before creating experiment
+  async validateModelForExperiment(config: Record<string, any>): Promise<ModelValidationResult | null> {
+    const modelName = config?.model?.name;
+    const provider = config?.model?.provider;
+
+    if (!modelName) {
+      return null; // No model to validate
+    }
+
+    return modelValidationService.validateModel(modelName, provider);
+  },
+
   // Create a new experiment
   async createExperiment(data: {
     project_id: string;

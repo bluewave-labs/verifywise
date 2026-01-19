@@ -2,28 +2,65 @@ export const DatePickerStyle = {
   backgroundColor: "#FFFFFF",
   ".MuiIconButton-root:hover": { backgroundColor: "unset" },
   "& svg": { display: "none" },
-  "& button": {
+  // Icon button positioning (MUI v8 uses MuiInputAdornment-root)
+  "& .MuiInputAdornment-root": {
     position: "absolute",
-    left: "14px",
-    top: "7px",
+    left: "4px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    marginTop: "1px",
+    marginRight: 0,
+    zIndex: 1,
+  },
+  "& .MuiInputAdornment-root button": {
     width: "20px",
     height: "20px",
+    padding: 0,
   },
-  "& button:before": {
+  "& .MuiInputAdornment-root button:before": {
     content: "url('/assets/icons/calendar.svg')",
     display: "block",
-    position: "absolute",
-    top: 0,
-    left: 0,
   },
-  "& .MuiInputBase-root input": {
-    position: "absolute",
-    left: "36px",
-    top: "3px",
-    maxWidth: "145px",
+  // MUI v8 DatePicker uses sectionsContainer for the date display
+  "& .MuiPickersOutlinedInput-root": {
+    backgroundColor: "#FFFFFF",
+    borderRadius: "4px",
+    paddingLeft: "40px !important",
+  },
+  "& .MuiPickersInputBase-sectionsContainer": {
+    paddingLeft: "0 !important",
+    fontSize: "13px !important",
+  },
+  "& .MuiPickersInputBase-sectionContent": {
+    fontSize: "13px !important",
+  },
+  // Hide the input element - MUI v8 uses sectionsContainer for visible date display
+  "& .MuiPickersInputBase-input, & .MuiPickersOutlinedInput-input": {
+    fontSize: "13px !important",
+    position: "absolute !important",
+    opacity: 0,
+    pointerEvents: "none",
   },
   "& .MuiOutlinedInput-root": {
     backgroundColor: "#FFFFFF",
-    borderRadius: "2px",
+    borderRadius: "4px",
+  },
+  // Hover state for MUI v8 DatePicker
+  "& .MuiPickersOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#5FA896 !important",
+  },
+  "& .MuiPickersOutlinedInput-root:hover fieldset": {
+    borderColor: "#5FA896 !important",
+  },
+  // Focus state with green border for MUI v8 DatePicker
+  "& .MuiPickersOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#13715B !important",
+    borderWidth: "2px",
+    boxShadow: "0 0 0 3px rgba(19, 113, 91, 0.1)",
+  },
+  "& .MuiPickersOutlinedInput-root.Mui-focused fieldset": {
+    borderColor: "#13715B !important",
+    borderWidth: "2px",
+    boxShadow: "0 0 0 3px rgba(19, 113, 91, 0.1)",
   },
 };

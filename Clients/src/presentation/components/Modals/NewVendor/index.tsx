@@ -143,7 +143,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
   const { userRoleName } = useAuth();
   const { users } = useUsers();
-  const { data: projects } = useProjects();
+  const { approvedProjects } = useProjects();
   const queryClient = useQueryClient();
 
   // TanStack Query hooks
@@ -164,13 +164,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   }));
 
   const formattedProjects = useMemo(() => {
-    return Array.isArray(projects)
-      ? projects?.map((project: any) => ({
+    return Array.isArray(approvedProjects)
+      ? approvedProjects.map((project: any) => ({
           _id: project.id,
           name: project.project_title,
         }))
       : [];
-  }, [projects]);
+  }, [approvedProjects]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -332,12 +332,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     if (values.assignee === null) {
       newErrors.assignee = "Please select an assignee from the dropdown";
     }
-
-     // New validation: reviewer and assignee can't be the same (only if reviewer is provided)
-      if (values.reviewer != null && values.assignee != null && values.reviewer === values.assignee) {
-        newErrors.reviewer = "Reviewer and assignee cannot be the same";
-        newErrors.assignee = "Reviewer and assignee cannot be the same";
-      }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

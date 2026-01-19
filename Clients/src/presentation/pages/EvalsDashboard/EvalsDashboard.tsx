@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid } from "@mui/material";
-import type { GridProps } from "@mui/material";
 import { Check } from "lucide-react";
-import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound } from "lucide-react";
+import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound, Swords } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useEvalsSidebarContext } from "../../../application/contexts/EvalsSidebar.context";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -22,6 +21,7 @@ import {
   getExperiment,
   listMyDatasets,
   listScorers,
+  listArenaComparisons,
   getAllOrgs,
   createOrg,
   setCurrentOrg,
@@ -31,6 +31,7 @@ import {
   getAllLlmApiKeys,
   deleteLlmApiKey,
   addLlmApiKey,
+  verifyLlmApiKey,
   type LLMApiKey,
 } from "../../../application/repository/deepEval.repository";
 import type { LLMProvider } from "../../../infrastructure/api/evaluationLlmApiKeysService";
@@ -59,7 +60,11 @@ import ProjectExperiments from "./ProjectExperiments";
 import { ProjectDatasets } from "./ProjectDatasets";
 import ProjectScorers from "./ProjectScorers";
 import ExperimentDetailContent from "./ExperimentDetailContent";
+import ArenaPage from "./ArenaPage";
 import type { DeepEvalProject } from "./types";
+
+// Track if Evals dashboard has been loaded before (persists across module switches)
+let hasLoadedEvalsBefore = false;
 
 const LLM_PROVIDERS = [
   { _id: "openrouter", name: "OpenRouter", Logo: OpenRouterLogo },
@@ -198,12 +203,17 @@ export default function EvalsDashboard() {
   const [allProjects, setAllProjects] = useState<DeepEvalProject[]>([]);
   const [createProjectModalOpen, setCreateProjectModalOpen] = useState(false);
   const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({ name: "", description: "", useCase: "chatbot" });
+  const [createProjectError, setCreateProjectError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
   const [scorersCount, setScorersCount] = useState<number>(0);
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [arenaCount, setArenaCount] = useState<number>(0);
+  // Skip initial loading state if we've loaded before AND we're on a specific project
+  // If no projectId, we might redirect to last project, so keep loading to prevent flash
+  const shouldSkipLoading = hasLoadedEvalsBefore && !!projectId;
+  const [initialLoading, setInitialLoading] = useState(!shouldSkipLoading);
   const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null);
   const [recentExperiments, setRecentExperiments] = useState<RecentExperiment[]>(() => {
     try {
@@ -515,6 +525,7 @@ export default function EvalsDashboard() {
         if (location.hash === "#projects") {
           setOnboardingStep(null);
           setInitialLoading(false);
+          hasLoadedEvalsBefore = true;
           return;
         }
 
@@ -525,6 +536,7 @@ export default function EvalsDashboard() {
           try {
             const projectData = await getProject(lastProjectId);
             if (projectData?.project) {
+              // Don't set initialLoading to false - keep showing nothing while redirecting
               navigate(`/evals/${lastProjectId}#overview`, { replace: true });
               return;
             }
@@ -540,8 +552,10 @@ export default function EvalsDashboard() {
         if (!projectIds || projectIds.length === 0) {
           // Org exists but no projects - go to project step
           setOnboardingStep("project");
+          setInitialLoading(false);
+          hasLoadedEvalsBefore = true;
         } else if (projectIds.length > 0) {
-          // Redirect to first project in org
+          // Don't set initialLoading to false - keep showing nothing while redirecting
           navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
           return;
         }
@@ -550,8 +564,8 @@ export default function EvalsDashboard() {
         // On error, set server connection error instead of forcing onboarding
         setServerConnectionError(true);
         setOnboardingStep(null);
-      } finally {
         setInitialLoading(false);
+        hasLoadedEvalsBefore = true;
       }
     };
 
@@ -560,6 +574,7 @@ export default function EvalsDashboard() {
       loadAndCheckOnboarding();
     } else {
       setInitialLoading(false);
+      hasLoadedEvalsBefore = true;
     }
   }, [projectId, navigate, location.hash]);
 
@@ -659,10 +674,15 @@ export default function EvalsDashboard() {
         // Load scorers count
         const scorersData = await listScorers({ org_id: orgId || undefined });
         setScorersCount(scorersData.scorers?.length || 0);
+
+        // Load arena battles count
+        const arenaData = await listArenaComparisons();
+        setArenaCount(arenaData.comparisons?.length || 0);
       } catch (err) {
         console.error("Failed to load counts:", err);
         setDatasetsCount(0);
         setScorersCount(0);
+        setArenaCount(0);
       }
     };
 
@@ -674,6 +694,7 @@ export default function EvalsDashboard() {
     sidebarContext.setExperimentsCount(experimentsCount);
     sidebarContext.setDatasetsCount(datasetsCount);
     sidebarContext.setScorersCount(scorersCount);
+    sidebarContext.setArenaCount(arenaCount);
     sidebarContext.setDisabled(!projectId && !currentProject);
     sidebarContext.setRecentExperiments(recentExperiments);
     sidebarContext.setRecentProjects(recentProjects);
@@ -689,7 +710,7 @@ export default function EvalsDashboard() {
       } else {
         setSelectedExperimentId(experimentId);
         setTab("experiments");
-        navigate(`${location.pathname}#experiments`, { replace: true });
+        navigate(`${location.pathname}#experiments`);
       }
     });
     sidebarContext.setOnProjectClick(() => (clickedProjectId: string) => {
@@ -708,7 +729,7 @@ export default function EvalsDashboard() {
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [experimentsCount, datasetsCount, scorersCount, projectId, recentExperiments, recentProjects, currentProject, allProjects, tab, navigate, location.pathname]);
+  }, [experimentsCount, datasetsCount, scorersCount, arenaCount, projectId, recentExperiments, recentProjects, currentProject, allProjects, tab, navigate, location.pathname]);
 
   // Note: Tab change is now handled via URL hash in ContextSidebar
   // Note: Project change is now handled via context in sidebar project selector
@@ -812,6 +833,7 @@ export default function EvalsDashboard() {
       setServerConnectionError(true);
     } finally {
       setInitialLoading(false);
+      hasLoadedEvalsBefore = true;
     }
   };
 
@@ -889,7 +911,7 @@ export default function EvalsDashboard() {
       setNewProject({ name: "", description: "", useCase: "chatbot" });
     } catch (err) {
       console.error("Failed to create project:", err);
-      alert("Failed to create project");
+      setCreateProjectError("Failed to create project. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -902,6 +924,7 @@ export default function EvalsDashboard() {
       experiments: { label: "Experiments", icon: <FlaskConical size={14} strokeWidth={1.5} /> },
       datasets: { label: "Datasets", icon: <Database size={14} strokeWidth={1.5} /> },
       scorers: { label: "Scorers", icon: <Award size={14} strokeWidth={1.5} /> },
+      arena: { label: "Arena", icon: <Swords size={14} strokeWidth={1.5} /> },
       configuration: { label: "Configuration", icon: <Settings size={14} strokeWidth={1.5} /> },
       settings: { label: "Settings", icon: <KeyRound size={14} strokeWidth={1.5} /> },
     };
@@ -938,87 +961,9 @@ export default function EvalsDashboard() {
     }
   };
 
-  // Verify API key by making a real API call to the provider
+  // Verify API key by calling the backend endpoint (avoids CORS issues)
   const verifyApiKey = async (provider: string, apiKey: string): Promise<{ valid: boolean; error?: string }> => {
-    try {
-      const endpoints: Record<string, { url: string; headers: Record<string, string>; method?: string }> = {
-        openai: {
-          url: "https://api.openai.com/v1/models",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        },
-        anthropic: {
-          url: "https://api.anthropic.com/v1/models",
-          headers: { 
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-          },
-        },
-        google: {
-          url: `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`,
-          headers: {},
-        },
-        xai: {
-          url: "https://api.x.ai/v1/models",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        },
-        mistral: {
-          url: "https://api.mistral.ai/v1/models",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        },
-        huggingface: {
-          url: "https://huggingface.co/api/whoami",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        },
-        openrouter: {
-          url: "https://openrouter.ai/api/v1/auth/key",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        },
-      };
-
-      const config = endpoints[provider];
-      if (!config) {
-        // For custom/unknown providers, skip verification
-        return { valid: true };
-      }
-
-      const response = await fetch(config.url, {
-        method: config.method || "GET",
-        headers: {
-          ...config.headers,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        return { valid: true };
-      } else if (response.status === 401 || response.status === 403) {
-        return { valid: false, error: "Invalid API key - authentication failed" };
-      } else if (response.status === 400) {
-        // 400 often means invalid API key format or key doesn't exist
-        // Parse response to get specific error message
-        try {
-          const data = await response.json();
-          const errorMsg = data?.error?.message || data?.message || "Invalid API key";
-          console.warn(`API key verification failed with 400:`, errorMsg);
-          return { valid: false, error: errorMsg };
-        } catch {
-          return { valid: false, error: "Invalid API key - bad request" };
-        }
-      } else if (response.status === 429) {
-        // Rate limited - key might be valid, let it through
-        console.warn("API key verification rate limited, assuming valid");
-        return { valid: true };
-      } else {
-        // Other errors (5xx, etc) - give benefit of doubt
-        const text = await response.text();
-        console.warn(`API key verification got status ${response.status}:`, text);
-        return { valid: true };
-      }
-    } catch (err) {
-      console.error("API key verification error:", err);
-      // Network errors (CORS, etc) - can't verify, assume valid
-      return { valid: true };
-    }
+    return verifyLlmApiKey(provider, apiKey);
   };
 
   // State for verification
@@ -1193,7 +1138,7 @@ export default function EvalsDashboard() {
       )}
 
       {/* Main content */}
-      <Box sx={{ flex: 1, margin: 0, padding: 0 }}>
+      <Box sx={{ flex: 1, margin: 0, padding: 0, minWidth: 0, overflow: "hidden" }}>
           {/* Show nothing while initially loading to prevent flash */}
           {initialLoading && !projectId ? null : (
           /* Settings tab - always available regardless of project selection */
@@ -1221,7 +1166,7 @@ export default function EvalsDashboard() {
               >
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                   <Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13, color: "#344054" }}>
                       Provider API keys
                     </Typography>
                     <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
@@ -1293,7 +1238,7 @@ export default function EvalsDashboard() {
                     />
                   </Box>
                 ) : (
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {llmApiKeys.map((key) => {
                       const providerConfig = LLM_PROVIDERS.find(p => p._id === key.provider);
                       const ProviderLogo = providerConfig?.Logo;
@@ -1306,7 +1251,7 @@ export default function EvalsDashboard() {
                         <Box
                           sx={{
                             border: "1.5px solid #eaecf0",
-                            borderRadius: "10px",
+                            borderRadius: "4px",
                             p: 2,
                             pl: 2.5,
                             backgroundColor: "#ffffff",
@@ -1465,24 +1410,26 @@ export default function EvalsDashboard() {
                   mt: 3,
                 }}
               >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                  <Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3, gap: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: 14, color: "#344054", mb: 0.5 }}>
                       Local providers
                     </Typography>
-                    <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
-                      Run models locally without API keys
+                    <Typography sx={{ fontSize: 13, color: "#666666", lineHeight: 1.5 }}>
+                      Run models locally without API keys. These will appear as options when creating a new experiment.
                     </Typography>
                   </Box>
                   {!ENV_VARs.IS_DEMO_APP && (
                     <CustomizableButton
                       variant="contained"
-                      text="Add local provider"
+                      text="Add provider"
                       icon={<PlusIcon size={16} />}
                       onClick={() => setLocalProviderModalOpen(true)}
                       sx={{
                         backgroundColor: "#13715B",
                         color: "#fff",
+                        whiteSpace: "nowrap",
+                        flexShrink: 0,
                         "&:hover": { backgroundColor: "#0e5c47" },
                       }}
                     />
@@ -1543,7 +1490,7 @@ export default function EvalsDashboard() {
                     </Typography>
                   </Box>
                 ) : (
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {localProviders.map((provider) => (
                       <Collapse
                         key={provider.id}
@@ -1553,7 +1500,7 @@ export default function EvalsDashboard() {
                         <Box
                           sx={{
                             border: "1.5px solid #eaecf0",
-                            borderRadius: "10px",
+                            borderRadius: "4px",
                             p: 2,
                             pl: 2.5,
                             backgroundColor: "#ffffff",
@@ -1621,9 +1568,6 @@ export default function EvalsDashboard() {
                   </Box>
                 )}
 
-                <Typography sx={{ fontSize: 12, color: "#9CA3AF", mt: 2.5, fontStyle: "italic" }}>
-                  These will appear as options when creating a new experiment. No API key required.
-                </Typography>
               </Box>
             </Box>
           ) : !projectId ? (
@@ -1641,7 +1585,7 @@ export default function EvalsDashboard() {
                   onViewExperiment={(experimentId) => {
                     setSelectedExperimentId(experimentId);
                     setTab("experiments");
-                    navigate(`${location.pathname}#experiments`, { replace: true });
+                    navigate(`${location.pathname}#experiments`);
                   }}
                 />
               )}
@@ -1653,13 +1597,14 @@ export default function EvalsDashboard() {
                     projectId={projectId || ""}
                     onBack={() => setSelectedExperimentId(null)}
                   />
-                ) : (
+                ) : currentProject ? (
                   <ProjectExperiments
                     projectId={projectId}
                     orgId={orgId}
                     onViewExperiment={(experimentId) => setSelectedExperimentId(experimentId)}
+                    useCase={(currentProject.useCase || "chatbot") as "chatbot" | "rag" | "agent"}
                   />
-                )
+                ) : null
               )}
 
               {tab === "datasets" && (
@@ -1668,6 +1613,10 @@ export default function EvalsDashboard() {
 
               {tab === "scorers" && projectId && (
                 <ProjectScorers projectId={projectId} orgId={orgId} />
+              )}
+
+              {tab === "arena" && (
+                <ArenaPage orgId={orgId} />
               )}
 
               {tab === "configuration" && (
@@ -1692,9 +1641,72 @@ export default function EvalsDashboard() {
                       boxShadow: "none",
                     }}
                   >
-                    <Typography sx={{ fontWeight: 600, fontSize: 16, mb: 3, color: "#344054" }}>
-                      LLM use case
-                    </Typography>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
+                      <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
+                        LLM use case
+                      </Typography>
+                      {experimentsCount > 0 && (
+                        <Chip
+                          label="Locked"
+                          size="small"
+                          sx={{
+                            backgroundColor: "#FEF3C7",
+                            color: "#92400E",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            height: "22px",
+                          }}
+                        />
+                      )}
+                    </Stack>
+                    
+                    {/* Locked notice when experiments exist */}
+                    {experimentsCount > 0 && (
+                      <Box
+                        sx={{
+                          backgroundColor: "#FFFBEB",
+                          border: "1px solid #FDE68A",
+                          borderRadius: "6px",
+                          p: 2,
+                          mb: 3,
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 1.5,
+                        }}
+                      >
+                        <Box sx={{ color: "#D97706", mt: 0.25 }}>
+                          <Settings size={16} />
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#92400E", mb: 0.5 }}>
+                            Use case is locked
+                          </Typography>
+                          <Typography sx={{ fontSize: "12px", color: "#B45309", lineHeight: 1.5, mb: 1.5 }}>
+                            This project has {experimentsCount} experiment{experimentsCount !== 1 ? "s" : ""}. 
+                            To evaluate a different use case, create a new project. This ensures your metrics and results remain consistent and comparable.
+                          </Typography>
+                          <CustomizableButton
+                            variant="outlined"
+                            onClick={() => setCreateProjectModalOpen(true)}
+                            icon={<PlusIcon size={14} />}
+                            text="Create new project"
+                            sx={{
+                              height: "32px",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              color: "#92400E",
+                              borderColor: "#F59E0B",
+                              backgroundColor: "transparent",
+                              "&:hover": {
+                                backgroundColor: "#FEF3C7",
+                                borderColor: "#D97706",
+                              },
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    )}
+                    
                     <Box
                       sx={{
                         display: "grid",
@@ -1708,30 +1720,35 @@ export default function EvalsDashboard() {
                       <Box>
                         <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Use case type</Typography>
                         <Typography sx={{ fontSize: 12, color: "#888" }}>
-                          Select the type of LLM application you want to evaluate
+                          {experimentsCount > 0 
+                            ? "Use case cannot be changed after experiments are created"
+                            : "Select the type of LLM application you want to evaluate"
+                          }
                         </Typography>
                       </Box>
                       <RadioGroup
                         value={currentProject?.useCase || "chatbot"}
                         onChange={(e) => {
-                          if (currentProject) {
+                          if (currentProject && experimentsCount === 0) {
                             setCurrentProject({ ...currentProject, useCase: e.target.value as "rag" | "chatbot" | "agent" });
                           }
                         }}
                       >
                         <FormControlLabel
                           value="rag"
+                          disabled={experimentsCount > 0}
                           control={
                             <Radio
                               sx={{
                                 color: "#d0d5dd",
                                 "&.Mui-checked": { color: "#13715B" },
+                                "&.Mui-disabled": { color: "#e5e7eb" },
                                 "& .MuiSvgIcon-root": { fontSize: 20 },
                               }}
                             />
                           }
                           label={
-                            <Box>
+                            <Box sx={{ opacity: experimentsCount > 0 ? 0.6 : 1 }}>
                               <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>RAG</Typography>
                               <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
                                 Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
@@ -1742,20 +1759,45 @@ export default function EvalsDashboard() {
                         />
                         <FormControlLabel
                           value="chatbot"
+                          disabled={experimentsCount > 0}
                           control={
                             <Radio
                               sx={{
                                 color: "#d0d5dd",
                                 "&.Mui-checked": { color: "#13715B" },
+                                "&.Mui-disabled": { color: "#e5e7eb" },
                                 "& .MuiSvgIcon-root": { fontSize: 20 },
                               }}
                             />
                           }
                           label={
-                            <Box>
+                            <Box sx={{ opacity: experimentsCount > 0 ? 0.6 : 1 }}>
                               <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Chatbot</Typography>
                               <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
                                 Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ alignItems: "flex-start", mb: 1.5 }}
+                        />
+                        <FormControlLabel
+                          value="agent"
+                          disabled={experimentsCount > 0}
+                          control={
+                            <Radio
+                              sx={{
+                                color: "#d0d5dd",
+                                "&.Mui-checked": { color: "#13715B" },
+                                "&.Mui-disabled": { color: "#e5e7eb" },
+                                "& .MuiSvgIcon-root": { fontSize: 20 },
+                              }}
+                            />
+                          }
+                          label={
+                            <Box sx={{ opacity: experimentsCount > 0 ? 0.6 : 1 }}>
+                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Agent</Typography>
+                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                                Evaluate AI agents for planning, tool usage, task completion, and step efficiency.
                               </Typography>
                             </Box>
                           }
@@ -1770,25 +1812,27 @@ export default function EvalsDashboard() {
                     <Alert variant={configAlert.variant} body={configAlert.body} />
                   )}
 
-                  {/* Save Button */}
-                  <Stack>
-                    <CustomizableButton
-                      sx={{
-                        alignSelf: "flex-end",
-                        width: "fit-content",
-                        gap: 2,
-                        backgroundColor: hasUseCaseChanged ? "#13715B" : "#ccc",
-                        border: hasUseCaseChanged ? "1px solid #13715B" : "1px solid #ccc",
-                        "&:hover": hasUseCaseChanged ? { backgroundColor: "#0e5c47" } : {},
-                      }}
-                      icon={<Save size={16} />}
-                      variant="contained"
-                      onClick={handleSaveConfiguration}
-                      isDisabled={!hasUseCaseChanged || savingConfig}
-                      loading={savingConfig}
-                      text={savingConfig ? "Saving..." : "Save changes"}
-                    />
-                  </Stack>
+                  {/* Save Button - only show when use case is not locked */}
+                  {experimentsCount === 0 && (
+                    <Stack>
+                      <CustomizableButton
+                        sx={{
+                          alignSelf: "flex-end",
+                          width: "fit-content",
+                          gap: 2,
+                          backgroundColor: hasUseCaseChanged ? "#13715B" : "#ccc",
+                          border: hasUseCaseChanged ? "1px solid #13715B" : "1px solid #ccc",
+                          "&:hover": hasUseCaseChanged ? { backgroundColor: "#0e5c47" } : {},
+                        }}
+                        icon={<Save size={16} />}
+                        variant="contained"
+                        onClick={handleSaveConfiguration}
+                        isDisabled={!hasUseCaseChanged || savingConfig}
+                        loading={savingConfig}
+                        text={savingConfig ? "Saving..." : "Save changes"}
+                      />
+                    </Stack>
+                  )}
                 </Box>
               )}
 
@@ -1802,6 +1846,7 @@ export default function EvalsDashboard() {
         onClose={() => {
           setCreateProjectModalOpen(false);
           setNewProject({ name: "", description: "", useCase: "chatbot" });
+          setCreateProjectError(null);
         }}
         title="Create project"
         description="Create a new project to organize your LLM evaluations"
@@ -1810,10 +1855,17 @@ export default function EvalsDashboard() {
         isSubmitting={loading || !newProject.name}
       >
         <Stack spacing={3}>
+          {createProjectError && (
+            <Alert variant="error" body={createProjectError} />
+          )}
+          
           <Field
             label="Project name"
             value={newProject.name}
-            onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+            onChange={(e) => {
+              setNewProject({ ...newProject, name: e.target.value });
+              setCreateProjectError(null); // Clear error when user starts typing
+            }}
             placeholder="e.g., Coding Tasks Evaluation"
             isRequired
           />
@@ -1837,6 +1889,13 @@ export default function EvalsDashboard() {
                 icon={<Bot size={14} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
                 title="Chatbot"
                 description="Evaluate conversational experiences for coherence, correctness and safety"
+              />
+              <SelectableCard
+                isSelected={newProject.useCase === "agent"}
+                onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
+                icon={<Workflow size={14} color={newProject.useCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                title="Agent"
+                description="Evaluate AI agents for planning, tool usage, and task completion"
               />
             </Stack>
           </Box>
@@ -1882,6 +1941,13 @@ export default function EvalsDashboard() {
                 title="Chatbot"
                 description="Evaluate conversational experiences"
               />
+              <SelectableCard
+                isSelected={onboardingProjectUseCase === "agent"}
+                onClick={() => setOnboardingProjectUseCase("agent")}
+                icon={<Workflow size={16} color={onboardingProjectUseCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                title="Agent"
+                description="Evaluate AI agents for planning and tool usage"
+              />
             </Stack>
           </Box>
         </Stack>
@@ -1916,7 +1982,7 @@ export default function EvalsDashboard() {
                 const hasKey = llmApiKeys.some(k => k.provider === provider._id);
                 
                 return (
-                  <Grid {...({ item: true, xs: 4, sm: 4 } as GridProps & { item: boolean; xs: number; sm: number })} key={provider._id}>
+                  <Grid size={{ xs: 4, sm: 4 }} key={provider._id}>
                     <Card
                       onClick={() => handleProviderSelect(provider._id)}
                       sx={{
@@ -1991,15 +2057,12 @@ export default function EvalsDashboard() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            width: "100%",
-                            height: provider._id === "huggingface" || provider._id === "xai" ? 56 : 48,
+                            width: 40,
+                            height: 40,
                             mb: 1.5,
                             "& svg": {
-                              maxWidth: provider._id === "huggingface" || provider._id === "xai" ? "100%" : "90%",
-                              maxHeight: "100%",
-                              width: "auto",
-                              height: "auto",
-                              objectFit: "contain",
+                              width: 32,
+                              height: 32,
                             },
                           }}
                         >
@@ -2159,109 +2222,123 @@ export default function EvalsDashboard() {
             <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
               Select provider type
             </Typography>
-            <Grid container spacing={1.5}>
+            <Box sx={{ display: "flex", gap: 1.5 }}>
               {/* Ollama */}
-              <Grid {...({ item: true, xs: 6 } as GridProps & { item: boolean; xs: number })}>
-                <Card
-                  onClick={() => {
-                    setSelectedLocalProviderType("ollama");
-                    setLocalProviderName("llama3.2");
-                    setLocalProviderUrl("http://localhost:11434");
-                  }}
-                  sx={{
-                    cursor: "pointer",
-                    border: "1px solid",
-                    borderColor: selectedLocalProviderType === "ollama" ? "#13715B" : "#E5E7EB",
-                    backgroundColor: "#FFFFFF",
-                    boxShadow: "none",
-                    transition: "all 0.2s ease",
-                    position: "relative",
-                    "&:hover": {
-                      borderColor: "#13715B",
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                    },
-                  }}
-                >
-                  <CardContent sx={{ textAlign: "center", py: 3, px: 2 }}>
-                    {selectedLocalProviderType === "ollama" && (
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          top: 8,
-                          right: 8,
-                          backgroundColor: "#13715B",
-                          borderRadius: "50%",
-                          width: 20,
-                          height: 20,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Check size={12} color="#FFFFFF" strokeWidth={3} />
-                      </Box>
-                    )}
-                    <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
-                      <OllamaLogo />
+              <Card
+                onClick={() => {
+                  setSelectedLocalProviderType("ollama");
+                  setLocalProviderName("llama3.2");
+                  setLocalProviderUrl("http://localhost:11434");
+                }}
+                sx={{
+                  flex: 1,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderColor: selectedLocalProviderType === "ollama" ? "#13715B" : "#E5E7EB",
+                  backgroundColor: "#FFFFFF",
+                  boxShadow: "none",
+                  transition: "all 0.2s ease",
+                  position: "relative",
+                  "&:hover": {
+                    borderColor: "#13715B",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                  },
+                }}
+              >
+                <CardContent sx={{ 
+                  textAlign: "center", 
+                  py: 3, 
+                  px: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                  {selectedLocalProviderType === "ollama" && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        backgroundColor: "#13715B",
+                        borderRadius: "50%",
+                        width: 20,
+                        height: 20,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Check size={12} color="#FFFFFF" strokeWidth={3} />
                     </Box>
-                    <Typography sx={{ fontSize: "12px", fontWeight: selectedLocalProviderType === "ollama" ? 600 : 500, color: selectedLocalProviderType === "ollama" ? "#13715B" : "#374151" }}>
-                      Ollama
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+                  )}
+                  <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
+                    <OllamaLogo />
+                  </Box>
+                  <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "ollama" ? 600 : 500, color: selectedLocalProviderType === "ollama" ? "#13715B" : "#374151" }}>
+                    Ollama
+                  </Typography>
+                </CardContent>
+              </Card>
 
               {/* Local Endpoint */}
-              <Grid {...({ item: true, xs: 6 } as GridProps & { item: boolean; xs: number })}>
-                <Card
-                  onClick={() => {
-                    setSelectedLocalProviderType("local");
-                    setLocalProviderName("Local Endpoint");
-                    setLocalProviderUrl("http://localhost:8000/api/generate");
-                  }}
-                  sx={{
-                    cursor: "pointer",
-                    border: "1px solid",
-                    borderColor: selectedLocalProviderType === "local" ? "#13715B" : "#E5E7EB",
-                    backgroundColor: "#FFFFFF",
-                    boxShadow: "none",
-                    transition: "all 0.2s ease",
-                    position: "relative",
-                    "&:hover": {
-                      borderColor: "#13715B",
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                    },
-                  }}
-                >
-                  <CardContent sx={{ textAlign: "center", py: 3, px: 2 }}>
-                    {selectedLocalProviderType === "local" && (
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          top: 8,
-                          right: 8,
-                          backgroundColor: "#13715B",
-                          borderRadius: "50%",
-                          width: 20,
-                          height: 20,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Check size={12} color="#FFFFFF" strokeWidth={3} />
-                      </Box>
-                    )}
-                    <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5, "& svg": { width: 32, height: 32 } }}>
-                      <FolderFilledIcon />
+              <Card
+                onClick={() => {
+                  setSelectedLocalProviderType("local");
+                  setLocalProviderName("Local Endpoint");
+                  setLocalProviderUrl("http://localhost:8000/api/generate");
+                }}
+                sx={{
+                  flex: 1,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderColor: selectedLocalProviderType === "local" ? "#13715B" : "#E5E7EB",
+                  backgroundColor: "#FFFFFF",
+                  boxShadow: "none",
+                  transition: "all 0.2s ease",
+                  position: "relative",
+                  "&:hover": {
+                    borderColor: "#13715B",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                  },
+                }}
+              >
+                <CardContent sx={{ 
+                  textAlign: "center", 
+                  py: 3, 
+                  px: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                  {selectedLocalProviderType === "local" && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        backgroundColor: "#13715B",
+                        borderRadius: "50%",
+                        width: 20,
+                        height: 20,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Check size={12} color="#FFFFFF" strokeWidth={3} />
                     </Box>
-                    <Typography sx={{ fontSize: "12px", fontWeight: selectedLocalProviderType === "local" ? 600 : 500, color: selectedLocalProviderType === "local" ? "#13715B" : "#374151" }}>
-                      Local Endpoint
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+                  )}
+                  <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
+                    <FolderFilledIcon />
+                  </Box>
+                  <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "local" ? 600 : 500, color: selectedLocalProviderType === "local" ? "#13715B" : "#374151" }}>
+                    Local Endpoint
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
           </Box>
 
           {/* Configuration Fields */}

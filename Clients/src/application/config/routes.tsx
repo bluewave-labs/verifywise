@@ -37,7 +37,9 @@ import IntegratedDashboard from "../../presentation/pages/DashboardOverview/Inte
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
+import ApprovalWorkflows from "../../presentation/pages/ApprovalWorkflows";
 import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
+import AIDetectionPage from "../../presentation/pages/AIDetection";
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -96,6 +98,13 @@ export const createRoutes = (
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
+    <Route path="/approval-workflows" element={<ApprovalWorkflows />} />
+    <Route path="/ai-detection" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/scan" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/history" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/settings" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/scans/:scanId" element={<AIDetectionPage />} />
+    <Route path="/ai-detection/scans/:scanId/:tab" element={<AIDetectionPage />} />
   </Route>,
   <Route
     key="admin-reg"

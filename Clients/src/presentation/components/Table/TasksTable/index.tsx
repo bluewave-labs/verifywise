@@ -12,7 +12,6 @@ import {
   Typography,
   TableFooter,
   Box,
-  Chip as MuiChip,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -27,6 +26,7 @@ import DaysChip from "../../Chip/DaysChip";
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../types/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
+import CategoryChip from "../../Chip/CategoryChip/CategoryChip";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -91,12 +91,12 @@ const SortableTableHeader: React.FC<{
               ...singleTheme.tableStyles.primary.header.cell,
               ...(column.sortable
                 ? {
-                    cursor: "pointer",
-                    userSelect: "none",
-                    "&:hover": {
-                      backgroundColor: "rgba(0, 0, 0, 0.04)",
-                    },
-                  }
+                  cursor: "pointer",
+                  userSelect: "none",
+                  "&:hover": {
+                    backgroundColor: "rgba(0, 0, 0, 0.04)",
+                  },
+                }
                 : {}),
             }}
             onClick={() => column.sortable && onSort(column.id)}
@@ -346,37 +346,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                       >
                         {task.title}
                       </Typography>
-                      {task.categories && task.categories.length > 0 && (
-                        <Stack direction="row" spacing={0.5} mt={1}>
-                          {task.categories.slice(0, 2).map((category) => (
-                            <MuiChip
-                              key={category}
-                              label={category}
-                              size="small"
-                              sx={{
-                                fontSize: 10,
-                                height: 20,
-                                backgroundColor: "#f0f9ff",
-                                color: "#0369a1",
-                                borderRadius: "4px",
-                              }}
-                            />
-                          ))}
-                          {task.categories.length > 2 && (
-                            <MuiChip
-                              label={`+${task.categories.length - 2}`}
-                              size="small"
-                              sx={{
-                                fontSize: 10,
-                                height: 20,
-                                backgroundColor: "#f3f4f6",
-                                color: "#6b7280",
-                                borderRadius: "4px",
-                              }}
-                            />
-                          )}
-                        </Stack>
-                      )}
+                      <CategoryChip categories={task.categories || []}/>
                     </Box>
                   </TableCell>
 
@@ -434,7 +404,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     }}
                   >
                     {task.due_date ? (
-                      <Stack direction="row" spacing={1} alignItems="center">
+                      <Stack direction="row" spacing="8px" alignItems="center">
                         <Typography
                           variant="body2"
                           sx={{
@@ -483,8 +453,8 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                           );
                           const initials = user
                             ? `${user.name.charAt(0)}${user.surname.charAt(
-                                0
-                              )}`.toUpperCase()
+                              0
+                            )}`.toUpperCase()
                             : "?";
 
                           return (
@@ -548,7 +518,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                       id={task.id!}
                       onDelete={() => onArchive(task.id!)}
                       onEdit={() => onEdit(task)}
-                      onMouseEvent={() => {}}
+                      onMouseEvent={() => { }}
                       warningTitle="Archive task?"
                       warningMessage={`This task will be hidden from your active task list. You can restore "${task.title}" anytime from the archived view.`}
                       type="Task"

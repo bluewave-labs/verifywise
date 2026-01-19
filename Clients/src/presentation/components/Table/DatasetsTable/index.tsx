@@ -88,17 +88,22 @@ const DatasetsTable: React.FC<DatasetsTableProps> = ({
     getPaginationRowCount("datasets", 10)
   );
 
-  // Initialize sorting state from localStorage or default to no sorting
+  // Initialize sorting state from localStorage or default to date desc
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
     const saved = localStorage.getItem(DATASETS_SORTING_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // If saved state is empty, use the default
+        if (!parsed.key || !parsed.direction) {
+          return { key: "createdAt", direction: "desc" };
+        }
+        return parsed;
       } catch {
-        return { key: "", direction: null };
+        return { key: "createdAt", direction: "desc" };
       }
     }
-    return { key: "", direction: null };
+    return { key: "createdAt", direction: "desc" };
   });
 
   // Save sorting state to localStorage whenever it changes

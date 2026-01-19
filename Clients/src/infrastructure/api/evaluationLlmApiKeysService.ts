@@ -37,6 +37,17 @@ export interface DeleteKeyResponse {
   message: string;
 }
 
+export interface VerifyKeyRequest {
+  provider: string;
+  apiKey: string;
+}
+
+export interface VerifyKeyResponse {
+  success: boolean;
+  valid: boolean;
+  message: string;
+}
+
 class EvaluationLlmApiKeysService {
   private baseUrl = "/evaluation-llm-keys";
 
@@ -89,6 +100,24 @@ class EvaluationLlmApiKeysService {
       return keys.some(k => k.provider === provider);
     } catch (error) {
       return false;
+    }
+  }
+
+  /**
+   * Verify an API key by making a test call to the provider
+   * This goes through the backend to avoid CORS issues
+   */
+  async verifyKey(request: VerifyKeyRequest): Promise<{ valid: boolean; error?: string }> {
+    try {
+      const response = await CustomAxios.post<VerifyKeyResponse>(`${this.baseUrl}/verify`, request);
+      return {
+        valid: response.data.valid,
+        error: response.data.valid ? undefined : response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Failed to verify LLM API key:", error);
+      // If backend verification fails, assume valid to not block user
+      return { valid: true };
     }
   }
 }

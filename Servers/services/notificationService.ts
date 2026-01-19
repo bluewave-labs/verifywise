@@ -2,11 +2,6 @@ import path from "path";
 import fs from "fs/promises";
 import { sendEmail } from "./emailService";
 import { TEMPLATES_DIR } from "../constants/emailTemplates";
-import {
-  logProcessing,
-  logSuccess,
-  logFailure,
-} from "../utils/logger/logHelper";
 
 interface QueuedEmail {
   recipientEmail: string;
@@ -30,23 +25,23 @@ interface RateLimitState {
 /**
  * Mask email address to prevent PII from being persisted in logs
  */
-function maskEmail(email: string): string {
-  if (!email || typeof email !== 'string' || email.trim() === '') {
-    return "redacted";
-  }
+// function maskEmail(email: string): string {
+//   if (!email || typeof email !== 'string' || email.trim() === '') {
+//     return "redacted";
+//   }
 
-  const trimmedEmail = email.trim();
+//   const trimmedEmail = email.trim();
 
-  if (trimmedEmail.length <= 2) {
-    return trimmedEmail.charAt(0) + "*";
-  }
+//   if (trimmedEmail.length <= 2) {
+//     return trimmedEmail.charAt(0) + "*";
+//   }
 
-  if (trimmedEmail.length <= 6) {
-    return trimmedEmail.charAt(0) + "*".repeat(trimmedEmail.length - 2) + trimmedEmail.charAt(trimmedEmail.length - 1);
-  }
+//   if (trimmedEmail.length <= 6) {
+//     return trimmedEmail.charAt(0) + "*".repeat(trimmedEmail.length - 2) + trimmedEmail.charAt(trimmedEmail.length - 1);
+//   }
 
-  return trimmedEmail.charAt(0) + "*".repeat(trimmedEmail.length - 2) + trimmedEmail.charAt(trimmedEmail.length - 1);
-}
+//   return trimmedEmail.charAt(0) + "*".repeat(trimmedEmail.length - 2) + trimmedEmail.charAt(trimmedEmail.length - 1);
+// }
 
 /**
  * Core notification service for sending emails with templates
@@ -265,11 +260,11 @@ export class NotificationService {
     templateFileName: string,
     templateData: Record<string, string>
   ): Promise<void> {
-    logProcessing({
-      description: `Sending email with template: ${templateFileName}`,
-      functionName: "sendEmailWithTemplate",
-      fileName: "NotificationService.ts",
-    });
+    // logProcessing({
+    //   description: `Sending email with template: ${templateFileName}`,
+    //   functionName: "sendEmailWithTemplate",
+    //   fileName: "NotificationService.ts",
+    // });
 
     try {
       // Read the template file
@@ -288,12 +283,12 @@ export class NotificationService {
         throw new Error(`${result.error.name}: ${result.error.message}`);
       }
 
-      await logSuccess({
-        eventType: "Create",
-        description: `Email sent successfully to ${maskEmail(recipientEmail)}`,
-        functionName: "sendEmailWithTemplate",
-        fileName: "NotificationService.ts",
-      });
+      // await logSuccess({
+      //   eventType: "Create",
+      //   description: `Email sent successfully to ${maskEmail(recipientEmail)}`,
+      //   functionName: "sendEmailWithTemplate",
+      //   fileName: "NotificationService.ts",
+      // });
     } catch (error) {
 
       // Sanitize the error to remove any email addresses
@@ -304,13 +299,13 @@ export class NotificationService {
         )
       );
 
-      await logFailure({
-        eventType: "Create",
-        description: `Failed to send email to ${maskEmail(recipientEmail)}`,
-        functionName: "sendEmailWithTemplate",
-        fileName: "NotificationService.ts",
-        error: sanitized,
-      });
+      // await logFailure({
+      //   eventType: "Create",
+      //   description: `Failed to send email to ${maskEmail(recipientEmail)}`,
+      //   functionName: "sendEmailWithTemplate",
+      //   fileName: "NotificationService.ts",
+      //   error: sanitized,
+      // });
       (sanitized as any).cause = error;
       throw sanitized;
     }

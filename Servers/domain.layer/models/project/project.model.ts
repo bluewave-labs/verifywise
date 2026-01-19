@@ -114,6 +114,24 @@ export class ProjectModel
   })
   status!: ProjectStatus;
 
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  approval_workflow_id?: number;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+  })
+  pending_frameworks?: number[];
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  enable_ai_data_insertion?: boolean;
+
   static async CreateNewProject(
     projectAttributes: Partial<IProjectAttributes>
   ) {
@@ -131,6 +149,37 @@ export class ProjectModel
         id: projectId,
       },
     });
+  }
+
+  /**
+   * Convert to JSON representation
+   */
+  toJSON(): any {
+    const dataValues = this.dataValues as any;
+    return {
+      id: this.id,
+      uc_id: this.uc_id,
+      project_title: this.project_title,
+      owner: this.owner,
+      start_date: this.start_date?.toISOString(),
+      geography: this.geography,
+      ai_risk_classification: this.ai_risk_classification,
+      type_of_high_risk_role: this.type_of_high_risk_role,
+      goal: this.goal,
+      target_industry: this.target_industry,
+      description: this.description,
+      last_updated: this.last_updated?.toISOString(),
+      last_updated_by: this.last_updated_by,
+      is_demo: this.is_demo,
+      created_at: this.created_at?.toISOString(),
+      is_organizational: this.is_organizational,
+      status: this.status,
+      // Include dynamically added properties from queries
+      framework: dataValues?.framework,
+      members: dataValues?.members,
+      has_pending_approval: dataValues?.has_pending_approval,
+      approval_status: dataValues?.approval_status,
+    };
   }
 
   constructor(init?: Partial<IProjectAttributes>) {

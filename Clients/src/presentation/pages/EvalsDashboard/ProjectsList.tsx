@@ -17,10 +17,8 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  ListItemIcon,
-  ListItemText,
 } from "@mui/material";
-import { Plus, Pencil, Trash2, FileSearch, MessageSquare, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
+import { Plus, FileSearch, MessageSquare, Bot, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
 import SelectableCard from "../../components/SelectableCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
@@ -83,17 +81,22 @@ export default function ProjectsList() {
     return saved ? parseInt(saved, 10) : 10;
   });
 
-  // Sorting state
+  // Sorting state - default to date desc
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
     const saved = localStorage.getItem(EVALS_PROJECTS_SORTING_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // If saved state is empty, use the default
+        if (!parsed.key || !parsed.direction) {
+          return { key: "created", direction: "desc" };
+        }
+        return parsed;
       } catch {
-        return { key: "", direction: null };
+        return { key: "created", direction: "desc" };
       }
     }
-    return { key: "", direction: null };
+    return { key: "created", direction: "desc" };
   });
 
   // Save preferences to localStorage
@@ -780,37 +783,20 @@ export default function ProjectsList() {
         open={Boolean(menuAnchorEl)}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        PaperProps={{
-          sx: {
-            minWidth: 140,
-            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-            borderRadius: "8px",
-            border: "1px solid #E5E7EB",
+        slotProps={{
+          paper: {
+            sx: singleTheme.dropDownStyles.primary,
           },
         }}
       >
         {canEditProject && (
-          <MenuItem onClick={handleMenuEdit} sx={{ fontSize: "13px", py: 1 }}>
-            <ListItemIcon sx={{ minWidth: 32 }}>
-              <Pencil size={16} color="#6B7280" />
-            </ListItemIcon>
-            <ListItemText primary="Edit" primaryTypographyProps={{ fontSize: "13px" }} />
+          <MenuItem onClick={handleMenuEdit}>
+            Edit
           </MenuItem>
         )}
         {canDeleteProject && (
-          <MenuItem onClick={handleMenuDelete} sx={{ fontSize: "13px", py: 1, color: "#DC2626" }}>
-            <ListItemIcon sx={{ minWidth: 32 }}>
-              <Trash2 size={16} color="#DC2626" />
-            </ListItemIcon>
-            <ListItemText primary="Delete" primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }} />
+          <MenuItem onClick={handleMenuDelete} sx={{ color: "#d32f2f" }}>
+            Delete
           </MenuItem>
         )}
       </Menu>
@@ -853,6 +839,13 @@ export default function ProjectsList() {
                 icon={<MessageSquare size={16} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
                 title="Chatbots"
                 description="Evaluate conversational experiences for coherence, correctness and safety."
+              />
+              <SelectableCard
+                isSelected={newProject.useCase === "agent"}
+                onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
+                icon={<Bot size={16} color={newProject.useCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                title="Agent"
+                description="Evaluate AI agents for planning, tool usage, and task completion."
               />
             </Stack>
           </Box>

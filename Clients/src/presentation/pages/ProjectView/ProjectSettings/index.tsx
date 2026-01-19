@@ -6,6 +6,7 @@ import {
   Autocomplete,
   TextField,
   Box,
+  Tooltip,
 } from "@mui/material";
 import { VWLink } from "../../../components/Link";
 import { ChevronDown } from "lucide-react";
@@ -168,6 +169,9 @@ const ProjectSettings = React.memo(
     const { project } = useProjectData({ projectId });
     const navigate = useNavigate();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    // Check if project has pending approval
+    const hasPendingApproval = project && (project as any).has_pending_approval;
     const [isFrameworkRemoveModalOpen, setIsFrameworkRemoveModalOpen] =
       useState(false);
     const [frameworkToRemove, setFrameworkToRemove] = useState<{
@@ -260,8 +264,8 @@ const ProjectSettings = React.memo(
     );
     useEffect(() => {
       setShowCustomizableSkeleton(true);
-      if (project && monitoredFrameworks.length > 0) {
-        const frameworksForProject = monitoredFrameworks.map(
+      if (project) {
+        const frameworksForProject = monitoredFrameworks.length > 0 ? monitoredFrameworks.map(
           (fw: Framework) => {
             const projectFramework = project.framework?.find(
               (pf) => Number(pf.framework_id) === Number(fw.id),
@@ -274,7 +278,7 @@ const ProjectSettings = React.memo(
               framework_id: Number(fw.id),
             };
           },
-        );
+        ) : [];
 
         const returnedData: FormValues = {
           ...initialState,
@@ -636,18 +640,21 @@ const ProjectSettings = React.memo(
         newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
       }
 
-      const monitoredRegulationsAndStandards = selectValidation(
-        "Applicable regulations",
-        values.monitoredRegulationsAndStandards.length,
-      );
-      if (!monitoredRegulationsAndStandards.accepted) {
-        newErrors.monitoredRegulationsAndStandards =
-          monitoredRegulationsAndStandards.message;
+      // Skip framework validation if use-case has pending approval (no frameworks created yet)
+      if (!hasPendingApproval) {
+        const monitoredRegulationsAndStandards = selectValidation(
+          "Applicable regulations",
+          values.monitoredRegulationsAndStandards.length,
+        );
+        if (!monitoredRegulationsAndStandards.accepted) {
+          newErrors.monitoredRegulationsAndStandards =
+            monitoredRegulationsAndStandards.message;
+        }
       }
 
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
-    }, [values]);
+    }, [values, hasPendingApproval]);
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
       event.preventDefault();
@@ -1013,10 +1020,7 @@ const ProjectSettings = React.memo(
                     label=""
                     date={values.startDate ? dayjs(values.startDate) : null}
                     handleDateChange={handleDateChange}
-                    sx={{
-                      width: "130px",
-                      "& input": { width: "85px" },
-                    }}
+                    sx={{ width: "130px" }}
                     isRequired
                     error={errors.startDate}
                   />
@@ -1092,147 +1096,181 @@ const ProjectSettings = React.memo(
                         </Typography> 
                       </Box>
                       <Stack>
-                        <Autocomplete
-                          multiple
-                          id="monitored-regulations-and-standards-input"
-                          size="small"
-                          value={values.monitoredRegulationsAndStandards}
-                          options={nonOrganizationalFrameworks.map((fw: Framework) => ({
-                            _id: Number(fw.id),
-                            name: fw.name,
-                          }))}
-                          onChange={handleOnMultiSelect(
-                            "monitoredRegulationsAndStandards",
-                          )}
-                          getOptionLabel={(item: { _id: number; name: string }) =>
-                            item.name
-                          }
-                          noOptionsText={
-                            values.monitoredRegulationsAndStandards.length ===
-                            nonOrganizationalFrameworks.length
-                              ? "All regulations selected"
-                              : "No options"
-                          }
-                          renderOption={(
-                            props: any,
-                            option: { _id: number; name: string },
-                          ) => {
-                            const isComingSoon = option.name.includes("coming soon");
-                            return (
-                              <Box
-                                component="li"
-                                {...props}
-                                sx={{
-                                  opacity: isComingSoon ? 0.5 : 1,
-                                  cursor: isComingSoon ? "not-allowed" : "pointer",
-                                  "&:hover": {
-                                    backgroundColor: isComingSoon
-                                      ? "transparent"
-                                      : undefined,
-                                  },
-                                }}
-                              >
-                                <Typography
-                                  sx={{
-                                    fontSize: "13px",
-                                    color: isComingSoon
-                                      ? "text.secondary"
-                                      : "text.primary",
-                                  }}
-                                >
-                                  {option.name}
-                                </Typography>
-                              </Box>
-                            );
+                        <Tooltip
+                          title={hasPendingApproval ? "This field is unavailable because the use case has a pending approval request. You can view Overview and edit other Settings." : ""}
+                          arrow
+                          placement="top"
+                          PopperProps={{
+                            modifiers: [
+                              {
+                                name: "offset",
+                                options: {
+                                  offset: [0, 8],
+                                },
+                              },
+                            ],
                           }}
-                          isOptionEqualToValue={(
-                            option: { _id: number },
-                            value: { _id: number },
-                          ) => option._id === value._id}
-                          getOptionDisabled={(option: { name: string }) =>
-                            option.name.includes("coming soon")
-                          }
-                          filterSelectedOptions
-                          popupIcon={
-                            <ChevronDown
-                              size={16}
-                              color={theme.palette.text.tertiary}
-                            />
-                          }
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              placeholder="Select regulations and standards"
+                          slotProps={{
+                            tooltip: {
+                              sx: {
+                                maxWidth: "280px",
+                                fontSize: "12px !important",
+                                padding: "6px 10px !important",
+                                lineHeight: "1.3 !important",
+                              },
+                            },
+                            arrow: {
+                              sx: {
+                                fontSize: "12px",
+                              },
+                            },
+                          }}
+                        >
+                          <span style={{ width: "400px" }}>
+                            <Autocomplete
+                              multiple
+                              disabled={hasPendingApproval}
+                              id="monitored-regulations-and-standards-input"
+                              size="small"
+                              value={values.monitoredRegulationsAndStandards}
+                              options={nonOrganizationalFrameworks.map((fw: Framework) => ({
+                                _id: Number(fw.id),
+                                name: fw.name,
+                              }))}
+                              onChange={handleOnMultiSelect(
+                                "monitoredRegulationsAndStandards",
+                              )}
+                              getOptionLabel={(item: { _id: number; name: string }) =>
+                                item.name
+                              }
+                              noOptionsText={
+                                values.monitoredRegulationsAndStandards.length ===
+                                nonOrganizationalFrameworks.length
+                                  ? "All regulations selected"
+                                  : "No options"
+                              }
+                              renderOption={(
+                                props: any,
+                                option: { _id: number; name: string },
+                              ) => {
+                                const isComingSoon = option.name.includes("coming soon");
+                                return (
+                                  <Box
+                                    component="li"
+                                    {...props}
+                                    sx={{
+                                      opacity: isComingSoon ? 0.5 : 1,
+                                      cursor: isComingSoon ? "not-allowed" : "pointer",
+                                      "&:hover": {
+                                        backgroundColor: isComingSoon
+                                          ? "transparent"
+                                          : undefined,
+                                      },
+                                    }}
+                                  >
+                                    <Typography
+                                      sx={{
+                                        fontSize: "13px",
+                                        color: isComingSoon
+                                          ? "text.secondary"
+                                          : "text.primary",
+                                      }}
+                                    >
+                                      {option.name}
+                                    </Typography>
+                                  </Box>
+                                );
+                              }}
+                              isOptionEqualToValue={(
+                                option: { _id: number },
+                                value: { _id: number },
+                              ) => option._id === value._id}
+                              getOptionDisabled={(option: { name: string }) =>
+                                option.name.includes("coming soon")
+                              }
+                              filterSelectedOptions
+                              popupIcon={
+                                <ChevronDown
+                                  size={16}
+                                  color={theme.palette.text.tertiary}
+                                />
+                              }
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  placeholder="Select regulations and standards"
+                                  sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                      height: "34px",
+                                      padding: "0 10px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                    },
+                                    "& .MuiInputBase-root": {
+                                      height: "34px !important",
+                                      padding: "0 10px !important",
+                                      display: "flex !important",
+                                      alignItems: "center !important",
+                                      justifyContent: "flex-start !important",
+                                    },
+                                    "& .MuiInputBase-input": {
+                                      padding: "0 !important",
+                                      margin: "0 !important",
+                                      fontSize: "13px",
+                                      lineHeight: "1 !important",
+                                    },
+                                    "& ::placeholder": {
+                                      fontSize: "13px",
+                                    },
+                                  }}
+                                />
+                              )}
                               sx={{
+                                ...getAutocompleteStyles(theme, { hasError: !!errors.monitoredRegulationsAndStandards }),
+                                width: "400px",
+                                backgroundColor: theme.palette.background.main,
+                                ".MuiAutocomplete-clearIndicator": {
+                                  display: "none",
+                                },
                                 "& .MuiOutlinedInput-root": {
-                                  height: "34px",
-                                  padding: "0 10px",
-                                  display: "flex",
-                                  alignItems: "center",
+                                  ...getAutocompleteStyles(theme, { hasError: !!errors.monitoredRegulationsAndStandards })["& .MuiOutlinedInput-root"],
+                                  borderRadius: "4px",
                                 },
-                                "& .MuiInputBase-root": {
-                                  height: "34px !important",
-                                  padding: "0 10px !important",
-                                  display: "flex !important",
-                                  alignItems: "center !important",
-                                  justifyContent: "flex-start !important",
+                                "& .MuiChip-root": {
+                                  borderRadius: "4px",
+                                  "& .MuiChip-deleteIcon": {
+                                    display:
+                                      values.monitoredRegulationsAndStandards.length === 1
+                                        ? "none"
+                                        : "flex",
+                                  },
                                 },
-                                "& .MuiInputBase-input": {
-                                  padding: "0 !important",
-                                  margin: "0 !important",
-                                  fontSize: "13px",
-                                  lineHeight: "1 !important",
-                                },
-                                "& ::placeholder": {
-                                  fontSize: "13px",
+                              }}
+                              slotProps={{
+                                paper: {
+                                  sx: {
+                                    "& .MuiAutocomplete-listbox": {
+                                      "& .MuiAutocomplete-option": {
+                                        fontSize: "13px",
+                                        color: "#1c2130",
+                                        paddingLeft: "9px",
+                                        paddingRight: "9px",
+                                      },
+                                      "& .MuiAutocomplete-option.Mui-focused": {
+                                        background: "#f9fafb",
+                                      },
+                                    },
+                                    "& .MuiAutocomplete-noOptions": {
+                                      fontSize: "13px",
+                                      paddingLeft: "9px",
+                                      paddingRight: "9px",
+                                    },
+                                  },
                                 },
                               }}
                             />
-                          )}
-                          sx={{
-                            ...getAutocompleteStyles(theme, { hasError: !!errors.monitoredRegulationsAndStandards }),
-                            width: "400px",
-                            backgroundColor: theme.palette.background.main,
-                            ".MuiAutocomplete-clearIndicator": {
-                              display: "none",
-                            },
-                            "& .MuiOutlinedInput-root": {
-                              ...getAutocompleteStyles(theme, { hasError: !!errors.monitoredRegulationsAndStandards })["& .MuiOutlinedInput-root"],
-                              borderRadius: "4px",
-                            },
-                            "& .MuiChip-root": {
-                              borderRadius: "4px",
-                              "& .MuiChip-deleteIcon": {
-                                display:
-                                  values.monitoredRegulationsAndStandards.length === 1
-                                    ? "none"
-                                    : "flex",
-                              },
-                            },
-                          }}
-                          slotProps={{
-                            paper: {
-                              sx: {
-                                "& .MuiAutocomplete-listbox": {
-                                  "& .MuiAutocomplete-option": {
-                                    fontSize: "13px",
-                                    color: "#1c2130",
-                                    paddingLeft: "9px",
-                                    paddingRight: "9px",
-                                  },
-                                  "& .MuiAutocomplete-option.Mui-focused": {
-                                    background: "#f9fafb",
-                                  },
-                                },
-                                "& .MuiAutocomplete-noOptions": {
-                                  fontSize: "13px",
-                                  paddingLeft: "9px",
-                                  paddingRight: "9px",
-                                },
-                              },
-                            },
-                          }}
-                        />
+                          </span>
+                        </Tooltip>
                         {removedFramework &&
                           values.monitoredRegulationsAndStandards.length === 1 && (
                             <Typography

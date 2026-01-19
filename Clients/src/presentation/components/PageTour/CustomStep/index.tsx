@@ -1,8 +1,9 @@
 import React from "react";
-import { Box, Typography, Button, IconButton } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { X } from "lucide-react";
 import { ICustomStepProps } from "../../../../domain/interfaces/i.customs";
 import { ICustomStepWrapperProps } from "../../../types/customs.types";
+import "./CustomStep.css";
 
 export const CustomStepWrapper: React.FC<ICustomStepWrapperProps> = ({
   content,
@@ -16,6 +17,7 @@ export const CustomStepWrapper: React.FC<ICustomStepWrapperProps> = ({
   size,
 }) => {
   const { header, body } = content;
+  const currentIndex = index ?? 0;
 
   return (
     <Box
@@ -31,25 +33,15 @@ export const CustomStepWrapper: React.FC<ICustomStepWrapperProps> = ({
         maxWidth: "400px",
       }}
     >
-      {/* Close button in top right */}
-      {continuous && !isLastStep && (
-        <IconButton
+      {/* Close button in top right - always show so users can exit */}
+      {continuous && (
+        <button
           {...skipProps}
-          sx={{
-            position: "absolute",
-            top: "12px",
-            right: "12px",
-            color: "rgba(255, 255, 255, 0.6)",
-            padding: "4px",
-            "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 0.1)",
-              color: "rgba(255, 255, 255, 0.9)",
-            },
-          }}
+          className="tour-close-button"
           aria-label="Close tour"
         >
           <X size={18} />
-        </IconButton>
+        </button>
       )}
 
       {/* Header */}
@@ -106,46 +98,25 @@ export const CustomStepWrapper: React.FC<ICustomStepWrapperProps> = ({
             fontSize: "12px",
           }}
         >
-          {(index ?? 0) + 1} of {size}
+          {currentIndex + 1} of {size}
         </Typography>
 
         {/* Buttons */}
-        <Box sx={{ display: "flex", gap: 2 }}>
-          {index > 0 && (
-            <Button
+        <Box sx={{ display: "flex", gap: "8px" }}>
+          {currentIndex > 0 && (
+            <button
               {...backProps}
-              sx={{
-                color: "rgba(255, 255, 255, 0.7)",
-                fontSize: "13px",
-                textTransform: "none",
-                padding: "6px 12px",
-                minWidth: "auto",
-                borderRadius: "4px",
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                },
-              }}
+              className="tour-back-button"
             >
               Back
-            </Button>
+            </button>
           )}
-          <Button
+          <button
             {...primaryProps}
-            sx={{
-              background: "linear-gradient(135deg, #13715B 0%, #16C784 100%)",
-              color: "#ffffff",
-              fontSize: "13px",
-              textTransform: "none",
-              padding: "6px 16px",
-              fontWeight: 500,
-              borderRadius: "4px",
-              "&:hover": {
-                background: "linear-gradient(135deg, #0f5a48 0%, #12a066 100%)",
-              },
-            }}
+            className="tour-primary-button"
           >
             {isLastStep ? "Finish" : "Next"}
-          </Button>
+          </button>
         </Box>
       </Box>
 

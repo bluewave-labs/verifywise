@@ -70,7 +70,7 @@ export async function insertMockData(
           ai_lifecycle_phase: "Monitoring & maintenance",
           risk_description:
             "Risk of discriminatory outcomes in candidate ranking due to biased training data or model assumptions. The AI system may inadvertently favor or disadvantage candidates based on protected characteristics such as gender, age, ethnicity, or disability status.",
-          risk_category: ["Bias and fairness risk"],
+          risk_category: ["Compliance risk"],
           impact: "High",
           assessment_mapping: "EU AI Act Article 10 - Data Governance",
           controls_mapping: "Bias Testing and Fairness Audits",

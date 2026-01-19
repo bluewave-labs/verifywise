@@ -1,11 +1,97 @@
 """API routes for evaluation logs, metrics, and experiments"""
 
 from fastapi import APIRouter, Query, Path, Request, HTTPException
+from fastapi.responses import JSONResponse
 import os
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
+from sqlalchemy import text
 
 from controllers import evaluation_logs as controller
+from database.db import get_db
+
+
+# ==================== MODEL API KEY VALIDATION ====================
+
+# Map of model providers to their required environment variables
+PROVIDER_API_KEY_MAP = {
+    "openai": "OPENAI_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "google": "GOOGLE_API_KEY",
+    "mistral": "MISTRAL_API_KEY",
+    "xai": "XAI_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+    "ollama": None,  # Ollama doesn't require an API key
+    "huggingface": None,  # HuggingFace can run locally without API key
+}
+
+# Map of known model name patterns to providers
+MODEL_TO_PROVIDER = {
+    # OpenAI models
+    "gpt-4": "openai",
+    "gpt-3.5": "openai",
+    "o1": "openai",
+    "o3": "openai",
+    # Anthropic models
+    "claude": "anthropic",
+    # Google models
+    "gemini": "google",
+    # Mistral models
+    "mistral": "mistral",
+    "mixtral": "mistral",
+    "codestral": "mistral",
+    "pixtral": "mistral",
+    # xAI models
+    "grok": "xai",
+}
+
+
+def detect_provider_from_model(model_name: str) -> Optional[str]:
+    """Detect the provider from a model name."""
+    if not model_name:
+        return None
+    model_lower = model_name.lower()
+    for pattern, provider in MODEL_TO_PROVIDER.items():
+        if pattern in model_lower:
+            return provider
+    return None
+
+
+def check_api_key_available(provider: str) -> bool:
+    """Check if the API key for a provider is available in environment variables."""
+    if provider not in PROVIDER_API_KEY_MAP:
+        return True  # Unknown provider, assume it's fine
+
+    env_var = PROVIDER_API_KEY_MAP.get(provider)
+    if env_var is None:
+        return True  # No API key required
+
+    return bool(os.getenv(env_var))
+
+
+def check_openrouter_available() -> bool:
+    """Check if OpenRouter is configured as a fallback."""
+    return bool(os.getenv("OPENROUTER_API_KEY"))
+
+
+async def check_db_api_key_available(tenant: str, provider: str) -> bool:
+    """Check if the API key for a provider is stored in the database."""
+    try:
+        async with get_db() as db:
+            result = await db.execute(
+                text(f'SELECT COUNT(*) FROM "{tenant}".evaluation_llm_api_keys WHERE provider = :provider'),
+                {"provider": provider}
+            )
+            row = result.fetchone()
+            return row[0] > 0 if row else False
+    except Exception as e:
+        print(f"Error checking DB for API key: {e}")
+        return False
+
+
+async def check_db_openrouter_available(tenant: str) -> bool:
+    """Check if OpenRouter is configured in the database as a fallback."""
+    return await check_db_api_key_available(tenant, "openrouter")
 
 
 # ==================== REQUEST MODELS ====================
@@ -53,6 +139,82 @@ class UpdateExperimentStatusRequest(BaseModel):
 # ==================== ROUTER SETUP ====================
 
 router = APIRouter(prefix="/deepeval", tags=["Evaluation Logs & Monitoring"])
+
+
+# ==================== MODEL VALIDATION ENDPOINT ====================
+
+class ValidateModelRequest(BaseModel):
+    model_name: str
+    provider: Optional[str] = None  # If not provided, will be auto-detected
+
+
+@router.post("/models/validate")
+async def validate_model_api_key(request: Request, payload: ValidateModelRequest):
+    """
+    Validate that the required API key is available for a model.
+
+    Checks both environment variables AND the database for stored API keys.
+
+    Returns:
+    {
+        "valid": true/false,
+        "model_name": "mistral-large-latest",
+        "provider": "mistral",
+        "has_api_key": true/false,
+        "has_openrouter_fallback": true/false,
+        "error_message": "MISTRAL_API_KEY not configured" (if invalid)
+    }
+    """
+    model_name = payload.model_name
+    provider = payload.provider
+    tenant = request.headers.get("x-tenant-id", "default")
+
+    # Auto-detect provider if not provided
+    if not provider:
+        provider = detect_provider_from_model(model_name)
+
+    if not provider:
+        # Unknown provider - can't validate, assume it's fine
+        has_openrouter_env = check_openrouter_available()
+        has_openrouter_db = await check_db_openrouter_available(tenant)
+        return JSONResponse(content={
+            "valid": True,
+            "model_name": model_name,
+            "provider": None,
+            "has_api_key": True,
+            "has_openrouter_fallback": has_openrouter_env or has_openrouter_db,
+            "error_message": None,
+        })
+
+    # Check both environment variables and database for API keys
+    has_api_key_env = check_api_key_available(provider)
+    has_api_key_db = await check_db_api_key_available(tenant, provider)
+    has_api_key = has_api_key_env or has_api_key_db
+
+    has_openrouter_env = check_openrouter_available()
+    has_openrouter_db = await check_db_openrouter_available(tenant)
+    has_openrouter = has_openrouter_env or has_openrouter_db
+
+    # Model is valid if it has its API key OR OpenRouter is available as fallback
+    # Note: OpenRouter can proxy to many models but not all (e.g., not ollama/huggingface local)
+    is_valid = has_api_key or (has_openrouter and provider in ["openai", "anthropic", "google", "mistral"])
+
+    env_var = PROVIDER_API_KEY_MAP.get(provider)
+    error_message = None
+    if not is_valid:
+        if env_var:
+            error_message = f"{env_var} is not configured. Please add your API key in settings or enable OpenRouter."
+        else:
+            error_message = f"API key for provider '{provider}' is not configured."
+
+    return JSONResponse(content={
+        "valid": is_valid,
+        "model_name": model_name,
+        "provider": provider,
+        "has_api_key": has_api_key,
+        "has_openrouter_fallback": has_openrouter,
+        "error_message": error_message,
+    })
 
 
 # ==================== LOGS ENDPOINTS ====================

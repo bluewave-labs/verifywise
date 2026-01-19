@@ -50,6 +50,9 @@ import {
   Quote,
   Highlighter,
   Table,
+  FileText,
+  FileDown,
+  Loader2,
 } from "lucide-react";
 
 const FormatUnderlined = () => <Underline size={16} />;
@@ -72,6 +75,7 @@ import { checkStringValidation } from "../../../application/validations/stringVa
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 import { linkPlugin, insertLink, removeLink, isLinkActive } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
+import { store } from "../../../application/redux/store";
 
 
 const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
@@ -79,7 +83,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   tags,
   template,
   onClose,
-  onSaved,
+  onSaved: _onSaved,
 }) => {
   const isNew = !policy;
   const { users } = useUsers();
@@ -90,12 +94,14 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   const [savedSelection, setSavedSelection] = useState<BaseRange | null>(null);
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingDOCX, setIsExportingDOCX] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Prefetch history data when drawer opens in edit mode
   usePolicyChangeHistory(!isNew && policy?.id ? policy.id : undefined);
 
-  // const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Track toggle state for toolbar buttons
   type ToolbarKey =
@@ -194,7 +200,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
       const fileId = response.data.id;
       // Use relative /api path - Vite dev server proxies this to backend
-      const imageUrl = `/api/file-manager/${fileId}?isFileManagerFile=true`;
+      const imageUrl = `/api/file-manager/${fileId}`;
       insertImage(editor, imageUrl, file.name);
     } catch (error) {
       console.error("Failed to upload image:", error);
@@ -554,16 +560,156 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     },
   ];
 
+  // Convert Slate-specific HTML markup to standard HTML tags for proper deserialization
+  const normalizeSlateHtml = (html: string): string => {
+    // Convert <div data-slate-type="p"> to <p>
+    let normalized = html.replace(/<div([^>]*?)data-slate-type="p"([^>]*)>/gi, '<p$1$2>');
+    normalized = normalized.replace(/<\/div>/gi, (match, offset) => {
+      // Check if this closing div corresponds to a paragraph we converted
+      const before = normalized.substring(0, offset);
+      const openParagraphs = (before.match(/<p[^>]*>/gi) || []).length;
+      const closedParagraphs = (before.match(/<\/p>/gi) || []).length;
+      if (openParagraphs > closedParagraphs) {
+        return '</p>';
+      }
+      return match;
+    });
+
+    // Convert <div data-slate-type="lic"> (list item content) to just extract the content
+    normalized = normalized.replace(/<div[^>]*data-slate-type="lic"[^>]*>/gi, '');
+
+    // Remove Slate wrapper spans that don't add semantic meaning
+    normalized = normalized.replace(/<span[^>]*data-slate-string="true"[^>]*>([^<]*)<\/span>/gi, '$1');
+    normalized = normalized.replace(/<span[^>]*data-slate-leaf="true"[^>]*>([^<]*)<\/span>/gi, '$1');
+    normalized = normalized.replace(/<span[^>]*data-slate-node="text"[^>]*>/gi, '');
+    normalized = normalized.replace(/<\/span>/gi, (match, offset) => {
+      // Only remove closing spans that were wrapping text nodes
+      const before = normalized.substring(0, offset);
+      const textNodeSpans = (before.match(/<span[^>]*data-slate-node="text"[^>]*>/gi) || []).length;
+      const closedTextSpans = before.substring(0, offset).split('</span>').length - 1;
+      if (textNodeSpans > closedTextSpans) {
+        return '';
+      }
+      return match;
+    });
+
+    // Remove the outer slate-editor wrapper div
+    normalized = normalized.replace(/<div[^>]*class="slate-editor"[^>]*>/gi, '');
+
+    return normalized;
+  };
+
+  // Convert Plate's serialized HTML output to standard semantic HTML for storage
+  // This ensures proper paragraph formatting when content is displayed outside the editor
+  const normalizeSerializedHtml = (html: string): string => {
+    let normalized = html;
+
+    // Remove nested span wrappers that Plate adds (data-slate-node="text", data-slate-leaf, data-slate-string)
+    // Keep the innermost text content and formatting tags like <strong>, <em>, etc.
+    normalized = normalized.replace(/<span[^>]*data-slate-string="true"[^>]*>([^<]*)<\/span>/gi, '$1');
+    normalized = normalized.replace(/<span[^>]*data-slate-leaf="true"[^>]*>/gi, '');
+    normalized = normalized.replace(/<span[^>]*data-slate-node="text"[^>]*>/gi, '');
+
+    // Remove orphaned closing </span> tags (from the spans we opened above)
+    // Count and remove only the extra ones
+    let spanOpenCount = (normalized.match(/<span[^>]*>/gi) || []).length;
+    let spanCloseCount = (normalized.match(/<\/span>/gi) || []).length;
+    while (spanCloseCount > spanOpenCount) {
+      normalized = normalized.replace(/<\/span>/, '');
+      spanCloseCount--;
+    }
+
+    // Convert element divs to proper semantic HTML based on block-id patterns
+    // Headings: data-block-id starting with "heading-" or "title-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="(?:title|heading)-[^"]*"[^>]*>/gi, '<h2>');
+
+    // Paragraphs: data-block-id starting with "paragraph-" or "summary-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="(?:paragraph|summary)-[^"]*"[^>]*>/gi, '<p>');
+
+    // List containers: data-block-id starting with "bullets-" or "numbered-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="bullets-[^"]*"[^>]*>/gi, '<ul>');
+    normalized = normalized.replace(/<div[^>]*data-block-id="numbered-[^"]*"[^>]*>/gi, '<ol>');
+
+    // List items: data-block-id starting with "li-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="li-[^"]*"[^>]*>/gi, '<li>');
+
+    // Any remaining element divs become paragraphs (generic content blocks)
+    normalized = normalized.replace(/<div[^>]*data-slate-node="element"[^>]*>/gi, '<p>');
+
+    // Now convert closing </div> tags to match the opening tags we converted
+    // Parse through and match them properly
+    const tokens = normalized.split(/(<[^>]+>)/);
+    const tagStack: string[] = [];
+    const result: string[] = [];
+
+    for (const token of tokens) {
+      if (token.startsWith('<') && !token.startsWith('</') && !token.endsWith('/>')) {
+        // Opening tag
+        const tagMatch = token.match(/^<(\w+)/);
+        if (tagMatch) {
+          tagStack.push(tagMatch[1]);
+        }
+        result.push(token);
+      } else if (token.startsWith('</')) {
+        // Closing tag
+        const tagMatch = token.match(/^<\/(\w+)/);
+        if (tagMatch) {
+          const closingTag = tagMatch[1].toLowerCase();
+          if (closingTag === 'div' && tagStack.length > 0) {
+            // Replace </div> with the appropriate closing tag
+            const openTag = tagStack.pop()!.toLowerCase();
+            if (['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'li', 'blockquote'].includes(openTag)) {
+              result.push(`</${openTag}>`);
+            } else {
+              result.push(token);
+            }
+          } else {
+            if (tagStack.length > 0) tagStack.pop();
+            result.push(token);
+          }
+        } else {
+          result.push(token);
+        }
+      } else {
+        result.push(token);
+      }
+    }
+
+    normalized = result.join('');
+
+    // Clean up any remaining data-* attributes
+    normalized = normalized.replace(/\s*data-[a-z-]+="[^"]*"/gi, '');
+
+    // Clean up style attributes with just position:relative
+    normalized = normalized.replace(/\s*style="position:\s*relative;?\s*"/gi, '');
+
+    // Clean up empty attributes
+    normalized = normalized.replace(/\s*style=""\s*/gi, ' ');
+    normalized = normalized.replace(/\s*class=""\s*/gi, ' ');
+
+    // Clean up multiple spaces
+    normalized = normalized.replace(/\s+/g, ' ');
+
+    // Trim whitespace around tags
+    normalized = normalized.replace(/>\s+</g, '><');
+
+    return normalized;
+  };
+
   useEffect(() => {
     if ((policy || template) && editor) {
       const api = editor.api.html;
       const content = policy?.content_html || template?.content;
+
+      // First normalize Slate-specific HTML to standard HTML tags
+      let processedContent = typeof content === "string" ? normalizeSlateHtml(content) : content;
+
       // Replace img src with data-src to prevent browser from loading images during deserialization
       // The browser automatically tries to fetch <img src="..."> when setting innerHTML,
       // which fails for authenticated API URLs. Our ImageElement component handles the auth fetch.
-      const processedContent = typeof content === "string"
-        ? content.replace(/<img\s+([^>]*)src=/gi, "<img $1data-src=")
-        : content;
+      processedContent = typeof processedContent === "string"
+        ? processedContent.replace(/<img\s+([^>]*)src=/gi, "<img $1data-src=")
+        : processedContent;
       const nodes =
         typeof processedContent === "string"
           ? api.deserialize({
@@ -854,17 +1000,14 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
     const processedValue = editorValue.map(processNode);
 
-    // Temporarily set processed value and clear selection to avoid path errors
-    const originalValue = editor.children;
-    const originalSelection = editor.selection;
-    editor.children = processedValue;
-    editor.selection = null;
+    // Create a temporary editor clone for serialization to avoid modifying the actual editor
+    // This prevents placeholders from appearing in the UI
+    const tempEditor = createPlateEditor({
+      plugins: editor.pluginList,
+      value: processedValue,
+    });
 
-    let html = await serializeHtml(editor);
-
-    // Restore original value and selection
-    editor.children = originalValue;
-    editor.selection = originalSelection;
+    let html = await serializeHtml(tempEditor);
 
     // Replace placeholders with actual HTML
     imageMap.forEach((imageNode, placeholder) => {
@@ -874,6 +1017,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       html = html.replace(placeholder, serializeTableToHtml(tableNode));
     });
 
+    // Normalize Slate's div-based output to proper semantic HTML with <p> tags
+    // This ensures proper paragraph formatting when displayed outside the editor
+    html = normalizeSerializedHtml(html);
+
     return html;
   };
 
@@ -881,7 +1028,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     if (!validateForm()) {
       return;
     }
-    // setIsSubmitting(true);
+    setIsSaving(true);
     const html = await serializeToHtml();
     const assignedReviewers = formData.assignedReviewers.map((user) => user.id);
     const payload = {
@@ -896,21 +1043,33 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     };
 
     try {
+      const startTime = Date.now();
+
       if (isNew) {
         await createPolicy(payload);
       } else {
         await updatePolicy(policy!.id, payload);
       }
 
-      // Close modal immediately and pass success message to parent
-      const successMessage = isNew
-        ? "Policy created successfully!"
-        : "Policy updated successfully!";
+      // Ensure saving state is visible for at least 1 second
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+      }
 
-      onSaved(successMessage);
+      setIsSaving(false);
+
+      // Close modal and notify parent to refresh the table
+      if (isNew && template) {
+        _onSaved("Policy created successfully from template");
+      } else if (isNew) {
+        _onSaved("Policy created successfully");
+      } else {
+        _onSaved("Policy updated successfully");
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      // setIsSubmitting(false);
+      setIsSaving(false);
       console.error("Full error object:", err);
       console.error("Original error:", err?.originalError);
       console.error("Original error response:", err?.originalError?.response);
@@ -945,6 +1104,103 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       } else {
         console.error("No errors found in response");
       }
+    }
+  };
+
+  // Export policy as PDF
+  const exportPDF = async () => {
+    if (!policy?.id) return;
+
+    setIsExportingPDF(true);
+    try {
+      const token = store.getState().auth.authToken;
+      const response = await fetch(`/api/policies/${policy.id}/export/pdf`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export PDF");
+      }
+
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+
+      // Extract filename from Content-Disposition header if available
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+          filename = match[1];
+        }
+      }
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export PDF:", error);
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
+  // Export policy as DOCX
+  const exportDOCX = async () => {
+    if (!policy?.id) return;
+
+    setIsExportingDOCX(true);
+    try {
+      const token = store.getState().auth.authToken;
+      const response = await fetch(`/api/policies/${policy.id}/export/docx`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export DOCX");
+      }
+
+      const blob = await response.blob();
+      console.log("DOCX blob size:", blob.size, "type:", blob.type);
+
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.docx`;
+
+      // Extract filename from Content-Disposition header if available
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+          filename = match[1];
+        }
+      }
+
+      // Create download link with proper MIME type
+      const docxBlob = new Blob([blob], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      });
+      const url = window.URL.createObjectURL(docxBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export DOCX:", error);
+    } finally {
+      setIsExportingDOCX(false);
     }
   };
 
@@ -1262,13 +1518,74 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             backgroundColor: "#fff",
             display: "flex",
             justifyContent: "flex-end",
+            gap: "8px",
             zIndex: 1201,
             transition: "right 300ms ease-in-out",
           }}
         >
+          {/* Export buttons - only show when editing existing policy */}
+          {!isNew && policy?.id && (
+            <>
+              <Tooltip title="Download as PDF" arrow>
+                <span>
+                  <CustomizableButton
+                    variant="outlined"
+                    text={isExportingPDF ? "Exporting..." : "PDF"}
+                    isDisabled={isExportingPDF || isExportingDOCX}
+                    sx={{
+                      backgroundColor: "#fff",
+                      border: "1px solid #D0D5DD",
+                      color: "#344054",
+                      gap: 1,
+                      minWidth: "90px",
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#98A2B3",
+                      },
+                      "&:disabled": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#E4E7EC",
+                        color: "#98A2B3",
+                      },
+                    }}
+                    onClick={exportPDF}
+                    icon={<FileText size={16} />}
+                  />
+                </span>
+              </Tooltip>
+              <Tooltip title="Download as Word" arrow>
+                <span>
+                  <CustomizableButton
+                    variant="outlined"
+                    text={isExportingDOCX ? "Exporting..." : "Word"}
+                    isDisabled={isExportingPDF || isExportingDOCX}
+                    sx={{
+                      backgroundColor: "#fff",
+                      border: "1px solid #D0D5DD",
+                      color: "#344054",
+                      gap: 1,
+                      minWidth: "90px",
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#98A2B3",
+                      },
+                      "&:disabled": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#E4E7EC",
+                        color: "#98A2B3",
+                      },
+                    }}
+                    onClick={exportDOCX}
+                    icon={<FileDown size={16} />}
+                  />
+                </span>
+              </Tooltip>
+            </>
+          )}
           <CustomizableButton
             variant="contained"
-            text={isNew && template ? "Save in organizational policies" : "Save"}
+            text={isSaving ? "Saving..." : (isNew && template ? "Save in organizational policies" : "Save")}
+            isDisabled={isSaving}
             sx={{
               backgroundColor: "#13715B",
               border: "1px solid #13715B",
@@ -1277,9 +1594,13 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                 backgroundColor: "#0F5B4D",
                 borderColor: "#0F5B4D",
               },
+              "&:disabled": {
+                backgroundColor: "#13715B",
+                opacity: 0.7,
+              },
             }}
             onClick={save}
-            icon={<SaveIcon size={16} />}
+            icon={isSaving ? <Loader2 size={16} className="animate-spin" style={{ animation: "spin 1s linear infinite" }} /> : <SaveIcon size={16} />}
           />
         </Box>
       </Drawer>

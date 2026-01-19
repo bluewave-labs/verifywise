@@ -41,11 +41,23 @@ import {
   metricsService,
   experimentsService,
   monitoringService,
+  modelValidationService,
   type EvaluationLog,
   type EvaluationMetric,
   type Experiment,
   type MonitorDashboard,
+  type ModelValidationResult,
 } from "../../infrastructure/api/evaluationLogsService";
+import {
+  deepEvalArenaService,
+  type ArenaTestCase,
+  type ArenaContestant,
+  type ArenaMetricConfig,
+  type CreateArenaComparisonRequest,
+  type ArenaComparisonResult,
+  type ArenaComparison,
+  type ArenaComparisonSummary,
+} from "../../infrastructure/api/deepEvalArenaService";
 
 // Re-export types for presentation layer
 export type {
@@ -69,6 +81,15 @@ export type {
   EvaluationMetric,
   Experiment,
   MonitorDashboard,
+  ModelValidationResult,
+  // Arena types
+  ArenaTestCase,
+  ArenaContestant,
+  ArenaMetricConfig,
+  CreateArenaComparisonRequest,
+  ArenaComparisonResult,
+  ArenaComparison,
+  ArenaComparisonSummary,
 };
 
 // Re-export utility functions for presentation layer
@@ -175,6 +196,9 @@ export const deleteLlmApiKey = (provider: LLMProvider) =>
 export const hasLlmApiKey = (provider: LLMProvider) =>
   evaluationLlmApiKeysService.hasKey(provider);
 
+export const verifyLlmApiKey = (provider: string, apiKey: string) =>
+  evaluationLlmApiKeysService.verifyKey({ provider, apiKey });
+
 // ==================== EVALUATION LOGS ====================
 
 export const createLog = (
@@ -203,6 +227,14 @@ export const getMetrics = (
 export const getMetricAggregates = (
   params: Parameters<typeof metricsService.getMetricAggregates>[0]
 ) => metricsService.getMetricAggregates(params);
+
+// ==================== MODEL VALIDATION ====================
+
+export const validateModel = (modelName: string, provider?: string) =>
+  modelValidationService.validateModel(modelName, provider);
+
+export const validateModelForExperiment = (config: Record<string, unknown>) =>
+  experimentsService.validateModelForExperiment(config);
 
 // ==================== EXPERIMENTS ====================
 
@@ -240,3 +272,21 @@ export const getMonitorDashboard = (
   projectId: string,
   params?: Parameters<typeof monitoringService.getDashboard>[1]
 ) => monitoringService.getDashboard(projectId, params);
+
+// ==================== ARENA ====================
+
+export const createArenaComparison = (
+  data: CreateArenaComparisonRequest
+) => deepEvalArenaService.createComparison(data);
+
+export const listArenaComparisons = (params?: { org_id?: string }) =>
+  deepEvalArenaService.listComparisons(params);
+
+export const getArenaComparisonStatus = (comparisonId: string) =>
+  deepEvalArenaService.getComparisonStatus(comparisonId);
+
+export const getArenaComparisonResults = (comparisonId: string) =>
+  deepEvalArenaService.getComparisonResults(comparisonId);
+
+export const deleteArenaComparison = (comparisonId: string) =>
+  deepEvalArenaService.deleteComparison(comparisonId);

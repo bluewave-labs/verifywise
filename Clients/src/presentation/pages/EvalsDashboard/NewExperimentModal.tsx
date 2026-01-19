@@ -16,9 +16,9 @@ import {
   AccordionSummary,
   AccordionDetails,
   FormHelperText,
+  Chip as MuiChip,
 } from "@mui/material";
-import type { GridProps } from "@mui/material";
-import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
+import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown, FileSearch, MessageSquare, Bot, Clock } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import SelectableCard from "../../components/SelectableCard";
 import Field from "../../components/Inputs/Field";
@@ -46,6 +46,7 @@ import {
   listScorers,
   getAllLlmApiKeys,
   addLlmApiKey,
+  validateModel,
   type DeepEvalScorer,
   type LLMApiKey,
   type LLMProvider,
@@ -59,6 +60,8 @@ interface NewExperimentModalProps {
   orgId?: string | null;
   onSuccess: () => void;
   onStarted?: (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => void;
+  /** Project's use case - determines default metrics and datasets (required) */
+  useCase: "chatbot" | "rag" | "agent";
 }
 
 const steps = ["Model", "Dataset", "Scorer / Judge", "Metrics"];
@@ -70,6 +73,7 @@ export default function NewExperimentModal({
   orgId,
   onSuccess,
   onStarted,
+  useCase,
 }: NewExperimentModalProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -82,6 +86,9 @@ export default function NewExperimentModal({
     title: string;
     body: string;
   } | null>(null);
+
+  // Track if user acknowledged API key warning and wants to proceed anyway
+  const [apiKeyWarningAcknowledged, setApiKeyWarningAcknowledged] = useState(false);
 
   // Dataset prompts state
   interface DatasetPrompt {
@@ -114,10 +121,10 @@ export default function NewExperimentModal({
   const [loadingApiKeys, setLoadingApiKeys] = useState(true);
   
 
-  // Configuration state
+  // Configuration state - taskType initialized from project's useCase prop
   const [config, setConfig] = useState({
-    // High-level task type for builtin dataset presets
-    taskType: "chatbot" as "chatbot" | "rag" | "agent",
+    // High-level task type for builtin dataset presets - synced with project use case
+    taskType: useCase as "chatbot" | "rag" | "agent",
     // Step 1: Model to be evaluated
     model: {
       name: "",
@@ -162,11 +169,17 @@ export default function NewExperimentModal({
       contextPrecision: false,
       contextRecall: false,
       faithfulness: false,
-      // Agent-specific (requires tools)
+      // Agent-specific - Reasoning Layer (requires tools)
+      planQuality: false,
+      planAdherence: false,
+      // Agent-specific - Action Layer (requires tools)
       toolSelection: false,
       toolCorrectness: false,
+      argumentCorrectness: false,
+      // Agent-specific - Execution (requires tools)
       actionRelevance: false,
       planningQuality: false,
+      stepEfficiency: false,
       // Conversational metrics (multi-turn datasets)
       turnRelevancy: true,
       knowledgeRetention: true,
@@ -187,10 +200,14 @@ export default function NewExperimentModal({
       contextPrecision: 0.5,
       contextRecall: 0.5,
       faithfulness: 0.5,
+      planQuality: 0.5,
+      planAdherence: 0.5,
       toolSelection: 0.5,
       toolCorrectness: 0.5,
+      argumentCorrectness: 0.5,
       actionRelevance: 0.5,
       planningQuality: 0.5,
+      stepEfficiency: 0.5,
       turnRelevancy: 0.5,
       knowledgeRetention: 0.5,
       conversationCoherence: 0.5,
@@ -199,7 +216,12 @@ export default function NewExperimentModal({
       conversationSafety: 0.5,
     },
   });
-  
+
+  // Reset warning acknowledgment when model changes
+  useEffect(() => {
+    setApiKeyWarningAcknowledged(false);
+  }, [config.model.name, config.model.accessMethod]);
+
   // Track if selected dataset is multi-turn
   const isMultiTurnDataset = selectedUserDataset?.turnType === "multi-turn" || 
     (selectedPresetPath && selectedPresetPath.includes("multiturn"));
@@ -227,11 +249,19 @@ export default function NewExperimentModal({
       };
 
       // Agent-specific metrics (disabled by default)
+      // Per DeepEval docs: https://deepeval.com/docs/getting-started-agents
       const agentMetrics = {
+        // Reasoning Layer
+        planQuality: false,
+        planAdherence: false,
+        // Action Layer
         toolSelection: false,
         toolCorrectness: false,
+        argumentCorrectness: false,
+        // Execution Layer
         actionRelevance: false,
         planningQuality: false,
+        stepEfficiency: false,
       };
       
       // Conversational metrics (for multi-turn - enabled by default)
@@ -267,11 +297,18 @@ export default function NewExperimentModal({
             ...ragMetrics,
             ...agentMetrics,
             ...conversationalMetrics,
-            // Enable Agent metrics
+            // Enable Agent metrics (comprehensive per DeepEval docs)
+            // Reasoning Layer
+            planQuality: true,
+            planAdherence: true,
+            // Action Layer
             toolSelection: true,
             toolCorrectness: true,
+            argumentCorrectness: true,
+            // Execution Layer
             actionRelevance: true,
-            planningQuality: true,
+            stepEfficiency: true,
+            taskCompletion: true,
           },
         };
       } else {
@@ -288,6 +325,14 @@ export default function NewExperimentModal({
       }
     });
   }, [config.taskType]);
+
+  // Sync taskType with useCase prop when modal opens
+  useEffect(() => {
+    if (isOpen && useCase !== config.taskType) {
+      setConfig(prev => ({ ...prev, taskType: useCase }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, useCase]);
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
@@ -399,11 +444,48 @@ export default function NewExperimentModal({
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      // Validate dataset has prompts before creating experiment
+      if (datasetPrompts.length === 0) {
+        setAlert({
+          show: true,
+          variant: "error",
+          title: "No prompts in dataset",
+          body: "Cannot run experiment without prompts. Please select a dataset with prompts or upload a valid dataset file.",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Validate model API key availability before creating experiment
+      const modelName = config.model.name;
+      const modelProvider = config.model.accessMethod;
+
+      // Skip validation if user already acknowledged the warning
+      if (!apiKeyWarningAcknowledged && modelName && modelProvider !== "ollama" && modelProvider !== "huggingface") {
+        try {
+          const validation = await validateModel(modelName, modelProvider);
+          if (!validation.valid) {
+            // Show warning but allow user to proceed by clicking again
+            setAlert({
+              show: true,
+              variant: "warning",
+              title: "API key may not be configured",
+              body: `${validation.error_message || `The API key for ${validation.provider || modelProvider} may not be configured.`} Click "Run experiment" again to proceed anyway.`,
+            });
+            setApiKeyWarningAcknowledged(true);
+            setLoading(false);
+            return;
+          }
+        } catch (validationError) {
+          console.warn("Model validation check failed, proceeding anyway:", validationError);
+          // Don't block if validation endpoint fails - let the experiment try to run
+        }
+      }
+
       // Auto-save any new API keys entered
       const saveApiKeyPromises: Promise<void>[] = [];
-      
+
       // Save model provider API key if entered (only for cloud providers with saved model lists)
-      const modelProvider = config.model.accessMethod;
       if (config.model.apiKey && modelProvider && PROVIDERS[modelProvider] && !hasApiKey(modelProvider)) {
         saveApiKeyPromises.push(
           addLlmApiKey({
@@ -450,12 +532,12 @@ export default function NewExperimentModal({
         hour12: true,
       });
       const dateTimeStr = `${dateStr}, ${timeStr}`;
-      const modelName = config.model.name || "Unknown Model";
-      
+      const experimentModelName = modelName || "Unknown Model";
+
       const experimentConfig = {
         project_id: projectId,
-        name: `${modelName} - ${dateTimeStr}`,
-        description: `Evaluating ${modelName} with ${datasetPrompts.length} prompts`,
+        name: `${experimentModelName} - ${dateTimeStr}`,
+        description: `Evaluating ${experimentModelName} with ${datasetPrompts.length} prompts`,
         config: {
           project_id: projectId,  // Include in config for runner
           model: {
@@ -601,7 +683,7 @@ export default function NewExperimentModal({
     setJudgeMode("standard");
     setSelectedScorer(null);
     setConfig({
-      taskType: "chatbot",
+      taskType: useCase,
       model: {
         name: "",
         accessMethod: "",
@@ -639,11 +721,17 @@ export default function NewExperimentModal({
         contextPrecision: false,
         contextRecall: false,
         faithfulness: false,
-        // Agent-specific
+        // Agent-specific - Reasoning Layer
+        planQuality: false,
+        planAdherence: false,
+        // Agent-specific - Action Layer
         toolSelection: false,
         toolCorrectness: false,
+        argumentCorrectness: false,
+        // Agent-specific - Execution
         actionRelevance: false,
         planningQuality: false,
+        stepEfficiency: false,
         // Conversational metrics (multi-turn)
         turnRelevancy: true,
         knowledgeRetention: true,
@@ -664,10 +752,14 @@ export default function NewExperimentModal({
         contextPrecision: 0.5,
         contextRecall: 0.5,
         faithfulness: 0.5,
+        planQuality: 0.5,
+        planAdherence: 0.5,
         toolSelection: 0.5,
         toolCorrectness: 0.5,
+        argumentCorrectness: 0.5,
         actionRelevance: 0.5,
         planningQuality: 0.5,
+        stepEfficiency: 0.5,
         turnRelevancy: 0.5,
         knowledgeRetention: 0.5,
         conversationCoherence: 0.5,
@@ -748,6 +840,19 @@ export default function NewExperimentModal({
 
   const selectedModelProvider = availableModelProviders.find(p => p.id === config.model.accessMethod);
 
+  // Helper function to estimate experiment duration based on prompt count
+  // Each prompt takes ~20-30 seconds (model call + judge evaluations for each metric)
+  const getEstimatedTimeRange = (promptCount: number): string => {
+    if (promptCount <= 0) return "";
+    if (promptCount <= 3) return "~1-2 minutes";
+    if (promptCount <= 5) return "~2-3 minutes";
+    if (promptCount <= 10) return "~4-6 minutes";
+    if (promptCount <= 20) return "~7-12 minutes";
+    if (promptCount <= 30) return "~12-18 minutes";
+    if (promptCount <= 50) return "~18-30 minutes";
+    return "~30+ minutes";
+  };
+
   const renderStepContent = () => {
     switch (activeStep) {
       case 0:
@@ -779,7 +884,7 @@ export default function NewExperimentModal({
                     const isSelected = config.model.accessMethod === provider.id;
                     
                     return (
-                      <Grid {...({ item: true, xs: 4, sm: 3 } as GridProps & { item: boolean; xs: number; sm: number })} key={provider.id}>
+                      <Grid size={{ xs: 4, sm: 3 }} key={provider.id}>
                         <Card
                           onClick={() =>
                             setConfig((prev) => ({
@@ -844,15 +949,12 @@ export default function NewExperimentModal({
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                width: "100%",
-                                height: provider.id === "huggingface" || provider.id === "xai" ? 56 : 48,
+                                width: 40,
+                                height: 40,
                                 mb: 1.5,
                                 "& svg": {
-                                  maxWidth: provider.id === "huggingface" || provider.id === "xai" ? "100%" : "90%",
-                                  maxHeight: "100%",
-                                  width: "auto",
-                                  height: "auto",
-                                  objectFit: "contain",
+                                  width: 32,
+                                  height: 32,
                                 },
                               }}
                             >
@@ -883,8 +985,63 @@ export default function NewExperimentModal({
             {config.model.accessMethod && (
               <Box ref={formFieldsRef}>
                 <Stack spacing={3}>
-                  {/* Model Selection - Dropdown for cloud providers, text input for local */}
-                  {PROVIDERS[config.model.accessMethod] ? (
+                  {/* Model Selection - Dropdown for cloud providers, text input for local/OpenRouter */}
+                  {config.model.accessMethod === "openrouter" ? (
+                    /* OpenRouter - Custom model input with suggestions */
+                    <Box>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                        Model
+                      </Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                        OpenRouter supports any model. Enter the model ID or select from popular options.
+                      </Typography>
+                      <Field
+                        label=""
+                        value={config.model.name}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            model: { ...prev.model, name: e.target.value },
+                          }))
+                        }
+                        placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
+                      />
+                      <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                        Popular Models
+                      </Typography>
+                      <Stack direction="row" flexWrap="wrap" gap={1}>
+                        {[
+                          { id: "openai/gpt-4o", name: "GPT-4o" },
+                          { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+                          { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
+                          { id: "meta-llama/llama-3.1-70b-instruct", name: "Llama 3.1 70B" },
+                          { id: "mistralai/mistral-large", name: "Mistral Large" },
+                        ].map((m) => (
+                          <MuiChip
+                            key={m.id}
+                            label={m.name}
+                            variant={config.model.name === m.id ? "filled" : "outlined"}
+                            onClick={() =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                model: { ...prev.model, name: m.id },
+                              }))
+                            }
+                            sx={{
+                              cursor: "pointer",
+                              backgroundColor: config.model.name === m.id ? "#E8F5F1" : "transparent",
+                              borderColor: config.model.name === m.id ? "#13715B" : "#E5E7EB",
+                              color: config.model.name === m.id ? "#13715B" : "#374151",
+                              "&:hover": {
+                                backgroundColor: config.model.name === m.id ? "#E8F5F1" : "#f9fafb",
+                                borderColor: "#13715B",
+                              },
+                            }}
+                          />
+                        ))}
+                      </Stack>
+                    </Box>
+                  ) : PROVIDERS[config.model.accessMethod] ? (
                     <Box>
                       <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
                         Model
@@ -1412,7 +1569,7 @@ export default function NewExperimentModal({
                       const isSelected = config.judgeLlm.provider === provider.id;
                       
                       return (
-                        <Grid {...({ item: true, xs: 4, sm: 3 } as GridProps & { item: boolean; xs: number; sm: number })} key={provider.id}>
+                        <Grid size={{ xs: 4, sm: 3 }} key={provider.id}>
                           <Card
                             onClick={() =>
                               setConfig((prev) => ({
@@ -1477,15 +1634,12 @@ export default function NewExperimentModal({
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
-                                  width: "100%",
-                                  height: provider.id === "huggingface" || provider.id === "xai" ? 56 : 48,
+                                  width: 40,
+                                  height: 40,
                                   mb: 1.5,
                                   "& svg": {
-                                    maxWidth: provider.id === "huggingface" || provider.id === "xai" ? "100%" : "90%",
-                                    maxHeight: "100%",
-                                    width: "auto",
-                                    height: "auto",
-                                    objectFit: "contain",
+                                    width: 32,
+                                    height: 32,
                                   },
                                 }}
                               >
@@ -1515,8 +1669,63 @@ export default function NewExperimentModal({
                 {config.judgeLlm.provider && (
                   <Box ref={formFieldsRef}>
                     <Stack spacing={3}>
-                      {/* Model Selection - Dropdown for cloud providers, text input for local */}
-                      {PROVIDERS[config.judgeLlm.provider] ? (
+                      {/* Model Selection - Dropdown for cloud providers, text input for local/OpenRouter */}
+                      {config.judgeLlm.provider === "openrouter" ? (
+                        /* OpenRouter - Custom model input with suggestions */
+                        <Box>
+                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                            Model
+                          </Typography>
+                          <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                            OpenRouter supports any model. Enter the model ID or select from popular options.
+                          </Typography>
+                          <Field
+                            label=""
+                            value={config.judgeLlm.model}
+                            onChange={(e) =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                judgeLlm: { ...prev.judgeLlm, model: e.target.value },
+                              }))
+                            }
+                            placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
+                          />
+                          <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                            Popular Models
+                          </Typography>
+                          <Stack direction="row" flexWrap="wrap" gap={1}>
+                            {[
+                              { id: "openai/gpt-4o", name: "GPT-4o" },
+                              { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+                              { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
+                              { id: "meta-llama/llama-3.1-70b-instruct", name: "Llama 3.1 70B" },
+                              { id: "mistralai/mistral-large", name: "Mistral Large" },
+                            ].map((m) => (
+                              <MuiChip
+                                key={m.id}
+                                label={m.name}
+                                variant={config.judgeLlm.model === m.id ? "filled" : "outlined"}
+                                onClick={() =>
+                                  setConfig((prev) => ({
+                                    ...prev,
+                                    judgeLlm: { ...prev.judgeLlm, model: m.id },
+                                  }))
+                                }
+                                sx={{
+                                  cursor: "pointer",
+                                  backgroundColor: config.judgeLlm.model === m.id ? "#E8F5F1" : "transparent",
+                                  borderColor: config.judgeLlm.model === m.id ? "#13715B" : "#E5E7EB",
+                                  color: config.judgeLlm.model === m.id ? "#13715B" : "#374151",
+                                  "&:hover": {
+                                    backgroundColor: config.judgeLlm.model === m.id ? "#E8F5F1" : "#f9fafb",
+                                    borderColor: "#13715B",
+                                  },
+                                }}
+                              />
+                            ))}
+                          </Stack>
+                        </Box>
+                      ) : PROVIDERS[config.judgeLlm.provider] ? (
                         <Box>
                           <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
                             Model
@@ -1662,10 +1871,35 @@ export default function NewExperimentModal({
                   No metrics available
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
-                  Standard metrics require a Judge LLM. 
+                  Standard metrics require a Judge LLM.
                   <br /> Your custom scorer will be used instead.
                 </Typography>
               </Box>
+
+              {/* Estimated time display */}
+              {datasetPrompts.length > 0 && (
+                <Box
+                  sx={{
+                    p: "8px",
+                    borderRadius: "4px",
+                    backgroundColor: "#F0FDF4",
+                    border: "1px solid #BBF7D0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Clock size={16} color="#13715B" />
+                  <Box>
+                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                      Estimated time: {getEstimatedTimeRange(datasetPrompts.length)}
+                    </Typography>
+                    <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                      Based on {datasetPrompts.length} prompt{datasetPrompts.length !== 1 ? "s" : ""} in your dataset
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
             </Stack>
           );
         }
@@ -1980,24 +2214,24 @@ export default function NewExperimentModal({
                   Agent Metrics
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                  Specifically designed for evaluating AI agents with tool usage
+                  Comprehensive agent evaluation based on{" "}
+                  <a href="https://deepeval.com/docs/getting-started-agents" target="_blank" rel="noopener noreferrer" style={{ color: "#1976d2" }}>
+                    DeepEval Agent Evaluation
+                  </a>
+                </Typography>
+                
+                {/* Reasoning Layer */}
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
+                  🧠 Reasoning Layer
                 </Typography>
                 {Object.entries({
-                  toolSelection: {
-                    label: "Tool Selection",
-                    desc: "Evaluates whether the agent selected the appropriate tool for the task.",
+                  planQuality: {
+                    label: "Plan Quality",
+                    desc: "Evaluates task understanding, decomposition, and planning coherence.",
                   },
-                  toolCorrectness: {
-                    label: "Tool Correctness",
-                    desc: "Measures whether the agent used tools with correct parameters.",
-                  },
-                  actionRelevance: {
-                    label: "Action Relevance",
-                    desc: "Checks if the agent's actions are relevant to achieving the goal.",
-                  },
-                  planningQuality: {
-                    label: "Planning Quality",
-                    desc: "Evaluates the quality and efficiency of the agent's multi-step plan.",
+                  planAdherence: {
+                    label: "Plan Adherence",
+                    desc: "Measures how well the agent follows its own plan during execution.",
                   },
                 }).map(([key, meta]) => (
                   <Box key={key} sx={{ mb: 1.5 }}>
@@ -2028,6 +2262,126 @@ export default function NewExperimentModal({
                     </Stack>
                   </Box>
                 ))}
+                
+                {/* Action Layer */}
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
+                  🔧 Action Layer
+                </Typography>
+                {Object.entries({
+                  toolSelection: {
+                    label: "Tool Selection",
+                    desc: "Evaluates whether the agent selected the appropriate tool for the task.",
+                  },
+                  toolCorrectness: {
+                    label: "Tool Correctness",
+                    desc: "Measures whether the agent used tools with correct parameters and sequence.",
+                  },
+                  argumentCorrectness: {
+                    label: "Argument Correctness",
+                    desc: "Evaluates if tool arguments are correctly typed, formatted, and extracted from context.",
+                  },
+                }).map(([key, meta]) => (
+                  <Box key={key} sx={{ mb: 1.5 }}>
+                    <Stack spacing={0.5}>
+                      <Checkbox
+                        id={`metric-${key}`}
+                        label={(meta as { label: string }).label}
+                        size="small"
+                        value={key}
+                        isChecked={config.metrics[key as keyof typeof config.metrics]}
+                        onChange={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            metrics: {
+                              ...prev.metrics,
+                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                            },
+                          }))
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                      >
+                        {(meta as { desc: string }).desc}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
+                
+                {/* Execution Layer */}
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
+                  ✅ Execution Layer
+                </Typography>
+                {Object.entries({
+                  taskCompletion: {
+                    label: "Task Completion",
+                    desc: "Measures whether the agent successfully completed the requested task.",
+                  },
+                  stepEfficiency: {
+                    label: "Step Efficiency",
+                    desc: "Evaluates if the agent completed the task with minimal unnecessary steps.",
+                  },
+                  actionRelevance: {
+                    label: "Action Relevance",
+                    desc: "Checks if all agent actions directly contribute to the goal.",
+                  },
+                }).map(([key, meta]) => (
+                  <Box key={key} sx={{ mb: 1.5 }}>
+                    <Stack spacing={0.5}>
+                      <Checkbox
+                        id={`metric-${key}`}
+                        label={(meta as { label: string }).label}
+                        size="small"
+                        value={key}
+                        isChecked={config.metrics[key as keyof typeof config.metrics]}
+                        onChange={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            metrics: {
+                              ...prev.metrics,
+                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                            },
+                          }))
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                      >
+                        {(meta as { desc: string }).desc}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
+              </Box>
+            )}
+
+            {/* Estimated time display */}
+            {datasetPrompts.length > 0 && (
+              <Box
+                sx={{
+                  mt: "16px",
+                  p: "8px",
+                  borderRadius: "4px",
+                  backgroundColor: "#F0FDF4",
+                  border: "1px solid #BBF7D0",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Clock size={16} color="#13715B" />
+                <Box>
+                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                    Estimated time: {getEstimatedTimeRange(datasetPrompts.length)}
+                  </Typography>
+                  <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                    Based on {datasetPrompts.length} prompt{datasetPrompts.length !== 1 ? "s" : ""} in your dataset
+                  </Typography>
+                </Box>
               </Box>
             )}
           </Stack>
@@ -2114,6 +2468,38 @@ export default function NewExperimentModal({
         canProceed={canProceed}
         submitButtonText="Start Experiment"
         maxWidth="700px"
+        headerBadge={
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.5,
+              px: 1,
+              py: 0.25,
+              borderRadius: "4px",
+              backgroundColor: config.taskType === "agent" ? "#EDE9FE" : config.taskType === "rag" ? "#FEF3C7" : "#DCFCE7",
+              border: `1px solid ${config.taskType === "agent" ? "#C4B5FD" : config.taskType === "rag" ? "#FCD34D" : "#86EFAC"}`,
+            }}
+          >
+            {config.taskType === "agent" ? (
+              <Bot size={12} color="#7C3AED" />
+            ) : config.taskType === "rag" ? (
+              <FileSearch size={12} color="#D97706" />
+            ) : (
+              <MessageSquare size={12} color="#16A34A" />
+            )}
+            <Typography
+              sx={{
+                fontSize: "11px",
+                fontWeight: 600,
+                color: config.taskType === "agent" ? "#7C3AED" : config.taskType === "rag" ? "#D97706" : "#16A34A",
+                textTransform: "capitalize",
+              }}
+            >
+              {config.taskType}
+            </Typography>
+          </Box>
+        }
       >
         {renderStepContent()}
       </StepperModal>

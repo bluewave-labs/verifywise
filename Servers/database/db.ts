@@ -85,6 +85,12 @@ import { EntityGraphAnnotationsModel } from "../domain.layer/models/entityGraphA
 import { EntityGraphViewsModel } from "../domain.layer/models/entityGraphViews/entityGraphViews.model";
 import { EntityGraphGapRulesModel } from "../domain.layer/models/entityGraphGapRules/entityGraphGapRules.model";
 import { PolicyLinkedObjectsModel } from "../domain.layer/models/policy/policy_linked_objects.model";
+import { ApprovalRequestModel } from "../domain.layer/models/approvalWorkflow/approvalRequest.model";
+import { ApprovalRequestStepModel } from "../domain.layer/models/approvalWorkflow/approvalRequestStep.model";
+import { ApprovalRequestStepApprovalModel } from "../domain.layer/models/approvalWorkflow/approvalRequestStepApproval.model";
+import { ApprovalStepApproversModel } from "../domain.layer/models/approvalWorkflow/approvalStepApprovers.model";
+import { ApprovalWorkflowModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflow.model";
+import { ApprovalWorkflowStepModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflowStep.model";
 
 dotenv.config();
 
@@ -179,6 +185,12 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     EntityGraphViewsModel,
     EntityGraphGapRulesModel,
     PolicyLinkedObjectsModel,
+    ApprovalRequestModel,
+    ApprovalRequestStepModel,
+    ApprovalRequestStepApprovalModel,
+    ApprovalStepApproversModel,
+    ApprovalWorkflowModel,
+    ApprovalWorkflowStepModel
   ],
 }) as Sequelize;
 

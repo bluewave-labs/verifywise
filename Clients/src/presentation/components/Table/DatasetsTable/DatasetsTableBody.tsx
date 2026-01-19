@@ -8,11 +8,9 @@ import {
   Typography,
   Menu,
   MenuItem,
-  ListItemIcon,
-  ListItemText,
   CircularProgress,
 } from "@mui/material";
-import { Trash2, MoreVertical, Eye, Edit3, Download } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { DatasetRow } from "./index";
 
@@ -310,64 +308,30 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
         open={Boolean(menuAnchorEl)}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        PaperProps={{
-          elevation: 2,
-          sx: {
-            minWidth: 160,
-            borderRadius: "8px",
-            border: "1px solid #E5E7EB",
-            "& .MuiMenuItem-root": {
-              fontSize: "13px",
-              py: 1,
-              px: 2,
-            },
+        slotProps={{
+          paper: {
+            sx: singleTheme.dropDownStyles.primary,
           },
         }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
         {onView && (
           <MenuItem onClick={handleViewClick}>
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <Eye size={16} color="#374151" />
-            </ListItemIcon>
-            <ListItemText
-              primary="View prompts"
-              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
-            />
+            View prompts
           </MenuItem>
         )}
         {onEdit && (
           <MenuItem onClick={handleEditClick}>
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <Edit3 size={16} color="#374151" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Open in editor"
-              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
-            />
+            Open in editor
           </MenuItem>
         )}
         {onDownload && (
           <MenuItem onClick={handleDownloadClick}>
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <Download size={16} color="#374151" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Download JSON"
-              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
-            />
+            Download
           </MenuItem>
         )}
         {onDelete && (
-          <MenuItem onClick={handleDeleteClick}>
-            <ListItemIcon sx={{ minWidth: "32px !important" }}>
-              <Trash2 size={16} color="#DC2626" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Delete"
-              primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }}
-            />
+          <MenuItem onClick={handleDeleteClick} sx={{ color: "#d32f2f" }}>
+            Delete
           </MenuItem>
         )}
       </Menu>

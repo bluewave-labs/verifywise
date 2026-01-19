@@ -238,3 +238,56 @@ export const deletePreferences = async (req: Request, res: Response) => {
     });
   }
 };
+
+/**
+ * Get all model preferences for the organization
+ * Returns all saved model configurations with project names
+ */
+export const getAllPreferences = async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.tenantId!;
+
+    // Get all preferences with project names
+    const [results] = await sequelize.query(`
+      SELECT 
+        mp.*,
+        p.name as project_name
+      FROM "${tenantId}".deepeval_model_preferences mp
+      LEFT JOIN "${tenantId}".deepeval_projects p ON mp.project_id = p.id
+      ORDER BY mp.updated_at DESC;
+    `);
+
+    const preferences = (results as Array<ModelPreferences & { project_name?: string }>).map(pref => ({
+      id: pref.id,
+      projectId: pref.project_id,
+      projectName: pref.project_name || 'Unknown Project',
+      model: {
+        name: pref.model_name || '',
+        accessMethod: pref.model_access_method || '',
+        endpointUrl: pref.model_endpoint_url || '',
+      },
+      judgeLlm: {
+        provider: pref.judge_provider || '',
+        model: pref.judge_model || '',
+        temperature: pref.judge_temperature ?? 0.7,
+        maxTokens: pref.judge_max_tokens ?? 2048,
+      },
+      createdAt: pref.created_at,
+      updatedAt: pref.updated_at,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: preferences,
+    });
+  } catch (error: unknown) {
+    console.error('Error fetching all model preferences:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch model preferences',
+      error: errorMessage,
+    });
+  }
+};

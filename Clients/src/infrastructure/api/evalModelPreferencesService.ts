@@ -23,6 +23,12 @@ export interface ModelPreferences {
   updatedAt?: string;
 }
 
+export interface SavedModelConfig extends ModelPreferences {
+  id: number;
+  projectName: string;
+  createdAt?: string;
+}
+
 export interface SavePreferencesRequest {
   projectId: string;
   model: {
@@ -53,8 +59,13 @@ interface DeletePreferencesResponse {
   message: string;
 }
 
+interface GetAllPreferencesResponse {
+  success: boolean;
+  data: SavedModelConfig[];
+}
+
 class EvalModelPreferencesService {
-  private baseUrl = "/eval-model-preferences";
+  private baseUrl = "/deepeval/model-preferences";
 
   /**
    * Get saved model preferences for a project
@@ -101,6 +112,19 @@ class EvalModelPreferencesService {
   async hasPreferences(projectId: string): Promise<boolean> {
     const prefs = await this.getPreferences(projectId);
     return prefs !== null;
+  }
+
+  /**
+   * Get all saved model preferences for the organization
+   */
+  async getAllPreferences(): Promise<SavedModelConfig[]> {
+    try {
+      const response = await CustomAxios.get<GetAllPreferencesResponse>(`${this.baseUrl}/all`);
+      return response.data.data || [];
+    } catch (error) {
+      console.error("Failed to fetch all model preferences:", error);
+      return [];
+    }
   }
 }
 

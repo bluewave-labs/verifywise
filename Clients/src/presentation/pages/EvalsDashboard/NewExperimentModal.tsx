@@ -52,6 +52,7 @@ import {
   type LLMProvider,
 } from "../../../application/repository/deepEval.repository";
 import { PROVIDERS, type ModelInfo } from "../../utils/providers";
+import { useModelPreferences } from "../../../application/hooks/useModelPreferences";
 
 interface NewExperimentModalProps {
   isOpen: boolean;
@@ -120,6 +121,9 @@ export default function NewExperimentModal({
   const [configuredApiKeys, setConfiguredApiKeys] = useState<LLMApiKey[]>([]);
   const [loadingApiKeys, setLoadingApiKeys] = useState(true);
 
+  // Model preferences hook for auto-loading saved settings
+  const { preferences: savedPreferences, loading: preferencesLoading, savePreferences } = useModelPreferences(projectId);
+  const [preferencesApplied, setPreferencesApplied] = useState(false);
 
   // Configuration state - taskType initialized from project's useCase prop
   const [config, setConfig] = useState({
@@ -352,6 +356,39 @@ export default function NewExperimentModal({
         setLoadingApiKeys(false);
       }
     })();
+  }, [isOpen]);
+
+  // Apply saved model/judge preferences when they finish loading
+  useEffect(() => {
+    if (!isOpen || preferencesApplied || preferencesLoading) return;
+
+    if (savedPreferences) {
+      console.log("Loading saved model preferences:", savedPreferences);
+      setConfig(prev => ({
+        ...prev,
+        model: {
+          ...prev.model,
+          name: savedPreferences.model.name || prev.model.name,
+          accessMethod: (savedPreferences.model.accessMethod || prev.model.accessMethod) as ProviderType | "",
+          endpointUrl: savedPreferences.model.endpointUrl || prev.model.endpointUrl,
+        },
+        judgeLlm: {
+          ...prev.judgeLlm,
+          provider: (savedPreferences.judgeLlm.provider || prev.judgeLlm.provider) as ProviderType | "",
+          model: savedPreferences.judgeLlm.model || prev.judgeLlm.model,
+          temperature: savedPreferences.judgeLlm.temperature ?? prev.judgeLlm.temperature,
+          maxTokens: savedPreferences.judgeLlm.maxTokens ?? prev.judgeLlm.maxTokens,
+        },
+      }));
+    }
+    setPreferencesApplied(true);
+  }, [isOpen, preferencesApplied, preferencesLoading, savedPreferences]);
+
+  // Reset preferencesApplied when modal closes so it re-applies on next open
+  useEffect(() => {
+    if (!isOpen) {
+      setPreferencesApplied(false);
+    }
   }, [isOpen]);
 
   // Load user datasets when entering the dataset step
@@ -634,6 +671,25 @@ export default function NewExperimentModal({
           created_at: new Date().toISOString(),
         });
       }
+
+      // Save model and judge preferences for next experiment (fire and forget)
+      savePreferences({
+        model: {
+          name: config.model.name,
+          accessMethod: config.model.accessMethod,
+          endpointUrl: config.model.endpointUrl,
+        },
+        judgeLlm: {
+          provider: config.judgeLlm.provider,
+          model: config.judgeLlm.model,
+          temperature: config.judgeLlm.temperature,
+          maxTokens: config.judgeLlm.maxTokens,
+        },
+      }).then(success => {
+        if (success) {
+          console.log("Model preferences saved for next experiment");
+        }
+      });
 
       // Show success message
       setAlert({

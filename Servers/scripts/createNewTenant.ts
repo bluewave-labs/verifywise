@@ -234,13 +234,6 @@ export const createNewTenant = async (
           REFERENCES public.users (id) MATCH SIMPLE
           ON UPDATE NO ACTION ON DELETE SET NULL
       );`,
-        `CREATE TABLE IF NOT EXISTS "${tenantHash}".model_files
-      (
-        id serial NOT NULL,
-        name character varying(255) NOT NULL,
-        file_content bytea NOT NULL,
-        CONSTRAINT model_files_pkey PRIMARY KEY (id)
-      );`,
         `CREATE TABLE IF NOT EXISTS "${tenantHash}".trainingregistar
       (
         id serial NOT NULL,
@@ -522,37 +515,6 @@ export const createNewTenant = async (
       CONSTRAINT vendorrisks_action_owner_fkey FOREIGN KEY (action_owner)
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL
-    );`,
-      { transaction }
-    );
-
-    await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".model_data
-    (
-      id serial NOT NULL,
-      name character varying(255) NOT NULL,
-      file_content bytea NOT NULL,
-      model_id integer NOT NULL,
-      target_column character varying(255) NOT NULL,
-      sensitive_column character varying(255) NOT NULL,
-      CONSTRAINT model_data_pkey PRIMARY KEY (id),
-      CONSTRAINT model_data_model_id_fkey FOREIGN KEY (model_id)
-        REFERENCES "${tenantHash}".model_files (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`,
-      { transaction }
-    );
-
-    await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".fairness_runs
-    (
-      id serial NOT NULL,
-      data_id integer NOT NULL,
-      metrics jsonb NOT NULL,
-      CONSTRAINT fairness_runs_pkey PRIMARY KEY (id),
-      CONSTRAINT fairness_runs_data_id_fkey FOREIGN KEY (data_id)
-        REFERENCES "${tenantHash}".model_data (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
     );`,
       { transaction }
     );

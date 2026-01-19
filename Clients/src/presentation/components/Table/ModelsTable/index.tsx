@@ -35,13 +35,9 @@ export type SortConfig = {
 };
 
 export interface ModelRow {
-    id: number;
-    projectId: string;
-    projectName: string;
+    id: string;
     modelName: string;
     modelProvider: string;
-    judgeProvider: string;
-    judgeModel: string;
     createdAt?: string | null;
     updatedAt?: string | null;
 }
@@ -121,11 +117,6 @@ const ModelsTable: React.FC<ModelsTableProps> = ({
             let bValue: string | number;
 
             switch (sortConfig.key) {
-                case "projectName":
-                    aValue = a.projectName.toLowerCase();
-                    bValue = b.projectName.toLowerCase();
-                    break;
-
                 case "modelName":
                     aValue = a.modelName.toLowerCase();
                     bValue = b.modelName.toLowerCase();
@@ -134,11 +125,6 @@ const ModelsTable: React.FC<ModelsTableProps> = ({
                 case "modelProvider":
                     aValue = a.modelProvider.toLowerCase();
                     bValue = b.modelProvider.toLowerCase();
-                    break;
-
-                case "judgeModel":
-                    aValue = a.judgeModel.toLowerCase();
-                    bValue = b.judgeModel.toLowerCase();
                     break;
 
                 case "updatedAt":

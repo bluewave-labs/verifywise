@@ -17,7 +17,7 @@ import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
-import { evalModelPreferencesService, type SavedModelConfig } from "../../../infrastructure/api/evalModelPreferencesService";
+import { evalModelsService, type SavedModel } from "../../../infrastructure/api/evalModelsService";
 import Alert from "../../components/Alert";
 import StandardModal from "../../components/Modals/StandardModal";
 import ModelsTable, { type ModelRow } from "../../components/Table/ModelsTable";
@@ -54,7 +54,6 @@ const MODEL_PROVIDERS = [
 
 export interface ModelsPageProps {
     orgId?: string | null;
-    onNavigateToProject?: (projectId: string) => void;
 }
 
 interface AlertState {
@@ -68,8 +67,8 @@ interface NewModelConfig {
     endpointUrl: string;
 }
 
-export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPageProps) {
-    const [models, setModels] = useState<SavedModelConfig[]>([]);
+export default function ModelsPage({ orgId }: ModelsPageProps) {
+    const [models, setModels] = useState<SavedModel[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [alert, setAlert] = useState<AlertState | null>(null);
@@ -96,8 +95,8 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
     const loadModels = useCallback(async () => {
         try {
             setLoading(true);
-            const allPrefs = await evalModelPreferencesService.getAllPreferences();
-            setModels(allPrefs);
+            const allModels = await evalModelsService.listModels(orgId ?? undefined);
+            setModels(allModels);
         } catch (err) {
             console.error("Failed to load models", err);
             setAlert({ variant: "error", body: "Failed to load models" });
@@ -105,7 +104,7 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [orgId]);
 
     useEffect(() => {
         void loadModels();
@@ -113,22 +112,22 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
 
     const filterColumns: FilterColumn[] = useMemo(
         () => [
-            { id: "modelName", label: "Name", type: "text" },
-            { id: "modelProvider", label: "Provider", type: "text" },
+            { id: "name", label: "Name", type: "text" },
+            { id: "provider", label: "Provider", type: "text" },
         ],
         []
     );
 
     const getFieldValue = useCallback(
         (
-            m: SavedModelConfig,
+            m: SavedModel,
             fieldId: string
         ): string | number | Date | null | undefined => {
             switch (fieldId) {
-                case "modelName":
-                    return m.model.name;
-                case "modelProvider":
-                    return m.model.accessMethod;
+                case "name":
+                    return m.name;
+                case "provider":
+                    return m.provider;
                 default:
                     return "";
             }
@@ -137,14 +136,14 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
     );
 
     const { filterData, handleFilterChange } =
-        useFilterBy<SavedModelConfig>(getFieldValue);
+        useFilterBy<SavedModel>(getFieldValue);
 
     const filteredModels = useMemo(() => {
         const afterFilter = filterData(models);
         if (!searchTerm.trim()) return afterFilter;
         const q = searchTerm.toLowerCase();
         return afterFilter.filter((m) =>
-            [m.model.name, m.model.accessMethod]
+            [m.name, m.provider]
                 .filter(Boolean)
                 .join(" ")
                 .toLowerCase()
@@ -152,27 +151,17 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
         );
     }, [models, filterData, searchTerm]);
 
-    // Convert SavedModelConfig to ModelRow for the table
+    // Convert SavedModel to ModelRow for the table
     const modelRows: ModelRow[] = useMemo(() => {
         return filteredModels.map((m) => ({
             id: m.id,
-            projectId: m.projectId,
-            projectName: m.projectName,
-            modelName: m.model.name,
-            modelProvider: m.model.accessMethod,
-            judgeProvider: m.judgeLlm.provider,
-            judgeModel: m.judgeLlm.model,
+            modelName: m.name,
+            modelProvider: m.provider,
             createdAt: m.createdAt,
             updatedAt: m.updatedAt,
         }));
     }, [filteredModels]);
 
-    // Row click handler - navigate to project
-    const handleRowClick = useCallback((row: ModelRow) => {
-        if (onNavigateToProject) {
-            onNavigateToProject(row.projectId);
-        }
-    }, [onNavigateToProject]);
 
     // Delete handler from menu
     const handleDelete = useCallback((row: ModelRow) => {
@@ -184,9 +173,9 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
         if (!modelToDelete) return;
         setIsDeleting(true);
         try {
-            const success = await evalModelPreferencesService.deletePreferences(modelToDelete.projectId);
+            const success = await evalModelsService.deleteModel(modelToDelete.id);
             if (success) {
-                setAlert({ variant: "success", body: "Model configuration deleted" });
+                setAlert({ variant: "success", body: "Model deleted successfully" });
                 setTimeout(() => setAlert(null), 3000);
                 setDeleteModalOpen(false);
                 setModelToDelete(null);
@@ -222,25 +211,15 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
 
         setIsSaving(true);
         try {
-            // Generate a unique project ID for standalone models
-            const projectId = `model_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-            const success = await evalModelPreferencesService.savePreferences({
-                projectId,
-                model: {
-                    name: newModel.modelName,
-                    accessMethod: newModel.accessMethod,
-                    endpointUrl: newModel.endpointUrl || undefined,
-                },
-                judgeLlm: {
-                    provider: "openai",
-                    model: "gpt-4o",
-                    temperature: 0.7,
-                    maxTokens: 2048,
-                },
+            // Create model using the new API
+            const created = await evalModelsService.createModel({
+                orgId: orgId ?? undefined,
+                name: newModel.modelName,
+                provider: newModel.accessMethod,
+                endpointUrl: newModel.endpointUrl || undefined,
             });
 
-            if (success) {
+            if (created) {
                 setAlert({ variant: "success", body: "Model added successfully" });
                 setTimeout(() => setAlert(null), 3000);
                 setAddModalOpen(false);
@@ -325,7 +304,6 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
             <Box mb={4}>
                 <ModelsTable
                     rows={modelRows}
-                    onRowClick={onNavigateToProject ? handleRowClick : undefined}
                     onDelete={canDeleteModel ? handleDelete : undefined}
                     loading={loading}
                 />

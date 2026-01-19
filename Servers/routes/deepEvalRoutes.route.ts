@@ -3,7 +3,6 @@ import authenticateJWT from "../middleware/auth.middleware";
 import express, { NextFunction, Request, Response, Router } from "express";
 import { LLMProvider, VALID_PROVIDERS } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
 import { getDecryptedKeyForProviderQuery } from "../utils/evaluationLlmApiKey.utils";
-import { getPreferences, savePreferences, deletePreferences, getAllPreferences } from "../controllers/evalModelPreferences.ctrl";
 
 // JSON body parser for routes that need to inspect/modify the body before proxying
 const jsonParser = express.json({ limit: "50mb" });
@@ -233,13 +232,7 @@ function deepEvalRoutes() {
     },
   });
 
-  // Model preferences routes (not proxied - direct database operations)
-  router.get("/model-preferences/all", authenticateJWT, getAllPreferences);
-  router.get("/model-preferences/:projectId", authenticateJWT, getPreferences);
-  router.post("/model-preferences", authenticateJWT, savePreferences);
-  router.delete("/model-preferences/:projectId", authenticateJWT, deletePreferences);
-
-  // All other routes go through the proxy to Python eval server
+  // All routes go through the proxy to Python eval server (including /models)
   router.use("/", authenticateJWT, jsonParser, injectApiKeys, proxy);
 
   return router;

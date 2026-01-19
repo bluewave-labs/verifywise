@@ -35,7 +35,7 @@ import {
   type LLMApiKey,
 } from "../../../application/repository/deepEval.repository";
 import type { LLMProvider } from "../../../infrastructure/api/evaluationLlmApiKeysService";
-import { evalModelPreferencesService } from "../../../infrastructure/api/evalModelPreferencesService";
+import { evalModelsService } from "../../../infrastructure/api/evalModelsService";
 import { Plus as PlusIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { Chip, Collapse, IconButton, CircularProgress } from "@mui/material";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
@@ -679,7 +679,7 @@ export default function EvalsDashboard() {
         setScorersCount(scorersData.scorers?.length || 0);
 
         // Load saved models count
-        const modelsData = await evalModelPreferencesService.getAllPreferences();
+        const modelsData = await evalModelsService.listModels();
         setModelsCount(modelsData.length || 0);
 
         // Load arena battles count
@@ -1626,12 +1626,7 @@ export default function EvalsDashboard() {
               )}
 
               {tab === "models" && (
-                <ModelsPage
-                  orgId={orgId}
-                  onNavigateToProject={(navProjectId) => {
-                    navigate(`/evals/${navProjectId}#experiments`);
-                  }}
-                />
+                <ModelsPage orgId={orgId} />
               )}
 
               {tab === "arena" && (

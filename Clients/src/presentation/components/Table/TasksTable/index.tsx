@@ -27,6 +27,7 @@ import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../types/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
 import CategoryChip from "../../Chip/CategoryChip/CategoryChip";
+import { DISPLAY_TO_PRIORITY_MAP, PRIORITY_DISPLAY_MAP } from "../../../constants/priorityOptions";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -49,20 +50,6 @@ const DISPLAY_TO_STATUS_MAP: Record<string, string> = {
   Overdue: "Overdue",
   Archived: "Deleted", // Map "Archived" display back to "Deleted" status
 };
-
-// Priority display mapping
-const PRIORITY_DISPLAY_MAP: Record<string, string> = {
-  [TaskPriority.LOW]: "Low",
-  [TaskPriority.MEDIUM]: "Medium",
-  [TaskPriority.HIGH]: "High",
-};
-
-// Reverse mapping for API calls
-const DISPLAY_TO_PRIORITY_MAP: Record<string, string> = {
-  Low: "Low",
-  Medium: "Medium",
-  High: "High"
-}
 
 const titleOfTableColumns = [
   { id: "title", label: "Task", sortable: true },

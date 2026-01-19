@@ -49,6 +49,7 @@ import TipBox from "../../components/TipBox";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import Alert from "../../components/Alert";
+import { TASK_PRIORITY_OPTIONS, PRIORITY_DISPLAY_MAP, PRIORITY_COLOR_MAP } from "../../constants/priorityOptions";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -64,27 +65,6 @@ const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.COMPLETED]: "Completed",
   [TaskStatus.OVERDUE]: "Overdue",
   [TaskStatus.DELETED]: "Archived", // Show "Archived" instead of "Deleted" for better UX
-};
-
-// Task priority options for CustomSelect
-const TASK_PRIORITY_OPTIONS = [
-  TaskPriority.HIGH,
-  TaskPriority.MEDIUM,
-  TaskPriority.LOW,
-];
-
-// Priority display mapping
-const PRIORITY_DISPLAY_MAP: Record<string, string> = {
-  [TaskPriority.HIGH]: "High",
-  [TaskPriority.MEDIUM]: "Medium",
-  [TaskPriority.LOW]: "Low",
-};
-
-// Priority color mapping
-const PRIORITY_COLOR_MAP: Record<string, string> = {
-  [TaskPriority.HIGH]: "#ef4444",
-  [TaskPriority.MEDIUM]: "#f59e0b",
-  [TaskPriority.LOW]: "#10b981",
 };
 
 const Tasks: React.FC = () => {

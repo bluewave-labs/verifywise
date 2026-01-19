@@ -10,6 +10,7 @@ import {
     MenuItem,
     FormControl,
     Chip as MuiChip,
+    CircularProgress,
 } from "@mui/material";
 import { Plus, Check } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -18,6 +19,12 @@ import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { evalModelsService, type SavedModel } from "../../../infrastructure/api/evalModelsService";
+import {
+    getAllLlmApiKeys,
+    addLlmApiKey,
+    type LLMApiKey,
+    type LLMProvider,
+} from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import StandardModal from "../../components/Modals/StandardModal";
 import ModelsTable, { type ModelRow } from "../../components/Table/ModelsTable";
@@ -41,15 +48,15 @@ import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 
 // Provider definitions for the model selector
 const MODEL_PROVIDERS = [
-    { id: "openrouter", name: "OpenRouter", Logo: OpenRouterLogo },
-    { id: "openai", name: "OpenAI", Logo: OpenAILogo },
-    { id: "anthropic", name: "Anthropic", Logo: AnthropicLogo },
-    { id: "google", name: "Gemini", Logo: GeminiLogo },
-    { id: "xai", name: "xAI", Logo: XAILogo },
-    { id: "mistral", name: "Mistral", Logo: MistralLogo },
-    { id: "huggingface", name: "Hugging Face", Logo: HuggingFaceLogo },
-    { id: "ollama", name: "Ollama", Logo: OllamaLogo },
-    { id: "custom", name: "Custom", Logo: BuildIcon },
+    { id: "openrouter", name: "OpenRouter", Logo: OpenRouterLogo, needsApiKey: true },
+    { id: "openai", name: "OpenAI", Logo: OpenAILogo, needsApiKey: true },
+    { id: "anthropic", name: "Anthropic", Logo: AnthropicLogo, needsApiKey: true },
+    { id: "google", name: "Gemini", Logo: GeminiLogo, needsApiKey: true },
+    { id: "xai", name: "xAI", Logo: XAILogo, needsApiKey: true },
+    { id: "mistral", name: "Mistral", Logo: MistralLogo, needsApiKey: true },
+    { id: "huggingface", name: "Hugging Face", Logo: HuggingFaceLogo, needsApiKey: false },
+    { id: "ollama", name: "Ollama", Logo: OllamaLogo, needsApiKey: false },
+    { id: "custom", name: "Custom", Logo: BuildIcon, needsApiKey: true },
 ];
 
 export interface ModelsPageProps {
@@ -65,6 +72,7 @@ interface NewModelConfig {
     accessMethod: string;
     modelName: string;
     endpointUrl: string;
+    apiKey: string;
 }
 
 export default function ModelsPage({ orgId }: ModelsPageProps) {
@@ -90,7 +98,38 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
         accessMethod: "",
         modelName: "",
         endpointUrl: "",
+        apiKey: "",
     });
+
+    // API keys state
+    const [configuredApiKeys, setConfiguredApiKeys] = useState<LLMApiKey[]>([]);
+    const [loadingApiKeys, setLoadingApiKeys] = useState(true);
+
+    // Load configured API keys when modal opens
+    useEffect(() => {
+        if (!addModalOpen) return;
+        (async () => {
+            try {
+                setLoadingApiKeys(true);
+                const keys = await getAllLlmApiKeys();
+                setConfiguredApiKeys(keys);
+            } catch {
+                /* ignore */
+            } finally {
+                setLoadingApiKeys(false);
+            }
+        })();
+    }, [addModalOpen]);
+
+    // Check if a provider has a configured API key
+    const hasApiKey = useCallback((providerId: string): boolean => {
+        return configuredApiKeys.some((k) => k.provider === providerId);
+    }, [configuredApiKeys]);
+
+    // Get provider config from MODEL_PROVIDERS
+    const getModelProvider = useCallback((providerId: string) => {
+        return MODEL_PROVIDERS.find((p) => p.id === providerId);
+    }, []);
 
     const loadModels = useCallback(async () => {
         try {
@@ -198,6 +237,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
             accessMethod: "",
             modelName: "",
             endpointUrl: "",
+            apiKey: "",
         });
         setAddModalOpen(true);
     };
@@ -209,8 +249,32 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
             return;
         }
 
+        // Check if API key is required and not configured
+        const modelProvider = getModelProvider(newModel.accessMethod);
+        const needsApiKey = modelProvider?.needsApiKey;
+        const hasSavedKey = hasApiKey(newModel.accessMethod);
+
+        if (needsApiKey && !hasSavedKey && !newModel.apiKey) {
+            setAlert({ variant: "error", body: "Please enter an API key for this provider" });
+            setTimeout(() => setAlert(null), 4000);
+            return;
+        }
+
         setIsSaving(true);
         try {
+            // Save API key if entered and not already configured
+            if (newModel.apiKey && newModel.accessMethod && modelProvider && !hasSavedKey) {
+                try {
+                    const newKey = await addLlmApiKey({
+                        provider: newModel.accessMethod as LLMProvider,
+                        apiKey: newModel.apiKey,
+                    });
+                    setConfiguredApiKeys((prev) => [...prev, newKey]);
+                } catch (err) {
+                    console.warn("Failed to save API key:", err);
+                }
+            }
+
             // Create model using the new API
             const created = await evalModelsService.createModel({
                 orgId: orgId ?? undefined,
@@ -329,224 +393,264 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                 isOpen={addModalOpen}
                 onClose={() => setAddModalOpen(false)}
                 title="Add Model"
-                description="Configure a new model for evaluation experiments."
+                description="Select the model you want to save for future experiments."
                 onSubmit={handleSaveNewModel}
-                submitButtonText="Save"
+                submitButtonText="Save Model"
                 isSubmitting={isSaving}
                 submitButtonColor="#13715B"
                 maxWidth="md"
             >
-                <Stack spacing={4}>
-                    {/* Provider Selection */}
-                    <Box>
-                        <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                            Model provider
+                {loadingApiKeys ? (
+                    <Box sx={{ py: 4, textAlign: "center" }}>
+                        <CircularProgress size={24} />
+                        <Typography sx={{ mt: 1, fontSize: "13px", color: "#6B7280" }}>
+                            Loading providers...
                         </Typography>
-                        <Grid container spacing={1.5}>
-                            {MODEL_PROVIDERS.map((provider) => {
-                                const { Logo } = provider;
-                                const isSelected = newModel.accessMethod === provider.id;
+                    </Box>
+                ) : (
+                    <Stack spacing={4}>
+                        {/* Provider Selection */}
+                        <Box>
+                            <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                                Model provider
+                            </Typography>
+                            <Grid container spacing={1.5}>
+                                {MODEL_PROVIDERS.map((provider) => {
+                                    const { Logo } = provider;
+                                    const isSelected = newModel.accessMethod === provider.id;
 
-                                return (
-                                    <Grid size={{ xs: 4, sm: 3 }} key={provider.id}>
-                                        <Card
-                                            onClick={() =>
-                                                setNewModel((prev) => ({
-                                                    ...prev,
-                                                    accessMethod: provider.id,
-                                                    modelName: "",
-                                                }))
-                                            }
-                                            sx={{
-                                                cursor: "pointer",
-                                                border: "1px solid",
-                                                borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                                                backgroundColor: "#FFFFFF",
-                                                boxShadow: "none",
-                                                transition: "all 0.2s ease",
-                                                position: "relative",
-                                                height: "100%",
-                                                "&:hover": {
-                                                    borderColor: "#13715B",
-                                                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                                                },
-                                            }}
-                                        >
-                                            <CardContent
+                                    return (
+                                        <Grid size={{ xs: 4, sm: 3 }} key={provider.id}>
+                                            <Card
+                                                onClick={() =>
+                                                    setNewModel((prev) => ({
+                                                        ...prev,
+                                                        accessMethod: provider.id,
+                                                        modelName: "",
+                                                    }))
+                                                }
                                                 sx={{
-                                                    textAlign: "center",
-                                                    py: 3,
-                                                    px: 2,
+                                                    cursor: "pointer",
+                                                    border: "1px solid",
+                                                    borderColor: isSelected ? "#13715B" : "#E5E7EB",
+                                                    backgroundColor: "#FFFFFF",
+                                                    boxShadow: "none",
+                                                    transition: "all 0.2s ease",
+                                                    position: "relative",
                                                     height: "100%",
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    "&:last-child": { pb: 3 },
+                                                    "&:hover": {
+                                                        borderColor: "#13715B",
+                                                        boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                                                    },
                                                 }}
                                             >
-                                                {isSelected && (
+                                                <CardContent
+                                                    sx={{
+                                                        textAlign: "center",
+                                                        py: 3,
+                                                        px: 2,
+                                                        height: "100%",
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        "&:last-child": { pb: 3 },
+                                                    }}
+                                                >
+                                                    {isSelected && (
+                                                        <Box
+                                                            sx={{
+                                                                position: "absolute",
+                                                                top: 8,
+                                                                right: 8,
+                                                                backgroundColor: "#13715B",
+                                                                borderRadius: "50%",
+                                                                width: 20,
+                                                                height: 20,
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                            }}
+                                                        >
+                                                            <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                                                        </Box>
+                                                    )}
+
                                                     <Box
                                                         sx={{
-                                                            position: "absolute",
-                                                            top: 8,
-                                                            right: 8,
-                                                            backgroundColor: "#13715B",
-                                                            borderRadius: "50%",
-                                                            width: 20,
-                                                            height: 20,
                                                             display: "flex",
                                                             alignItems: "center",
                                                             justifyContent: "center",
+                                                            width: 40,
+                                                            height: 40,
+                                                            mb: 1.5,
+                                                            "& svg": {
+                                                                width: 32,
+                                                                height: 32,
+                                                            },
                                                         }}
                                                     >
-                                                        <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                                                        <Logo />
                                                     </Box>
-                                                )}
 
-                                                <Box
+                                                    <Typography
+                                                        sx={{
+                                                            fontSize: "12px",
+                                                            fontWeight: isSelected ? 600 : 500,
+                                                            color: isSelected ? "#13715B" : "#374151",
+                                                            textAlign: "center",
+                                                        }}
+                                                    >
+                                                        {provider.name}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    );
+                                })}
+                            </Grid>
+                        </Box>
+
+                        {/* Model Selection */}
+                        {newModel.accessMethod && (
+                            <Box>
+                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                    Model
+                                </Typography>
+
+                                {newModel.accessMethod === "openrouter" ? (
+                                    /* OpenRouter - Custom model input with suggestions */
+                                    <Box>
+                                        <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                                            OpenRouter supports any model. Enter the model ID or select from popular options.
+                                        </Typography>
+                                        <Field
+                                            label=""
+                                            value={newModel.modelName}
+                                            onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
+                                            placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
+                                        />
+                                        <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                                            Popular Models
+                                        </Typography>
+                                        <Stack direction="row" flexWrap="wrap" gap={1}>
+                                            {[
+                                                { id: "openai/gpt-4o", name: "GPT-4o" },
+                                                { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+                                                { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
+                                                { id: "meta-llama/llama-3.1-70b-instruct", name: "Llama 3.1 70B" },
+                                                { id: "mistralai/mistral-large", name: "Mistral Large" },
+                                            ].map((m) => (
+                                                <MuiChip
+                                                    key={m.id}
+                                                    label={m.name}
+                                                    variant={newModel.modelName === m.id ? "filled" : "outlined"}
+                                                    onClick={() => setNewModel((prev) => ({ ...prev, modelName: m.id }))}
                                                     sx={{
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        justifyContent: "center",
-                                                        width: 40,
-                                                        height: 40,
-                                                        mb: 1.5,
-                                                        "& svg": {
-                                                            width: 32,
-                                                            height: 32,
+                                                        cursor: "pointer",
+                                                        backgroundColor: newModel.modelName === m.id ? "#E8F5F1" : "transparent",
+                                                        borderColor: newModel.modelName === m.id ? "#13715B" : "#E5E7EB",
+                                                        color: newModel.modelName === m.id ? "#13715B" : "#374151",
+                                                        "&:hover": {
+                                                            backgroundColor: newModel.modelName === m.id ? "#E8F5F1" : "#f9fafb",
+                                                            borderColor: "#13715B",
                                                         },
                                                     }}
-                                                >
-                                                    <Logo />
-                                                </Box>
-
-                                                <Typography
-                                                    sx={{
-                                                        fontSize: "12px",
-                                                        fontWeight: isSelected ? 600 : 500,
-                                                        color: isSelected ? "#13715B" : "#374151",
-                                                        textAlign: "center",
-                                                    }}
-                                                >
-                                                    {provider.name}
+                                                />
+                                            ))}
+                                        </Stack>
+                                    </Box>
+                                ) : newModel.accessMethod === "ollama" || newModel.accessMethod === "custom" ? (
+                                    /* Ollama/Custom - Text input */
+                                    <Box>
+                                        <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                                            {newModel.accessMethod === "ollama"
+                                                ? "Enter the name of your locally running Ollama model."
+                                                : "Enter the model identifier for your custom endpoint."}
+                                        </Typography>
+                                        <Field
+                                            label=""
+                                            value={newModel.modelName}
+                                            onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
+                                            placeholder={newModel.accessMethod === "ollama" ? "e.g., llama3.2, mistral" : "e.g., my-custom-model"}
+                                        />
+                                        {newModel.accessMethod === "custom" && (
+                                            <Box sx={{ mt: 2 }}>
+                                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                                    Endpoint URL
                                                 </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
-                                );
-                            })}
-                        </Grid>
-                    </Box>
-
-                    {/* Model Selection */}
-                    {newModel.accessMethod && (
-                        <Box>
-                            <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
-                                Model
-                            </Typography>
-
-                            {newModel.accessMethod === "openrouter" ? (
-                                /* OpenRouter - Custom model input with suggestions */
-                                <Box>
-                                    <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
-                                        OpenRouter supports any model. Enter the model ID or select from popular options.
-                                    </Typography>
+                                                <Field
+                                                    label=""
+                                                    value={newModel.endpointUrl}
+                                                    onChange={(e) => setNewModel((prev) => ({ ...prev, endpointUrl: e.target.value }))}
+                                                    placeholder="https://your-api-endpoint.com/v1"
+                                                />
+                                            </Box>
+                                        )}
+                                    </Box>
+                                ) : availableModels.length > 0 ? (
+                                    /* Standard providers - Dropdown */
+                                    <FormControl fullWidth size="small">
+                                        <Select
+                                            value={newModel.modelName}
+                                            onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
+                                            displayEmpty
+                                            sx={{ backgroundColor: "#fff" }}
+                                        >
+                                            <MenuItem value="" disabled>
+                                                Select a model
+                                            </MenuItem>
+                                            {availableModels.map((model) => (
+                                                <MenuItem key={model.id} value={model.id}>
+                                                    {model.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                ) : (
+                                    /* Fallback text input */
                                     <Field
                                         label=""
                                         value={newModel.modelName}
                                         onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
-                                        placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
+                                        placeholder="Enter model name"
                                     />
-                                    <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
-                                        Popular Models
-                                    </Typography>
-                                    <Stack direction="row" flexWrap="wrap" gap={1}>
-                                        {[
-                                            { id: "openai/gpt-4o", name: "GPT-4o" },
-                                            { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
-                                            { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
-                                            { id: "meta-llama/llama-3.1-70b-instruct", name: "Llama 3.1 70B" },
-                                            { id: "mistralai/mistral-large", name: "Mistral Large" },
-                                        ].map((m) => (
-                                            <MuiChip
-                                                key={m.id}
-                                                label={m.name}
-                                                variant={newModel.modelName === m.id ? "filled" : "outlined"}
-                                                onClick={() => setNewModel((prev) => ({ ...prev, modelName: m.id }))}
-                                                sx={{
-                                                    cursor: "pointer",
-                                                    backgroundColor: newModel.modelName === m.id ? "#E8F5F1" : "transparent",
-                                                    borderColor: newModel.modelName === m.id ? "#13715B" : "#E5E7EB",
-                                                    color: newModel.modelName === m.id ? "#13715B" : "#374151",
-                                                    "&:hover": {
-                                                        backgroundColor: newModel.modelName === m.id ? "#E8F5F1" : "#f9fafb",
-                                                        borderColor: "#13715B",
-                                                    },
-                                                }}
-                                            />
-                                        ))}
+                                )}
+                            </Box>
+                        )}
+
+                        {/* API Key - show configured status OR input field */}
+                        {newModel.accessMethod && getModelProvider(newModel.accessMethod)?.needsApiKey && (
+                            hasApiKey(newModel.accessMethod) ? (
+                                <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                                    <Stack direction="row" alignItems="center" spacing={1}>
+                                        <Check size={16} color="#059669" />
+                                        <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                                            API key configured — will be used for this model
+                                        </Typography>
                                     </Stack>
                                 </Box>
-                            ) : newModel.accessMethod === "ollama" || newModel.accessMethod === "custom" ? (
-                                /* Ollama/Custom - Text input */
+                            ) : (
                                 <Box>
-                                    <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
-                                        {newModel.accessMethod === "ollama"
-                                            ? "Enter the name of your locally running Ollama model."
-                                            : "Enter the model identifier for your custom endpoint."}
+                                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                        API Key
                                     </Typography>
                                     <Field
                                         label=""
-                                        value={newModel.modelName}
-                                        onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
-                                        placeholder={newModel.accessMethod === "ollama" ? "e.g., llama3.2, mistral" : "e.g., my-custom-model"}
+                                        type="password"
+                                        value={newModel.apiKey}
+                                        onChange={(e) => setNewModel((prev) => ({ ...prev, apiKey: e.target.value }))}
+                                        placeholder={`Enter your ${MODEL_PROVIDERS.find(p => p.id === newModel.accessMethod)?.name || newModel.accessMethod} API key`}
+                                        autoComplete="off"
                                     />
-                                    {newModel.accessMethod === "custom" && (
-                                        <Box sx={{ mt: 2 }}>
-                                            <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
-                                                Endpoint URL
-                                            </Typography>
-                                            <Field
-                                                label=""
-                                                value={newModel.endpointUrl}
-                                                onChange={(e) => setNewModel((prev) => ({ ...prev, endpointUrl: e.target.value }))}
-                                                placeholder="https://your-api-endpoint.com/v1"
-                                            />
-                                        </Box>
-                                    )}
+                                    <Typography sx={{ fontSize: "11px", color: "#6b7280", mt: 0.5 }}>
+                                        Your key will be saved securely for future experiments
+                                    </Typography>
                                 </Box>
-                            ) : availableModels.length > 0 ? (
-                                /* Standard providers - Dropdown */
-                                <FormControl fullWidth size="small">
-                                    <Select
-                                        value={newModel.modelName}
-                                        onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
-                                        displayEmpty
-                                        sx={{ backgroundColor: "#fff" }}
-                                    >
-                                        <MenuItem value="" disabled>
-                                            Select a model
-                                        </MenuItem>
-                                        {availableModels.map((model) => (
-                                            <MenuItem key={model.id} value={model.id}>
-                                                {model.name}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            ) : (
-                                /* Fallback text input */
-                                <Field
-                                    label=""
-                                    value={newModel.modelName}
-                                    onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
-                                    placeholder="Enter model name"
-                                />
-                            )}
-                        </Box>
-                    )}
-                </Stack>
+                            )
+                        )}
+                    </Stack>
+                )}
             </StandardModal>
         </Box>
     );

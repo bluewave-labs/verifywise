@@ -11,15 +11,15 @@ import {
 } from "@mui/material";
 import { Trash2, MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { SavedModelRow } from "./index";
+import { ModelRow } from "./index";
 import CustomizableButton from "../../Button/CustomizableButton";
 
-interface SavedModelsTableBodyProps {
-    rows: SavedModelRow[];
-    page: number;
-    rowsPerPage: number;
-    onRowClick?: (model: SavedModelRow) => void;
-    onDelete?: (model: SavedModelRow) => void;
+interface ModelsTableBodyProps {
+  rows: ModelRow[];
+  page: number;
+  rowsPerPage: number;
+  onRowClick?: (model: ModelRow) => void;
+  onDelete?: (model: ModelRow) => void;
 }
 
 const formatDate = (dateStr?: string | null): string => {
@@ -50,17 +50,17 @@ const getProviderColor = (provider: string): { bg: string; text: string } => {
     return colors[provider.toLowerCase()] || { bg: "#F5F5F5", text: "#616161" };
 };
 
-const SavedModelsTableBody: React.FC<SavedModelsTableBodyProps> = ({
-    rows,
-    page,
-    rowsPerPage,
-    onRowClick,
-    onDelete,
+const ModelsTableBody: React.FC<ModelsTableBodyProps> = ({
+  rows,
+  page,
+  rowsPerPage,
+  onRowClick,
+  onDelete,
 }) => {
-    const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
-    const [menuRow, setMenuRow] = useState<SavedModelRow | null>(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuRow, setMenuRow] = useState<ModelRow | null>(null);
 
-    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, row: SavedModelRow) => {
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, row: ModelRow) => {
         e.stopPropagation();
         setMenuAnchorEl(e.currentTarget);
         setMenuRow(row);
@@ -250,4 +250,4 @@ const SavedModelsTableBody: React.FC<SavedModelsTableBodyProps> = ({
     );
 };
 
-export default SavedModelsTableBody;
+export default ModelsTableBody;

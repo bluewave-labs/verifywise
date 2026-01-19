@@ -9,13 +9,13 @@ interface Column {
     sortable: boolean;
 }
 
-interface SavedModelsTableHeadProps {
+interface ModelsTableHeadProps {
     columns: Column[];
     sortConfig: SortConfig;
     onSort: (columnId: string) => void;
 }
 
-const SavedModelsTableHead: React.FC<SavedModelsTableHeadProps> = ({
+const ModelsTableHead: React.FC<ModelsTableHeadProps> = ({
     columns,
     sortConfig,
     onSort,
@@ -100,4 +100,4 @@ const SavedModelsTableHead: React.FC<SavedModelsTableHeadProps> = ({
     );
 };
 
-export default SavedModelsTableHead;
+export default ModelsTableHead;

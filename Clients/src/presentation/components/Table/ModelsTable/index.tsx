@@ -14,8 +14,8 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
-import SavedModelsTableHead from "./SavedModelsTableHead";
-import SavedModelsTableBody from "./SavedModelsTableBody";
+import ModelsTableHead from "./ModelsTableHead";
+import ModelsTableBody from "./ModelsTableBody";
 import EmptyState from "../../EmptyState";
 import {
     getPaginationRowCount,
@@ -26,7 +26,7 @@ const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
     <ChevronsUpDown size={16} {...props} />
 );
 
-const MODELS_SORTING_KEY = "verifywise_saved_models_sorting";
+const MODELS_SORTING_KEY = "verifywise_models_sorting";
 
 export type SortDirection = "asc" | "desc" | null;
 export type SortConfig = {
@@ -34,7 +34,7 @@ export type SortConfig = {
     direction: SortDirection;
 };
 
-export interface SavedModelRow {
+export interface ModelRow {
     id: number;
     projectId: string;
     projectName: string;
@@ -46,10 +46,10 @@ export interface SavedModelRow {
     updatedAt?: string | null;
 }
 
-export interface SavedModelsTableProps {
-    rows: SavedModelRow[];
-    onRowClick?: (model: SavedModelRow) => void;
-    onDelete?: (model: SavedModelRow) => void;
+export interface ModelsTableProps {
+    rows: ModelRow[];
+    onRowClick?: (model: ModelRow) => void;
+    onDelete?: (model: ModelRow) => void;
     loading?: boolean;
 }
 
@@ -62,7 +62,7 @@ const columns = [
     { id: "actions", label: "ACTION", sortable: false },
 ];
 
-const SavedModelsTable: React.FC<SavedModelsTableProps> = ({
+const ModelsTable: React.FC<ModelsTableProps> = ({
     rows,
     onRowClick,
     onDelete,
@@ -71,7 +71,7 @@ const SavedModelsTable: React.FC<SavedModelsTableProps> = ({
     const theme = useTheme();
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(() =>
-        getPaginationRowCount("savedModels", 10)
+        getPaginationRowCount("models", 10)
     );
 
     // Initialize sorting state from localStorage or default to date desc
@@ -118,7 +118,7 @@ const SavedModelsTable: React.FC<SavedModelsTableProps> = ({
 
         const sortableRows = [...rows];
 
-        return sortableRows.sort((a: SavedModelRow, b: SavedModelRow) => {
+        return sortableRows.sort((a: ModelRow, b: ModelRow) => {
             let aValue: string | number;
             let bValue: string | number;
 
@@ -193,7 +193,7 @@ const SavedModelsTable: React.FC<SavedModelsTableProps> = ({
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const newRowsPerPage = parseInt(event.target.value, 10);
             setRowsPerPage(newRowsPerPage);
-            setPaginationRowCount("savedModels", newRowsPerPage);
+            setPaginationRowCount("models", newRowsPerPage);
             setPage(0);
         },
         []
@@ -202,7 +202,7 @@ const SavedModelsTable: React.FC<SavedModelsTableProps> = ({
     return (
         <TableContainer>
             <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
-                <SavedModelsTableHead
+                <ModelsTableHead
                     columns={columns}
                     sortConfig={sortConfig}
                     onSort={handleSort}
@@ -216,7 +216,7 @@ const SavedModelsTable: React.FC<SavedModelsTableProps> = ({
                         </TableRow>
                     </TableBody>
                 ) : sortedRows.length !== 0 ? (
-                    <SavedModelsTableBody
+                    <ModelsTableBody
                         rows={sortedRows}
                         page={validPage}
                         rowsPerPage={rowsPerPage}
@@ -227,7 +227,7 @@ const SavedModelsTable: React.FC<SavedModelsTableProps> = ({
                     <TableBody>
                         <TableRow>
                             <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                                <EmptyState message="No saved models found. Model preferences are automatically saved when you run an experiment." />
+                                <EmptyState message="No models found. Model preferences are automatically saved when you run an experiment." />
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -317,4 +317,4 @@ const SavedModelsTable: React.FC<SavedModelsTableProps> = ({
     );
 };
 
-export default SavedModelsTable;
+export default ModelsTable;

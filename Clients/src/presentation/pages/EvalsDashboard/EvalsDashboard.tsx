@@ -60,7 +60,7 @@ import ProjectOverview from "./ProjectOverview";
 import ProjectExperiments from "./ProjectExperiments";
 import { ProjectDatasets } from "./ProjectDatasets";
 import ProjectScorers from "./ProjectScorers";
-import SavedModelsPage from "./SavedModelsPage";
+import ModelsPage from "./ModelsPage";
 import ExperimentDetailContent from "./ExperimentDetailContent";
 import ArenaPage from "./ArenaPage";
 import type { DeepEvalProject } from "./types";
@@ -1626,7 +1626,7 @@ export default function EvalsDashboard() {
               )}
 
               {tab === "models" && (
-                <SavedModelsPage
+                <ModelsPage
                   orgId={orgId}
                   onNavigateToProject={(navProjectId) => {
                     navigate(`/evals/${navProjectId}#experiments`);

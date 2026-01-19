@@ -216,6 +216,36 @@ export async function updateTaskStatus({
 }
 
 /**
+ * Updates only the status of a task (quick status change)
+ *
+ * @param {object} params - Parameters for updating task status
+ * @param {string|number} params.id - The task ID
+ * @param {TaskPriority} params.priority - The new priority
+ * @param {string} [params.authToken] - Optional auth token
+ * @returns {Promise<any>} The updated task data
+ * @throws Will throw an error if the request fails
+ */
+export async function updateTaskPriority({
+  id,
+  priority,
+}: {
+  id: string | number;
+  priority: TaskPriority;
+  authToken?: string;
+}): Promise<any> {
+  try {
+    const response = await apiServices.put(
+      `/tasks/${id}`,
+      { priority }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating priority:", error);
+    throw error;
+  }
+}
+
+/**
  * Restores an archived task back to active status
  *
  * @param {object} params - Parameters for restoring a task

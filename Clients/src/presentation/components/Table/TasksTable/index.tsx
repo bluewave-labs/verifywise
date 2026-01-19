@@ -17,13 +17,13 @@ import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import EmptyState from "../../EmptyState";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, Flag } from "lucide-react";
 import CustomSelect from "../../CustomSelect";
 import IconButtonComponent from "../../IconButton";
 import Chip from "../../Chip";
 import DaysChip from "../../Chip/DaysChip";
 
-import { TaskStatus } from "../../../../domain/enums/task.enum";
+import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../types/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
 import CategoryChip from "../../Chip/CategoryChip/CategoryChip";
@@ -50,9 +50,23 @@ const DISPLAY_TO_STATUS_MAP: Record<string, string> = {
   Archived: "Deleted", // Map "Archived" display back to "Deleted" status
 };
 
+// Priority display mapping
+const PRIORITY_DISPLAY_MAP: Record<string, string> = {
+  [TaskPriority.LOW]: "Low",
+  [TaskPriority.MEDIUM]: "Medium",
+  [TaskPriority.HIGH]: "High",
+};
+
+// Reverse mapping for API calls
+const DISPLAY_TO_PRIORITY_MAP: Record<string, string> = {
+  Low: "Low",
+  Medium: "Medium",
+  High: "High"
+}
+
 const titleOfTableColumns = [
   { id: "title", label: "Task", sortable: true },
-  { id: "priority", label: "Priority", sortable: true },
+  { id: "priority", label: "Priority", sortable: false },
   { id: "status", label: "Status", sortable: true },
   { id: "due_date", label: "Due date", sortable: true },
   { id: "assignees", label: "Assignees", sortable: false },
@@ -158,6 +172,8 @@ const TasksTable: React.FC<ITasksTableProps> = ({
   onRestore,
   onHardDelete,
   flashRowId,
+  onPriorityChange,
+  priorityOptions,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -216,7 +232,11 @@ const TasksTable: React.FC<ITasksTableProps> = ({
     }
 
     // Priority order for sorting
-    const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+    const priorityOrder = {
+      [TaskPriority.LOW]: 1,
+      [TaskPriority.MEDIUM]: 2,
+      [TaskPriority.HIGH]: 3,
+    };
 
     // Status order for sorting
     const statusOrder = {
@@ -346,7 +366,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                       >
                         {task.title}
                       </Typography>
-                      <CategoryChip categories={task.categories || []}/>
+                      <CategoryChip categories={task.categories || []} />
                     </Box>
                   </TableCell>
 
@@ -356,8 +376,34 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                       ...cellStyle,
                       backgroundColor: sortConfig.key === "priority" ? singleTheme.tableColors.sortedColumn : undefined,
                     }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <Chip label={task.priority} />
+                    {isArchived ? (
+                      <Typography
+                        sx={{
+                          fontSize: 13,
+                          color: "#6b7280",
+                          fontStyle: "italic",
+                          px: 1,
+                        }}
+                      >
+                        Archived
+                      </Typography>
+                    ) : (
+                      <CustomSelect
+                        currentValue={
+                          PRIORITY_DISPLAY_MAP[task.priority] || task.priority
+                        }
+                        onValueChange={async (displayValue: string) => {
+                          const apiValue =
+                            DISPLAY_TO_PRIORITY_MAP[displayValue] || displayValue;
+                          return await onPriorityChange(task.id!)(apiValue);
+                        }}
+                        options={priorityOptions}
+                        disabled={isUpdateDisabled}
+                        size="small"
+                      />
+                    )}
                   </TableCell>
 
                   {/* Status */}
@@ -555,6 +601,8 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       onHardDelete,
       sortConfig,
       flashRowId,
+      priorityOptions,
+      onPriorityChange,
     ]
   );
 

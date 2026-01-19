@@ -64,7 +64,7 @@ async def get_all_orgs(tenant: str, db: AsyncSession) -> List[Dict[str, Any]]:
 
 async def get_projects_for_org(org_id: str, tenant: str, db: AsyncSession) -> List[str]:
     res = await db.execute(
-        text(f'SELECT id FROM "{tenant}".deepeval_projects WHERE org_id = :org_id ORDER BY created_at DESC'),
+        text(f'SELECT id FROM "{tenant}".llm_evals_projects WHERE org_id = :org_id ORDER BY created_at DESC'),
         {"org_id": org_id},
     )
     return [row[0] for row in res.fetchall()]

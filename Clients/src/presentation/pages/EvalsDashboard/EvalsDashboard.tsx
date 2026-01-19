@@ -1617,20 +1617,44 @@ export default function EvalsDashboard() {
                 ) : null
               )}
 
-              {tab === "datasets" && orgId && (
-                <ProjectDatasets projectId={projectId} orgId={orgId} />
+              {tab === "datasets" && (
+                orgId ? (
+                  <ProjectDatasets projectId={projectId} orgId={orgId} />
+                ) : (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+                    <CircularProgress size={32} />
+                  </Box>
+                )
               )}
 
-              {tab === "scorers" && projectId && orgId && (
-                <ProjectScorers projectId={projectId} orgId={orgId} />
+              {tab === "scorers" && projectId && (
+                orgId ? (
+                  <ProjectScorers projectId={projectId} orgId={orgId} />
+                ) : (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+                    <CircularProgress size={32} />
+                  </Box>
+                )
               )}
 
-              {tab === "models" && orgId && (
-                <ModelsPage orgId={orgId} />
+              {tab === "models" && (
+                orgId ? (
+                  <ModelsPage orgId={orgId} />
+                ) : (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+                    <CircularProgress size={32} />
+                  </Box>
+                )
               )}
 
-              {tab === "arena" && orgId && (
-                <ArenaPage orgId={orgId} />
+              {tab === "arena" && (
+                orgId ? (
+                  <ArenaPage orgId={orgId} />
+                ) : (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+                    <CircularProgress size={32} />
+                  </Box>
+                )
               )}
 
               {tab === "configuration" && (

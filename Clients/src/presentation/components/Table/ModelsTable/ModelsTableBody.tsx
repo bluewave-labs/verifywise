@@ -97,7 +97,7 @@ const ModelsTableBody: React.FC<ModelsTableBodyProps> = ({
                                 },
                             }}
                         >
-                            {/* PROJECT NAME */}
+                            {/* NAME */}
                             <TableCell
                                 sx={{
                                     ...singleTheme.tableStyles.primary.body.cell,
@@ -105,11 +105,11 @@ const ModelsTableBody: React.FC<ModelsTableBodyProps> = ({
                                 }}
                             >
                                 <Typography sx={{ fontWeight: 500, fontSize: "14px" }}>
-                                    {model.projectName}
+                                    {model.modelName || "-"}
                                 </Typography>
                             </TableCell>
 
-                            {/* MODEL NAME - center aligned */}
+                            {/* DATE - center aligned */}
                             <TableCell
                                 sx={{
                                     ...singleTheme.tableStyles.primary.body.cell,
@@ -117,8 +117,8 @@ const ModelsTableBody: React.FC<ModelsTableBodyProps> = ({
                                     textTransform: "none",
                                 }}
                             >
-                                <Typography sx={{ fontSize: "14px" }}>
-                                    {model.modelName || "-"}
+                                <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
+                                    {formatDate(model.updatedAt)}
                                 </Typography>
                             </TableCell>
 
@@ -145,32 +145,6 @@ const ModelsTableBody: React.FC<ModelsTableBodyProps> = ({
                                 ) : (
                                     "-"
                                 )}
-                            </TableCell>
-
-                            {/* JUDGE MODEL - center aligned */}
-                            <TableCell
-                                sx={{
-                                    ...singleTheme.tableStyles.primary.body.cell,
-                                    textAlign: "center",
-                                    textTransform: "none",
-                                }}
-                            >
-                                <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
-                                    {model.judgeModel ? `${model.judgeProvider}/${model.judgeModel}` : "-"}
-                                </Typography>
-                            </TableCell>
-
-                            {/* LAST UPDATED - center aligned */}
-                            <TableCell
-                                sx={{
-                                    ...singleTheme.tableStyles.primary.body.cell,
-                                    textAlign: "center",
-                                    textTransform: "none",
-                                }}
-                            >
-                                <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                                    {formatDate(model.updatedAt)}
-                                </Typography>
                             </TableCell>
 
                             {/* ACTION - center aligned */}

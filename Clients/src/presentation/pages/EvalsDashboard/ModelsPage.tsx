@@ -9,7 +9,6 @@ import {
     Select,
     MenuItem,
     FormControl,
-    CircularProgress,
     Chip as MuiChip,
 } from "@mui/material";
 import { Plus, Check } from "lucide-react";
@@ -19,7 +18,6 @@ import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { evalModelPreferencesService, type SavedModelConfig } from "../../../infrastructure/api/evalModelPreferencesService";
-import { getAllProjects } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import StandardModal from "../../components/Modals/StandardModal";
 import ModelsTable, { type ModelRow } from "../../components/Table/ModelsTable";
@@ -64,13 +62,7 @@ interface AlertState {
     body: string;
 }
 
-interface Project {
-    id: string;
-    name: string;
-}
-
 interface NewModelConfig {
-    projectId: string;
     accessMethod: string;
     modelName: string;
     endpointUrl: string;
@@ -95,10 +87,7 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
     // New model modal state
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [loadingProjects, setLoadingProjects] = useState(false);
     const [newModel, setNewModel] = useState<NewModelConfig>({
-        projectId: "",
         accessMethod: "",
         modelName: "",
         endpointUrl: "",
@@ -118,33 +107,13 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
         }
     }, []);
 
-    const loadProjects = useCallback(async () => {
-        try {
-            setLoadingProjects(true);
-            const result = await getAllProjects();
-            setProjects(result.projects || []);
-        } catch (err) {
-            console.error("Failed to load projects", err);
-        } finally {
-            setLoadingProjects(false);
-        }
-    }, []);
-
     useEffect(() => {
         void loadModels();
     }, [orgId, loadModels]);
 
-    // Load projects when modal opens
-    useEffect(() => {
-        if (addModalOpen) {
-            void loadProjects();
-        }
-    }, [addModalOpen, loadProjects]);
-
     const filterColumns: FilterColumn[] = useMemo(
         () => [
-            { id: "projectName", label: "Project", type: "text" },
-            { id: "modelName", label: "Model", type: "text" },
+            { id: "modelName", label: "Name", type: "text" },
             { id: "modelProvider", label: "Provider", type: "text" },
         ],
         []
@@ -156,8 +125,6 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
             fieldId: string
         ): string | number | Date | null | undefined => {
             switch (fieldId) {
-                case "projectName":
-                    return m.projectName;
                 case "modelName":
                     return m.model.name;
                 case "modelProvider":
@@ -177,7 +144,7 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
         if (!searchTerm.trim()) return afterFilter;
         const q = searchTerm.toLowerCase();
         return afterFilter.filter((m) =>
-            [m.projectName, m.model.name, m.model.accessMethod, m.judgeLlm.provider, m.judgeLlm.model]
+            [m.model.name, m.model.accessMethod]
                 .filter(Boolean)
                 .join(" ")
                 .toLowerCase()
@@ -239,7 +206,6 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
     // Handle adding a new model
     const handleAddModel = () => {
         setNewModel({
-            projectId: "",
             accessMethod: "",
             modelName: "",
             endpointUrl: "",
@@ -248,16 +214,19 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
     };
 
     const handleSaveNewModel = async () => {
-        if (!newModel.projectId || !newModel.accessMethod || !newModel.modelName) {
-            setAlert({ variant: "error", body: "Please fill in all required fields" });
+        if (!newModel.accessMethod || !newModel.modelName) {
+            setAlert({ variant: "error", body: "Please select a provider and model" });
             setTimeout(() => setAlert(null), 4000);
             return;
         }
 
         setIsSaving(true);
         try {
+            // Generate a unique project ID for standalone models
+            const projectId = `model_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
             const success = await evalModelPreferencesService.savePreferences({
-                projectId: newModel.projectId,
+                projectId,
                 model: {
                     name: newModel.modelName,
                     accessMethod: newModel.accessMethod,
@@ -327,7 +296,6 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
                     <GroupBy
                         options={[
                             { id: "modelProvider", label: "Provider" },
-                            { id: "projectName", label: "Project" },
                         ]}
                         onGroupChange={() => { }}
                     />
@@ -371,7 +339,7 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
                     setModelToDelete(null);
                 }}
                 title="Delete model"
-                description={`Are you sure you want to delete the model configuration for "${modelToDelete?.projectName || "this project"}"? This will reset the model preferences for this project.`}
+                description={`Are you sure you want to delete "${modelToDelete?.modelName || "this model"}"? This action cannot be undone.`}
                 onSubmit={handleConfirmDelete}
                 submitButtonText="Delete"
                 isSubmitting={isDeleting}
@@ -391,36 +359,6 @@ export default function ModelsPage({ orgId, onNavigateToProject }: ModelsPagePro
                 maxWidth="md"
             >
                 <Stack spacing={4}>
-                    {/* Project Selection */}
-                    <Box>
-                        <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#374151", mb: 1.5 }}>
-                            Project
-                        </Typography>
-                        {loadingProjects ? (
-                            <Box sx={{ py: 2, textAlign: "center" }}>
-                                <CircularProgress size={20} />
-                            </Box>
-                        ) : (
-                            <FormControl fullWidth size="small">
-                                <Select
-                                    value={newModel.projectId}
-                                    onChange={(e) => setNewModel((prev) => ({ ...prev, projectId: e.target.value }))}
-                                    displayEmpty
-                                    sx={{ backgroundColor: "#fff" }}
-                                >
-                                    <MenuItem value="" disabled>
-                                        Select a project
-                                    </MenuItem>
-                                    {projects.map((project) => (
-                                        <MenuItem key={project.id} value={project.id}>
-                                            {project.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        )}
-                    </Box>
-
                     {/* Provider Selection */}
                     <Box>
                         <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>

@@ -122,7 +122,7 @@ export default function NewExperimentModal({
   const [loadingApiKeys, setLoadingApiKeys] = useState(true);
 
   // Model preferences hook for auto-loading saved settings
-  const { preferences: savedPreferences, loading: preferencesLoading, savePreferences } = useModelPreferences(projectId);
+  const { preferences: savedPreferences, loading: preferencesLoading, savePreferences } = useModelPreferences(projectId, orgId);
   const [preferencesApplied, setPreferencesApplied] = useState(false);
 
   // Configuration state - taskType initialized from project's useCase prop

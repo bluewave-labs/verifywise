@@ -51,8 +51,8 @@ export interface ModelsTableProps {
 
 const columns = [
     { id: "modelName", label: "NAME", sortable: true },
-    { id: "updatedAt", label: "DATE", sortable: true },
     { id: "modelProvider", label: "PROVIDER", sortable: true },
+    { id: "updatedAt", label: "DATE", sortable: true },
     { id: "actions", label: "ACTION", sortable: false },
 ];
 

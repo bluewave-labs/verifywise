@@ -109,19 +109,6 @@ const ModelsTableBody: React.FC<ModelsTableBodyProps> = ({
                                 </Typography>
                             </TableCell>
 
-                            {/* DATE - center aligned */}
-                            <TableCell
-                                sx={{
-                                    ...singleTheme.tableStyles.primary.body.cell,
-                                    textAlign: "center",
-                                    textTransform: "none",
-                                }}
-                            >
-                                <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
-                                    {formatDate(model.updatedAt)}
-                                </Typography>
-                            </TableCell>
-
                             {/* PROVIDER - center aligned with chip */}
                             <TableCell
                                 sx={{
@@ -132,7 +119,7 @@ const ModelsTableBody: React.FC<ModelsTableBodyProps> = ({
                             >
                                 {model.modelProvider ? (
                                     <Chip
-                                        label={model.modelProvider}
+                                        label={model.modelProvider.charAt(0).toUpperCase() + model.modelProvider.slice(1)}
                                         size="small"
                                         sx={{
                                             backgroundColor: providerColors.bg,
@@ -145,6 +132,19 @@ const ModelsTableBody: React.FC<ModelsTableBodyProps> = ({
                                 ) : (
                                     "-"
                                 )}
+                            </TableCell>
+
+                            {/* DATE - center aligned */}
+                            <TableCell
+                                sx={{
+                                    ...singleTheme.tableStyles.primary.body.cell,
+                                    textAlign: "center",
+                                    textTransform: "none",
+                                }}
+                            >
+                                <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
+                                    {formatDate(model.updatedAt)}
+                                </Typography>
                             </TableCell>
 
                             {/* ACTION - center aligned */}

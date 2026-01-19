@@ -251,6 +251,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     } catch (err) {
       console.error("Failed to update experiment name:", err);
       setAlert({ variant: "error", body: "Failed to save name" });
+      setTimeout(() => setAlert(null), 15000);
     } finally {
       setSaving(false);
     }
@@ -272,6 +273,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     } catch (err) {
       console.error("Failed to update experiment description:", err);
       setAlert({ variant: "error", body: "Failed to save description" });
+      setTimeout(() => setAlert(null), 15000);
     } finally {
       setSaving(false);
     }
@@ -322,7 +324,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     } catch (err) {
       console.error("Failed to rerun experiment:", err);
       setAlert({ variant: "error", body: "Failed to start rerun" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
     } finally {
       setRerunLoading(false);
     }

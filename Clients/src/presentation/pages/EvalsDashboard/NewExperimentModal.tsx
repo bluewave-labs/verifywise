@@ -78,7 +78,7 @@ export default function NewExperimentModal({
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const formFieldsRef = useRef<HTMLDivElement>(null);
-  
+
   // Alert state for showing success/error messages
   const [alert, setAlert] = useState<{
     show: boolean;
@@ -115,11 +115,11 @@ export default function NewExperimentModal({
   const [selectedScorer, setSelectedScorer] = useState<DeepEvalScorer | null>(null);
   const [selectedScorerIds, setSelectedScorerIds] = useState<string[]>([]); // Multi-select scorer IDs
   const [loadingScorers, setLoadingScorers] = useState(false);
-  
+
   // Configured API keys state
   const [configuredApiKeys, setConfiguredApiKeys] = useState<LLMApiKey[]>([]);
   const [loadingApiKeys, setLoadingApiKeys] = useState(true);
-  
+
 
   // Configuration state - taskType initialized from project's useCase prop
   const [config, setConfig] = useState({
@@ -223,7 +223,7 @@ export default function NewExperimentModal({
   }, [config.model.name, config.model.accessMethod]);
 
   // Track if selected dataset is multi-turn
-  const isMultiTurnDataset = selectedUserDataset?.turnType === "multi-turn" || 
+  const isMultiTurnDataset = selectedUserDataset?.turnType === "multi-turn" ||
     (selectedPresetPath && selectedPresetPath.includes("multiturn"));
 
   // Update metric defaults when task type changes
@@ -263,7 +263,7 @@ export default function NewExperimentModal({
         planningQuality: false,
         stepEfficiency: false,
       };
-      
+
       // Conversational metrics (for multi-turn - enabled by default)
       const conversationalMetrics = {
         turnRelevancy: true,
@@ -331,7 +331,7 @@ export default function NewExperimentModal({
     if (isOpen && useCase !== config.taskType) {
       setConfig(prev => ({ ...prev, taskType: useCase }));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, useCase]);
 
   const handleNext = () => {
@@ -499,7 +499,7 @@ export default function NewExperimentModal({
           })
         );
       }
-      
+
       // Save judge provider API key if entered
       const judgeProvider = config.judgeLlm.provider;
       if (config.judgeLlm.apiKey && judgeProvider && PROVIDERS[judgeProvider] && !hasApiKey(judgeProvider)) {
@@ -514,10 +514,10 @@ export default function NewExperimentModal({
           })
         );
       }
-      
+
       // Wait for API keys to be saved (don't block if they fail)
       await Promise.allSettled(saveApiKeyPromises);
-      
+
       // Prepare experiment configuration
       // Create experiment name with model name + date/time
       const now = new Date();
@@ -642,7 +642,7 @@ export default function NewExperimentModal({
         title: "Experiment Created!",
         body: `Your experiment has been created and is now running. Experiment ID: ${response.experiment?.id || "N/A"}`,
       });
-      
+
       // Close modal after a short delay to let user see the success message
       setTimeout(() => {
         onSuccess();
@@ -652,7 +652,7 @@ export default function NewExperimentModal({
       }, 2000);
     } catch (err) {
       console.error("Failed to create experiment:", err);
-      
+
       // Extract error message
       let errorMessage = "Failed to create experiment. Please try again.";
       if (err instanceof Error) {
@@ -661,7 +661,7 @@ export default function NewExperimentModal({
         const axiosError = err as { response?: { data?: { detail?: string } } };
         errorMessage = axiosError.response?.data?.detail || errorMessage;
       }
-      
+
       setAlert({
         show: true,
         variant: "error",
@@ -797,7 +797,7 @@ export default function NewExperimentModal({
   const availableJudgeProviders = [...cloudProviders, ...localProviders];
 
   const selectedProvider = availableJudgeProviders.find(p => p.id === config.judgeLlm.provider);
-  
+
   // Get models for selected provider
   const getProviderModels = (providerId: string): ModelInfo[] => {
     // For cloud providers, use the saved model lists
@@ -834,7 +834,7 @@ export default function NewExperimentModal({
     { id: "local" as ProviderType, name: "Local", Logo: FolderFilledIcon, needsApiKey: false, needsUrl: true },
     { id: "custom_api" as ProviderType, name: "Custom API", Logo: BuildIcon, needsApiKey: true, needsUrl: true },
   ];
-  
+
   // Show all providers - we'll handle missing API keys with a message
   const availableModelProviders = allModelProviders;
 
@@ -882,7 +882,7 @@ export default function NewExperimentModal({
                   {availableModelProviders.map((provider) => {
                     const { Logo } = provider;
                     const isSelected = config.model.accessMethod === provider.id;
-                    
+
                     return (
                       <Grid size={{ xs: 4, sm: 3 }} key={provider.id}>
                         <Card
@@ -942,7 +942,7 @@ export default function NewExperimentModal({
                                 <Check size={12} color="#FFFFFF" strokeWidth={3} />
                               </Box>
                             )}
-                            
+
                             {/* Provider Logo */}
                             <Box
                               sx={{
@@ -960,7 +960,7 @@ export default function NewExperimentModal({
                             >
                               <Logo />
                             </Box>
-                            
+
                             {/* Provider Name */}
                             <Typography
                               sx={{
@@ -1100,11 +1100,11 @@ export default function NewExperimentModal({
                         }))
                       }
                       placeholder={
-                        config.model.accessMethod === "ollama" 
-                          ? "e.g., llama2, mistral, codellama" 
+                        config.model.accessMethod === "ollama"
+                          ? "e.g., llama2, mistral, codellama"
                           : config.model.accessMethod === "huggingface"
-                          ? "e.g., TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-                          : "e.g., gpt-4, claude-3-opus"
+                            ? "e.g., TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+                            : "e.g., gpt-4, claude-3-opus"
                       }
                     />
                   )}
@@ -1120,8 +1120,8 @@ export default function NewExperimentModal({
                           model: { ...prev.model, endpointUrl: e.target.value },
                         }))
                       }
-                      placeholder={config.model.accessMethod === "local" 
-                        ? "http://localhost:11434/api/generate" 
+                      placeholder={config.model.accessMethod === "local"
+                        ? "http://localhost:11434/api/generate"
                         : "https://api.example.com/v1/chat/completions"
                       }
                     />
@@ -1168,7 +1168,7 @@ export default function NewExperimentModal({
             {/* Description */}
             <Typography sx={{ fontSize: "13px", color: "#6B7280", lineHeight: 1.5 }}>
               Choose a dataset containing prompts and expected outputs. Upload your own JSON file, select from saved datasets, or use a template.
-              </Typography>
+            </Typography>
 
             {/* Option 1: Custom dataset */}
             <Box>
@@ -1177,107 +1177,112 @@ export default function NewExperimentModal({
               </Typography>
               {/* Upload Section - Compact drop zone */}
               <Box
-              component="label"
-                  sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                    p: "8px",
-                border: "1px dashed",
-                borderColor: uploadingDataset ? "#13715B" : "#D1D5DB",
-                borderRadius: "4px",
-                backgroundColor: "#FAFAFA",
-                cursor: uploadingDataset ? "wait" : "pointer",
-                transition: "all 0.15s ease",
-                "&:hover": { borderColor: "#13715B", backgroundColor: "#F0FDF4" },
-              }}
-            >
-              <Box
-                  sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "6px",
-                  backgroundColor: "#13715B",
+                component="label"
+                sx={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
+                  gap: "8px",
+                  p: "8px",
+                  border: "1px dashed",
+                  borderColor: uploadingDataset ? "#13715B" : "#D1D5DB",
+                  borderRadius: "4px",
+                  backgroundColor: "#FAFAFA",
+                  cursor: uploadingDataset ? "wait" : "pointer",
+                  transition: "all 0.15s ease",
+                  "&:hover": { borderColor: "#13715B", backgroundColor: "#F0FDF4" },
                 }}
               >
-                <Upload size={16} color="#FFFFFF" />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
-                  {uploadingDataset ? "Uploading..." : "Upload dataset"}
-                      </Typography>
-                <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
-                  JSON file with prompts and expected outputs
-                      </Typography>
-                    </Box>
-                  <input
-                    type="file"
-                    accept="application/json"
-                    hidden
-                disabled={uploadingDataset}
-                    onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                        try {
-                          setUploadingDataset(true);
-                          // Validate file content before uploading
-                          const fileContent = await file.text();
-                          let parsedData: unknown[];
-                          try {
-                            parsedData = JSON.parse(fileContent);
-                          } catch {
-                            setAlert({ show: true, variant: "error", title: "Invalid JSON", body: "The file does not contain valid JSON" });
-                            return;
-                          }
-                          if (!Array.isArray(parsedData) || parsedData.length === 0) {
-                            setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with at least one prompt." });
-                            return;
-                          }
-                          // Count only prompts with actual content
-                          const validPromptCount = parsedData.filter((item) => {
-                            if (typeof item !== "object" || item === null) return false;
-                            const obj = item as Record<string, unknown>;
-                            // Single-turn: check if prompt field has content
-                            if (obj.prompt && typeof obj.prompt === "string" && obj.prompt.trim()) return true;
-                            // Multi-turn: check if turns array has at least one turn with content
-                            if (Array.isArray(obj.turns) && obj.turns.length > 0) {
-                              return obj.turns.some((turn) => {
-                                if (typeof turn !== "object" || turn === null) return false;
-                                const t = turn as Record<string, unknown>;
-                                return t.content && typeof t.content === "string" && t.content.trim();
-                              });
-                            }
-                            return false;
-                          }).length;
-                          if (validPromptCount === 0) {
-                            setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with prompts that have actual content." });
-                            return;
-                          }
-                          const resp = await uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
-                    const newDataset = { id: resp.path, name: file.name.replace(/\.json$/i, ""), path: resp.path, promptCount: validPromptCount };
-                    setUserDatasets((prev) => [newDataset, ...prev]);
-                    setSelectedUserDataset(newDataset);
-                    setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
-                          try {
-                            const { prompts } = await readDataset(resp.path);
-                            setDatasetPrompts((prompts || []) as DatasetPrompt[]);
-                            setDatasetLoaded(true);
-                          } catch {
-                      setDatasetPrompts([]);
-                    }
-                    setAlert({ show: true, variant: "success", title: "Uploaded!", body: `${file.name} is ready to use` });
-                        } catch (err) {
-                    setAlert({ show: true, variant: "error", title: "Upload failed", body: err instanceof Error ? err.message : "Failed to upload" });
-                        } finally {
-                          setUploadingDataset(false);
-                    e.target.value = "";
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "6px",
+                    backgroundColor: "#13715B",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Upload size={16} color="#FFFFFF" />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
+                    {uploadingDataset ? "Uploading..." : "Upload dataset"}
+                  </Typography>
+                  <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
+                    JSON file with prompts and expected outputs
+                  </Typography>
+                </Box>
+                <input
+                  type="file"
+                  accept="application/json"
+                  hidden
+                  disabled={uploadingDataset}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      setUploadingDataset(true);
+                      // Validate file content before uploading
+                      const fileContent = await file.text();
+                      let parsedData: unknown[];
+                      try {
+                        parsedData = JSON.parse(fileContent);
+                      } catch {
+                        setAlert({ show: true, variant: "error", title: "Invalid JSON", body: "The file does not contain valid JSON" });
+                        setTimeout(() => setAlert(null), 15000);
+                        return;
                       }
-                    }}
-                  />
+                      if (!Array.isArray(parsedData) || parsedData.length === 0) {
+                        setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with at least one prompt." });
+                        setTimeout(() => setAlert(null), 15000);
+                        return;
+                      }
+                      // Count only prompts with actual content
+                      const validPromptCount = parsedData.filter((item) => {
+                        if (typeof item !== "object" || item === null) return false;
+                        const obj = item as Record<string, unknown>;
+                        // Single-turn: check if prompt field has content
+                        if (obj.prompt && typeof obj.prompt === "string" && obj.prompt.trim()) return true;
+                        // Multi-turn: check if turns array has at least one turn with content
+                        if (Array.isArray(obj.turns) && obj.turns.length > 0) {
+                          return obj.turns.some((turn) => {
+                            if (typeof turn !== "object" || turn === null) return false;
+                            const t = turn as Record<string, unknown>;
+                            return t.content && typeof t.content === "string" && t.content.trim();
+                          });
+                        }
+                        return false;
+                      }).length;
+                      if (validPromptCount === 0) {
+                        setAlert({ show: true, variant: "error", title: "Empty dataset", body: "Cannot use an empty dataset. Please upload a file with prompts that have actual content." });
+                        setTimeout(() => setAlert(null), 15000);
+                        return;
+                      }
+                      const resp = await uploadDataset(file, "chatbot", "single-turn", orgId || undefined);
+                      const newDataset = { id: resp.path, name: file.name.replace(/\.json$/i, ""), path: resp.path, promptCount: validPromptCount };
+                      setUserDatasets((prev) => [newDataset, ...prev]);
+                      setSelectedUserDataset(newDataset);
+                      setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
+                      try {
+                        const { prompts } = await readDataset(resp.path);
+                        setDatasetPrompts((prompts || []) as DatasetPrompt[]);
+                        setDatasetLoaded(true);
+                      } catch {
+                        setDatasetPrompts([]);
+                      }
+                      setAlert({ show: true, variant: "success", title: "Uploaded!", body: `${file.name} is ready to use` });
+                      setTimeout(() => setAlert(null), 5000);
+                    } catch (err) {
+                      setAlert({ show: true, variant: "error", title: "Upload failed", body: err instanceof Error ? err.message : "Failed to upload" });
+                      setTimeout(() => setAlert(null), 15000);
+                    } finally {
+                      setUploadingDataset(false);
+                      e.target.value = "";
+                    }
+                  }}
+                />
               </Box>
             </Box>
 
@@ -1287,13 +1292,13 @@ export default function NewExperimentModal({
                 <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>Loading your datasets...</Typography>
               </Box>
             ) : userDatasets.length > 0 ? (
-                <Box>
+              <Box>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                   <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                     Option 2: Your datasets
                   </Typography>
                   <Button
-                  size="small"
+                    size="small"
                     variant="text"
                     startIcon={<ExternalLink size={12} />}
                     onClick={() => window.open(`/evals/${projectId}#datasets`, "_blank")}
@@ -1350,7 +1355,7 @@ export default function NewExperimentModal({
             <Box>
               <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
                 Option 3: {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} templates
-                  </Typography>
+              </Typography>
               <Stack spacing="8px">
                 {[
                   ...(config.taskType === "chatbot" ? [
@@ -1567,7 +1572,7 @@ export default function NewExperimentModal({
                     {availableJudgeProviders.map((provider) => {
                       const { Logo } = provider;
                       const isSelected = config.judgeLlm.provider === provider.id;
-                      
+
                       return (
                         <Grid size={{ xs: 4, sm: 3 }} key={provider.id}>
                           <Card
@@ -1627,7 +1632,7 @@ export default function NewExperimentModal({
                                   <Check size={12} color="#FFFFFF" strokeWidth={3} />
                                 </Box>
                               )}
-                              
+
                               {/* Provider Logo */}
                               <Box
                                 sx={{
@@ -1645,7 +1650,7 @@ export default function NewExperimentModal({
                               >
                                 <Logo />
                               </Box>
-                              
+
                               {/* Provider Name */}
                               <Typography
                                 sx={{
@@ -1908,15 +1913,15 @@ export default function NewExperimentModal({
           <Stack spacing="16px">
             <Box>
               <Typography variant="body2" color="text.secondary">
-                {isMultiTurnDataset 
+                {isMultiTurnDataset
                   ? "Select metrics for your multi-turn conversation evaluation."
                   : "Select metrics for your evaluation. Universal core metrics run for all use cases."}
               </Typography>
               {isMultiTurnDataset && (
                 <Box sx={{ mt: 1.5, mb: 3 }}>
-                  <Chip 
-                    label="Multi-turn dataset detected" 
-                    size="small" 
+                  <Chip
+                    label="Multi-turn dataset detected"
+                    size="small"
                     backgroundColor="#DBEAFE"
                     textColor="#1E40AF"
                   />
@@ -2146,7 +2151,7 @@ export default function NewExperimentModal({
                     ))}
                   </Stack>
                 </AccordionDetails>
-                </Accordion>
+              </Accordion>
             )}
 
             {/* RAG-Specific Metrics (single-turn only) */}
@@ -2219,7 +2224,7 @@ export default function NewExperimentModal({
                     DeepEval Agent Evaluation
                   </a>
                 </Typography>
-                
+
                 {/* Reasoning Layer */}
                 <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
                   🧠 Reasoning Layer
@@ -2262,7 +2267,7 @@ export default function NewExperimentModal({
                     </Stack>
                   </Box>
                 ))}
-                
+
                 {/* Action Layer */}
                 <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
                   🔧 Action Layer
@@ -2309,7 +2314,7 @@ export default function NewExperimentModal({
                     </Stack>
                   </Box>
                 ))}
-                
+
                 {/* Execution Layer */}
                 <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
                   ✅ Execution Layer
@@ -2397,15 +2402,15 @@ export default function NewExperimentModal({
       // Step 1: Model validation
       const hasName = !!config.model.name;
       const hasAccessMethod = !!config.model.accessMethod;
-      
+
       if (!hasName || !hasAccessMethod) return false;
-      
+
       // Check conditional fields based on access method
       if (selectedModelProvider && 'needsUrl' in selectedModelProvider && selectedModelProvider.needsUrl && !config.model.endpointUrl) return false;
-      
+
       // Providers that don't need API keys
       const noApiKeyNeeded = ["ollama", "local"];
-      
+
       // For all cloud providers (including custom_api), require either a saved API key OR an entered API key
       if (!noApiKeyNeeded.includes(config.model.accessMethod)) {
         // Map custom_api to "custom" for checking saved keys
@@ -2414,7 +2419,7 @@ export default function NewExperimentModal({
         const hasEnteredKey = !!config.model.apiKey;
         if (!hasSavedKey && !hasEnteredKey) return false;
       }
-      
+
       return true;
     }
 
@@ -2422,7 +2427,7 @@ export default function NewExperimentModal({
       // Step 2: Dataset validation - must have loaded prompts
       return datasetPrompts.length > 0;
     }
-    
+
     if (activeStep === 2) {
       // Step 3: Scorer / Judge validation
       if (judgeMode === "scorer") {
@@ -2445,7 +2450,7 @@ export default function NewExperimentModal({
         return hasScorers && hasJudge;
       }
     }
-    
+
     return true;
   })();
 
@@ -2503,7 +2508,7 @@ export default function NewExperimentModal({
       >
         {renderStepContent()}
       </StepperModal>
-      
+
       {/* Alert toast for success/error messages */}
       {alert?.show && (
         <Alert

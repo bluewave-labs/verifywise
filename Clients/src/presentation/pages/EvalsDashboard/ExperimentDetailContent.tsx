@@ -14,7 +14,6 @@ import {
   Card,
   CardContent,
   Stack,
-  Divider,
   IconButton,
   TextField,
   Tooltip,
@@ -22,7 +21,8 @@ import {
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
-import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw, AlertTriangle, Download, Copy } from "lucide-react";
+import StandardModal from "../../components/Modals/StandardModal";
+import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw, AlertTriangle, Download, Copy, ChevronLeft, ChevronRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -164,7 +164,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
   const [loading, setLoading] = useState(true);
   const [experiment, setExperiment] = useState<Experiment | null>(null);
   const [logs, setLogs] = useState<EvaluationLog[]>([]);
-  const [selectedLog, setSelectedLog] = useState<EvaluationLog | null>(null);
+  const [selectedSampleIndex, setSelectedSampleIndex] = useState<number | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [editedName, setEditedName] = useState("");
@@ -1111,25 +1111,17 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         };
 
         return (
+      <>
       <Card sx={{ overflow: "hidden", border: "1px solid #d0d5dd", borderRadius: "4px" }} elevation={0}>
         <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
-          <Box sx={{
-            display: "grid",
-            gridTemplateColumns: selectedLog ? "1fr 1fr" : "1fr",
-            maxHeight: "calc(100vh - 360px)",
-            minHeight: logs.length > 0 ? "auto" : "200px",
-            transition: "grid-template-columns 0.2s ease",
-          }}>
-            {/* Left: Samples List */}
-            <Box sx={{ display: "flex", flexDirection: "column", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
-              <Box sx={{ overflowY: "auto", overflowX: "auto", maxHeight: "calc(100vh - 360px)" }}>
-                <TableContainer sx={{ overflowX: "auto" }}>
+          <Box sx={{ overflowY: "auto", overflowX: "auto", maxHeight: "calc(100vh - 360px)" }}>
+            <TableContainer sx={{ overflowX: "auto" }}>
               <Table stickyHeader size="small" sx={{ minWidth: 800, tableLayout: "auto" }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
                     <TableCell sx={{ fontWeight: 600, fontSize: "11px", width: 40, textAlign: "center", padding: "8px 6px" }}>#</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 200, textAlign: "left", padding: "8px 12px" }}>Input</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 200, textAlign: "left", padding: "8px 12px" }}>Output</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 250, textAlign: "left", padding: "8px 12px" }}>Input</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 250, textAlign: "left", padding: "8px 12px" }}>Output</TableCell>
                     {metricColumns.map(metric => (
                         <TableCell 
                           key={metric} 
@@ -1162,20 +1154,18 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                       <TableRow
                         key={log.id}
                         hover
-                        selected={selectedLog?.id === log.id}
-                        onClick={() => setSelectedLog(log)}
+                        onClick={() => setSelectedSampleIndex(index)}
                         sx={{
                           cursor: "pointer",
-                          backgroundColor: selectedLog?.id === log.id ? "#F0F9F7" : "inherit",
                           "&:hover": {
-                            backgroundColor: selectedLog?.id === log.id ? "#F0F9F7" : "#F9FAFB",
+                            backgroundColor: "#F9FAFB",
                           },
                         }}
                       >
                         <TableCell sx={{ fontSize: "12px", color: "#6B7280", textAlign: "center", padding: "8px 6px" }}>
                           {index + 1}
                         </TableCell>
-                        <TableCell sx={{ fontSize: "12px", textAlign: "left", padding: "8px 12px", maxWidth: 200 }}>
+                        <TableCell sx={{ fontSize: "12px", textAlign: "left", padding: "8px 12px", maxWidth: 250 }}>
                           <Typography
                             variant="body2"
                             sx={{
@@ -1189,7 +1179,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                             {log.input_text || "-"}
                           </Typography>
                         </TableCell>
-                        <TableCell sx={{ fontSize: "12px", textAlign: "left", padding: "8px 12px", maxWidth: 200 }}>
+                        <TableCell sx={{ fontSize: "12px", textAlign: "left", padding: "8px 12px", maxWidth: 250 }}>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1, overflow: "hidden" }}>
                             {log.status && log.status !== "success" && (
                               <Tooltip title={`Status: ${log.status}`} arrow>
@@ -1254,298 +1244,343 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 </TableBody>
               </Table>
             </TableContainer>
-              </Box>
-            </Box>
-
-            {/* Right: Expanded View */}
-            {selectedLog && (
-              <Box sx={{
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-                maxHeight: "calc(100vh - 360px)",
-                animation: "slideInRight 0.3s ease-out",
-                "@keyframes slideInRight": {
-                  from: {
-                    opacity: 0,
-                    transform: "translateX(20px)",
-                  },
-                  to: {
-                    opacity: 1,
-                    transform: "translateX(0)",
-                  },
-                },
-              }}>
-                {/* Header with title and close button */}
-                <Box sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  p: 1.5,
-                  pl: 3,
-                  borderBottom: "1px solid #E5E7EB",
-                  backgroundColor: "#F9FAFB",
-                  flexShrink: 0
-                }}>
-                  <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600 }}>
-                    Evaluation metrics
-                  </Typography>
-                  <Box
-                    component="button"
-                    onClick={() => setSelectedLog(null)}
-                    sx={{
-                      background: "none",
-                      border: "none",
-                      padding: "4px",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#667085",
-                      transition: "color 0.2s",
-                      "&:hover": {
-                        color: "#101828",
-                      },
-                    }}
-                  >
-                    <X size={18} />
-                  </Box>
-                </Box>
-
-                {/* Scrollable content */}
-                <Box sx={{ flex: 1, overflowY: "auto", overflowX: "hidden", p: 3 }}>
-                {/* Metric Scores */}
-                {selectedLog.metadata?.metric_scores && Object.keys(selectedLog.metadata.metric_scores).length > 0 && (
-                  <Box sx={{ mb: 3 }}>
-                    <Stack spacing={1.5}>
-                       {Object.entries(selectedLog.metadata.metric_scores).map(([metricName, metricData]) => {
-                        const score = typeof metricData === "number" ? metricData : (metricData as { score?: number })?.score;
-                        const passed = typeof metricData === "object" && metricData !== null && (metricData as { passed?: boolean })?.passed !== undefined ? (metricData as { passed: boolean }).passed : typeof score === "number" && score >= 0.5;
-                        const rawReason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
-                        const reason = parseMetricReason(rawReason);
-                        const friendlyMetric = metricName.replace(/^G-Eval\\s*\\((.*)\\)$/i, "$1");
-
-                         return (
-                           <Box key={metricName} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                               <Typography variant="body2" sx={{ fontSize: "12px", textTransform: "capitalize" }}>
-                                 {friendlyMetric.replace(/([A-Z])/g, " $1").trim()}
-                               </Typography>
-                               <Chip
-                                 label={typeof score === "number" ? `${(score * 100).toFixed(0)}%` : "N/A"}
-                                 size="small"
-                                 sx={{
-                                   backgroundColor: passed ? "#c8e6c9" : "#ffebee",
-                                   color: passed ? "#388e3c" : "#c62828",
-                                   fontWeight: 500,
-                                   fontSize: "11px",
-                                   letterSpacing: "0.5px",
-                                   borderRadius: "4px",
-                                   "& .MuiChip-label": {
-                                     padding: "4px 8px",
-                                   },
-                                 }}
-                               />
-                             </Box>
-                             {reason && (
-                               <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280" }}>
-                                 {reason}
-                               </Typography>
-                             )}
-                           </Box>
-                         );
-                      })}
-                    </Stack>
-                  </Box>
-                )}
-
-                <Divider sx={{ my: 3 }} />
-
-                {/* Conversational Display (for multi-turn) */}
-                {selectedLog.metadata?.is_conversational && selectedLog.metadata?.turns ? (
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1.5 }}>
-                      Conversation ({selectedLog.metadata.turn_count || selectedLog.metadata.turns.length} turns)
-                    </Typography>
-                    {selectedLog.metadata.scenario && (
-                      <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mb: 2 }}>
-                        Scenario: {selectedLog.metadata.scenario}
-                      </Typography>
-                    )}
-                    <Box sx={{ 
-                      backgroundColor: "#FAF5FF", 
-                      border: "1px solid #DDD6FE", 
-                      borderRadius: "12px", 
-                      p: 2,
-                    }}>
-                      <Stack spacing={2}>
-                        {(selectedLog.metadata.turns as Array<{role: string; content: string}>).map((turn, idx) => {
-                          const isUser = turn.role?.toLowerCase() === "user";
-                          return (
-                            <Box
-                              key={idx}
-                              sx={{
-                                display: "flex",
-                                justifyContent: isUser ? "flex-end" : "flex-start",
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  maxWidth: "85%",
-                                  p: 1.5,
-                                  borderRadius: "12px",
-                                  backgroundColor: isUser ? "#ECFDF5" : "#EBF5FF",
-                                  border: isUser ? "1px solid #A7F3D0" : "1px solid #BFDBFE",
-                                }}
-                              >
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    fontWeight: 600,
-                                    color: isUser ? "#059669" : "#1E40AF",
-                                    display: "block",
-                                    mb: 0.5,
-                                    fontSize: "10px",
-                                    textTransform: "uppercase",
-                                  }}
-                                >
-                                  {isUser ? "User" : "Assistant"}
-                                </Typography>
-                                <MarkdownRenderer content={turn.content || ""} />
-                              </Box>
-                            </Box>
-                          );
-                        })}
-                      </Stack>
-                    </Box>
-                    {selectedLog.metadata.expected_outcome && (
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: "#6B7280" }}>
-                          Expected Outcome:
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontSize: "12px", color: "#374151", mt: 0.5 }}>
-                          {selectedLog.metadata.expected_outcome}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                ) : (
-                  <>
-                    {/* Input (single-turn) */}
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1.5 }}>
-                        Input
-                      </Typography>
-                      <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
-                        <MarkdownRenderer content={selectedLog.input_text || "No input"} />
-                      </Paper>
-                    </Box>
-
-                    {/* Output (single-turn) */}
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1.5 }}>
-                        Output
-                      </Typography>
-                      <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
-                        <MarkdownRenderer content={selectedLog.output_text || "No output"} />
-                      </Paper>
-                    </Box>
-                  </>
-                )}
-
-                {/* Metadata - Always show */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1.5 }}>
-                    Metadata
-                  </Typography>
-                  <Stack spacing={1}>
-                    {selectedLog.latency_ms && (
-                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                          Latency
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
-                          {selectedLog.latency_ms}ms
-                        </Typography>
-                      </Box>
-                    )}
-                    {selectedLog.token_count && (
-                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                          Token count
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
-                          {selectedLog.token_count}
-                        </Typography>
-                      </Box>
-                    )}
-                    {selectedLog.model_name && (
-                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                          Model
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
-                          {selectedLog.model_name}
-                        </Typography>
-                      </Box>
-                    )}
-                    {selectedLog.metadata?.turn_count && (
-                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                          Turns
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
-                          {selectedLog.metadata.turn_count}
-                        </Typography>
-                      </Box>
-                    )}
-                    {selectedLog.timestamp && (
-                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                          Timestamp
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
-                          {new Date(selectedLog.timestamp).toLocaleString()}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Stack>
-                </Box>
-
-                {/* Error message if failed */}
-                {selectedLog.error_message && (
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 1, color: "#991B1B" }}>
-                      Error
-                    </Typography>
-                    <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#FEE2E2", borderColor: "#991B1B" }}>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontSize: "12px",
-                          color: "#991B1B",
-                          fontFamily: "monospace",
-                          whiteSpace: "pre-wrap",
-                        }}
-                      >
-                        {selectedLog.error_message}
-                      </Typography>
-                    </Paper>
-                  </Box>
-                )}
-
-                {/* Sample ID at bottom */}
-                <Box sx={{ mt: 4, pt: 3, borderTop: "1px solid #E5E7EB" }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px", fontFamily: "monospace", display: "block" }}>
-                    Sample ID: {selectedLog.id}
-                  </Typography>
-                </Box>
-                </Box>
-              </Box>
-            )}
           </Box>
         </CardContent>
       </Card>
+
+      {/* Sample Detail Modal */}
+      {selectedSampleIndex !== null && logs[selectedSampleIndex] && (() => {
+        const selectedLog = logs[selectedSampleIndex];
+        const totalSamples = logs.length;
+        const isFirstSample = selectedSampleIndex === 0;
+        const isLastSample = selectedSampleIndex === totalSamples - 1;
+
+        const handlePrevious = () => {
+          if (!isFirstSample) {
+            setSelectedSampleIndex(selectedSampleIndex - 1);
+          }
+        };
+
+        const handleNext = () => {
+          if (!isLastSample) {
+            setSelectedSampleIndex(selectedSampleIndex + 1);
+          }
+        };
+
+        // Calculate overall pass/fail for this sample
+        const metricScores = selectedLog.metadata?.metric_scores || {};
+        const scoreEntries = Object.entries(metricScores);
+        const passedCount = scoreEntries.filter(([name, data]) => {
+          const score = typeof data === "number" ? data : (data as { score?: number })?.score;
+          const isInverse = name.toLowerCase().includes("bias") || name.toLowerCase().includes("toxicity");
+          return typeof score === "number" && (isInverse ? score < 0.5 : score >= 0.5);
+        }).length;
+
+        return (
+          <StandardModal
+            isOpen={selectedSampleIndex !== null}
+            onClose={() => setSelectedSampleIndex(null)}
+            title={`Sample ${selectedSampleIndex + 1}`}
+            description={`${passedCount}/${scoreEntries.length} metrics passed`}
+            maxWidth="900px"
+            fitContent
+            customFooter={
+              <Stack direction="row" spacing="8px" sx={{ width: "100%", justifyContent: "flex-end" }}>
+                <CustomizableButton
+                  variant="outlined"
+                  text="Previous"
+                  onClick={handlePrevious}
+                  isDisabled={isFirstSample}
+                  icon={<ChevronLeft size={16} />}
+                  sx={{
+                    minWidth: "100px",
+                    height: "34px",
+                    border: "1px solid #D0D5DD",
+                    color: isFirstSample ? "#9CA3AF" : "#344054",
+                    "&:hover:not(.Mui-disabled)": {
+                      backgroundColor: "#F9FAFB",
+                      border: "1px solid #D0D5DD",
+                    },
+                  }}
+                />
+                <CustomizableButton
+                  variant="outlined"
+                  text="Next"
+                  onClick={handleNext}
+                  isDisabled={isLastSample}
+                  icon={<ChevronRight size={16} />}
+                  sx={{
+                    minWidth: "100px",
+                    height: "34px",
+                    border: "1px solid #D0D5DD",
+                    color: isLastSample ? "#9CA3AF" : "#344054",
+                    "&:hover:not(.Mui-disabled)": {
+                      backgroundColor: "#F9FAFB",
+                      border: "1px solid #D0D5DD",
+                    },
+                    flexDirection: "row-reverse",
+                    "& .MuiButton-startIcon": {
+                      marginLeft: "8px",
+                      marginRight: "-4px",
+                    },
+                  }}
+                />
+              </Stack>
+            }
+          >
+            {/* Metric Scores Section */}
+            {selectedLog.metadata?.metric_scores && Object.keys(selectedLog.metadata.metric_scores).length > 0 && (
+              <Box sx={{ mb: "16px" }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "12px" }}>
+                  Metric Scores
+                </Typography>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: `repeat(${Math.min(Object.keys(selectedLog.metadata.metric_scores).length, 3)}, 1fr)`,
+                    gap: "12px",
+                  }}
+                >
+                  {Object.entries(selectedLog.metadata.metric_scores).map(([metricName, metricData]) => {
+                    const score = typeof metricData === "number" ? metricData : (metricData as { score?: number })?.score;
+                    const isInverse = metricName.toLowerCase().includes("bias") || metricName.toLowerCase().includes("toxicity");
+                    const passed = typeof score === "number" && (isInverse ? score < 0.5 : score >= 0.5);
+                    const rawReason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
+                    const reason = parseMetricReason(rawReason);
+                    const friendlyMetric = formatMetricName(metricName.replace(/^G-Eval\s*\((.+)\)$/i, "$1"));
+
+                    return (
+                      <Box
+                        key={metricName}
+                        sx={{
+                          p: "12px",
+                          borderRadius: "4px",
+                          backgroundColor: "#f8fafc",
+                          border: "1px solid #e2e8f0",
+                        }}
+                      >
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                          <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#475569" }}>
+                            {friendlyMetric}
+                          </Typography>
+                          <Typography 
+                            sx={{ 
+                              fontSize: 13, 
+                              fontWeight: 700, 
+                              color: passed ? "#059669" : "#dc2626",
+                            }}
+                          >
+                            {typeof score === "number" ? `${(score * 100).toFixed(0)}%` : "N/A"}
+                          </Typography>
+                        </Stack>
+                        <Box sx={{ height: 4, backgroundColor: "#e2e8f0", borderRadius: 2, overflow: "hidden", mb: reason ? 1 : 0 }}>
+                          <Box
+                            sx={{
+                              height: "100%",
+                              width: `${(typeof score === "number" ? score : 0) * 100}%`,
+                              backgroundColor: passed ? "#10b981" : "#ef4444",
+                              borderRadius: 2,
+                              transition: "width 0.3s ease",
+                            }}
+                          />
+                        </Box>
+                        {reason && (
+                          <Typography sx={{ fontSize: 11, color: "#6b7280", mt: 0.5, lineHeight: 1.4 }}>
+                            {reason.length > 100 ? `${reason.slice(0, 100)}...` : reason}
+                          </Typography>
+                        )}
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+            )}
+
+            {/* Conversational Display (for multi-turn) */}
+            {selectedLog.metadata?.is_conversational && selectedLog.metadata?.turns ? (
+              <Box sx={{ mb: "16px" }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+                  Conversation ({selectedLog.metadata.turn_count || (selectedLog.metadata.turns as Array<unknown>).length} turns)
+                </Typography>
+                {selectedLog.metadata.scenario && (
+                  <Typography sx={{ fontSize: 12, color: "#6B7280", mb: 1.5 }}>
+                    Scenario: {selectedLog.metadata.scenario}
+                  </Typography>
+                )}
+                <Box sx={{ 
+                  backgroundColor: "#f8fafc", 
+                  border: "1px solid #e2e8f0", 
+                  borderRadius: "6px", 
+                  p: 2,
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                }}>
+                  <Stack spacing={1.5}>
+                    {(selectedLog.metadata.turns as Array<{role: string; content: string}>).map((turn, idx) => {
+                      const isUser = turn.role?.toLowerCase() === "user";
+                      return (
+                        <Box
+                          key={idx}
+                          sx={{
+                            display: "flex",
+                            justifyContent: isUser ? "flex-end" : "flex-start",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              maxWidth: "85%",
+                              p: 1.5,
+                              borderRadius: "8px",
+                              backgroundColor: isUser ? "#ecfdf5" : "#eff6ff",
+                              border: isUser ? "1px solid #a7f3d0" : "1px solid #bfdbfe",
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontWeight: 600,
+                                color: isUser ? "#059669" : "#1e40af",
+                                fontSize: "10px",
+                                textTransform: "uppercase",
+                                mb: 0.5,
+                              }}
+                            >
+                              {isUser ? "User" : "Assistant"}
+                            </Typography>
+                            <MarkdownRenderer content={turn.content || ""} />
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                </Box>
+                {selectedLog.metadata.expected_outcome && (
+                  <Box sx={{ mt: 1.5 }}>
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#6B7280" }}>
+                      Expected Outcome:
+                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: "#374151", mt: 0.5 }}>
+                      {selectedLog.metadata.expected_outcome}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <>
+                {/* Input (single-turn) */}
+                <Box sx={{ mb: "16px" }}>
+                  <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+                    Input
+                  </Typography>
+                  <Box
+                    sx={{
+                      p: "12px",
+                      backgroundColor: "#f8fafc",
+                      borderRadius: "4px",
+                      border: "1px solid #e2e8f0",
+                      maxHeight: "150px",
+                      overflowY: "auto",
+                    }}
+                  >
+                    <MarkdownRenderer content={selectedLog.input_text || "No input"} />
+                  </Box>
+                </Box>
+
+                {/* Output (single-turn) */}
+                <Box sx={{ mb: "16px" }}>
+                  <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+                    Output
+                  </Typography>
+                  <Box
+                    sx={{
+                      p: "12px",
+                      backgroundColor: "#f8fafc",
+                      borderRadius: "4px",
+                      border: "1px solid #e2e8f0",
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                    }}
+                  >
+                    <MarkdownRenderer content={selectedLog.output_text || "No output"} />
+                  </Box>
+                </Box>
+              </>
+            )}
+
+            {/* Metadata Section */}
+            <Box sx={{ mb: "16px" }}>
+              <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+                Metadata
+              </Typography>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gap: "12px",
+                }}
+              >
+                {selectedLog.latency_ms && (
+                  <Box sx={{ p: "8px", backgroundColor: "#f8fafc", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
+                    <Typography sx={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Latency</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>{selectedLog.latency_ms}ms</Typography>
+                  </Box>
+                )}
+                {selectedLog.token_count && (
+                  <Box sx={{ p: "8px", backgroundColor: "#f8fafc", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
+                    <Typography sx={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Tokens</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>{selectedLog.token_count}</Typography>
+                  </Box>
+                )}
+                {selectedLog.model_name && (
+                  <Box sx={{ p: "8px", backgroundColor: "#f8fafc", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
+                    <Typography sx={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Model</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selectedLog.model_name}</Typography>
+                  </Box>
+                )}
+                {selectedLog.timestamp && (
+                  <Box sx={{ p: "8px", backgroundColor: "#f8fafc", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
+                    <Typography sx={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Timestamp</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>{new Date(selectedLog.timestamp).toLocaleTimeString()}</Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+
+            {/* Error message if failed */}
+            {selectedLog.error_message && (
+              <Box sx={{ mb: "16px" }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#991B1B", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+                  Error
+                </Typography>
+                <Box
+                  sx={{
+                    p: "12px",
+                    backgroundColor: "#fef2f2",
+                    borderRadius: "4px",
+                    border: "1px solid #fecaca",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      color: "#991B1B",
+                      fontFamily: "monospace",
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {selectedLog.error_message}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
+            {/* Sample ID */}
+            <Typography sx={{ fontSize: 10, color: "#9ca3af", fontFamily: "monospace" }}>
+              Sample ID: {selectedLog.id}
+            </Typography>
+          </StandardModal>
+        );
+      })()}
+      </>
         );
       })()}
     </Box>

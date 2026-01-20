@@ -25,6 +25,7 @@ Tokens are obtained via `/api/users/login` and refreshed via `/api/users/refresh
 | Invite | 5 req/min per IP |
 | AI Detection scans | 30 req/15 min |
 | Webhook creation | 10 req/hour |
+| Plugin installation | 20 req/hour per IP |
 | File operations | Configured limit |
 
 ### Roles
@@ -636,6 +637,49 @@ Query params: `query`, `limit`, `offset`
 | POST | `/token` | Save token | JWT | Admin |
 | DELETE | `/token` | Delete token | JWT | Admin |
 | POST | `/token/test` | Test token | JWT | Admin |
+
+---
+
+## Plugins
+
+**Base Path:** `/api/plugins`
+
+### Marketplace
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/marketplace` | List all published plugins | JWT |
+| GET | `/marketplace/:key` | Get plugin by key | JWT |
+| GET | `/marketplace/search?q=` | Search plugins | JWT |
+| GET | `/categories` | Get plugin categories | JWT |
+
+### Installation Management
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/install` | Install plugin | JWT |
+| GET | `/installations` | List installed plugins | JWT |
+| DELETE | `/installations/:id` | Uninstall plugin | JWT |
+| PUT | `/installations/:id/configuration` | Update configuration | JWT |
+| POST | `/:key/test-connection` | Test plugin connection | JWT |
+
+### OAuth (Slack Plugin)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/:key/oauth/connect` | Connect OAuth workspace | JWT |
+| GET | `/:key/oauth/workspaces` | Get connected workspaces | JWT |
+| PATCH | `/:key/oauth/workspaces/:webhookId` | Update workspace settings | JWT |
+| DELETE | `/:key/oauth/workspaces/:webhookId` | Disconnect workspace | JWT |
+
+### Plugin-Specific
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/:key/models` | Get MLflow models | JWT |
+| POST | `/:key/sync` | Sync MLflow models | JWT |
+| GET | `/:key/template` | Get risk import template | JWT |
+| POST | `/:key/import` | Import risks from CSV | JWT |
 
 ---
 

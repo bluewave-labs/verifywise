@@ -12,7 +12,8 @@ import {
 import { sequelize } from "../../database/db";
 
 // Environment configuration
-const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/main/plugins.json";
+export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/hp-jan-19-update-plugins-UI/plugins.json";
+export const PLUGIN_MARKETPLACE_BASE_URL = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
 
 interface Plugin {
   key: string;
@@ -39,6 +40,16 @@ interface Plugin {
   pluginPath: string;
   entryPoint: string;
   dependencies?: Record<string, string>;
+  ui?: {
+    bundleUrl: string;
+    slots: Array<{
+      slotId: string;
+      componentName: string;
+      renderType: string;
+      props?: Record<string, any>;
+      trigger?: string;
+    }>;
+  };
 }
 
 interface PluginMarketplace {
@@ -779,6 +790,43 @@ export class PluginService {
   }
 
   /**
+   * Download plugin UI bundle from marketplace
+   */
+  private static async downloadPluginUIBundle(plugin: Plugin, tempPath: string): Promise<void> {
+    if (!plugin.ui?.bundleUrl) {
+      return;
+    }
+
+    try {
+      const baseUrl = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
+      // bundleUrl is like "/plugins/mlflow/ui/dist/index.esm.js"
+      // We need to construct the full URL
+      const bundleUrl = `${baseUrl}${plugin.ui.bundleUrl}`;
+
+      console.log(`[PluginService] Downloading UI bundle for ${plugin.key} from ${bundleUrl}`);
+
+      const response = await axios.get(bundleUrl, {
+        timeout: 30000,
+        responseType: 'text',
+      });
+
+      // Create the ui/dist directory
+      const uiDistPath = path.join(tempPath, "ui", "dist");
+      fs.mkdirSync(uiDistPath, { recursive: true });
+
+      // Save the bundle
+      const bundleFileName = path.basename(plugin.ui.bundleUrl);
+      const bundlePath = path.join(uiDistPath, bundleFileName);
+      fs.writeFileSync(bundlePath, response.data);
+
+      console.log(`[PluginService] UI bundle for ${plugin.key} downloaded to ${bundlePath}`);
+    } catch (error: any) {
+      // UI bundle download failure should not block plugin installation
+      console.warn(`[PluginService] Failed to download UI bundle for ${plugin.key}:`, error.message);
+    }
+  }
+
+  /**
    * Fetch marketplace data from remote Git repository
    */
   private static async fetchRemoteMarketplace(): Promise<PluginMarketplace> {
@@ -866,6 +914,11 @@ export class PluginService {
 
         // 3c. Install dependencies
         await this.installPluginDependencies(plugin, tempPath, packageJson);
+
+        // 3d. Download UI bundle if plugin has UI configuration
+        if (plugin.ui?.bundleUrl) {
+          await this.downloadPluginUIBundle(plugin, tempPath);
+        }
       }
 
       // 4. Register ts-node for TypeScript support if entry point is .ts

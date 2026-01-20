@@ -1,5 +1,9 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
+import path from "path";
+import fs from "fs";
+import axios from "axios";
+import { PLUGIN_MARKETPLACE_BASE_URL } from "../services/plugin/pluginService";
 const router = express.Router();
 
 import authenticateJWT from "../middleware/auth.middleware";
@@ -59,5 +63,42 @@ router.post("/:key/sync", authenticateJWT, syncMLflowModels);
 // Risk Import plugin routes
 router.get("/:key/template", authenticateJWT, getRiskImportTemplate);
 router.post("/:key/import", authenticateJWT, importRisks);
+
+// Serve plugin UI bundles from temp/plugins/{key}/ui/dist/
+// If bundle doesn't exist locally, download it from the marketplace
+router.get("/:key/ui/dist/:filename", async (req, res) => {
+  const { key, filename } = req.params;
+  const bundlePath = path.join(__dirname, "../../temp/plugins", key, "ui", "dist", filename);
+  console.log("[Plugin UI] Requested:", key, filename, "Path:", bundlePath, "Exists:", fs.existsSync(bundlePath));
+
+  // If bundle doesn't exist, try to download it
+  if (!fs.existsSync(bundlePath)) {
+    try {
+      console.log(`[Plugin UI] Bundle not found locally, downloading from marketplace...`);
+      const bundleUrl = `${PLUGIN_MARKETPLACE_BASE_URL}/plugins/${key}/ui/dist/${filename}`;
+
+      const response = await axios.get(bundleUrl, {
+        timeout: 30000,
+        responseType: 'arraybuffer',
+      });
+
+      // Create directory and save bundle
+      const dirPath = path.dirname(bundlePath);
+      fs.mkdirSync(dirPath, { recursive: true });
+      fs.writeFileSync(bundlePath, Buffer.from(response.data));
+      console.log(`[Plugin UI] Bundle downloaded and saved to: ${bundlePath}`);
+    } catch (downloadError: any) {
+      console.error(`[Plugin UI] Failed to download bundle:`, downloadError.message);
+      res.status(404).json({ error: "Plugin UI bundle not found" });
+      return;
+    }
+  }
+
+  res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  res.setHeader("Cache-Control", "no-store");
+  res.sendFile(bundlePath);
+});
 
 export default router;

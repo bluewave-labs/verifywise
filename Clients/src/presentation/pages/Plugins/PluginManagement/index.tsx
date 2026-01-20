@@ -16,14 +16,6 @@ import {
   FormControlLabel,
   Checkbox,
   FormControl,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableFooter,
-  TablePagination,
 } from "@mui/material";
 import {
   ArrowLeft as ArrowLeftIcon,
@@ -31,17 +23,16 @@ import {
   Settings as SettingsIcon,
   Home,
   Puzzle,
-  SlidersHorizontal,
-  Trash2,
-  ToggleLeft,
-  ToggleRight,
   FileSpreadsheet as FileSpreadsheetIcon,
   Package as PackageIcon,
   Database as DatabaseIcon,
 } from "lucide-react";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../../components/Layout/PageHeader";
-import { getPluginByKey, getInstalledPlugins, updatePluginConfiguration, testPluginConnection, connectOAuthWorkspace, getOAuthWorkspaces, updateOAuthWorkspace, disconnectOAuthWorkspace } from "../../../../application/repository/plugin.repository";
+import PluginSlot from "../../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
+import { usePluginRegistry } from "../../../../application/contexts/PluginRegistry.context";
+import { getPluginByKey, getInstalledPlugins, updatePluginConfiguration, testPluginConnection, connectOAuthWorkspace } from "../../../../application/repository/plugin.repository";
 import { usePluginInstallation } from "../../../../application/hooks/usePluginInstallation";
 import { Plugin, PluginInstallationStatus } from "../../../../domain/types/plugins";
 import Alert from "../../../components/Alert";
@@ -57,6 +48,7 @@ const PluginManagement: React.FC = () => {
   const location = useLocation();
   const { userRoleName } = useAuth();
   const { install, uninstall, installing, uninstalling } = usePluginInstallation();
+  const { getComponentsForSlot } = usePluginRegistry();
   const [plugin, setPlugin] = useState<Plugin | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -69,14 +61,8 @@ const PluginManagement: React.FC = () => {
     visible: boolean;
   } | null>(null);
 
-  // Slack OAuth state
-  const [slackWorkspaces, setSlackWorkspaces] = useState<any[]>([]);
-  const [loadingWorkspaces, setLoadingWorkspaces] = useState(false);
+  // OAuth connection state
   const [connectingOAuth, setConnectingOAuth] = useState(false);
-  const [globalRoutingTypes, setGlobalRoutingTypes] = useState<string[]>([]);
-  const [tablePage, setTablePage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [isRoutingModalOpen, setIsRoutingModalOpen] = useState(false);
 
   const isAdmin = userRoleName === "Admin";
 
@@ -107,21 +93,6 @@ const PluginManagement: React.FC = () => {
     return items;
   }, [plugin, pluginKey]);
 
-  // Fetch Slack workspaces
-  const fetchSlackWorkspaces = useCallback(async () => {
-    if (pluginKey !== "slack") return;
-
-    try {
-      setLoadingWorkspaces(true);
-      const workspaces = await getOAuthWorkspaces({ pluginKey });
-      setSlackWorkspaces(workspaces);
-    } catch (error) {
-      console.error("Failed to fetch Slack workspaces:", error);
-    } finally {
-      setLoadingWorkspaces(false);
-    }
-  }, [pluginKey]);
-
   // Handle OAuth callback
   useEffect(() => {
     const handleOAuthCallback = async () => {
@@ -139,10 +110,8 @@ const PluginManagement: React.FC = () => {
             body: "Slack workspace connected successfully!",
             visible: true,
           });
-          // Remove code from URL
+          // Remove code from URL - plugin component will fetch workspaces on mount
           navigate(`/plugins/${pluginKey}/manage`, { replace: true });
-          // Refresh workspaces
-          fetchSlackWorkspaces();
         } catch (error: any) {
           setToast({
             variant: "error",
@@ -158,7 +127,7 @@ const PluginManagement: React.FC = () => {
     };
 
     handleOAuthCallback();
-  }, [location.search, pluginKey, navigate, fetchSlackWorkspaces]);
+  }, [location.search, pluginKey, navigate]);
 
   // Fetch plugin details
   useEffect(() => {
@@ -199,11 +168,6 @@ const PluginManagement: React.FC = () => {
         } else {
           setPlugin(pluginData);
         }
-
-        // Fetch Slack workspaces if this is Slack plugin
-        if (pluginKey === "slack" && installation) {
-          fetchSlackWorkspaces();
-        }
       } catch (error) {
         console.error("Failed to fetch plugin:", error);
         setToast({
@@ -217,7 +181,7 @@ const PluginManagement: React.FC = () => {
     };
 
     fetchPlugin();
-  }, [pluginKey, fetchSlackWorkspaces]);
+  }, [pluginKey]);
 
   const handleUninstallClick = () => {
     setIsDeleteModalOpen(true);
@@ -319,141 +283,6 @@ const PluginManagement: React.FC = () => {
     }
   };
 
-  // Slack OAuth handlers
-  const handleAddToSlack = () => {
-    if (!pluginKey) return;
-
-    const clientId = ENV_VARs.CLIENT_ID;
-    const redirectUri = encodeURIComponent(`${window.location.origin}/plugins/${pluginKey}/manage`);
-    const scope = encodeURIComponent("incoming-webhook,chat:write");
-
-    const slackOAuthUrl = `${ENV_VARs.SLACK_URL}?client_id=${clientId}&scope=${scope}&redirect_uri=${redirectUri}`;
-    window.open(slackOAuthUrl, '_blank', 'noopener,noreferrer');
-  };
-
-  /* Function reserved for future use - routing updates
-  const handleUpdateWorkspaceRouting = async (webhookId: number, routing_type: string[]) => {
-    if (!pluginKey) return;
-
-    try {
-      await updateOAuthWorkspace({
-        pluginKey,
-        webhookId,
-        routing_type,
-      });
-
-      setToast({
-        variant: "success",
-        body: "Notification routing updated successfully!",
-        visible: true,
-      });
-
-      // Refresh workspaces
-      fetchSlackWorkspaces();
-    } catch (err: any) {
-      setToast({
-        variant: "error",
-        body: err.message || "Failed to update routing settings.",
-        visible: true,
-      });
-    }
-  };
-  */
-
-  const handleDisconnectWorkspace = async (webhookId: number) => {
-    if (!pluginKey) return;
-
-    try {
-      await disconnectOAuthWorkspace({
-        pluginKey,
-        webhookId,
-      });
-
-      setToast({
-        variant: "success",
-        body: "Workspace disconnected successfully!",
-        visible: true,
-      });
-
-      // Refresh workspaces
-      fetchSlackWorkspaces();
-    } catch (err: any) {
-      setToast({
-        variant: "error",
-        body: err.message || "Failed to disconnect workspace.",
-        visible: true,
-      });
-    }
-  };
-
-  const handleApplyGlobalRouting = async () => {
-    if (!pluginKey || slackWorkspaces.length === 0) return;
-
-    try {
-      // Apply global routing to all workspaces
-      await Promise.all(
-        slackWorkspaces.map((workspace) =>
-          updateOAuthWorkspace({
-            pluginKey,
-            webhookId: workspace.id,
-            routing_type: globalRoutingTypes,
-          })
-        )
-      );
-
-      setToast({
-        variant: "success",
-        body: `Notification routing updated for all ${slackWorkspaces.length} workspace(s)!`,
-        visible: true,
-      });
-
-      // Refresh workspaces
-      fetchSlackWorkspaces();
-    } catch (err: any) {
-      setToast({
-        variant: "error",
-        body: err.message || "Failed to apply routing settings.",
-        visible: true,
-      });
-    }
-  };
-
-  // Table handlers
-  const handleChangePage = (_: unknown, newPage: number) => {
-    setTablePage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setTablePage(0);
-  };
-
-  const handleToggleWorkspace = async (webhookId: number, isActive: boolean) => {
-    if (!pluginKey) return;
-
-    try {
-      await updateOAuthWorkspace({
-        pluginKey,
-        webhookId,
-        is_active: !isActive,
-      });
-
-      setToast({
-        variant: "success",
-        body: "Workspace status updated successfully!",
-        visible: true,
-      });
-
-      fetchSlackWorkspaces();
-    } catch (err: any) {
-      setToast({
-        variant: "error",
-        body: err.message || "Failed to update workspace status.",
-        visible: true,
-      });
-    }
-  };
-
   // Get configuration fields based on plugin type
   const getConfigFields = () => {
     const baseFields = [
@@ -523,22 +352,6 @@ const PluginManagement: React.FC = () => {
           label: "Request Timeout (seconds)",
           placeholder: "30",
           type: "number",
-        },
-      ];
-    } else if (pluginKey === "slack") {
-      return [
-        {
-          key: "routing_type",
-          label: "Notification Types",
-          placeholder: "Select notification types",
-          type: "multiselect",
-          options: [
-            { value: "Membership and roles", label: "Membership and roles" },
-            { value: "Projects and organizations", label: "Projects and organizations" },
-            { value: "Policy reminders and status", label: "Policy reminders and status" },
-            { value: "Evidence and task alerts", label: "Evidence and task alerts" },
-            { value: "Control or policy changes", label: "Control or policy changes" },
-          ],
         },
       ];
     }
@@ -912,30 +725,217 @@ const PluginManagement: React.FC = () => {
 
                   {/* Configuration Content */}
                   <Box>
-                    {pluginKey === "slack" ? (
-                      <Box>
+                    {/* Show loading during OAuth connection */}
+                    {connectingOAuth && (
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 4 }}>
+                        <CircularProgress size={24} />
+                        <Typography fontSize={13}>Connecting to Slack...</Typography>
+                      </Box>
+                    )}
+
+                    {/* Plugin Configuration via PluginSlot */}
+                    {!connectingOAuth && pluginKey && getComponentsForSlot(PLUGIN_SLOTS.PLUGIN_CONFIG).some(c => c.pluginKey === pluginKey) ? (
+                      <PluginSlot
+                        id={PLUGIN_SLOTS.PLUGIN_CONFIG}
+                        pluginKey={pluginKey}
+                        slotProps={{
+                          pluginKey,
+                          installationId: plugin.installationId,
+                          slackClientId: ENV_VARs.CLIENT_ID,
+                          slackOAuthUrl: ENV_VARs.SLACK_URL,
+                          onToast: (t: { variant: string; body: string }) => setToast({ ...t, visible: true } as any),
+                          configData,
+                          onConfigChange: handleConfigChange,
+                          onSaveConfiguration: handleSaveConfiguration,
+                          onTestConnection: handleTestConnection,
+                          isSavingConfig,
+                          isTestingConnection,
+                        }}
+                      />
+                    ) : !connectingOAuth && (
+                      <>
                         <Typography variant="body2" color="text.secondary" fontSize={13} sx={{ mb: 3 }}>
-                          Connect your Slack workspace and route VerifyWise notifications to specific channels.
+                          Configure {plugin.displayName} settings and preferences.
                         </Typography>
 
-                        {/* Action Buttons */}
-                        <Stack direction="row" justifyContent="flex-end" spacing={2} sx={{ mb: 3 }}>
-                          <a href="#" onClick={(e) => { e.preventDefault(); handleAddToSlack(); }}>
-                            <img
-                              alt="Add to Slack"
-                              height="34"
-                              width="120"
-                              src="https://platform.slack-edge.com/img/add_to_slack.png"
-                              srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
-                            />
-                          </a>
+                        {/* Generic Configuration Form */}
+                        <Stack spacing={2.5}>
+                          {getConfigFields().map((field: any) => {
+                            // Skip field if showIf condition is false
+                            if (field.showIf && !field.showIf(configData)) {
+                              return null;
+                            }
+
+                            // Render based on field type
+                            if (field.type === "select") {
+                              return (
+                                <Box key={field.key}>
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight={500}
+                                    fontSize={13}
+                                    sx={{ mb: 0.75, color: "#344054" }}
+                                  >
+                                    {field.label}
+                                  </Typography>
+                                  <FormControl fullWidth size="small">
+                                    <Select
+                                      value={configData[field.key] || field.placeholder || ""}
+                                      onChange={(e) => handleConfigChange(field.key, e.target.value)}
+                                      sx={{
+                                        fontSize: "13px",
+                                        backgroundColor: "white",
+                                      }}
+                                    >
+                                      {field.options?.map((option: any) => (
+                                        <MenuItem key={option.value} value={option.value} sx={{ fontSize: "13px" }}>
+                                          {option.label}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                </Box>
+                              );
+                            }
+
+                            if (field.type === "multiselect") {
+                              const currentValue = configData[field.key] ?
+                                (typeof configData[field.key] === 'string' ?
+                                  JSON.parse(configData[field.key]) :
+                                  configData[field.key]) :
+                                [];
+
+                              return (
+                                <Box key={field.key}>
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight={500}
+                                    fontSize={13}
+                                    sx={{ mb: 0.75, color: "#344054" }}
+                                  >
+                                    {field.label}
+                                  </Typography>
+                                  <FormControl fullWidth size="small">
+                                    <Select
+                                      multiple
+                                      value={currentValue}
+                                      onChange={(e) => {
+                                        const value = typeof e.target.value === 'string' ?
+                                          e.target.value.split(',') :
+                                          e.target.value;
+                                        handleConfigChange(field.key, JSON.stringify(value));
+                                      }}
+                                      renderValue={(selected) => (selected as string[]).join(", ")}
+                                      sx={{
+                                        fontSize: "13px",
+                                        backgroundColor: "white",
+                                      }}
+                                    >
+                                      {field.options?.map((option: any) => (
+                                        <MenuItem key={option.value} value={option.value} sx={{ fontSize: "13px" }}>
+                                          <Checkbox
+                                            checked={currentValue.indexOf(option.value) > -1}
+                                            sx={{
+                                              color: "#13715B",
+                                              "&.Mui-checked": {
+                                                color: "#13715B",
+                                              },
+                                            }}
+                                          />
+                                          <Typography fontSize={13}>{option.label}</Typography>
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                </Box>
+                              );
+                            }
+
+                            if (field.type === "checkbox") {
+                              return (
+                                <Box key={field.key}>
+                                  <FormControlLabel
+                                    control={
+                                      <Checkbox
+                                        checked={configData[field.key] === "true"}
+                                        onChange={(e) => handleConfigChange(field.key, e.target.checked ? "true" : "false")}
+                                        sx={{
+                                          color: "#13715B",
+                                          "&.Mui-checked": {
+                                            color: "#13715B",
+                                          },
+                                        }}
+                                      />
+                                    }
+                                    label={
+                                      <Typography variant="body2" fontWeight={500} fontSize={13} sx={{ color: "#344054" }}>
+                                        {field.label}
+                                      </Typography>
+                                    }
+                                  />
+                                </Box>
+                              );
+                            }
+
+                            // Default: Text, URL, Password, Number fields
+                            return (
+                              <Box key={field.key}>
+                                <Typography
+                                  variant="body2"
+                                  fontWeight={500}
+                                  fontSize={13}
+                                  sx={{ mb: 0.75, color: "#344054" }}
+                                >
+                                  {field.label}
+                                </Typography>
+                                <TextField
+                                  fullWidth
+                                  type={field.type}
+                                  placeholder={field.placeholder}
+                                  value={configData[field.key] || ""}
+                                  onChange={(e) => handleConfigChange(field.key, e.target.value)}
+                                  size="small"
+                                  sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                      fontSize: "13px",
+                                      backgroundColor: "white",
+                                    },
+                                  }}
+                                />
+                              </Box>
+                            );
+                          })}
+                        </Stack>
+
+                        {/* Test Connection and Save Buttons */}
+                        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
+                          <Button
+                            variant="outlined"
+                            onClick={handleTestConnection}
+                            disabled={isTestingConnection || isSavingConfig}
+                            sx={{
+                              borderColor: "#13715B",
+                              color: "#13715B",
+                              textTransform: "none",
+                              fontSize: "13px",
+                              fontWeight: 500,
+                              "&:hover": {
+                                borderColor: "#0f5a47",
+                                backgroundColor: "rgba(19, 113, 91, 0.04)",
+                              },
+                              "&:disabled": {
+                                borderColor: "#d0d5dd",
+                                color: "#98a2b3",
+                              },
+                            }}
+                          >
+                            {isTestingConnection ? "Testing..." : "Test Connection"}
+                          </Button>
                           <Button
                             variant="contained"
-                            startIcon={<SlidersHorizontal size={18} />}
-                            onClick={() => setIsRoutingModalOpen(true)}
-                            disabled={slackWorkspaces.length === 0}
+                            onClick={handleSaveConfiguration}
+                            disabled={isSavingConfig || isTestingConnection}
                             sx={{
-                              height: "34px",
                               backgroundColor: "#13715B",
                               textTransform: "none",
                               fontSize: "13px",
@@ -948,433 +948,10 @@ const PluginManagement: React.FC = () => {
                               },
                             }}
                           >
-                            Configure
+                            {isSavingConfig ? "Saving..." : "Save Configuration"}
                           </Button>
-                        </Stack>
-
-                        {/* Workspaces Table */}
-                        {loadingWorkspaces || connectingOAuth ? (
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 4 }}>
-                            <CircularProgress size={24} />
-                            <Typography fontSize={13}>
-                              {connectingOAuth ? "Connecting to Slack..." : "Loading workspaces..."}
-                            </Typography>
-                          </Box>
-                        ) : (
-                          <TableContainer sx={{ border: "1px solid #d0d5dd", borderRadius: "8px" }}>
-                            <Table>
-                              <TableHead sx={{ backgroundColor: "#f9fafb" }}>
-                                <TableRow>
-                                  <TableCell sx={{ fontWeight: 600, fontSize: "12px", textTransform: "uppercase", color: "#475467" }}>
-                                    Team Name
-                                  </TableCell>
-                                  <TableCell sx={{ fontWeight: 600, fontSize: "12px", textTransform: "uppercase", color: "#475467" }}>
-                                    Channel
-                                  </TableCell>
-                                  <TableCell sx={{ fontWeight: 600, fontSize: "12px", textTransform: "uppercase", color: "#475467" }}>
-                                    Creation Date
-                                  </TableCell>
-                                  <TableCell sx={{ fontWeight: 600, fontSize: "12px", textTransform: "uppercase", color: "#475467" }}>
-                                    Active
-                                  </TableCell>
-                                  <TableCell sx={{ fontWeight: 600, fontSize: "12px", textTransform: "uppercase", color: "#475467" }}>
-                                    Action
-                                  </TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {slackWorkspaces.length > 0 ? (
-                                  slackWorkspaces
-                                    .slice(tablePage * rowsPerPage, tablePage * rowsPerPage + rowsPerPage)
-                                    .map((workspace) => (
-                                      <TableRow key={workspace.id} sx={{ "&:hover": { backgroundColor: "#f9fafb" } }}>
-                                        <TableCell sx={{ fontSize: "13px" }}>{workspace.team_name}</TableCell>
-                                        <TableCell sx={{ fontSize: "13px" }}>#{workspace.channel}</TableCell>
-                                        <TableCell sx={{ fontSize: "13px" }}>
-                                          {workspace.created_at ? new Date(workspace.created_at).toLocaleDateString() : "-"}
-                                        </TableCell>
-                                        <TableCell sx={{ fontSize: "13px" }}>
-                                          {workspace.is_active ? "Yes" : "No"}
-                                        </TableCell>
-                                        <TableCell>
-                                          <Stack direction="row" spacing={1}>
-                                            <Button
-                                              size="small"
-                                              variant="outlined"
-                                              onClick={() => handleToggleWorkspace(workspace.id, workspace.is_active)}
-                                              sx={{
-                                                minWidth: "auto",
-                                                px: 1,
-                                                fontSize: "12px",
-                                                textTransform: "none",
-                                                borderColor: "#d0d5dd",
-                                                color: "#344054",
-                                              }}
-                                              title={workspace.is_active ? "Disable" : "Enable"}
-                                            >
-                                              {workspace.is_active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
-                                            </Button>
-                                            <Button
-                                              size="small"
-                                              variant="outlined"
-                                              color="error"
-                                              onClick={() => handleDisconnectWorkspace(workspace.id)}
-                                              sx={{
-                                                minWidth: "auto",
-                                                px: 1,
-                                                fontSize: "12px",
-                                                textTransform: "none",
-                                              }}
-                                              title="Delete"
-                                            >
-                                              <Trash2 size={16} />
-                                            </Button>
-                                          </Stack>
-                                        </TableCell>
-                                      </TableRow>
-                                    ))
-                                ) : (
-                                  <TableRow>
-                                    <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                                      <Typography fontSize={13} color="text.secondary">
-                                        No workspaces connected yet. Click "Add to Slack" above to connect.
-                                      </Typography>
-                                    </TableCell>
-                                  </TableRow>
-                                )}
-                              </TableBody>
-                              {slackWorkspaces.length > 5 && (
-                                <TableFooter>
-                                  <TableRow>
-                                    <TablePagination
-                                      count={slackWorkspaces.length}
-                                      page={tablePage}
-                                      onPageChange={handleChangePage}
-                                      rowsPerPage={rowsPerPage}
-                                      rowsPerPageOptions={[5, 10, 15, 25]}
-                                      onRowsPerPageChange={handleChangeRowsPerPage}
-                                      labelRowsPerPage="Rows per page"
-                                      sx={{ fontSize: "13px" }}
-                                    />
-                                  </TableRow>
-                                </TableFooter>
-                              )}
-                            </Table>
-                          </TableContainer>
-                        )}
-
-                        {/* Notification Routing Modal - Placeholder */}
-                        {isRoutingModalOpen && (
-                          <Box
-                            sx={{
-                              position: "fixed",
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              backgroundColor: "rgba(0, 0, 0, 0.5)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              zIndex: 9999,
-                            }}
-                            onClick={() => setIsRoutingModalOpen(false)}
-                          >
-                            <Box
-                              sx={{
-                                backgroundColor: "white",
-                                borderRadius: "8px",
-                                p: 3,
-                                maxWidth: "600px",
-                                width: "90%",
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Typography variant="h6" fontWeight={600} fontSize={16} sx={{ mb: 2 }}>
-                                Notification Routing
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary" fontSize={13} sx={{ mb: 3 }}>
-                                Configure which notification types go to which Slack channels.
-                              </Typography>
-
-                              {/* Global Routing Configuration */}
-                              <Stack spacing={2} sx={{ mb: 3 }}>
-                                <Typography variant="subtitle2" fontWeight={500} fontSize={13}>
-                                  Apply to all workspaces:
-                                </Typography>
-                                <FormControl fullWidth size="small">
-                                  <Select
-                                    multiple
-                                    value={globalRoutingTypes}
-                                    onChange={(e) => {
-                                      const value = typeof e.target.value === 'string' ?
-                                        e.target.value.split(',') :
-                                        e.target.value;
-                                      setGlobalRoutingTypes(value);
-                                    }}
-                                    renderValue={(selected) =>
-                                      (selected as string[]).length === 0
-                                        ? "Select notification types..."
-                                        : `${(selected as string[]).length} type(s) selected`
-                                    }
-                                    displayEmpty
-                                    sx={{ fontSize: "13px" }}
-                                  >
-                                    {[
-                                      "Membership and roles",
-                                      "Projects and organizations",
-                                      "Policy reminders and status",
-                                      "Evidence and task alerts",
-                                      "Control or policy changes",
-                                    ].map((option) => (
-                                      <MenuItem key={option} value={option} sx={{ fontSize: "13px" }}>
-                                        <Checkbox
-                                          checked={globalRoutingTypes.indexOf(option) > -1}
-                                          sx={{
-                                            color: "#13715B",
-                                            "&.Mui-checked": { color: "#13715B" },
-                                          }}
-                                        />
-                                        <Typography fontSize={13}>{option}</Typography>
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                              </Stack>
-
-                              <Stack direction="row" spacing={2} justifyContent="flex-end">
-                                <Button
-                                  variant="outlined"
-                                  onClick={() => setIsRoutingModalOpen(false)}
-                                  sx={{ textTransform: "none", fontSize: "13px" }}
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  variant="contained"
-                                  onClick={() => {
-                                    handleApplyGlobalRouting();
-                                    setIsRoutingModalOpen(false);
-                                  }}
-                                  disabled={globalRoutingTypes.length === 0}
-                                  sx={{
-                                    backgroundColor: "#13715B",
-                                    textTransform: "none",
-                                    fontSize: "13px",
-                                    "&:hover": { backgroundColor: "#0f5a47" },
-                                  }}
-                                >
-                                  Save Changes
-                                </Button>
-                              </Stack>
-                            </Box>
-                          </Box>
-                        )}
-                      </Box>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary" fontSize={13} sx={{ mb: 3 }}>
-                        Configure {plugin.displayName} settings and preferences.
-                      </Typography>
-                    )}
-
-                    {/* Configuration Form (hide for Slack) */}
-                    {pluginKey !== "slack" && (
-                    <Stack spacing={2.5}>
-                      {getConfigFields().map((field: any) => {
-                        // Skip field if showIf condition is false
-                        if (field.showIf && !field.showIf(configData)) {
-                          return null;
-                        }
-
-                        // Render based on field type
-                        if (field.type === "select") {
-                          return (
-                            <Box key={field.key}>
-                              <Typography
-                                variant="body2"
-                                fontWeight={500}
-                                fontSize={13}
-                                sx={{ mb: 0.75, color: "#344054" }}
-                              >
-                                {field.label}
-                              </Typography>
-                              <FormControl fullWidth size="small">
-                                <Select
-                                  value={configData[field.key] || field.placeholder || ""}
-                                  onChange={(e) => handleConfigChange(field.key, e.target.value)}
-                                  sx={{
-                                    fontSize: "13px",
-                                    backgroundColor: "white",
-                                  }}
-                                >
-                                  {field.options?.map((option: any) => (
-                                    <MenuItem key={option.value} value={option.value} sx={{ fontSize: "13px" }}>
-                                      {option.label}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            </Box>
-                          );
-                        }
-
-                        if (field.type === "multiselect") {
-                          const currentValue = configData[field.key] ?
-                            (typeof configData[field.key] === 'string' ?
-                              JSON.parse(configData[field.key]) :
-                              configData[field.key]) :
-                            [];
-
-                          return (
-                            <Box key={field.key}>
-                              <Typography
-                                variant="body2"
-                                fontWeight={500}
-                                fontSize={13}
-                                sx={{ mb: 0.75, color: "#344054" }}
-                              >
-                                {field.label}
-                              </Typography>
-                              <FormControl fullWidth size="small">
-                                <Select
-                                  multiple
-                                  value={currentValue}
-                                  onChange={(e) => {
-                                    const value = typeof e.target.value === 'string' ?
-                                      e.target.value.split(',') :
-                                      e.target.value;
-                                    handleConfigChange(field.key, JSON.stringify(value));
-                                  }}
-                                  renderValue={(selected) => (selected as string[]).join(", ")}
-                                  sx={{
-                                    fontSize: "13px",
-                                    backgroundColor: "white",
-                                  }}
-                                >
-                                  {field.options?.map((option: any) => (
-                                    <MenuItem key={option.value} value={option.value} sx={{ fontSize: "13px" }}>
-                                      <Checkbox
-                                        checked={currentValue.indexOf(option.value) > -1}
-                                        sx={{
-                                          color: "#13715B",
-                                          "&.Mui-checked": {
-                                            color: "#13715B",
-                                          },
-                                        }}
-                                      />
-                                      <Typography fontSize={13}>{option.label}</Typography>
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            </Box>
-                          );
-                        }
-
-                        if (field.type === "checkbox") {
-                          return (
-                            <Box key={field.key}>
-                              <FormControlLabel
-                                control={
-                                  <Checkbox
-                                    checked={configData[field.key] === "true"}
-                                    onChange={(e) => handleConfigChange(field.key, e.target.checked ? "true" : "false")}
-                                    sx={{
-                                      color: "#13715B",
-                                      "&.Mui-checked": {
-                                        color: "#13715B",
-                                      },
-                                    }}
-                                  />
-                                }
-                                label={
-                                  <Typography variant="body2" fontWeight={500} fontSize={13} sx={{ color: "#344054" }}>
-                                    {field.label}
-                                  </Typography>
-                                }
-                              />
-                            </Box>
-                          );
-                        }
-
-                        // Default: Text, URL, Password, Number fields
-                        return (
-                          <Box key={field.key}>
-                            <Typography
-                              variant="body2"
-                              fontWeight={500}
-                              fontSize={13}
-                              sx={{ mb: 0.75, color: "#344054" }}
-                            >
-                              {field.label}
-                            </Typography>
-                            <TextField
-                              fullWidth
-                              type={field.type}
-                              placeholder={field.placeholder}
-                              value={configData[field.key] || ""}
-                              onChange={(e) => handleConfigChange(field.key, e.target.value)}
-                              size="small"
-                              sx={{
-                                "& .MuiOutlinedInput-root": {
-                                  fontSize: "13px",
-                                  backgroundColor: "white",
-                                },
-                              }}
-                            />
-                          </Box>
-                        );
-                      })}
-                    </Stack>
-                    )}
-
-                    {/* Test Connection and Save Buttons (hide for Slack) */}
-                    {pluginKey !== "slack" && (
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
-                      {pluginKey === "mlflow" && (
-                        <Button
-                          variant="outlined"
-                          onClick={handleTestConnection}
-                          disabled={isTestingConnection || isSavingConfig}
-                          sx={{
-                            borderColor: "#13715B",
-                            color: "#13715B",
-                            textTransform: "none",
-                            fontSize: "13px",
-                            fontWeight: 500,
-                            "&:hover": {
-                              borderColor: "#0f5a47",
-                              backgroundColor: "rgba(19, 113, 91, 0.04)",
-                            },
-                            "&:disabled": {
-                              borderColor: "#d0d5dd",
-                              color: "#98a2b3",
-                            },
-                          }}
-                        >
-                          {isTestingConnection ? "Testing..." : "Test Connection"}
-                        </Button>
-                      )}
-                      <Button
-                        variant="contained"
-                        onClick={handleSaveConfiguration}
-                        disabled={isSavingConfig || isTestingConnection}
-                        sx={{
-                          backgroundColor: "#13715B",
-                          textTransform: "none",
-                          fontSize: "13px",
-                          fontWeight: 500,
-                          "&:hover": {
-                            backgroundColor: "#0f5a47",
-                          },
-                          "&:disabled": {
-                            backgroundColor: "#d0d5dd",
-                          },
-                        }}
-                      >
-                        {isSavingConfig ? "Saving..." : "Save Configuration"}
-                      </Button>
-                    </Box>
+                        </Box>
+                      </>
                     )}
                   </Box>
                 </Stack>

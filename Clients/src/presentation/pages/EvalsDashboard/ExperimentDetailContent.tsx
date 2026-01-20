@@ -9,8 +9,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Chip,
   Card,
   CardContent,
   Stack,
@@ -1255,15 +1253,29 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
               const isFirstSample = selectedSampleIndex === 0;
               const isLastSample = selectedSampleIndex === totalSamples - 1;
 
+              const scrollToTop = () => {
+                // Scroll modal content to top - target the form element which is the scrollable container in StandardModal
+                setTimeout(() => {
+                  const modalContent = document.querySelector('[data-sample-modal-content]');
+                  // The scrollable container is the parent form element
+                  const scrollableForm = modalContent?.closest('form');
+                  if (scrollableForm) {
+                    scrollableForm.scrollTop = 0;
+                  }
+                }, 10);
+              };
+
               const handlePrevious = () => {
                 if (!isFirstSample) {
                   setSelectedSampleIndex(selectedSampleIndex - 1);
+                  scrollToTop();
                 }
               };
 
               const handleNext = () => {
                 if (!isLastSample) {
                   setSelectedSampleIndex(selectedSampleIndex + 1);
+                  scrollToTop();
                 }
               };
 
@@ -1329,7 +1341,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                   }
                 >
                   {/* Side-by-side layout: Left = Input/Output, Right = Metrics */}
-                  <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", minHeight: "400px" }}>
+                  <Box data-sample-modal-content sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", minHeight: "400px" }}>
                     {/* Left Panel: Input/Output or Conversation */}
                     <Box sx={{ display: "flex", flexDirection: "column", borderRight: "1px solid #e5e7eb", pr: 4 }}>
                       {/* Conversational Display (for multi-turn) */}

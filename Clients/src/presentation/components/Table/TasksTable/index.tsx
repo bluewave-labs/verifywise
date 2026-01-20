@@ -17,7 +17,7 @@ import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import EmptyState from "../../EmptyState";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, ChevronUp, ChevronDown, Flag } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import CustomSelect from "../../CustomSelect";
 import IconButtonComponent from "../../IconButton";
 import Chip from "../../Chip";

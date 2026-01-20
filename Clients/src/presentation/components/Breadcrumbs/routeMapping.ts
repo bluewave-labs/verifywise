@@ -25,7 +25,6 @@ import {
   Layers,
   Puzzle,
   Zap,
-  Activity,
   FileCode,
   Link,
   User,

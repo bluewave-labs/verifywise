@@ -31,7 +31,7 @@ import ConfirmationModal from '../../components/Dialogs/ConfirmationModal';
 
 interface PluginCardProps {
   plugin: Plugin;
-  onUninstall?: (installationId: number) => Promise<void>;
+  onUninstall?: (installationId: number, pluginKey: string) => Promise<void>;
   onManage?: (plugin: Plugin) => void;
   loading?: boolean;
 }
@@ -74,7 +74,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
     if (!plugin.installationId || !onUninstall) return;
 
     try {
-      await onUninstall(plugin.installationId);
+      await onUninstall(plugin.installationId, plugin.key);
       setIsDeleteModalOpen(false);
     } catch (error) {
       console.error(`Failed to uninstall ${plugin.displayName}:`, error);

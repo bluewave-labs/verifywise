@@ -191,7 +191,7 @@ const PluginManagement: React.FC = () => {
     if (!plugin?.installationId) return;
 
     try {
-      await uninstall(plugin.installationId);
+      await uninstall(plugin.installationId, pluginKey);
       setIsDeleteModalOpen(false);
       setToast({
         variant: "success",

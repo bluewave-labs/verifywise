@@ -95,9 +95,9 @@ const Plugins: React.FC = () => {
 
   // Handle plugin uninstallation
   const handleUninstall = useCallback(
-    async (installationId: number) => {
+    async (installationId: number, pluginKey: string) => {
       try {
-        await uninstall(installationId);
+        await uninstall(installationId, pluginKey);
         setToast({
           variant: "success",
           body: "Plugin uninstalled successfully!",

@@ -98,6 +98,7 @@ interface PluginRegistryContextType {
   getComponentsForSlot: (slotId: string) => LoadedPluginComponent[];
   getPluginTabs: (slotId: string) => PluginTabConfig[];
   loadPluginUI: (pluginKey: string, uiConfig: PluginUIConfig) => Promise<void>;
+  unloadPlugin: (pluginKey: string) => void;
   refreshPlugins: () => Promise<void>;
   isPluginInstalled: (pluginKey: string) => boolean;
 }
@@ -120,7 +121,8 @@ export function PluginRegistryProvider({
   const [loadedComponents, setLoadedComponents] = useState<
     Map<string, LoadedPluginComponent[]>
   >(new Map());
-  const [loadedBundles, setLoadedBundles] = useState<Set<string>>(new Set());
+  // Use ref for loadedBundles to avoid stale closure issues in loadPluginUI callback
+  const loadedBundlesRef = React.useRef<Set<string>>(new Set());
 
   // Fetch installed plugins on mount
   const refreshPlugins = useCallback(async () => {
@@ -157,8 +159,55 @@ export function PluginRegistryProvider({
   // Load a plugin's UI bundle dynamically
   const loadPluginUI = useCallback(
     async (pluginKey: string, uiConfig: PluginUIConfig) => {
-      // Skip if already loaded or currently loading
-      if (loadedBundles.has(uiConfig.bundleUrl) || loadingBundles.current.has(uiConfig.bundleUrl)) {
+      // Check if currently loading to prevent concurrent loads
+      if (loadingBundles.current.has(uiConfig.bundleUrl)) {
+        return;
+      }
+
+      const globalName = uiConfig.globalName || getPluginGlobalName(pluginKey);
+      const bundleAlreadyLoaded = loadedBundlesRef.current.has(uiConfig.bundleUrl);
+
+      // If bundle was previously loaded, the script is still in DOM
+      // Just need to re-register the components from the existing global
+      if (bundleAlreadyLoaded) {
+        const module = (window as any)[globalName];
+        if (module) {
+          // Re-register components for the re-installed plugin
+          setLoadedComponents((prevComponents) => {
+            const newComponents = new Map(prevComponents);
+
+            for (const slotConfig of uiConfig.slots) {
+              const Component = module[slotConfig.componentName];
+              if (!Component) {
+                console.warn(
+                  `[PluginRegistry] Component ${slotConfig.componentName} not found in plugin ${pluginKey}`
+                );
+                continue;
+              }
+
+              const loadedComponent: LoadedPluginComponent = {
+                pluginKey,
+                slotId: slotConfig.slotId,
+                componentName: slotConfig.componentName,
+                Component,
+                renderType: slotConfig.renderType,
+                props: slotConfig.props,
+                trigger: slotConfig.trigger,
+              };
+
+              const existing = newComponents.get(slotConfig.slotId) || [];
+              // Check if this plugin's component is already registered for this slot
+              const alreadyRegistered = existing.some(
+                (c) => c.pluginKey === pluginKey && c.componentName === slotConfig.componentName
+              );
+              if (!alreadyRegistered) {
+                newComponents.set(slotConfig.slotId, [...existing, loadedComponent]);
+              }
+            }
+
+            return newComponents;
+          });
+        }
         return;
       }
 
@@ -176,7 +225,6 @@ export function PluginRegistryProvider({
         await loadScript(resolvedUrl);
 
         // Get the module from the global variable (use config globalName if provided)
-        const globalName = uiConfig.globalName || getPluginGlobalName(pluginKey);
         const module = (window as any)[globalName];
 
         if (!module) {
@@ -213,12 +261,14 @@ export function PluginRegistryProvider({
           return newComponents;
         });
 
-        setLoadedBundles((prev) => new Set([...prev, uiConfig.bundleUrl]));
+        loadedBundlesRef.current.add(uiConfig.bundleUrl);
       } catch (error) {
         console.error(`[PluginRegistry] Failed to load plugin UI for ${pluginKey}:`, error);
+      } finally {
+        loadingBundles.current.delete(uiConfig.bundleUrl);
       }
     },
-    [loadedBundles]
+    []
   );
 
   const getComponentsForSlot = useCallback(
@@ -227,6 +277,25 @@ export function PluginRegistryProvider({
     },
     [loadedComponents]
   );
+
+  // Unload a plugin's components from all slots
+  const unloadPlugin = useCallback((pluginKey: string) => {
+    setLoadedComponents((prevComponents) => {
+      const newComponents = new Map(prevComponents);
+
+      // Remove components for this plugin from all slots
+      for (const [slotId, components] of newComponents) {
+        const filtered = components.filter((c) => c.pluginKey !== pluginKey);
+        if (filtered.length === 0) {
+          newComponents.delete(slotId);
+        } else {
+          newComponents.set(slotId, filtered);
+        }
+      }
+
+      return newComponents;
+    });
+  }, []);
 
   // Get tab configurations for plugins registered in a slot
   const getPluginTabs = useCallback(
@@ -253,6 +322,7 @@ export function PluginRegistryProvider({
         getComponentsForSlot,
         getPluginTabs,
         loadPluginUI,
+        unloadPlugin,
         refreshPlugins,
         isPluginInstalled,
       }}

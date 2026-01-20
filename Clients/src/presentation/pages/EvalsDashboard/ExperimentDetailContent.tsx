@@ -1282,7 +1282,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
             onClose={() => setSelectedSampleIndex(null)}
             title={`Sample ${selectedSampleIndex + 1}`}
             description={`${passedCount}/${scoreEntries.length} metrics passed`}
-            maxWidth="900px"
+            maxWidth="1100px"
             fitContent
             customFooter={
               <Stack direction="row" spacing="8px" sx={{ width: "100%", justifyContent: "flex-end" }}>
@@ -1328,218 +1328,190 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
               </Stack>
             }
           >
-            {/* Metric Scores Section */}
-            {selectedLog.metadata?.metric_scores && Object.keys(selectedLog.metadata.metric_scores).length > 0 && (
-              <Box sx={{ mb: "16px" }}>
-                <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "12px" }}>
-                  Metric Scores
-                </Typography>
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: `repeat(${Math.min(Object.keys(selectedLog.metadata.metric_scores).length, 3)}, 1fr)`,
-                    gap: "12px",
-                  }}
-                >
-                  {Object.entries(selectedLog.metadata.metric_scores).map(([metricName, metricData]) => {
-                    const score = typeof metricData === "number" ? metricData : (metricData as { score?: number })?.score;
-                    const isInverse = metricName.toLowerCase().includes("bias") || metricName.toLowerCase().includes("toxicity");
-                    const passed = typeof score === "number" && (isInverse ? score < 0.5 : score >= 0.5);
-                    const rawReason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
-                    const reason = parseMetricReason(rawReason);
-                    const friendlyMetric = formatMetricName(metricName.replace(/^G-Eval\s*\((.+)\)$/i, "$1"));
-
-                    return (
-                      <Box
-                        key={metricName}
-                        sx={{
-                          p: "12px",
-                          borderRadius: "4px",
-                          backgroundColor: "#f8fafc",
-                          border: "1px solid #e2e8f0",
-                        }}
-                      >
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                          <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#475569" }}>
-                            {friendlyMetric}
-                          </Typography>
-                          <Typography 
-                            sx={{ 
-                              fontSize: 13, 
-                              fontWeight: 700, 
-                              color: passed ? "#059669" : "#dc2626",
-                            }}
-                          >
-                            {typeof score === "number" ? `${(score * 100).toFixed(0)}%` : "N/A"}
-                          </Typography>
-                        </Stack>
-                        <Box sx={{ height: 4, backgroundColor: "#e2e8f0", borderRadius: 2, overflow: "hidden", mb: reason ? 1 : 0 }}>
-                          <Box
-                            sx={{
-                              height: "100%",
-                              width: `${(typeof score === "number" ? score : 0) * 100}%`,
-                              backgroundColor: passed ? "#10b981" : "#ef4444",
-                              borderRadius: 2,
-                              transition: "width 0.3s ease",
-                            }}
-                          />
-                        </Box>
-                        {reason && (
-                          <Typography sx={{ fontSize: 11, color: "#6b7280", mt: 0.5, lineHeight: 1.4 }}>
-                            {reason.length > 100 ? `${reason.slice(0, 100)}...` : reason}
-                          </Typography>
-                        )}
-                      </Box>
-                    );
-                  })}
-                </Box>
-              </Box>
-            )}
-
-            {/* Conversational Display (for multi-turn) */}
-            {selectedLog.metadata?.is_conversational && selectedLog.metadata?.turns ? (
-              <Box sx={{ mb: "16px" }}>
-                <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
-                  Conversation ({selectedLog.metadata.turn_count || (selectedLog.metadata.turns as Array<unknown>).length} turns)
-                </Typography>
-                {selectedLog.metadata.scenario && (
-                  <Typography sx={{ fontSize: 12, color: "#6B7280", mb: 1.5 }}>
-                    Scenario: {selectedLog.metadata.scenario}
-                  </Typography>
-                )}
-                <Box sx={{ 
-                  backgroundColor: "#f8fafc", 
-                  border: "1px solid #e2e8f0", 
-                  borderRadius: "6px", 
-                  p: 2,
-                  maxHeight: "300px",
-                  overflowY: "auto",
-                }}>
-                  <Stack spacing={1.5}>
-                    {(selectedLog.metadata.turns as Array<{role: string; content: string}>).map((turn, idx) => {
-                      const isUser = turn.role?.toLowerCase() === "user";
-                      return (
-                        <Box
-                          key={idx}
-                          sx={{
-                            display: "flex",
-                            justifyContent: isUser ? "flex-end" : "flex-start",
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              maxWidth: "85%",
-                              p: 1.5,
-                              borderRadius: "8px",
-                              backgroundColor: isUser ? "#ecfdf5" : "#eff6ff",
-                              border: isUser ? "1px solid #a7f3d0" : "1px solid #bfdbfe",
-                            }}
-                          >
-                            <Typography
+            {/* Side-by-side layout: Left = Input/Output, Right = Metrics */}
+            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", minHeight: "400px" }}>
+              {/* Left Panel: Input/Output or Conversation */}
+              <Box sx={{ display: "flex", flexDirection: "column", borderRight: "1px solid #e5e7eb", pr: 3 }}>
+                {/* Conversational Display (for multi-turn) */}
+                {selectedLog.metadata?.is_conversational && selectedLog.metadata?.turns ? (
+                  <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b", mb: 1.5 }}>
+                      Conversation ({selectedLog.metadata.turn_count || (selectedLog.metadata.turns as Array<unknown>).length} turns)
+                    </Typography>
+                    {selectedLog.metadata.scenario && (
+                      <Typography sx={{ fontSize: 12, color: "#6B7280", mb: 1.5 }}>
+                        Scenario: {selectedLog.metadata.scenario}
+                      </Typography>
+                    )}
+                    <Box sx={{ 
+                      flex: 1,
+                      backgroundColor: "#FAF5FF", 
+                      border: "1px solid #DDD6FE", 
+                      borderRadius: "8px", 
+                      p: 2,
+                      overflowY: "auto",
+                    }}>
+                      <Stack spacing={2}>
+                        {(selectedLog.metadata.turns as Array<{role: string; content: string}>).map((turn, idx) => {
+                          const isUser = turn.role?.toLowerCase() === "user";
+                          return (
+                            <Box
+                              key={idx}
                               sx={{
-                                fontWeight: 600,
-                                color: isUser ? "#059669" : "#1e40af",
-                                fontSize: "10px",
-                                textTransform: "uppercase",
-                                mb: 0.5,
+                                display: "flex",
+                                justifyContent: isUser ? "flex-end" : "flex-start",
                               }}
                             >
-                              {isUser ? "User" : "Assistant"}
+                              <Box
+                                sx={{
+                                  maxWidth: "85%",
+                                  p: 1.5,
+                                  borderRadius: "12px",
+                                  backgroundColor: isUser ? "#ECFDF5" : "#EBF5FF",
+                                  border: isUser ? "1px solid #A7F3D0" : "1px solid #BFDBFE",
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontWeight: 600,
+                                    color: isUser ? "#059669" : "#1E40AF",
+                                    fontSize: "10px",
+                                    textTransform: "uppercase",
+                                    mb: 0.5,
+                                  }}
+                                >
+                                  {isUser ? "User" : "Assistant"}
+                                </Typography>
+                                <MarkdownRenderer content={turn.content || ""} />
+                              </Box>
+                            </Box>
+                          );
+                        })}
+                      </Stack>
+                    </Box>
+                    {selectedLog.metadata.expected_outcome && (
+                      <Box sx={{ mt: 2, p: 1.5, backgroundColor: "#fef3c7", borderRadius: "6px", border: "1px solid #fcd34d" }}>
+                        <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#92400e" }}>
+                          Expected Outcome:
+                        </Typography>
+                        <Typography sx={{ fontSize: 12, color: "#78350f", mt: 0.5 }}>
+                          {selectedLog.metadata.expected_outcome}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                ) : (
+                  <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                    {/* Input */}
+                    <Box sx={{ mb: 3 }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b", mb: 1.5 }}>
+                        Input
+                      </Typography>
+                      <Paper 
+                        variant="outlined" 
+                        sx={{ 
+                          p: 2, 
+                          backgroundColor: "#F9FAFB",
+                          maxHeight: "150px",
+                          overflowY: "auto",
+                        }}
+                      >
+                        <MarkdownRenderer content={selectedLog.input_text || "No input"} />
+                      </Paper>
+                    </Box>
+
+                    {/* Output */}
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b", mb: 1.5 }}>
+                        Output
+                      </Typography>
+                      <Paper 
+                        variant="outlined" 
+                        sx={{ 
+                          p: 2, 
+                          backgroundColor: "#F9FAFB",
+                          height: "calc(100% - 32px)",
+                          overflowY: "auto",
+                        }}
+                      >
+                        <MarkdownRenderer content={selectedLog.output_text || "No output"} />
+                      </Paper>
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+
+              {/* Right Panel: Metric Scores with Full Reasoning */}
+              <Box sx={{ display: "flex", flexDirection: "column", overflowY: "auto" }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b", mb: 1.5 }}>
+                  Evaluation Metrics
+                </Typography>
+                
+                {selectedLog.metadata?.metric_scores && Object.keys(selectedLog.metadata.metric_scores).length > 0 ? (
+                  <Stack spacing={1.5} sx={{ flex: 1, overflowY: "auto", pr: 1 }}>
+                    {Object.entries(selectedLog.metadata.metric_scores).map(([metricName, metricData]) => {
+                      const score = typeof metricData === "number" ? metricData : (metricData as { score?: number })?.score;
+                      const isInverse = metricName.toLowerCase().includes("bias") || metricName.toLowerCase().includes("toxicity") || metricName.toLowerCase().includes("hallucination");
+                      const passed = typeof score === "number" && (isInverse ? score < 0.5 : score >= 0.5);
+                      const rawReason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
+                      const reason = parseMetricReason(rawReason);
+                      const friendlyMetric = formatMetricName(metricName.replace(/^G-Eval\s*\((.+)\)$/i, "$1"));
+
+                      return (
+                        <Box
+                          key={metricName}
+                          sx={{
+                            p: 2,
+                            borderRadius: "8px",
+                            backgroundColor: passed ? "#f0fdf4" : "#fef2f2",
+                            border: `1px solid ${passed ? "#bbf7d0" : "#fecaca"}`,
+                          }}
+                        >
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
+                              {friendlyMetric}
                             </Typography>
-                            <MarkdownRenderer content={turn.content || ""} />
+                            <Chip
+                              label={typeof score === "number" ? `${(score * 100).toFixed(0)}%` : "N/A"}
+                              size="small"
+                              sx={{
+                                backgroundColor: passed ? "#dcfce7" : "#fee2e2",
+                                color: passed ? "#166534" : "#991b1b",
+                                fontWeight: 700,
+                                fontSize: "12px",
+                                borderRadius: "4px",
+                              }}
+                            />
+                          </Stack>
+                          
+                          {/* Progress bar */}
+                          <Box sx={{ height: 6, backgroundColor: passed ? "#bbf7d0" : "#fecaca", borderRadius: 3, overflow: "hidden", mb: reason ? 1.5 : 0 }}>
+                            <Box
+                              sx={{
+                                height: "100%",
+                                width: `${(typeof score === "number" ? score : 0) * 100}%`,
+                                backgroundColor: passed ? "#22c55e" : "#ef4444",
+                                borderRadius: 3,
+                                transition: "width 0.3s ease",
+                              }}
+                            />
                           </Box>
+                          
+                          {/* Full reasoning - not truncated */}
+                          {reason && (
+                            <Typography sx={{ fontSize: 12, color: "#4b5563", lineHeight: 1.6 }}>
+                              {reason}
+                            </Typography>
+                          )}
                         </Box>
                       );
                     })}
                   </Stack>
-                </Box>
-                {selectedLog.metadata.expected_outcome && (
-                  <Box sx={{ mt: 1.5 }}>
-                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#6B7280" }}>
-                      Expected Outcome:
+                ) : (
+                  <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Typography sx={{ fontSize: 13, color: "#9ca3af" }}>
+                      No metric scores available
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#374151", mt: 0.5 }}>
-                      {selectedLog.metadata.expected_outcome}
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            ) : (
-              <>
-                {/* Input (single-turn) */}
-                <Box sx={{ mb: "16px" }}>
-                  <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
-                    Input
-                  </Typography>
-                  <Box
-                    sx={{
-                      p: "12px",
-                      backgroundColor: "#f8fafc",
-                      borderRadius: "4px",
-                      border: "1px solid #e2e8f0",
-                      maxHeight: "150px",
-                      overflowY: "auto",
-                    }}
-                  >
-                    <MarkdownRenderer content={selectedLog.input_text || "No input"} />
-                  </Box>
-                </Box>
-
-                {/* Output (single-turn) */}
-                <Box sx={{ mb: "16px" }}>
-                  <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
-                    Output
-                  </Typography>
-                  <Box
-                    sx={{
-                      p: "12px",
-                      backgroundColor: "#f8fafc",
-                      borderRadius: "4px",
-                      border: "1px solid #e2e8f0",
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                    }}
-                  >
-                    <MarkdownRenderer content={selectedLog.output_text || "No output"} />
-                  </Box>
-                </Box>
-              </>
-            )}
-
-            {/* Metadata Section */}
-            <Box sx={{ mb: "16px" }}>
-              <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
-                Metadata
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
-                  gap: "12px",
-                }}
-              >
-                {selectedLog.latency_ms && (
-                  <Box sx={{ p: "8px", backgroundColor: "#f8fafc", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
-                    <Typography sx={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Latency</Typography>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>{selectedLog.latency_ms}ms</Typography>
-                  </Box>
-                )}
-                {selectedLog.token_count && (
-                  <Box sx={{ p: "8px", backgroundColor: "#f8fafc", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
-                    <Typography sx={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Tokens</Typography>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>{selectedLog.token_count}</Typography>
-                  </Box>
-                )}
-                {selectedLog.model_name && (
-                  <Box sx={{ p: "8px", backgroundColor: "#f8fafc", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
-                    <Typography sx={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Model</Typography>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selectedLog.model_name}</Typography>
-                  </Box>
-                )}
-                {selectedLog.timestamp && (
-                  <Box sx={{ p: "8px", backgroundColor: "#f8fafc", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
-                    <Typography sx={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Timestamp</Typography>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>{new Date(selectedLog.timestamp).toLocaleTimeString()}</Typography>
                   </Box>
                 )}
               </Box>
@@ -1547,36 +1519,39 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
             {/* Error message if failed */}
             {selectedLog.error_message && (
-              <Box sx={{ mb: "16px" }}>
-                <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#991B1B", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+              <Box sx={{ mt: 2, p: 2, backgroundColor: "#fef2f2", borderRadius: "6px", border: "1px solid #fecaca" }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#991B1B", mb: 0.5 }}>
                   Error
                 </Typography>
-                <Box
-                  sx={{
-                    p: "12px",
-                    backgroundColor: "#fef2f2",
-                    borderRadius: "4px",
-                    border: "1px solid #fecaca",
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: 12,
-                      color: "#991B1B",
-                      fontFamily: "monospace",
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {selectedLog.error_message}
-                  </Typography>
-                </Box>
+                <Typography sx={{ fontSize: 12, color: "#991B1B", fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+                  {selectedLog.error_message}
+                </Typography>
               </Box>
             )}
 
-            {/* Sample ID */}
-            <Typography sx={{ fontSize: 10, color: "#9ca3af", fontFamily: "monospace" }}>
-              Sample ID: {selectedLog.id}
-            </Typography>
+            {/* Footer: Metadata + Sample ID */}
+            <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Stack direction="row" spacing={3}>
+                {selectedLog.model_name && (
+                  <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+                    <span style={{ fontWeight: 600 }}>Model:</span> {selectedLog.model_name}
+                  </Typography>
+                )}
+                {selectedLog.latency_ms && (
+                  <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+                    <span style={{ fontWeight: 600 }}>Latency:</span> {selectedLog.latency_ms}ms
+                  </Typography>
+                )}
+                {selectedLog.token_count && (
+                  <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+                    <span style={{ fontWeight: 600 }}>Tokens:</span> {selectedLog.token_count}
+                  </Typography>
+                )}
+              </Stack>
+              <Typography sx={{ fontSize: 10, color: "#9ca3af", fontFamily: "monospace" }}>
+                {selectedLog.id}
+              </Typography>
+            </Box>
           </StandardModal>
         );
       })()}

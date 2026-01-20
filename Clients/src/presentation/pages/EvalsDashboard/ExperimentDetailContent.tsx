@@ -3,24 +3,17 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Card,
   CardContent,
   Stack,
   IconButton,
   TextField,
-  Tooltip,
 } from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import StandardModal from "../../components/Modals/StandardModal";
-import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw, AlertTriangle, Download, Copy, ChevronLeft, ChevronRight } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw, Download, Copy, ChevronLeft, ChevronRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -1110,141 +1103,137 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
         return (
           <>
-            <Card sx={{ overflow: "hidden", border: "1px solid #d0d5dd", borderRadius: "4px" }} elevation={0}>
-              <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
-                <Box sx={{ overflowY: "auto", overflowX: "auto", maxHeight: "calc(100vh - 360px)" }}>
-                  <TableContainer sx={{ overflowX: "auto" }}>
-                    <Table stickyHeader size="small" sx={{ minWidth: 800, tableLayout: "auto" }}>
-                      <TableHead>
-                        <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
-                          <TableCell sx={{ fontWeight: 600, fontSize: "11px", width: 40, textAlign: "center", padding: "8px 6px" }}>#</TableCell>
-                          <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 250, textAlign: "left", padding: "8px 12px" }}>Input</TableCell>
-                          <TableCell sx={{ fontWeight: 600, fontSize: "11px", minWidth: 150, maxWidth: 250, textAlign: "left", padding: "8px 12px" }}>Output</TableCell>
-                          {metricColumns.map(metric => (
-                            <TableCell
-                              key={metric}
-                              sx={{
-                                fontWeight: 600,
-                                fontSize: "11px",
-                                textAlign: "center",
-                                padding: "8px 8px",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {formatMetricName(metric)}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {logs.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={3 + metricColumns.length} align="center">
-                              <Box py={4}>
-                                <Typography variant="body2" color="text.secondary">
-                                  No samples found
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          logs.map((log, index) => (
-                            <TableRow
-                              key={log.id}
-                              hover
-                              onClick={() => setSelectedSampleIndex(index)}
-                              sx={{
-                                cursor: "pointer",
-                                "&:hover": {
-                                  backgroundColor: "#F9FAFB",
-                                },
-                              }}
-                            >
-                              <TableCell sx={{ fontSize: "12px", color: "#6B7280", textAlign: "center", padding: "8px 6px" }}>
-                                {index + 1}
-                              </TableCell>
-                              <TableCell sx={{ fontSize: "12px", textAlign: "left", padding: "8px 12px", maxWidth: 250 }}>
-                                <Typography
-                                  variant="body2"
-                                  sx={{
-                                    fontSize: "12px",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                    display: "block",
-                                  }}
-                                >
-                                  {log.input_text || "-"}
-                                </Typography>
-                              </TableCell>
-                              <TableCell sx={{ fontSize: "12px", textAlign: "left", padding: "8px 12px", maxWidth: 250 }}>
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 1, overflow: "hidden" }}>
-                                  {log.status && log.status !== "success" && (
-                                    <Tooltip title={`Status: ${log.status}`} arrow>
-                                      <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                                        <AlertTriangle size={14} color="#dc2626" />
-                                      </Box>
-                                    </Tooltip>
-                                  )}
-                                  <Typography
-                                    variant="body2"
-                                    sx={{
-                                      fontSize: "12px",
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                      whiteSpace: "nowrap",
-                                    }}
-                                  >
-                                    {log.output_text || "-"}
-                                  </Typography>
-                                </Box>
-                              </TableCell>
-                              {/* Metric score columns */}
-                              {metricColumns.map(metric => {
-                                const score = getMetricScore(log, metric);
-                                // For bias and toxicity, lower is better (0 = good, 1 = bad)
-                                const isInverseMetric = metric.toLowerCase() === "bias" || metric.toLowerCase() === "toxicity";
-                                const passed = score !== null && (isInverseMetric ? score < 0.5 : score >= 0.5);
-                                return (
-                                  <TableCell key={metric} sx={{ textAlign: "center", padding: "8px 8px" }}>
-                                    {score !== null ? (
-                                      <Box
-                                        sx={{
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          px: 1,
-                                          py: 0.25,
-                                          borderRadius: "4px",
-                                          backgroundColor: passed ? "#ecfdf5" : "#fef2f2",
-                                          border: `1px solid ${passed ? "#a7f3d0" : "#fecaca"}`,
-                                        }}
-                                      >
-                                        <Typography
-                                          sx={{
-                                            fontSize: "11px",
-                                            fontWeight: 600,
-                                            color: passed ? "#059669" : "#dc2626",
-                                          }}
-                                        >
-                                          {(score * 100).toFixed(0)}%
-                                        </Typography>
-                                      </Box>
-                                    ) : (
-                                      <Typography sx={{ fontSize: "11px", color: "#9ca3af" }}>-</Typography>
-                                    )}
-                                  </TableCell>
-                                );
-                              })}
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Box>
-              </CardContent>
-            </Card>
+            <Box sx={{ overflow: "hidden", border: "1px solid #d0d5dd", borderRadius: "4px" }}>
+              <Box sx={{ overflowX: "auto" }}>
+                {/* Native HTML table to bypass MUI styling conflicts */}
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: "12px",
+                  }}
+                >
+                  <thead>
+                    <tr style={{ backgroundColor: "#F9FAFB" }}>
+                      <th
+                        style={{
+                          fontWeight: 600,
+                          fontSize: "11px",
+                          width: 50,
+                          textAlign: "center",
+                          padding: "12px 16px",
+                          borderBottom: "2px solid #d1d5db",
+                          borderRight: "1px solid #d1d5db",
+                        }}
+                      >
+                        #
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: 600,
+                          fontSize: "11px",
+                          textAlign: "center",
+                          padding: "12px 16px",
+                          borderBottom: "2px solid #d1d5db",
+                          borderRight: "1px solid #d1d5db",
+                        }}
+                      >
+                        Input
+                      </th>
+                      {metricColumns.map((metric) => (
+                        <th
+                          key={metric}
+                          style={{
+                            fontWeight: 600,
+                            fontSize: "11px",
+                            textAlign: "center",
+                            padding: "12px 16px",
+                            whiteSpace: "nowrap",
+                            borderBottom: "2px solid #d1d5db",
+                            borderRight: "1px solid #d1d5db",
+                          }}
+                        >
+                          {formatMetricName(metric)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.length === 0 ? (
+                      <tr>
+                        <td colSpan={2 + metricColumns.length} style={{ textAlign: "center", padding: "32px 16px", color: "#6B7280" }}>
+                          No samples found
+                        </td>
+                      </tr>
+                    ) : (
+                      logs.map((log, index) => (
+                        <tr
+                          key={log.id}
+                          onClick={() => setSelectedSampleIndex(index)}
+                          style={{ cursor: "pointer" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F9FAFB")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
+                        >
+                          <td
+                            style={{
+                              fontSize: "12px",
+                              color: "#6B7280",
+                              textAlign: "center",
+                              padding: "12px 16px",
+                              borderBottom: "1px solid #d1d5db",
+                              borderRight: "1px solid #d1d5db",
+                            }}
+                          >
+                            {index + 1}
+                          </td>
+                          <td
+                            style={{
+                              fontSize: "12px",
+                              textAlign: "center",
+                              padding: "12px 16px",
+                              borderBottom: "1px solid #d1d5db",
+                              borderRight: "1px solid #d1d5db",
+                              maxWidth: 400,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {log.input_text || "-"}
+                          </td>
+                          {metricColumns.map((metric) => {
+                            const score = getMetricScore(log, metric);
+                            const isInverseMetric = metric.toLowerCase() === "bias" || metric.toLowerCase() === "toxicity" || metric.toLowerCase() === "hallucination";
+                            const passed = score !== null && (isInverseMetric ? score < 0.5 : score >= 0.5);
+                            return (
+                              <td
+                                key={metric}
+                                style={{
+                                  textAlign: "center",
+                                  padding: "12px 16px",
+                                  borderBottom: "1px solid #d1d5db",
+                                  borderRight: "1px solid #d1d5db",
+                                  backgroundColor: score !== null
+                                    ? passed
+                                      ? "rgba(16, 185, 129, 0.18)"
+                                      : "rgba(239, 68, 68, 0.18)"
+                                    : "transparent",
+                                  fontSize: "12px",
+                                  fontWeight: 500,
+                                  color: score !== null ? "#374151" : "#9ca3af",
+                                }}
+                              >
+                                {score !== null ? `${(score * 100).toFixed(0)}%` : "-"}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </Box>
+            </Box>
 
             {/* Sample Detail Modal */}
             {selectedSampleIndex !== null && logs[selectedSampleIndex] && (() => {
@@ -1571,10 +1560,11 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                   </Box>
                 </StandardModal>
               );
-            })()}
+            })()
+            }
           </>
         );
       })()}
-    </Box>
+    </Box >
   );
 }

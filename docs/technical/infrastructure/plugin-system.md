@@ -1274,6 +1274,1051 @@ Features:
 
 ---
 
+## Dynamic Plugin UI Injection System
+
+The plugin system supports **fully dynamic UI injection at runtime**. Plugin UIs are NOT bundled with the main application - they are separate IIFE bundles that are loaded dynamically when plugins are installed.
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                      PLUGIN UI INJECTION FLOW                                    │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐        │
+│  │   Plugin         │     │   PluginLoader   │     │  PluginRegistry  │        │
+│  │   Marketplace    │────►│   Component      │────►│  Context         │        │
+│  │   (plugins.json) │     │   (on app load)  │     │  (state mgmt)    │        │
+│  └──────────────────┘     └──────────────────┘     └────────┬─────────┘        │
+│           │                                                  │                  │
+│           │ ui: { bundleUrl, slots }                        │                  │
+│           ▼                                                  ▼                  │
+│  ┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐        │
+│  │  Plugin Bundle   │     │  <script> tag    │     │ loadedComponents │        │
+│  │  (IIFE format)   │────►│  injection       │────►│ Map<slotId,      │        │
+│  │  bundle.iife.js  │     │  into DOM        │     │   Component[]>   │        │
+│  └──────────────────┘     └──────────────────┘     └────────┬─────────┘        │
+│           │                                                  │                  │
+│           │ window.PluginName = { Component1, Component2 }  │                  │
+│           ▼                                                  ▼                  │
+│  ┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐        │
+│  │  Global Variable │     │   PluginSlot     │     │  Rendered UI     │        │
+│  │  on window       │────►│   Components     │────►│  in App          │        │
+│  │  (React comps)   │     │   (injection pts)│     │  (dynamic)       │        │
+│  └──────────────────┘     └──────────────────┘     └──────────────────┘        │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Key Concepts
+
+| Concept | Description |
+|---------|-------------|
+| **IIFE Bundle** | Immediately Invoked Function Expression - plugin UI compiled to single JS file that exposes components on `window` |
+| **Plugin Slot** | Predefined injection point in the app where plugin UIs can render |
+| **PluginRegistry** | React context that manages loaded plugins and their components |
+| **PluginLoader** | Component that loads UI bundles for all installed plugins on app startup |
+| **Dynamic Loading** | Scripts loaded via `<script>` tag injection, not bundled with main app |
+
+### Plugin UI Configuration (plugins.json)
+
+Each plugin can define a `ui` property in the marketplace manifest:
+
+```json
+{
+  "key": "mlflow",
+  "name": "MLflow Integration",
+  "ui": {
+    "bundleUrl": "/api/plugins/mlflow/ui/bundle.js",
+    "globalName": "PluginMlflow",
+    "slots": [
+      {
+        "slotId": "project-risks-tab",
+        "componentName": "MLFlowTab",
+        "renderType": "tab",
+        "props": {
+          "label": "MLflow Models",
+          "icon": "Database"
+        }
+      },
+      {
+        "slotId": "plugin-config",
+        "componentName": "MLFlowConfiguration",
+        "renderType": "inline"
+      }
+    ]
+  }
+}
+```
+
+#### UI Configuration Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `bundleUrl` | string | Yes | URL to the IIFE bundle (served from backend) |
+| `globalName` | string | No | Custom global variable name (default: `Plugin` + PascalCase key) |
+| `slots` | array | Yes | List of slot configurations |
+
+#### Slot Configuration Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `slotId` | string | Yes | ID of the slot where component renders |
+| `componentName` | string | Yes | Name of the exported component from bundle |
+| `renderType` | string | Yes | How to render: `"inline"`, `"tab"`, `"modal"`, `"menu-item"` |
+| `props` | object | No | Default props passed to the component |
+| `trigger` | string | No | For modals - component that triggers the modal |
+
+### Available Plugin Slots
+
+**File:** `Clients/src/domain/constants/pluginSlots.ts`
+
+```typescript
+export const PLUGIN_SLOTS = {
+  // Project Risks page - Tab panel area
+  PROJECT_RISKS_TAB: "project-risks-tab",
+
+  // Plugin configuration panel
+  PLUGIN_CONFIG: "plugin-config",
+
+  // Risk dropdown menu - Additional import options
+  RISK_DROPDOWN_MENU: "risk-dropdown-menu",
+
+  // Add more slots as needed for future plugins
+} as const;
+
+export type PluginRenderType = "inline" | "tab" | "modal" | "menu-item";
+```
+
+### PluginRegistryContext
+
+**File:** `Clients/src/application/contexts/PluginRegistry.context.tsx`
+
+Core context that manages plugin UI state:
+
+```typescript
+interface PluginRegistryContextType {
+  // List of installed plugins (from API)
+  installedPlugins: PluginInstallation[];
+
+  // Loading state
+  isLoading: boolean;
+
+  // Map of slotId -> loaded components
+  loadedComponents: Map<string, LoadedPluginComponent[]>;
+
+  // Get components registered for a specific slot
+  getComponentsForSlot: (slotId: string) => LoadedPluginComponent[];
+
+  // Get tab configurations for tab-type slots
+  getPluginTabs: (slotId: string) => PluginTabConfig[];
+
+  // Load a plugin's UI bundle dynamically
+  loadPluginUI: (pluginKey: string, uiConfig: PluginUIConfig) => Promise<void>;
+
+  // Unload a plugin's components (on uninstall)
+  unloadPlugin: (pluginKey: string) => void;
+
+  // Refresh installed plugins list
+  refreshPlugins: () => Promise<void>;
+
+  // Check if a plugin is installed
+  isPluginInstalled: (pluginKey: string) => boolean;
+}
+```
+
+#### How loadPluginUI Works
+
+```typescript
+const loadPluginUI = async (pluginKey: string, uiConfig: PluginUIConfig) => {
+  // 1. Check if bundle already loaded (for re-installation)
+  const bundleAlreadyLoaded = loadedBundlesRef.current.has(uiConfig.bundleUrl);
+
+  if (bundleAlreadyLoaded) {
+    // Re-register components from existing global variable
+    const module = window[globalName];
+    // Register each slot component...
+    return;
+  }
+
+  // 2. Resolve bundle URL (handle /api/ paths)
+  let resolvedUrl = uiConfig.bundleUrl;
+  if (uiConfig.bundleUrl.startsWith("/api/")) {
+    resolvedUrl = `${getBackendUrl()}${uiConfig.bundleUrl}`;
+  }
+
+  // 3. Inject <script> tag to load IIFE bundle
+  const script = document.createElement("script");
+  script.src = resolvedUrl;
+  document.head.appendChild(script);
+
+  // 4. Wait for script to load
+  await new Promise((resolve, reject) => {
+    script.onload = resolve;
+    script.onerror = reject;
+  });
+
+  // 5. Get module from window global
+  const module = window[globalName]; // e.g., window.PluginMlflow
+
+  // 6. Register each component to its slot
+  for (const slotConfig of uiConfig.slots) {
+    const Component = module[slotConfig.componentName];
+    loadedComponents.set(slotConfig.slotId, [...existing, {
+      pluginKey,
+      slotId: slotConfig.slotId,
+      componentName: slotConfig.componentName,
+      Component,
+      renderType: slotConfig.renderType,
+      props: slotConfig.props,
+    }]);
+  }
+};
+```
+
+### PluginSlot Component
+
+**File:** `Clients/src/presentation/components/PluginSlot/index.tsx`
+
+Renders plugin components at designated slots:
+
+```tsx
+interface PluginSlotProps {
+  id: string;                    // Slot ID (e.g., "project-risks-tab")
+  pluginKey?: string;            // Optional: filter to specific plugin
+  slotProps?: Record<string, any>; // Props passed to plugin components
+  fallback?: ReactNode;          // Shown if no components for slot
+}
+
+export const PluginSlot: React.FC<PluginSlotProps> = ({
+  id,
+  pluginKey,
+  slotProps = {},
+  fallback = null,
+}) => {
+  const { getComponentsForSlot } = usePluginRegistry();
+
+  // Get components registered for this slot
+  let components = getComponentsForSlot(id);
+
+  // Filter by pluginKey if specified
+  if (pluginKey) {
+    components = components.filter(c => c.pluginKey === pluginKey);
+  }
+
+  if (components.length === 0) {
+    return <>{fallback}</>;
+  }
+
+  // Render based on renderType
+  return (
+    <>
+      {components.map((comp, index) => {
+        const { Component, props: defaultProps, renderType } = comp;
+
+        switch (renderType) {
+          case "inline":
+            return <Component key={index} {...defaultProps} {...slotProps} />;
+          case "tab":
+            // Tab rendering handled by parent TabContext
+            return <Component key={index} {...defaultProps} {...slotProps} />;
+          case "modal":
+            // Modal rendering with trigger
+            return <PluginModal key={index} component={comp} slotProps={slotProps} />;
+          case "menu-item":
+            // Menu item rendering
+            return <Component key={index} {...defaultProps} {...slotProps} />;
+          default:
+            return <Component key={index} {...defaultProps} {...slotProps} />;
+        }
+      })}
+    </>
+  );
+};
+```
+
+#### Usage Examples
+
+```tsx
+// Inline component in a page
+<PluginSlot
+  id={PLUGIN_SLOTS.PLUGIN_CONFIG}
+  pluginKey="mlflow"
+  slotProps={{
+    configData,
+    onConfigChange: handleConfigChange,
+    onSaveConfiguration: handleSave,
+  }}
+/>
+
+// Tab panel with plugin tabs
+<PluginSlot
+  id={PLUGIN_SLOTS.PROJECT_RISKS_TAB}
+  slotProps={{ projectId, risks }}
+/>
+
+// Menu items in a dropdown
+<Menu>
+  <MenuItem>Default Option</MenuItem>
+  <PluginSlot
+    id={PLUGIN_SLOTS.RISK_DROPDOWN_MENU}
+    slotProps={{ onImport: handleImport }}
+  />
+</Menu>
+```
+
+### PluginLoader Component
+
+**File:** `Clients/src/presentation/components/PluginLoader/index.tsx`
+
+Automatically loads UI bundles for all installed plugins on app startup:
+
+```tsx
+export function PluginLoader() {
+  const { installedPlugins, loadPluginUI, isLoading } = usePluginRegistry();
+
+  useEffect(() => {
+    if (isLoading || installedPlugins.length === 0) return;
+
+    async function loadAllPluginUIs() {
+      // Fetch marketplace data to get UI configs
+      const response = await apiServices.get("/plugins/marketplace");
+      const marketplacePlugins = response.data?.data || [];
+
+      // Load UI for each installed plugin
+      for (const installed of installedPlugins) {
+        const marketplacePlugin = marketplacePlugins.find(
+          (p) => p.key === installed.pluginKey
+        );
+
+        if (marketplacePlugin?.ui) {
+          await loadPluginUI(installed.pluginKey, marketplacePlugin.ui);
+        }
+      }
+    }
+
+    loadAllPluginUIs();
+  }, [installedPlugins, loadPluginUI, isLoading]);
+
+  return null; // Renders nothing - just loads bundles
+}
+```
+
+**Important:** Add `<PluginLoader />` to your app's root component:
+
+```tsx
+// App.tsx or main layout
+function App() {
+  return (
+    <PluginRegistryProvider>
+      <PluginLoader />
+      {/* Rest of your app */}
+    </PluginRegistryProvider>
+  );
+}
+```
+
+### Plugin Lifecycle (UI Perspective)
+
+#### Installation Flow
+
+```
+1. User clicks "Install" on plugin card
+   ↓
+2. POST /api/plugins/install { pluginKey }
+   ↓
+3. Backend executes plugin's install() function
+   ↓
+4. usePluginInstallation.install() calls refreshPlugins()
+   ↓
+5. PluginRegistryContext updates installedPlugins state
+   ↓
+6. PluginLoader effect runs (installedPlugins changed)
+   ↓
+7. loadPluginUI() called for new plugin
+   ↓
+8. <script> tag injected, bundle loads
+   ↓
+9. Components registered to loadedComponents
+   ↓
+10. PluginSlot components re-render with new components
+    ↓
+11. Plugin UI appears WITHOUT page refresh
+```
+
+#### Uninstallation Flow
+
+```
+1. User clicks "Uninstall" on plugin
+   ↓
+2. DELETE /api/plugins/installations/:id
+   ↓
+3. Backend executes plugin's uninstall() function
+   ↓
+4. usePluginInstallation.uninstall() calls:
+   - unloadPlugin(pluginKey)  // Remove components from state
+   - refreshPlugins()          // Update installed list
+   ↓
+5. unloadPlugin() removes plugin's components from loadedComponents
+   ↓
+6. PluginSlot components re-render without plugin components
+   ↓
+7. Plugin UI disappears WITHOUT page refresh
+```
+
+#### Re-installation Flow
+
+```
+1. User installs previously uninstalled plugin
+   ↓
+2. loadPluginUI() checks loadedBundlesRef
+   ↓
+3. Bundle already in DOM (script tag persists)
+   ↓
+4. Components re-registered from window.PluginName
+   ↓
+5. Plugin UI appears WITHOUT reloading bundle
+```
+
+### Building Plugin UI Bundles
+
+Plugin UIs must be built as IIFE bundles that expose components on the `window` object.
+
+#### Vite Configuration
+
+**File:** `plugins/mlflow/ui/vite.config.ts`
+
+```typescript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    lib: {
+      entry: "src/index.ts",
+      name: "PluginMlflow",  // Global variable name
+      formats: ["iife"],     // IIFE format for <script> loading
+      fileName: () => "bundle.iife.js",
+    },
+    rollupOptions: {
+      external: ["react", "react-dom", "@mui/material", "@emotion/react", "@emotion/styled"],
+      output: {
+        globals: {
+          react: "React",
+          "react-dom": "ReactDOM",
+          "@mui/material": "MaterialUI",
+          "@emotion/react": "emotionReact",
+          "@emotion/styled": "emotionStyled",
+        },
+        // Ensure IIFE wrapper
+        format: "iife",
+        name: "PluginMlflow",
+      },
+    },
+    outDir: "dist",
+    emptyOutDir: true,
+  },
+});
+```
+
+#### Entry Point (index.ts)
+
+**File:** `plugins/mlflow/ui/src/index.ts`
+
+```typescript
+// Export all components that will be registered to slots
+export { MLFlowTab } from "./MLFlowTab";
+export { MLFlowConfiguration } from "./MLFlowConfiguration";
+export { MLFlowDataTable } from "./MLFlowDataTable";
+
+// The build outputs:
+// window.PluginMlflow = {
+//   MLFlowTab: [Component],
+//   MLFlowConfiguration: [Component],
+//   MLFlowDataTable: [Component],
+// }
+```
+
+#### Component Example
+
+**File:** `plugins/mlflow/ui/src/MLFlowTab.tsx`
+
+```tsx
+import React from "react";
+import { Box, Typography } from "@mui/material";
+
+interface MLFlowTabProps {
+  projectId?: number;
+  // Props passed via slotProps
+}
+
+export const MLFlowTab: React.FC<MLFlowTabProps> = ({ projectId }) => {
+  return (
+    <Box>
+      <Typography variant="h6">MLflow Models</Typography>
+      {/* Plugin UI content */}
+    </Box>
+  );
+};
+```
+
+#### Build and Deploy
+
+```bash
+# Build the UI bundle
+cd plugins/mlflow/ui
+npm run build
+
+# Output: dist/bundle.iife.js
+
+# The backend serves this at:
+# GET /api/plugins/mlflow/ui/bundle.js
+```
+
+### Backend: Serving Plugin UI Bundles
+
+**File:** `Servers/routes/plugin.route.ts`
+
+```typescript
+// Serve plugin UI bundles
+router.get("/:key/ui/bundle.js", authenticateJWT, async (req, res) => {
+  const { key } = req.params;
+  const bundlePath = path.join(__dirname, `../../temp/plugins/${key}/ui/dist/bundle.iife.js`);
+
+  if (!fs.existsSync(bundlePath)) {
+    return res.status(404).json({ error: "Plugin UI bundle not found" });
+  }
+
+  res.setHeader("Content-Type", "application/javascript");
+  res.sendFile(bundlePath);
+});
+```
+
+### Creating a Plugin with UI (Complete Example)
+
+#### 1. Plugin Structure
+
+```
+plugins/my-plugin/
+├── index.ts              # Backend plugin code
+├── package.json          # Backend dependencies
+├── README.md
+└── ui/                   # Frontend UI
+    ├── package.json      # UI dependencies (React, MUI, etc.)
+    ├── vite.config.ts    # Build configuration
+    ├── tsconfig.json
+    └── src/
+        ├── index.ts      # Entry point - exports all components
+        ├── MyPluginTab.tsx
+        └── MyPluginConfig.tsx
+```
+
+#### 2. UI package.json
+
+```json
+{
+  "name": "@verifywise/plugin-my-plugin-ui",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@mui/material": "^5.14.0",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "lucide-react": "^0.294.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0"
+  }
+}
+```
+
+#### 3. Entry Point (index.ts)
+
+```typescript
+// Export all components for slot registration
+export { MyPluginTab } from "./MyPluginTab";
+export { MyPluginConfig } from "./MyPluginConfig";
+```
+
+#### 4. plugins.json Entry
+
+```json
+{
+  "key": "my-plugin",
+  "name": "My Plugin",
+  "displayName": "My Plugin",
+  "ui": {
+    "bundleUrl": "/api/plugins/my-plugin/ui/bundle.js",
+    "globalName": "PluginMyPlugin",
+    "slots": [
+      {
+        "slotId": "project-risks-tab",
+        "componentName": "MyPluginTab",
+        "renderType": "tab",
+        "props": {
+          "label": "My Plugin",
+          "icon": "Puzzle"
+        }
+      },
+      {
+        "slotId": "plugin-config",
+        "componentName": "MyPluginConfig",
+        "renderType": "inline"
+      }
+    ]
+  }
+}
+```
+
+#### 5. Build and Test
+
+```bash
+# Install dependencies
+cd plugins/my-plugin/ui
+npm install
+
+# Build bundle
+npm run build
+
+# Output: dist/bundle.iife.js
+
+# Test: Install plugin in VerifyWise, UI should appear dynamically
+```
+
+### Troubleshooting Plugin UI
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| UI doesn't appear after install | Bundle not loaded | Check browser console for script errors |
+| Components undefined | Wrong export name | Verify `componentName` matches exported name |
+| UI persists after uninstall | Components not unloaded | Ensure `unloadPlugin()` is called |
+| UI doesn't appear on re-install | Bundle loaded but components not registered | Fixed in PluginRegistry - re-registers from existing global |
+| Style conflicts | CSS not scoped | Use MUI's `sx` prop or CSS modules |
+| React hooks error | Multiple React instances | Mark React as external in Vite config |
+
+---
+
+## Backend: Serving Plugin UI Bundles
+
+**File:** `Servers/routes/plugin.route.ts`
+
+The backend serves plugin UI bundles from a dedicated route. If the bundle doesn't exist locally, it's automatically downloaded from the marketplace.
+
+```typescript
+// Serve plugin UI bundles from temp/plugins/{key}/ui/dist/
+// If bundle doesn't exist locally, download it from the marketplace
+router.get("/:key/ui/dist/:filename", async (req, res) => {
+  const { key, filename } = req.params;
+  const bundlePath = path.join(__dirname, "../../temp/plugins", key, "ui", "dist", filename);
+
+  // If bundle doesn't exist locally, download from marketplace
+  if (!fs.existsSync(bundlePath)) {
+    try {
+      console.log(`[Plugin UI] Bundle not found locally, downloading from marketplace...`);
+      const bundleUrl = `${PLUGIN_MARKETPLACE_BASE_URL}/plugins/${key}/ui/dist/${filename}`;
+
+      const response = await axios.get(bundleUrl, {
+        timeout: 30000,
+        responseType: 'arraybuffer',
+      });
+
+      // Create directory and save bundle
+      const dirPath = path.dirname(bundlePath);
+      fs.mkdirSync(dirPath, { recursive: true });
+      fs.writeFileSync(bundlePath, Buffer.from(response.data));
+      console.log(`[Plugin UI] Bundle downloaded and saved to: ${bundlePath}`);
+    } catch (downloadError: any) {
+      console.error(`[Plugin UI] Failed to download bundle:`, downloadError.message);
+      return res.status(404).json({ error: "Plugin UI bundle not found" });
+    }
+  }
+
+  // Serve the bundle with appropriate headers
+  res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  res.setHeader("Cache-Control", "no-store");
+  res.sendFile(bundlePath);
+});
+```
+
+### Bundle URL Format
+
+```
+GET /api/plugins/:key/ui/dist/:filename
+
+Examples:
+GET /api/plugins/mlflow/ui/dist/bundle.iife.js
+GET /api/plugins/risk-import/ui/dist/bundle.iife.js
+```
+
+### Bundle Storage
+
+Bundles are stored in the server's temp directory:
+
+```
+Servers/
+└── temp/
+    └── plugins/
+        ├── mlflow/
+        │   └── ui/
+        │       └── dist/
+        │           └── bundle.iife.js
+        └── risk-import/
+            └── ui/
+                └── dist/
+                    └── bundle.iife.js
+```
+
+---
+
+## Adding New Plugin Slots
+
+To add a new injection point where plugins can render UI, follow these steps:
+
+### Step 1: Define the Slot Constant
+
+**File:** `Clients/src/domain/constants/pluginSlots.ts`
+
+```typescript
+export const PLUGIN_SLOTS = {
+  // Existing slots...
+  RISKS_ACTIONS: "page.risks.actions",
+  MODELS_TABS: "page.models.tabs",
+  PLUGIN_CONFIG: "page.plugin.config",
+
+  // Add your new slot
+  MY_PAGE_TOOLBAR: "page.mypage.toolbar",  // Toolbar buttons
+  MY_PAGE_SIDEBAR: "page.mypage.sidebar",  // Sidebar content
+} as const;
+
+export type PluginSlotId = (typeof PLUGIN_SLOTS)[keyof typeof PLUGIN_SLOTS];
+```
+
+### Step 2: Add PluginSlot Component to Your Page
+
+Import and place `<PluginSlot>` at the desired location:
+
+```tsx
+import { PluginSlot } from "../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
+
+const MyPage: React.FC = () => {
+  return (
+    <Box>
+      {/* Your page content */}
+
+      {/* Plugin injection point */}
+      <PluginSlot
+        id={PLUGIN_SLOTS.MY_PAGE_TOOLBAR}
+        renderType="button"          // Optional: filter by render type
+        slotProps={{                  // Props passed to plugin components
+          pageId: 123,
+          onAction: handleAction,
+        }}
+      />
+    </Box>
+  );
+};
+```
+
+### Step 3: Document the Slot
+
+Add documentation for plugin developers:
+
+| Slot ID | Location | Render Types | Available Props |
+|---------|----------|--------------|-----------------|
+| `page.mypage.toolbar` | MyPage toolbar area | `button` | `pageId`, `onAction` |
+| `page.mypage.sidebar` | MyPage sidebar | `card`, `widget` | `pageId`, `data` |
+
+### PluginSlot Props Reference
+
+```typescript
+interface PluginSlotProps {
+  // Required: Slot identifier
+  id: PluginSlotId;
+
+  // Props passed to all plugin components in this slot
+  slotProps?: Record<string, any>;
+
+  // Optional: Wrapper component for each plugin component
+  wrapper?: React.ComponentType<{ children: ReactNode }>;
+
+  // Custom fallback while loading (default: CircularProgress)
+  fallback?: ReactNode;
+
+  // Filter by render type (only render matching components)
+  renderType?: PluginRenderType;
+
+  // For tab slots: the currently active tab value
+  activeTab?: string;
+
+  // Filter to specific plugin (only render that plugin's components)
+  pluginKey?: string;
+}
+```
+
+### Render Types
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `menuitem` | Menu item in a dropdown | "Insert From" menus, action menus |
+| `modal` | Modal/dialog that opens on trigger | Import wizards, configuration modals |
+| `tab` | Tab panel content | Additional tabs in TabBar |
+| `card` | Card widget | Dashboard widgets, sidebar cards |
+| `button` | Toolbar button | Action buttons in toolbars |
+| `widget` | Dashboard widget | Dashboard customization |
+| `raw` | Raw component (no wrapper) | Full custom rendering |
+
+---
+
+## Real Examples: PluginSlot Usage in Codebase
+
+### Example 1: Menu Items in Risk Management Page
+
+**File:** `Clients/src/presentation/pages/RiskManagement/index.tsx`
+
+The Risk Management page uses PluginSlot for the "Insert From" dropdown menu, allowing plugins to add import options:
+
+```tsx
+import { PluginSlot } from "../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
+import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
+
+const RiskManagement = () => {
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Check if risk-import plugin is installed
+  const { getComponentsForSlot } = usePluginRegistry();
+  const hasRiskImportPlugin = getComponentsForSlot(PLUGIN_SLOTS.RISKS_ACTIONS).length > 0;
+
+  return (
+    <>
+      {/* "Insert From" Dropdown Menu */}
+      <Popover open={insertFromMenuOpen} anchorEl={insertFromMenuAnchor}>
+        <Box>
+          {/* Built-in options */}
+          <Box onClick={() => handleOpenMITModal()}>
+            <Typography>MIT AI Risk Repository</Typography>
+          </Box>
+          <Box onClick={() => handleOpenIBMModal()}>
+            <Typography>IBM AI Risk Atlas</Typography>
+          </Box>
+
+          {/* Plugin-injected menu items */}
+          <PluginSlot
+            id={PLUGIN_SLOTS.RISKS_ACTIONS}
+            renderType="menuitem"
+            slotProps={{
+              onMenuClose: handleInsertFromMenuClose,
+              onImportComplete: () => setRefreshKey((prev) => prev + 1),
+              onTriggerModal: (modalName: string) => {
+                if (modalName === "RiskImportModal") {
+                  setIsImportModalOpen(true);
+                }
+              },
+            }}
+          />
+        </Box>
+      </Popover>
+
+      {/* Plugin modals rendered outside Popover (persists when menu closes) */}
+      <PluginSlot
+        id={PLUGIN_SLOTS.RISKS_ACTIONS}
+        renderType="modal"
+        slotProps={{
+          open: isImportModalOpen,
+          onClose: () => setIsImportModalOpen(false),
+          onImportComplete: () => {
+            setRefreshKey((prev) => prev + 1);
+            setIsImportModalOpen(false);
+          },
+          apiServices,
+        }}
+      />
+    </>
+  );
+};
+```
+
+**Key Points:**
+- Uses `renderType="menuitem"` to only render menu item components
+- Uses separate `renderType="modal"` slot outside Popover for modals
+- Passes `onTriggerModal` to let menu items open modals
+- Passes `onImportComplete` to refresh data after import
+
+### Example 2: Dynamic Tabs in Model Inventory Page
+
+**File:** `Clients/src/presentation/pages/ModelInventory/index.tsx`
+
+The Model Inventory page dynamically adds tabs for installed plugins:
+
+```tsx
+import { PluginSlot } from "../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
+import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
+
+const ModelInventory: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("models");
+
+  // Get plugin tabs dynamically from the plugin registry
+  const { getPluginTabs } = usePluginRegistry();
+  const pluginTabs = useMemo(
+    () => getPluginTabs(PLUGIN_SLOTS.MODELS_TABS),
+    [getPluginTabs]
+  );
+
+  return (
+    <TabContext value={activeTab}>
+      {/* Tab Bar with dynamic plugin tabs */}
+      <TabBar
+        tabs={[
+          { label: "Models", value: "models", icon: "Box" },
+          { label: "Model risks", value: "model-risks", icon: "AlertTriangle" },
+
+          // Dynamically add plugin tabs
+          ...pluginTabs.map((tab) => ({
+            label: tab.label,
+            value: tab.value,
+            icon: (tab.icon || "Database") as "Database" | "Box" | "AlertTriangle",
+          })),
+
+          { label: "Evidence hub", value: "evidence-hub", icon: "Database" },
+        ]}
+        activeTab={activeTab}
+        onChange={handleTabChange}
+      />
+
+      {/* Built-in tab content */}
+      {activeTab === "models" && (
+        <ModelInventoryTable {...props} />
+      )}
+
+      {activeTab === "model-risks" && (
+        <ModelRisksTable {...props} />
+      )}
+
+      {/* Render plugin tab content dynamically */}
+      {pluginTabs.some((tab) => tab.value === activeTab) && (
+        <PluginSlot
+          id={PLUGIN_SLOTS.MODELS_TABS}
+          renderType="tab"
+          activeTab={activeTab}
+          slotProps={{ apiServices }}
+        />
+      )}
+
+      {activeTab === "evidence-hub" && (
+        <EvidenceHubTable {...props} />
+      )}
+    </TabContext>
+  );
+};
+```
+
+**Key Points:**
+- Uses `getPluginTabs()` to get tab configurations from plugins
+- Dynamically adds tabs to TabBar from `pluginTabs`
+- Uses `activeTab` prop to only render the currently active tab's content
+- Plugin tab content renders only when a plugin tab is selected
+
+### Example 3: Plugin Configuration Panel
+
+**File:** `Clients/src/presentation/pages/Plugins/PluginManagement/index.tsx`
+
+The Plugin Management page renders plugin-specific configuration UIs:
+
+```tsx
+import { PluginSlot } from "../../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
+import { usePluginRegistry } from "../../../../application/contexts/PluginRegistry.context";
+
+const PluginManagement: React.FC = () => {
+  const { pluginKey } = useParams<{ pluginKey: string }>();
+  const { getComponentsForSlot } = usePluginRegistry();
+
+  const [configData, setConfigData] = useState<Record<string, string>>({});
+
+  // Check if this plugin has a custom config UI
+  const hasPluginConfigUI = pluginKey &&
+    getComponentsForSlot(PLUGIN_SLOTS.PLUGIN_CONFIG).some(
+      (c) => c.pluginKey === pluginKey
+    );
+
+  return (
+    <Card>
+      <CardContent>
+        <Typography variant="h6">Configuration</Typography>
+
+        {/* Plugin-provided configuration UI */}
+        {hasPluginConfigUI ? (
+          <PluginSlot
+            id={PLUGIN_SLOTS.PLUGIN_CONFIG}
+            pluginKey={pluginKey}  // Filter to this plugin only
+            slotProps={{
+              pluginKey,
+              installationId: plugin.installationId,
+              configData,
+              onConfigChange: handleConfigChange,
+              onSaveConfiguration: handleSaveConfiguration,
+              onTestConnection: handleTestConnection,
+              isSavingConfig,
+              isTestingConnection,
+            }}
+          />
+        ) : (
+          // Fallback: Generic configuration form
+          <GenericConfigForm
+            fields={getConfigFields()}
+            configData={configData}
+            onChange={handleConfigChange}
+          />
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+**Key Points:**
+- Uses `pluginKey` prop to filter to specific plugin's components
+- Checks if plugin has custom UI before rendering slot
+- Falls back to generic form if no custom UI provided
+- Passes all configuration-related props via `slotProps`
+
+### Summary: Slot Usage Patterns
+
+| Pattern | Slot Props | Example |
+|---------|------------|---------|
+| **Menu items** | `onMenuClose`, `onTriggerModal`, `onAction` | Risk Management "Insert From" menu |
+| **Modals** | `open`, `onClose`, `onComplete`, `apiServices` | Import wizard modals |
+| **Tabs** | `activeTab`, `apiServices` | Model Inventory plugin tabs |
+| **Config panels** | `configData`, `onConfigChange`, `onSave` | Plugin configuration UI |
+| **Buttons** | `onClick`, `disabled`, `label` | Toolbar action buttons |
+
+### Best Practices
+
+1. **Always use external React/MUI** - Don't bundle React with your plugin
+2. **Export all components** - Only exported components can be registered
+3. **Use slot props** - Receive data via `slotProps`, don't fetch independently
+4. **Handle loading states** - Show spinners while data loads
+5. **Match app styling** - Use same MUI theme tokens as main app
+6. **Test lifecycle** - Verify install/uninstall/reinstall all work correctly
+7. **Keep bundles small** - Only include what's needed for the UI
+
+---
+
 ## Current Plugins
 
 ### MLflow Integration
@@ -2940,9 +3985,259 @@ If tenant-scoped, document the tables created.
 Common issues and solutions.
 ```
 
-### Step 6: Add Frontend Configuration (if needed)
+### Step 6: Create Plugin UI (Optional but Recommended)
 
-Update `Clients/src/presentation/pages/Plugins/PluginManagement/index.tsx`:
+If your plugin needs a custom UI, create an IIFE bundle:
+
+#### 6a. Create UI Directory Structure
+
+```bash
+mkdir -p plugins/my-plugin/ui/src
+cd plugins/my-plugin/ui
+```
+
+#### 6b. Create UI package.json
+
+```json
+{
+  "name": "@verifywise/plugin-my-plugin-ui",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@mui/material": "^5.14.0",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "lucide-react": "^0.294.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0"
+  }
+}
+```
+
+#### 6c. Create vite.config.ts
+
+```typescript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    lib: {
+      entry: "src/index.ts",
+      name: "PluginMyPlugin",  // Must match globalName in plugins.json
+      formats: ["iife"],
+      fileName: () => "bundle.iife.js",
+    },
+    rollupOptions: {
+      external: ["react", "react-dom", "@mui/material", "@emotion/react", "@emotion/styled"],
+      output: {
+        globals: {
+          react: "React",
+          "react-dom": "ReactDOM",
+          "@mui/material": "MaterialUI",
+          "@emotion/react": "emotionReact",
+          "@emotion/styled": "emotionStyled",
+        },
+        format: "iife",
+        name: "PluginMyPlugin",
+      },
+    },
+    outDir: "dist",
+  },
+});
+```
+
+#### 6d. Create tsconfig.json
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+```
+
+#### 6e. Create Entry Point (src/index.ts)
+
+```typescript
+// Export all components that will be injected into slots
+export { MyPluginTab } from "./MyPluginTab";
+export { MyPluginConfiguration } from "./MyPluginConfiguration";
+```
+
+#### 6f. Create Components
+
+**src/MyPluginTab.tsx:**
+
+```tsx
+import React from "react";
+import { Box, Typography, Alert } from "@mui/material";
+
+interface MyPluginTabProps {
+  projectId?: number;
+  // Add props your component needs
+}
+
+export const MyPluginTab: React.FC<MyPluginTabProps> = ({ projectId }) => {
+  return (
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        My Plugin Data
+      </Typography>
+      <Alert severity="info">
+        Plugin UI loaded successfully for project {projectId}
+      </Alert>
+      {/* Your plugin UI content */}
+    </Box>
+  );
+};
+```
+
+**src/MyPluginConfiguration.tsx:**
+
+```tsx
+import React from "react";
+import { Box, Typography, TextField, Button, Stack } from "@mui/material";
+
+interface MyPluginConfigurationProps {
+  configData?: Record<string, string>;
+  onConfigChange?: (key: string, value: string) => void;
+  onSaveConfiguration?: () => void;
+  onTestConnection?: () => void;
+  isSavingConfig?: boolean;
+  isTestingConnection?: boolean;
+}
+
+export const MyPluginConfiguration: React.FC<MyPluginConfigurationProps> = ({
+  configData = {},
+  onConfigChange,
+  onSaveConfiguration,
+  onTestConnection,
+  isSavingConfig = false,
+  isTestingConnection = false,
+}) => {
+  return (
+    <Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        Configure your plugin settings.
+      </Typography>
+
+      <Stack spacing={2}>
+        <TextField
+          fullWidth
+          label="API URL"
+          placeholder="https://api.example.com"
+          value={configData.api_url || ""}
+          onChange={(e) => onConfigChange?.("api_url", e.target.value)}
+          size="small"
+        />
+
+        <TextField
+          fullWidth
+          label="API Key"
+          type="password"
+          placeholder="Enter your API key"
+          value={configData.api_key || ""}
+          onChange={(e) => onConfigChange?.("api_key", e.target.value)}
+          size="small"
+        />
+      </Stack>
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
+        {onTestConnection && (
+          <Button
+            variant="outlined"
+            onClick={onTestConnection}
+            disabled={isTestingConnection || isSavingConfig}
+          >
+            {isTestingConnection ? "Testing..." : "Test Connection"}
+          </Button>
+        )}
+        {onSaveConfiguration && (
+          <Button
+            variant="contained"
+            onClick={onSaveConfiguration}
+            disabled={isSavingConfig || isTestingConnection}
+          >
+            {isSavingConfig ? "Saving..." : "Save Configuration"}
+          </Button>
+        )}
+      </Box>
+    </Box>
+  );
+};
+```
+
+#### 6g. Add UI Config to plugins.json
+
+Update your plugin entry in `plugins.json`:
+
+```json
+{
+  "key": "my-plugin",
+  "name": "My Plugin",
+  "ui": {
+    "bundleUrl": "/api/plugins/my-plugin/ui/bundle.js",
+    "globalName": "PluginMyPlugin",
+    "slots": [
+      {
+        "slotId": "project-risks-tab",
+        "componentName": "MyPluginTab",
+        "renderType": "tab",
+        "props": {
+          "label": "My Plugin",
+          "icon": "Puzzle"
+        }
+      },
+      {
+        "slotId": "plugin-config",
+        "componentName": "MyPluginConfiguration",
+        "renderType": "inline"
+      }
+    ]
+  }
+}
+```
+
+#### 6h. Build the UI Bundle
+
+```bash
+cd plugins/my-plugin/ui
+npm install
+npm run build
+# Output: dist/bundle.iife.js
+```
+
+### Step 7: Add Fallback Frontend Configuration (if no custom UI)
+
+If you don't create a custom UI component, update `Clients/src/presentation/pages/Plugins/PluginManagement/index.tsx`:
 
 ```typescript
 const getConfigFields = () => {
@@ -3009,18 +4304,32 @@ git push origin your-branch
 
 ### Checklist
 
+**Backend Plugin:**
 - [ ] `package.json` with correct dependencies
-- [ ] `index.ts` with all required exports
+- [ ] `index.ts` with all required exports (`install`, `uninstall`, `metadata`)
 - [ ] `install()` creates tables (if tenant-scoped)
 - [ ] `uninstall()` drops tables and cleans up
 - [ ] `validateConfig()` validates all required fields
 - [ ] `testConnection()` tests external service (if applicable)
 - [ ] `plugins.json` entry with all fields
 - [ ] `README.md` with documentation
-- [ ] Frontend config fields (if `requiresConfiguration: true`)
-- [ ] Tested install/uninstall cycle
-- [ ] Tested configuration
+
+**Plugin UI (if applicable):**
+- [ ] `ui/package.json` with React, MUI dependencies
+- [ ] `ui/vite.config.ts` with IIFE build configuration
+- [ ] `ui/src/index.ts` exports all components
+- [ ] Components created for each slot
+- [ ] `ui` config added to `plugins.json` with `bundleUrl`, `globalName`, `slots`
+- [ ] Bundle builds successfully (`npm run build`)
+- [ ] Components use correct prop interfaces (match slotProps)
+
+**Testing:**
+- [ ] Tested install - UI appears without refresh
+- [ ] Tested uninstall - UI disappears without refresh
+- [ ] Tested re-install - UI appears without refresh
+- [ ] Tested configuration save
 - [ ] Tested main functionality
+- [ ] No console errors in browser
 
 ---
 
@@ -3044,14 +4353,29 @@ git push origin your-branch
 | File | Purpose |
 |------|---------|
 | `Clients/src/domain/types/plugins.ts` | TypeScript types and enums |
+| `Clients/src/domain/constants/pluginSlots.ts` | Plugin slot IDs and render types |
 | `Clients/src/application/repository/plugin.repository.ts` | API client functions |
+| `Clients/src/application/contexts/PluginRegistry.context.tsx` | **Core: Plugin UI state management, dynamic loading** |
 | `Clients/src/application/hooks/usePlugins.ts` | Marketplace + installed plugins hook |
-| `Clients/src/application/hooks/usePluginInstallation.ts` | Install/uninstall actions hook |
+| `Clients/src/application/hooks/usePluginInstallation.ts` | Install/uninstall with UI refresh |
 | `Clients/src/application/hooks/useIsPluginInstalled.ts` | Check installation status hook |
+| `Clients/src/presentation/components/PluginLoader/index.tsx` | **Loads UI bundles on app startup** |
+| `Clients/src/presentation/components/PluginSlot/index.tsx` | **Renders plugin components at injection points** |
 | `Clients/src/presentation/components/PluginGate/index.tsx` | Conditional rendering component |
 | `Clients/src/presentation/components/PluginCard/index.tsx` | Plugin card component |
 | `Clients/src/presentation/pages/Plugins/index.tsx` | Marketplace page |
 | `Clients/src/presentation/pages/Plugins/PluginManagement/index.tsx` | Plugin detail/config page |
+
+### Plugin UI Files (per plugin)
+
+| File | Purpose |
+|------|---------|
+| `plugins/{key}/ui/package.json` | UI dependencies (React, MUI) |
+| `plugins/{key}/ui/vite.config.ts` | IIFE build configuration |
+| `plugins/{key}/ui/tsconfig.json` | TypeScript configuration |
+| `plugins/{key}/ui/src/index.ts` | Entry point - exports all components |
+| `plugins/{key}/ui/src/*.tsx` | React components for slots |
+| `plugins/{key}/ui/dist/bundle.iife.js` | Built bundle (served by backend) |
 
 ---
 
@@ -3073,6 +4397,467 @@ FRONTEND_URL=https://app.verifywise.ai
 VITE_SLACK_CLIENT_ID=your-client-id
 VITE_SLACK_URL=https://slack.com/oauth/v2/authorize
 ```
+
+---
+
+## Troubleshooting Guide
+
+### Common Issues and Solutions
+
+#### Plugin Installation Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| "Plugin not found in marketplace" | Plugin not in plugins.json or `isPublished: false` | Check plugins.json in marketplace repo |
+| "Installation failed: table already exists" | Previous uninstall didn't clean up | Manually drop tables or fix uninstall() |
+| "Failed to download plugin" | Network issue or wrong URL | Check PLUGIN_MARKETPLACE_URL, verify connectivity |
+| "Plugin validation failed" | Missing required config | Check validateConfig() errors in response |
+
+#### Plugin UI Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| UI doesn't appear after install | Bundle not loaded | Check Network tab for 404, verify bundleUrl |
+| "Component X not found" | Export name mismatch | Verify componentName matches export in index.tsx |
+| UI persists after uninstall | unloadPlugin() not called | Check usePluginInstallation hook |
+| UI doesn't appear on re-install | Components not re-registered | Fixed in PluginRegistry - verify loadPluginUI logic |
+| "Invalid hook call" error | Multiple React instances | Ensure React is external in vite.config |
+| Styling doesn't match app | Using custom CSS instead of MUI | Use MUI components with sx prop |
+
+#### Configuration Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| "Configuration failed" | validateConfig() returned errors | Check validation logic and error messages |
+| Test Connection fails | Wrong credentials or URL | Verify config values, check network |
+| Config not persisting | Database error | Check plugin_installations table |
+
+#### Backend Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Plugin method not found | Wrong method name or not exported | Verify export in plugin index.ts |
+| "Tenant not found" | Invalid tenantId | Check tenant exists in database |
+| Database errors | SQL syntax or missing schema | Check query syntax, verify schema exists |
+
+### Debugging Steps
+
+1. **Check Server Logs**
+   ```bash
+   # Look for [PluginService] prefixed logs
+   tail -f logs/server.log | grep PluginService
+   ```
+
+2. **Check Browser Console**
+   ```javascript
+   // Look for [PluginRegistry] or [PluginLoader] logs
+   // Network tab for bundle loading issues
+   ```
+
+3. **Verify Database State**
+   ```sql
+   -- Check installation status
+   SELECT * FROM plugin_installations WHERE plugin_key = 'my-plugin';
+
+   -- Check tenant tables exist
+   SELECT table_name FROM information_schema.tables
+   WHERE table_schema = 'tenant_id';
+   ```
+
+4. **Test Plugin Manually**
+   ```typescript
+   // In backend, test plugin loading
+   const plugin = await pluginService.loadPlugin('my-plugin');
+   console.log(plugin.metadata);
+   ```
+
+---
+
+## Extending the Plugin System
+
+### Adding New Plugin Slots
+
+1. **Define slot constant** in `Clients/src/domain/constants/pluginSlots.ts`:
+   ```typescript
+   export const PLUGIN_SLOTS = {
+     // ... existing slots
+     MY_NEW_SLOT: "page.mypage.myslot",
+   } as const;
+   ```
+
+2. **Add PluginSlot component** in the target page:
+   ```tsx
+   import { PluginSlot } from "../../components/PluginSlot";
+   import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
+
+   <PluginSlot
+     id={PLUGIN_SLOTS.MY_NEW_SLOT}
+     slotProps={{ /* props for plugins */ }}
+   />
+   ```
+
+3. **Document the slot** - Update this documentation with:
+   - Slot ID and location
+   - Available render types
+   - Props passed to components
+
+### Adding New Render Types
+
+1. **Add type** in `Clients/src/domain/constants/pluginSlots.ts`:
+   ```typescript
+   export type PluginRenderType =
+     | "menuitem"
+     | "modal"
+     | "tab"
+     | "my_new_type";  // Add here
+   ```
+
+2. **Handle in PluginSlot** in `Clients/src/presentation/components/PluginSlot/index.tsx`:
+   ```tsx
+   // Add case for new render type
+   case "my_new_type":
+     return <MyNewTypeWrapper>{element}</MyNewTypeWrapper>;
+   ```
+
+### Adding New Plugin APIs
+
+1. **Add route** in `Servers/routes/plugin.route.ts`:
+   ```typescript
+   router.get("/:key/my-endpoint", authenticateJWT, myHandler);
+   ```
+
+2. **Add controller** in `Servers/controllers/plugin.ctrl.ts`:
+   ```typescript
+   export const myHandler = async (req, res) => {
+     // Implementation
+   };
+   ```
+
+3. **Add repository function** in `Clients/src/application/repository/plugin.repository.ts`:
+   ```typescript
+   export async function myApiCall(params) {
+     return apiServices.get(`/plugins/${params.key}/my-endpoint`);
+   }
+   ```
+
+### Adding New Plugin Lifecycle Methods
+
+1. **Define in plugin** (`plugins/my-plugin/index.ts`):
+   ```typescript
+   export async function myNewMethod(tenantId, config, context) {
+     // Implementation
+   }
+   ```
+
+2. **Call from PluginService** (`Servers/services/plugin/pluginService.ts`):
+   ```typescript
+   async myNewMethod(pluginKey, tenantId, config) {
+     const plugin = await this.loadPlugin(pluginKey);
+     if (plugin.myNewMethod) {
+       return plugin.myNewMethod(tenantId, config, this.context);
+     }
+   }
+   ```
+
+---
+
+## Testing Guide
+
+### Unit Testing Plugins
+
+```typescript
+// plugins/my-plugin/__tests__/index.test.ts
+import { install, uninstall, validateConfig } from '../index';
+
+describe('MyPlugin', () => {
+  const mockContext = {
+    sequelize: {
+      query: jest.fn(),
+    },
+  };
+
+  describe('install', () => {
+    it('should create tables', async () => {
+      const result = await install(1, 'tenant-1', {}, mockContext);
+      expect(result.success).toBe(true);
+      expect(mockContext.sequelize.query).toHaveBeenCalled();
+    });
+  });
+
+  describe('validateConfig', () => {
+    it('should require api_url', () => {
+      const result = validateConfig({});
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('API URL is required');
+    });
+  });
+});
+```
+
+### Integration Testing
+
+```typescript
+// Test plugin installation flow
+describe('Plugin Installation', () => {
+  it('should install plugin and create tables', async () => {
+    // Install
+    const response = await request(app)
+      .post('/api/plugins/install')
+      .send({ pluginKey: 'my-plugin' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.status).toBe('installed');
+
+    // Verify table exists
+    const tables = await sequelize.query(`
+      SELECT table_name FROM information_schema.tables
+      WHERE table_schema = 'tenant_1' AND table_name = 'my_plugin_data'
+    `);
+    expect(tables[0].length).toBe(1);
+  });
+});
+```
+
+### UI Testing
+
+```typescript
+// Test plugin UI loading
+describe('PluginSlot', () => {
+  it('should render plugin components', () => {
+    const { getByText } = render(
+      <PluginRegistryProvider>
+        <PluginSlot id="page.plugin.config" />
+      </PluginRegistryProvider>
+    );
+
+    // Assuming plugin is installed and loaded
+    expect(getByText('My Plugin Config')).toBeInTheDocument();
+  });
+});
+```
+
+### Manual Testing Checklist
+
+```
+□ Marketplace page loads all plugins
+□ Plugin card displays correct info
+□ Install button works
+□ Plugin installs without errors
+□ UI appears after install (no refresh)
+□ Configuration page loads
+□ Config fields render correctly
+□ Validation errors show properly
+□ Test Connection works
+□ Save Configuration works
+□ Plugin functionality works
+□ Uninstall button works
+□ UI disappears after uninstall (no refresh)
+□ Tables cleaned up after uninstall
+□ Re-install works correctly
+□ No console errors throughout
+```
+
+---
+
+## Security Considerations
+
+### Plugin Isolation
+
+- **Code Execution**: Plugins run in Node.js context with limited access
+- **Database Access**: Only through provided Sequelize instance
+- **File System**: No direct file system access outside plugin directory
+- **Network**: Allowed via fetch/axios for external integrations
+
+### Configuration Security
+
+- **Storage**: Sensitive config stored in `plugin_installations.configuration` (JSONB)
+- **Encryption**: Consider encrypting sensitive fields at application level
+- **API Keys**: Never log or expose in error messages
+- **Validation**: Always validate config before use
+
+### Tenant Isolation
+
+- **Schema Separation**: Each tenant has isolated database schema
+- **Query Scoping**: Always use `tenantId` in queries
+- **Cross-Tenant Prevention**: Plugin code cannot access other tenants
+
+### API Security
+
+- **Authentication**: All plugin APIs require JWT authentication
+- **Rate Limiting**: Install endpoint has rate limiting (20/hour)
+- **Input Validation**: Validate all user inputs
+- **SQL Injection**: Use parameterized queries
+
+### UI Security
+
+- **Same-Origin**: Plugin UIs run in same context as main app
+- **XSS Prevention**: Use React's built-in escaping
+- **CORS**: Standard CORS policies apply
+- **CSP**: Content Security Policy allows script loading
+
+### Best Practices
+
+1. **Never hardcode secrets** in plugin code
+2. **Validate all external inputs**
+3. **Use HTTPS** for all external connections
+4. **Sanitize data** before database operations
+5. **Handle errors** without exposing internals
+6. **Log security events** for auditing
+7. **Regular security audits** of plugin code
+
+---
+
+## Performance Considerations
+
+### Plugin Loading
+
+- **Lazy Loading**: Plugins loaded on-demand, not at startup
+- **Caching**: Plugin code cached in `temp/plugins/` with 5-day TTL
+- **Bundle Size**: Keep UI bundles small by externalizing React/MUI
+
+### Database
+
+- **Connection Pooling**: Plugins share Sequelize connection pool
+- **Indexed Queries**: Create indexes for frequently queried columns
+- **Batch Operations**: Use bulk inserts for large data sets
+
+### UI Performance
+
+- **Code Splitting**: Each plugin is a separate bundle
+- **Suspense**: PluginSlot uses React Suspense for loading states
+- **Memoization**: Use React.memo for expensive components
+
+### Monitoring
+
+- **Metrics**: Track plugin install/uninstall rates
+- **Errors**: Log and monitor plugin errors
+- **Performance**: Track bundle load times
+
+---
+
+## Migration Guide
+
+### Upgrading Plugin System
+
+When upgrading the plugin system itself:
+
+1. **Database Migrations**
+   ```bash
+   npx sequelize-cli db:migrate
+   ```
+
+2. **Clear Plugin Cache**
+   ```bash
+   rm -rf Servers/temp/plugins/*
+   ```
+
+3. **Update Frontend**
+   - Check for breaking changes in PluginRegistry
+   - Update PluginSlot usage if API changed
+
+### Migrating Existing Plugins
+
+When plugin interface changes:
+
+1. **Update Plugin Code**
+   - Add new required exports
+   - Update method signatures
+   - Handle new configuration fields
+
+2. **Update plugins.json**
+   - Add new required fields
+   - Update version number
+
+3. **Database Migration** (if schema changed)
+   ```typescript
+   // In plugin install(), add migration logic
+   export async function install(userId, tenantId, config, context) {
+     // Check if upgrading
+     const existing = await getExistingInstallation(tenantId);
+     if (existing) {
+       // Run migration
+       await migrateFromV1toV2(tenantId, context);
+     } else {
+       // Fresh install
+       await createTables(tenantId, context);
+     }
+   }
+   ```
+
+### Version Compatibility
+
+| Plugin System Version | Plugin Interface Version | Notes |
+|----------------------|-------------------------|-------|
+| 1.0.0 | 1.0.0 | Initial release |
+| 1.1.0 | 1.0.0 | Added UI injection |
+| 1.2.0 | 1.1.0 | Added configure() method |
+
+---
+
+## Monitoring and Observability
+
+### Logging
+
+Plugin operations are logged with `[PluginService]` prefix:
+
+```typescript
+// Installation
+console.log(`[PluginService] Installing plugin: ${pluginKey}`);
+
+// Errors
+console.error(`[PluginService] Error installing plugin:`, error);
+
+// UI Loading
+console.log(`[PluginRegistry] Loading plugin UI for ${pluginKey}`);
+```
+
+### Metrics to Track
+
+| Metric | Description |
+|--------|-------------|
+| `plugin_installs_total` | Total plugin installations |
+| `plugin_uninstalls_total` | Total plugin uninstallations |
+| `plugin_errors_total` | Plugin operation errors |
+| `plugin_ui_load_time` | Time to load UI bundle |
+| `plugin_api_response_time` | Plugin API response times |
+
+### Health Checks
+
+```typescript
+// Check plugin system health
+GET /api/plugins/health
+
+// Response
+{
+  "status": "healthy",
+  "marketplace": "connected",
+  "cache": "valid",
+  "installedPlugins": 3
+}
+```
+
+---
+
+## Plugin Marketplace Repository
+
+For plugin development documentation, see the plugin-marketplace repository:
+
+- **Repository**: `bluewave-labs/plugin-marketplace`
+- **Documentation**:
+  - `README.md` - Overview and quick start
+  - `docs/PLUGIN_DEVELOPMENT_GUIDE.md` - Complete development guide
+  - `docs/PLUGIN_UI_GUIDE.md` - UI development guide
+  - `docs/ARCHITECTURE.md` - System architecture
+  - `docs/API_REFERENCE.md` - API reference
+
+### Quick Links
+
+| Document | Description |
+|----------|-------------|
+| [Plugin Development Guide](https://github.com/bluewave-labs/plugin-marketplace/blob/main/docs/PLUGIN_DEVELOPMENT_GUIDE.md) | How to create plugins |
+| [Plugin UI Guide](https://github.com/bluewave-labs/plugin-marketplace/blob/main/docs/PLUGIN_UI_GUIDE.md) | Building plugin UIs |
+| [Architecture](https://github.com/bluewave-labs/plugin-marketplace/blob/main/docs/ARCHITECTURE.md) | System architecture |
+| [API Reference](https://github.com/bluewave-labs/plugin-marketplace/blob/main/docs/API_REFERENCE.md) | Complete API docs |
 
 ---
 

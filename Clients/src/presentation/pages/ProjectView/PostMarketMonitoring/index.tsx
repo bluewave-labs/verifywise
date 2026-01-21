@@ -5,7 +5,7 @@
  * Allows enabling/disabling monitoring, configuring frequency, and managing questions.
  */
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   Box,
   Stack,
@@ -247,6 +247,12 @@ const PostMarketMonitoring: React.FC = () => {
   // Question editor state
   const [isQuestionEditorOpen, setIsQuestionEditorOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<PMMQuestion | null>(null);
+
+  // Memoize sorted questions to avoid re-sorting on every render
+  const sortedQuestions = useMemo(
+    () => [...questions].sort((a, b) => a.display_order - b.display_order),
+    [questions]
+  );
 
   // DnD sensors for drag and drop
   const sensors = useSensors(
@@ -809,24 +815,20 @@ const PostMarketMonitoring: React.FC = () => {
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={questions
-                  .sort((a, b) => a.display_order - b.display_order)
-                  .map((q) => q.id!)}
+                items={sortedQuestions.map((q) => q.id!)}
                 strategy={verticalListSortingStrategy}
               >
                 <Stack spacing="8px">
-                  {questions
-                    .sort((a, b) => a.display_order - b.display_order)
-                    .map((question, index) => (
-                      <SortableQuestionItem
-                        key={question.id}
-                        question={question}
-                        index={index}
-                        onEdit={handleEditQuestion}
-                        onDelete={handleDeleteQuestion}
-                        disabled={!isActive || !canEdit}
-                      />
-                    ))}
+                  {sortedQuestions.map((question, index) => (
+                    <SortableQuestionItem
+                      key={question.id}
+                      question={question}
+                      index={index}
+                      onEdit={handleEditQuestion}
+                      onDelete={handleDeleteQuestion}
+                      disabled={!isActive || !canEdit}
+                    />
+                  ))}
                 </Stack>
               </SortableContext>
             </DndContext>

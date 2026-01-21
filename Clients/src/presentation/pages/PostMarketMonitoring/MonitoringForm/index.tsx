@@ -154,11 +154,11 @@ const MonitoringForm: React.FC = () => {
       setLastSaved(new Date());
     } catch (error) {
       console.error("Error saving draft:", error);
-      // Don't show alert for autosave failures
+      showAlert("warning", "Draft could not be saved. Your changes may not be preserved.");
     } finally {
       setIsSaving(false);
     }
-  }, [cycleId, responses, flaggedQuestions]);
+  }, [cycleId, responses, flaggedQuestions, showAlert]);
 
   // Submit form
   const handleSubmit = useCallback(async () => {

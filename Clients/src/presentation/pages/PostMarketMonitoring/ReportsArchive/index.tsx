@@ -56,8 +56,23 @@ const ReportsArchive: React.FC = () => {
   const [endDate, setEndDate] = useState<string>("");
   const [flaggedOnly, setFlaggedOnly] = useState(false);
 
+  // Show alert helper - defined before loadReports to avoid ESLint warning
+  const showAlert = useCallback(
+    (variant: LocalAlertState["variant"], body: string, title?: string) => {
+      setAlert({ variant, body, title, isToast: true, visible: true });
+      setTimeout(() => setAlert(null), 3000);
+    },
+    []
+  );
+
   // Load reports
   const loadReports = useCallback(async () => {
+    // Validate date range before API call
+    if (startDate && endDate && dayjs(startDate).isAfter(dayjs(endDate))) {
+      showAlert("error", "Start date cannot be after end date");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const filters: PMMReportsFilterRequest = {
@@ -82,20 +97,11 @@ const ReportsArchive: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, rowsPerPage, startDate, endDate, flaggedOnly]);
+  }, [page, rowsPerPage, startDate, endDate, flaggedOnly, showAlert]);
 
   useEffect(() => {
     loadReports();
   }, [loadReports]);
-
-  const showAlert = useCallback(
-    (variant: LocalAlertState["variant"], body: string, title?: string) => {
-      setAlert({ variant, body, title, isToast: true, visible: true });
-      setTimeout(() => setAlert(null), 3000);
-    },
-    []
-  );
 
   // Handle page change
   const handleChangePage = useCallback(
@@ -115,9 +121,14 @@ const ReportsArchive: React.FC = () => {
   );
 
   // Handle download
-  const handleDownload = useCallback((reportId: number) => {
-    pmmService.downloadReport(reportId);
-  }, []);
+  const handleDownload = useCallback(async (reportId: number) => {
+    try {
+      await pmmService.downloadReport(reportId);
+    } catch (error) {
+      console.error("Error downloading report:", error);
+      showAlert("error", "Failed to download report. Please try again.");
+    }
+  }, [showAlert]);
 
   // Reset filters
   const handleResetFilters = useCallback(() => {
@@ -203,6 +214,7 @@ const ReportsArchive: React.FC = () => {
                   setStartDate(date?.toISOString() || "")
                 }
                 sx={{ width: 140 }}
+                disabled={isLoading}
               />
               <Typography sx={{ fontSize: 13, color: theme.palette.other.icon }}>
                 To:
@@ -214,6 +226,7 @@ const ReportsArchive: React.FC = () => {
                   setEndDate(date?.toISOString() || "")
                 }
                 sx={{ width: 140 }}
+                disabled={isLoading}
               />
             </Stack>
 
@@ -224,6 +237,7 @@ const ReportsArchive: React.FC = () => {
                   size="small"
                   checked={flaggedOnly}
                   onChange={(e) => setFlaggedOnly(e.target.checked)}
+                  disabled={isLoading}
                   sx={{
                     "&.Mui-checked": { color: theme.palette.primary.main },
                   }}

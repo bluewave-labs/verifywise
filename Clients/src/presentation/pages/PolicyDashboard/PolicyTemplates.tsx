@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Box, Stack, TableRow, TableCell } from "@mui/material";
 import EmptyState from "../../components/EmptyState";
 import policyTemplates from "../../../application/data/PolicyTemplates.json";
@@ -34,6 +34,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   tags,
   fetchAll,
 }) => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasProcessedUrlParam = useRef(false);
   const [showModal, setShowModal] = useState(false);
@@ -90,6 +91,9 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   const handleSaved = (successMessage?: string) => {
     fetchAll();
     handleClose();
+
+    // Navigate to organizational policies tab to show the newly created policy
+    navigate("/policies");
 
     // Show success alert if message is provided
     if (successMessage) {

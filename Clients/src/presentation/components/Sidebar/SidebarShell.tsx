@@ -89,6 +89,8 @@ export interface SidebarShellProps {
   onOpenDeleteDemoData?: () => void;
   showReadyToSubscribe?: boolean;
   openUserGuide?: () => void;
+  /** Only show demo data options to admins */
+  isAdmin?: boolean;
 
   // Enable flying hearts Easter egg (only for main sidebar)
   enableFlyingHearts?: boolean;
@@ -108,6 +110,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
   onOpenDeleteDemoData,
   showReadyToSubscribe = false,
   openUserGuide,
+  isAdmin = false,
   enableFlyingHearts = false,
 }) => {
   const theme = useTheme();
@@ -1004,6 +1007,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
           onOpenDeleteDemoData={onOpenDeleteDemoData}
           showReadyToSubscribe={showReadyToSubscribe}
           openUserGuide={openUserGuide}
+          isAdmin={isAdmin}
         />
 
         {/* Flying Hearts Animation */}

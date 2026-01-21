@@ -1150,21 +1150,23 @@ const Vendors = () => {
                       filename="vendor-risks"
                       title="Vendor Risks"
                     />
-                    <CustomizableButton
-                      variant="contained"
-                      text="Add new risk"
-                      sx={{
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
-                        gap: 2,
-                      }}
-                      icon={<AddCircleOutlineIcon size={16} />}
-                      onClick={() => {
-                        setSelectedRisk(null);
-                        handleRiskModal();
-                      }}
-                      isDisabled={isCreatingDisabled}
-                    />
+                    <Box data-joyride-id="add-vendor-risk-button">
+                      <CustomizableButton
+                        variant="contained"
+                        text="Add new risk"
+                        sx={{
+                          backgroundColor: "#13715B",
+                          border: "1px solid #13715B",
+                          gap: 2,
+                        }}
+                        icon={<AddCircleOutlineIcon size={16} />}
+                        onClick={() => {
+                          setSelectedRisk(null);
+                          handleRiskModal();
+                        }}
+                        isDisabled={isCreatingDisabled}
+                      />
+                    </Box>
                   </Stack>
                 </Stack>
               </Stack>

@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bias-and-fairness-backend
+  name: eval-server
   namespace: verifywise
   labels:
     app: verifywise
-    component: bias-and-fairness-backend
+    component: eval-server
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: verifywise
-      component: bias-and-fairness-backend
+      component: eval-server
   template:
     metadata:
       labels:
         app: verifywise
-        component: bias-and-fairness-backend
+        component: eval-server
     spec:
       containers:
-      - name: bias-and-fairness-backend
-        image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
+      - name: eval-server
+        image: ghcr.io/bluewave-labs/verifywise-eval-server:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -95,11 +95,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: bias-and-fairness-backend
+  name: eval-server
   namespace: verifywise
   labels:
     app: verifywise
-    component: bias-and-fairness-backend
+    component: eval-server
 spec:
   type: ClusterIP
   ports:
@@ -109,4 +109,4 @@ spec:
     name: http
   selector:
     app: verifywise
-    component: bias-and-fairness-backend
+    component: eval-server

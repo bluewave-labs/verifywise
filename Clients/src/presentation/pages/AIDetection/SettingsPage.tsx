@@ -71,6 +71,15 @@ export default function SettingsPage() {
     loadTokenStatus();
   }, [loadTokenStatus]);
 
+  // Auto-dismiss toast after 3 seconds
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [alert]);
+
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setActiveTab(newValue);
   };

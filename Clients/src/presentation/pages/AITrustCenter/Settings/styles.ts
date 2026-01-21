@@ -103,7 +103,6 @@ export const useStyles = () => {
       width: 340,
       fontSize: 13,
       marginTop: 0,
-      mb: 20,
     },
     toggleRow: {
       display: 'flex',
@@ -137,6 +136,10 @@ export const useStyles = () => {
       height: 34,
       borderRadius: 2,
       background: 'transparent',
+      '&:hover': {
+        background: 'rgba(219, 80, 74, 0.08)',
+        borderColor: theme.palette.error.dark,
+      },
     },
     replaceButton: {
       color: theme.palette.text.primary,

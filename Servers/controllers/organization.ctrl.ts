@@ -699,3 +699,90 @@ export async function deleteOrganizationById(
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
+
+/**
+ * Updates the onboarding status of an organization
+ *
+ * Sets the onboarding_status to 'completed' after the user has either:
+ * - Selected to add demo data
+ * - Selected to start with a blank dashboard
+ * - Dismissed the setup modal
+ *
+ * @async
+ * @param {Request} req - Express request with organization ID in params
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Updated status or error
+ *
+ * @security
+ * - Only the organization creator (first admin) should call this
+ * - Requires authentication via JWT
+ *
+ * @example
+ * PATCH /api/organizations/:id/onboarding-status
+ * Authorization: Bearer <jwt_token>
+ *
+ * Response 200:
+ * {
+ *   "code": 200,
+ *   "data": { "onboarding_status": "completed" }
+ * }
+ */
+export async function updateOnboardingStatus(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const organizationId = parseInt(req.params.id);
+  const transaction = await sequelize.transaction();
+
+  logStructured(
+    "processing",
+    `updating onboarding status for organization ID: ${organizationId}`,
+    "updateOnboardingStatus",
+    "organization.ctrl.ts"
+  );
+
+  try {
+    // Verify user belongs to this organization
+    if (req.organizationId !== organizationId) {
+      await transaction.rollback();
+      return res.status(403).json(STATUS_CODE[403]("Access denied"));
+    }
+
+    // Find the organization
+    const organization = await getOrganizationByIdQuery(organizationId);
+    if (!organization) {
+      await transaction.rollback();
+      return res.status(404).json(STATUS_CODE[404]("Organization not found"));
+    }
+
+    // Update onboarding status to completed
+    await sequelize.query(
+      `UPDATE organizations SET onboarding_status = 'completed' WHERE id = :organizationId`,
+      {
+        replacements: { organizationId },
+        transaction,
+      }
+    );
+
+    await transaction.commit();
+
+    logStructured(
+      "successful",
+      `onboarding status updated for organization ID: ${organizationId}`,
+      "updateOnboardingStatus",
+      "organization.ctrl.ts"
+    );
+
+    return res.status(200).json(STATUS_CODE[200]({ onboarding_status: "completed" }));
+  } catch (error) {
+    await transaction.rollback();
+    logStructured(
+      "error",
+      `failed to update onboarding status for organization ID: ${organizationId}`,
+      "updateOnboardingStatus",
+      "organization.ctrl.ts"
+    );
+    logger.error("❌ Error in updateOnboardingStatus:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}

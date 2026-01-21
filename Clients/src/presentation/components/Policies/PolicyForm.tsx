@@ -90,10 +90,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
                 formData.nextReviewDate ? dayjs(formData.nextReviewDate) : null
               }
               handleDateChange={handleDateChange}
-              sx={{
-                width: "100%",
-                "& input": { width: "85px" },
-              }}
+              sx={{ width: "100%" }}
               isRequired
               error={errors.nextReviewDate}
             />

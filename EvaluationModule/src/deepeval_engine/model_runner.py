@@ -319,8 +319,25 @@ class ModelRunner:
             kwargs["temperature"] = temperature
 
         def _call_anthropic():
-            message = self.anthropic_client.messages.create(**kwargs)
-            return message.content[0].text.strip()
+            try:
+                message = self.anthropic_client.messages.create(**kwargs)
+                # Handle various response formats from Anthropic
+                if not message.content:
+                    return ""
+                content_block = message.content[0]
+                # Content block might be a TextBlock object or dict
+                if hasattr(content_block, 'text'):
+                    text = content_block.text
+                elif isinstance(content_block, dict):
+                    text = content_block.get('text', '')
+                else:
+                    text = str(content_block)
+                return (text or "").strip()
+            except Exception as e:
+                import traceback
+                print(f"Anthropic API error: {e}")
+                print(f"Traceback: {traceback.format_exc()}")
+                raise
 
         return self._retry_with_backoff(_call_anthropic)
 

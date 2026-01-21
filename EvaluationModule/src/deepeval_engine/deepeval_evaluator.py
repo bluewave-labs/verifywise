@@ -7,9 +7,10 @@ Documentation: https://docs.confident-ai.com/docs/metrics-introduction
 
 import os
 import json
+import time
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable
 
 import pandas as pd
 from deepeval.metrics import (
@@ -32,6 +33,50 @@ from deepeval.test_case import LLMTestCase, LLMTestCaseParams, ConversationalTes
 from deepeval.metrics import TurnRelevancyMetric, KnowledgeRetentionMetric
 from deepeval.metrics import ConversationalGEval
 print("✅ Native multi-turn metrics available (TurnRelevancyMetric, KnowledgeRetentionMetric, ConversationalGEval)")
+
+
+def retry_on_rate_limit(
+    func: Callable,
+    max_retries: int = 3,
+    initial_delay: float = 5.0,
+    backoff_factor: float = 2.0,
+) -> Any:
+    """
+    Retry a function call with exponential backoff on rate limit (429) errors.
+    
+    Args:
+        func: The function to call (should take no arguments)
+        max_retries: Maximum number of retry attempts
+        initial_delay: Initial delay in seconds before first retry
+        backoff_factor: Multiplier for delay on each subsequent retry
+        
+    Returns:
+        The result of the function call
+        
+    Raises:
+        The last exception if all retries fail
+    """
+    last_exception = None
+    delay = initial_delay
+    
+    for attempt in range(max_retries + 1):
+        try:
+            return func()
+        except Exception as e:
+            error_str = str(e)
+            # Check if this is a rate limit error (429) or quota error
+            is_rate_limit = "429" in error_str or "rate" in error_str.lower() or "quota" in error_str.lower()
+            
+            if is_rate_limit and attempt < max_retries:
+                print(f"\n  ⏳ Rate limit hit, waiting {delay:.1f}s before retry ({attempt + 1}/{max_retries})...", end=" ")
+                time.sleep(delay)
+                delay *= backoff_factor
+                last_exception = e
+            else:
+                raise e
+    
+    if last_exception:
+        raise last_exception
 
 
 class CustomDeepEvalLLM(DeepEvalBaseLLM):
@@ -242,19 +287,28 @@ class GEvalLikeMetric:
                 expected_output=getattr(test_case, "expected_output", None),
             )
             raw = self._runner.generate(prompt, max_tokens=self.max_tokens, temperature=self.temperature)
+            
+            # Handle None or empty response
+            if raw is None or raw == "":
+                self.score = None
+                self._reason = "Judge LLM returned empty response"
+                return
+                
             parsed_score = None
             parsed_reason = ""
             try:
                 data = json.loads(raw)
-                parsed_score = float(data.get("score"))
+                score_val = data.get("score")
+                if score_val is not None:
+                    parsed_score = float(score_val)
                 parsed_reason = str(data.get("reason", ""))
             except Exception:
                 # Fallback: try to extract a number between 0 and 1
                 import re
-                m = re.search(r"0?\.\d+|1(?:\.0+)?", raw)
+                m = re.search(r"0?\.\d+|1(?:\.0+)?", str(raw))
                 if m:
                     parsed_score = float(m.group(0))
-                parsed_reason = raw[:300]
+                parsed_reason = str(raw)[:300] if raw else ""
 
             if parsed_score is None:
                 self.score = None
@@ -264,8 +318,11 @@ class GEvalLikeMetric:
                 self.score = max(0.0, min(1.0, parsed_score))
                 self._reason = parsed_reason
         except Exception as e:
+            import traceback
             self.score = None
             self._reason = f"G-Eval error: {e}"
+            # Print detailed traceback for debugging
+            print(f"G-Eval detailed error: {traceback.format_exc()}")
 
 
 class DeepEvalEvaluator:
@@ -571,19 +628,31 @@ class DeepEvalEvaluator:
                     for metric_name, metric in conversational_metrics:
                         try:
                             print(f"  Evaluating {metric_name}...", end=" ")
-                            metric.measure(test_case)
+                            # Use retry wrapper for rate limit errors
+                            retry_on_rate_limit(
+                                lambda m=metric, tc=test_case: m.measure(tc),
+                                max_retries=3,
+                                initial_delay=5.0,
+                                backoff_factor=2.0
+                            )
                             score = metric.score
                             passed = metric.is_successful()
                             
+                            # Invert scores for "lower is better" metrics (Bias, Toxicity, Hallucination)
+                            # Claude returns 1.0 for "no bias" but we want to display 0% bias
+                            is_inverse_metric = metric_name.lower() in ['bias', 'toxicity', 'hallucination']
+                            display_score = (1.0 - score) if (score is not None and is_inverse_metric) else score
+                            
                             metric_scores[metric_name] = {
-                                "score": round(score, 3) if score is not None else None,
+                                "score": round(display_score, 3) if display_score is not None else None,
                                 "passed": passed,
                                 "threshold": getattr(metric, "threshold", None),
                                 "reason": getattr(metric, 'reason', 'N/A')
                             }
                             
                             status = "✓ PASS" if passed else "✗ FAIL"
-                            print(f"{status} (score: {score:.3f})")
+                            score_display = f"{display_score:.3f}" if display_score is not None else "N/A"
+                            print(f"{status} (score: {score_display})")
                         except Exception as e:
                             print(f"✗ Error: {str(e)}")
                             metric_scores[metric_name] = {
@@ -626,7 +695,12 @@ class DeepEvalEvaluator:
                                         model=judge_llm  # Use judge_llm wrapper for any provider
                                     )
                                     try:
-                                        bias_metric.measure(turn_test_case)
+                                        # Use retry wrapper for rate limit errors
+                                        retry_on_rate_limit(
+                                            lambda bm=bias_metric, tc=turn_test_case: bm.measure(tc),
+                                            max_retries=2,
+                                            initial_delay=3.0
+                                        )
                                         if bias_metric.score is not None:
                                             bias_scores.append(bias_metric.score)
                                     except:
@@ -668,7 +742,12 @@ class DeepEvalEvaluator:
                                         model=judge_llm  # Use judge_llm wrapper for any provider
                                     )
                                     try:
-                                        toxicity_metric.measure(turn_test_case)
+                                        # Use retry wrapper for rate limit errors
+                                        retry_on_rate_limit(
+                                            lambda tm=toxicity_metric, tc=turn_test_case: tm.measure(tc),
+                                            max_retries=2,
+                                            initial_delay=3.0
+                                        )
                                         if toxicity_metric.score is not None:
                                             toxicity_scores.append(toxicity_metric.score)
                                     except:
@@ -726,15 +805,21 @@ class DeepEvalEvaluator:
                         score = metric.score
                         passed = metric.is_successful()
 
+                        # Invert scores for "lower is better" metrics (Bias, Toxicity, Hallucination)
+                        # Claude returns 1.0 for "no bias" but we want to display 0% bias
+                        is_inverse_metric = metric_name.lower() in ['bias', 'toxicity', 'hallucination']
+                        display_score = (1.0 - score) if (score is not None and is_inverse_metric) else score
+
                         metric_scores[metric_name] = {
-                            "score": round(score, 3) if score is not None else None,
+                            "score": round(display_score, 3) if display_score is not None else None,
                             "passed": passed,
                             "threshold": getattr(metric, "threshold", None),
                             "reason": getattr(metric, 'reason', 'N/A')
                         }
 
                         status = "✓ PASS" if passed else "✗ FAIL"
-                        print(f"{status} (score: {score:.3f})")
+                        score_display = f"{display_score:.3f}" if display_score is not None else "N/A"
+                        print(f"{status} (score: {score_display})")
 
                     except Exception as e:
                         error_msg = str(e)

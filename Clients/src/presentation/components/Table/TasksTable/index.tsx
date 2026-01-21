@@ -53,7 +53,7 @@ const DISPLAY_TO_STATUS_MAP: Record<string, string> = {
 
 const titleOfTableColumns = [
   { id: "title", label: "Task", sortable: true },
-  { id: "priority", label: "Priority", sortable: false },
+  { id: "priority", label: "Priority", sortable: true },
   { id: "status", label: "Status", sortable: true },
   { id: "due_date", label: "Due date", sortable: true },
   { id: "assignees", label: "Assignees", sortable: false },
@@ -348,7 +348,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                         sx={{
                           textTransform: "capitalize",
                           textDecoration: isArchived ? "line-through" : "none",
-                          color: isArchived ? "#9ca3af" : "inherit",
+                          color: isArchived ? "text.accent" : "inherit",
                         }}
                       >
                         {task.title}
@@ -369,7 +369,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                       <Typography
                         sx={{
                           fontSize: 13,
-                          color: "#6b7280",
+                          color: "text.accent",
                           fontStyle: "italic",
                           px: 1,
                         }}
@@ -405,7 +405,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                       <Typography
                         sx={{
                           fontSize: 13,
-                          color: "#6b7280",
+                          color: "text.accent",
                           fontStyle: "italic",
                           px: 1,
                         }}

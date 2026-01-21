@@ -20,9 +20,9 @@ export const PRIORITY_COLOR_MAP: Record<string, string> = {
     [TaskPriority.LOW]: "#10b981",
 };
 
-// Reverse mapping for API calls
-export const DISPLAY_TO_PRIORITY_MAP: Record<string, string> = {
-    Low: "Low",
-    Medium: "Medium",
-    High: "High"
-}
+// Reverse mapping for API calls (display value -> enum value)
+export const DISPLAY_TO_PRIORITY_MAP: Record<string, TaskPriority> = {
+    Low: TaskPriority.LOW,
+    Medium: TaskPriority.MEDIUM,
+    High: TaskPriority.HIGH,
+};

@@ -30,8 +30,9 @@ const projectDto: ProjectResponseDTO = {
 };
 
 export class ProjectDtoToProjectBuilder {
-  private readonly project: Partial<ProjectResponseDTO> = projectDto;
+  private readonly project: ProjectResponseDTO;
   constructor(id: number = 1) {
+    this.project = { ...projectDto };
     this.project.id = id;
   }
 
@@ -66,9 +67,10 @@ export class ProjectDtoToProjectBuilder {
 }
 
 export class ProjectDtoToModelBuilder {
-  private readonly project: Partial<ProjectResponseDTO> = projectDto;
+  private readonly project:ProjectResponseDTO;
 
   constructor(id: number = 1) {
+    this.project = { ...projectDto };
     this.project.id = id;
   }
 

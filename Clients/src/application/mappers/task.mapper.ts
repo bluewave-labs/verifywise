@@ -18,7 +18,7 @@ import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
 /**
  * Converts string priority to TaskPriority enum
  */
-function mapPriority(priority: string): TaskPriority {
+export function mapPriority(priority: string): TaskPriority {
   const mapping: Record<string, TaskPriority> = {
     "low": TaskPriority.LOW,
     "medium": TaskPriority.MEDIUM,
@@ -30,7 +30,7 @@ function mapPriority(priority: string): TaskPriority {
 /**
  * Converts string status to TaskStatus enum
  */
-function mapStatus(status: string): TaskStatus {
+export function mapStatus(status: string): TaskStatus {
   const mapping: Record<string, TaskStatus> = {
     "open": TaskStatus.OPEN,
     "in progress": TaskStatus.IN_PROGRESS,

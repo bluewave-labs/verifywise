@@ -14,6 +14,10 @@ import { mapReportTypeToFileSource } from "../../controllers/reporting.ctrl";
 import { buildReportingReplacements } from "../../utils/automation/reporting.automation.utils";
 import { logAutomationExecution } from "../../utils/automationExecutionLog.utils";
 import { generateReport } from "../reporting";
+import { processPMMHourlyCheck } from "../postMarketMonitoring/pmmScheduler";
+import { compileMjmlToHtml } from "../../tools/mjmlCompiler";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 const handlers = {
   send_email: sendEmail,
@@ -341,6 +345,59 @@ export const createAutomationWorker = () => {
           await sendReportNotification();
         } else if (name === "send_report_notification_daily") {
           await sendReportNotificationEmail(job.data);
+        } else if (name === "pmm_hourly_check") {
+          await processPMMHourlyCheck();
+        } else if (name === "send_pmm_notification") {
+          // PMM notification handling - send email using MJML templates
+          const { type, data } = job.data;
+          const handler = handlers["send_email"];
+          if (handler) {
+            let subject = "";
+            let templateFile = "";
+            let recipientEmail = "";
+
+            if (type === "initial") {
+              subject = `Post-market monitoring due: ${data.use_case_title}`;
+              templateFile = "pmm-initial-notification.mjml";
+              recipientEmail = data.stakeholder_email;
+            } else if (type === "reminder") {
+              subject = `Reminder: Post-market monitoring due soon - ${data.use_case_title}`;
+              templateFile = "pmm-reminder.mjml";
+              recipientEmail = data.stakeholder_email;
+            } else if (type === "escalation") {
+              subject = `Escalation: Post-market monitoring overdue - ${data.use_case_title}`;
+              templateFile = "pmm-escalation.mjml";
+              recipientEmail = data.escalation_contact_email;
+            } else if (type === "completed") {
+              subject = `Post-market monitoring completed: ${data.use_case_title}`;
+              templateFile = "pmm-completed.mjml";
+              recipientEmail = data.stakeholder_email;
+            } else if (type === "flagged") {
+              subject = `Concern flagged: ${data.use_case_title}`;
+              templateFile = "pmm-flagged-concern.mjml";
+              recipientEmail = data.escalation_contact_email;
+            }
+
+            if (templateFile && recipientEmail) {
+              // Read and compile MJML template
+              const templatePath = join(__dirname, "../../templates", templateFile);
+              const mjmlTemplate = readFileSync(templatePath, "utf-8");
+
+              // Convert data values to strings for template replacement
+              const templateData: Record<string, string> = {};
+              Object.entries(data).forEach(([key, value]) => {
+                templateData[key] = String(value ?? "");
+              });
+
+              const htmlBody = compileMjmlToHtml(mjmlTemplate, templateData);
+
+              await handler({
+                to: [recipientEmail],
+                subject,
+                body: htmlBody,
+              });
+            }
+          }
         } else {
           // For standard automation actions (like send_email triggered by entity changes)
           const handler = handlers[name as keyof typeof handlers];

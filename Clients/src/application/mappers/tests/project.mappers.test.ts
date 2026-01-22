@@ -1,3 +1,4 @@
+import { ProjectResponseDTO } from "src/application/dtos";
 import { AiRiskClassification } from "../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../domain/enums/highRiskRole.enum";
 import { ProjectModel } from "../../../domain/models/Common/project/project.model";
@@ -88,14 +89,14 @@ describe("Test project mappers functions", () => {
   describe("mapProjectResponseDTOToProject", () => {
     it("should receive a valid ProjectResponseDTO and return the mapped Project", () => {
       const dto = new ProjectDtoToProjectBuilder().build();
-      const project = mapProjectResponseDTOToProject(dto);
+      const project = mapProjectResponseDTOToProject(dto as ProjectResponseDTO);
       expect(project.id).toBe(dto.id);
       expect(project.uc_id).toBe(dto.uc_id);
       expect(project.project_title).toBe(dto.project_title);
       expect(project.owner).toBe(dto.owner);
       expect(project.members).toEqual(dto.members);
       expect(project.start_date.toISOString()).toBe(
-        new Date(dto.start_date).toISOString(),
+        new Date(dto.start_date as string).toISOString(),
       );
       expect(project.ai_risk_classification).toBe(
         AiRiskClassification.LIMITED_RISK,
@@ -103,7 +104,7 @@ describe("Test project mappers functions", () => {
       expect(project.type_of_high_risk_role).toBe(HighRiskRole.PROVIDER);
       expect(project.goal).toBe(dto.goal);
       expect(project.last_updated.toISOString()).toBe(
-        new Date(dto.last_updated).toISOString(),
+        new Date(dto.last_updated as string).toISOString(),
       );
       expect(project.last_updated_by).toBe(dto.last_updated_by);
       expect(project.framework).toEqual(dto.framework);
@@ -122,31 +123,31 @@ describe("Test project mappers functions", () => {
     });
     it("should handle missing members by returning an empty array", () => {
       const dto = new ProjectDtoToProjectBuilder().withNoMembers().build();
-      const project = mapProjectResponseDTOToProject(dto);
+      const project = mapProjectResponseDTOToProject(dto as ProjectResponseDTO);
       expect(project.members).toEqual([]);
     });
     it("should handle members as numbers by converting them to strings", () => {
       const dto = new ProjectDtoToProjectBuilder().withNumberMembers().build();
-      const project = mapProjectResponseDTOToProject(dto);
+      const project = mapProjectResponseDTOToProject(dto as ProjectResponseDTO);
       expect(project.members).toEqual(["1", "2", "3"]);
     });
     it("should return an empty array when framework is undefined", () => {
       const dto = new ProjectDtoToProjectBuilder().withNoFramework().build();
-      const project = mapProjectResponseDTOToProject(dto);
+      const project = mapProjectResponseDTOToProject(dto as ProjectResponseDTO);
       expect(project.framework).toEqual([]);
     });
     it("should return an empty array when monitored_regulations_and_standards is undefined", () => {
       const dto = new ProjectDtoToProjectBuilder()
         .withNoMonitoredRegulations()
         .build();
-      const project = mapProjectResponseDTOToProject(dto);
+      const project = mapProjectResponseDTOToProject(dto as ProjectResponseDTO);
       expect(project.monitored_regulations_and_standards).toEqual([]);
     });
     it("should convert monitored_regulations_and_standards numbers to strings", () => {
       const dto = new ProjectDtoToProjectBuilder()
         .withNumberMonitoredRegulations()
         .build();
-      const project = mapProjectResponseDTOToProject(dto);
+      const project = mapProjectResponseDTOToProject(dto as ProjectResponseDTO);
       expect(project.monitored_regulations_and_standards).toEqual([
         "101",
         "202",
@@ -193,8 +194,12 @@ describe("Test project mappers functions", () => {
   });
   describe("mapProjectResponseDTOsToProjects", () => {
     it("should receive an array of ProjectResponseDTOs and return the mapped Projects array", () => {
-      const dto1 = new ProjectDtoToProjectBuilder(1).build();
-      const dto2 = new ProjectDtoToProjectBuilder(2).build();
+      const dto1 = new ProjectDtoToProjectBuilder(
+        1,
+      ).build() as ProjectResponseDTO;
+      const dto2 = new ProjectDtoToProjectBuilder(
+        2,
+      ).build() as ProjectResponseDTO;
       const projects = mapProjectResponseDTOsToProjects([dto1, dto2]);
       expect(projects.length).toBe(2);
       expect(projects[0].id).toBe(dto1.id);

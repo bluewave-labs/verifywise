@@ -18,6 +18,7 @@ import ProjectFrameworks from "../ProjectFrameworks";
 import CustomizableToast from "../../../components/Toast";
 import CEMarking from "../CEMarking";
 import Activity from "../Activity";
+import PostMarketMonitoring from "../PostMarketMonitoring";
 import allowedRoles from "../../../../application/constants/permissions";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -234,6 +235,12 @@ const VWProjectView = () => {
                 disabled: isApprovalBlocked,
               },
               {
+                label: "Monitoring",
+                value: "monitoring",
+                icon: "ClipboardCheck",
+                disabled: isApprovalBlocked,
+              },
+              {
                 label: "Settings",
                 value: "settings",
                 icon: "Settings",
@@ -330,6 +337,17 @@ const VWProjectView = () => {
           <TabPanel value="activity" sx={tabPanelStyle}>
             {project ? (
               <Activity entityType="use_case" entityId={parseInt(projectId)} />
+            ) : (
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
+            )}
+          </TabPanel>
+          <TabPanel value="monitoring" sx={tabPanelStyle}>
+            {project ? (
+              <PostMarketMonitoring />
             ) : (
               <CustomizableSkeleton
                 variant="rectangular"

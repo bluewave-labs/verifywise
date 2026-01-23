@@ -8,12 +8,11 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import RichTextEditor from "../../../components/RichTextEditor/index";
-import UppyUploadFile from "../../Inputs/FileUpload";
+import FileManagementDialog from "../../Inputs/FileUpload/FileManagementDialog";
 import Alert from "../../../components/Alert";
 import { AlertProps } from "../../../types/alert.types";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { FileData } from "../../../../domain/types/File";
-import Uppy from "@uppy/core";
 import { IAuditorFeedbackProps } from "../../../types/interfaces/i.editor";
 
 const parseFileData = (file: FileData | string): FileData => {
@@ -50,7 +49,6 @@ const AuditorFeedback: React.FC<IAuditorFeedbackProps> = ({
     files.map(parseFileData)
   );
   const [alert, setAlert] = useState<AlertProps | null>(null);
-  const [uppy] = useState(() => new Uppy());
 
   const handleContentChange = (content: string) => {
     onChange({
@@ -65,7 +63,11 @@ const AuditorFeedback: React.FC<IAuditorFeedbackProps> = ({
     } as React.ChangeEvent<HTMLInputElement>);
   };
 
-  const handleRemoveFile = async (fileId: string) => {
+  const handleAddFiles = (newFiles: FileData[]) => {
+    onUploadFilesChange([...uploadFiles, ...newFiles]);
+  };
+
+  const handleRemoveFile = (fileId: string) => {
     const fileIdNumber = parseInt(fileId);
     if (isNaN(fileIdNumber)) {
       handleAlert({
@@ -86,31 +88,15 @@ const AuditorFeedback: React.FC<IAuditorFeedbackProps> = ({
       setEvidenceFiles(newEvidenceFiles);
       onFilesChange?.(newEvidenceFiles);
       onDeletedFilesChange([...deletedFilesIds, fileIdNumber]);
-    } else {
-      const newUploadFiles = uploadFiles.filter((file) => file.id !== fileId);
-      onUploadFilesChange(newUploadFiles);
     }
   };
 
-  const closeFileUploadModal = () => {
-    const uppyFiles = uppy.getFiles();
-    const newUploadFiles = uppyFiles
-      .map((file) => {
-        if (!(file.data instanceof Blob)) {
-          return null;
-        }
-        return {
-          data: file.data, // Keep the actual file for upload
-          id: file.id,
-          fileName: file.name || "unnamed",
-          size: file.size || 0,
-          type: file.type || "application/octet-stream",
-        } as FileData;
-      })
-      .filter((file): file is FileData => file !== null);
-
-    // Only update uploadFiles state, don't combine with evidenceFiles yet
+  const handleRemovePendingFile = (fileId: string) => {
+    const newUploadFiles = uploadFiles.filter((file) => file.id !== fileId);
     onUploadFilesChange(newUploadFiles);
+  };
+
+  const closeFileUploadModal = () => {
     setIsFileUploadOpen(false);
   };
 
@@ -190,13 +176,15 @@ const AuditorFeedback: React.FC<IAuditorFeedbackProps> = ({
           )}
         </Stack>
       </Stack>
-      <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
-        <UppyUploadFile
-          uppy={uppy}
-          files={[...evidenceFiles, ...uploadFiles]}
+      <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal} maxWidth="sm" fullWidth>
+        <FileManagementDialog
+          files={evidenceFiles}
+          pendingFiles={uploadFiles}
           onClose={closeFileUploadModal}
           onRemoveFile={handleRemoveFile}
-          hideProgressIndicators={true}
+          onAddFiles={handleAddFiles}
+          onRemovePendingFile={handleRemovePendingFile}
+          disabled={readOnly}
         />
       </Dialog>
       {alert && (

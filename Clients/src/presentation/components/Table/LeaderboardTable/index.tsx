@@ -136,22 +136,22 @@ export default function LeaderboardTable({
     setPage(0);
   };
 
-  // Format score as percentage
-  const formatScore = (score: number): string => (score * 100).toFixed(1) + "%";
+  // Format score as percentage (data is already in 0-100 range)
+  const formatScore = (score: number): string => score.toFixed(1) + "%";
 
   // Calculate best score for each metric (for crown indicator)
   const bestScores = useMemo(() => {
     const best: Record<string, { value: number; model: string }> = {};
-    
+
     displayMetrics.forEach(metric => {
       const config = METRIC_CONFIG[metric];
       let bestValue = config && !config.higherIsBetter ? Infinity : -Infinity;
       let bestModel = "";
-      
+
       sortedEntries.forEach(entry => {
         const score = entry.metricScores[metric];
         if (score === undefined) return;
-        
+
         if (config && !config.higherIsBetter) {
           if (score < bestValue) {
             bestValue = score;
@@ -164,12 +164,12 @@ export default function LeaderboardTable({
           }
         }
       });
-      
+
       if (bestModel) {
         best[metric] = { value: bestValue, model: bestModel };
       }
     });
-    
+
     return best;
   }, [sortedEntries, displayMetrics]);
 
@@ -207,11 +207,11 @@ export default function LeaderboardTable({
   }
 
   return (
-    <Box 
-      sx={{ 
-        border: "1px solid #f0f0f0", 
-        borderRadius: "12px", 
-        overflow: "hidden", 
+    <Box
+      sx={{
+        border: "1px solid #f0f0f0",
+        borderRadius: "12px",
+        overflow: "hidden",
         bgcolor: "#fff",
         boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
       }}
@@ -281,10 +281,10 @@ export default function LeaderboardTable({
                     ) : null;
                   })()
                 )}
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    fontFamily: "'SF Mono', 'Roboto Mono', monospace", 
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontFamily: "'SF Mono', 'Roboto Mono', monospace",
                     color: "#111827",
                     fontWeight: 500,
                     fontSize: "13px",
@@ -297,10 +297,10 @@ export default function LeaderboardTable({
 
             {/* Score */}
             <Cell>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  fontFamily: "monospace", 
+              <Typography
+                variant="body2"
+                sx={{
+                  fontFamily: "monospace",
                   fontWeight: 600,
                   color: "#1f2937",
                   fontSize: "13px"
@@ -315,18 +315,19 @@ export default function LeaderboardTable({
               const score = entry.metricScores[metric];
               const hasScore = score !== undefined;
               const isBest = hasScore && isBestInMetric(entry.model, metric);
-              
+
               // Check if score is excellent (>=90% for higher-is-better, <=5% for lower-is-better)
+              // Data is already in 0-100 percentage range
               const config = METRIC_CONFIG[metric];
               const isExcellent = hasScore && (
-                config && !config.higherIsBetter 
-                  ? score <= 0.05  // For bias/toxicity/hallucination, lower is better (<=5%)
-                  : score >= 0.90  // For most metrics, higher is better (>=90%)
+                config && !config.higherIsBetter
+                  ? score <= 5    // For bias/toxicity/hallucination, lower is better (<=5%)
+                  : score >= 90   // For most metrics, higher is better (>=90%)
               );
-              
+
               // Best gets yellow highlight (priority), excellent (not best) gets green
               const showExcellentHighlight = isExcellent && !isBest;
-              
+
               return (
                 <Cell key={metric}>
                   <Box
@@ -349,8 +350,8 @@ export default function LeaderboardTable({
                         fontFamily: "monospace",
                         fontWeight: (isBest || isExcellent) ? 600 : 400,
                         fontSize: "12.5px",
-                        color: hasScore 
-                          ? (showExcellentHighlight ? "#059669" : "#4b5563") 
+                        color: hasScore
+                          ? (showExcellentHighlight ? "#059669" : "#4b5563")
                           : "#d1d5db",
                       }}
                     >
@@ -369,8 +370,8 @@ export default function LeaderboardTable({
         direction="row"
         alignItems="center"
         justifyContent="space-between"
-        sx={{ 
-          px: 2, 
+        sx={{
+          px: 2,
           py: 1.5,
           borderTop: "1px solid #f5f5f5",
           bgcolor: "#fff"

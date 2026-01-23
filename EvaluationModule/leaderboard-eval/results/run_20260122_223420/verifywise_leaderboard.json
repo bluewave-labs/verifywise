@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-01-22T22:34:20.066935",
+  "models": [
+    {
+      "rank": 1,
+      "model": "GPT-5.2 Codex (xhigh)",
+      "provider": "OpenAI",
+      "verifywise_score": 89.7,
+      "suites": {
+        "instruction_following": 88.5,
+        "rag_grounded_qa": 91.2,
+        "coding_tasks": 89.2,
+        "agent_workflows": 84.8,
+        "safety_policy": 94.5
+      },
+      "tasks_passed": 44,
+      "tasks_evaluated": 44
+    },
+    {
+      "rank": 2,
+      "model": "Gemini 3 Pro Preview",
+      "provider": "Google",
+      "verifywise_score": 88.5,
+      "suites": {
+        "instruction_following": 90.3,
+        "rag_grounded_qa": 87.3,
+        "coding_tasks": 88.9,
+        "agent_workflows": 85.2,
+        "safety_policy": 90.5
+      },
+      "tasks_passed": 44,
+      "tasks_evaluated": 44
+    },
+    {
+      "rank": 3,
+      "model": "Claude Opus 4.5",
+      "provider": "Anthropic",
+      "verifywise_score": 87.2,
+      "suites": {
+        "instruction_following": 92.2,
+        "rag_grounded_qa": 86.4,
+        "coding_tasks": 82.8,
+        "agent_workflows": 85.3,
+        "safety_policy": 87.8
+      },
+      "tasks_passed": 44,
+      "tasks_evaluated": 44
+    },
+    {
+      "rank": 4,
+      "model": "Claude Opus 4.1",
+      "provider": "Anthropic",
+      "verifywise_score": 86.6,
+      "suites": {
+        "instruction_following": 86.7,
+        "rag_grounded_qa": 82.3,
+        "coding_tasks": 85.9,
+        "agent_workflows": 91.2,
+        "safety_policy": 90.0
+      },
+      "tasks_passed": 44,
+      "tasks_evaluated": 44
+    },
+    {
+      "rank": 5,
+      "model": "GPT-5.2 (xhigh)",
+      "provider": "OpenAI",
+      "verifywise_score": 86.4,
+      "suites": {
+        "instruction_following": 84.2,
+        "rag_grounded_qa": 86.3,
+        "coding_tasks": 85.1,
+        "agent_workflows": 85.3,
+        "safety_policy": 92.9
+      },
+      "tasks_passed": 44,
+      "tasks_evaluated": 44
+    }
+  ]
+}

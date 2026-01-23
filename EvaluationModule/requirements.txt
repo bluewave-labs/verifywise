@@ -18,11 +18,18 @@ huggingface-hub>=0.33.0
 # Data handling
 datasets>=4.0.0
 pyarrow>=21.0.0
+jsonlines>=4.0.0
 
 # Utilities
 tqdm>=4.67.0
 textblob>=0.17.1
 python-dotenv>=1.0.0
+
+# HTTP & Async
+httpx>=0.25.0
+aiohttp>=3.9.0
+tenacity>=8.2.0
+asyncio-throttle>=1.0.0
 
 # LLM API Clients
 openai>=1.0.0

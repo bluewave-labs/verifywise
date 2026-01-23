@@ -172,8 +172,8 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
           // Auto-dismiss success alerts after 5 seconds
           setTimeout(() => setAlert(null), 5000);
         } else {
-          // Error alerts persist until user dismisses them
           setAlert({ variant: "error", body: `Experiment "${exp.name}" failed. Check logs for details.` });
+          setTimeout(() => setAlert(null), 20000);
         }
       });
     }
@@ -193,7 +193,6 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
           exp.config?.dataset?.count ||
           exp.config?.dataset?.prompts?.length ||
           0;
-
         // Use pre-computed avg_scores from results (computed when experiment completes)
         // This eliminates N individual log requests!
         const avgMetrics = exp.results?.avg_scores || {};
@@ -266,7 +265,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     } catch (err) {
       console.error("Failed to rerun experiment:", err);
       setAlert({ variant: "error", body: "Failed to start rerun" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 
@@ -275,7 +274,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     const originalExp = experiments.find((e) => e.id === row.id);
     if (!originalExp) {
       setAlert({ variant: "error", body: "Could not find experiment to rerun" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
       return;
     }
 
@@ -324,7 +323,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       loadExperiments();
     } catch {
       setAlert({ variant: "error", body: "Failed to delete" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 
@@ -344,7 +343,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       setTimeout(() => setAlert(null), 3000);
     } catch {
       setAlert({ variant: "error", body: "Failed to download results" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 
@@ -356,7 +355,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       setTimeout(() => setAlert(null), 3000);
     } catch {
       setAlert({ variant: "error", body: "Failed to copy results" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 

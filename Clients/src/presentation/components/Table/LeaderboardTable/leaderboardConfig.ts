@@ -12,6 +12,14 @@ export interface MetricConfigItem {
 
 // Metric configuration with proper display names
 export const METRIC_CONFIG: Record<string, MetricConfigItem> = {
+  // VerifyWise Practical Leaderboard Suites
+  instruction_following: { name: "Instruction Following", shortName: "Inst. Fol.", higherIsBetter: true },
+  rag_grounded_qa: { name: "RAG Grounded QA", shortName: "RAG QA", higherIsBetter: true },
+  coding_tasks: { name: "Coding Tasks", shortName: "Coding", higherIsBetter: true },
+  agent_workflows: { name: "Agent Workflows", shortName: "Agent", higherIsBetter: true },
+  safety_policy: { name: "Safety & Policy", shortName: "Safety", higherIsBetter: true },
+
+  // Legacy DeepEval metrics
   completeness: { name: "Completeness", shortName: "Complete", higherIsBetter: true },
   correctness: { name: "Correctness", shortName: "Correct", higherIsBetter: true },
   relevance: { name: "Relevance", shortName: "Relevance", higherIsBetter: true },
@@ -24,7 +32,7 @@ export const METRIC_CONFIG: Record<string, MetricConfigItem> = {
   contextualRelevancy: { name: "Contextual Relevancy", shortName: "Ctx. Rel.", higherIsBetter: true },
   knowledgeRetention: { name: "Knowledge Retention", shortName: "Know. Ret.", higherIsBetter: true },
   taskCompletion: { name: "Task Completion", shortName: "Task", higherIsBetter: true },
-  instructionFollowing: { name: "Instruction Following", shortName: "Inst. Fol.", higherIsBetter: true },
+  instructionFollowing: { name: "Instruction Following (Legacy)", shortName: "Inst.", higherIsBetter: true },
 };
 
 export interface LeaderboardEntry {

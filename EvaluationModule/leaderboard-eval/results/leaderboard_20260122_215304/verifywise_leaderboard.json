@@ -1,0 +1,212 @@
+[
+  {
+    "model": "Llama 3.1 405B",
+    "provider": "Meta",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Llama 3.1 70B",
+    "provider": "Meta",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Llama 3.1 8B",
+    "provider": "Meta",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Qwen 2.5 72B",
+    "provider": "Alibaba",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Qwen 2.5 32B",
+    "provider": "Alibaba",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Mixtral 8x22B",
+    "provider": "Mistral",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Mistral Large",
+    "provider": "Mistral",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Gemma 2 27B",
+    "provider": "Google",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Gemma 2 9B",
+    "provider": "Google",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Phi-3 Medium",
+    "provider": "Microsoft",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  }
+]

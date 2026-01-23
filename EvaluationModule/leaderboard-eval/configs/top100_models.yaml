@@ -1,0 +1,464 @@
+# Top 100 LLM Models for VerifyWise Leaderboard Evaluation
+# Source: Artificial Analysis (https://artificialanalysis.ai/leaderboards/models)
+# Last Updated: January 2026
+#
+# Models are organized by tier based on intelligence rankings from Artificial Analysis
+# Each model includes the correct OpenRouter model ID
+
+# =============================================================================
+# TIER 1: FRONTIER MODELS (Highest Intelligence)
+# Top performers on benchmarks, reasoning, and complex tasks
+# =============================================================================
+tier1_frontier:
+  - name: "GPT-5.2 (xhigh)"
+    openrouter_id: "openai/gpt-5.2"
+    provider: "OpenAI"
+    notes: "Highest intelligence model per Artificial Analysis"
+    
+  - name: "Claude Opus 4.5"
+    openrouter_id: "anthropic/claude-opus-4.5"
+    provider: "Anthropic"
+    notes: "Tied for highest intelligence"
+    
+  - name: "GPT-5.2 Codex (xhigh)"
+    openrouter_id: "openai/gpt-5.2-codex"
+    provider: "OpenAI"
+    notes: "Top coding model"
+    
+  - name: "Gemini 3 Pro Preview"
+    openrouter_id: "google/gemini-3-pro-preview"
+    provider: "Google"
+    notes: "Latest Gemini flagship"
+    
+  - name: "Claude Opus 4.1"
+    openrouter_id: "anthropic/claude-opus-4.1"
+    provider: "Anthropic"
+    
+  - name: "Claude Opus 4"
+    openrouter_id: "anthropic/claude-opus-4"
+    provider: "Anthropic"
+    
+  - name: "GPT-5.1"
+    openrouter_id: "openai/gpt-5.1"
+    provider: "OpenAI"
+    
+  - name: "GPT-5"
+    openrouter_id: "openai/gpt-5"
+    provider: "OpenAI"
+    
+  - name: "o3-pro"
+    openrouter_id: "openai/o3-pro"
+    provider: "OpenAI"
+    notes: "Advanced reasoning model"
+    
+  - name: "o3"
+    openrouter_id: "openai/o3"
+    provider: "OpenAI"
+    notes: "Reasoning model"
+    
+  - name: "Grok-4"
+    openrouter_id: "x-ai/grok-4"
+    provider: "xAI"
+    
+  - name: "Gemini 2.5 Pro"
+    openrouter_id: "google/gemini-2.5-pro"
+    provider: "Google"
+
+# =============================================================================
+# TIER 2: HIGH-END MODELS
+# Very capable models, excellent for most tasks
+# =============================================================================
+tier2_high_end:
+  - name: "Claude Sonnet 4.5"
+    openrouter_id: "anthropic/claude-sonnet-4.5"
+    provider: "Anthropic"
+    
+  - name: "Claude Sonnet 4"
+    openrouter_id: "anthropic/claude-sonnet-4"
+    provider: "Anthropic"
+    
+  - name: "GPT-5 Pro"
+    openrouter_id: "openai/gpt-5-pro"
+    provider: "OpenAI"
+    
+  - name: "o4-mini"
+    openrouter_id: "openai/o4-mini"
+    provider: "OpenAI"
+    
+  - name: "o3-mini"
+    openrouter_id: "openai/o3-mini"
+    provider: "OpenAI"
+    
+  - name: "o1-pro"
+    openrouter_id: "openai/o1-pro"
+    provider: "OpenAI"
+    
+  - name: "o1"
+    openrouter_id: "openai/o1"
+    provider: "OpenAI"
+    
+  - name: "DeepSeek R1 0528"
+    openrouter_id: "deepseek/deepseek-r1-0528"
+    provider: "DeepSeek"
+    notes: "Top open-weight reasoning model"
+    
+  - name: "DeepSeek R1"
+    openrouter_id: "deepseek/deepseek-r1"
+    provider: "DeepSeek"
+    
+  - name: "DeepSeek V3.2"
+    openrouter_id: "deepseek/deepseek-v3.2"
+    provider: "DeepSeek"
+    
+  - name: "Grok-3"
+    openrouter_id: "x-ai/grok-3"
+    provider: "xAI"
+    
+  - name: "Grok-4 Fast"
+    openrouter_id: "x-ai/grok-4-fast"
+    provider: "xAI"
+    
+  - name: "Llama 4 Maverick"
+    openrouter_id: "meta-llama/llama-4-maverick"
+    provider: "Meta"
+    notes: "Largest context window (10M tokens)"
+    
+  - name: "Llama 4 Scout"
+    openrouter_id: "meta-llama/llama-4-scout"
+    provider: "Meta"
+    
+  - name: "Qwen3 235B"
+    openrouter_id: "qwen/qwen3-235b-a22b"
+    provider: "Alibaba"
+    
+  - name: "Qwen3 Max"
+    openrouter_id: "qwen/qwen3-max"
+    provider: "Alibaba"
+
+# =============================================================================
+# TIER 3: STRONG MODELS
+# Great balance of capability and cost
+# =============================================================================
+tier3_strong:
+  - name: "GPT-4o"
+    openrouter_id: "openai/gpt-4o"
+    provider: "OpenAI"
+    
+  - name: "GPT-4.1"
+    openrouter_id: "openai/gpt-4.1"
+    provider: "OpenAI"
+    
+  - name: "GPT-4 Turbo"
+    openrouter_id: "openai/gpt-4-turbo"
+    provider: "OpenAI"
+    
+  - name: "ChatGPT-4o Latest"
+    openrouter_id: "openai/chatgpt-4o-latest"
+    provider: "OpenAI"
+    
+  - name: "Claude 3.7 Sonnet"
+    openrouter_id: "anthropic/claude-3.7-sonnet"
+    provider: "Anthropic"
+    
+  - name: "Claude 3.5 Sonnet"
+    openrouter_id: "anthropic/claude-3.5-sonnet"
+    provider: "Anthropic"
+    
+  - name: "Gemini 2.5 Flash"
+    openrouter_id: "google/gemini-2.5-flash"
+    provider: "Google"
+    
+  - name: "Gemini 2.0 Flash"
+    openrouter_id: "google/gemini-2.0-flash-001"
+    provider: "Google"
+    
+  - name: "Llama 3.1 405B"
+    openrouter_id: "meta-llama/llama-3.1-405b-instruct"
+    provider: "Meta"
+    
+  - name: "Llama 3.3 70B"
+    openrouter_id: "meta-llama/llama-3.3-70b-instruct"
+    provider: "Meta"
+    
+  - name: "Llama 3.1 70B"
+    openrouter_id: "meta-llama/llama-3.1-70b-instruct"
+    provider: "Meta"
+    
+  - name: "Mistral Large 2512"
+    openrouter_id: "mistralai/mistral-large-2512"
+    provider: "Mistral"
+    
+  - name: "Mistral Large"
+    openrouter_id: "mistralai/mistral-large"
+    provider: "Mistral"
+    
+  - name: "Qwen 2.5 72B"
+    openrouter_id: "qwen/qwen-2.5-72b-instruct"
+    provider: "Alibaba"
+    
+  - name: "Qwen3 32B"
+    openrouter_id: "qwen/qwen3-32b"
+    provider: "Alibaba"
+    
+  - name: "QwQ 32B"
+    openrouter_id: "qwen/qwq-32b"
+    provider: "Alibaba"
+    notes: "Reasoning model"
+    
+  - name: "Command A"
+    openrouter_id: "cohere/command-a"
+    provider: "Cohere"
+    
+  - name: "Command R+"
+    openrouter_id: "cohere/command-r-plus-08-2024"
+    provider: "Cohere"
+    
+  - name: "Nemotron Ultra 253B"
+    openrouter_id: "nvidia/llama-3.1-nemotron-ultra-253b-v1"
+    provider: "NVIDIA"
+    
+  - name: "Nemotron 70B"
+    openrouter_id: "nvidia/llama-3.1-nemotron-70b-instruct"
+    provider: "NVIDIA"
+
+# =============================================================================
+# TIER 4: EFFICIENT MODELS
+# Good performance at lower cost/latency
+# =============================================================================
+tier4_efficient:
+  - name: "GPT-5 Mini"
+    openrouter_id: "openai/gpt-5-mini"
+    provider: "OpenAI"
+    
+  - name: "GPT-5 Nano"
+    openrouter_id: "openai/gpt-5-nano"
+    provider: "OpenAI"
+    
+  - name: "GPT-4o Mini"
+    openrouter_id: "openai/gpt-4o-mini"
+    provider: "OpenAI"
+    
+  - name: "GPT-4.1 Mini"
+    openrouter_id: "openai/gpt-4.1-mini"
+    provider: "OpenAI"
+    
+  - name: "GPT-4.1 Nano"
+    openrouter_id: "openai/gpt-4.1-nano"
+    provider: "OpenAI"
+    
+  - name: "Claude Haiku 4.5"
+    openrouter_id: "anthropic/claude-haiku-4.5"
+    provider: "Anthropic"
+    
+  - name: "Claude 3.5 Haiku"
+    openrouter_id: "anthropic/claude-3.5-haiku"
+    provider: "Anthropic"
+    
+  - name: "Gemini 2.5 Flash Lite"
+    openrouter_id: "google/gemini-2.5-flash-lite"
+    provider: "Google"
+    notes: "Fastest model (576 t/s)"
+    
+  - name: "Gemma 3 27B"
+    openrouter_id: "google/gemma-3-27b-it"
+    provider: "Google"
+    
+  - name: "Gemma 3 12B"
+    openrouter_id: "google/gemma-3-12b-it"
+    provider: "Google"
+    
+  - name: "Gemma 2 27B"
+    openrouter_id: "google/gemma-2-27b-it"
+    provider: "Google"
+    
+  - name: "Gemma 2 9B"
+    openrouter_id: "google/gemma-2-9b-it"
+    provider: "Google"
+    
+  - name: "Llama 3.1 8B"
+    openrouter_id: "meta-llama/llama-3.1-8b-instruct"
+    provider: "Meta"
+    
+  - name: "Llama 3.2 3B"
+    openrouter_id: "meta-llama/llama-3.2-3b-instruct"
+    provider: "Meta"
+    
+  - name: "Llama 3.2 1B"
+    openrouter_id: "meta-llama/llama-3.2-1b-instruct"
+    provider: "Meta"
+    notes: "Cheapest Llama"
+    
+  - name: "Mistral Medium 3.1"
+    openrouter_id: "mistralai/mistral-medium-3.1"
+    provider: "Mistral"
+    
+  - name: "Mistral Small 3.2"
+    openrouter_id: "mistralai/mistral-small-3.2-24b-instruct"
+    provider: "Mistral"
+    
+  - name: "Mistral Small 3.1"
+    openrouter_id: "mistralai/mistral-small-3.1-24b-instruct"
+    provider: "Mistral"
+    
+  - name: "Ministral 8B"
+    openrouter_id: "mistralai/ministral-8b-2512"
+    provider: "Mistral"
+    
+  - name: "Mistral Nemo"
+    openrouter_id: "mistralai/mistral-nemo"
+    provider: "Mistral"
+    
+  - name: "Mixtral 8x22B"
+    openrouter_id: "mistralai/mixtral-8x22b-instruct"
+    provider: "Mistral"
+    
+  - name: "Qwen3 14B"
+    openrouter_id: "qwen/qwen3-14b"
+    provider: "Alibaba"
+    
+  - name: "Qwen3 8B"
+    openrouter_id: "qwen/qwen3-8b"
+    provider: "Alibaba"
+    
+  - name: "Qwen 2.5 7B"
+    openrouter_id: "qwen/qwen-2.5-7b-instruct"
+    provider: "Alibaba"
+    
+  - name: "DeepSeek R1 Distill 70B"
+    openrouter_id: "deepseek/deepseek-r1-distill-llama-70b"
+    provider: "DeepSeek"
+    
+  - name: "DeepSeek R1 Distill 32B"
+    openrouter_id: "deepseek/deepseek-r1-distill-qwen-32b"
+    provider: "DeepSeek"
+    
+  - name: "DeepSeek Chat"
+    openrouter_id: "deepseek/deepseek-chat"
+    provider: "DeepSeek"
+    
+  - name: "Phi-4"
+    openrouter_id: "microsoft/phi-4"
+    provider: "Microsoft"
+    
+  - name: "Nemotron Nano 9B v2"
+    openrouter_id: "nvidia/nemotron-nano-9b-v2"
+    provider: "NVIDIA"
+
+# =============================================================================
+# TIER 5: SPECIALIZED & OTHER NOTABLE MODELS
+# Coding, reasoning, regional, and emerging models
+# =============================================================================
+tier5_specialized:
+  # Coding Models
+  - name: "GPT-5.1 Codex"
+    openrouter_id: "openai/gpt-5.1-codex"
+    provider: "OpenAI"
+    category: "coding"
+    
+  - name: "Qwen3 Coder"
+    openrouter_id: "qwen/qwen3-coder"
+    provider: "Alibaba"
+    category: "coding"
+    
+  - name: "Qwen3 Coder Plus"
+    openrouter_id: "qwen/qwen3-coder-plus"
+    provider: "Alibaba"
+    category: "coding"
+    
+  - name: "Qwen 2.5 Coder 32B"
+    openrouter_id: "qwen/qwen-2.5-coder-32b-instruct"
+    provider: "Alibaba"
+    category: "coding"
+    
+  - name: "Codestral 2508"
+    openrouter_id: "mistralai/codestral-2508"
+    provider: "Mistral"
+    category: "coding"
+    
+  - name: "Devstral Medium"
+    openrouter_id: "mistralai/devstral-medium"
+    provider: "Mistral"
+    category: "coding"
+
+  # Regional/Emerging Models
+  - name: "Kimi K2"
+    openrouter_id: "moonshotai/kimi-k2"
+    provider: "Moonshot"
+    category: "emerging"
+    
+  - name: "GLM-4.7"
+    openrouter_id: "z-ai/glm-4.7"
+    provider: "Zhipu"
+    category: "emerging"
+    
+  - name: "GLM-4.6"
+    openrouter_id: "z-ai/glm-4.6"
+    provider: "Zhipu"
+    category: "emerging"
+    
+  - name: "ERNIE 4.5 300B"
+    openrouter_id: "baidu/ernie-4.5-300b-a47b"
+    provider: "Baidu"
+    category: "emerging"
+    
+  - name: "Step3"
+    openrouter_id: "stepfun-ai/step3"
+    provider: "StepFun"
+    category: "emerging"
+    
+  - name: "MiniMax M2.1"
+    openrouter_id: "minimax/minimax-m2.1"
+    provider: "MiniMax"
+    category: "emerging"
+    
+  - name: "Mercury"
+    openrouter_id: "inception/mercury"
+    provider: "Inception"
+    category: "emerging"
+    
+  - name: "Seed 1.6"
+    openrouter_id: "bytedance-seed/seed-1.6"
+    provider: "ByteDance"
+    category: "emerging"
+
+  # Other Notable
+  - name: "Nova Pro"
+    openrouter_id: "amazon/nova-pro-v1"
+    provider: "Amazon"
+    category: "other"
+    
+  - name: "Nova Premier"
+    openrouter_id: "amazon/nova-premier-v1"
+    provider: "Amazon"
+    category: "other"
+    
+  - name: "Grok-3 Mini"
+    openrouter_id: "x-ai/grok-3-mini"
+    provider: "xAI"
+    category: "other"
+    
+  - name: "Inflection 3"
+    openrouter_id: "inflection/inflection-3-productivity"
+    provider: "Inflection"
+    category: "other"
+    
+  - name: "Hermes 4 405B"
+    openrouter_id: "nousresearch/hermes-4-405b"
+    provider: "NousResearch"
+    category: "other"
+    
+  - name: "Hermes 4 70B"
+    openrouter_id: "nousresearch/hermes-4-70b"
+    provider: "NousResearch"
+    category: "other"
+
+# =============================================================================
+# JUDGE MODEL CONFIGURATION
+# Used to evaluate other models' outputs
+# =============================================================================
+judge:
+  model: "gpt-4o"
+  openrouter_id: "openai/gpt-4o"
+  api_key_env: "OPENAI_API_KEY"
+  rate_limit: 500
+  notes: "GPT-4o is used as judge for balanced cost/quality"

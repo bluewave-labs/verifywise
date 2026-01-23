@@ -1,0 +1,802 @@
+[
+  {
+    "rank": 1,
+    "hf_name": "MaziyarPanahi/calme-3.2-instruct-78b",
+    "openrouter_id": null,
+    "avg_score": 52.08,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 77.965
+  },
+  {
+    "rank": 2,
+    "hf_name": "MaziyarPanahi/calme-3.1-instruct-78b",
+    "openrouter_id": null,
+    "avg_score": 51.29,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 77.965
+  },
+  {
+    "rank": 3,
+    "hf_name": "dfurman/CalmeRys-78B-Orpo-v0.1",
+    "openrouter_id": null,
+    "avg_score": 51.23,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 77.965
+  },
+  {
+    "rank": 4,
+    "hf_name": "MaziyarPanahi/calme-2.4-rys-78b",
+    "openrouter_id": null,
+    "avg_score": 50.77,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 77.965
+  },
+  {
+    "rank": 5,
+    "hf_name": "huihui-ai/Qwen2.5-72B-Instruct-abliterated",
+    "openrouter_id": null,
+    "avg_score": 48.11,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 6,
+    "hf_name": "Qwen/Qwen2.5-72B-Instruct",
+    "openrouter_id": "qwen/qwen3-vl-32b-instruct",
+    "avg_score": 47.98,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 7,
+    "hf_name": "MaziyarPanahi/calme-2.1-qwen2.5-72b",
+    "openrouter_id": null,
+    "avg_score": 47.86,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.7
+  },
+  {
+    "rank": 8,
+    "hf_name": "newsbang/Homer-v1.0-Qwen2.5-72B",
+    "openrouter_id": null,
+    "avg_score": 47.46,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 9,
+    "hf_name": "ehristoforu/qwen2.5-test-32b-it",
+    "openrouter_id": null,
+    "avg_score": 47.37,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 10,
+    "hf_name": "Saxo/Linkbricks-Horizon-AI-Avengers-V1-32B",
+    "openrouter_id": null,
+    "avg_score": 47.34,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.76
+  },
+  {
+    "rank": 11,
+    "hf_name": "MaziyarPanahi/calme-2.2-qwen2.5-72b",
+    "openrouter_id": null,
+    "avg_score": 47.22,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.7
+  },
+  {
+    "rank": 12,
+    "hf_name": "fluently-lm/FluentlyLM-Prinum",
+    "openrouter_id": null,
+    "avg_score": 47.22,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 13,
+    "hf_name": "JungZoona/T3Q-qwen2.5-14b-v1.0-e3",
+    "openrouter_id": null,
+    "avg_score": 47.09,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.77
+  },
+  {
+    "rank": 14,
+    "hf_name": "JungZoona/T3Q-Qwen2.5-14B-Instruct-1M-e3",
+    "openrouter_id": null,
+    "avg_score": 47.09,
+    "architecture": "Unknown",
+    "params_b": 0.0
+  },
+  {
+    "rank": 15,
+    "hf_name": "zetasepic/Qwen2.5-32B-Instruct-abliterated-v2",
+    "openrouter_id": null,
+    "avg_score": 46.89,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 16,
+    "hf_name": "rubenroy/Gilgamesh-72B",
+    "openrouter_id": null,
+    "avg_score": 46.79,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 17,
+    "hf_name": "Sakalti/ultiima-72B",
+    "openrouter_id": null,
+    "avg_score": 46.77,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 18,
+    "hf_name": "CombinHorizon/zetasepic-abliteratedV2-Qwen2.5-32B-Inst-BaseMerge-TIES",
+    "openrouter_id": null,
+    "avg_score": 46.76,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 19,
+    "hf_name": "maldv/Awqward2.5-32B-Instruct",
+    "openrouter_id": null,
+    "avg_score": 46.75,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 20,
+    "hf_name": "raphgg/test-2.5-72B",
+    "openrouter_id": null,
+    "avg_score": 46.74,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 21,
+    "hf_name": "shuttleai/shuttle-3",
+    "openrouter_id": null,
+    "avg_score": 46.7,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 22,
+    "hf_name": "Qwen/Qwen2.5-32B-Instruct",
+    "openrouter_id": "qwen/qwen3-vl-32b-instruct",
+    "avg_score": 46.6,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 23,
+    "hf_name": "mistralai/Mistral-Large-Instruct-2411",
+    "openrouter_id": "mistralai/mistral-large",
+    "avg_score": 46.52,
+    "architecture": "MistralForCausalLM",
+    "params_b": 122.61
+  },
+  {
+    "rank": 24,
+    "hf_name": "rombodawg/Rombos-LLM-V2.5-Qwen-72b",
+    "openrouter_id": null,
+    "avg_score": 46.5,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 25,
+    "hf_name": "Saxo/Linkbricks-Horizon-AI-Avengers-V3-32B",
+    "openrouter_id": null,
+    "avg_score": 46.37,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 26,
+    "hf_name": "zetasepic/Qwen2.5-72B-Instruct-abliterated",
+    "openrouter_id": null,
+    "avg_score": 46.34,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 27,
+    "hf_name": "Saxo/Linkbricks-Horizon-AI-Avengers-V6-32B",
+    "openrouter_id": null,
+    "avg_score": 46.23,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.76
+  },
+  {
+    "rank": 28,
+    "hf_name": "tanliboy/lambda-qwen2.5-32b-dpo-test",
+    "openrouter_id": null,
+    "avg_score": 45.92,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 29,
+    "hf_name": "maldv/Qwentile2.5-32B-Instruct",
+    "openrouter_id": null,
+    "avg_score": 45.9,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 30,
+    "hf_name": "rombodawg/Rombos-LLM-V2.5-Qwen-32b",
+    "openrouter_id": null,
+    "avg_score": 45.83,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 31,
+    "hf_name": "OpenBuddy/openbuddy-llama3.3-70b-v24.1-131k",
+    "openrouter_id": null,
+    "avg_score": 45.74,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 32,
+    "hf_name": "Saxo/Linkbricks-Horizon-AI-Avengers-V5-32B",
+    "openrouter_id": null,
+    "avg_score": 45.67,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 33,
+    "hf_name": "CombinHorizon/huihui-ai-abliterated-Qwen2.5-32B-Inst-BaseMerge-TIES",
+    "openrouter_id": null,
+    "avg_score": 45.66,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 34,
+    "hf_name": "Saxo/Linkbricks-Horizon-AI-Avengers-V4-32B",
+    "openrouter_id": null,
+    "avg_score": 45.61,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 35,
+    "hf_name": "Sakalti/ultiima-32B",
+    "openrouter_id": null,
+    "avg_score": 45.4,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 36,
+    "hf_name": "dnhkng/RYS-XLarge",
+    "openrouter_id": null,
+    "avg_score": 45.35,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 77.965
+  },
+  {
+    "rank": 37,
+    "hf_name": "ssmits/Qwen2.5-95B-Instruct",
+    "openrouter_id": null,
+    "avg_score": 45.26,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 94.648
+  },
+  {
+    "rank": 38,
+    "hf_name": "Sakalti/ultiima-72B-v1.5",
+    "openrouter_id": null,
+    "avg_score": 44.9,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 39,
+    "hf_name": "tomasmcm/sky-t1-coder-32b-flash",
+    "openrouter_id": null,
+    "avg_score": 44.87,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 40,
+    "hf_name": "meta-llama/Llama-3.3-70B-Instruct",
+    "openrouter_id": "meta-llama/llama-3.3-70b-instruct:free",
+    "avg_score": 44.85,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 41,
+    "hf_name": "FINGU-AI/RomboUltima-32B",
+    "openrouter_id": null,
+    "avg_score": 44.73,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 17.645
+  },
+  {
+    "rank": 42,
+    "hf_name": "MaziyarPanahi/calme-2.1-rys-78b",
+    "openrouter_id": null,
+    "avg_score": 44.64,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 77.965
+  },
+  {
+    "rank": 43,
+    "hf_name": "MaziyarPanahi/calme-2.3-rys-78b",
+    "openrouter_id": null,
+    "avg_score": 44.56,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 77.965
+  },
+  {
+    "rank": 44,
+    "hf_name": "MaziyarPanahi/calme-2.1-qwen2-72b",
+    "openrouter_id": null,
+    "avg_score": 44.4,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.699
+  },
+  {
+    "rank": 45,
+    "hf_name": "MaziyarPanahi/calme-2.2-rys-78b",
+    "openrouter_id": null,
+    "avg_score": 44.39,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 77.965
+  },
+  {
+    "rank": 46,
+    "hf_name": "Undi95/MG-FinalMix-72B",
+    "openrouter_id": null,
+    "avg_score": 44.3,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 47,
+    "hf_name": "EVA-UNIT-01/EVA-Qwen2.5-72B-v0.2",
+    "openrouter_id": null,
+    "avg_score": 44.22,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 48,
+    "hf_name": "dfurman/Qwen2-72B-Orpo-v0.1",
+    "openrouter_id": null,
+    "avg_score": 44.17,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.699
+  },
+  {
+    "rank": 49,
+    "hf_name": "dnhkng/RYS-XLarge-base",
+    "openrouter_id": null,
+    "avg_score": 44.1,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 77.972
+  },
+  {
+    "rank": 50,
+    "hf_name": "MaziyarPanahi/calme-2.2-qwen2-72b",
+    "openrouter_id": null,
+    "avg_score": 44.09,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 51,
+    "hf_name": "arcee-ai/Arcee-Nova",
+    "openrouter_id": null,
+    "avg_score": 44.05,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 52,
+    "hf_name": "Steelskull/L3.3-MS-Nevoria-70b",
+    "openrouter_id": null,
+    "avg_score": 44.04,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 53,
+    "hf_name": "Triangle104/Set-70b",
+    "openrouter_id": null,
+    "avg_score": 44.03,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 54,
+    "hf_name": "Aryanne/QwentileSwap",
+    "openrouter_id": null,
+    "avg_score": 43.92,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 55,
+    "hf_name": "wanlige/li-14b-v0.4",
+    "openrouter_id": null,
+    "avg_score": 43.66,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.77
+  },
+  {
+    "rank": 56,
+    "hf_name": "Cran-May/tempmotacilla-cinerea-0308",
+    "openrouter_id": null,
+    "avg_score": 43.64,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 57,
+    "hf_name": "Steelskull/L3.3-Nevoria-R1-70b",
+    "openrouter_id": null,
+    "avg_score": 43.61,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 58,
+    "hf_name": "Qwen/Qwen2-72B-Instruct",
+    "openrouter_id": "qwen/qwen3-vl-32b-instruct",
+    "avg_score": 43.59,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 59,
+    "hf_name": "prithivMLmods/Galactic-Qwen-14B-Exp2",
+    "openrouter_id": null,
+    "avg_score": 43.56,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 60,
+    "hf_name": "mlabonne/BigQwen2.5-52B-Instruct",
+    "openrouter_id": null,
+    "avg_score": 43.55,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 52.268
+  },
+  {
+    "rank": 61,
+    "hf_name": "VAGOsolutions/Llama-3.1-SauerkrautLM-70b-Instruct",
+    "openrouter_id": null,
+    "avg_score": 43.41,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 62,
+    "hf_name": "meta-llama/Llama-3.1-70B-Instruct",
+    "openrouter_id": "meta-llama/llama-3.1-70b-instruct",
+    "avg_score": 43.41,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 63,
+    "hf_name": "abacusai/Dracarys-72B-Instruct",
+    "openrouter_id": null,
+    "avg_score": 43.38,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 64,
+    "hf_name": "Saxo/Linkbricks-Horizon-AI-Avengers-V2-32B",
+    "openrouter_id": null,
+    "avg_score": 43.34,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.76
+  },
+  {
+    "rank": 65,
+    "hf_name": "suayptalha/Lamarckvergence-14B",
+    "openrouter_id": null,
+    "avg_score": 43.32,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 66,
+    "hf_name": "suayptalha/Lix-14B-v0.1",
+    "openrouter_id": null,
+    "avg_score": 43.32,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 67,
+    "hf_name": "MaziyarPanahi/calme-2.2-llama3.1-70b",
+    "openrouter_id": null,
+    "avg_score": 43.31,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 68,
+    "hf_name": "Lunzima/NQLSG-Qwen2.5-14B-MegaFusion-v9.1",
+    "openrouter_id": null,
+    "avg_score": 43.31,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 69,
+    "hf_name": "MaziyarPanahi/calme-2.3-llama3.1-70b",
+    "openrouter_id": null,
+    "avg_score": 43.28,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 70,
+    "hf_name": "Lunzima/NQLSG-Qwen2.5-14B-MegaFusion-v9.2",
+    "openrouter_id": null,
+    "avg_score": 43.23,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 71,
+    "hf_name": "pankajmathur/orca_mini_v8_1_70b",
+    "openrouter_id": null,
+    "avg_score": 43.19,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 72,
+    "hf_name": "rootxhacker/Apollo-70B",
+    "openrouter_id": null,
+    "avg_score": 43.16,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 73,
+    "hf_name": "YOYO-AI/ZYH-LLM-Qwen2.5-14B-V4",
+    "openrouter_id": null,
+    "avg_score": 43.14,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 74,
+    "hf_name": "Lunzima/NQLSG-Qwen2.5-14B-MegaFusion-v8.7",
+    "openrouter_id": null,
+    "avg_score": 43.09,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 75,
+    "hf_name": "Tarek07/Progenitor-V1.1-LLaMa-70B",
+    "openrouter_id": null,
+    "avg_score": 43.0,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 76,
+    "hf_name": "Sao10K/70B-L3.3-Cirrus-x1",
+    "openrouter_id": null,
+    "avg_score": 43.0,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 77,
+    "hf_name": "anthracite-org/magnum-v1-72b",
+    "openrouter_id": null,
+    "avg_score": 42.96,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 78,
+    "hf_name": "alpindale/magnum-72b-v1",
+    "openrouter_id": null,
+    "avg_score": 42.93,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 79,
+    "hf_name": "tensopolis/lamarckvergence-14b-tensopolis-v1",
+    "openrouter_id": null,
+    "avg_score": 42.92,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 80,
+    "hf_name": "wanlige/li-14b-v0.4-slerp0.1",
+    "openrouter_id": null,
+    "avg_score": 42.91,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 81,
+    "hf_name": "sthenno-com/miscii-14b-0218",
+    "openrouter_id": null,
+    "avg_score": 42.9,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 82,
+    "hf_name": "marcuscedricridia/Cheng-2",
+    "openrouter_id": null,
+    "avg_score": 42.85,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 83,
+    "hf_name": "Lunzima/NQLSG-Qwen2.5-14B-MegaFusion-v8",
+    "openrouter_id": null,
+    "avg_score": 42.78,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 84,
+    "hf_name": "Daemontatox/Llama3.3-70B-CogniLink",
+    "openrouter_id": null,
+    "avg_score": 42.77,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 70.554
+  },
+  {
+    "rank": 85,
+    "hf_name": "sthenno/tempesthenno-ppo-ckpt40",
+    "openrouter_id": null,
+    "avg_score": 42.74,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 86,
+    "hf_name": "dnhkng/RYS-Llama3.1-Large",
+    "openrouter_id": null,
+    "avg_score": 42.71,
+    "architecture": "LlamaForCausalLM",
+    "params_b": 81.677
+  },
+  {
+    "rank": 87,
+    "hf_name": "tensopolis/virtuoso-small-v2-tensopolis-v1",
+    "openrouter_id": null,
+    "avg_score": 42.7,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 88,
+    "hf_name": "marcuscedricridia/Cheng-2-v1.1",
+    "openrouter_id": null,
+    "avg_score": 42.68,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 89,
+    "hf_name": "hotmailuser/RombosBeagle-v2beta-MGS-32B",
+    "openrouter_id": null,
+    "avg_score": 42.66,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 90,
+    "hf_name": "fblgit/TheBeagle-v2beta-32B-MGS",
+    "openrouter_id": null,
+    "avg_score": 42.64,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 32.764
+  },
+  {
+    "rank": 91,
+    "hf_name": "tanliboy/lambda-qwen2.5-14b-dpo-test",
+    "openrouter_id": null,
+    "avg_score": 42.62,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.77
+  },
+  {
+    "rank": 92,
+    "hf_name": "sthenno/tempesthenno-nuslerp-001",
+    "openrouter_id": null,
+    "avg_score": 42.59,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 93,
+    "hf_name": "YOYO-AI/Qwen2.5-14B-1M-YOYO-V3",
+    "openrouter_id": null,
+    "avg_score": 42.56,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 94,
+    "hf_name": "Goekdeniz-Guelmez/Josiefied-Qwen2.5-14B-Instruct-abliterated-v4",
+    "openrouter_id": null,
+    "avg_score": 42.55,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.77
+  },
+  {
+    "rank": 95,
+    "hf_name": "Lunzima/NQLSG-Qwen2.5-14B-MegaFusion-v8.9",
+    "openrouter_id": null,
+    "avg_score": 42.52,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 96,
+    "hf_name": "djuna/Q2.5-Veltha-14B",
+    "openrouter_id": null,
+    "avg_score": 42.52,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 97,
+    "hf_name": "paulml/ECE-ILAB-Q1",
+    "openrouter_id": null,
+    "avg_score": 42.5,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 72.706
+  },
+  {
+    "rank": 98,
+    "hf_name": "arcee-ai/Virtuoso-Small-v2",
+    "openrouter_id": null,
+    "avg_score": 42.48,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 99,
+    "hf_name": "YOYO-AI/Qwen2.5-14B-YOYO-V4-p1",
+    "openrouter_id": null,
+    "avg_score": 42.46,
+    "architecture": "Qwen2ForCausalLM",
+    "params_b": 14.766
+  },
+  {
+    "rank": 100,
+    "hf_name": "jpacifico/Chocolatine-14B-Instruct-DPO-v1.3",
+    "openrouter_id": null,
+    "avg_score": 42.42,
+    "architecture": "Phi3ForCausalLM",
+    "params_b": 14.66
+  }
+]

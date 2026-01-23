@@ -1,10 +1,10 @@
 /**
  * LLM Leaderboard Page
  * 
- * Displays model rankings based on actual evaluation metric results.
+ * Displays model rankings based on VerifyWise Practical Evaluation results.
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Stack,
@@ -14,24 +14,21 @@ import {
   Select,
   MenuItem,
   FormControl,
+  Chip,
 } from "@mui/material";
-import { Search, Info, BarChart3 } from "lucide-react";
-import { getAllExperiments } from "../../../application/repository/deepEval.repository";
+import { Search, Info, BarChart3, Trophy, Zap, Shield } from "lucide-react";
 import LeaderboardTable from "../../components/Table/LeaderboardTable";
 import { LeaderboardEntry, METRIC_CONFIG } from "../../components/Table/LeaderboardTable/leaderboardConfig";
+import leaderboardData from "../../../data/verifywise_leaderboard.json";
 
-interface ExperimentData {
-  status?: string;
-  model?: string;
-  provider?: string;
-  createdAt?: string;
-  timestamp?: string;
-  results?: {
-    model?: string;
-    avg_scores?: Record<string, number>;
-  };
-  avgScores?: Record<string, number>;
-}
+// Suite display names
+const SUITE_NAMES: Record<string, string> = {
+  instruction_following: "Instruction Following",
+  rag_grounded_qa: "RAG Grounded QA",
+  coding_tasks: "Coding Tasks",
+  agent_workflows: "Agent Workflows",
+  safety_policy: "Safety & Policy",
+};
 
 export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
@@ -39,194 +36,45 @@ export default function LeaderboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("overall");
 
-  // Load leaderboard data from experiments
-  const loadLeaderboardData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await getAllExperiments({});
-      const experiments: ExperimentData[] = data.experiments || [];
+  // Load leaderboard data from static JSON
+  useEffect(() => {
+    setLoading(true);
 
-      const modelAggregates: Record<
-        string,
-        {
-          scores: Record<string, number[]>;
-          experimentCount: number;
-          lastEvaluated: string;
-          provider?: string;
-        }
-      > = {};
+    // Transform JSON data to LeaderboardEntry format
+    const transformedEntries: LeaderboardEntry[] = leaderboardData.models.map((model) => ({
+      rank: model.rank,
+      model: model.model,
+      provider: model.provider,
+      score: model.verifywise_score,
+      metricScores: {
+        instruction_following: model.suites.instruction_following,
+        rag_grounded_qa: model.suites.rag_grounded_qa,
+        coding_tasks: model.suites.coding_tasks,
+        agent_workflows: model.suites.agent_workflows,
+        safety_policy: model.suites.safety_policy,
+      },
+      experimentCount: model.tasks_evaluated,
+      lastEvaluated: leaderboardData.generated_at,
+    }));
 
-      const allMetrics = new Set<string>();
-
-      experiments.forEach((exp) => {
-        if (exp.status !== "completed") return;
-
-        const modelName = exp.model || exp.results?.model || "Unknown Model";
-        const provider = exp.provider;
-        const avgScores = exp.results?.avg_scores || exp.avgScores || {};
-        const expDate = new Date(exp.createdAt || exp.timestamp || 0);
-
-        if (!modelAggregates[modelName]) {
-          modelAggregates[modelName] = {
-            scores: {},
-            experimentCount: 0,
-            lastEvaluated: exp.createdAt || exp.timestamp || new Date().toISOString(),
-            provider,
-          };
-        }
-
-        modelAggregates[modelName].experimentCount++;
-
-        if (expDate > new Date(modelAggregates[modelName].lastEvaluated)) {
-          modelAggregates[modelName].lastEvaluated = exp.createdAt || exp.timestamp || "";
-        }
-
-        Object.entries(avgScores).forEach(([metric, score]) => {
-          if (typeof score === "number" && !isNaN(score)) {
-            allMetrics.add(metric);
-            if (!modelAggregates[modelName].scores[metric]) {
-              modelAggregates[modelName].scores[metric] = [];
-            }
-            modelAggregates[modelName].scores[metric].push(score);
-          }
-        });
-      });
-
-      // Create leaderboard entries
-      const leaderboardEntries: LeaderboardEntry[] = Object.entries(modelAggregates)
-        .filter(([, data]) => Object.keys(data.scores).length > 0)
-        .map(([model, data]) => {
-          const metricScores: Record<string, number> = {};
-          let totalScore = 0;
-          let metricCount = 0;
-
-          Object.entries(data.scores).forEach(([metric, scores]) => {
-            const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-            metricScores[metric] = avg;
-            const config = METRIC_CONFIG[metric];
-            const normalizedScore = config && !config.higherIsBetter ? 1 - avg : avg;
-            totalScore += normalizedScore;
-            metricCount++;
-          });
-
-          return {
-            rank: 0,
-            model,
-            provider: data.provider,
-            score: metricCount > 0 ? totalScore / metricCount : 0,
-            metricScores,
-            experimentCount: data.experimentCount,
-            lastEvaluated: data.lastEvaluated,
-          };
-        });
-
-      // Generate 50 sample entries for demonstration
-      const modelData = [
-        { model: "gpt-4-turbo", provider: "OpenAI", base: 0.89 },
-        { model: "gpt-4o", provider: "OpenAI", base: 0.91 },
-        { model: "gpt-4o-mini", provider: "OpenAI", base: 0.82 },
-        { model: "gpt-3.5-turbo", provider: "OpenAI", base: 0.74 },
-        { model: "o1-preview", provider: "OpenAI", base: 0.93 },
-        { model: "o1-mini", provider: "OpenAI", base: 0.85 },
-        { model: "claude-3-opus", provider: "Anthropic", base: 0.90 },
-        { model: "claude-3-sonnet", provider: "Anthropic", base: 0.86 },
-        { model: "claude-3-haiku", provider: "Anthropic", base: 0.78 },
-        { model: "claude-3.5-sonnet", provider: "Anthropic", base: 0.92 },
-        { model: "gemini-1.5-pro", provider: "Google", base: 0.88 },
-        { model: "gemini-1.5-flash", provider: "Google", base: 0.81 },
-        { model: "gemini-2.0-flash", provider: "Google", base: 0.87 },
-        { model: "gemini-ultra", provider: "Google", base: 0.89 },
-        { model: "llama-3.1-405b", provider: "Meta", base: 0.86 },
-        { model: "llama-3.1-70b", provider: "Meta", base: 0.79 },
-        { model: "llama-3.1-8b", provider: "Meta", base: 0.68 },
-        { model: "llama-3.2-90b", provider: "Meta", base: 0.84 },
-        { model: "llama-3.2-11b", provider: "Meta", base: 0.72 },
-        { model: "mistral-large", provider: "Mistral", base: 0.83 },
-        { model: "mistral-medium", provider: "Mistral", base: 0.76 },
-        { model: "mistral-small", provider: "Mistral", base: 0.69 },
-        { model: "mixtral-8x22b", provider: "Mistral", base: 0.80 },
-        { model: "mixtral-8x7b", provider: "Mistral", base: 0.73 },
-        { model: "codestral", provider: "Mistral", base: 0.77 },
-        { model: "command-r-plus", provider: "Cohere", base: 0.82 },
-        { model: "command-r", provider: "Cohere", base: 0.75 },
-        { model: "command-light", provider: "Cohere", base: 0.65 },
-        { model: "qwen-2.5-72b", provider: "Alibaba", base: 0.81 },
-        { model: "qwen-2.5-32b", provider: "Alibaba", base: 0.76 },
-        { model: "qwen-2.5-14b", provider: "Alibaba", base: 0.71 },
-        { model: "qwen-2.5-7b", provider: "Alibaba", base: 0.64 },
-        { model: "yi-large", provider: "01.AI", base: 0.79 },
-        { model: "yi-medium", provider: "01.AI", base: 0.72 },
-        { model: "deepseek-v3", provider: "DeepSeek", base: 0.85 },
-        { model: "deepseek-coder-v2", provider: "DeepSeek", base: 0.78 },
-        { model: "deepseek-chat", provider: "DeepSeek", base: 0.74 },
-        { model: "phi-3-medium", provider: "Microsoft", base: 0.73 },
-        { model: "phi-3-mini", provider: "Microsoft", base: 0.66 },
-        { model: "phi-3.5-moe", provider: "Microsoft", base: 0.77 },
-        { model: "falcon-180b", provider: "TII", base: 0.70 },
-        { model: "falcon-40b", provider: "TII", base: 0.62 },
-        { model: "jamba-1.5-large", provider: "AI21", base: 0.76 },
-        { model: "jamba-1.5-mini", provider: "AI21", base: 0.68 },
-        { model: "dbrx-instruct", provider: "Databricks", base: 0.74 },
-        { model: "grok-2", provider: "xAI", base: 0.84 },
-        { model: "grok-2-mini", provider: "xAI", base: 0.75 },
-        { model: "nemotron-4-340b", provider: "NVIDIA", base: 0.82 },
-        { model: "arctic-instruct", provider: "Snowflake", base: 0.71 },
-        { model: "granite-34b", provider: "IBM", base: 0.69 },
-      ];
-
-      const sampleEntries: LeaderboardEntry[] = modelData.map(({ model, provider, base }) => {
-        // Generate realistic metric scores based on base score with some variation
-        const variation = () => (Math.random() - 0.5) * 0.15;
-        const clamp = (v: number) => Math.max(0, Math.min(1, v));
-        
-        return {
-          rank: 0,
-          model,
-          provider,
-          score: base,
-          metricScores: {
-            bias: clamp(0.08 - base * 0.05 + variation() * 0.5),
-            toxicity: clamp(0.06 - base * 0.04 + variation() * 0.5),
-            correctness: clamp(base + variation()),
-            completeness: clamp(base - 0.03 + variation()),
-            hallucination: clamp(0.25 - base * 0.2 + variation() * 0.5),
-            answerRelevancy: clamp(base + 0.02 + variation()),
-          },
-          experimentCount: Math.floor(Math.random() * 20) + 3,
-          lastEvaluated: new Date().toISOString(),
-        };
-      });
-      
-      // Merge real entries with sample entries (real data takes priority)
-      const combinedEntries = [...leaderboardEntries, ...sampleEntries];
-      
-      setEntries(combinedEntries);
-    } catch (err) {
-      console.error("Failed to load leaderboard data:", err);
-    } finally {
-      setLoading(false);
-    }
+    setEntries(transformedEntries);
+    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    loadLeaderboardData();
-  }, [loadLeaderboardData]);
-
-  // Get top metrics to display in table columns
+  // Display metrics (the 5 suites)
   const displayMetrics = useMemo(() => {
-    const metricCounts: Record<string, number> = {};
-    entries.forEach((entry) => {
-      Object.keys(entry.metricScores).forEach((metric) => {
-        metricCounts[metric] = (metricCounts[metric] || 0) + 1;
-      });
-    });
-    return Object.entries(metricCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 6)
-      .map(([metric]) => metric);
-  }, [entries]);
+    return [
+      "instruction_following",
+      "rag_grounded_qa",
+      "coding_tasks",
+      "agent_workflows",
+      "safety_policy",
+    ];
+  }, []);
 
-  const totalEvaluations = entries.reduce((sum, e) => sum + e.experimentCount, 0);
+  // Stats
+  const totalTasks = entries.length > 0 ? entries[0].experimentCount : 44;
+  const topModel = entries[0];
 
   return (
     <Box sx={{ width: "100%", maxWidth: 1400, mx: "auto" }}>
@@ -254,35 +102,67 @@ export default function LeaderboardPage() {
         </Box>
 
         {/* Title */}
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
+        <Typography
+          variant="h4"
+          fontWeight={700}
           color="#111827"
           sx={{ mb: 1.5 }}
         >
-          VerifyWise LLM Arena
+          VerifyWise LLM Leaderboard
         </Typography>
 
         {/* Description */}
-        <Typography 
-          variant="body1" 
-          color="text.secondary" 
-          sx={{ 
-            maxWidth: 650, 
-            mx: "auto", 
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{
+            maxWidth: 700,
+            mx: "auto",
             mb: 3,
             lineHeight: 1.7,
           }}
         >
-          Comparing Large Language Models in an <strong>open</strong> and <strong>reproducible</strong> way. 
-          We rank models by evaluating them on standardized benchmarks and metrics including correctness, 
-          completeness, bias, toxicity, and hallucination.
+          Practical evaluation of Large Language Models across <strong>real-world tasks</strong>.
+          Models are tested on instruction following, RAG grounded QA, coding challenges,
+          agentic workflows, and safety & policy compliance.
         </Typography>
 
+        {/* Suite chips */}
+        <Stack direction="row" justifyContent="center" gap={1} mb={3} flexWrap="wrap">
+          <Chip
+            icon={<Zap size={14} />}
+            label="Instruction Following"
+            size="small"
+            sx={{ bgcolor: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" }}
+          />
+          <Chip
+            icon={<Search size={14} />}
+            label="RAG QA"
+            size="small"
+            sx={{ bgcolor: "#eff6ff", color: "#1e40af", border: "1px solid #bfdbfe" }}
+          />
+          <Chip
+            label="Coding"
+            size="small"
+            sx={{ bgcolor: "#faf5ff", color: "#6b21a8", border: "1px solid #e9d5ff" }}
+          />
+          <Chip
+            label="Agentic"
+            size="small"
+            sx={{ bgcolor: "#fefce8", color: "#854d0e", border: "1px solid #fef08a" }}
+          />
+          <Chip
+            icon={<Shield size={14} />}
+            label="Safety"
+            size="small"
+            sx={{ bgcolor: "#fef2f2", color: "#991b1b", border: "1px solid #fecaca" }}
+          />
+        </Stack>
+
         {/* Stats Row - Compact */}
-        <Stack 
-          direction="row" 
-          justifyContent="center" 
+        <Stack
+          direction="row"
+          justifyContent="center"
           divider={<Box sx={{ width: "1px", bgcolor: "#e5e7eb", mx: 2 }} />}
           sx={{ display: "inline-flex" }}
         >
@@ -296,20 +176,28 @@ export default function LeaderboardPage() {
           </Box>
           <Box sx={{ textAlign: "center", px: 1 }}>
             <Typography component="span" fontWeight={700} color="#111827" sx={{ fontFamily: "monospace", fontSize: 15 }}>
-              {totalEvaluations.toLocaleString()}
+              {totalTasks}
             </Typography>
             <Typography component="span" color="text.secondary" sx={{ fontSize: 12, ml: 0.5 }}>
-              evaluations
+              tasks
             </Typography>
           </Box>
           <Box sx={{ textAlign: "center", px: 1 }}>
             <Typography component="span" fontWeight={700} color="#111827" sx={{ fontFamily: "monospace", fontSize: 15 }}>
-              {displayMetrics.length}
+              5
             </Typography>
             <Typography component="span" color="text.secondary" sx={{ fontSize: 12, ml: 0.5 }}>
-              metrics
+              suites
             </Typography>
           </Box>
+          {topModel && (
+            <Box sx={{ textAlign: "center", px: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Trophy size={14} color="#eab308" />
+              <Typography component="span" fontWeight={600} color="#111827" sx={{ fontSize: 13 }}>
+                {topModel.model}
+              </Typography>
+            </Box>
+          )}
         </Stack>
       </Box>
 
@@ -319,13 +207,13 @@ export default function LeaderboardPage() {
           <Select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            sx={{ minWidth: 150, bgcolor: "#fff" }}
+            sx={{ minWidth: 180, bgcolor: "#fff" }}
             startAdornment={<BarChart3 size={14} color="#13715B" style={{ marginRight: 8 }} />}
           >
-            <MenuItem value="overall">Overall</MenuItem>
+            <MenuItem value="overall">Overall Score</MenuItem>
             {displayMetrics.map((m) => (
               <MenuItem key={m} value={m}>
-                {METRIC_CONFIG[m]?.name || m}
+                {SUITE_NAMES[m] || METRIC_CONFIG[m]?.name || m}
               </MenuItem>
             ))}
           </Select>
@@ -359,7 +247,8 @@ export default function LeaderboardPage() {
       <Stack direction="row" alignItems="center" gap={1} mt={3}>
         <Info size={14} color="#9ca3af" />
         <Typography variant="caption" color="text.secondary">
-          Rankings based on evaluation metrics, not votes. Higher scores are better.
+          Evaluated on {new Date(leaderboardData.generated_at).toLocaleDateString()} using the VerifyWise Practical Evaluation Pipeline.
+          Score = weighted average of 5 suites (IF: 25%, RAG: 25%, Coding: 20%, Agent: 15%, Safety: 15%).
         </Typography>
       </Stack>
     </Box>

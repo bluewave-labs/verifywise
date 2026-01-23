@@ -1,0 +1,212 @@
+[
+  {
+    "model": "GPT-5.2 (xhigh)",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Claude Opus 4.5",
+    "provider": "Anthropic",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "GPT-5.2 Codex (xhigh)",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Gemini 3 Pro Preview",
+    "provider": "Google",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Claude Opus 4.1",
+    "provider": "Anthropic",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Claude Opus 4",
+    "provider": "Anthropic",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "GPT-5.1",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "GPT-5",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "o3-pro",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "o3",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 82.5,
+    "metrics": {
+      "instruction_following": 0.85,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.15,
+      "bias": 0.1
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  }
+]

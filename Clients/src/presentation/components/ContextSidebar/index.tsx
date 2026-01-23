@@ -73,6 +73,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           experimentsCount={evalsSidebarContext?.experimentsCount ?? 0}
           datasetsCount={evalsSidebarContext?.datasetsCount ?? 0}
           scorersCount={evalsSidebarContext?.scorersCount ?? 0}
+          modelsCount={evalsSidebarContext?.modelsCount ?? 0}
           arenaCount={evalsSidebarContext?.arenaCount ?? 0}
           disabled={evalsSidebarContext?.disabled ?? true}
           recentExperiments={evalsSidebarContext?.recentExperiments ?? []}
@@ -89,10 +90,10 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
       const aiDetectionTab = location.pathname.includes("/ai-detection/history")
         ? "history"
         : location.pathname.includes("/ai-detection/settings")
-        ? "settings"
-        : location.pathname.includes("/ai-detection/scans/")
-        ? "history"
-        : "scan";
+          ? "settings"
+          : location.pathname.includes("/ai-detection/scans/")
+            ? "history"
+            : "scan";
 
       const handleAIDetectionTabChange = (newTab: string) => {
         if (newTab === "scan") {

@@ -1,0 +1,305 @@
+{
+    "generated_at": "2026-01-23T01:50:00.624752",
+    "models": [
+        {
+            "rank": 1,
+            "model": "GPT-5.1",
+            "provider": "OpenAI",
+            "verifywise_score": 53.8,
+            "suites": {
+                "instruction_following": 40.8,
+                "rag_grounded_qa": 90.0,
+                "coding_tasks": 52.5,
+                "agent_workflows": 16.7,
+                "safety_policy": 54.0
+            },
+            "tasks_passed": 24,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 2,
+            "model": "Claude Sonnet 4",
+            "provider": "Anthropic",
+            "verifywise_score": 53.1,
+            "suites": {
+                "instruction_following": 35.8,
+                "rag_grounded_qa": 90.0,
+                "coding_tasks": 48.8,
+                "agent_workflows": 20.0,
+                "safety_policy": 59.0
+            },
+            "tasks_passed": 26,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 3,
+            "model": "Claude Sonnet 4.5",
+            "provider": "Anthropic",
+            "verifywise_score": 52.9,
+            "suites": {
+                "instruction_following": 33.3,
+                "rag_grounded_qa": 90.0,
+                "coding_tasks": 56.2,
+                "agent_workflows": 20.0,
+                "safety_policy": 52.0
+            },
+            "tasks_passed": 24,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 4,
+            "model": "Claude Opus 4",
+            "provider": "Anthropic",
+            "verifywise_score": 51.9,
+            "suites": {
+                "instruction_following": 33.3,
+                "rag_grounded_qa": 90.0,
+                "coding_tasks": 48.8,
+                "agent_workflows": 18.3,
+                "safety_policy": 57.0
+            },
+            "tasks_passed": 25,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 5,
+            "model": "o3-pro",
+            "provider": "OpenAI",
+            "verifywise_score": 51.9,
+            "suites": {
+                "instruction_following": 44.2,
+                "rag_grounded_qa": 76.2,
+                "coding_tasks": 46.2,
+                "agent_workflows": 20.0,
+                "safety_policy": 64.0
+            },
+            "tasks_passed": 26,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 6,
+            "model": "Claude Opus 4.1",
+            "provider": "Anthropic",
+            "verifywise_score": 51.2,
+            "suites": {
+                "instruction_following": 33.3,
+                "rag_grounded_qa": 90.0,
+                "coding_tasks": 48.8,
+                "agent_workflows": 16.7,
+                "safety_policy": 54.0
+            },
+            "tasks_passed": 25,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 7,
+            "model": "Grok-4",
+            "provider": "xAI",
+            "verifywise_score": 50.3,
+            "suites": {
+                "instruction_following": 45.8,
+                "rag_grounded_qa": 60.0,
+                "coding_tasks": 52.5,
+                "agent_workflows": 21.7,
+                "safety_policy": 67.0
+            },
+            "tasks_passed": 28,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 8,
+            "model": "DeepSeek R1 0528",
+            "provider": "DeepSeek",
+            "verifywise_score": 50.3,
+            "suites": {
+                "instruction_following": 24.2,
+                "rag_grounded_qa": 88.8,
+                "coding_tasks": 52.5,
+                "agent_workflows": 20.0,
+                "safety_policy": 57.0
+            },
+            "tasks_passed": 23,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 9,
+            "model": "o3",
+            "provider": "OpenAI",
+            "verifywise_score": 50.1,
+            "suites": {
+                "instruction_following": 44.2,
+                "rag_grounded_qa": 65.0,
+                "coding_tasks": 52.5,
+                "agent_workflows": 13.3,
+                "safety_policy": 69.0
+            },
+            "tasks_passed": 26,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 10,
+            "model": "Claude Opus 4.5",
+            "provider": "Anthropic",
+            "verifywise_score": 48.0,
+            "suites": {
+                "instruction_following": 33.3,
+                "rag_grounded_qa": 77.5,
+                "coding_tasks": 48.8,
+                "agent_workflows": 20.0,
+                "safety_policy": 50.0
+            },
+            "tasks_passed": 24,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 11,
+            "model": "o1-pro",
+            "provider": "OpenAI",
+            "verifywise_score": 47.5,
+            "suites": {
+                "instruction_following": 46.7,
+                "rag_grounded_qa": 63.8,
+                "coding_tasks": 33.8,
+                "agent_workflows": 16.7,
+                "safety_policy": 71.0
+            },
+            "tasks_passed": 26,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 12,
+            "model": "GPT-5.2 Codex (xhigh)",
+            "provider": "OpenAI",
+            "verifywise_score": 46.1,
+            "suites": {
+                "instruction_following": 43.3,
+                "rag_grounded_qa": 61.3,
+                "coding_tasks": 52.5,
+                "agent_workflows": 0.0,
+                "safety_policy": 63.0
+            },
+            "tasks_passed": 26,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 13,
+            "model": "o4-mini",
+            "provider": "OpenAI",
+            "verifywise_score": 46.1,
+            "suites": {
+                "instruction_following": 45.8,
+                "rag_grounded_qa": 51.3,
+                "coding_tasks": 46.2,
+                "agent_workflows": 10.0,
+                "safety_policy": 74.0
+            },
+            "tasks_passed": 27,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 14,
+            "model": "o3-mini",
+            "provider": "OpenAI",
+            "verifywise_score": 44.4,
+            "suites": {
+                "instruction_following": 44.2,
+                "rag_grounded_qa": 65.0,
+                "coding_tasks": 23.8,
+                "agent_workflows": 13.3,
+                "safety_policy": 69.0
+            },
+            "tasks_passed": 23,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 15,
+            "model": "o1",
+            "provider": "OpenAI",
+            "verifywise_score": 42.5,
+            "suites": {
+                "instruction_following": 45.8,
+                "rag_grounded_qa": 52.5,
+                "coding_tasks": 30.0,
+                "agent_workflows": 13.3,
+                "safety_policy": 66.0
+            },
+            "tasks_passed": 24,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 16,
+            "model": "GPT-5.2 (xhigh)",
+            "provider": "OpenAI",
+            "verifywise_score": 41.9,
+            "suites": {
+                "instruction_following": 40.8,
+                "rag_grounded_qa": 48.8,
+                "coding_tasks": 52.5,
+                "agent_workflows": 10.0,
+                "safety_policy": 50.0
+            },
+            "tasks_passed": 22,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 17,
+            "model": "GPT-5",
+            "provider": "OpenAI",
+            "verifywise_score": 39.7,
+            "suites": {
+                "instruction_following": 44.2,
+                "rag_grounded_qa": 53.8,
+                "coding_tasks": 48.8,
+                "agent_workflows": 0.0,
+                "safety_policy": 36.0
+            },
+            "tasks_passed": 19,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 18,
+            "model": "Gemini 3 Pro Preview",
+            "provider": "Google",
+            "verifywise_score": 34.7,
+            "suites": {
+                "instruction_following": 25.0,
+                "rag_grounded_qa": 58.8,
+                "coding_tasks": 41.2,
+                "agent_workflows": 0.0,
+                "safety_policy": 37.0
+            },
+            "tasks_passed": 15,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 19,
+            "model": "GPT-5 Pro",
+            "provider": "OpenAI",
+            "verifywise_score": 33.5,
+            "suites": {
+                "instruction_following": 34.2,
+                "rag_grounded_qa": 43.8,
+                "coding_tasks": 48.8,
+                "agent_workflows": 0.0,
+                "safety_policy": 28.0
+            },
+            "tasks_passed": 17,
+            "tasks_evaluated": 44
+        },
+        {
+            "rank": 20,
+            "model": "Gemini 2.5 Pro",
+            "provider": "Google",
+            "verifywise_score": 29.1,
+            "suites": {
+                "instruction_following": 24.2,
+                "rag_grounded_qa": 52.5,
+                "coding_tasks": 15.0,
+                "agent_workflows": 3.3,
+                "safety_policy": 43.0
+            },
+            "tasks_passed": 16,
+            "tasks_evaluated": 44
+        }
+    ]
+}

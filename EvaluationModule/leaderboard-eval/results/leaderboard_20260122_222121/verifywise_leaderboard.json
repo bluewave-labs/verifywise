@@ -1,0 +1,212 @@
+[
+  {
+    "model": "Claude Opus 4.5",
+    "provider": "Anthropic",
+    "verifywise_expert_score": 92.45177755952668,
+    "metrics": {
+      "instruction_following": 0.9943474724309584,
+      "correctness": 0.9483345590512525,
+      "completeness": 0.9102691683542214,
+      "hallucination": 0.16282626378452078,
+      "bias": 0.1252175091896805
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "GPT-5.2 (xhigh)",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 90.89054234703578,
+    "metrics": {
+      "instruction_following": 0.9202142987097492,
+      "correctness": 0.9322954717515519,
+      "completeness": 0.9912559675815686,
+      "hallucination": 0.19989285064512538,
+      "bias": 0.14992856709675023
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "GPT-5.2 Codex (xhigh)",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 90.8254449576714,
+    "metrics": {
+      "instruction_following": 0.9920714075586162,
+      "correctness": 0.8735061417121267,
+      "completeness": 0.9267556815710061,
+      "hallucination": 0.16396429622069192,
+      "bias": 0.12597619748046127
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "o3",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 90.78922149558927,
+    "metrics": {
+      "instruction_following": 0.9615126954037134,
+      "correctness": 0.9550255361486029,
+      "completeness": 0.8803428507117476,
+      "hallucination": 0.17924365229814335,
+      "bias": 0.1361624348654289
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Claude Opus 4",
+    "provider": "Anthropic",
+    "verifywise_expert_score": 89.5441613101229,
+    "metrics": {
+      "instruction_following": 0.9216343100228682,
+      "correctness": 0.8749769133438721,
+      "completeness": 0.9929225925334271,
+      "hallucination": 0.19918284498856595,
+      "bias": 0.1494552299923773
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "GPT-5.1",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 89.46665488999037,
+    "metrics": {
+      "instruction_following": 0.9236346426157723,
+      "correctness": 0.9419389446233744,
+      "completeness": 0.9015941088157275,
+      "hallucination": 0.19818267869211387,
+      "bias": 0.14878845246140923
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "o3-pro",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 88.6513224050631,
+    "metrics": {
+      "instruction_following": 0.8998878128088483,
+      "correctness": 0.8832805575213688,
+      "completeness": 0.9786757743348525,
+      "hallucination": 0.2100560935955759,
+      "bias": 0.15670406239705056
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "GPT-5",
+    "provider": "OpenAI",
+    "verifywise_expert_score": 86.97288832333084,
+    "metrics": {
+      "instruction_following": 0.8778657370641947,
+      "correctness": 0.9223205086364823,
+      "completeness": 0.8872455233755738,
+      "hallucination": 0.2210671314679027,
+      "bias": 0.16404475431193513
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Gemini 3 Pro Preview",
+    "provider": "Google",
+    "verifywise_expert_score": 86.4673797127423,
+    "metrics": {
+      "instruction_following": 0.8676801478989873,
+      "correctness": 0.8555014278595123,
+      "completeness": 0.9645919235021235,
+      "hallucination": 0.2261599260505064,
+      "bias": 0.16743995070033757
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  },
+  {
+    "model": "Claude Opus 4.1",
+    "provider": "Anthropic",
+    "verifywise_expert_score": 84.45480225251208,
+    "metrics": {
+      "instruction_following": 0.8610717692615178,
+      "correctness": 0.8238790104463536,
+      "completeness": 0.915881782202317,
+      "hallucination": 0.22946411536924108,
+      "bias": 0.16964274357949405
+    },
+    "benchmarks": {
+      "mmlu": null,
+      "arc_challenge": null,
+      "hellaswag": null,
+      "truthfulqa": null,
+      "winogrande": null,
+      "gsm8k": null,
+      "average": null
+    }
+  }
+]

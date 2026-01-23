@@ -1,5 +1,3 @@
-import { border } from "../UserGuide/styles/theme";
-
 export const tableWrapper = (theme: any) => ({
   '& .MuiTableCell-root.MuiTableCell-footer': {
     paddingX: theme.spacing(8),
@@ -59,7 +57,6 @@ export const styles = {
     color: "#475467"
   }
 }
-
 
 export const iconButton = (theme: any) => ({
   height: '34px',

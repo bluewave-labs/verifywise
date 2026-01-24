@@ -22,7 +22,7 @@ async def create_user_dataset(
     res = await db.execute(
         text(
             f'''
-            INSERT INTO "{tenant}".deepeval_user_datasets (name, path, size, prompt_count, dataset_type, turn_type, org_id, created_by)
+            INSERT INTO "{tenant}".llm_evals_datasets (name, path, size, prompt_count, dataset_type, turn_type, org_id, created_by)
             VALUES (:name, :path, :size, :prompt_count, :dataset_type, :turn_type, :org_id, :created_by)
             RETURNING id, name, path, size, prompt_count, dataset_type, turn_type, created_at, created_by;
             '''
@@ -69,7 +69,7 @@ async def list_user_datasets(
             SELECT column_name
             FROM information_schema.columns
             WHERE table_schema = :schema
-            AND table_name = 'deepeval_user_datasets'
+            AND table_name = 'llm_evals_datasets'
         """),
         {"schema": tenant}
     )
@@ -97,7 +97,7 @@ async def list_user_datasets(
         text(
             f'''
             SELECT {", ".join(select_cols)}
-            FROM "{tenant}".deepeval_user_datasets
+            FROM "{tenant}".llm_evals_datasets
             {where_clause}
             ORDER BY created_at DESC;
             '''
@@ -134,7 +134,7 @@ async def delete_user_datasets(tenant: str, db: AsyncSession, paths: List[str]) 
     await db.execute(
         text(
             f'''
-            DELETE FROM "{tenant}".deepeval_user_datasets
+            DELETE FROM "{tenant}".llm_evals_datasets
             WHERE path IN ({placeholders});
             '''
         ),

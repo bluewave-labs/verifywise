@@ -138,23 +138,23 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
         // Track which metrics this experiment has
         const calculatedMetrics: string[] = [];
         Object.keys(avgScores).forEach((key) => {
-          metricsFound.add(key);
+                  metricsFound.add(key);
           calculatedMetrics.push(key);
-        });
+          });
 
         // Build chart point
-        const dateStr = new Date(exp.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        const timeStr = new Date(exp.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
-        const point: ChartPoint = {
-          name: `Run ${i + 1}`,
-          date: `${dateStr}`,
-          uniqueId: `${dateStr} ${timeStr}`,
+          const dateStr = new Date(exp.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          const timeStr = new Date(exp.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+          const point: ChartPoint = {
+            name: `Run ${i + 1}`,
+            date: `${dateStr}`,
+            uniqueId: `${dateStr} ${timeStr}`,
           index: i,
-          _calculatedMetrics: calculatedMetrics,
+            _calculatedMetrics: calculatedMetrics,
           ...avgScores, // Spread all avg_scores directly
         };
 
-        chartData.push(point);
+          chartData.push(point);
       });
 
       setData(chartData);

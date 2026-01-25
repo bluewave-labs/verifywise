@@ -1201,15 +1201,15 @@ export class PluginService {
       );
 
       console.log(
-        `[PluginService] Plugin ${pluginKey}.${methodName} executed for tenant ${tenantId}:`,
-        result
+        "[PluginService] Plugin method executed:",
+        { pluginKey, methodName, tenantId, result }
       );
 
       return result;
     } catch (error: any) {
       console.error(
-        `[PluginService] Error executing ${pluginKey}.${methodName}:`,
-        error
+        "[PluginService] Error executing plugin method:",
+        { pluginKey, methodName, error }
       );
       throw error;
     }

@@ -31,6 +31,7 @@ Cross-cutting services used across the platform.
 | [File Storage](./infrastructure/file-storage.md) | Upload, storage, retrieval |
 | [PDF Generation](./infrastructure/pdf-generation.md) | EJS templates, Playwright rendering |
 | [External Integrations](./infrastructure/integrations.md) | MLflow, GitHub, Slack, LLM providers |
+| [Plugin System](./infrastructure/plugin-system.md) | Remote plugin marketplace, installation, configuration |
 | [AI Advisor](./infrastructure/ai-advisor.md) | LLM integration, tool calling, conversation |
 
 ### Frontend
@@ -110,6 +111,7 @@ Coding conventions and architectural patterns.
 | Reuse UI components | [Components](./frontend/components.md) |
 | Add LLM capabilities | [AI Advisor](./infrastructure/ai-advisor.md) |
 | Integrate external services | [External Integrations](./infrastructure/integrations.md) |
+| Extend platform with plugins | [Plugin System](./infrastructure/plugin-system.md) |
 | Implement real-time notifications | [Notifications](./domains/notifications.md) |
 | Add dashboard metrics | [Dashboard](./domains/dashboard.md) |
 | Scan repositories for AI usage | [AI Detection](./domains/ai-detection.md) |

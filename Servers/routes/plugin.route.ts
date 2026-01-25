@@ -21,6 +21,7 @@ import {
   getOAuthWorkspaces,
   updateOAuthWorkspace,
   disconnectOAuthWorkspace,
+  executePluginMethod,
   getMLflowModels,
   syncMLflowModels,
   getRiskImportTemplate,
@@ -49,6 +50,11 @@ router.delete("/installations/:id", authenticateJWT, uninstallPlugin);
 router.get("/installations", authenticateJWT, getInstalledPlugins);
 router.put("/installations/:id/configuration", authenticateJWT, updatePluginConfiguration);
 router.post("/:key/test-connection", authenticateJWT, testPluginConnection);
+
+// Generic plugin method execution route
+// Allows calling any exported function from a plugin without hardcoded routes
+// Example: POST /api/plugins/azure-ai-foundry/execute/syncModels
+router.post("/:key/execute/:method", authenticateJWT, executePluginMethod);
 
 // OAuth workspace management routes (for Slack plugin)
 router.post("/:key/oauth/connect", authenticateJWT, connectOAuthWorkspace);

@@ -2,12 +2,13 @@ export * from "../services/slack/slackProducer";
 
 import { scheduleDailyNotification } from "../services/slack/slackProducer";
 import logger from "../utils/logger/fileLogger";
-import { scheduleReportNotification, scheduleVendorReviewDateNotification } from "../services/automations/automationProducer";
+import { scheduleReportNotification, scheduleVendorReviewDateNotification, schedulePMMHourlyCheck } from "../services/automations/automationProducer";
 
 export async function addAllJobs(): Promise<void> {
   await scheduleDailyNotification();
   await scheduleVendorReviewDateNotification();
   await scheduleReportNotification();
+  await schedulePMMHourlyCheck();
 }
 
 if (require.main === module) {

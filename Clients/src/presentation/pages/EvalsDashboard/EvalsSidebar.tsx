@@ -6,6 +6,7 @@ import {
   Settings,
   KeyRound,
   Swords,
+  Cpu,
 } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
@@ -35,6 +36,7 @@ interface EvalsSidebarProps {
   experimentsCount?: number;
   datasetsCount?: number;
   scorersCount?: number;
+  modelsCount?: number;
   arenaCount?: number;
   disabled?: boolean;
   recentExperiments?: RecentExperiment[];
@@ -53,6 +55,7 @@ export default function EvalsSidebar({
   experimentsCount = 0,
   datasetsCount = 0,
   scorersCount = 0,
+  modelsCount = 0,
   arenaCount = 0,
   disabled = false,
   recentExperiments = [],
@@ -94,6 +97,14 @@ export default function EvalsSidebar({
       value: "scorers",
       icon: <Award size={16} strokeWidth={1.5} />,
       count: scorersCount,
+      disabled: false, // Always enabled - org-scoped
+    },
+    {
+      id: "models",
+      label: "Models",
+      value: "models",
+      icon: <Cpu size={16} strokeWidth={1.5} />,
+      count: modelsCount,
       disabled: false, // Always enabled - org-scoped
     },
     {
@@ -158,10 +169,10 @@ export default function EvalsSidebar({
   const projectSelectorConfig: ProjectSelectorConfig | undefined =
     onProjectChange
       ? {
-          currentProject: currentProject || null,
-          allProjects,
-          onProjectChange,
-        }
+        currentProject: currentProject || null,
+        allProjects,
+        onProjectChange,
+      }
       : undefined;
 
   return (

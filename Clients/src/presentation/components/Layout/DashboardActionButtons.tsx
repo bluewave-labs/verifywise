@@ -1,7 +1,7 @@
 import React, { useMemo, memo, useCallback, useEffect } from 'react';
-import { Stack, IconButton, ListItemIcon } from '@mui/material';
+import { Stack, IconButton } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Zap, Workflow, Package } from 'lucide-react';
+import { Search, Zap, WorkflowIcon, Package } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
@@ -11,8 +11,7 @@ import {
   getPendingApprovals,
   getMyApprovalRequests,
 } from '../../../application/repository/approvalRequest.repository';
-import Button from '../Button';
-import { approvalButtonStyle } from './style';
+import { actionButtonsStyles } from './style';
 // SSE notifications disabled for now - can be re-enabled later if needed
 // import { useNotifications } from '../../../application/hooks/useNotifications';
 
@@ -53,29 +52,6 @@ const WiseSearchTooltipContent: React.FC<{ isMac: boolean }> = ({ isMac }) => (
     </Box>
   </Box>
 );
-
-// Ghost style - transparent with borders
-const STYLE = {
-  search: {
-    backgroundColor: 'transparent',
-    color: '#666',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: '#d0d5dd' },
-  },
-  plugins: {
-    backgroundColor: 'transparent',
-    color: '#10B981',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(16, 185, 129, 0.08)', borderColor: '#10B981' },
-    '&.Mui-disabled': { backgroundColor: 'transparent', color: '#10B981', opacity: 0.5 },
-  },
-  automations: {
-    backgroundColor: 'transparent',
-    color: '#F97316',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(249, 115, 22, 0.08)', borderColor: '#F97316' },
-  },
-};
 
 const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   hideOnMainDashboard = true
@@ -173,32 +149,10 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     >
       {/* Wise Search */}
       <VWTooltip header="Wise Search" content={<WiseSearchTooltipContent isMac={isMac} />} placement="bottom" maxWidth={280}>
-        <IconButton size="small" onClick={handleOpenCommandPalette} sx={{ ...baseStyles, ...STYLE.search }}>
+        <IconButton size="small" onClick={handleOpenCommandPalette} sx={{ ...baseStyles, ...actionButtonsStyles.search }}>
           <Search size={16} />
         </IconButton>
       </VWTooltip>
-
-      {/* Plugins */}
-
-      <>
-        {isAdmin && <Button
-          variant="contained"
-          size="small"
-          onClick={() => navigate('/approval-workflows')}
-          sx={approvalButtonStyle}
-        >
-          {<ListItemIcon
-            sx={{
-              minWidth: '20px',
-              color: 'inherit',
-            }}
-            >
-              {<Workflow size={16} strokeWidth={1.5} />}
-            </ListItemIcon>}
-          Approval workflows
-        </Button>
-      }
-      </>
 
       <ApprovalButton
         label="Approval requests"
@@ -209,6 +163,25 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
           fetchApprovalCounts();
         }}
       />
+
+      {/* Approval workflows */}
+      {isAdmin && <VWTooltip
+        header="Approval Workflows"
+        content={"Set up approval workflows."}
+        placement="bottom"
+        maxWidth={200}
+      >
+        <span>
+          <IconButton
+            size="small"
+            onClick={() => navigate('/approval-workflows')}
+            sx={{ ...baseStyles, ...actionButtonsStyles.approval_workflows }}
+          >
+            <WorkflowIcon size={16} strokeWidth={2} />
+          </IconButton>
+        </span>
+      </VWTooltip>
+      }
 
       {/* Integrations */}
       <VWTooltip
@@ -222,7 +195,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
             size="small"
             onClick={isAdmin ? () => navigate('/plugins/marketplace') : undefined}
             disabled={!isAdmin}
-            sx={{ ...baseStyles, ...STYLE.plugins }}
+            sx={{ ...baseStyles, ...actionButtonsStyles.integrations }}
           >
             <Package size={16} />
           </IconButton>
@@ -231,7 +204,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
 
       {/* Automations */}
       <VWTooltip header="Automations" content="Set up automated workflows." placement="bottom" maxWidth={200}>
-        <IconButton size="small" onClick={() => navigate('/automations')} sx={{ ...baseStyles, ...STYLE.automations }}>
+        <IconButton size="small" onClick={() => navigate('/automations')} sx={{ ...baseStyles, ...actionButtonsStyles.automations }}>
           <Zap size={16} />
         </IconButton>
       </VWTooltip>

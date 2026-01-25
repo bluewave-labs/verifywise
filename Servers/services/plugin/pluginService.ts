@@ -1124,4 +1124,94 @@ export class PluginService {
       throw error;
     }
   }
+
+  /**
+   * Execute a plugin method dynamically
+   * This generic method allows calling any exported function from a plugin
+   * without requiring hardcoded routes for each plugin feature
+   */
+  static async executePluginMethod(
+    pluginKey: string,
+    methodName: string,
+    tenantId: string,
+    params: Record<string, any> = {}
+  ): Promise<any> {
+    try {
+      // Validate method name - only allow alphanumeric and camelCase methods
+      if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(methodName)) {
+        throw new ValidationException(`Invalid method name: ${methodName}`);
+      }
+
+      // Blocklist of methods that should not be called directly via execute
+      // These have dedicated endpoints or are internal lifecycle methods
+      const blockedMethods = [
+        "install",
+        "uninstall",
+        "configure",
+        "testConnection",
+        "validateConfig",
+      ];
+
+      if (blockedMethods.includes(methodName)) {
+        throw new ValidationException(
+          `Method '${methodName}' cannot be called via execute endpoint. Use the dedicated endpoint instead.`
+        );
+      }
+
+      // Check if plugin is installed for this tenant
+      const installation = await findByPlugin(pluginKey, tenantId);
+      if (!installation) {
+        throw new NotFoundException(`Plugin '${pluginKey}' is not installed`);
+      }
+
+      // Get plugin from marketplace
+      const plugin = await this.getPluginByKey(pluginKey);
+      if (!plugin) {
+        throw new NotFoundException(`Plugin '${pluginKey}' not found in marketplace`);
+      }
+
+      // Load plugin code
+      const pluginCode = await this.loadPluginCode(plugin);
+      if (!pluginCode) {
+        throw new Error(`Failed to load plugin code for '${pluginKey}'`);
+      }
+
+      // Check if the method exists and is a function
+      if (typeof pluginCode[methodName] !== "function") {
+        throw new NotFoundException(
+          `Method '${methodName}' not found in plugin '${pluginKey}'`
+        );
+      }
+
+      // Create context with sequelize instance
+      const context = {
+        sequelize,
+      };
+
+      // Get plugin configuration
+      const configuration = installation.configuration || {};
+
+      // Execute the plugin method
+      // Standard signature: (tenantId, config, context, ...additionalParams)
+      const result = await pluginCode[methodName](
+        tenantId,
+        configuration,
+        context,
+        params
+      );
+
+      console.log(
+        `[PluginService] Plugin ${pluginKey}.${methodName} executed for tenant ${tenantId}:`,
+        result
+      );
+
+      return result;
+    } catch (error: any) {
+      console.error(
+        `[PluginService] Error executing ${pluginKey}.${methodName}:`,
+        error
+      );
+      throw error;
+    }
+  }
 }

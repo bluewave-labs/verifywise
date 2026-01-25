@@ -879,3 +879,79 @@ export async function importRisks(
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
+
+/**
+ * Execute a plugin method dynamically
+ * Generic endpoint that allows calling any exported function from a plugin
+ */
+export async function executePluginMethod(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const pluginKey = req.params.key;
+  const methodName = req.params.method;
+  const tenantId = (req as any).tenantId;
+  const params = req.body || {};
+
+  const functionName = "executePluginMethod";
+  logStructured(
+    "processing",
+    `executing ${pluginKey}.${methodName}`,
+    functionName,
+    fileName
+  );
+
+  if (!tenantId) {
+    return res
+      .status(401)
+      .json(STATUS_CODE[401]("User not authenticated"));
+  }
+
+  if (!pluginKey) {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Plugin key is required"));
+  }
+
+  if (!methodName) {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Method name is required"));
+  }
+
+  try {
+    const result = await PluginService.executePluginMethod(
+      pluginKey,
+      methodName,
+      tenantId,
+      params
+    );
+
+    logStructured(
+      "successful",
+      `${pluginKey}.${methodName} executed successfully`,
+      functionName,
+      fileName
+    );
+
+    return res.status(200).json(STATUS_CODE[200](result));
+  } catch (error) {
+    // Handle specific error types
+    if (error instanceof Error) {
+      if (error.message.includes("not installed")) {
+        return res.status(400).json(STATUS_CODE[400](`Plugin '${pluginKey}' is not installed`));
+      }
+      if (error.message.includes("not found")) {
+        return res.status(404).json(STATUS_CODE[404](error.message));
+      }
+      if (error.message.includes("Invalid method") || error.message.includes("cannot be called")) {
+        return res.status(400).json(STATUS_CODE[400](error.message));
+      }
+    }
+
+    logStructured("error", `failed to execute ${pluginKey}.${methodName}`, functionName, fileName);
+    logger.error(`❌ Error in executePluginMethod (${pluginKey}.${methodName}):`, error);
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}

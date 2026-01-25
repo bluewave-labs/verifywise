@@ -292,7 +292,7 @@ const Tasks: React.FC = () => {
       result = result.filter(
         (task) =>
           task.creator_id === userId ||
-          (task.assignees && task.assignees.includes(userId))
+          (task.assignees && task.assignees.some((a) => a.user_id === userId))
       );
     }
 

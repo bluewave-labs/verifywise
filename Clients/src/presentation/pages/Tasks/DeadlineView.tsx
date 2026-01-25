@@ -11,7 +11,7 @@ import { ChevronDown, ChevronRight, Calendar, AlertTriangle } from "lucide-react
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
 import { TaskStatus } from "../../../domain/enums/task.enum";
 import TasksTable from "../../components/Table/TasksTable";
-import { IUser } from "../../../domain/interfaces/iUser";
+import { IUser } from "../../../domain/interfaces/i.user";
 import EmptyState from "../../components/EmptyState";
 import Chip from "../../components/Chip";
 import { DASHBOARD_COLORS } from "../../styles/colors";

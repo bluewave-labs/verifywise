@@ -205,15 +205,20 @@ sudo systemctl reload nginx
 ### 6. Verify deployment
 
 ```bash
-# Check service health
-curl -k https://your-domain.com/api/health
+# Check backend is responding (any authenticated endpoint)
+curl -I https://your-domain.com/api/users
 
 # Check frontend loads
 curl -I https://your-domain.com
 
 # View logs for any errors
 docker compose logs -f --tail=100
+
+# Check database connectivity
+docker compose exec backend node -e "const {sequelize} = require('./dist/database/db'); sequelize.authenticate().then(() => console.log('DB OK')).catch(e => console.error(e))"
 ```
+
+Note: VerifyWise does not currently have a dedicated health check endpoint. Monitor service health via Docker health checks and logs.
 
 ---
 
@@ -291,10 +296,13 @@ The database schema is automatically created on first startup. The backend servi
 
 ```bash
 # Run pending migrations
-docker compose exec backend npm run migrate
+docker compose exec backend npm run migrate-db
+```
 
-# Rollback last migration
-docker compose exec backend npm run migrate:undo
+Note: Migrations run automatically on service startup via the `start` script. Manual rollback is not supported via npm scripts - use Sequelize CLI directly if needed:
+
+```bash
+docker compose exec backend npx sequelize db:migrate:undo
 ```
 
 ### Database backup
@@ -323,13 +331,15 @@ crontab -e
 
 ## Health monitoring
 
-### Health check endpoints
+### Health checks
 
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /api/health` | Backend health status |
-| PostgreSQL healthcheck | Built into Docker Compose |
-| Redis healthcheck | Built into Docker Compose |
+| Component | Health check | Method |
+|-----------|--------------|--------|
+| PostgreSQL | `pg_isready` | Docker Compose built-in |
+| Redis | `redis-cli ping` | Docker Compose built-in |
+| Backend | Check logs / test endpoint | Manual / monitoring tool |
+
+Note: The application does not expose a dedicated `/health` endpoint. Use Docker's built-in health checks and external monitoring tools to verify service availability.
 
 ### Monitoring with Docker
 
@@ -462,11 +472,12 @@ docker compose down
 # 4. Start with new version
 docker compose up -d
 
-# 5. Run any required migrations
-docker compose exec backend npm run migrate
+# 5. Migrations run automatically on startup, but can be run manually:
+docker compose exec backend npm run migrate-db
 
-# 6. Verify
-curl https://your-domain.com/api/health
+# 6. Verify services are running
+docker compose ps
+docker compose logs --tail=50 backend
 ```
 
 ---

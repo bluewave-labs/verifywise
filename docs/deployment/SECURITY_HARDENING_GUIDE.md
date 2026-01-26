@@ -248,14 +248,15 @@ services:
 
 ### CORS configuration
 
-Restrict CORS to your specific domains:
+CORS is configured to allow requests from:
+- The configured `HOST` value
+- `localhost`
+- `127.0.0.1`
+- `::1` (IPv6 localhost)
 
-```bash
-# Only allow requests from your frontend domain
-FRONTEND_URL=https://verifywise.example.com
-```
+Requests without an origin (mobile apps, curl, server-to-server) are allowed.
 
-The backend validates the `Origin` header against the configured `FRONTEND_URL`.
+For production with a custom domain, ensure your reverse proxy (nginx) handles CORS headers appropriately, or configure the `HOST` environment variable to match your domain.
 
 ---
 
@@ -279,9 +280,12 @@ Built-in rate limiting protects against brute-force attacks:
 | Endpoint | Limit | Window |
 |----------|-------|--------|
 | `/api/users/login` | 5 requests | 1 minute |
-| `/api/users/register` | 10 requests | 1 minute |
-| `/api/users/refresh-token` | 10 requests | 1 minute |
-| `/api/users/reset-password` | 10 requests | 1 minute |
+| `/api/users/register` | 5 requests | 15 minutes |
+| `/api/users/refresh-token` | 5 requests | 15 minutes |
+| `/api/users/reset-password` | 5 requests | 15 minutes |
+| `/api/users/chng-pass/:id` | 5 requests | 15 minutes |
+| File operations | 50 requests | 15 minutes |
+| General API | 100 requests | 15 minutes |
 
 ### Password policy
 
@@ -299,18 +303,22 @@ Passwords must meet these requirements:
 ### Audit logging
 
 VerifyWise maintains change history for compliance-relevant entities:
-- Projects
+- Model Inventory
 - Vendors
-- Risks
-- Controls
+- Vendor Risks
+- Use Cases (Projects)
+- Project Risks
 - Policies
+- Incidents
+- Frameworks
+- Evidence Hub
 
 Each change records:
 - User ID
 - Timestamp
-- Previous values
-- New values
-- Change type (CREATE, UPDATE, DELETE)
+- Field name
+- Previous value
+- New value
 
 ### Log security
 

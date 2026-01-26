@@ -1,14 +1,22 @@
 name: Frontend Checks
 
+permissions:
+  contents: read
+  security-events: write
+
 on:
   pull_request:
-    branches: ['master', 'develop']     
+    branches: ['master', 'develop']
+    paths:
+      - 'Clients/**'
+  push:
+    branches: ['master', 'develop']
     paths:
       - 'Clients/**'
 
 jobs:
-  build-check:
-    name: Frontend Checks / build-check
+  security-audit:
+    name: Security Audit
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -23,7 +31,55 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
-      - name: Build
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Run npm audit (JSON output for review)
+        run: npm audit --json > ../audit-results.json || true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-npm-audit-results
+          path: audit-results.json
+          retention-days: 30
+
+  lint-and-build:
+    name: Lint and Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Clients
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: TypeScript type check and Build
         run: npm run build
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0

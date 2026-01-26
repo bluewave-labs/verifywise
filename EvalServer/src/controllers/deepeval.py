@@ -1265,3 +1265,190 @@ async def test_deepeval_scorer_controller(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to test scorer: {e}")
 
+
+# ==================== MODELS ====================
+
+
+async def list_deepeval_models_controller(
+    tenant: str,
+    org_id: Optional[str] = None,
+) -> JSONResponse:
+    """
+    List saved model configurations for the current tenant.
+    """
+    from crud.deepeval_models import list_models
+
+    try:
+        async with get_db() as db:
+            items = await list_models(tenant=tenant, db=db, org_id=org_id)
+            return JSONResponse(status_code=200, content={"models": items})
+    except Exception as e:
+        error_str = str(e).lower()
+        # If the table doesn't exist yet, return empty list instead of 500 error
+        if "does not exist" in error_str or "undefined" in error_str or "relation" in error_str:
+            return JSONResponse(status_code=200, content={"models": []})
+        raise HTTPException(status_code=500, detail=f"Failed to list models: {e}")
+
+
+async def create_deepeval_model_controller(
+    *,
+    tenant: str,
+    payload: Dict[str, Any],
+) -> JSONResponse:
+    """
+    Create a new saved model configuration.
+
+    Expected payload:
+    {
+      "id": "optional custom id; generated if missing",
+      "orgId": "org_123" | null,
+      "name": "gpt-4o",
+      "provider": "openai",
+      "endpointUrl": "optional custom endpoint"
+    }
+    """
+    from uuid import uuid4
+    from crud.deepeval_models import create_model
+
+    model_id = payload.get("id") or f"model_{uuid4().hex}"
+    org_id = payload.get("orgId")
+    name = payload.get("name")
+    provider = payload.get("provider")
+
+    if not org_id:
+        raise HTTPException(status_code=400, detail="'orgId' is required")
+    if not name or not provider:
+        raise HTTPException(status_code=400, detail="Both 'name' and 'provider' are required")
+
+    endpoint_url = payload.get("endpointUrl")
+    created_by = payload.get("createdBy")
+
+    try:
+        async with get_db() as db:
+            created = await create_model(
+                model_id=model_id,
+                org_id=org_id,
+                name=name,
+                provider=provider,
+                endpoint_url=endpoint_url,
+                tenant=tenant,
+                created_by=created_by,
+                db=db,
+            )
+            await db.commit()
+
+        if not created:
+            raise HTTPException(status_code=500, detail="Failed to create model")
+
+        return JSONResponse(status_code=201, content={"model": created})
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create model: {e}")
+
+
+async def update_deepeval_model_controller(
+    model_id: str,
+    *,
+    tenant: str,
+    payload: Dict[str, Any],
+) -> JSONResponse:
+    """
+    Update an existing saved model configuration.
+    """
+    from crud.deepeval_models import update_model
+
+    try:
+        async with get_db() as db:
+            updated = await update_model(
+                model_id=model_id,
+                tenant=tenant,
+                name=payload.get("name"),
+                provider=payload.get("provider"),
+                endpoint_url=payload.get("endpointUrl"),
+                db=db,
+            )
+            await db.commit()
+
+        if not updated:
+            raise HTTPException(status_code=404, detail="Model not found")
+
+        return JSONResponse(status_code=200, content={"model": updated})
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update model: {e}")
+
+
+async def delete_deepeval_model_controller(
+    model_id: str,
+    *,
+    tenant: str,
+) -> JSONResponse:
+    """
+    Delete a saved model configuration.
+    """
+    from crud.deepeval_models import delete_model
+
+    try:
+        async with get_db() as db:
+            deleted = await delete_model(model_id=model_id, tenant=tenant, db=db)
+            await db.commit()
+
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Model not found")
+
+        return JSONResponse(
+            status_code=200,
+            content={"message": "Model deleted", "modelId": model_id},
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete model: {e}")
+
+
+# ==================== LATEST MODEL/SCORER FOR EXPERIMENTS ====================
+
+
+async def get_latest_model_controller(
+    tenant: str,
+    org_id: Optional[str] = None,
+) -> JSONResponse:
+    """
+    Get the most recently added/updated model configuration.
+    Used for auto-populating experiment forms.
+    """
+    from crud.deepeval_models import get_latest_model
+
+    try:
+        async with get_db() as db:
+            model = await get_latest_model(tenant=tenant, db=db, org_id=org_id)
+            return JSONResponse(status_code=200, content={"model": model})
+    except Exception as e:
+        error_str = str(e).lower()
+        if "does not exist" in error_str or "undefined" in error_str or "relation" in error_str:
+            return JSONResponse(status_code=200, content={"model": None})
+        raise HTTPException(status_code=500, detail=f"Failed to get latest model: {e}")
+
+
+async def get_latest_scorer_controller(
+    tenant: str,
+    org_id: Optional[str] = None,
+) -> JSONResponse:
+    """
+    Get the most recently added/updated scorer (judge) configuration.
+    Used for auto-populating experiment forms.
+    """
+    from crud.deepeval_scorers import get_latest_scorer
+
+    try:
+        async with get_db() as db:
+            scorer = await get_latest_scorer(tenant=tenant, db=db, org_id=org_id)
+            return JSONResponse(status_code=200, content={"scorer": scorer})
+    except Exception as e:
+        error_str = str(e).lower()
+        if "does not exist" in error_str or "undefined" in error_str or "relation" in error_str:
+            return JSONResponse(status_code=200, content={"scorer": None})
+        raise HTTPException(status_code=500, detail=f"Failed to get latest scorer: {e}")
+

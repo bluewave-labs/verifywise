@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerifyWise LLM Leaderboard Methodology</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #fff;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #13715B;
+            margin-bottom: 0.5rem;
+            border-bottom: 3px solid #13715B;
+            padding-bottom: 0.5rem;
+        }
+        
+        .version {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            color: #13715B;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        h3 {
+            font-size: 1.25rem;
+            color: #374151;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        h4 {
+            font-size: 1.1rem;
+            color: #4b5563;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+        }
+        
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        li {
+            margin-bottom: 0.25rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0 1.5rem 0;
+            font-size: 0.9rem;
+        }
+        
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        tr:nth-child(even) {
+            background: #f9fafb;
+        }
+        
+        .highlight-box {
+            background: #ecfdf5;
+            border-left: 4px solid #13715B;
+            padding: 1rem 1.25rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .highlight-box h4 {
+            margin-top: 0;
+            color: #13715B;
+        }
+        
+        .formula {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.95rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        
+        .suite-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+        }
+        
+        .suite-card h4 {
+            margin-top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .suite-card .weight {
+            background: #13715B;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .suite-card .tasks {
+            color: #6b7280;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        a {
+            color: #13715B;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        .divider {
+            border: none;
+            border-top: 2px solid #e5e7eb;
+            margin: 2.5rem 0;
+        }
+        
+        .footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        
+        @media print {
+            body {
+                padding: 20px;
+            }
+            
+            h2 {
+                page-break-after: avoid;
+            }
+            
+            .suite-card, table {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>VerifyWise LLM Leaderboard Methodology</h1>
+    <p class="version">Version 2.0 | January 2026</p>
+    
+    <h2>Overview</h2>
+    <p>The VerifyWise LLM Leaderboard provides a comprehensive evaluation of large language models (LLMs) for enterprise applications. Our leaderboard combines two types of metrics:</p>
+    <ol>
+        <li><strong>VerifyWise Application Score</strong> — Our proprietary evaluation measuring real-world enterprise task performance</li>
+        <li><strong>Standard Academic Benchmarks</strong> — Established benchmarks from the research community (sourced from LLMStats)</li>
+    </ol>
+    
+    <hr class="divider">
+    
+    <h2>Part 1: VerifyWise Application Score</h2>
+    
+    <h3>What It Measures</h3>
+    <p>The VerifyWise Application Score measures how well LLMs perform on <strong>real-world enterprise application tasks</strong>, going beyond traditional academic benchmarks to evaluate practical utility. Unlike benchmarks that test isolated capabilities, our evaluation assesses models in scenarios that mirror actual business use cases.</p>
+    
+    <h3>Methodology</h3>
+    <p>Each model is evaluated on <strong>44 carefully designed tasks</strong> across <strong>5 evaluation suites</strong>. Tasks are scored as pass/fail based on strict criteria, and the final score is a weighted average of suite performance.</p>
+    
+    <h3>Evaluation Suites</h3>
+    
+    <div class="suite-card">
+        <h4>1. Instruction Following <span class="weight">25% weight</span></h4>
+        <p class="tasks">12 tasks</p>
+        <p>Tests the model's ability to follow complex, multi-step instructions precisely. Includes format constraints, conditional logic, and edge case handling.</p>
+        <p><strong>Example Tasks:</strong></p>
+        <ul>
+            <li>Follow specific output formats (JSON, XML, markdown tables)</li>
+            <li>Handle conditional instructions ("If X, then do Y, otherwise do Z")</li>
+            <li>Satisfy multiple constraints simultaneously</li>
+            <li>Parse and execute nested instructions</li>
+        </ul>
+    </div>
+    
+    <div class="suite-card">
+        <h4>2. RAG Grounded QA <span class="weight">25% weight</span></h4>
+        <p class="tasks">8 tasks</p>
+        <p>Evaluates retrieval-augmented generation quality. Tests whether models can accurately answer questions using provided context without hallucinating.</p>
+        <p><strong>Example Tasks:</strong></p>
+        <ul>
+            <li>Answer questions using only provided context</li>
+            <li>Cite sources correctly with page/section references</li>
+            <li>Acknowledge knowledge gaps when information is insufficient</li>
+            <li>Distinguish between context-supported and unsupported claims</li>
+        </ul>
+    </div>
+    
+    <div class="suite-card">
+        <h4>3. Coding Tasks <span class="weight">20% weight</span></h4>
+        <p class="tasks">8 tasks</p>
+        <p>Assesses code generation, debugging, and explanation capabilities across multiple programming languages and complexity levels.</p>
+        <p><strong>Example Tasks:</strong></p>
+        <ul>
+            <li>Generate working, executable code from specifications</li>
+            <li>Debug existing code with logical errors</li>
+            <li>Explain complex algorithms in plain language</li>
+            <li>Refactor code for improved performance or readability</li>
+        </ul>
+    </div>
+    
+    <div class="suite-card">
+        <h4>4. Agent Workflows <span class="weight">15% weight</span></h4>
+        <p class="tasks">6 tasks</p>
+        <p>Tests agentic capabilities including tool use, multi-step planning, and autonomous task completion.</p>
+        <p><strong>Example Tasks:</strong></p>
+        <ul>
+            <li>Execute multi-step workflows with tool calls</li>
+            <li>Recover gracefully from errors and retry appropriately</li>
+            <li>Decompose complex goals into actionable steps</li>
+            <li>Maintain context across long interaction chains</li>
+        </ul>
+    </div>
+    
+    <div class="suite-card">
+        <h4>5. Safety & Policy <span class="weight">15% weight</span></h4>
+        <p class="tasks">10 tasks</p>
+        <p>Evaluates adherence to safety guidelines, refusal of harmful requests, and compliance with content policies.</p>
+        <p><strong>Example Tasks:</strong></p>
+        <ul>
+            <li>Refuse harmful or unethical requests appropriately</li>
+            <li>Handle sensitive topics with care and nuance</li>
+            <li>Maintain appropriate professional boundaries</li>
+            <li>Avoid generating misleading or dangerous content</li>
+        </ul>
+    </div>
+    
+    <h3>Scoring Formula</h3>
+    <div class="formula">
+        Application Score = (IF × 0.25) + (RAG × 0.25) + (Coding × 0.20) + (Agent × 0.15) + (Safety × 0.15)
+    </div>
+    <p>Where IF = Instruction Following, RAG = RAG Grounded QA, Coding = Coding Tasks, Agent = Agent Workflows, Safety = Safety & Policy. All suite scores range from 0-100.</p>
+    
+    <h3>Evaluation Details</h3>
+    <table>
+        <tr><th>Attribute</th><th>Value</th></tr>
+        <tr><td>Evaluator</td><td>VerifyWise Evaluation Pipeline v2.0</td></tr>
+        <tr><td>Judge Model</td><td>Human review + GPT-4.1 as automated judge</td></tr>
+        <tr><td>Evaluation Date</td><td>January 2026</td></tr>
+        <tr><td>Reproducibility</td><td>All evaluation prompts and scoring criteria are available in our open-source evaluation suite</td></tr>
+    </table>
+    
+    <hr class="divider">
+    
+    <h2>Part 2: Standard Academic Benchmarks</h2>
+    <p>In addition to our proprietary Application Score, we display three widely-recognized academic benchmarks to provide additional context on model capabilities. All benchmark data is sourced from <strong><a href="https://llmstats.com" target="_blank">LLMStats</a></strong>, an independent aggregator of LLM benchmark results.</p>
+    
+    <h3>MMLU (Massive Multitask Language Understanding)</h3>
+    <table>
+        <tr><th>Attribute</th><th>Details</th></tr>
+        <tr><td>Full Name</td><td>Massive Multitask Language Understanding</td></tr>
+        <tr><td>Tasks</td><td>57 subjects across STEM, humanities, social sciences, and more</td></tr>
+        <tr><td>Format</td><td>Multiple-choice questions</td></tr>
+        <tr><td>What It Measures</td><td>Breadth of world knowledge and problem-solving ability</td></tr>
+        <tr><td>Paper</td><td><a href="https://arxiv.org/abs/2009.03300" target="_blank">Measuring Massive Multitask Language Understanding</a> (Hendrycks et al., 2020)</td></tr>
+        <tr><td>Data Source</td><td><a href="https://llmstats.com" target="_blank">LLMStats</a></td></tr>
+    </table>
+    <p>MMLU tests models across 57 diverse subjects ranging from elementary mathematics to professional law and medicine. It evaluates both the breadth of a model's knowledge and its ability to apply that knowledge to answer questions correctly. Subjects include STEM (Mathematics, Physics, Chemistry, Computer Science, Biology), Humanities (History, Philosophy, Law), Social Sciences (Psychology, Economics, Sociology), and Professional domains (Medicine, Accounting, Engineering).</p>
+    
+    <h3>GPQA (Graduate-Level Google-Proof Q&A)</h3>
+    <table>
+        <tr><th>Attribute</th><th>Details</th></tr>
+        <tr><td>Full Name</td><td>Graduate-Level Google-Proof Q&A</td></tr>
+        <tr><td>Tasks</td><td>448 challenging multiple-choice questions</td></tr>
+        <tr><td>Format</td><td>Multiple-choice questions designed by PhD experts</td></tr>
+        <tr><td>What It Measures</td><td>Expert-level reasoning in biology, physics, and chemistry</td></tr>
+        <tr><td>Paper</td><td><a href="https://arxiv.org/abs/2311.12022" target="_blank">GPQA: A Graduate-Level Google-Proof Q&A Benchmark</a> (Rein et al., 2023)</td></tr>
+        <tr><td>Data Source</td><td><a href="https://llmstats.com" target="_blank">LLMStats</a></td></tr>
+    </table>
+    <p>GPQA consists of 448 challenging multiple-choice questions written by domain experts with PhDs in biology, physics, and chemistry. The questions are specifically designed to be "Google-proof" — meaning they cannot be easily answered by searching the internet. This benchmark tests deep domain expertise, complex multi-step reasoning, understanding of advanced scientific concepts, and ability to synthesize information across disciplines.</p>
+    
+    <h3>HumanEval (Code Generation)</h3>
+    <table>
+        <tr><th>Attribute</th><th>Details</th></tr>
+        <tr><td>Full Name</td><td>HumanEval</td></tr>
+        <tr><td>Tasks</td><td>164 programming problems</td></tr>
+        <tr><td>Format</td><td>Function completion from docstrings</td></tr>
+        <tr><td>What It Measures</td><td>Functional correctness of generated code</td></tr>
+        <tr><td>Paper</td><td><a href="https://arxiv.org/abs/2107.03374" target="_blank">Evaluating Large Language Models Trained on Code</a> (Chen et al., 2021)</td></tr>
+        <tr><td>Data Source</td><td><a href="https://llmstats.com" target="_blank">LLMStats</a></td></tr>
+    </table>
+    <p>HumanEval measures the functional correctness of code generated by language models. It consists of 164 original programming problems that assess language comprehension (understanding problem descriptions), algorithm design and implementation, simple mathematics and logic, and code syntax and correctness. Each problem includes a function signature and docstring, and models must generate code that passes all unit tests. The benchmark reports pass@1 (the percentage of problems solved correctly on the first attempt).</p>
+    
+    <hr class="divider">
+    
+    <h2>Data Sources & Attribution</h2>
+    
+    <div class="highlight-box">
+        <h4>VerifyWise Application Score</h4>
+        <ul>
+            <li><strong>Source:</strong> VerifyWise internal evaluation pipeline</li>
+            <li><strong>Methodology:</strong> Proprietary evaluation suite developed by VerifyWise</li>
+            <li><strong>Updates:</strong> Scores are updated as new models are released and evaluated</li>
+        </ul>
+    </div>
+    
+    <div class="highlight-box">
+        <h4>Academic Benchmarks (MMLU, GPQA, HumanEval)</h4>
+        <ul>
+            <li><strong>Source:</strong> <a href="https://llmstats.com" target="_blank">LLMStats</a></li>
+            <li><strong>Attribution:</strong> All benchmark scores are sourced from LLMStats, which aggregates results from official model announcements, research papers, and verified third-party evaluations</li>
+            <li><strong>Accuracy:</strong> We use the most recent available scores; some scores may be self-reported by model providers</li>
+        </ul>
+    </div>
+    
+    <hr class="divider">
+    
+    <h2>Interpreting the Leaderboard</h2>
+    
+    <h3>Score Ranges</h3>
+    <table>
+        <tr><th>Score Range</th><th>Interpretation</th></tr>
+        <tr><td style="color: #059669; font-weight: 600;">90%+</td><td>Excellent — Top-tier performance (highlighted in green)</td></tr>
+        <tr><td>80-89%</td><td>Very Good — Strong performance</td></tr>
+        <tr><td>70-79%</td><td>Good — Solid performance with room for improvement</td></tr>
+        <tr><td>60-69%</td><td>Fair — Adequate for some use cases</td></tr>
+        <tr><td>Below 60%</td><td>Limited — May struggle with complex tasks</td></tr>
+    </table>
+    
+    <h3>Important Considerations</h3>
+    <ol>
+        <li><strong>No single score tells the whole story.</strong> A model might excel at coding but struggle with safety compliance, or vice versa.</li>
+        <li><strong>Application Score vs. Academic Benchmarks:</strong> Our Application Score focuses on practical enterprise tasks, while academic benchmarks test specific capabilities. Consider both when selecting a model.</li>
+        <li><strong>Task-specific needs matter.</strong> If your use case is primarily code generation, HumanEval may be more relevant than MMLU.</li>
+        <li><strong>Scores are point-in-time.</strong> Model capabilities may change with updates, and benchmark methodologies evolve.</li>
+    </ol>
+    
+    <hr class="divider">
+    
+    <h2>Contact & Feedback</h2>
+    <p>For questions about our methodology or to report issues:</p>
+    <ul>
+        <li><strong>Website:</strong> <a href="https://verifywise.ai" target="_blank">verifywise.ai</a></li>
+        <li><strong>GitHub:</strong> <a href="https://github.com/verifywise/verifywise" target="_blank">github.com/verifywise/verifywise</a></li>
+    </ul>
+    
+    <div class="footer">
+        <p>Document Version: 2.0 | Last Updated: January 2026</p>
+        <p>© 2026 VerifyWise. All rights reserved.</p>
+    </div>
+</body>
+</html>

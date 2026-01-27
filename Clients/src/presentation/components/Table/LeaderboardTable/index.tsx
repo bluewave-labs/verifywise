@@ -363,9 +363,6 @@ export default function LeaderboardTable({
                         <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.85)", lineHeight: 1.4 }}>
                           {config?.description}
                         </Typography>
-                        <Typography variant="caption" sx={{ display: "block", mt: 1, color: "#fbbf24", fontStyle: "italic", fontSize: 10 }}>
-                          Data coming soon
-                        </Typography>
                       </Box>
                     }
                     arrow

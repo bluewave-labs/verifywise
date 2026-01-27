@@ -225,10 +225,10 @@ export default function LeaderboardPage() {
           code generation, agentic workflows, and safety compliance.
         </Typography>
 
-        {/* GitHub link for methodology */}
+        {/* Methodology PDF link */}
         <Typography
           component="a"
-          href="https://github.com/verifywise/verifywise"
+          href="/VerifyWise_LLM_Leaderboard_Methodology.pdf"
           target="_blank"
           rel="noopener noreferrer"
           sx={{

@@ -46,12 +46,19 @@ export { METRIC_CONFIG, type LeaderboardEntry } from "./leaderboardConfig";
 const DEFAULT_ROWS_PER_PAGE = 10;
 const LEADERBOARD_ROWS_PER_PAGE_KEY = "verifywise_leaderboard_rows_per_page";
 
+export interface ModelActionInfo {
+  model: string;
+  provider: string;
+  anchorEl: HTMLElement;
+}
+
 export interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
   loading?: boolean;
   searchQuery?: string;
   displayMetrics?: string[];
   onSort?: (sortBy: string, direction: "asc" | "desc") => void;
+  onModelAction?: (info: ModelActionInfo) => void;
 }
 
 export default function LeaderboardTable({
@@ -60,6 +67,7 @@ export default function LeaderboardTable({
   searchQuery = "",
   displayMetrics = [],
   onSort,
+  onModelAction,
 }: LeaderboardTableProps) {
   const [sortBy, setSortBy] = useState<string>("score");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -253,6 +261,15 @@ export default function LeaderboardTable({
         {paginatedEntries.map((entry, idx) => (
           <Box
             key={entry.model}
+            onClick={(e) => {
+              if (onModelAction) {
+                onModelAction({
+                  model: entry.model,
+                  provider: entry.provider || "",
+                  anchorEl: e.currentTarget as HTMLElement,
+                });
+              }
+            }}
             sx={{
               display: "grid",
               gridTemplateColumns: gridColumns,
@@ -261,6 +278,7 @@ export default function LeaderboardTable({
               bgcolor: idx % 2 === 1 ? "#fafafa" : "#fff",
               "&:hover": { bgcolor: "#f0fdf4" },
               transition: "background 0.15s",
+              cursor: onModelAction ? "pointer" : "default",
             }}
           >
             {/* Rank */}

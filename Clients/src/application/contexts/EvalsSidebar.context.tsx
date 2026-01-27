@@ -18,6 +18,12 @@ export interface EvalProject {
   useCase?: string;
 }
 
+// Model selection for cross-page navigation (leaderboard -> arena/playground/experiments)
+export interface SelectedModel {
+  model: string;
+  provider: string;
+}
+
 interface EvalsSidebarContextType {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -48,6 +54,9 @@ interface EvalsSidebarContextType {
   setAllProjects: (projects: EvalProject[]) => void;
   onProjectChange: ((projectId: string) => void) | undefined;
   setOnProjectChange: (handler: ((projectId: string) => void) | undefined) => void;
+  // Selected model for cross-page navigation
+  selectedModel: SelectedModel | null;
+  setSelectedModel: (model: SelectedModel | null) => void;
 }
 
 const EvalsSidebarContext = createContext<EvalsSidebarContextType | null>(null);
@@ -67,6 +76,7 @@ export const EvalsSidebarProvider: FC<{ children: ReactNode }> = ({ children }) 
   const [currentProject, setCurrentProject] = useState<EvalProject | null>(null);
   const [allProjects, setAllProjects] = useState<EvalProject[]>([]);
   const [onProjectChange, setOnProjectChange] = useState<((projectId: string) => void) | undefined>();
+  const [selectedModel, setSelectedModel] = useState<SelectedModel | null>(null);
 
   return (
     <EvalsSidebarContext.Provider
@@ -99,6 +109,8 @@ export const EvalsSidebarProvider: FC<{ children: ReactNode }> = ({ children }) 
         setAllProjects,
         onProjectChange,
         setOnProjectChange,
+        selectedModel,
+        setSelectedModel,
       }}
     >
       {children}

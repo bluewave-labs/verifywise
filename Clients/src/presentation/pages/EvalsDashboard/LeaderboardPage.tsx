@@ -304,7 +304,20 @@ export default function LeaderboardPage() {
         loading={loading}
         searchQuery={searchQuery}
         displayMetrics={displayMetrics}
+        onModelAction={handleModelAction}
       />
+
+      {/* Model Action Menu */}
+      {selectedModel && (
+        <ModelActionMenu
+          model={selectedModel}
+          anchorEl={actionMenuAnchor}
+          onClose={handleCloseActionMenu}
+          onChat={handleChat}
+          onCompare={handleCompare}
+          onEvaluate={handleEvaluate}
+        />
+      )}
 
       {/* Footer */}
       <Stack direction="row" alignItems="center" gap={1} mt={3}>

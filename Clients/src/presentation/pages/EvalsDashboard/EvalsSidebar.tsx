@@ -8,6 +8,7 @@ import {
   Swords,
   Trophy,
   Cpu,
+  MessageSquare,
 } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
@@ -107,6 +108,13 @@ export default function EvalsSidebar({
       icon: <Cpu size={16} strokeWidth={1.5} />,
       count: modelsCount,
       disabled: false, // Always enabled - org-scoped
+    },
+    {
+      id: "playground",
+      label: "Playground",
+      value: "playground",
+      icon: <MessageSquare size={16} strokeWidth={1.5} />,
+      disabled: false, // Always enabled - chat with any model
     },
     {
       id: "arena",

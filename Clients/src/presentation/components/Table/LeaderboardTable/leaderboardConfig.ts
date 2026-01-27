@@ -17,25 +17,19 @@ export const BENCHMARK_CONFIG: Record<string, MetricConfigItem> = {
     name: "MMLU", 
     shortName: "MMLU", 
     higherIsBetter: true,
-    description: "Massive Multitask Language Understanding - Tests knowledge across 57 subjects"
+    description: "Massive Multitask Language Understanding - Tests knowledge across 57 subjects including STEM, humanities, and social sciences"
   },
   gpqa: { 
     name: "GPQA", 
     shortName: "GPQA", 
     higherIsBetter: true,
-    description: "Graduate-Level Q&A - Challenging questions designed by PhD-level experts"
+    description: "Graduate-Level Q&A - 448 challenging multiple-choice questions written by PhD experts in biology, physics, and chemistry"
   },
-  humaneval: { 
-    name: "HumanEval", 
-    shortName: "HumanEval", 
+  gsm8k: { 
+    name: "GSM8K", 
+    shortName: "GSM8K", 
     higherIsBetter: true,
-    description: "Code Generation - Measures functional correctness of generated code"
-  },
-  math: { 
-    name: "MATH", 
-    shortName: "MATH", 
-    higherIsBetter: true,
-    description: "Competition Mathematics - Problems from high school math competitions"
+    description: "Grade School Math 8K - 8,500 grade school math word problems requiring multi-step reasoning"
   },
 };
 
@@ -70,7 +64,7 @@ export interface LeaderboardEntry {
   provider?: string;
   score: number;
   metricScores: Record<string, number>;
-  benchmarks?: Record<string, number>;
+  benchmarks?: Record<string, number | null>;
   experimentCount: number;
   lastEvaluated: string;
 }

@@ -27,8 +27,7 @@ import leaderboardData from "../../../data/verifywise_leaderboard.json";
 const BENCHMARK_NAMES: Record<string, string> = {
   mmlu: "MMLU",
   gpqa: "GPQA",
-  humaneval: "HumanEval",
-  math: "MATH",
+  gsm8k: "GSM8K",
 };
 
 // Suite display names
@@ -156,6 +155,7 @@ export default function LeaderboardPage() {
         agent_workflows: model.suites.agent_workflows,
         safety_policy: model.suites.safety_policy,
       },
+      benchmarks: model.benchmarks,
       experimentCount: model.tasks_evaluated,
       lastEvaluated: leaderboardData.generated_at,
     }));
@@ -164,9 +164,9 @@ export default function LeaderboardPage() {
     setLoading(false);
   }, []);
 
-  // Display the 4 benchmark columns (MMLU, GPQA, HumanEval, MATH)
+  // Display the 3 benchmark columns (MMLU, GPQA, GSM8K)
   const displayMetrics = useMemo(() => {
-    return ["mmlu", "gpqa", "humaneval", "math"];
+    return ["mmlu", "gpqa", "gsm8k"];
   }, []);
 
   // Stats

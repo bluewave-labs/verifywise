@@ -14,7 +14,12 @@
                 "safety_policy": 54.0
             },
             "tasks_passed": 24,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 92.5,
+                "gpqa": 88.1,
+                "gsm8k": null
+            }
         },
         {
             "rank": 2,
@@ -29,7 +34,12 @@
                 "safety_policy": 59.0
             },
             "tasks_passed": 26,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 90.4,
+                "gpqa": 75.4,
+                "gsm8k": 96.4
+            }
         },
         {
             "rank": 3,
@@ -44,7 +54,12 @@
                 "safety_policy": 52.0
             },
             "tasks_passed": 24,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 90.4,
+                "gpqa": 83.4,
+                "gsm8k": 96.4
+            }
         },
         {
             "rank": 4,
@@ -59,7 +74,12 @@
                 "safety_policy": 57.0
             },
             "tasks_passed": 25,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 86.8,
+                "gpqa": 79.6,
+                "gsm8k": 95.0
+            }
         },
         {
             "rank": 5,
@@ -74,7 +94,12 @@
                 "safety_policy": 64.0
             },
             "tasks_passed": 26,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 86.9,
+                "gpqa": 83.3,
+                "gsm8k": null
+            }
         },
         {
             "rank": 6,
@@ -89,7 +114,12 @@
                 "safety_policy": 54.0
             },
             "tasks_passed": 25,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 86.8,
+                "gpqa": 80.9,
+                "gsm8k": 95.0
+            }
         },
         {
             "rank": 7,
@@ -104,7 +134,12 @@
                 "safety_policy": 67.0
             },
             "tasks_passed": 28,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 87.5,
+                "gpqa": 87.5,
+                "gsm8k": 90.0
+            }
         },
         {
             "rank": 8,
@@ -119,7 +154,12 @@
                 "safety_policy": 57.0
             },
             "tasks_passed": 23,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 88.5,
+                "gpqa": 81.0,
+                "gsm8k": 95.1
+            }
         },
         {
             "rank": 9,
@@ -134,7 +174,12 @@
                 "safety_policy": 69.0
             },
             "tasks_passed": 26,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 86.9,
+                "gpqa": 83.3,
+                "gsm8k": null
+            }
         },
         {
             "rank": 10,
@@ -149,7 +194,12 @@
                 "safety_policy": 50.0
             },
             "tasks_passed": 24,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 86.8,
+                "gpqa": 87.0,
+                "gsm8k": 95.0
+            }
         },
         {
             "rank": 11,
@@ -164,7 +214,12 @@
                 "safety_policy": 71.0
             },
             "tasks_passed": 26,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 91.8,
+                "gpqa": 79.0,
+                "gsm8k": 97.1
+            }
         },
         {
             "rank": 12,
@@ -179,7 +234,12 @@
                 "safety_policy": 63.0
             },
             "tasks_passed": 26,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 92.5,
+                "gpqa": 92.4,
+                "gsm8k": null
+            }
         },
         {
             "rank": 13,
@@ -194,7 +254,12 @@
                 "safety_policy": 74.0
             },
             "tasks_passed": 27,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 85.2,
+                "gpqa": 81.4,
+                "gsm8k": null
+            }
         },
         {
             "rank": 14,
@@ -209,7 +274,12 @@
                 "safety_policy": 69.0
             },
             "tasks_passed": 23,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 86.9,
+                "gpqa": 77.2,
+                "gsm8k": null
+            }
         },
         {
             "rank": 15,
@@ -224,7 +294,12 @@
                 "safety_policy": 66.0
             },
             "tasks_passed": 24,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 91.8,
+                "gpqa": 78.0,
+                "gsm8k": 97.1
+            }
         },
         {
             "rank": 16,
@@ -239,7 +314,12 @@
                 "safety_policy": 50.0
             },
             "tasks_passed": 22,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 92.5,
+                "gpqa": 92.4,
+                "gsm8k": null
+            }
         },
         {
             "rank": 17,
@@ -254,7 +334,12 @@
                 "safety_policy": 36.0
             },
             "tasks_passed": 19,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 92.5,
+                "gpqa": 85.7,
+                "gsm8k": null
+            }
         },
         {
             "rank": 18,
@@ -269,7 +354,12 @@
                 "safety_policy": 37.0
             },
             "tasks_passed": 15,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 85.9,
+                "gpqa": 91.9,
+                "gsm8k": 90.8
+            }
         },
         {
             "rank": 19,
@@ -284,7 +374,12 @@
                 "safety_policy": 28.0
             },
             "tasks_passed": 17,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 92.5,
+                "gpqa": 85.7,
+                "gsm8k": null
+            }
         },
         {
             "rank": 20,
@@ -299,7 +394,12 @@
                 "safety_policy": 43.0
             },
             "tasks_passed": 16,
-            "tasks_evaluated": 44
+            "tasks_evaluated": 44,
+            "benchmarks": {
+                "mmlu": 85.9,
+                "gpqa": 83.0,
+                "gsm8k": 90.8
+            }
         }
     ],
     "score_info": {
@@ -313,38 +413,58 @@
                 "weight": 25,
                 "description": "Tests the model's ability to follow complex, multi-step instructions precisely. Includes format constraints, conditional logic, and edge case handling.",
                 "task_count": 12,
-                "example_tasks": ["Follow specific output formats", "Handle conditional instructions", "Multi-constraint satisfaction"]
+                "example_tasks": [
+                    "Follow specific output formats",
+                    "Handle conditional instructions",
+                    "Multi-constraint satisfaction"
+                ]
             },
             "rag_grounded_qa": {
                 "name": "RAG Grounded QA",
                 "weight": 25,
                 "description": "Evaluates retrieval-augmented generation quality. Tests whether models can accurately answer questions using provided context without hallucinating.",
                 "task_count": 8,
-                "example_tasks": ["Answer from context only", "Cite sources correctly", "Acknowledge knowledge gaps"]
+                "example_tasks": [
+                    "Answer from context only",
+                    "Cite sources correctly",
+                    "Acknowledge knowledge gaps"
+                ]
             },
             "coding_tasks": {
                 "name": "Coding Tasks",
                 "weight": 20,
                 "description": "Assesses code generation, debugging, and explanation capabilities across multiple programming languages and complexity levels.",
                 "task_count": 8,
-                "example_tasks": ["Generate working code", "Debug existing code", "Explain complex algorithms"]
+                "example_tasks": [
+                    "Generate working code",
+                    "Debug existing code",
+                    "Explain complex algorithms"
+                ]
             },
             "agent_workflows": {
                 "name": "Agent Workflows",
                 "weight": 15,
                 "description": "Tests agentic capabilities including tool use, multi-step planning, and autonomous task completion.",
                 "task_count": 6,
-                "example_tasks": ["Multi-step tool use", "Error recovery", "Goal decomposition"]
+                "example_tasks": [
+                    "Multi-step tool use",
+                    "Error recovery",
+                    "Goal decomposition"
+                ]
             },
             "safety_policy": {
                 "name": "Safety & Policy",
                 "weight": 15,
                 "description": "Evaluates adherence to safety guidelines, refusal of harmful requests, and compliance with content policies.",
                 "task_count": 10,
-                "example_tasks": ["Refuse harmful requests", "Handle sensitive topics", "Maintain appropriate boundaries"]
+                "example_tasks": [
+                    "Refuse harmful requests",
+                    "Handle sensitive topics",
+                    "Maintain appropriate boundaries"
+                ]
             }
         },
-        "scoring_formula": "Score = (IF × 0.25) + (RAG × 0.25) + (Coding × 0.20) + (Agent × 0.15) + (Safety × 0.15)",
+        "scoring_formula": "Score = (IF \u00d7 0.25) + (RAG \u00d7 0.25) + (Coding \u00d7 0.20) + (Agent \u00d7 0.15) + (Safety \u00d7 0.15)",
         "evaluation_details": {
             "evaluator": "VerifyWise Evaluation Pipeline v2.0",
             "judge_model": "Human review + GPT-4.1 as automated judge",

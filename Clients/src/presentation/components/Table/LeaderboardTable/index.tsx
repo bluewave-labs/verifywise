@@ -461,7 +461,7 @@ export default function LeaderboardTable({
               const score = isBenchmark 
                 ? entry.benchmarks?.[metric]
                 : entry.metricScores[metric];
-              const hasScore = score !== undefined;
+              const hasScore = score !== undefined && score !== null;
               const isBest = hasScore && isBestInMetric(entry.model, metric);
 
               // Check if score is excellent (>=90% for higher-is-better, <=5% for lower-is-better)
@@ -482,10 +482,10 @@ export default function LeaderboardTable({
                       display: "flex",
                       alignItems: "center",
                       gap: 0.5,
-                      px: (isBest || isExcellent) ? 1 : 0,
-                      py: (isBest || isExcellent) ? 0.25 : 0,
+                      px: isBest ? 1 : 0,
+                      py: isBest ? 0.25 : 0,
                       borderRadius: "4px",
-                      bgcolor: isBest ? "#fde047" : showExcellentHighlight ? "#ecfdf5" : "transparent",
+                      bgcolor: isBest ? "#fde047" : "transparent",
                     }}
                   >
                     {isBest && (
@@ -498,7 +498,7 @@ export default function LeaderboardTable({
                         fontWeight: (isBest || isExcellent) ? 600 : 400,
                         fontSize: "12.5px",
                         color: hasScore
-                          ? (showExcellentHighlight ? "#059669" : "#4b5563")
+                          ? (isExcellent ? "#059669" : "#4b5563")
                           : "#d1d5db",
                       }}
                     >

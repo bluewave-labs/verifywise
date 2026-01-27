@@ -63,6 +63,8 @@ interface NewExperimentModalProps {
   onStarted?: (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => void;
   /** Project's use case - determines default metrics and datasets (required) */
   useCase: "chatbot" | "rag" | "agent";
+  /** Optional initial model to pre-fill (from leaderboard navigation) */
+  initialModel?: { model: string; provider: string } | null;
 }
 
 const steps = ["Model", "Dataset", "Scorer / Judge", "Metrics"];
@@ -75,6 +77,7 @@ export default function NewExperimentModal({
   onSuccess,
   onStarted,
   useCase,
+  initialModel,
 }: NewExperimentModalProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -337,6 +340,32 @@ export default function NewExperimentModal({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, useCase]);
+
+  // Pre-fill model from initialModel prop (from leaderboard navigation)
+  useEffect(() => {
+    if (isOpen && initialModel) {
+      // Map provider display name to internal ID
+      const providerMap: Record<string, string> = {
+        "OpenAI": "openai",
+        "Anthropic": "anthropic",
+        "Google": "google",
+        "Mistral": "mistral",
+        "xAI": "xai",
+        "DeepSeek": "openrouter",
+      };
+      const mappedProvider = providerMap[initialModel.provider] || initialModel.provider.toLowerCase();
+      
+      setConfig(prev => ({
+        ...prev,
+        model: {
+          ...prev.model,
+          name: initialModel.model,
+          accessMethod: mappedProvider as ProviderType,
+        },
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialModel]);
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);

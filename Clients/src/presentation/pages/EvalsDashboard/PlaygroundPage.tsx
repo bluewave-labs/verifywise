@@ -32,7 +32,7 @@ import {
   Check,
 } from "lucide-react";
 import ModelSelector, { ConfiguredProvider } from "../../components/Inputs/ModelSelector";
-import { getLLMApiKeys } from "../../../application/repository/llmApiKey.repository";
+import { getLLMKeys } from "../../../application/repository/llmKeys.repository";
 
 // Types
 interface Message {
@@ -89,7 +89,7 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
   useEffect(() => {
     const fetchProviders = async () => {
       try {
-        const keys = await getLLMApiKeys();
+        const keys = await getLLMKeys();
         setConfiguredProviders(keys.map((k: { provider: string }) => ({ provider: k.provider })));
       } catch (err) {
         console.error("Failed to load LLM API keys:", err);

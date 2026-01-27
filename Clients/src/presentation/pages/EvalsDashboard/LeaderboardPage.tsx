@@ -244,19 +244,21 @@ export default function LeaderboardPage() {
         </Stack>
 
         {/* Arena CTA */}
-        <Box sx={{ mt: 3 }}>
+        <Box sx={{ mt: 4 }}>
           <Button
             variant="contained"
-            startIcon={<Swords size={16} />}
+            startIcon={<Swords size={18} />}
             onClick={() => navigate(projectId ? `/evals/${projectId}#arena` : `/evals#arena`)}
             sx={{
               bgcolor: "#13715B",
               "&:hover": { bgcolor: "#0f5c4a" },
               textTransform: "none",
               fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderRadius: "8px",
+              fontSize: 14,
+              px: 4,
+              py: 1.5,
+              borderRadius: "10px",
+              boxShadow: "0 2px 8px rgba(19, 113, 91, 0.25)",
             }}
           >
             Compare Models in Arena

@@ -13,7 +13,7 @@ import Alert from "../../components/Alert";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import NewExperimentModal from "./NewExperimentModal";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import EvaluationTable from "../../components/Table/EvaluationTable";
 import PerformanceChart from "./components/PerformanceChart";
 import type { IEvaluationRow } from "../../types/interfaces/i.table";
@@ -60,7 +60,9 @@ function shortenModelName(modelName: string): string {
 
 export default function ProjectExperiments({ projectId, orgId, onViewExperiment, useCase }: ProjectExperimentsProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
+  const [prefillModel, setPrefillModel] = useState<{ model: string; provider: string } | null>(null);
   const [, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [newEvalModalOpen, setNewEvalModalOpen] = useState(false);
@@ -103,6 +105,18 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     loadExperiments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
+
+  // Check for pre-filled model from navigation state (from leaderboard)
+  useEffect(() => {
+    const state = location.state as { prefillModel?: { model: string; provider: string } } | null;
+    if (state?.prefillModel) {
+      setPrefillModel(state.prefillModel);
+      setNewEvalModalOpen(true);
+      
+      // Clear the state to prevent re-triggering
+      navigate(location.pathname + location.hash, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, location.hash, navigate]);
 
   // Auto-poll when there are running experiments
   useEffect(() => {
@@ -772,15 +786,20 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       {/* New Experiment Modal */}
       <NewExperimentModal
         isOpen={newEvalModalOpen}
-        onClose={() => setNewEvalModalOpen(false)}
+        onClose={() => {
+          setNewEvalModalOpen(false);
+          setPrefillModel(null); // Clear prefill when closing
+        }}
         projectId={projectId}
         orgId={orgId}
         onSuccess={() => {
           setNewEvalModalOpen(false);
+          setPrefillModel(null);
           loadExperiments();
         }}
         onStarted={handleStarted}
         useCase={useCase}
+        initialModel={prefillModel}
       />
     </Box>
   );

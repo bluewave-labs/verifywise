@@ -95,17 +95,21 @@ export default function ModelActionMenu({
   const menuWidth = 320;
   const menuHeight = 280;
   
-  // Position to the right of the row, or left if not enough space
-  let left = rect.right + 8;
+  // Center horizontally relative to the row
+  let left = rect.left + rect.width / 2 - menuWidth / 2;
+  
+  // Keep within screen bounds horizontally
+  if (left < 16) left = 16;
   if (left + menuWidth > window.innerWidth - 16) {
-    left = rect.left - menuWidth - 8;
+    left = window.innerWidth - menuWidth - 16;
   }
   
-  // Center vertically relative to the row
-  let top = rect.top + rect.height / 2 - menuHeight / 2;
-  if (top < 16) top = 16;
-  if (top + menuHeight > window.innerHeight - 16) {
-    top = window.innerHeight - menuHeight - 16;
+  // Position above the row by default
+  let top = rect.top - menuHeight - 8;
+  
+  // If not enough space above, position below
+  if (top < 16) {
+    top = rect.bottom + 8;
   }
 
   return (

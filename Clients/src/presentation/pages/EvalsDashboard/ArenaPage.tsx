@@ -51,7 +51,7 @@ import {
   type ArenaContestant,
   type LLMApiKey,
 } from "../../../application/repository/deepEval.repository";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // Timing constants (in milliseconds)
 const POLLING_INTERVAL_MS = 5000;
@@ -135,6 +135,7 @@ interface ArenaPageProps {
 
 export default function ArenaPage({ orgId }: ArenaPageProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [comparisons, setComparisons] = useState<ArenaComparisonSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -277,6 +278,43 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
     loadConfiguredProviders();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orgId]);
+
+  // Check for pre-filled model from navigation state (from leaderboard)
+  useEffect(() => {
+    const state = location.state as { prefillModel?: { model: string; provider: string } } | null;
+    if (state?.prefillModel) {
+      // Map provider display name to internal ID
+      const providerMap: Record<string, string> = {
+        "OpenAI": "openai",
+        "Anthropic": "anthropic",
+        "Google": "google",
+        "Mistral": "mistral",
+        "xAI": "xai",
+        "DeepSeek": "openrouter",
+      };
+      const mappedProvider = providerMap[state.prefillModel.provider] || state.prefillModel.provider.toLowerCase();
+      
+      // Pre-fill the first contestant with the selected model
+      setNewComparison(prev => ({
+        ...prev,
+        contestants: [
+          { 
+            name: state.prefillModel!.model, 
+            hyperparameters: { model: state.prefillModel!.model, provider: mappedProvider }, 
+            testCases: [] 
+          },
+          prev.contestants[1] || { name: "Select Model", hyperparameters: { model: "", provider: "openai" }, testCases: [] },
+        ],
+      }));
+      
+      // Open the create modal and skip to step 2 (contestants)
+      setCreateModalOpen(true);
+      setActiveStep(1);
+      
+      // Clear the state to prevent re-triggering
+      navigate(location.pathname + location.hash, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, location.hash, navigate]);
 
   // Auto-poll when there are running comparisons (same pattern as experiments)
   useEffect(() => {

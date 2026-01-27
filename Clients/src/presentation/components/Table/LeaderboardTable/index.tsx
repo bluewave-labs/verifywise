@@ -5,9 +5,9 @@
  */
 
 import { useState, useMemo, useEffect } from "react";
-import { Box, Typography, CircularProgress, SxProps, Theme, Stack, TablePagination } from "@mui/material";
-import { ChevronUp, ChevronDown, BarChart3, Crown } from "lucide-react";
-import { METRIC_CONFIG, LeaderboardEntry } from "./leaderboardConfig";
+import { Box, Typography, CircularProgress, SxProps, Theme, Stack, TablePagination, Tooltip } from "@mui/material";
+import { ChevronUp, ChevronDown, BarChart3, Crown, Info } from "lucide-react";
+import { METRIC_CONFIG, BENCHMARK_CONFIG, LeaderboardEntry } from "./leaderboardConfig";
 import TablePaginationActions from "../../TablePagination";
 import { PROVIDER_ICONS } from "../../ProviderIcons";
 
@@ -97,7 +97,12 @@ export default function LeaderboardTable({
       } else if (sortBy === "experimentCount") {
         aValue = a.experimentCount;
         bValue = b.experimentCount;
+      } else if (BENCHMARK_CONFIG[sortBy]) {
+        // Sort by benchmark
+        aValue = a.benchmarks?.[sortBy] ?? -1;
+        bValue = b.benchmarks?.[sortBy] ?? -1;
       } else {
+        // Sort by metric
         aValue = a.metricScores[sortBy] ?? -1;
         bValue = b.metricScores[sortBy] ?? -1;
       }
@@ -147,17 +152,20 @@ export default function LeaderboardTable({
   // Format score as percentage (data is already in 0-100 range)
   const formatScore = (score: number): string => score.toFixed(1) + "%";
 
-  // Calculate best score for each metric (for crown indicator)
+  // Calculate best score for each metric/benchmark (for crown indicator)
   const bestScores = useMemo(() => {
     const best: Record<string, { value: number; model: string }> = {};
 
     displayMetrics.forEach(metric => {
-      const config = METRIC_CONFIG[metric];
+      const config = BENCHMARK_CONFIG[metric] || METRIC_CONFIG[metric];
+      const isBenchmark = Boolean(BENCHMARK_CONFIG[metric]);
       let bestValue = config && !config.higherIsBetter ? Infinity : -Infinity;
       let bestModel = "";
 
       sortedEntries.forEach(entry => {
-        const score = entry.metricScores[metric];
+        const score = isBenchmark 
+          ? entry.benchmarks?.[metric]
+          : entry.metricScores[metric];
         if (score === undefined) return;
 
         if (config && !config.higherIsBetter) {
@@ -242,19 +250,59 @@ export default function LeaderboardTable({
           <HeaderCell onClick={() => handleSort("model")} active={sortBy === "model"} direction={sortDirection}>
             Model
           </HeaderCell>
-          <HeaderCell onClick={() => handleSort("score")} active={sortBy === "score"} direction={sortDirection}>
-            Score
-          </HeaderCell>
-          {displayMetrics.map((metric) => (
-            <HeaderCell
-              key={metric}
-              onClick={() => handleSort(metric)}
-              active={sortBy === metric}
-              direction={sortDirection}
-            >
-              {METRIC_CONFIG[metric]?.shortName || metric.charAt(0).toUpperCase() + metric.slice(1)}
-            </HeaderCell>
-          ))}
+          <Tooltip 
+            title={
+              <Box sx={{ p: 1, maxWidth: 280 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>VerifyWise Score</Typography>
+                <Typography variant="caption" sx={{ display: "block", mb: 1.5 }}>
+                  Measures real-world AI performance across practical enterprise tasks.
+                </Typography>
+                <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.5 }}>Weighted Components:</Typography>
+                <Typography variant="caption" component="div" sx={{ fontSize: "11px" }}>
+                  • Instruction Following: 25%<br/>
+                  • RAG Grounded QA: 25%<br/>
+                  • Coding Tasks: 20%<br/>
+                  • Agent Workflows: 15%<br/>
+                  • Safety & Policy: 15%
+                </Typography>
+              </Box>
+            }
+            arrow
+            placement="top"
+          >
+            <Box>
+              <HeaderCell 
+                onClick={() => handleSort("score")} 
+                active={sortBy === "score"} 
+                direction={sortDirection}
+                sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+              >
+                <span>VerifyWise</span>
+                <Info size={12} style={{ opacity: 0.6 }} />
+              </HeaderCell>
+            </Box>
+          </Tooltip>
+          {displayMetrics.map((metric) => {
+            const config = BENCHMARK_CONFIG[metric] || METRIC_CONFIG[metric];
+            return (
+              <Tooltip
+                key={metric}
+                title={config?.description || ""}
+                arrow
+                placement="top"
+              >
+                <Box>
+                  <HeaderCell
+                    onClick={() => handleSort(metric)}
+                    active={sortBy === metric}
+                    direction={sortDirection}
+                  >
+                    {config?.shortName || metric.toUpperCase()}
+                  </HeaderCell>
+                </Box>
+              </Tooltip>
+            );
+          })}
         </Box>
 
         {/* Table Rows */}
@@ -328,18 +376,20 @@ export default function LeaderboardTable({
               </Typography>
             </Cell>
 
-            {/* Metrics */}
+            {/* Metrics/Benchmarks */}
             {displayMetrics.map((metric) => {
-              const score = entry.metricScores[metric];
+              const isBenchmark = Boolean(BENCHMARK_CONFIG[metric]);
+              const score = isBenchmark 
+                ? entry.benchmarks?.[metric]
+                : entry.metricScores[metric];
               const hasScore = score !== undefined;
               const isBest = hasScore && isBestInMetric(entry.model, metric);
 
               // Check if score is excellent (>=90% for higher-is-better, <=5% for lower-is-better)
-              // Data is already in 0-100 percentage range
-              const config = METRIC_CONFIG[metric];
+              const config = BENCHMARK_CONFIG[metric] || METRIC_CONFIG[metric];
               const isExcellent = hasScore && (
                 config && !config.higherIsBetter
-                  ? score <= 5    // For bias/toxicity/hallucination, lower is better (<=5%)
+                  ? score <= 5    // For lower-is-better metrics
                   : score >= 90   // For most metrics, higher is better (>=90%)
               );
 
@@ -432,9 +482,10 @@ interface HeaderCellProps {
   onClick?: () => void;
   active?: boolean;
   direction?: "asc" | "desc";
+  sx?: SxProps<Theme>;
 }
 
-function HeaderCell({ children, onClick, active, direction }: HeaderCellProps) {
+function HeaderCell({ children, onClick, active, direction, sx }: HeaderCellProps) {
   return (
     <Box
       onClick={onClick}
@@ -451,6 +502,7 @@ function HeaderCell({ children, onClick, active, direction }: HeaderCellProps) {
         minHeight: 44,
         "&:hover": onClick ? { bgcolor: "#ecfdf5" } : {},
         transition: "background 0.15s",
+        ...sx,
       }}
     >
       <Typography

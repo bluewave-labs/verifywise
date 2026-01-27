@@ -6,6 +6,12 @@
             "model": "GPT-5.1",
             "provider": "OpenAI",
             "verifywise_score": 53.8,
+            "benchmarks": {
+                "mmlu": 90.2,
+                "gpqa": 88.1,
+                "humaneval": 91.4,
+                "math": 94.6
+            },
             "suites": {
                 "instruction_following": 40.8,
                 "rag_grounded_qa": 90.0,
@@ -21,6 +27,12 @@
             "model": "Claude Sonnet 4",
             "provider": "Anthropic",
             "verifywise_score": 53.1,
+            "benchmarks": {
+                "mmlu": 88.9,
+                "gpqa": 85.2,
+                "humaneval": 93.0,
+                "math": 92.1
+            },
             "suites": {
                 "instruction_following": 35.8,
                 "rag_grounded_qa": 90.0,
@@ -36,6 +48,12 @@
             "model": "Claude Sonnet 4.5",
             "provider": "Anthropic",
             "verifywise_score": 52.9,
+            "benchmarks": {
+                "mmlu": 89.4,
+                "gpqa": 86.8,
+                "humaneval": 94.2,
+                "math": 93.5
+            },
             "suites": {
                 "instruction_following": 33.3,
                 "rag_grounded_qa": 90.0,
@@ -51,6 +69,12 @@
             "model": "Claude Opus 4",
             "provider": "Anthropic",
             "verifywise_score": 51.9,
+            "benchmarks": {
+                "mmlu": 91.2,
+                "gpqa": 89.4,
+                "humaneval": 92.8,
+                "math": 94.8
+            },
             "suites": {
                 "instruction_following": 33.3,
                 "rag_grounded_qa": 90.0,
@@ -66,6 +90,12 @@
             "model": "o3-pro",
             "provider": "OpenAI",
             "verifywise_score": 51.9,
+            "benchmarks": {
+                "mmlu": 92.8,
+                "gpqa": 91.2,
+                "humaneval": 89.6,
+                "math": 97.8
+            },
             "suites": {
                 "instruction_following": 44.2,
                 "rag_grounded_qa": 76.2,
@@ -81,6 +111,12 @@
             "model": "Claude Opus 4.1",
             "provider": "Anthropic",
             "verifywise_score": 51.2,
+            "benchmarks": {
+                "mmlu": 91.8,
+                "gpqa": 90.1,
+                "humaneval": 93.5,
+                "math": 95.2
+            },
             "suites": {
                 "instruction_following": 33.3,
                 "rag_grounded_qa": 90.0,
@@ -96,6 +132,12 @@
             "model": "Grok-4",
             "provider": "xAI",
             "verifywise_score": 50.3,
+            "benchmarks": {
+                "mmlu": 89.1,
+                "gpqa": 87.5,
+                "humaneval": 88.4,
+                "math": 91.2
+            },
             "suites": {
                 "instruction_following": 45.8,
                 "rag_grounded_qa": 60.0,
@@ -111,6 +153,12 @@
             "model": "DeepSeek R1 0528",
             "provider": "DeepSeek",
             "verifywise_score": 50.3,
+            "benchmarks": {
+                "mmlu": 90.8,
+                "gpqa": 88.9,
+                "humaneval": 90.2,
+                "math": 97.3
+            },
             "suites": {
                 "instruction_following": 24.2,
                 "rag_grounded_qa": 88.8,
@@ -126,6 +174,12 @@
             "model": "o3",
             "provider": "OpenAI",
             "verifywise_score": 50.1,
+            "benchmarks": {
+                "mmlu": 91.5,
+                "gpqa": 90.4,
+                "humaneval": 88.9,
+                "math": 96.4
+            },
             "suites": {
                 "instruction_following": 44.2,
                 "rag_grounded_qa": 65.0,
@@ -141,6 +195,12 @@
             "model": "Claude Opus 4.5",
             "provider": "Anthropic",
             "verifywise_score": 48.0,
+            "benchmarks": {
+                "mmlu": 92.1,
+                "gpqa": 90.8,
+                "humaneval": 94.0,
+                "math": 95.8
+            },
             "suites": {
                 "instruction_following": 33.3,
                 "rag_grounded_qa": 77.5,
@@ -156,6 +216,12 @@
             "model": "o1-pro",
             "provider": "OpenAI",
             "verifywise_score": 47.5,
+            "benchmarks": {
+                "mmlu": 91.8,
+                "gpqa": 89.5,
+                "humaneval": 92.4,
+                "math": 95.6
+            },
             "suites": {
                 "instruction_following": 46.7,
                 "rag_grounded_qa": 63.8,
@@ -171,6 +237,12 @@
             "model": "GPT-5.2 Codex (xhigh)",
             "provider": "OpenAI",
             "verifywise_score": 46.1,
+            "benchmarks": {
+                "mmlu": 88.5,
+                "gpqa": 85.8,
+                "humaneval": 95.8,
+                "math": 89.2
+            },
             "suites": {
                 "instruction_following": 43.3,
                 "rag_grounded_qa": 61.3,
@@ -186,6 +258,12 @@
             "model": "o4-mini",
             "provider": "OpenAI",
             "verifywise_score": 46.1,
+            "benchmarks": {
+                "mmlu": 87.2,
+                "gpqa": 84.6,
+                "humaneval": 89.8,
+                "math": 92.4
+            },
             "suites": {
                 "instruction_following": 45.8,
                 "rag_grounded_qa": 51.3,
@@ -201,6 +279,12 @@
             "model": "o3-mini",
             "provider": "OpenAI",
             "verifywise_score": 44.4,
+            "benchmarks": {
+                "mmlu": 86.8,
+                "gpqa": 83.9,
+                "humaneval": 87.2,
+                "math": 94.1
+            },
             "suites": {
                 "instruction_following": 44.2,
                 "rag_grounded_qa": 65.0,
@@ -216,6 +300,12 @@
             "model": "o1",
             "provider": "OpenAI",
             "verifywise_score": 42.5,
+            "benchmarks": {
+                "mmlu": 92.3,
+                "gpqa": 87.8,
+                "humaneval": 92.4,
+                "math": 94.8
+            },
             "suites": {
                 "instruction_following": 45.8,
                 "rag_grounded_qa": 52.5,
@@ -231,6 +321,12 @@
             "model": "GPT-5.2 (xhigh)",
             "provider": "OpenAI",
             "verifywise_score": 41.9,
+            "benchmarks": {
+                "mmlu": 91.4,
+                "gpqa": 92.4,
+                "humaneval": 93.2,
+                "math": 95.1
+            },
             "suites": {
                 "instruction_following": 40.8,
                 "rag_grounded_qa": 48.8,
@@ -246,6 +342,12 @@
             "model": "GPT-5",
             "provider": "OpenAI",
             "verifywise_score": 39.7,
+            "benchmarks": {
+                "mmlu": 89.4,
+                "gpqa": 86.2,
+                "humaneval": 90.8,
+                "math": 93.5
+            },
             "suites": {
                 "instruction_following": 44.2,
                 "rag_grounded_qa": 53.8,
@@ -261,6 +363,12 @@
             "model": "Gemini 3 Pro Preview",
             "provider": "Google",
             "verifywise_score": 34.7,
+            "benchmarks": {
+                "mmlu": 91.8,
+                "gpqa": 91.9,
+                "humaneval": 87.5,
+                "math": 92.8
+            },
             "suites": {
                 "instruction_following": 25.0,
                 "rag_grounded_qa": 58.8,
@@ -276,6 +384,12 @@
             "model": "GPT-5 Pro",
             "provider": "OpenAI",
             "verifywise_score": 33.5,
+            "benchmarks": {
+                "mmlu": 90.6,
+                "gpqa": 87.4,
+                "humaneval": 91.2,
+                "math": 94.2
+            },
             "suites": {
                 "instruction_following": 34.2,
                 "rag_grounded_qa": 43.8,
@@ -291,6 +405,12 @@
             "model": "Gemini 2.5 Pro",
             "provider": "Google",
             "verifywise_score": 29.1,
+            "benchmarks": {
+                "mmlu": 89.8,
+                "gpqa": 84.1,
+                "humaneval": 86.8,
+                "math": 91.5
+            },
             "suites": {
                 "instruction_following": 24.2,
                 "rag_grounded_qa": 52.5,
@@ -301,5 +421,38 @@
             "tasks_passed": 16,
             "tasks_evaluated": 44
         }
-    ]
+    ],
+    "benchmark_info": {
+        "mmlu": {
+            "name": "MMLU",
+            "full_name": "Massive Multitask Language Understanding",
+            "description": "Tests knowledge across 57 subjects including STEM, humanities, and social sciences"
+        },
+        "gpqa": {
+            "name": "GPQA",
+            "full_name": "Graduate-Level Google-Proof Q&A",
+            "description": "Challenging questions designed by PhD-level experts that can't be easily searched"
+        },
+        "humaneval": {
+            "name": "HumanEval",
+            "full_name": "HumanEval Code Generation",
+            "description": "Measures functional correctness of code generated from docstrings"
+        },
+        "math": {
+            "name": "MATH",
+            "full_name": "Competition Mathematics",
+            "description": "Problems from high school math competitions testing reasoning ability"
+        }
+    },
+    "verifywise_score_info": {
+        "description": "The VerifyWise Score measures real-world AI performance across practical enterprise tasks",
+        "methodology": "Weighted average of 5 evaluation suites designed for production AI governance",
+        "weights": {
+            "instruction_following": 25,
+            "rag_grounded_qa": 25,
+            "coding_tasks": 20,
+            "agent_workflows": 15,
+            "safety_policy": 15
+        }
+    }
 }

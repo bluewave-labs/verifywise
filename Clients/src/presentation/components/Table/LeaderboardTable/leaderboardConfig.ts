@@ -8,7 +8,36 @@ export interface MetricConfigItem {
   name: string;
   shortName: string;
   higherIsBetter: boolean;
+  description?: string;
 }
+
+// Standard benchmark configuration
+export const BENCHMARK_CONFIG: Record<string, MetricConfigItem> = {
+  mmlu: { 
+    name: "MMLU", 
+    shortName: "MMLU", 
+    higherIsBetter: true,
+    description: "Massive Multitask Language Understanding - Tests knowledge across 57 subjects"
+  },
+  gpqa: { 
+    name: "GPQA", 
+    shortName: "GPQA", 
+    higherIsBetter: true,
+    description: "Graduate-Level Q&A - Challenging questions designed by PhD-level experts"
+  },
+  humaneval: { 
+    name: "HumanEval", 
+    shortName: "HumanEval", 
+    higherIsBetter: true,
+    description: "Code Generation - Measures functional correctness of generated code"
+  },
+  math: { 
+    name: "MATH", 
+    shortName: "MATH", 
+    higherIsBetter: true,
+    description: "Competition Mathematics - Problems from high school math competitions"
+  },
+};
 
 // Metric configuration with proper display names
 export const METRIC_CONFIG: Record<string, MetricConfigItem> = {
@@ -41,6 +70,7 @@ export interface LeaderboardEntry {
   provider?: string;
   score: number;
   metricScores: Record<string, number>;
+  benchmarks?: Record<string, number>;
   experimentCount: number;
   lastEvaluated: string;
 }

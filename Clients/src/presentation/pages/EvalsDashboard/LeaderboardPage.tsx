@@ -20,17 +20,25 @@ import {
 } from "@mui/material";
 import { Search, Info, BarChart3, Trophy, Zap, Shield, Swords } from "lucide-react";
 import LeaderboardTable, { ModelActionInfo } from "../../components/Table/LeaderboardTable";
-import { LeaderboardEntry, METRIC_CONFIG } from "../../components/Table/LeaderboardTable/leaderboardConfig";
+import { LeaderboardEntry, METRIC_CONFIG, BENCHMARK_CONFIG } from "../../components/Table/LeaderboardTable/leaderboardConfig";
 import ModelActionMenu, { ModelInfo } from "../../components/ModelActionMenu";
 import leaderboardData from "../../../data/verifywise_leaderboard.json";
 
-// Suite display names
+// Suite display names (for VerifyWise internal tests)
 const SUITE_NAMES: Record<string, string> = {
   instruction_following: "Instruction Following",
   rag_grounded_qa: "RAG Grounded QA",
   coding_tasks: "Coding Tasks",
   agent_workflows: "Agent Workflows",
   safety_policy: "Safety & Policy",
+};
+
+// Benchmark display names
+const BENCHMARK_NAMES: Record<string, string> = {
+  mmlu: "MMLU",
+  gpqa: "GPQA",
+  humaneval: "HumanEval",
+  math: "MATH",
 };
 
 // Map leaderboard display names to API model names
@@ -149,6 +157,7 @@ export default function LeaderboardPage() {
         agent_workflows: model.suites.agent_workflows,
         safety_policy: model.suites.safety_policy,
       },
+      benchmarks: model.benchmarks,
       experimentCount: model.tasks_evaluated,
       lastEvaluated: leaderboardData.generated_at,
     }));
@@ -157,15 +166,9 @@ export default function LeaderboardPage() {
     setLoading(false);
   }, []);
 
-  // Display metrics (the 5 suites)
+  // Display benchmarks (MMLU, GPQA, HumanEval, MATH)
   const displayMetrics = useMemo(() => {
-    return [
-      "instruction_following",
-      "rag_grounded_qa",
-      "coding_tasks",
-      "agent_workflows",
-      "safety_policy",
-    ];
+    return ["mmlu", "gpqa", "humaneval", "math"];
   }, []);
 
   // Stats
@@ -328,10 +331,10 @@ export default function LeaderboardPage() {
             sx={{ minWidth: 180, bgcolor: "#fff" }}
             startAdornment={<BarChart3 size={14} color="#13715B" style={{ marginRight: 8 }} />}
           >
-            <MenuItem value="overall">Overall Score</MenuItem>
+            <MenuItem value="overall">VerifyWise Score</MenuItem>
             {displayMetrics.map((m) => (
               <MenuItem key={m} value={m}>
-                {SUITE_NAMES[m] || METRIC_CONFIG[m]?.name || m}
+                {BENCHMARK_NAMES[m] || BENCHMARK_CONFIG[m]?.name || SUITE_NAMES[m] || METRIC_CONFIG[m]?.name || m}
               </MenuItem>
             ))}
           </Select>

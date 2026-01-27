@@ -91,14 +91,19 @@ export default function LeaderboardTable({
 
     filtered.sort((a, b) => {
       let aValue: number, bValue: number;
-      if (sortBy === "score") {
+      if (sortBy === "rank") {
+        aValue = a.rank;
+        bValue = b.rank;
+        // Rank sorts ascending by default (1, 2, 3...)
+        return sortDirection === "asc" ? bValue - aValue : aValue - bValue;
+      } else if (sortBy === "score") {
         aValue = a.score;
         bValue = b.score;
       } else if (sortBy === "experimentCount") {
         aValue = a.experimentCount;
         bValue = b.experimentCount;
       } else if (BENCHMARK_CONFIG[sortBy]) {
-        // Sort by benchmark
+        // Sort by benchmark (may be undefined)
         aValue = a.benchmarks?.[sortBy] ?? -1;
         bValue = b.benchmarks?.[sortBy] ?? -1;
       } else {
@@ -195,8 +200,8 @@ export default function LeaderboardTable({
   };
 
 
-  // Grid columns: Rank, Model, Score, then metrics
-  const gridColumns = `80px minmax(200px, 1fr) 100px ${displayMetrics.map(() => "minmax(110px, 130px)").join(" ")}`;
+  // Grid columns: Rank, Model (flexible), Application Score, then metrics
+  const gridColumns = `70px minmax(200px, 1fr) 160px ${displayMetrics.map(() => "100px").join(" ")}`;
 
   // Loading state
   if (loading) {
@@ -244,63 +249,138 @@ export default function LeaderboardTable({
             minWidth: "fit-content",
           }}
         >
-          <HeaderCell onClick={() => handleSort("score")} active={sortBy === "score"} direction={sortDirection}>
+          {/* Rank */}
+          <HeaderCell onClick={() => handleSort("rank")} active={sortBy === "rank"} direction={sortDirection}>
             Rank
           </HeaderCell>
+
+          {/* Model */}
           <HeaderCell onClick={() => handleSort("model")} active={sortBy === "model"} direction={sortDirection}>
             Model
           </HeaderCell>
-          <Tooltip 
-            title={
-              <Box sx={{ p: 1, maxWidth: 280 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>VerifyWise Score</Typography>
-                <Typography variant="caption" sx={{ display: "block", mb: 1.5 }}>
-                  Measures real-world AI performance across practical enterprise tasks.
-                </Typography>
-                <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.5 }}>Weighted Components:</Typography>
-                <Typography variant="caption" component="div" sx={{ fontSize: "11px" }}>
-                  • Instruction Following: 25%<br/>
-                  • RAG Grounded QA: 25%<br/>
-                  • Coding Tasks: 20%<br/>
-                  • Agent Workflows: 15%<br/>
-                  • Safety & Policy: 15%
-                </Typography>
-              </Box>
-            }
-            arrow
-            placement="top"
+
+          {/* Application Score with info tooltip */}
+          <Box
+            onClick={() => handleSort("score")}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 0.5,
+              cursor: "pointer",
+              py: 1.5,
+              "&:hover": { bgcolor: "#ecfdf5" },
+              transition: "background 0.15s",
+            }}
           >
-            <Box>
-              <HeaderCell 
-                onClick={() => handleSort("score")} 
-                active={sortBy === "score"} 
-                direction={sortDirection}
-                sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-              >
-                <span>VerifyWise</span>
-                <Info size={12} style={{ opacity: 0.6 }} />
-              </HeaderCell>
-            </Box>
-          </Tooltip>
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 600,
+                color: sortBy === "score" ? "#13715B" : "#6b7280",
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: 0.2,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Application Score
+            </Typography>
+            <Tooltip 
+              title={
+                <Box sx={{ p: 1.5, maxWidth: 320 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: "#fff", fontSize: 13 }}>
+                    VerifyWise Application Score
+                  </Typography>
+                  <Typography variant="caption" sx={{ display: "block", mb: 1.5, color: "rgba(255,255,255,0.9)", lineHeight: 1.5 }}>
+                    Measures real-world enterprise application performance.
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.5, color: "#10b981" }}>
+                    Evaluation Suites:
+                  </Typography>
+                  <Typography variant="caption" component="div" sx={{ color: "rgba(255,255,255,0.8)", lineHeight: 1.7, fontSize: 10 }}>
+                    • Instruction Following (25%)<br/>
+                    • RAG Grounded QA (25%)<br/>
+                    • Coding Tasks (20%)<br/>
+                    • Agent Workflows (15%)<br/>
+                    • Safety & Policy (15%)
+                  </Typography>
+                </Box>
+              }
+              arrow
+              placement="top"
+              componentsProps={{
+                tooltip: { sx: { bgcolor: "#1f2937", "& .MuiTooltip-arrow": { color: "#1f2937" }, borderRadius: "8px" } }
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", ml: 0.5 }}>
+                <Info size={13} color="#9ca3af" />
+              </Box>
+            </Tooltip>
+            {sortBy === "score" && (sortDirection === "desc" ? <ChevronDown size={14} color="#13715B" /> : <ChevronUp size={14} color="#13715B" />)}
+          </Box>
+
+          {/* Benchmark columns */}
           {displayMetrics.map((metric) => {
             const config = BENCHMARK_CONFIG[metric] || METRIC_CONFIG[metric];
+            const isBenchmark = Boolean(BENCHMARK_CONFIG[metric]);
+            const isActive = sortBy === metric;
+            
             return (
-              <Tooltip
+              <Box
                 key={metric}
-                title={config?.description || ""}
-                arrow
-                placement="top"
+                onClick={() => handleSort(metric)}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 0.5,
+                  cursor: "pointer",
+                  py: 1.5,
+                  "&:hover": { bgcolor: "#ecfdf5" },
+                  transition: "background 0.15s",
+                }}
               >
-                <Box>
-                  <HeaderCell
-                    onClick={() => handleSort(metric)}
-                    active={sortBy === metric}
-                    direction={sortDirection}
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 600,
+                    color: isActive ? "#13715B" : "#6b7280",
+                    fontSize: 12,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  {config?.shortName || metric.toUpperCase()}
+                </Typography>
+                {isBenchmark && (
+                  <Tooltip
+                    title={
+                      <Box sx={{ p: 1, maxWidth: 240 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: "#fff", fontSize: 12 }}>
+                          {config?.name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.85)", lineHeight: 1.4 }}>
+                          {config?.description}
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: "block", mt: 1, color: "#fbbf24", fontStyle: "italic", fontSize: 10 }}>
+                          Data coming soon
+                        </Typography>
+                      </Box>
+                    }
+                    arrow
+                    placement="top"
+                    componentsProps={{
+                      tooltip: { sx: { bgcolor: "#1f2937", "& .MuiTooltip-arrow": { color: "#1f2937" }, borderRadius: "8px" } }
+                    }}
                   >
-                    {config?.shortName || metric.toUpperCase()}
-                  </HeaderCell>
-                </Box>
-              </Tooltip>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Info size={12} color="#9ca3af" />
+                    </Box>
+                  </Tooltip>
+                )}
+                {isActive && (sortDirection === "desc" ? <ChevronDown size={14} color="#13715B" /> : <ChevronUp size={14} color="#13715B" />)}
+              </Box>
             );
           })}
         </Box>
@@ -336,7 +416,7 @@ export default function LeaderboardTable({
 
             {/* Model with Provider Icon */}
             <Cell>
-              <Stack direction="row" alignItems="center" gap={1} justifyContent="center">
+              <Stack direction="row" alignItems="center" gap={1.5}>
                 {entry.provider && PROVIDER_ICON_MAP[entry.provider] && (
                   (() => {
                     const IconComponent = PROVIDER_ICONS[PROVIDER_ICON_MAP[entry.provider]];
@@ -350,7 +430,6 @@ export default function LeaderboardTable({
                 <Typography
                   variant="body2"
                   sx={{
-                    fontFamily: "'SF Mono', 'Roboto Mono', monospace",
                     color: "#111827",
                     fontWeight: 500,
                     fontSize: "13px",
@@ -509,10 +588,10 @@ function HeaderCell({ children, onClick, active, direction, sx }: HeaderCellProp
         variant="caption"
         sx={{
           fontWeight: 600,
-          color: active ? "#13715B" : "#78716c",
-          fontSize: 11,
+          color: active ? "#13715B" : "#6b7280",
+          fontSize: 12,
           textTransform: "uppercase",
-          letterSpacing: 0.8,
+          letterSpacing: 0.5,
           lineHeight: 1.2,
         }}
       >

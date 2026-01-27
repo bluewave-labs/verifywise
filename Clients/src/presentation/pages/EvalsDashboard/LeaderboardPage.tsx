@@ -1,7 +1,7 @@
 /**
  * LLM Leaderboard Page
  * 
- * Displays model rankings based on VerifyWise Practical Evaluation results.
+ * Displays model rankings based on VerifyWise Application Score.
  */
 
 import { useState, useEffect, useMemo } from "react";
@@ -15,23 +15,13 @@ import {
   Select,
   MenuItem,
   FormControl,
-  Chip,
   Button,
 } from "@mui/material";
-import { Search, Info, BarChart3, Trophy, Zap, Shield, Swords } from "lucide-react";
+import { Search, BarChart3, Trophy, Swords, Info } from "lucide-react";
 import LeaderboardTable, { ModelActionInfo } from "../../components/Table/LeaderboardTable";
 import { LeaderboardEntry, METRIC_CONFIG, BENCHMARK_CONFIG } from "../../components/Table/LeaderboardTable/leaderboardConfig";
 import ModelActionMenu, { ModelInfo } from "../../components/ModelActionMenu";
 import leaderboardData from "../../../data/verifywise_leaderboard.json";
-
-// Suite display names (for VerifyWise internal tests)
-const SUITE_NAMES: Record<string, string> = {
-  instruction_following: "Instruction Following",
-  rag_grounded_qa: "RAG Grounded QA",
-  coding_tasks: "Coding Tasks",
-  agent_workflows: "Agent Workflows",
-  safety_policy: "Safety & Policy",
-};
 
 // Benchmark display names
 const BENCHMARK_NAMES: Record<string, string> = {
@@ -39,6 +29,15 @@ const BENCHMARK_NAMES: Record<string, string> = {
   gpqa: "GPQA",
   humaneval: "HumanEval",
   math: "MATH",
+};
+
+// Suite display names
+const SUITE_NAMES: Record<string, string> = {
+  instruction_following: "Instruction Following",
+  rag_grounded_qa: "RAG Grounded QA",
+  coding_tasks: "Coding Tasks",
+  agent_workflows: "Agent Workflows",
+  safety_policy: "Safety & Policy",
 };
 
 // Map leaderboard display names to API model names
@@ -157,7 +156,6 @@ export default function LeaderboardPage() {
         agent_workflows: model.suites.agent_workflows,
         safety_policy: model.suites.safety_policy,
       },
-      benchmarks: model.benchmarks,
       experimentCount: model.tasks_evaluated,
       lastEvaluated: leaderboardData.generated_at,
     }));
@@ -166,7 +164,7 @@ export default function LeaderboardPage() {
     setLoading(false);
   }, []);
 
-  // Display benchmarks (MMLU, GPQA, HumanEval, MATH)
+  // Display the 4 benchmark columns (MMLU, GPQA, HumanEval, MATH)
   const displayMetrics = useMemo(() => {
     return ["mmlu", "gpqa", "humaneval", "math"];
   }, []);
@@ -215,48 +213,38 @@ export default function LeaderboardPage() {
           variant="body1"
           color="text.secondary"
           sx={{
-            maxWidth: 700,
+            maxWidth: 800,
             mx: "auto",
             mb: 3,
             lineHeight: 1.7,
           }}
         >
-          Practical evaluation of Large Language Models across <strong>real-world tasks</strong>.
-          Models are tested on instruction following, RAG grounded QA, coding challenges,
-          agentic workflows, and safety & policy compliance.
+          Rankings based on the <strong>VerifyWise Application Score</strong> — our proprietary evaluation 
+          measuring how well LLMs perform on <strong>real-world enterprise tasks</strong>. Unlike traditional 
+          academic benchmarks, we test practical capabilities: following complex instructions, grounded Q&A, 
+          code generation, agentic workflows, and safety compliance.
         </Typography>
 
-        {/* Suite chips */}
-        <Stack direction="row" justifyContent="center" gap={1} mb={3} flexWrap="wrap">
-          <Chip
-            icon={<Zap size={14} />}
-            label="Instruction Following"
-            size="small"
-            sx={{ bgcolor: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" }}
-          />
-          <Chip
-            icon={<Search size={14} />}
-            label="RAG QA"
-            size="small"
-            sx={{ bgcolor: "#eff6ff", color: "#1e40af", border: "1px solid #bfdbfe" }}
-          />
-          <Chip
-            label="Coding"
-            size="small"
-            sx={{ bgcolor: "#faf5ff", color: "#6b21a8", border: "1px solid #e9d5ff" }}
-          />
-          <Chip
-            label="Agentic"
-            size="small"
-            sx={{ bgcolor: "#fefce8", color: "#854d0e", border: "1px solid #fef08a" }}
-          />
-          <Chip
-            icon={<Shield size={14} />}
-            label="Safety"
-            size="small"
-            sx={{ bgcolor: "#fef2f2", color: "#991b1b", border: "1px solid #fecaca" }}
-          />
-        </Stack>
+        {/* GitHub link for methodology */}
+        <Typography
+          component="a"
+          href="https://github.com/verifywise/verifywise"
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 0.5,
+            color: "#13715B",
+            fontSize: 13,
+            fontWeight: 500,
+            textDecoration: "none",
+            mb: 3,
+            "&:hover": { textDecoration: "underline" },
+          }}
+        >
+          Learn more about our evaluation methodology →
+        </Typography>
 
         {/* Stats Row - Compact */}
         <Stack
@@ -328,10 +316,10 @@ export default function LeaderboardPage() {
           <Select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            sx={{ minWidth: 180, bgcolor: "#fff" }}
+            sx={{ minWidth: 200, bgcolor: "#fff" }}
             startAdornment={<BarChart3 size={14} color="#13715B" style={{ marginRight: 8 }} />}
           >
-            <MenuItem value="overall">VerifyWise Score</MenuItem>
+            <MenuItem value="overall">Application Score</MenuItem>
             {displayMetrics.map((m) => (
               <MenuItem key={m} value={m}>
                 {BENCHMARK_NAMES[m] || BENCHMARK_CONFIG[m]?.name || SUITE_NAMES[m] || METRIC_CONFIG[m]?.name || m}
@@ -381,8 +369,8 @@ export default function LeaderboardPage() {
       <Stack direction="row" alignItems="center" gap={1} mt={3}>
         <Info size={14} color="#9ca3af" />
         <Typography variant="caption" color="text.secondary">
-          Evaluated on {new Date(leaderboardData.generated_at).toLocaleDateString()} using the VerifyWise Practical Evaluation Pipeline.
-          Score = weighted average of 5 suites (IF: 25%, RAG: 25%, Coding: 20%, Agent: 15%, Safety: 15%).
+          Evaluated on {new Date(leaderboardData.generated_at).toLocaleDateString()} using the VerifyWise Evaluation Pipeline.
+          Hover over column headers for details.
         </Typography>
       </Stack>
     </Box>

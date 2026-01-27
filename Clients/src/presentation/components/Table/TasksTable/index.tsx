@@ -28,6 +28,7 @@ import { ITasksTableProps } from "../../../types/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
 import CategoryChip from "../../Chip/CategoryChip/CategoryChip";
 import { DISPLAY_TO_PRIORITY_MAP, PRIORITY_DISPLAY_MAP } from "../../../constants/priorityOptions";
+import { taskTableStyles } from "./styles";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -366,14 +367,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     onClick={(e) => e.stopPropagation()}
                   >
                     {isArchived ? (
-                      <Typography
-                        sx={{
-                          fontSize: 13,
-                          color: "text.accent",
-                          fontStyle: "italic",
-                          px: 1,
-                        }}
-                      >
+                      <Typography sx={taskTableStyles(theme).archivedText}>
                         Archived
                       </Typography>
                     ) : (
@@ -402,14 +396,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     onClick={(e) => e.stopPropagation()}
                   >
                     {isArchived ? (
-                      <Typography
-                        sx={{
-                          fontSize: 13,
-                          color: "text.accent",
-                          fontStyle: "italic",
-                          px: 1,
-                        }}
-                      >
+                      <Typography sx={taskTableStyles(theme).archivedText}>
                         Archived
                       </Typography>
                     ) : (

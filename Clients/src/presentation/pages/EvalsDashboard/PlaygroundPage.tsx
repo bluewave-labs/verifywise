@@ -2,18 +2,17 @@
  * PlaygroundPage
  * 
  * A chat interface for testing and interacting with LLM models directly.
- * Supports model selection, system prompts, and parameter tuning.
+ * Modern design inspired by ChatGPT/Claude/Perplexity.
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Stack,
   Typography,
   TextField,
   IconButton,
-  Paper,
   Slider,
   Collapse,
   CircularProgress,
@@ -21,18 +20,17 @@ import {
 } from "@mui/material";
 import {
   Send,
-  Settings,
+  Settings2,
   Trash2,
-  ChevronDown,
-  ChevronUp,
   User,
   Bot,
-  AlertCircle,
   Copy,
   Check,
+  Sparkles,
+  ArrowUp,
 } from "lucide-react";
-import ModelSelector, { ConfiguredProvider } from "../../components/Inputs/ModelSelector";
-import { getLLMKeys } from "../../../application/repository/llmKeys.repository";
+import ModelSelector from "../../components/Inputs/ModelSelector";
+import { getAllLlmApiKeys, type LLMApiKey } from "../../../application/repository/deepEval.repository";
 
 // Types
 interface Message {
@@ -63,14 +61,13 @@ const DEFAULT_SETTINGS: PlaygroundSettings = {
 export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Model selection state
   const [provider, setProvider] = useState("openai");
   const [model, setModel] = useState("");
-  const [configuredProviders, setConfiguredProviders] = useState<ConfiguredProvider[]>([]);
+  const [configuredProviders, setConfiguredProviders] = useState<LLMApiKey[]>([]);
 
   // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
@@ -89,8 +86,8 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
   useEffect(() => {
     const fetchProviders = async () => {
       try {
-        const keys = await getLLMKeys();
-        setConfiguredProviders(keys.map((k: { provider: string }) => ({ provider: k.provider })));
+        const keys = await getAllLlmApiKeys();
+        setConfiguredProviders(keys);
       } catch (err) {
         console.error("Failed to load LLM API keys:", err);
       }
@@ -108,7 +105,6 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
       const providerParam = params.get("provider");
       
       if (providerParam) {
-        // Map display provider names to internal IDs
         const providerMap: Record<string, string> = {
           "OpenAI": "openai",
           "Anthropic": "anthropic",
@@ -120,7 +116,6 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
         setProvider(providerMap[providerParam] || providerParam.toLowerCase());
       }
       if (modelParam) {
-        // Try to map model display name to model ID
         setModel(modelParam);
       }
     }
@@ -153,14 +148,12 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
     setError(null);
 
     try {
-      // Build messages array for API
       const apiMessages = [
         ...(settings.systemPrompt ? [{ role: "system", content: settings.systemPrompt }] : []),
         ...messages.map((m) => ({ role: m.role, content: m.content })),
         { role: "user", content: userMessage.content },
       ];
 
-      // Call playground API
       const response = await fetch("/api/playground/chat", {
         method: "POST",
         headers: {
@@ -196,7 +189,6 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
       const errorMessage = err instanceof Error ? err.message : "Failed to get response";
       setError(errorMessage);
       
-      // Add error message as assistant response
       const errorAssistantMessage: Message = {
         id: `msg-${Date.now()}-error`,
         role: "assistant",
@@ -235,370 +227,346 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
     navigate("/evals#settings");
   };
 
+  const hasMessages = messages.length > 0;
+  const canSend = inputValue.trim() && model && !isLoading;
+
+  // Input bar component (reused in both states)
+  const InputBar = (
+    <Box sx={{ position: "relative", width: "100%", maxWidth: 720 }}>
+      <TextField
+        inputRef={inputRef}
+        fullWidth
+        multiline
+        maxRows={6}
+        minRows={1}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyPress}
+        placeholder={model ? "Message..." : "Select a model to start"}
+        disabled={!model || isLoading}
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            fontSize: 15,
+            bgcolor: "#fff",
+            borderRadius: "24px",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 2px 12px rgba(0, 0, 0, 0.08)",
+            pr: 7,
+            "& fieldset": { border: "none" },
+            "&:hover": { borderColor: "#d1d5db" },
+            "&.Mui-focused": { 
+              borderColor: "#13715B", 
+              boxShadow: "0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 2px rgba(19, 113, 91, 0.1)" 
+            },
+            "&.Mui-disabled": { bgcolor: "#f9fafb", borderColor: "#e5e7eb" },
+          },
+          "& .MuiOutlinedInput-input": {
+            py: 1.75,
+            px: 2.5,
+            lineHeight: 1.5,
+          },
+        }}
+      />
+      {/* Send Button - Separate circular button */}
+      <IconButton
+        onClick={handleSend}
+        disabled={!canSend}
+        sx={{
+          position: "absolute",
+          right: 8,
+          bottom: 8,
+          width: 36,
+          height: 36,
+          bgcolor: canSend ? "#13715B" : "#e5e7eb",
+          color: canSend ? "#fff" : "#9ca3af",
+          borderRadius: "50%",
+          transition: "all 0.2s",
+          "&:hover": { 
+            bgcolor: canSend ? "#0f5c4a" : "#e5e7eb",
+            transform: canSend ? "scale(1.05)" : "none",
+          },
+          "&:disabled": { 
+            bgcolor: "#e5e7eb", 
+            color: "#9ca3af",
+          },
+        }}
+      >
+        <ArrowUp size={18} strokeWidth={2.5} />
+      </IconButton>
+    </Box>
+  );
+
   return (
-    <Box sx={{ height: "calc(100vh - 180px)", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
+    <Box 
+      sx={{ 
+        height: "calc(100vh - 140px)", 
+        display: "flex", 
+        flexDirection: "column",
+      }}
+    >
+      {/* Top Bar */}
       <Stack
         direction="row"
         alignItems="center"
         justifyContent="space-between"
-        sx={{ mb: 2 }}
+        sx={{ px: 2, py: 1.5, borderBottom: hasMessages ? "1px solid #f3f4f6" : "none" }}
       >
-        <Typography variant="h5" fontWeight={600} color="#111827">
-          Playground
-        </Typography>
-        <Stack direction="row" alignItems="center" gap={2}>
-          {/* Model Selector */}
-          <Box sx={{ width: 280 }}>
-            <ModelSelector
-              provider={provider}
-              model={model}
-              onProviderChange={setProvider}
-              onModelChange={setModel}
-              configuredProviders={configuredProviders}
-              onNavigateToSettings={handleNavigateToSettings}
-              label=""
-            />
-          </Box>
+        {/* Model Selector */}
+        <Box sx={{ width: 220 }}>
+          <ModelSelector
+            provider={provider}
+            model={model}
+            onProviderChange={setProvider}
+            onModelChange={setModel}
+            configuredProviders={configuredProviders}
+            onNavigateToSettings={handleNavigateToSettings}
+            label=""
+          />
+        </Box>
 
-          {/* Settings Toggle */}
-          <Tooltip title="Settings">
+        {/* Action Buttons */}
+        <Stack direction="row" alignItems="center" gap={0.5}>
+          <Tooltip title="Model settings">
             <IconButton
               onClick={() => setSettingsOpen(!settingsOpen)}
+              size="small"
               sx={{
+                width: 34,
+                height: 34,
+                color: settingsOpen ? "#13715B" : "#9ca3af",
                 bgcolor: settingsOpen ? "#ecfdf5" : "transparent",
-                color: settingsOpen ? "#13715B" : "#6b7280",
-                "&:hover": { bgcolor: "#f0fdf4" },
+                "&:hover": { bgcolor: "#f3f4f6" },
               }}
             >
-              <Settings size={20} />
+              <Settings2 size={18} />
             </IconButton>
           </Tooltip>
 
-          {/* Clear Conversation */}
-          <Tooltip title="Clear conversation">
-            <IconButton
-              onClick={handleClear}
-              disabled={messages.length === 0}
-              sx={{
-                color: "#6b7280",
-                "&:hover": { bgcolor: "#fef2f2", color: "#dc2626" },
-                "&:disabled": { color: "#d1d5db" },
-              }}
-            >
-              <Trash2 size={20} />
-            </IconButton>
-          </Tooltip>
+          {hasMessages && (
+            <Tooltip title="Clear conversation">
+              <IconButton
+                onClick={handleClear}
+                size="small"
+                sx={{
+                  width: 34,
+                  height: 34,
+                  color: "#9ca3af",
+                  "&:hover": { bgcolor: "#fef2f2", color: "#dc2626" },
+                }}
+              >
+                <Trash2 size={18} />
+              </IconButton>
+            </Tooltip>
+          )}
         </Stack>
       </Stack>
 
       {/* Settings Panel */}
       <Collapse in={settingsOpen}>
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2,
-            mb: 2,
-            bgcolor: "#f9fafb",
-            border: "1px solid #e5e7eb",
-            borderRadius: "12px",
-          }}
-        >
-          <Stack direction="row" gap={4} flexWrap="wrap">
-            {/* System Prompt */}
-            <Box sx={{ flex: "1 1 300px", minWidth: 250 }}>
-              <Typography variant="caption" fontWeight={600} color="#374151" sx={{ mb: 0.5, display: "block" }}>
+        <Box sx={{ px: 3, py: 2, borderBottom: "1px solid #f3f4f6", bgcolor: "#fafafa" }}>
+          <Stack direction="row" gap={4} flexWrap="wrap" sx={{ maxWidth: 800 }}>
+            <Box sx={{ flex: "1 1 280px", minWidth: 240 }}>
+              <Typography variant="caption" fontWeight={600} color="#374151" sx={{ mb: 0.75, display: "block" }}>
                 System Prompt
               </Typography>
               <TextField
                 multiline
-                rows={3}
+                rows={2}
                 fullWidth
                 size="small"
                 value={settings.systemPrompt}
                 onChange={(e) => setSettings({ ...settings, systemPrompt: e.target.value })}
                 placeholder="You are a helpful assistant..."
                 sx={{
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: 13,
-                    bgcolor: "#fff",
-                  },
+                  "& .MuiOutlinedInput-root": { fontSize: 13, bgcolor: "#fff", borderRadius: "8px" },
                 }}
               />
             </Box>
 
-            {/* Parameters */}
-            <Stack sx={{ flex: "0 0 200px" }} gap={2}>
-              {/* Temperature */}
-              <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="caption" fontWeight={600} color="#374151">
-                    Temperature
-                  </Typography>
-                  <Typography variant="caption" color="#6b7280">
-                    {settings.temperature.toFixed(1)}
-                  </Typography>
+            <Stack direction="row" gap={3}>
+              <Box sx={{ width: 140 }}>
+                <Stack direction="row" justifyContent="space-between" mb={0.5}>
+                  <Typography variant="caption" fontWeight={600} color="#374151">Temperature</Typography>
+                  <Typography variant="caption" color="#13715B" fontWeight={600}>{settings.temperature.toFixed(1)}</Typography>
                 </Stack>
                 <Slider
                   value={settings.temperature}
                   onChange={(_, v) => setSettings({ ...settings, temperature: v as number })}
-                  min={0}
-                  max={2}
-                  step={0.1}
-                  size="small"
-                  sx={{ color: "#13715B" }}
+                  min={0} max={2} step={0.1} size="small"
+                  sx={{ color: "#13715B", "& .MuiSlider-thumb": { width: 12, height: 12 } }}
                 />
               </Box>
 
-              {/* Max Tokens */}
-              <Box>
+              <Box sx={{ width: 100 }}>
                 <Typography variant="caption" fontWeight={600} color="#374151" sx={{ mb: 0.5, display: "block" }}>
                   Max Tokens
                 </Typography>
                 <TextField
-                  type="number"
-                  size="small"
-                  value={settings.maxTokens}
+                  type="number" size="small" value={settings.maxTokens}
                   onChange={(e) => setSettings({ ...settings, maxTokens: parseInt(e.target.value) || 1024 })}
                   inputProps={{ min: 1, max: 128000 }}
-                  sx={{
-                    width: "100%",
-                    "& .MuiOutlinedInput-root": { fontSize: 13, bgcolor: "#fff" },
-                  }}
-                />
-              </Box>
-            </Stack>
-
-            {/* Top-p */}
-            <Stack sx={{ flex: "0 0 150px" }}>
-              <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="caption" fontWeight={600} color="#374151">
-                    Top-p
-                  </Typography>
-                  <Typography variant="caption" color="#6b7280">
-                    {settings.topP.toFixed(2)}
-                  </Typography>
-                </Stack>
-                <Slider
-                  value={settings.topP}
-                  onChange={(_, v) => setSettings({ ...settings, topP: v as number })}
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  size="small"
-                  sx={{ color: "#13715B" }}
+                  sx={{ "& .MuiOutlinedInput-root": { fontSize: 12, bgcolor: "#fff", borderRadius: "8px" } }}
                 />
               </Box>
             </Stack>
           </Stack>
-        </Paper>
+        </Box>
       </Collapse>
 
-      {/* Messages Area */}
-      <Paper
-        elevation={0}
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          border: "1px solid #e5e7eb",
-          borderRadius: "12px",
-          overflow: "hidden",
-          bgcolor: "#fff",
-        }}
-      >
-        {/* Messages List */}
-        <Box
-          sx={{
-            flex: 1,
-            overflowY: "auto",
-            p: 2,
-          }}
-        >
-          {messages.length === 0 ? (
+      {/* Main Content Area */}
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {!hasMessages ? (
+          /* Empty State - Centered */
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              px: 3,
+              pb: 8,
+            }}
+          >
+            {/* Icon */}
             <Box
               sx={{
-                height: "100%",
+                width: 56,
+                height: 56,
+                borderRadius: "16px",
+                background: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#9ca3af",
+                mb: 3,
               }}
             >
-              <Bot size={48} strokeWidth={1} />
-              <Typography variant="body1" sx={{ mt: 2, fontWeight: 500 }}>
-                Start a conversation
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 0.5 }}>
-                {model ? `Selected: ${model}` : "Select a model above to begin"}
-              </Typography>
+              <Sparkles size={28} color="#13715B" strokeWidth={1.5} />
             </Box>
-          ) : (
-            <Stack spacing={2}>
-              {messages.map((msg) => (
-                <Box
-                  key={msg.id}
-                  sx={{
-                    display: "flex",
-                    gap: 1.5,
-                    alignItems: "flex-start",
-                  }}
-                >
-                  {/* Avatar */}
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "8px",
-                      bgcolor: msg.role === "user" ? "#eff6ff" : "#f0fdf4",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {msg.role === "user" ? (
-                      <User size={16} color="#3b82f6" />
-                    ) : (
-                      <Bot size={16} color="#13715B" />
-                    )}
-                  </Box>
 
-                  {/* Content */}
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 0.5 }}>
-                      <Typography variant="caption" fontWeight={600} color="#374151">
-                        {msg.role === "user" ? "You" : "Assistant"}
-                      </Typography>
-                      <Typography variant="caption" color="#9ca3af">
-                        {msg.timestamp.toLocaleTimeString()}
-                      </Typography>
-                    </Stack>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "#1f2937",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {msg.content}
-                    </Typography>
-                  </Box>
+            {/* Title */}
+            <Typography variant="h5" fontWeight={600} color="#111827" sx={{ mb: 1 }}>
+              {model ? `Chat with ${model}` : "Model Playground"}
+            </Typography>
 
-                  {/* Copy Button */}
-                  <Tooltip title={copiedId === msg.id ? "Copied!" : "Copy"}>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleCopy(msg.content, msg.id)}
-                      sx={{
-                        opacity: 0.5,
-                        "&:hover": { opacity: 1, bgcolor: "#f3f4f6" },
-                      }}
-                    >
-                      {copiedId === msg.id ? (
-                        <Check size={14} color="#13715B" />
-                      ) : (
-                        <Copy size={14} />
-                      )}
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              ))}
+            {/* Subtitle */}
+            <Typography variant="body2" color="#6b7280" sx={{ mb: 4, textAlign: "center", maxWidth: 400 }}>
+              {model 
+                ? "Ask anything. Your conversation will appear here."
+                : "Select a model from the dropdown above to start a conversation."
+              }
+            </Typography>
 
-              {/* Loading indicator */}
-              {isLoading && (
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "8px",
-                      bgcolor: "#f0fdf4",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Bot size={16} color="#13715B" />
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, pt: 1 }}>
-                    <CircularProgress size={16} sx={{ color: "#13715B" }} />
-                    <Typography variant="body2" color="#6b7280">
-                      Thinking...
-                    </Typography>
-                  </Box>
-                </Box>
-              )}
+            {/* Input Bar */}
+            {InputBar}
 
-              <div ref={messagesEndRef} />
-            </Stack>
-          )}
-        </Box>
+            {/* Helper */}
+            <Typography variant="caption" color="#9ca3af" sx={{ mt: 2 }}>
+              Press <strong>Enter</strong> to send
+            </Typography>
+          </Box>
+        ) : (
+          /* Chat Mode */
+          <>
+            {/* Messages */}
+            <Box sx={{ flex: 1, overflowY: "auto", px: 3, py: 3 }}>
+              <Box sx={{ maxWidth: 720, mx: "auto" }}>
+                <Stack spacing={4}>
+                  {messages.map((msg) => (
+                    <Box key={msg.id} sx={{ display: "flex", gap: 2 }}>
+                      {/* Avatar */}
+                      <Box
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: "8px",
+                          bgcolor: msg.role === "user" ? "#eff6ff" : "#f0fdf4",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {msg.role === "user" ? (
+                          <User size={16} color="#3b82f6" />
+                        ) : (
+                          <Bot size={16} color="#13715B" />
+                        )}
+                      </Box>
 
-        {/* Input Area */}
-        <Box
-          sx={{
-            p: 2,
-            borderTop: "1px solid #e5e7eb",
-            bgcolor: "#fafafa",
-          }}
-        >
-          {/* Error Display */}
-          {error && (
-            <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 1.5 }}>
-              <AlertCircle size={14} color="#dc2626" />
-              <Typography variant="caption" color="error">
-                {error}
-              </Typography>
-            </Stack>
-          )}
+                      {/* Content */}
+                      <Box sx={{ flex: 1, minWidth: 0, pt: 0.25 }}>
+                        <Typography variant="body2" fontWeight={600} color="#111827" sx={{ mb: 0.5 }}>
+                          {msg.role === "user" ? "You" : model || "Assistant"}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "#374151",
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                            lineHeight: 1.7,
+                          }}
+                        >
+                          {msg.content}
+                        </Typography>
+                      </Box>
 
-          <Stack direction="row" gap={1.5}>
-            <TextField
-              ref={inputRef}
-              fullWidth
-              multiline
-              maxRows={4}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder={model ? "Type your message..." : "Select a model first"}
-              disabled={!model || isLoading}
+                      {/* Copy */}
+                      <Tooltip title={copiedId === msg.id ? "Copied!" : "Copy"}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleCopy(msg.content, msg.id)}
+                          sx={{
+                            width: 28, height: 28,
+                            opacity: 0.3,
+                            "&:hover": { opacity: 1, bgcolor: "#f3f4f6" },
+                          }}
+                        >
+                          {copiedId === msg.id ? <Check size={14} color="#13715B" /> : <Copy size={14} />}
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  ))}
+
+                  {/* Loading */}
+                  {isLoading && (
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                      <Box
+                        sx={{
+                          width: 32, height: 32, borderRadius: "8px", bgcolor: "#f0fdf4",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                      >
+                        <Bot size={16} color="#13715B" />
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, pt: 0.5 }}>
+                        <CircularProgress size={14} thickness={5} sx={{ color: "#13715B" }} />
+                        <Typography variant="body2" color="#6b7280">Thinking...</Typography>
+                      </Box>
+                    </Box>
+                  )}
+
+                  <div ref={messagesEndRef} />
+                </Stack>
+              </Box>
+            </Box>
+
+            {/* Bottom Input */}
+            <Box
               sx={{
-                "& .MuiOutlinedInput-root": {
-                  fontSize: 14,
-                  bgcolor: "#fff",
-                  borderRadius: "10px",
-                },
-              }}
-            />
-            <IconButton
-              onClick={handleSend}
-              disabled={!inputValue.trim() || !model || isLoading}
-              sx={{
-                width: 44,
-                height: 44,
-                bgcolor: "#13715B",
-                color: "#fff",
-                borderRadius: "10px",
-                "&:hover": { bgcolor: "#0f5c4a" },
-                "&:disabled": { bgcolor: "#e5e7eb", color: "#9ca3af" },
+                px: 3,
+                py: 2,
+                borderTop: "1px solid #f3f4f6",
+                display: "flex",
+                justifyContent: "center",
               }}
             >
-              <Send size={18} />
-            </IconButton>
-          </Stack>
-
-          {/* Helper text */}
-          <Typography variant="caption" color="#9ca3af" sx={{ mt: 1, display: "block" }}>
-            Press Enter to send, Shift+Enter for new line
-          </Typography>
-        </Box>
-      </Paper>
+              {InputBar}
+            </Box>
+          </>
+        )}
+      </Box>
     </Box>
   );
 }

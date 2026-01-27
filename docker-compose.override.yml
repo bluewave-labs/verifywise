@@ -40,3 +40,7 @@ services:
       dockerfile: Dockerfile.dev
     volumes:
       - ./EvalServer/src:/app
+      - eval_uploads-dev:/app/data/uploads
+
+volumes:
+  eval_uploads-dev:

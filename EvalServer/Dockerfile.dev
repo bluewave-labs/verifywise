@@ -11,4 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://dow
 # Copy the rest of the application
 COPY ./src .
 
+# Create uploads directory for user datasets (will be mounted as volume)
+RUN mkdir -p /app/data/uploads
+
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--workers", "4"]

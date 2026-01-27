@@ -16,7 +16,6 @@ react.log
 .idea/
 .claude
 CLAUDE.md
-.github
 .kombai
 .vscode
 agent.md
@@ -36,3 +35,7 @@ Gateway/data/config.json.bak
 
 # Node modules
 node_modules/
+
+# EvalServer user uploads (keep directory structure, ignore uploaded files)
+EvaluationModule/data/uploads/*
+!EvaluationModule/data/uploads/.gitkeep

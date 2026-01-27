@@ -18,7 +18,6 @@ export const createProjectButtonStyle = {
 
 export const datePickerStyle = {
   width: "130px",
-  "& input": { width: "85px" },
 };
 
 export const teamMembersRenderInputStyle = {

@@ -29,6 +29,7 @@ import {
   getOrganizationById,
   updateOrganizationById,
   getOrganizationsExists,
+  updateOnboardingStatus,
 } from "../controllers/organization.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
@@ -101,6 +102,23 @@ router.post("/", /**checkMultiTenancy,**/ createOrganization);
  * @returns {Object} Updated organization object
  */
 router.patch("/:id", authenticateJWT, updateOrganizationById);
+
+/**
+ * PATCH /organizations/:id/onboarding-status
+ *
+ * Updates the onboarding status of an organization to 'completed'.
+ * Called after user selects demo data or blank dashboard option.
+ * Requires authentication.
+ *
+ * @name patch/:id/onboarding-status
+ * @function
+ * @memberof module:routes/organization.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ * @returns {Object} Updated onboarding status
+ */
+router.patch("/:id/onboarding-status", authenticateJWT, updateOnboardingStatus);
 
 /**
  * DELETE /organizations/:id

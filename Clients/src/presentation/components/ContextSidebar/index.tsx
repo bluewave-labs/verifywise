@@ -14,6 +14,8 @@ interface ContextSidebarProps {
   onOpenCreateDemoData?: () => void;
   onOpenDeleteDemoData?: () => void;
   hasDemoData?: boolean;
+  /** Only show demo data options to admins */
+  isAdmin?: boolean;
 }
 
 /**
@@ -28,6 +30,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
   hasDemoData,
+  isAdmin = false,
 }) => {
   const evalsSidebarContext = useEvalsSidebarContextSafe();
   const aiDetectionSidebarContext = useAIDetectionSidebarContextSafe();
@@ -58,6 +61,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
           hasDemoData={hasDemoData}
+          isAdmin={isAdmin}
         />
       );
     case "evals":
@@ -69,6 +73,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           experimentsCount={evalsSidebarContext?.experimentsCount ?? 0}
           datasetsCount={evalsSidebarContext?.datasetsCount ?? 0}
           scorersCount={evalsSidebarContext?.scorersCount ?? 0}
+          modelsCount={evalsSidebarContext?.modelsCount ?? 0}
           arenaCount={evalsSidebarContext?.arenaCount ?? 0}
           disabled={evalsSidebarContext?.disabled ?? true}
           recentExperiments={evalsSidebarContext?.recentExperiments ?? []}
@@ -85,10 +90,10 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
       const aiDetectionTab = location.pathname.includes("/ai-detection/history")
         ? "history"
         : location.pathname.includes("/ai-detection/settings")
-        ? "settings"
-        : location.pathname.includes("/ai-detection/scans/")
-        ? "history"
-        : "scan";
+          ? "settings"
+          : location.pathname.includes("/ai-detection/scans/")
+            ? "history"
+            : "scan";
 
       const handleAIDetectionTabChange = (newTab: string) => {
         if (newTab === "scan") {
@@ -118,6 +123,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
           hasDemoData={hasDemoData}
+          isAdmin={isAdmin}
         />
       );
   }

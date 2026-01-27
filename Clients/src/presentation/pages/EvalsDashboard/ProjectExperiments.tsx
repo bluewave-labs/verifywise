@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Box, Card, CardContent, Typography, Stack } from "@mui/material";
-import { Play } from "lucide-react";
+import { Play, Clock } from "lucide-react";
 import {
   getAllExperiments,
   createExperiment,
   deleteExperiment,
   getExperiment,
-  getLogs,
+  validateModel,
   type Experiment,
-  type EvaluationLog,
 } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import NewExperimentModal from "./NewExperimentModal";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { useNavigate } from "react-router-dom";
@@ -65,6 +65,14 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   const [currentPage, setCurrentPage] = useState(0);
   const [newEvalModalOpen, setNewEvalModalOpen] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
+  const [apiKeyWarning, setApiKeyWarning] = useState<{
+    message: string;
+    pendingExperiment: ExperimentWithMetrics;
+  } | null>(null);
+  const [rerunConfirm, setRerunConfirm] = useState<{
+    experiment: ExperimentWithMetrics;
+    promptCount: number;
+  } | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [chartRefreshKey, setChartRefreshKey] = useState(0);
@@ -77,6 +85,19 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // Helper function to estimate experiment duration based on prompt count
+  // Each prompt takes ~20-30 seconds (model call + judge evaluations for each metric)
+  const getEstimatedTimeRange = (promptCount: number): string => {
+    if (promptCount <= 0) return "unknown";
+    if (promptCount <= 3) return "~1-2 minutes";
+    if (promptCount <= 5) return "~2-3 minutes";
+    if (promptCount <= 10) return "~4-6 minutes";
+    if (promptCount <= 20) return "~7-12 minutes";
+    if (promptCount <= 30) return "~12-18 minutes";
+    if (promptCount <= 50) return "~18-30 minutes";
+    return "~30+ minutes";
+  };
 
   useEffect(() => {
     loadExperiments();
@@ -110,7 +131,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [experiments]);
 
-  // Detect when running experiments complete and refresh the chart
+  // Detect when running experiments complete and refresh the chart + notify user
   useEffect(() => {
     const currentRunningIds = new Set(
       experiments
@@ -118,9 +139,10 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         .map((exp) => exp.id)
     );
 
-    // Check if any previously running experiments are now completed
+    // Check if any previously running experiments are now completed or failed
     const prevRunning = prevRunningIdsRef.current;
     let anyCompleted = false;
+    const completedExps: { name: string; status: string }[] = [];
     
     prevRunning.forEach((id) => {
       if (!currentRunningIds.has(id)) {
@@ -128,6 +150,10 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         const exp = experiments.find((e) => e.id === id);
         if (exp && (exp.status === "completed" || exp.status === "failed")) {
           anyCompleted = true;
+          completedExps.push({ 
+            name: exp.name || exp.id, 
+            status: exp.status 
+          });
         }
       }
     });
@@ -135,9 +161,21 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     // Update the ref with current running IDs
     prevRunningIdsRef.current = currentRunningIds;
 
-    // If any experiment just completed, refresh the chart
+    // If any experiment just completed/failed, refresh the chart and show notification
     if (anyCompleted) {
       setChartRefreshKey((prev) => prev + 1);
+      
+      // Show notification for each completed/failed experiment
+      completedExps.forEach((exp) => {
+        if (exp.status === "completed") {
+          setAlert({ variant: "success", body: `Experiment "${exp.name}" completed successfully` });
+          // Auto-dismiss success alerts after 5 seconds
+          setTimeout(() => setAlert(null), 5000);
+        } else {
+          setAlert({ variant: "error", body: `Experiment "${exp.name}" failed. Check logs for details.` });
+          setTimeout(() => setAlert(null), 20000);
+        }
+      });
     }
   }, [experiments]);
 
@@ -148,93 +186,24 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         project_id: projectId
       });
 
-      // Load metrics for each experiment (skip for running/pending experiments)
-      const experimentsWithMetrics = await Promise.all(
-        (data.experiments || []).map(async (exp: Experiment) => {
-          // Get prompt count from config (available immediately)
-          const configPromptCount = exp.config?.dataset?.count || 
+      // Use pre-computed avg_scores from experiment results (no need to fetch logs)
+      const experimentsWithMetrics = (data.experiments || []).map((exp: Experiment) => {
+        // Get prompt count from config or results
+        const sampleCount = exp.results?.total_prompts || 
+                           exp.config?.dataset?.count || 
                                     exp.config?.dataset?.prompts?.length || 
-                                    exp.results?.total_prompts || 
                                     0;
           
-          // Skip log fetching for running/pending experiments to avoid timeout
-          if (exp.status === "running" || exp.status === "pending") {
-            return {
-              ...exp,
-              avgMetrics: {},
-              sampleCount: configPromptCount,
-            };
-          }
-
-          try {
-            // Get logs for this experiment to calculate metrics
-            const logsData = await getLogs({
-              experiment_id: exp.id,
-              limit: 1000
-            });
-
-            const logs = logsData.logs || [];
-
-            // Map display names to camelCase keys for backwards compatibility
-            const displayNameToKey: Record<string, string> = {
-              "Answer Relevancy": "answerRelevancy",
-              "Faithfulness": "faithfulness",
-              "Contextual Relevancy": "contextualRelevancy",
-              "Bias": "bias",
-              "Toxicity": "toxicity",
-              "Hallucination": "hallucination",
-              "Knowledge Retention": "knowledgeRetention",
-              "Conversation Completeness": "conversationCompleteness",
-              "Conversation Relevancy": "conversationRelevancy",
-              "Role Adherence": "roleAdherence",
-              "Task Completion": "taskCompletion",
-              "Tool Correctness": "toolCorrectness",
-              "Answer Correctness": "answerCorrectness",
-              "Coherence": "coherence",
-              "Tonality": "tonality",
-              "Safety": "safety",
-            };
-
-            // Calculate average metrics from logs
-            const metricsSum: Record<string, { sum: number; count: number }> = {};
-            logs.forEach((log: EvaluationLog) => {
-              if (log.metadata?.metric_scores) {
-                Object.entries(log.metadata.metric_scores).forEach(([rawKey, value]) => {
-                  // Normalize key: convert display names to camelCase
-                  const key = displayNameToKey[rawKey] || rawKey;
-                  if (typeof value === "number" || (typeof value === "object" && value !== null && "score" in value)) {
-                    const scoreValue = typeof value === "number" ? value : (value as { score: number }).score;
-                    if (typeof scoreValue === "number") {
-                      if (!metricsSum[key]) {
-                        metricsSum[key] = { sum: 0, count: 0 };
-                      }
-                      metricsSum[key].sum += scoreValue;
-                      metricsSum[key].count += 1;
-                    }
-                  }
-                });
-              }
-            });
-
-            const avgMetrics: Record<string, number> = {};
-            Object.entries(metricsSum).forEach(([key, { sum, count }]) => {
-              avgMetrics[key] = count > 0 ? sum / count : 0;
-            });
+        // Use pre-computed avg_scores from results (computed when experiment completes)
+        // This eliminates N individual log requests!
+        const avgMetrics = exp.results?.avg_scores || {};
 
             return {
               ...exp,
               avgMetrics,
-              sampleCount: logs.length,
+          sampleCount,
             };
-          } catch {
-            return {
-              ...exp,
-              avgMetrics: {},
-              sampleCount: configPromptCount,
-            };
-          }
-        })
-      );
+      });
 
       setExperiments(experimentsWithMetrics);
     } catch (err) {
@@ -252,17 +221,10 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     }
   };
 
-  const handleRerunExperiment = async (row: IEvaluationRow) => {
-    // Find the original experiment to get its config
-    const originalExp = experiments.find((e) => e.id === row.id);
-    if (!originalExp) {
-      setAlert({ variant: "error", body: "Could not find experiment to rerun" });
-      setTimeout(() => setAlert(null), 4000);
-      return;
-    }
-
+  const executeRerun = async (originalExp: ExperimentWithMetrics) => {
     try {
       const baseConfig = originalExp.config || {};
+
       const now = new Date();
       const dateStr = now.toLocaleDateString("en-US", {
         month: "short",
@@ -304,19 +266,65 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     } catch (err) {
       console.error("Failed to rerun experiment:", err);
       setAlert({ variant: "error", body: "Failed to start rerun" });
-      setTimeout(() => setAlert(null), 5000);
+      setTimeout(() => setAlert(null), 20000);
     }
+  };
+
+  const handleRerunExperiment = async (row: IEvaluationRow) => {
+    // Find the original experiment to get its config
+    const originalExp = experiments.find((e) => e.id === row.id);
+    if (!originalExp) {
+      setAlert({ variant: "error", body: "Could not find experiment to rerun" });
+      setTimeout(() => setAlert(null), 20000);
+      return;
+    }
+
+    // Get prompt count from sampleCount or config
+    const promptCount = originalExp.sampleCount || 0;
+
+    // Show rerun confirmation with estimated time
+    setRerunConfirm({
+      experiment: originalExp,
+      promptCount,
+    });
+  };
+
+  const proceedWithRerun = async (originalExp: ExperimentWithMetrics) => {
+    const baseConfig = originalExp.config || {};
+
+    // Validate model API key availability before rerunning
+    const modelName = baseConfig.model?.name;
+    const modelProvider = baseConfig.model?.accessMethod;
+
+    if (modelName && modelProvider !== "ollama" && modelProvider !== "huggingface") {
+      try {
+        const validation = await validateModel(modelName, modelProvider);
+        if (!validation.valid) {
+          // Show warning modal but allow user to proceed
+          setApiKeyWarning({
+            message: validation.error_message || `API key for ${validation.provider || modelProvider} is not configured.`,
+            pendingExperiment: originalExp,
+          });
+          return;
+        }
+      } catch (validationError) {
+        console.warn("Model validation check failed, proceeding anyway:", validationError);
+      }
+    }
+
+    // If validation passed or skipped, execute the rerun
+    await executeRerun(originalExp);
   };
 
   const handleDeleteExperiment = async (experimentId: string) => {
     try {
       await deleteExperiment(experimentId);
-      setAlert({ variant: "success", body: "Eval deleted" });
+      setAlert({ variant: "success", body: "Experiment deleted" });
       setTimeout(() => setAlert(null), 3000);
       loadExperiments();
     } catch {
       setAlert({ variant: "error", body: "Failed to delete" });
-      setTimeout(() => setAlert(null), 5000);
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 
@@ -336,7 +344,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       setTimeout(() => setAlert(null), 3000);
     } catch {
       setAlert({ variant: "error", body: "Failed to download results" });
-      setTimeout(() => setAlert(null), 5000);
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 
@@ -348,7 +356,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       setTimeout(() => setAlert(null), 3000);
     } catch {
       setAlert({ variant: "error", body: "Failed to copy results" });
-      setTimeout(() => setAlert(null), 5000);
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 
@@ -569,6 +577,77 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
+
+      {/* Rerun Confirmation Modal */}
+      {rerunConfirm && (
+        <ConfirmationModal
+          title="Rerun experiment"
+          body={
+            <Box>
+              <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6, mb: 2 }}>
+                This will create a new experiment run using the same configuration as "{rerunConfirm.experiment.name}".
+              </Typography>
+              {rerunConfirm.promptCount > 0 && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    p: "8px",
+                    borderRadius: "4px",
+                    backgroundColor: "#F0FDF4",
+                    border: "1px solid #BBF7D0",
+                  }}
+                >
+                  <Clock size={16} color="#13715B" />
+                  <Box>
+                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                      Estimated time: {getEstimatedTimeRange(rerunConfirm.promptCount)}
+                    </Typography>
+                    <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                      Based on {rerunConfirm.promptCount} prompt{rerunConfirm.promptCount !== 1 ? "s" : ""} from the original run
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          }
+          cancelText="Cancel"
+          proceedText="Rerun"
+          onCancel={() => setRerunConfirm(null)}
+          onProceed={async () => {
+            const exp = rerunConfirm.experiment;
+            setRerunConfirm(null);
+            await proceedWithRerun(exp);
+          }}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
+
+      {/* API Key Warning Modal */}
+      {apiKeyWarning && (
+        <ConfirmationModal
+          title="API key may not be configured"
+          body={
+            <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6 }}>
+              {apiKeyWarning.message}
+              <br /><br />
+              Do you want to run the experiment anyway?
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Run anyway"
+          onCancel={() => setApiKeyWarning(null)}
+          onProceed={async () => {
+            const exp = apiKeyWarning.pendingExperiment;
+            setApiKeyWarning(null);
+            await executeRerun(exp);
+          }}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
 
       {/* Header + description */}
       <Stack spacing={1} mb={4}>

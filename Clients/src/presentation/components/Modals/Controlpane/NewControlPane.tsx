@@ -905,7 +905,7 @@ const NewControlPane = ({
       icon: "FileText" as keyof typeof LucideIcons,
     },
     {
-      label: "Evidences",
+      label: "Evidence",
       value: "evidences",
       icon: "FolderOpen" as keyof typeof LucideIcons,
     },

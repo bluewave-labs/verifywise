@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Box, Typography, Select, MenuItem, FormControl } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { getAllExperiments, getLogs, type Experiment, type EvaluationLog } from "../../../../application/repository/deepEval.repository";
+import { getAllExperiments, type Experiment } from "../../../../application/repository/deepEval.repository";
 
 interface PerformanceChartProps {
   projectId: string;
@@ -77,28 +77,6 @@ const formatMetricLabel = (key: string): string => {
     .join(" ");
 };
 
-// Map old display names to camelCase keys for backwards compatibility
-const displayNameToKey: Record<string, string> = {
-  "Answer Relevancy": "answerRelevancy",
-  "Faithfulness": "faithfulness",
-  "Contextual Relevancy": "contextualRelevancy",
-  "Contextual Recall": "contextualRecall",
-  "Contextual Precision": "contextualPrecision",
-  "Bias": "bias",
-  "Toxicity": "toxicity",
-  "Hallucination": "hallucination",
-  "Knowledge Retention": "knowledgeRetention",
-  "Conversation Completeness": "conversationCompleteness",
-  "Conversation Relevancy": "conversationRelevancy",
-  "Role Adherence": "roleAdherence",
-  "Task Completion": "taskCompletion",
-  "Tool Correctness": "toolCorrectness",
-  "Answer Correctness": "answerCorrectness",
-  "Coherence": "coherence",
-  "Tonality": "tonality",
-  "Safety": "safety",
-};
-
 type ChartPoint = {
   name: string;
   date: string;
@@ -149,64 +127,35 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
         return;
       }
 
-      // For each experiment, fetch logs and calculate average metrics
+      // Use pre-computed avg_scores from experiment results (no need to fetch logs)
       const chartData: ChartPoint[] = [];
       const metricsFound = new Set<string>();
 
-      for (let i = 0; i < completedExps.length; i++) {
-        const exp = completedExps[i];
-        try {
-          const logsResp = await getLogs({
-            experiment_id: exp.id,
-            limit: 1000,
-          });
-          const logs: EvaluationLog[] = logsResp.logs || [];
-
-          // Calculate average for each metric from logs
-          const metricsSum: Record<string, { sum: number; count: number }> = {};
-          logs.forEach((log) => {
-            if (log.metadata?.metric_scores) {
-              Object.entries(log.metadata.metric_scores).forEach(([rawKey, value]) => {
-                // Normalize key: convert display names to camelCase, or keep if already camelCase
-                const key = displayNameToKey[rawKey] || rawKey;
-                
-                const score = typeof value === "number" ? value : (value as { score?: number })?.score;
-                if (typeof score === "number") {
-                  if (!metricsSum[key]) metricsSum[key] = { sum: 0, count: 0 };
-                  metricsSum[key].sum += score;
-                  metricsSum[key].count += 1;
+      completedExps.forEach((exp, i) => {
+        // Use pre-computed avg_scores from experiment results
+        const avgScores = exp.results?.avg_scores || {};
+        
+        // Track which metrics this experiment has
+        const calculatedMetrics: string[] = [];
+        Object.keys(avgScores).forEach((key) => {
                   metricsFound.add(key);
-                }
-              });
-            }
+          calculatedMetrics.push(key);
           });
 
-          // Build chart point - track which metrics were actually calculated
-          const calculatedMetrics: string[] = [];
+        // Build chart point
           const dateStr = new Date(exp.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
           const timeStr = new Date(exp.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
           const point: ChartPoint = {
             name: `Run ${i + 1}`,
-            // Use unique identifier combining date and time to avoid confusion with same-day experiments
             date: `${dateStr}`,
             uniqueId: `${dateStr} ${timeStr}`,
-            index: i, // Sequential index for even spacing
+          index: i,
             _calculatedMetrics: calculatedMetrics,
-          };
-
-          // Add all found metrics to the point
-          Object.keys(metricsSum).forEach((metricKey) => {
-            if (metricsSum[metricKey].count > 0) {
-              point[metricKey] = metricsSum[metricKey].sum / metricsSum[metricKey].count;
-              calculatedMetrics.push(metricKey); // Track that this metric was calculated
-            }
-          });
+          ...avgScores, // Spread all avg_scores directly
+        };
 
           chartData.push(point);
-        } catch (err) {
-          console.error(`Failed to load logs for experiment ${exp.id}:`, err);
-        }
-      }
+      });
 
       setData(chartData);
       // Show all metrics that have data (including custom scorers)

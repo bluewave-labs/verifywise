@@ -10,7 +10,7 @@ The application consists of the following components:
 - **Frontend** (React) - Web interface on port 80
 - **PostgreSQL** - Database on port 5432
 - **Redis** - Cache and queue on port 6379
-- **Bias & Fairness Backend** (Python) - ML service on port 8000
+- **Eval Server** (Python) - LLM Eval service on port 8000
 
 ## Prerequisites
 

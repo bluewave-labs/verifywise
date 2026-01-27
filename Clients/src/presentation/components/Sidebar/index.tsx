@@ -27,12 +27,15 @@ interface SidebarProps {
   onOpenCreateDemoData?: () => void;
   onOpenDeleteDemoData?: () => void;
   hasDemoData?: boolean;
+  /** Only show demo data options to admins */
+  isAdmin?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
   hasDemoData = false,
+  isAdmin = false,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -218,6 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       onOpenDeleteDemoData={onOpenDeleteDemoData}
       showReadyToSubscribe={true}
       openUserGuide={openUserGuide}
+      isAdmin={isAdmin}
       enableFlyingHearts={true}
     />
   );

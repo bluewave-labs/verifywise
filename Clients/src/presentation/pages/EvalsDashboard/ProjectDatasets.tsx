@@ -15,13 +15,10 @@ import {
   Button,
   useTheme,
   IconButton,
-  Popover,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
+  Menu,
+  MenuItem,
 } from "@mui/material";
-import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check, MessageSquare, GitBranch } from "lucide-react";
+import { Upload, Download, X, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check, MessageSquare, GitBranch } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
 import {
@@ -151,69 +148,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   const [newDatasetUseCase, setNewDatasetUseCase] = useState<"chatbot" | "rag">("chatbot");
   const [newDatasetTurnType, setNewDatasetTurnType] = useState<"single-turn" | "multi-turn">("single-turn");
 
-  // State for dataset metadata (prompt counts, difficulty)
-  const [datasetMetadata, setDatasetMetadata] = useState<Record<string, { promptCount: number; avgDifficulty: string; loading: boolean }>>({});
-
-  // Calculate average difficulty from prompts (only for single-turn prompts)
-  const calculateAvgDifficulty = (prompts: DatasetPromptRecord[]): string => {
-    const difficulties = prompts
-      .filter(p => isSingleTurnPrompt(p) && p.difficulty)
-      .map(p => (p as SingleTurnPrompt).difficulty!.toLowerCase());
-    if (difficulties.length === 0) return "Medium"; // Default to Medium if no difficulty data
-    
-    const counts = { easy: 0, medium: 0, hard: 0 };
-    difficulties.forEach(d => {
-      if (d === "easy") counts.easy++;
-      else if (d === "medium") counts.medium++;
-      else if (d === "hard") counts.hard++;
-    });
-    
-    // Return the most common difficulty
-    const max = Math.max(counts.easy, counts.medium, counts.hard);
-    if (max === 0) return "-";
-    if (counts.hard === max) return "Hard";
-    if (counts.medium === max) return "Medium";
-    return "Easy";
-  };
-
-  // Load metadata for a single dataset
-  const loadDatasetMetadata = useCallback(async (dataset: BuiltInDataset) => {
-    if (datasetMetadata[dataset.path]?.loading || datasetMetadata[dataset.path]?.promptCount !== undefined) {
-      return; // Already loading or loaded
-    }
-    
-    setDatasetMetadata(prev => ({
-      ...prev,
-      [dataset.path]: { promptCount: 0, avgDifficulty: "Medium", loading: true }
-    }));
-    
-    try {
-      const res = await readDataset(dataset.path);
-      const prompts = res.prompts || [];
-      // Count only prompts with actual content
-      const validPromptCount = prompts.filter((p) => {
-        if (isSingleTurnPrompt(p)) {
-          return p.prompt && p.prompt.trim().length > 0;
-        } else if (isMultiTurnConversation(p)) {
-          return p.turns && p.turns.length > 0 && p.turns.some(t => t.content && t.content.trim().length > 0);
-        }
-        return false;
-      }).length;
-      setDatasetMetadata(prev => ({
-        ...prev,
-        [dataset.path]: {
-          promptCount: validPromptCount,
-          avgDifficulty: calculateAvgDifficulty(prompts),
-          loading: false
-        }
-      }));
-    } catch {
-      setDatasetMetadata(prev => ({
-        ...prev,
-        [dataset.path]: { promptCount: 0, avgDifficulty: "Medium", loading: false }
-      }));
-    }
-  }, [datasetMetadata]);
+  // Note: promptCount is now returned by the API - no need to load metadata individually
 
   // Load user's datasets (My datasets tab)
   const loadMyDatasets = useCallback(async () => {
@@ -230,6 +165,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
         turnType: ud.turnType,
         isUserDataset: true,
         createdAt: ud.createdAt,
+        promptCount: ud.promptCount || 0, // Use pre-computed count from API
       }));
       setDatasets(allDatasets);
     } catch (err) {
@@ -653,16 +589,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   };
 
 
-  // Load metadata for datasets in "My datasets" tab
-  useEffect(() => {
-    if (activeTab === "my" && filteredDatasets.length > 0) {
-      filteredDatasets.forEach(dataset => {
-        if (!datasetMetadata[dataset.path]) {
-          void loadDatasetMetadata(dataset);
-        }
-      });
-    }
-  }, [activeTab, filteredDatasets, datasetMetadata, loadDatasetMetadata]);
+  // Metadata is now pre-computed by backend - no need to load individually
 
   const handleCloseDrawer = () => {
     setDrawerOpen(false);
@@ -1620,7 +1547,11 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                     type: dataset.turnType,
                     useCase: dataset.use_case || dataset.datasetType,
                     createdAt: dataset.createdAt,
-                    metadata: datasetMetadata[dataset.path],
+                    metadata: {
+                      promptCount: dataset.promptCount ?? 0,
+                      avgDifficulty: "Medium", // Default - only shown for user datasets
+                      loading: false,
+                    },
                   }))}
                   onRowClick={canUploadDataset ? (row) => {
                     const dataset = data.find((d) => d.path === row.path);
@@ -1696,75 +1627,33 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
         </Box>
       )}
 
-      {/* Action menu popover */}
-      <Popover
-        open={Boolean(actionAnchor)}
+      {/* Action menu */}
+      <Menu
         anchorEl={actionAnchor}
+        open={Boolean(actionAnchor)}
         onClose={handleActionMenuClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
         slotProps={{
           paper: {
-            sx: {
-              borderRadius: "4px",
-              border: "1px solid #d0d5dd",
-              boxShadow: "0px 4px 6px -2px rgba(16, 24, 40, 0.03), 0px 12px 16px -4px rgba(16, 24, 40, 0.08)",
-              minWidth: "160px",
-            },
+            sx: singleTheme.dropDownStyles.primary,
           },
         }}
       >
-        <List disablePadding>
-          <ListItemButton
-            onClick={() => actionDataset && handleViewPrompts(actionDataset)}
-            sx={{ py: 1, px: 2 }}
-          >
-            <ListItemIcon sx={{ minWidth: 28 }}>
-              <Eye size={16} color="#374151" />
-            </ListItemIcon>
-            <ListItemText
-              primary="View prompts"
-              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
-            />
-          </ListItemButton>
-          <ListItemButton
-            onClick={() => actionDataset && handleOpenInEditor(actionDataset)}
-            sx={{ py: 1, px: 2 }}
-          >
-            <ListItemIcon sx={{ minWidth: 28 }}>
-              <Edit3 size={16} color="#374151" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Open in editor"
-              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
-            />
-          </ListItemButton>
-          <ListItemButton
-            onClick={() => actionDataset && handleDownloadDataset(actionDataset)}
-            sx={{ py: 1, px: 2 }}
-          >
-            <ListItemIcon sx={{ minWidth: 28 }}>
-              <Download size={16} color="#374151" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Download JSON"
-              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
-            />
-          </ListItemButton>
-          <ListItemButton
-            onClick={() => actionDataset && handleRemoveDataset(actionDataset)}
-            sx={{ py: 1, px: 2 }}
-          >
-            <ListItemIcon sx={{ minWidth: 28 }}>
-              <Trash2 size={16} color="#DC2626" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Remove dataset"
-              primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }}
-            />
-          </ListItemButton>
-        </List>
-      </Popover>
+        <MenuItem onClick={() => actionDataset && handleViewPrompts(actionDataset)}>
+          View prompts
+        </MenuItem>
+        <MenuItem onClick={() => actionDataset && handleOpenInEditor(actionDataset)}>
+          Open in editor
+        </MenuItem>
+        <MenuItem onClick={() => actionDataset && handleDownloadDataset(actionDataset)}>
+          Download
+        </MenuItem>
+        <MenuItem
+          onClick={() => actionDataset && handleRemoveDataset(actionDataset)}
+          sx={{ color: "#d32f2f" }}
+        >
+          Remove
+        </MenuItem>
+      </Menu>
 
       {/* Delete confirmation modal */}
       <ConfirmationModal

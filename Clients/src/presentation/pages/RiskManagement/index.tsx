@@ -37,6 +37,10 @@ import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import HistorySidebar from "../../components/Common/HistorySidebar";
 import { useEntityChangeHistory } from "../../../application/hooks/useEntityChangeHistory";
+import { PluginSlot } from "../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
+import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
+import { apiServices } from "../../../infrastructure/api/networkServices";
 
 /**
  * Set initial loading status for all CRUD process
@@ -99,6 +103,7 @@ const RiskManagement = () => {
 
   // Modal state for StandardModal pattern
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isAiRiskModalOpen, setIsAiRiskModalOpen] = useState(false);
   const [isSubmitting] = useState(false);
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
@@ -106,6 +111,10 @@ const RiskManagement = () => {
   // Refs for form submission
   const onSubmitRef = useRef<(() => void) | null>(null);
   const onAiRiskSubmitRef = useRef<(() => void) | null>(null);
+
+  // Check if risk-import plugin is installed via plugin registry
+  const { getComponentsForSlot } = usePluginRegistry();
+  const hasRiskImportPlugin = getComponentsForSlot(PLUGIN_SLOTS.RISKS_ACTIONS).length > 0;
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -792,7 +801,7 @@ const RiskManagement = () => {
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gridTemplateColumns: hasRiskImportPlugin ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
                       gap: 2,
                     }}
                   >
@@ -930,9 +939,39 @@ const RiskManagement = () => {
                       Academic research-based risks covering AI safety, fairness, and societal impact
                     </Typography>
                   </Box>
+
+                  {/* Plugin Slot for Risk Import menu items */}
+                  <PluginSlot
+                    id={PLUGIN_SLOTS.RISKS_ACTIONS}
+                    renderType="menuitem"
+                    slotProps={{
+                      onMenuClose: handleInsertFromMenuClose,
+                      onImportComplete: () => setRefreshKey((prev) => prev + 1),
+                      onTriggerModal: (modalName: string) => {
+                        if (modalName === "RiskImportModal") {
+                          setIsImportModalOpen(true);
+                        }
+                      },
+                    }}
+                  />
                   </Box>
                 </Box>
               </Popover>
+
+              {/* Plugin modals rendered outside Popover so they persist when menu closes */}
+              <PluginSlot
+                id={PLUGIN_SLOTS.RISKS_ACTIONS}
+                renderType="modal"
+                slotProps={{
+                  open: isImportModalOpen,
+                  onClose: () => setIsImportModalOpen(false),
+                  onImportComplete: () => {
+                    setRefreshKey((prev) => prev + 1);
+                    setIsImportModalOpen(false);
+                  },
+                  apiServices,
+                }}
+              />
             </div>
           </Stack>
         </Stack>

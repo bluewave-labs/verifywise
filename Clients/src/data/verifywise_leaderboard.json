@@ -18,7 +18,7 @@
             "benchmarks": {
                 "mmlu": 92.5,
                 "gpqa": 88.1,
-                "gsm8k": null
+                "humaneval": 93.4
             }
         },
         {
@@ -38,7 +38,7 @@
             "benchmarks": {
                 "mmlu": 90.4,
                 "gpqa": 75.4,
-                "gsm8k": 96.4
+                "humaneval": 92.0
             }
         },
         {
@@ -58,7 +58,7 @@
             "benchmarks": {
                 "mmlu": 90.4,
                 "gpqa": 83.4,
-                "gsm8k": 96.4
+                "humaneval": 92.0
             }
         },
         {
@@ -78,7 +78,7 @@
             "benchmarks": {
                 "mmlu": 86.8,
                 "gpqa": 79.6,
-                "gsm8k": 95.0
+                "humaneval": 84.9
             }
         },
         {
@@ -98,7 +98,7 @@
             "benchmarks": {
                 "mmlu": 86.9,
                 "gpqa": 83.3,
-                "gsm8k": null
+                "humaneval": null
             }
         },
         {
@@ -118,7 +118,7 @@
             "benchmarks": {
                 "mmlu": 86.8,
                 "gpqa": 80.9,
-                "gsm8k": 95.0
+                "humaneval": 84.9
             }
         },
         {
@@ -138,7 +138,7 @@
             "benchmarks": {
                 "mmlu": 87.5,
                 "gpqa": 87.5,
-                "gsm8k": 90.0
+                "humaneval": 88.4
             }
         },
         {
@@ -158,7 +158,7 @@
             "benchmarks": {
                 "mmlu": 88.5,
                 "gpqa": 81.0,
-                "gsm8k": 95.1
+                "humaneval": null
             }
         },
         {
@@ -178,7 +178,7 @@
             "benchmarks": {
                 "mmlu": 86.9,
                 "gpqa": 83.3,
-                "gsm8k": null
+                "humaneval": null
             }
         },
         {
@@ -198,7 +198,7 @@
             "benchmarks": {
                 "mmlu": 86.8,
                 "gpqa": 87.0,
-                "gsm8k": 95.0
+                "humaneval": 84.9
             }
         },
         {
@@ -218,7 +218,7 @@
             "benchmarks": {
                 "mmlu": 91.8,
                 "gpqa": 79.0,
-                "gsm8k": 97.1
+                "humaneval": 88.1
             }
         },
         {
@@ -238,7 +238,7 @@
             "benchmarks": {
                 "mmlu": 92.5,
                 "gpqa": 92.4,
-                "gsm8k": null
+                "humaneval": 93.4
             }
         },
         {
@@ -258,7 +258,7 @@
             "benchmarks": {
                 "mmlu": 85.2,
                 "gpqa": 81.4,
-                "gsm8k": null
+                "humaneval": 92.4
             }
         },
         {
@@ -278,7 +278,7 @@
             "benchmarks": {
                 "mmlu": 86.9,
                 "gpqa": 77.2,
-                "gsm8k": null
+                "humaneval": null
             }
         },
         {
@@ -298,7 +298,7 @@
             "benchmarks": {
                 "mmlu": 91.8,
                 "gpqa": 78.0,
-                "gsm8k": 97.1
+                "humaneval": 88.1
             }
         },
         {
@@ -318,7 +318,7 @@
             "benchmarks": {
                 "mmlu": 92.5,
                 "gpqa": 92.4,
-                "gsm8k": null
+                "humaneval": 93.4
             }
         },
         {
@@ -338,7 +338,7 @@
             "benchmarks": {
                 "mmlu": 92.5,
                 "gpqa": 85.7,
-                "gsm8k": null
+                "humaneval": 93.4
             }
         },
         {
@@ -358,7 +358,7 @@
             "benchmarks": {
                 "mmlu": 85.9,
                 "gpqa": 91.9,
-                "gsm8k": 90.8
+                "humaneval": 84.1
             }
         },
         {
@@ -378,7 +378,7 @@
             "benchmarks": {
                 "mmlu": 92.5,
                 "gpqa": 85.7,
-                "gsm8k": null
+                "humaneval": 93.4
             }
         },
         {
@@ -398,7 +398,7 @@
             "benchmarks": {
                 "mmlu": 85.9,
                 "gpqa": 83.0,
-                "gsm8k": 90.8
+                "humaneval": null
             }
         }
     ],

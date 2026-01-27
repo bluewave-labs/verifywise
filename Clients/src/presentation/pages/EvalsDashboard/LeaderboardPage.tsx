@@ -27,7 +27,7 @@ import leaderboardData from "../../../data/verifywise_leaderboard.json";
 const BENCHMARK_NAMES: Record<string, string> = {
   mmlu: "MMLU",
   gpqa: "GPQA",
-  gsm8k: "GSM8K",
+  humaneval: "HumanEval",
 };
 
 // Suite display names
@@ -164,9 +164,9 @@ export default function LeaderboardPage() {
     setLoading(false);
   }, []);
 
-  // Display the 3 benchmark columns (MMLU, GPQA, GSM8K)
+  // Display the 3 benchmark columns (MMLU, GPQA, HumanEval)
   const displayMetrics = useMemo(() => {
-    return ["mmlu", "gpqa", "gsm8k"];
+    return ["mmlu", "gpqa", "humaneval"];
   }, []);
 
   // Stats

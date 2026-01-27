@@ -25,11 +25,11 @@ export const BENCHMARK_CONFIG: Record<string, MetricConfigItem> = {
     higherIsBetter: true,
     description: "Graduate-Level Q&A - 448 challenging multiple-choice questions written by PhD experts in biology, physics, and chemistry"
   },
-  gsm8k: { 
-    name: "GSM8K", 
-    shortName: "GSM8K", 
+  humaneval: { 
+    name: "HumanEval", 
+    shortName: "HumanEval", 
     higherIsBetter: true,
-    description: "Grade School Math 8K - 8,500 grade school math word problems requiring multi-step reasoning"
+    description: "Code Generation - 164 programming problems measuring functional correctness for synthesizing programs from docstrings"
   },
 };
 

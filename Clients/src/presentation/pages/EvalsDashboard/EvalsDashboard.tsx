@@ -182,18 +182,22 @@ export default function EvalsDashboard() {
   // Determine tab from URL hash or default
   const [tab, setTab] = useState(() => {
     const hash = location.hash.replace("#", "");
+    // Extract just the tab name (before any query params)
+    const tabName = hash.split("?")[0];
     // When no projectId, default to "overview" to show projects list
     if (!projectId) {
       return "overview";
     }
-    return hash || "overview";
+    return tabName || "overview";
   });
 
   // Keep tab in sync with URL hash so external navigations (e.g., from Overview button) work
   useEffect(() => {
     if (!projectId) return;
     const hash = location.hash.replace("#", "");
-    setTab(hash || "overview");
+    // Extract just the tab name (before any query params)
+    const tabName = hash.split("?")[0];
+    setTab(tabName || "overview");
   }, [location.hash, projectId]);
 
   // Persist projectId to localStorage when it changes

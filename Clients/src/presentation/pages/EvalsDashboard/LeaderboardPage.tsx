@@ -33,6 +33,56 @@ const SUITE_NAMES: Record<string, string> = {
   safety_policy: "Safety & Policy",
 };
 
+// Map leaderboard display names to API model names
+const MODEL_NAME_MAP: Record<string, string> = {
+  "GPT-5.1": "gpt-5.1",
+  "GPT-5.2": "gpt-5.2-chat-latest",
+  "GPT-4.1": "gpt-4.1",
+  "GPT-4o": "gpt-4o",
+  "GPT-4.5": "gpt-4.5-preview",
+  "o3-pro": "o3-pro",
+  "o3-mini": "o3-mini",
+  "o1": "o1",
+  "o1-mini": "o1-mini",
+  "Claude Sonnet 4": "claude-sonnet-4-20250514",
+  "Claude Sonnet 4.5": "claude-sonnet-4-5-20250514",
+  "Claude Opus 4": "claude-opus-4-20250514",
+  "Claude Opus 4.1": "claude-opus-4-1-20250514",
+  "Claude 3.5 Sonnet": "claude-3-5-sonnet-20241022",
+  "Claude 3.5 Haiku": "claude-3-5-haiku-20241022",
+  "Gemini 2.5 Pro": "gemini-2.5-pro-preview-05-06",
+  "Gemini 2.5 Flash": "gemini-2.5-flash-preview-05-20",
+  "Gemini 2.0 Flash": "gemini-2.0-flash",
+  "Grok-4": "grok-4",
+  "Grok-3": "grok-3",
+  "Mistral Large": "mistral-large-latest",
+  "Codestral": "codestral-latest",
+  "DeepSeek-V3": "deepseek-chat",
+  "DeepSeek-R1": "deepseek-reasoner",
+  "Llama 4 Maverick": "meta-llama/llama-4-maverick-17b-128e-instruct",
+  "Llama 4 Scout": "meta-llama/llama-4-scout-17b-16e-instruct",
+};
+
+// Map provider display names to internal IDs
+const PROVIDER_MAP: Record<string, string> = {
+  "OpenAI": "openai",
+  "Anthropic": "anthropic",
+  "Google": "google",
+  "Mistral": "mistral",
+  "xAI": "xai",
+  "DeepSeek": "openrouter",
+  "Meta": "openrouter",
+  "HuggingFace": "huggingface",
+};
+
+// Helper to convert leaderboard model to API format
+function toApiModel(model: ModelInfo): { model: string; provider: string } {
+  return {
+    model: MODEL_NAME_MAP[model.model] || model.model.toLowerCase().replace(/\s+/g, "-"),
+    provider: PROVIDER_MAP[model.provider] || model.provider.toLowerCase(),
+  };
+}
+
 export default function LeaderboardPage() {
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
@@ -59,23 +109,26 @@ export default function LeaderboardPage() {
 
   // Navigate to playground with selected model
   const handleChat = (model: ModelInfo) => {
+    const apiModel = toApiModel(model);
     const basePath = projectId ? `/evals/${projectId}` : `/evals`;
-    navigate(`${basePath}#playground?model=${encodeURIComponent(model.model)}&provider=${encodeURIComponent(model.provider)}`);
+    navigate(`${basePath}#playground?model=${encodeURIComponent(apiModel.model)}&provider=${encodeURIComponent(apiModel.provider)}`);
   };
 
   // Navigate to arena with selected model
   const handleCompare = (model: ModelInfo) => {
+    const apiModel = toApiModel(model);
     const basePath = projectId ? `/evals/${projectId}` : `/evals`;
     navigate(`${basePath}#arena`, { 
-      state: { prefillModel: model } 
+      state: { prefillModel: apiModel } 
     });
   };
 
   // Navigate to experiments with selected model
   const handleEvaluate = (model: ModelInfo) => {
+    const apiModel = toApiModel(model);
     const basePath = projectId ? `/evals/${projectId}` : `/evals`;
     navigate(`${basePath}#experiments`, { 
-      state: { prefillModel: model } 
+      state: { prefillModel: apiModel } 
     });
   };
 

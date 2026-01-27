@@ -341,19 +341,11 @@ export default function NewExperimentModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, useCase]);
 
-  // Pre-fill model from initialModel prop (from leaderboard navigation)
+  // Pre-fill model from initialModel prop (from leaderboard/playground navigation)
   useEffect(() => {
     if (isOpen && initialModel) {
-      // Map provider display name to internal ID
-      const providerMap: Record<string, string> = {
-        "OpenAI": "openai",
-        "Anthropic": "anthropic",
-        "Google": "google",
-        "Mistral": "mistral",
-        "xAI": "xai",
-        "DeepSeek": "openrouter",
-      };
-      const mappedProvider = providerMap[initialModel.provider] || initialModel.provider.toLowerCase();
+      // Provider should already be in lowercase format
+      const mappedProvider = initialModel.provider.toLowerCase();
       
       setConfig(prev => ({
         ...prev,
@@ -364,7 +356,6 @@ export default function NewExperimentModal({
         },
       }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialModel]);
 
   const handleNext = () => {
@@ -388,8 +379,15 @@ export default function NewExperimentModal({
   }, [isOpen]);
 
   // Apply saved model/judge preferences when they finish loading
+  // Skip if initialModel is provided (user navigated from Playground/Leaderboard)
   useEffect(() => {
     if (!isOpen || preferencesApplied || preferencesLoading) return;
+
+    // Don't apply saved preferences if we have an initialModel - it takes priority
+    if (initialModel) {
+      setPreferencesApplied(true);
+      return;
+    }
 
     if (savedPreferences) {
       console.log("Loading saved model preferences:", savedPreferences);
@@ -411,7 +409,7 @@ export default function NewExperimentModal({
       }));
     }
     setPreferencesApplied(true);
-  }, [isOpen, preferencesApplied, preferencesLoading, savedPreferences]);
+  }, [isOpen, preferencesApplied, preferencesLoading, savedPreferences, initialModel]);
 
   // Reset preferencesApplied when modal closes so it re-applies on next open
   useEffect(() => {

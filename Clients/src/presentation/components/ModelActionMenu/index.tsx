@@ -1,12 +1,12 @@
 /**
  * ModelActionMenu Component
  * 
- * A popover menu that appears when a user selects a model from the leaderboard.
+ * A modern popover menu that appears when a user selects a model from the leaderboard.
  * Provides options to chat with the model, compare in Arena, or run an evaluation.
  */
 
-import { Box, Paper, Typography, Stack, Divider, IconButton } from "@mui/material";
-import { MessageSquare, Swords, FlaskConical, X } from "lucide-react";
+import { Box, Paper, Typography, Stack } from "@mui/material";
+import { MessageSquare, Swords, FlaskConical, Sparkles, ArrowRight } from "lucide-react";
 
 export interface ModelInfo {
   model: string;
@@ -27,57 +27,98 @@ interface ActionItemProps {
   label: string;
   description: string;
   onClick: () => void;
-  color: string;
-  bgColor: string;
+  iconBg: string;
+  hoverBg: string;
 }
 
-function ActionItem({ icon, label, description, onClick, color, bgColor }: ActionItemProps) {
+function ActionItem({ icon, label, description, onClick, iconBg, hoverBg }: ActionItemProps) {
   return (
     <Box
       onClick={onClick}
       sx={{
         display: "flex",
         alignItems: "center",
-        gap: 2,
+        gap: 1.5,
         p: 1.5,
-        borderRadius: "8px",
+        borderRadius: "10px",
         cursor: "pointer",
-        transition: "all 0.15s ease",
+        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        position: "relative",
+        overflow: "hidden",
         "&:hover": {
-          bgcolor: bgColor,
+          bgcolor: hoverBg,
+          transform: "translateX(4px)",
+          "& .action-arrow": {
+            opacity: 1,
+            transform: "translateX(0)",
+          },
+        },
+        "&:active": {
+          transform: "translateX(2px) scale(0.99)",
         },
       }}
     >
       <Box
         sx={{
-          width: 40,
-          height: 40,
+          width: 36,
+          height: 36,
           borderRadius: "10px",
-          bgcolor: bgColor,
+          bgcolor: iconBg,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
+          transition: "transform 0.2s",
         }}
       >
         {icon}
       </Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography
-          variant="body2"
-          sx={{ fontWeight: 600, color: "#111827", fontSize: 14 }}
+          sx={{ 
+            fontWeight: 600, 
+            color: "#111827", 
+            fontSize: 13,
+            lineHeight: 1.3,
+          }}
         >
           {label}
         </Typography>
         <Typography
-          variant="caption"
-          sx={{ color: "#6b7280", fontSize: 12 }}
+          sx={{ 
+            color: "#6b7280", 
+            fontSize: 11,
+            lineHeight: 1.3,
+          }}
         >
           {description}
         </Typography>
       </Box>
+      <ArrowRight 
+        size={14} 
+        color="#9ca3af"
+        className="action-arrow"
+        style={{
+          opacity: 0,
+          transform: "translateX(-4px)",
+          transition: "all 0.2s",
+        }}
+      />
     </Box>
   );
+}
+
+// Helper to get provider color
+function getProviderColor(provider: string): string {
+  const colors: Record<string, string> = {
+    "OpenAI": "#10a37f",
+    "Anthropic": "#d97706",
+    "Google": "#4285f4",
+    "Mistral": "#ff7000",
+    "xAI": "#1d9bf0",
+    "Meta": "#0668E1",
+  };
+  return colors[provider] || "#6b7280";
 }
 
 export default function ModelActionMenu({
@@ -92,8 +133,8 @@ export default function ModelActionMenu({
 
   // Calculate position relative to anchor element
   const rect = anchorEl.getBoundingClientRect();
-  const menuWidth = 320;
-  const menuHeight = 280;
+  const menuWidth = 280;
+  const menuHeight = 240;
   
   // Center horizontally relative to the row
   let left = rect.left + rect.width / 2 - menuWidth / 2;
@@ -112,6 +153,8 @@ export default function ModelActionMenu({
     top = rect.bottom + 8;
   }
 
+  const providerColor = getProviderColor(model.provider);
+
   return (
     <>
       {/* Backdrop */}
@@ -121,106 +164,131 @@ export default function ModelActionMenu({
           position: "fixed",
           inset: 0,
           zIndex: 1200,
-          bgcolor: "rgba(0, 0, 0, 0.1)",
+          bgcolor: "rgba(0, 0, 0, 0.15)",
+          backdropFilter: "blur(2px)",
+          animation: "fadeIn 0.15s ease",
+          "@keyframes fadeIn": {
+            from: { opacity: 0 },
+            to: { opacity: 1 },
+          },
         }}
       />
       
       {/* Menu */}
       <Paper
-        elevation={8}
+        elevation={0}
         sx={{
           position: "fixed",
           left,
           top,
           width: menuWidth,
           zIndex: 1201,
-          borderRadius: "12px",
+          borderRadius: "16px",
           overflow: "hidden",
-          border: "1px solid #e5e7eb",
+          border: "1px solid rgba(0, 0, 0, 0.08)",
+          boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+          animation: "slideIn 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          "@keyframes slideIn": {
+            from: { 
+              opacity: 0,
+              transform: "translateY(8px) scale(0.96)",
+            },
+            to: { 
+              opacity: 1,
+              transform: "translateY(0) scale(1)",
+            },
+          },
         }}
       >
         {/* Header */}
         <Box
           sx={{
             p: 2,
-            pb: 1.5,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            background: `linear-gradient(135deg, ${providerColor}08 0%, ${providerColor}03 100%)`,
             borderBottom: "1px solid #f3f4f6",
           }}
         >
-          <Box>
-            <Typography
-              variant="body2"
+          <Stack direction="row" alignItems="center" gap={1.5}>
+            <Box
               sx={{
-                fontWeight: 600,
-                color: "#111827",
-                fontSize: 15,
-                fontFamily: "'SF Mono', 'Roboto Mono', monospace",
+                width: 40,
+                height: 40,
+                borderRadius: "12px",
+                background: `linear-gradient(135deg, ${providerColor}20 0%, ${providerColor}10 100%)`,
+                border: `1px solid ${providerColor}20`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              {model.model}
-            </Typography>
-            <Typography variant="caption" sx={{ color: "#9ca3af", fontSize: 11 }}>
-              {model.provider}
-            </Typography>
-          </Box>
-          <IconButton
-            size="small"
-            onClick={onClose}
-            sx={{ color: "#9ca3af", "&:hover": { bgcolor: "#f3f4f6" } }}
-          >
-            <X size={16} />
-          </IconButton>
+              <Sparkles size={18} color={providerColor} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  color: "#111827",
+                  fontSize: 14,
+                  lineHeight: 1.2,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {model.model}
+              </Typography>
+              <Typography 
+                sx={{ 
+                  color: providerColor, 
+                  fontSize: 11, 
+                  fontWeight: 600,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                {model.provider}
+              </Typography>
+            </Box>
+          </Stack>
         </Box>
 
         {/* Actions */}
         <Stack sx={{ p: 1 }}>
           <ActionItem
-            icon={<MessageSquare size={18} color="#059669" />}
+            icon={<MessageSquare size={16} color="#059669" strokeWidth={2.5} />}
             label="Chat with Model"
-            description="Test the model in playground"
+            description="Test in playground"
             onClick={() => {
               onChat(model);
               onClose();
             }}
-            color="#059669"
-            bgColor="#ecfdf5"
+            iconBg="#ecfdf5"
+            hoverBg="#f0fdf4"
           />
           
           <ActionItem
-            icon={<Swords size={18} color="#7c3aed" />}
+            icon={<Swords size={16} color="#7c3aed" strokeWidth={2.5} />}
             label="Compare in Arena"
-            description="Run head-to-head comparison"
+            description="Head-to-head comparison"
             onClick={() => {
               onCompare(model);
               onClose();
             }}
-            color="#7c3aed"
-            bgColor="#f5f3ff"
+            iconBg="#f5f3ff"
+            hoverBg="#faf5ff"
           />
           
           <ActionItem
-            icon={<FlaskConical size={18} color="#ea580c" />}
+            icon={<FlaskConical size={16} color="#ea580c" strokeWidth={2.5} />}
             label="Run Evaluation"
-            description="Evaluate with your dataset"
+            description="Evaluate with dataset"
             onClick={() => {
               onEvaluate(model);
               onClose();
             }}
-            color="#ea580c"
-            bgColor="#fff7ed"
+            iconBg="#fff7ed"
+            hoverBg="#fffbeb"
           />
         </Stack>
-
-        {/* Footer hint */}
-        <Divider />
-        <Box sx={{ p: 1.5, bgcolor: "#fafafa" }}>
-          <Typography variant="caption" sx={{ color: "#9ca3af", fontSize: 11 }}>
-            Click anywhere outside to close
-          </Typography>
-        </Box>
       </Paper>
     </>
   );

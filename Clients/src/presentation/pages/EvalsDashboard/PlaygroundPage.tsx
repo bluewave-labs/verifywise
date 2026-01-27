@@ -2,65 +2,59 @@
  * PlaygroundPage
  * 
  * A chat interface for testing and interacting with LLM models directly.
- * Modern design inspired by ChatGPT/Claude/Perplexity.
+ * Features quick eval with dataset functionality.
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
   Box,
   Stack,
   Typography,
-  TextField,
   IconButton,
-  Slider,
-  Collapse,
   CircularProgress,
   Tooltip,
 } from "@mui/material";
 import {
-  Send,
-  Settings2,
   Trash2,
   User,
   Bot,
   Copy,
   Check,
   Sparkles,
-  ArrowUp,
+  FileText,
 } from "lucide-react";
 import ModelSelector from "../../components/Inputs/ModelSelector";
-import { getAllLlmApiKeys, type LLMApiKey } from "../../../application/repository/deepEval.repository";
+import PlaygroundInputBar, { AttachedFile } from "../../components/PlaygroundInputBar";
+import { 
+  getAllLlmApiKeys, 
+  type LLMApiKey 
+} from "../../../application/repository/deepEval.repository";
 
 // Types
+interface MessageAttachment {
+  type: "image" | "document";
+  name: string;
+  url?: string;
+  mimeType: string;
+}
+
 interface Message {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
-}
-
-interface PlaygroundSettings {
-  temperature: number;
-  maxTokens: number;
-  topP: number;
-  systemPrompt: string;
+  attachments?: MessageAttachment[];
 }
 
 interface PlaygroundPageProps {
   orgId?: string | null;
 }
 
-const DEFAULT_SETTINGS: PlaygroundSettings = {
-  temperature: 0.7,
-  maxTokens: 2048,
-  topP: 1.0,
-  systemPrompt: "You are a helpful AI assistant.",
-};
-
 export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { projectId } = useParams<{ projectId: string }>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -75,12 +69,11 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Settings state
-  const [settings, setSettings] = useState<PlaygroundSettings>(DEFAULT_SETTINGS);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-
   // Copy state
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // File attachments
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
 
   // Load configured providers
   useEffect(() => {
@@ -105,15 +98,8 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
       const providerParam = params.get("provider");
       
       if (providerParam) {
-        const providerMap: Record<string, string> = {
-          "OpenAI": "openai",
-          "Anthropic": "anthropic",
-          "Google": "google",
-          "Mistral": "mistral",
-          "xAI": "xai",
-          "DeepSeek": "openrouter",
-        };
-        setProvider(providerMap[providerParam] || providerParam.toLowerCase());
+        // Provider should already be in lowercase format from leaderboard
+        setProvider(providerParam.toLowerCase());
       }
       if (modelParam) {
         setModel(modelParam);
@@ -131,25 +117,57 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
     inputRef.current?.focus();
   }, []);
 
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   // Handle send message
   const handleSend = useCallback(async () => {
-    if (!inputValue.trim() || !model || isLoading) return;
+    if ((!inputValue.trim() && attachedFiles.length === 0) || !model || isLoading) return;
+
+    // Process attachments
+    const messageAttachments: MessageAttachment[] = attachedFiles.map((f) => ({
+      type: f.type,
+      name: f.file.name,
+      url: f.preview,
+      mimeType: f.file.type,
+    }));
 
     const userMessage: Message = {
       id: `msg-${Date.now()}`,
       role: "user",
-      content: inputValue.trim(),
+      content: inputValue.trim() || (attachedFiles.length > 0 ? `[Attached ${attachedFiles.length} file(s)]` : ""),
       timestamp: new Date(),
+      attachments: messageAttachments.length > 0 ? messageAttachments : undefined,
     };
 
+    // Clear input and attachments immediately
+    const filesToSend = [...attachedFiles];
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
+    setAttachedFiles([]);
     setIsLoading(true);
     setError(null);
 
     try {
+      // Convert files to base64 for API
+      const fileContents = await Promise.all(
+        filesToSend.map(async (f) => ({
+          type: f.type,
+          name: f.file.name,
+          mimeType: f.file.type,
+          data: await fileToBase64(f.file),
+        }))
+      );
+
       const apiMessages = [
-        ...(settings.systemPrompt ? [{ role: "system", content: settings.systemPrompt }] : []),
+        { role: "system", content: "You are a helpful AI assistant." },
         ...messages.map((m) => ({ role: m.role, content: m.content })),
         { role: "user", content: userMessage.content },
       ];
@@ -164,9 +182,9 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
           provider,
           model,
           messages: apiMessages,
-          temperature: settings.temperature,
-          maxTokens: settings.maxTokens,
-          topP: settings.topP,
+          temperature: 0.7,
+          maxTokens: 4096,
+          attachments: fileContents.length > 0 ? fileContents : undefined,
         }),
       });
 
@@ -199,14 +217,17 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [inputValue, model, isLoading, messages, provider, settings]);
+  }, [inputValue, model, isLoading, messages, provider, attachedFiles]);
 
-  // Handle key press
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+  // Handle run eval - navigate to experiments with model pre-filled
+  const handleRunEval = () => {
+    if (!model) return;
+    const basePath = projectId ? `/evals/${projectId}` : `/evals`;
+    navigate(`${basePath}#experiments`, {
+      state: {
+        prefillModel: { model, provider },
+      },
+    });
   };
 
   // Clear conversation
@@ -228,73 +249,7 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
   };
 
   const hasMessages = messages.length > 0;
-  const canSend = inputValue.trim() && model && !isLoading;
-
-  // Input bar component (reused in both states)
-  const InputBar = (
-    <Box sx={{ position: "relative", width: "100%", maxWidth: 720 }}>
-      <TextField
-        inputRef={inputRef}
-        fullWidth
-        multiline
-        maxRows={6}
-        minRows={1}
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleKeyPress}
-        placeholder={model ? "Message..." : "Select a model to start"}
-        disabled={!model || isLoading}
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            fontSize: 15,
-            bgcolor: "#fff",
-            borderRadius: "24px",
-            border: "1px solid #e5e7eb",
-            boxShadow: "0 2px 12px rgba(0, 0, 0, 0.08)",
-            pr: 7,
-            "& fieldset": { border: "none" },
-            "&:hover": { borderColor: "#d1d5db" },
-            "&.Mui-focused": { 
-              borderColor: "#13715B", 
-              boxShadow: "0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 2px rgba(19, 113, 91, 0.1)" 
-            },
-            "&.Mui-disabled": { bgcolor: "#f9fafb", borderColor: "#e5e7eb" },
-          },
-          "& .MuiOutlinedInput-input": {
-            py: 1.75,
-            px: 2.5,
-            lineHeight: 1.5,
-          },
-        }}
-      />
-      {/* Send Button - Separate circular button */}
-      <IconButton
-        onClick={handleSend}
-        disabled={!canSend}
-        sx={{
-          position: "absolute",
-          right: 8,
-          bottom: 8,
-          width: 36,
-          height: 36,
-          bgcolor: canSend ? "#13715B" : "#e5e7eb",
-          color: canSend ? "#fff" : "#9ca3af",
-          borderRadius: "50%",
-          transition: "all 0.2s",
-          "&:hover": { 
-            bgcolor: canSend ? "#0f5c4a" : "#e5e7eb",
-            transform: canSend ? "scale(1.05)" : "none",
-          },
-          "&:disabled": { 
-            bgcolor: "#e5e7eb", 
-            color: "#9ca3af",
-          },
-        }}
-      >
-        <ArrowUp size={18} strokeWidth={2.5} />
-      </IconButton>
-    </Box>
-  );
+  const canSend = Boolean((inputValue.trim() || attachedFiles.length > 0) && model && !isLoading);
 
   return (
     <Box 
@@ -325,93 +280,23 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
         </Box>
 
         {/* Action Buttons */}
-        <Stack direction="row" alignItems="center" gap={0.5}>
-          <Tooltip title="Model settings">
+        {hasMessages && (
+          <Tooltip title="Clear conversation">
             <IconButton
-              onClick={() => setSettingsOpen(!settingsOpen)}
+              onClick={handleClear}
               size="small"
               sx={{
                 width: 34,
                 height: 34,
-                color: settingsOpen ? "#13715B" : "#9ca3af",
-                bgcolor: settingsOpen ? "#ecfdf5" : "transparent",
-                "&:hover": { bgcolor: "#f3f4f6" },
+                color: "#9ca3af",
+                "&:hover": { bgcolor: "#fef2f2", color: "#dc2626" },
               }}
             >
-              <Settings2 size={18} />
+              <Trash2 size={18} />
             </IconButton>
           </Tooltip>
-
-          {hasMessages && (
-            <Tooltip title="Clear conversation">
-              <IconButton
-                onClick={handleClear}
-                size="small"
-                sx={{
-                  width: 34,
-                  height: 34,
-                  color: "#9ca3af",
-                  "&:hover": { bgcolor: "#fef2f2", color: "#dc2626" },
-                }}
-              >
-                <Trash2 size={18} />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Stack>
+        )}
       </Stack>
-
-      {/* Settings Panel */}
-      <Collapse in={settingsOpen}>
-        <Box sx={{ px: 3, py: 2, borderBottom: "1px solid #f3f4f6", bgcolor: "#fafafa" }}>
-          <Stack direction="row" gap={4} flexWrap="wrap" sx={{ maxWidth: 800 }}>
-            <Box sx={{ flex: "1 1 280px", minWidth: 240 }}>
-              <Typography variant="caption" fontWeight={600} color="#374151" sx={{ mb: 0.75, display: "block" }}>
-                System Prompt
-              </Typography>
-              <TextField
-                multiline
-                rows={2}
-                fullWidth
-                size="small"
-                value={settings.systemPrompt}
-                onChange={(e) => setSettings({ ...settings, systemPrompt: e.target.value })}
-                placeholder="You are a helpful assistant..."
-                sx={{
-                  "& .MuiOutlinedInput-root": { fontSize: 13, bgcolor: "#fff", borderRadius: "8px" },
-                }}
-              />
-            </Box>
-
-            <Stack direction="row" gap={3}>
-              <Box sx={{ width: 140 }}>
-                <Stack direction="row" justifyContent="space-between" mb={0.5}>
-                  <Typography variant="caption" fontWeight={600} color="#374151">Temperature</Typography>
-                  <Typography variant="caption" color="#13715B" fontWeight={600}>{settings.temperature.toFixed(1)}</Typography>
-                </Stack>
-                <Slider
-                  value={settings.temperature}
-                  onChange={(_, v) => setSettings({ ...settings, temperature: v as number })}
-                  min={0} max={2} step={0.1} size="small"
-                  sx={{ color: "#13715B", "& .MuiSlider-thumb": { width: 12, height: 12 } }}
-                />
-              </Box>
-
-              <Box sx={{ width: 100 }}>
-                <Typography variant="caption" fontWeight={600} color="#374151" sx={{ mb: 0.5, display: "block" }}>
-                  Max Tokens
-                </Typography>
-                <TextField
-                  type="number" size="small" value={settings.maxTokens}
-                  onChange={(e) => setSettings({ ...settings, maxTokens: parseInt(e.target.value) || 1024 })}
-                  inputProps={{ min: 1, max: 128000 }}
-                  sx={{ "& .MuiOutlinedInput-root": { fontSize: 12, bgcolor: "#fff", borderRadius: "8px" } }}
-                />
-              </Box>
-            </Stack>
-          </Stack>
-        </Box>
-      </Collapse>
 
       {/* Main Content Area */}
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -452,17 +337,30 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
             {/* Subtitle */}
             <Typography variant="body2" color="#6b7280" sx={{ mb: 4, textAlign: "center", maxWidth: 400 }}>
               {model 
-                ? "Ask anything. Your conversation will appear here."
-                : "Select a model from the dropdown above to start a conversation."
+                ? "Ask anything or run an evaluation with a dataset."
+                : "Select a model from the dropdown above to start."
               }
             </Typography>
 
             {/* Input Bar */}
-            {InputBar}
+            <PlaygroundInputBar
+              ref={inputRef}
+              value={inputValue}
+              onChange={setInputValue}
+              onSend={handleSend}
+              onRunEval={handleRunEval}
+              placeholder={model ? "Message..." : "Select a model to start"}
+              disabled={!model}
+              canSend={canSend}
+              isLoading={isLoading}
+              showEvalButton={Boolean(model)}
+              attachedFiles={attachedFiles}
+              onFilesChange={setAttachedFiles}
+            />
 
             {/* Helper */}
             <Typography variant="caption" color="#9ca3af" sx={{ mt: 2 }}>
-              Press <strong>Enter</strong> to send
+              Press <strong>Enter</strong> to send · <strong>+</strong> to add files · <strong>flask</strong> to run eval
             </Typography>
           </Box>
         ) : (
@@ -499,6 +397,56 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
                         <Typography variant="body2" fontWeight={600} color="#111827" sx={{ mb: 0.5 }}>
                           {msg.role === "user" ? "You" : model || "Assistant"}
                         </Typography>
+                        
+                        {/* Attachments */}
+                        {msg.attachments && msg.attachments.length > 0 && (
+                          <Stack direction="row" gap={1} flexWrap="wrap" sx={{ mb: 1.5 }}>
+                            {msg.attachments.map((attachment, idx) => (
+                              <Box
+                                key={idx}
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                  px: 1.5,
+                                  py: 1,
+                                  bgcolor: "#f3f4f6",
+                                  borderRadius: "8px",
+                                  border: "1px solid #e5e7eb",
+                                }}
+                              >
+                                {attachment.type === "image" ? (
+                                  <>
+                                    {attachment.url && (
+                                      <Box
+                                        component="img"
+                                        src={attachment.url}
+                                        alt={attachment.name}
+                                        sx={{
+                                          width: 40,
+                                          height: 40,
+                                          borderRadius: "6px",
+                                          objectFit: "cover",
+                                        }}
+                                      />
+                                    )}
+                                    <Typography variant="caption" color="#374151" sx={{ maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                      {attachment.name}
+                                    </Typography>
+                                  </>
+                                ) : (
+                                  <>
+                                    <FileText size={16} color="#7c3aed" />
+                                    <Typography variant="caption" color="#374151" sx={{ maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                      {attachment.name}
+                                    </Typography>
+                                  </>
+                                )}
+                              </Box>
+                            ))}
+                          </Stack>
+                        )}
+
                         <Typography
                           variant="body2"
                           sx={{
@@ -562,7 +510,20 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
                 justifyContent: "center",
               }}
             >
-              {InputBar}
+              <PlaygroundInputBar
+                ref={inputRef}
+                value={inputValue}
+                onChange={setInputValue}
+                onSend={handleSend}
+                onRunEval={handleRunEval}
+                placeholder="Message..."
+                disabled={!model}
+                canSend={canSend}
+                isLoading={isLoading}
+                showEvalButton={true}
+                attachedFiles={attachedFiles}
+                onFilesChange={setAttachedFiles}
+              />
             </Box>
           </>
         )}

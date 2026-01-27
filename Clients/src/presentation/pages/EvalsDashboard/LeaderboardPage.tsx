@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
   Stack,
@@ -15,10 +16,12 @@ import {
   MenuItem,
   FormControl,
   Chip,
+  Button,
 } from "@mui/material";
-import { Search, Info, BarChart3, Trophy, Zap, Shield } from "lucide-react";
-import LeaderboardTable from "../../components/Table/LeaderboardTable";
+import { Search, Info, BarChart3, Trophy, Zap, Shield, Swords } from "lucide-react";
+import LeaderboardTable, { ModelActionInfo } from "../../components/Table/LeaderboardTable";
 import { LeaderboardEntry, METRIC_CONFIG } from "../../components/Table/LeaderboardTable/leaderboardConfig";
+import ModelActionMenu, { ModelInfo } from "../../components/ModelActionMenu";
 import leaderboardData from "../../../data/verifywise_leaderboard.json";
 
 // Suite display names
@@ -31,10 +34,50 @@ const SUITE_NAMES: Record<string, string> = {
 };
 
 export default function LeaderboardPage() {
+  const navigate = useNavigate();
+  const { projectId } = useParams<{ projectId: string }>();
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("overall");
+  
+  // Model action menu state
+  const [actionMenuAnchor, setActionMenuAnchor] = useState<HTMLElement | null>(null);
+  const [selectedModel, setSelectedModel] = useState<ModelInfo | null>(null);
+
+  // Handle model row click
+  const handleModelAction = (info: ModelActionInfo) => {
+    setSelectedModel({ model: info.model, provider: info.provider });
+    setActionMenuAnchor(info.anchorEl);
+  };
+
+  // Close action menu
+  const handleCloseActionMenu = () => {
+    setActionMenuAnchor(null);
+    setSelectedModel(null);
+  };
+
+  // Navigate to playground with selected model
+  const handleChat = (model: ModelInfo) => {
+    const basePath = projectId ? `/evals/${projectId}` : `/evals`;
+    navigate(`${basePath}#playground?model=${encodeURIComponent(model.model)}&provider=${encodeURIComponent(model.provider)}`);
+  };
+
+  // Navigate to arena with selected model
+  const handleCompare = (model: ModelInfo) => {
+    const basePath = projectId ? `/evals/${projectId}` : `/evals`;
+    navigate(`${basePath}#arena`, { 
+      state: { prefillModel: model } 
+    });
+  };
+
+  // Navigate to experiments with selected model
+  const handleEvaluate = (model: ModelInfo) => {
+    const basePath = projectId ? `/evals/${projectId}` : `/evals`;
+    navigate(`${basePath}#experiments`, { 
+      state: { prefillModel: model } 
+    });
+  };
 
   // Load leaderboard data from static JSON
   useEffect(() => {
@@ -199,6 +242,26 @@ export default function LeaderboardPage() {
             </Box>
           )}
         </Stack>
+
+        {/* Arena CTA */}
+        <Box sx={{ mt: 3 }}>
+          <Button
+            variant="contained"
+            startIcon={<Swords size={16} />}
+            onClick={() => navigate(projectId ? `/evals/${projectId}#arena` : `/evals#arena`)}
+            sx={{
+              bgcolor: "#13715B",
+              "&:hover": { bgcolor: "#0f5c4a" },
+              textTransform: "none",
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              borderRadius: "8px",
+            }}
+          >
+            Compare Models in Arena
+          </Button>
+        </Box>
       </Box>
 
       {/* Controls */}

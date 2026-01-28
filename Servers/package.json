@@ -57,7 +57,7 @@
     "pickleparser": "^0.2.1",
     "playwright": "^1.57.0",
     "redis": "^5.8.2",
-    "resend": "^4.6.0",
+    "resend": "^6.9.1",
     "sanitize-filename": "^1.6.3",
     "sequelize": "^6.37.6",
     "sequelize-typescript": "^2.1.6",

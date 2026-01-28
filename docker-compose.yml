@@ -79,6 +79,8 @@ services:
     image: ghcr.io/bluewave-labs/verifywise-eval-server:latest
     expose:
       - "8000"
+    volumes:
+      - eval_uploads:/app/data/uploads
     environment:
       - DB_HOST=postgresdb
       - DB_USER=$DB_USER
@@ -90,3 +92,4 @@ services:
 
 volumes:
   db:
+  eval_uploads:

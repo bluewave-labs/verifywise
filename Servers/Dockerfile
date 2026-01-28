@@ -8,8 +8,9 @@ RUN npm config set fetch-timeout 600000 && \
     npm config set fetch-retries 5 && \
     npm ci --prefer-offline --no-audit || npm install
 
-# Install Playwright dependencies for Alpine
+# Install Playwright dependencies and git for Alpine
 # Note: Playwright requires chromium and its dependencies
+# Git is required for AI detection repository scanning
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -18,7 +19,8 @@ RUN apk add --no-cache \
     ca-certificates \
     ttf-freefont \
     font-noto \
-    font-noto-cjk
+    font-noto-cjk \
+    git
 
 # Set Playwright to use installed Chromium
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1

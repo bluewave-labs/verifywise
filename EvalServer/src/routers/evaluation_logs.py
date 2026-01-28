@@ -79,7 +79,7 @@ async def check_db_api_key_available(tenant: str, provider: str) -> bool:
     try:
         async with get_db() as db:
             result = await db.execute(
-                text(f'SELECT COUNT(*) FROM "{tenant}".evaluation_llm_api_keys WHERE provider = :provider'),
+                text(f'SELECT COUNT(*) FROM "{tenant}".llm_evals_api_keys WHERE provider = :provider'),
                 {"provider": provider}
             )
             row = result.fetchone()

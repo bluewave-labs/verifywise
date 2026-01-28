@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post-Market Monitoring Report - <%= metadata.use_case_title %></title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: #333;
+      background: #fff;
+    }
+
+    .report-container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Cover Page */
+    .cover-page {
+      page-break-after: always;
+      text-align: center;
+      padding-top: 100px;
+      min-height: 90vh;
+    }
+
+    .cover-logo {
+      max-width: 200px;
+      max-height: 80px;
+      margin-bottom: 40px;
+    }
+
+    .org-name {
+      font-size: 28px;
+      font-weight: 700;
+      color: <%= branding.primary_color || '#13715B' %>;
+      margin-bottom: 40px;
+    }
+
+    .cover-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+
+    .cover-subtitle {
+      font-size: 20px;
+      color: #7f8c8d;
+      margin-bottom: 40px;
+    }
+
+    .cover-meta {
+      margin-top: 60px;
+      text-align: left;
+      display: inline-block;
+    }
+
+    .cover-meta-item {
+      font-size: 12pt;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    /* Header */
+    .section-header {
+      background: #f8f9fa;
+      padding: 12px 20px;
+      margin: 24px 0 16px 0;
+      border-left: 4px solid <%= branding.primary_color || '#13715B' %>;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2c3e50;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Context Snapshot */
+    .context-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .context-card {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .context-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: <%= branding.primary_color || '#13715B' %>;
+    }
+
+    .context-label {
+      font-size: 11px;
+      color: #7f8c8d;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Risk Summary */
+    .risk-summary {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .risk-badge {
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .risk-high {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .risk-medium {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    .risk-low {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    /* Questions */
+    .question-item {
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+
+    .question-item.flagged {
+      border-left: 4px solid #dc2626;
+      background: #fef2f2;
+    }
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .question-text {
+      font-weight: 600;
+      color: #2c3e50;
+      flex: 1;
+    }
+
+    .question-article {
+      font-size: 10px;
+      color: #7f8c8d;
+      background: #f0f0f0;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 12px;
+    }
+
+    .response-value {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    .response-yes {
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .response-no {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .flag-indicator {
+      display: inline-block;
+      background: #dc2626;
+      color: white;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    .suggestion-box {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #fef3c7;
+      border-left: 3px solid #d97706;
+      font-size: 11px;
+      color: #92400e;
+    }
+
+    /* Footer */
+    .report-footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+      font-size: 10px;
+      color: #7f8c8d;
+      text-align: center;
+    }
+
+    .verifywise-branding {
+      margin-top: 8px;
+    }
+
+    .verifywise-branding img {
+      height: 20px;
+    }
+
+    /* Page break utility */
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+  <div class="report-container">
+
+    <!-- Cover Page -->
+    <div class="cover-page">
+      <% if (metadata.organization_logo) { %>
+        <img src="<%= metadata.organization_logo %>" alt="<%= metadata.organization_name %>" class="cover-logo">
+      <% } else { %>
+        <div class="org-name"><%= metadata.organization_name %></div>
+      <% } %>
+
+      <h1 class="cover-title">Post-Market Monitoring Report</h1>
+      <p class="cover-subtitle"><%= metadata.use_case_title %> - Cycle #<%= metadata.cycle_number %></p>
+
+      <div class="cover-meta">
+        <p class="cover-meta-item"><strong>Use Case ID:</strong> <%= metadata.use_case_id %></p>
+        <p class="cover-meta-item"><strong>Completed on:</strong> <%= new Date(metadata.completed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+        <p class="cover-meta-item"><strong>Completed by:</strong> <%= metadata.completed_by %></p>
+        <p class="cover-meta-item"><strong>EU AI Act Articles:</strong> <%= metadata.eu_ai_act_articles.join(', ') %></p>
+      </div>
+    </div>
+
+    <!-- Context Snapshot -->
+    <div class="section-header">
+      <h2 class="section-title">Use Case Context Snapshot</h2>
+    </div>
+
+    <div class="context-grid">
+      <div class="context-card">
+        <div class="context-value"><%= context.risks_count %></div>
+        <div class="context-label">Total Risks</div>
+      </div>
+      <div class="context-card">
+        <div class="context-value"><%= context.models_count %></div>
+        <div class="context-label">AI Models</div>
+      </div>
+      <div class="context-card">
+        <div class="context-value"><%= context.vendors_count %></div>
+        <div class="context-label">Vendors</div>
+      </div>
+    </div>
+
+    <div class="risk-summary">
+      <span class="risk-badge risk-high">High: <%= context.high_risk_count %></span>
+      <span class="risk-badge risk-medium">Medium: <%= context.medium_risk_count %></span>
+      <span class="risk-badge risk-low">Low: <%= context.low_risk_count %></span>
+    </div>
+
+    <p style="color: #7f8c8d; font-size: 11px; margin-bottom: 24px;">
+      <strong>Model Risks:</strong> <%= context.model_risks_count %> |
+      <strong>Vendor Risks:</strong> <%= context.vendor_risks_count %> |
+      <strong>Use Case Status:</strong> <%= context.use_case_status %>
+    </p>
+
+    <!-- Monitoring Responses -->
+    <div class="section-header page-break">
+      <h2 class="section-title">Monitoring Questionnaire Responses</h2>
+    </div>
+
+    <% responses.forEach((item, index) => { %>
+      <div class="question-item <%= item.is_flagged ? 'flagged' : '' %>">
+        <div class="question-header">
+          <span class="question-text">
+            <%= index + 1 %>. <%= item.question %>
+            <% if (item.is_flagged) { %>
+              <span class="flag-indicator">FLAGGED</span>
+            <% } %>
+          </span>
+          <% if (item.eu_ai_act_article) { %>
+            <span class="question-article"><%= item.eu_ai_act_article %></span>
+          <% } %>
+        </div>
+
+        <div class="response-value">
+          <% if (item.question_type === 'yes_no') { %>
+            <span class="<%= item.response === true ? 'response-yes' : 'response-no' %>">
+              <%= item.response === true ? 'Yes' : 'No' %>
+            </span>
+          <% } else if (Array.isArray(item.response)) { %>
+            <%= item.response.join(', ') || 'No selection' %>
+          <% } else { %>
+            <%= item.response || 'No response provided' %>
+          <% } %>
+        </div>
+
+        <% if (item.question_type === 'yes_no' && item.response === false && item.suggestion_text) { %>
+          <div class="suggestion-box">
+            <strong>Suggestion:</strong> <%= item.suggestion_text %>
+          </div>
+        <% } %>
+      </div>
+    <% }); %>
+
+    <!-- Footer -->
+    <div class="report-footer">
+      <p>Generated on <%= new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></p>
+      <p>This report was generated as part of EU AI Act compliance monitoring.</p>
+      <div class="verifywise-branding">
+        Powered by VerifyWise
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

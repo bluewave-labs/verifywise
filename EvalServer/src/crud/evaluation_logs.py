@@ -37,13 +37,13 @@ async def create_log(
     
     result = await db.execute(
         text(f'''
-            INSERT INTO "{tenant}".evaluation_logs
+            INSERT INTO "{tenant}".llm_evals_logs
             (id, project_id, experiment_id, trace_id, parent_trace_id, span_name,
              input_text, output_text, model_name, metadata, latency_ms, token_count,
-             cost, status, error_message, created_by, tenant)
+             cost, status, error_message, created_by)
             VALUES (:id, :project_id, :experiment_id, CAST(:trace_id AS uuid), CAST(:parent_trace_id AS uuid), :span_name,
                     :input_text, :output_text, :model_name, CAST(:metadata_json AS jsonb), :latency_ms, :token_count,
-                    :cost, :status, :error_message, :created_by, :tenant)
+                    :cost, :status, :error_message, :created_by)
             RETURNING id, project_id, experiment_id, trace_id, timestamp, status
         '''),
         {
@@ -62,8 +62,7 @@ async def create_log(
             "cost": cost,
             "status": status,
             "error_message": error_message,
-            "created_by": int(created_by) if created_by is not None else None,
-            "tenant": tenant,
+            "created_by": str(created_by) if created_by is not None else None,
         }
     )
 
@@ -92,7 +91,7 @@ async def update_log_metadata(
     metadata_json = json.dumps(metadata) if metadata else '{}'
     result = await db.execute(
         text(f'''
-            UPDATE "{tenant}".evaluation_logs
+            UPDATE "{tenant}".llm_evals_logs
             SET metadata = COALESCE(metadata, '{{}}'::jsonb) || CAST(:metadata_json AS jsonb)
             WHERE id = :log_id
             RETURNING id
@@ -134,7 +133,7 @@ async def get_logs(
             SELECT id, project_id, experiment_id, trace_id, span_name,
                    input_text, output_text, model_name, metadata, latency_ms, token_count,
                    cost, status, error_message, timestamp
-            FROM "{tenant}".evaluation_logs
+            FROM "{tenant}".llm_evals_logs
             {where_clause}
             ORDER BY timestamp DESC
             LIMIT :limit OFFSET :offset
@@ -186,7 +185,7 @@ async def get_log_count(
     where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     
     result = await db.execute(
-        text(f'SELECT COUNT(*) as count FROM "{tenant}".evaluation_logs {where_clause}'),
+        text(f'SELECT COUNT(*) as count FROM "{tenant}".llm_evals_logs {where_clause}'),
         params
     )
     
@@ -212,9 +211,9 @@ async def create_metric(
     
     result = await db.execute(
         text(f'''
-            INSERT INTO "{tenant}".evaluation_metrics
-            (id, project_id, experiment_id, metric_name, metric_type, value, dimensions, tenant)
-            VALUES (:id, :project_id, :experiment_id, :metric_name, :metric_type, :value, CAST(:dimensions_json AS jsonb), :tenant)
+            INSERT INTO "{tenant}".llm_evals_metrics
+            (id, project_id, experiment_id, metric_name, metric_type, value, dimensions)
+            VALUES (:id, :project_id, :experiment_id, :metric_name, :metric_type, :value, CAST(:dimensions_json AS jsonb))
             RETURNING id, project_id, metric_name, value, timestamp
         '''),
         {
@@ -225,7 +224,6 @@ async def create_metric(
             "metric_type": metric_type,
             "value": value,
             "dimensions_json": dimensions_json,
-            "tenant": tenant,
         }
     )
     
@@ -275,7 +273,7 @@ async def get_metric_aggregates(
                 MIN(value) as min,
                 MAX(value) as max,
                 COUNT(*) as count
-            FROM "{tenant}".evaluation_metrics
+            FROM "{tenant}".llm_evals_metrics
             {where_clause}
         '''),
         params
@@ -320,9 +318,9 @@ async def create_experiment(
         
         result = await db.execute(
             text(f'''
-                INSERT INTO "{tenant}".experiments
-                (id, project_id, name, description, config, baseline_experiment_id, status, created_by, tenant)
-                VALUES (:id, :project_id, :name, :description, CAST(:config_json AS jsonb), :baseline_experiment_id, :status, :created_by, :tenant)
+                INSERT INTO "{tenant}".llm_evals_experiments
+                (id, project_id, name, description, config, baseline_experiment_id, status, created_by)
+                VALUES (:id, :project_id, :name, :description, CAST(:config_json AS jsonb), :baseline_experiment_id, :status, :created_by)
                 RETURNING id, name, status, created_at
             '''),
             {
@@ -333,14 +331,13 @@ async def create_experiment(
                 "config_json": config_json,
                 "baseline_experiment_id": baseline_experiment_id,
                 "status": "pending",
-                "created_by": int(created_by) if created_by is not None else None,
-                "tenant": tenant,
+                "created_by": str(created_by) if created_by is not None else None,
             }
         )
-        
+
         await db.commit()
         row = result.mappings().first()
-        
+
         if row:
             print(f"✅ CRUD - Experiment inserted successfully")
             return {
@@ -369,7 +366,7 @@ async def get_experiment_by_id(
             SELECT id, project_id, name, description, config, baseline_experiment_id,
                    status, results, error_message, started_at, completed_at, 
                    created_at, updated_at, created_by
-            FROM "{tenant}".experiments
+            FROM "{tenant}".llm_evals_experiments
             WHERE id = :experiment_id
         '''),
         {"experiment_id": experiment_id}
@@ -423,7 +420,7 @@ async def get_experiments(
         text(f'''
             SELECT id, project_id, name, description, config, status,
                    results, created_at, updated_at, started_at, completed_at
-            FROM "{tenant}".experiments
+            FROM "{tenant}".llm_evals_experiments
             {where_clause}
             ORDER BY created_at DESC
             LIMIT :limit OFFSET :offset
@@ -467,7 +464,7 @@ async def get_experiment_count(
     where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
 
     result = await db.execute(
-        text(f'SELECT COUNT(*) as count FROM "{tenant}".experiments {where_clause}'),
+        text(f'SELECT COUNT(*) as count FROM "{tenant}".llm_evals_experiments {where_clause}'),
         params
     )
 
@@ -506,7 +503,7 @@ async def update_experiment_status(
     
     result = await db.execute(
         text(f'''
-            UPDATE "{tenant}".experiments
+            UPDATE "{tenant}".llm_evals_experiments
             SET {update_clause}
             WHERE id = :experiment_id
             RETURNING id, status, updated_at
@@ -554,7 +551,7 @@ async def update_experiment(
 
     result = await db.execute(
         text(f'''
-            UPDATE "{tenant}".experiments
+            UPDATE "{tenant}".llm_evals_experiments
             SET {update_clause}
             WHERE id = :experiment_id
             RETURNING *
@@ -591,7 +588,7 @@ async def delete_experiment(
         # First, delete associated evaluation logs
         await db.execute(
             text(f'''
-                DELETE FROM "{tenant}".evaluation_logs
+                DELETE FROM "{tenant}".llm_evals_logs
                 WHERE experiment_id = :experiment_id
             '''),
             {"experiment_id": experiment_id}
@@ -600,7 +597,7 @@ async def delete_experiment(
         # Then delete the experiment
         result = await db.execute(
             text(f'''
-                DELETE FROM "{tenant}".experiments
+                DELETE FROM "{tenant}".llm_evals_experiments
                 WHERE id = :experiment_id
                 RETURNING id
             '''),

@@ -29,6 +29,8 @@ import useUserPreferences from "./application/hooks/useUserPreferences";
 import { SetupModal, useOnboarding } from "./presentation/components/Onboarding";
 import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
 import { AdvisorConversationProvider } from './application/contexts/AdvisorConversation.context';
+import { PluginRegistryProvider } from './application/contexts/PluginRegistry.context';
+import PluginLoader from './presentation/components/PluginLoader';
 // SSE notifications disabled for now - can be re-enabled later if needed
 // import { useNotifications } from "./application/hooks/useNotifications";
 
@@ -251,8 +253,10 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
-            <UserGuideSidebarProvider>
-              <ConditionalThemeWrapper>
+            <PluginRegistryProvider>
+              <PluginLoader />
+              <UserGuideSidebarProvider>
+                <ConditionalThemeWrapper>
                 {alert && (
                   <Alert
                     variant={alert.variant}
@@ -283,7 +287,8 @@ function App() {
                   <UserGuideSidebarContainer />
                 </AdvisorConversationProvider>
               </ConditionalThemeWrapper>
-            </UserGuideSidebarProvider>
+              </UserGuideSidebarProvider>
+            </PluginRegistryProvider>
           </VerifyWiseContext.Provider>
         </PersistGate>
       </Provider>

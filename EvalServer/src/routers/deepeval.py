@@ -26,6 +26,13 @@ from controllers.deepeval import (
     update_deepeval_scorer_controller,
     delete_deepeval_scorer_controller,
     test_deepeval_scorer_controller,
+    list_deepeval_models_controller,
+    create_deepeval_model_controller,
+    update_deepeval_model_controller,
+    delete_deepeval_model_controller,
+    get_latest_model_controller,
+    get_latest_scorer_controller,
+    _get_uploads_root,
 )
 
 router = APIRouter()
@@ -266,11 +273,14 @@ async def read_dataset(path: str):
 @router.get("/datasets/uploads")
 async def list_uploaded_datasets(request: Request):
     """
-    List uploaded JSON datasets for the current tenant from EvaluationModule/data/uploads/{tenant}.
+    List uploaded JSON datasets for the current tenant.
+    Docker: /app/data/uploads/{tenant}
+    Local: EvaluationModule/data/uploads/{tenant}
     """
     try:
         tenant = request.state.tenant
-        uploads_dir = Path(__file__).parents[2] / "EvaluationModule" / "data" / "uploads" / tenant
+        uploads_root = _get_uploads_root()
+        uploads_dir = uploads_root / tenant
         uploads = []
         if uploads_dir.is_dir():
             for p in uploads_dir.glob("*.json"):
@@ -364,3 +374,67 @@ async def test_scorer_endpoint(request: Request, scorer_id: str, payload: dict =
     tenant = request.state.tenant
     return await test_deepeval_scorer_controller(scorer_id, tenant=tenant, payload=payload)
 
+
+# ==================== MODELS ====================
+
+@router.get("/models")
+async def list_models_endpoint(request: Request, org_id: str | None = None):
+    """
+    List saved model configurations for the current tenant.
+    """
+    tenant = request.state.tenant
+    return await list_deepeval_models_controller(tenant=tenant, org_id=org_id)
+
+
+@router.post("/models")
+async def create_model_endpoint(request: Request, payload: dict = Body(...)):
+    """
+    Create a new saved model configuration.
+    """
+    tenant = request.state.tenant
+    # Add user_id from headers if not already in payload
+    if "createdBy" not in payload:
+        user_id = request.headers.get("x-user-id")
+        if user_id:
+            payload["createdBy"] = user_id
+    return await create_deepeval_model_controller(tenant=tenant, payload=payload)
+
+
+@router.put("/models/{model_id}")
+async def update_model_endpoint(request: Request, model_id: str, payload: dict = Body(...)):
+    """
+    Update an existing saved model configuration.
+    """
+    tenant = request.state.tenant
+    return await update_deepeval_model_controller(model_id, tenant=tenant, payload=payload)
+
+
+@router.delete("/models/{model_id}")
+async def delete_model_endpoint(request: Request, model_id: str):
+    """
+    Delete a saved model configuration.
+    """
+    tenant = request.state.tenant
+    return await delete_deepeval_model_controller(model_id, tenant=tenant)
+
+
+# ==================== LATEST MODEL/SCORER FOR EXPERIMENTS ====================
+
+@router.get("/models/latest")
+async def get_latest_model_endpoint(request: Request, org_id: str | None = None):
+    """
+    Get the most recently added/updated model configuration.
+    Used for auto-populating experiment forms.
+    """
+    tenant = request.state.tenant
+    return await get_latest_model_controller(tenant=tenant, org_id=org_id)
+
+
+@router.get("/scorers/latest")
+async def get_latest_scorer_endpoint(request: Request, org_id: str | None = None):
+    """
+    Get the most recently added/updated scorer (judge) configuration.
+    Used for auto-populating experiment forms.
+    """
+    tenant = request.state.tenant
+    return await get_latest_scorer_controller(tenant=tenant, org_id=org_id)

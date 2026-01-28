@@ -32,9 +32,12 @@ import {
   createNewUser,
 } from "../../../application/repository/entity.repository";
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
-import { getMlflowModels } from "../../../application/repository/integration.repository";
 import { getShareLinksForResource } from "../../../application/repository/share.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
+import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
+import { PluginSlot } from "../../components/PluginSlot";
+import { apiServices } from "../../../infrastructure/api/networkServices";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
@@ -47,7 +50,6 @@ import {
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
-import MLFlowDataTable from "./MLFlowDataTable";
 import AnalyticsDrawer from "../../components/AnalyticsDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
@@ -128,14 +130,17 @@ const ModelInventory: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [showAlert, setShowAlert] = useState(false);
 
-  // MLFlow data state
-  const [mlflowData, setMlflowData] = useState<any[]>([]);
-  const [isMlflowLoading, setIsMlflowLoading] = useState(false);
-
   const { userRoleName } = useAuth();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
   const theme = useTheme();
+
+  // Get plugin tabs dynamically from the plugin registry
+  const { getPluginTabs } = usePluginRegistry();
+  const pluginTabs = useMemo(
+    () => getPluginTabs(PLUGIN_SLOTS.MODELS_TABS),
+    [getPluginTabs]
+  );
 
   // Share link mutations
   const createShareMutation = useCreateShareLink();
@@ -593,23 +598,34 @@ const ModelInventory: React.FC = () => {
   const [isCreatingLink, setIsCreatingLink] = useState(false);
 
   // Determine the active tab based on the URL
-  const getInitialTab = () => {
-    const currentPath = location.pathname;
-    if (currentPath.includes("model-risks")) return "model-risks";
-    if (currentPath.includes("mlflow")) return "mlflow";
-    if (currentPath.includes("evidence-hub")) return "evidence-hub";
+  const getTabFromPath = useCallback((pathname: string, tabs: typeof pluginTabs) => {
+    if (pathname.includes("model-risks")) return "model-risks";
+    if (pathname.includes("evidence-hub")) return "evidence-hub";
+    // Check for plugin tabs dynamically
+    for (const tab of tabs) {
+      if (pathname.includes(tab.value)) return tab.value;
+    }
     return "models";
-  };
+  }, []);
 
-  const [activeTab, setActiveTab] = useState(getInitialTab()); // "models" = Models, "model-risks" = Model Risks, "mlflow" = MLFlow Data
+  const [activeTab, setActiveTab] = useState(() =>
+    getTabFromPath(location.pathname, pluginTabs)
+  );
 
   // Sync activeTab with URL changes (for browser back/forward navigation)
   useEffect(() => {
-    const newTab = getInitialTab();
-    if (newTab !== activeTab) {
+    const newTab = getTabFromPath(location.pathname, pluginTabs);
+
+    // If trying to access a plugin tab but plugin is not installed, redirect to models
+    const isPluginTab = pluginTabs.some((t) => t.value === newTab);
+    const isBuiltInTab = ["models", "model-risks", "evidence-hub"].includes(newTab);
+
+    if (!isBuiltInTab && !isPluginTab) {
+      setActiveTab("models");
+    } else {
       setActiveTab(newTab);
     }
-  }, [location.pathname]);
+  }, [location.pathname, pluginTabs, getTabFromPath]);
 
   // Calculate summary from data
   const summary: Summary = {
@@ -842,37 +858,9 @@ const ModelInventory: React.FC = () => {
     }
   };
 
-  // Function to fetch MLFlow data
-  const fetchMLFlowData = async () => {
-    setIsMlflowLoading(true);
-    try {
-      const data = await getMlflowModels({});
-      if (data) {
-        // Handle new response format: { configured: boolean, models: [] }
-        if ("models" in data && Array.isArray(data.models)) {
-          setMlflowData(data.models);
-        } else if (Array.isArray(data)) {
-          // Backwards compatibility: handle old format where response is directly an array
-          setMlflowData(data as unknown as any[]);
-        } else {
-          setMlflowData([]);
-        }
-      } else {
-        setMlflowData([]);
-      }
-    } catch (error) {
-      // Only log unexpected errors, not "not configured" scenarios
-      // The backend now handles "not configured" gracefully with 200 status
-      setMlflowData([]);
-    } finally {
-      setIsMlflowLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchModelInventoryData();
     fetchModelRisksData();
-    fetchMLFlowData();
     fetchUsersData();
     fetchEvidenceData();
   }, []);
@@ -1840,10 +1828,11 @@ const ModelInventory: React.FC = () => {
       navigate("/model-inventory");
     } else if (newValue === "model-risks") {
       navigate("/model-inventory/model-risks");
-    } else if (newValue === "mlflow") {
-      navigate("/model-inventory/mlflow");
     } else if (newValue === "evidence-hub") {
       navigate("/model-inventory/evidence-hub");
+    } else {
+      // Handle plugin tabs dynamically
+      navigate(`/model-inventory/${newValue}`);
     }
   };
 
@@ -2009,17 +1998,16 @@ const ModelInventory: React.FC = () => {
                   count: modelRisksData.length,
                   isLoading: isModelRisksLoading,
                 },
-                {
-                  label: "MLFlow data",
-                  value: "mlflow",
-                  icon: "Database",
-                  count: mlflowData.length,
-                  isLoading: isMlflowLoading,
-                },
+                // Dynamically add plugin tabs
+                ...pluginTabs.map((tab) => ({
+                  label: tab.label,
+                  value: tab.value,
+                  icon: (tab.icon || "Database") as "Database" | "Box" | "AlertTriangle",
+                })),
                 {
                   label: "Evidence hub",
                   value: "evidence-hub",
-                  icon: "Database",
+                  icon: "Database" as const,
                   count: evidenceHubData.length,
                   isLoading: isEvidenceLoading,
                 },
@@ -2219,7 +2207,15 @@ const ModelInventory: React.FC = () => {
           </>
         )}
 
-        {activeTab === "mlflow" && <MLFlowDataTable />}
+        {/* Render plugin tab content dynamically */}
+        {pluginTabs.some((tab) => tab.value === activeTab) && (
+          <PluginSlot
+            id={PLUGIN_SLOTS.MODELS_TABS}
+            renderType="tab"
+            activeTab={activeTab}
+            slotProps={{ apiServices }}
+          />
+        )}
 
         {activeTab === "evidence-hub" && (
           <>

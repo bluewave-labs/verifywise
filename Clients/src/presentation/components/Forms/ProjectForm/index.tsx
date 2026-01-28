@@ -435,7 +435,7 @@ const ProjectForm = ({
             setIsSubmitting(false);
           }, 1000);
         }
-      } catch (err) {
+      } catch (_err) {
         setTimeout(() => {
           setIsSubmitting(false);
         }, 1000);

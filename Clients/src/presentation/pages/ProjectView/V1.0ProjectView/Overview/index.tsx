@@ -33,6 +33,12 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
   );
   const { users } = useUsers();
 
+  const projectId = project?.id;
+
+  const { projectOwner } = useProjectData({
+    projectId: String(projectId ?? ""),
+  });
+
   // Update framework IDs when project changes
   useEffect(() => {
     if (project?.framework) {
@@ -63,7 +69,6 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
     }
   }, [project]);
 
-  const projectId = project?.id;
   const { projectRisksSummary } = useProjectRisks({
     projectId: projectId ?? 0,
   });
@@ -171,12 +176,8 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
   }
 
   const user: User =
-    users.find((user: User) => user.id === project.last_updated_by) ??
+    users.find((u: User) => u.id === project.last_updated_by) ??
     ({} as User);
-
-  const { projectOwner } = useProjectData({
-    projectId: String(projectId),
-  });
 
   const projectMembers: string[] = users
     .filter((user: { id: any }) => project.members.includes(user.id || ""))

@@ -98,7 +98,7 @@ export function validateApiKeyFormat(provider: LLMProvider, apiKey: string): str
 }
 
 @Table({
-  tableName: 'evaluation_llm_api_keys',
+  tableName: 'llm_evals_api_keys',
   timestamps: true,
   underscored: true,
 })

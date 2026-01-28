@@ -748,7 +748,7 @@ export class ReportDataCollector {
         // Get all models for organizational reports
         modelsQuery = `
           SELECT mi.*, u.name as owner_name, u.surname as owner_surname
-          FROM "${this.tenantId}".model_inventory mi
+          FROM "${this.tenantId}".model_inventories mi
           LEFT JOIN public.users u ON mi.owner = u.id
           ORDER BY mi.name ASC
         `;
@@ -756,7 +756,7 @@ export class ReportDataCollector {
         // Get only project-linked models for use case reports
         modelsQuery = `
           SELECT mi.*, u.name as owner_name, u.surname as owner_surname
-          FROM "${this.tenantId}".model_inventory mi
+          FROM "${this.tenantId}".model_inventories mi
           JOIN "${this.tenantId}".model_inventory_projects mip ON mi.id = mip.model_id
           LEFT JOIN public.users u ON mi.owner = u.id
           WHERE mip.project_id = :projectId
@@ -804,7 +804,7 @@ export class ReportDataCollector {
         modelRisksQuery = `
           SELECT mr.*, mi.name as model_name
           FROM "${this.tenantId}".model_risks mr
-          JOIN "${this.tenantId}".model_inventory mi ON mr.model_id = mi.id
+          JOIN "${this.tenantId}".model_inventories mi ON mr.model_id = mi.id
           ORDER BY mr.id ASC
         `;
         replacements = {};
@@ -813,7 +813,7 @@ export class ReportDataCollector {
         modelRisksQuery = `
           SELECT mr.*, mi.name as model_name
           FROM "${this.tenantId}".model_risks mr
-          JOIN "${this.tenantId}".model_inventory mi ON mr.model_id = mi.id
+          JOIN "${this.tenantId}".model_inventories mi ON mr.model_id = mi.id
           JOIN "${this.tenantId}".model_inventory_projects mip ON mi.id = mip.model_id
           WHERE mip.project_id = :projectId
           ORDER BY mr.id ASC

@@ -1,9 +1,8 @@
 import { Route, Navigate } from "react-router-dom";
 import Dashboard from "../../presentation/containers/Dashboard";
 import Vendors from "../../presentation/pages/Vendors";
-import Integrations from "../../presentation/pages/Integrations";
-import SlackManagement from "../../presentation/pages/Integrations/SlackManagement";
-import MLFlowManagement from "../../presentation/pages/Integrations/MLFlowManagement";
+import Plugins from "../../presentation/pages/Plugins";
+import PluginManagement from "../../presentation/pages/Plugins/PluginManagement";
 import Setting from "../../presentation/pages/SettingsPage";
 import Organization from "../../presentation/pages/SettingsPage/Organization";
 import RegisterAdmin from "../../presentation/pages/Authentication/RegisterAdmin";
@@ -41,6 +40,8 @@ import StyleGuide from "../../presentation/pages/StyleGuide";
 import ApprovalWorkflows from "../../presentation/pages/ApprovalWorkflows";
 import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
 import AIDetectionPage from "../../presentation/pages/AIDetection";
+import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
+import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -64,11 +65,12 @@ export const createRoutes = (
       <Route path="risks" element={<Vendors />} /> {/* Risks tab */}
     </Route>
 
-    <Route path="/integrations" element={<Integrations />} />
     <Route path="/settings" element={<Setting />} />
     <Route path="/settings/:tab" element={<Setting />} />
-    <Route path="/integrations/slack" element={<SlackManagement />} />
-    <Route path="/integrations/mlflow" element={<MLFlowManagement />} />
+    <Route path="/plugins" element={<Plugins />} />
+    <Route path="/plugins/marketplace" element={<Plugins />} />
+    <Route path="/plugins/my-plugins" element={<Plugins />} />
+    <Route path="/plugins/:pluginKey/manage" element={<PluginManagement />} />
     <Route path="/setting" element={<Navigate to="/settings" replace />} />
     <Route path="/organization" element={<Organization />} />
       <Route path="/file-manager" element={<FileManager />} />
@@ -92,8 +94,9 @@ export const createRoutes = (
     <Route path="/event-tracker/logs" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
-    <Route path="/model-inventory/mlflow" element={<ModelInventory />} />
     <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
+    {/* Dynamic route for plugin tabs (e.g., mlflow, other future plugins) */}
+    <Route path="/model-inventory/:pluginTab" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />
@@ -105,6 +108,8 @@ export const createRoutes = (
     <Route path="/ai-detection/settings" element={<AIDetectionPage />} />
     <Route path="/ai-detection/scans/:scanId" element={<AIDetectionPage />} />
     <Route path="/ai-detection/scans/:scanId/:tab" element={<AIDetectionPage />} />
+    <Route path="/monitoring/cycle/:cycleId" element={<MonitoringForm />} />
+    <Route path="/monitoring/reports" element={<ReportsArchive />} />
   </Route>,
   <Route
     key="admin-reg"

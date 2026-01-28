@@ -6,50 +6,8 @@ import EmptyStateMessage from "../../EmptyStateMessage";
 import Chip from "../../Chip";
 import VWTooltip from "../../VWTooltip";
 import { DASHBOARD_COLORS } from "../../../styles/colors";
-
-interface UpcomingTask {
-  id: number;
-  title: string;
-  status: string;
-  priority: string;
-  due_date: string;
-}
-
-interface UpcomingDeadlinesCardProps {
-  tasks: UpcomingTask[];
-}
-
-// Helper to calculate days until due
-const getDaysUntilDue = (dueDate: string): number => {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
-  const diffTime = due.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
-};
-
-// Get countdown label and variant based on days until due
-const getCountdownInfo = (daysUntilDue: number): { label: string; variant: "error" | "warning" | "info" | "default" } => {
-  if (daysUntilDue < 0) {
-    const overdueDays = Math.abs(daysUntilDue);
-    return {
-      label: overdueDays === 1 ? "1 day overdue" : `${overdueDays}d overdue`,
-      variant: "error",
-    };
-  }
-  if (daysUntilDue === 0) {
-    return { label: "Due today", variant: "warning" };
-  }
-  if (daysUntilDue === 1) {
-    return { label: "Tomorrow", variant: "warning" };
-  }
-  if (daysUntilDue <= 7) {
-    return { label: `${daysUntilDue}d left`, variant: "info" };
-  }
-  return { label: `${daysUntilDue}d left`, variant: "default" };
-};
+import { UpcomingDeadlinesCardProps } from "../../../pages/Tasks/types";
+import { getDaysUntilDue, getCountdownInfo } from "../../../pages/Tasks/utils";
 
 const UpcomingDeadlinesCard: React.FC<UpcomingDeadlinesCardProps> = ({ tasks }) => {
   const navigate = useNavigate();

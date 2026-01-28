@@ -63,6 +63,17 @@ export const DASHBOARD_COLORS = {
   progressBackground: "#E5E7EB",
 } as const;
 
+// Deadline group color configurations for DeadlineView component
+export const DEADLINE_COLORS = {
+  overdue: { color: DASHBOARD_COLORS.overdue, bgColor: DASHBOARD_COLORS.overdueBackground },
+  today: { color: DASHBOARD_COLORS.dueToday, bgColor: DASHBOARD_COLORS.dueTodayBackground },
+  thisWeek: { color: DASHBOARD_COLORS.dueThisWeek, bgColor: DASHBOARD_COLORS.dueThisWeekBackground },
+  nextWeek: { color: DASHBOARD_COLORS.dueNextWeek, bgColor: DASHBOARD_COLORS.dueNextWeekBackground },
+  thisMonth: { color: DASHBOARD_COLORS.dueThisMonth, bgColor: DASHBOARD_COLORS.dueThisMonthBackground },
+  later: { color: DASHBOARD_COLORS.dueLater, bgColor: DASHBOARD_COLORS.dueLaterBackground },
+  noDueDate: { color: DASHBOARD_COLORS.noDueDate, bgColor: DASHBOARD_COLORS.noDueDateBackground },
+} as const;
+
 // Common text styles
 export const TEXT_STYLES = {
   label: { fontSize: 11, color: DASHBOARD_COLORS.textSecondary },

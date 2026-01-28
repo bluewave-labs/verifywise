@@ -51,6 +51,7 @@ import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import Alert from "../../components/Alert";
 import TabBar from "../../components/TabBar";
 import DeadlineView from "./DeadlineView";
+import { toggleLabelStyle, toggleContainerStyle } from "./style";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -658,17 +659,14 @@ const Tasks: React.FC = () => {
           {/* My Tasks toggle - Admin only */}
           {userRoleName === "Admin" && (
             <Stack
-              direction="row"
-              alignItems="center"
-              gap={1}
+              sx={toggleContainerStyle}
               data-joyride-id="my-tasks-toggle"
             >
               <Typography
                 component="span"
                 variant="body2"
                 color="text.secondary"
-                fontWeight={500}
-                fontSize={"13px"}
+                sx={toggleLabelStyle}
               >
                 My tasks only
               </Typography>
@@ -681,17 +679,14 @@ const Tasks: React.FC = () => {
 
           {/* Include archived toggle */}
           <Stack
-            direction="row"
-            alignItems="center"
-            gap={1}
+            sx={toggleContainerStyle}
             data-joyride-id="include-archived-toggle"
           >
             <Typography
               component="span"
               variant="body2"
               color="text.secondary"
-              fontWeight={500}
-              fontSize={"13px"}
+              sx={toggleLabelStyle}
             >
               Include archived
             </Typography>

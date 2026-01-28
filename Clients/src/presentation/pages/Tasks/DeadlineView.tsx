@@ -11,68 +11,11 @@ import { ChevronDown, ChevronRight, Calendar, AlertTriangle } from "lucide-react
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
 import { TaskStatus } from "../../../domain/enums/task.enum";
 import TasksTable from "../../components/Table/TasksTable";
-import { IUser } from "../../../domain/interfaces/i.user";
 import EmptyState from "../../components/EmptyState";
 import Chip from "../../components/Chip";
-import { DASHBOARD_COLORS } from "../../styles/colors";
-
-// Deadline group color configurations using shared palette
-const DEADLINE_COLORS = {
-  overdue: { color: DASHBOARD_COLORS.overdue, bgColor: DASHBOARD_COLORS.overdueBackground },
-  today: { color: DASHBOARD_COLORS.dueToday, bgColor: DASHBOARD_COLORS.dueTodayBackground },
-  thisWeek: { color: DASHBOARD_COLORS.dueThisWeek, bgColor: DASHBOARD_COLORS.dueThisWeekBackground },
-  nextWeek: { color: DASHBOARD_COLORS.dueNextWeek, bgColor: DASHBOARD_COLORS.dueNextWeekBackground },
-  thisMonth: { color: DASHBOARD_COLORS.dueThisMonth, bgColor: DASHBOARD_COLORS.dueThisMonthBackground },
-  later: { color: DASHBOARD_COLORS.dueLater, bgColor: DASHBOARD_COLORS.dueLaterBackground },
-  noDueDate: { color: DASHBOARD_COLORS.noDueDate, bgColor: DASHBOARD_COLORS.noDueDateBackground },
-} as const;
-
-interface DeadlineViewProps {
-  tasks: TaskModel[];
-  users: IUser[];
-  onArchive: (taskId: number) => void;
-  onEdit: (task: TaskModel) => void;
-  onStatusChange: (taskId: number) => (newStatus: string) => Promise<boolean>;
-  statusOptions: string[];
-  isUpdateDisabled?: boolean;
-  onRowClick?: (task: TaskModel) => void;
-  onRestore?: (taskId: number) => void;
-  onHardDelete?: (taskId: number) => void;
-  flashRowId?: number | null;
-}
-
-interface DeadlineGroup {
-  key: string;
-  label: string;
-  color: string;
-  bgColor: string;
-  icon: React.ReactNode;
-  tasks: TaskModel[];
-}
-
-// Helper to get start of current week (Monday)
-const getStartOfWeek = (date: Date): Date => {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Monday start
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-};
-
-// Helper to get end of current week (Sunday)
-const getEndOfWeek = (date: Date): Date => {
-  const start = getStartOfWeek(date);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 6);
-  end.setHours(23, 59, 59, 999);
-  return end;
-};
-
-// Helper to get end of current month
-const getEndOfMonth = (date: Date): Date => {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
-};
+import { DASHBOARD_COLORS, DEADLINE_COLORS } from "../../styles/colors";
+import { DeadlineViewProps, DeadlineGroup } from "./types";
+import { getEndOfWeek, getEndOfMonth } from "./utils";
 
 const DeadlineView: React.FC<DeadlineViewProps> = ({
   tasks,

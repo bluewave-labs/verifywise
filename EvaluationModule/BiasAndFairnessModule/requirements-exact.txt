@@ -26,4 +26,4 @@ pyarrow==21.0.0
 tqdm==4.67.1
 
 # Additional dependencies that may be needed
-pydantic-core==2.33.2
+pydantic-core==2.41.5

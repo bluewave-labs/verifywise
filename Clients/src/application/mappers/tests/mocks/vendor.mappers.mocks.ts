@@ -17,7 +17,7 @@ const vendorDto: VendorResponseDTO = {
   website: "https://testvendor.com",
   vendor_contact_person: "Jane Doe",
   review_result: "Approved",
-  review_status: "completed",
+  review_status: "reviewed",
   reviewer: 3,
   review_date: "2024-01-15T10:00:00Z",
   is_demo: false,

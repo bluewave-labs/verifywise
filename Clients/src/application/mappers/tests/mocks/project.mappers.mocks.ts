@@ -1,4 +1,4 @@
-import { ProjectResponseDTO } from "src/application/dtos";
+import { ProjectResponseDTO } from "../../../../application/dtos";
 
 const projectDto: ProjectResponseDTO = {
   id: 1,

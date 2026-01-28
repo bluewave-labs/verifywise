@@ -173,7 +173,7 @@ describe("Test vendor mappers functions", () => {
         if (exclude.includes(key)) return;
         expect(value).toBe((dto as never)[key]);
       });
-      expect(model.review_status).toBe(ReviewStatus.NotStarted);
+      expect(model.review_status).toBe(ReviewStatus.Reviewed);
       expect(model.review_date).toBeInstanceOf(Date);
       expect(model.created_at).toBeInstanceOf(Date);
       expect(model.review_date).toEqual(new Date(dto.review_date));

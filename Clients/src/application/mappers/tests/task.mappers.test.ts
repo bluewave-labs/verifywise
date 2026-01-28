@@ -76,7 +76,7 @@ describe("Test task mappers functions", () => {
       const result = mapTaskAssigneeDTOToModel(dto);
       expect(result.assigned_at).toBeInstanceOf(Date);
     });
-    it("should not return undefined for assigned_at if not present in DTO", () => {
+    it("should set default assigned_at when not present in DTO", () => {
       const dto = new TaskAssigneeBuilder().withoutAssignedAt().build();
       const result = mapTaskAssigneeDTOToModel(dto);
       expect(result.assigned_at).not.toBeUndefined();
@@ -178,12 +178,12 @@ describe("Test task mappers functions", () => {
       const result = task.mapTaskResponseDTOToModel(dto);
       expect(result.categories).toEqual([]);
     });
-    it("should not return undefined for created_at if not present in DTO", () => {
+    it("should set default created_at when not present in DTO", () => {
       const dto = new TaskResponseBuilder().withoutCreatedAt().build();
       const result = task.mapTaskResponseDTOToModel(dto);
       expect(result.created_at).not.toBeUndefined();
     });
-    it("should not return undefined for updated_at if not present in DTO", () => {
+    it("should set default updated_at when not present in DTO", () => {
       const dto = new TaskResponseBuilder().withoutUpdatedAt().build();
       const result = task.mapTaskResponseDTOToModel(dto);
       expect(result.updated_at).not.toBeUndefined();

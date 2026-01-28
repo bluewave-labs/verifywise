@@ -61,7 +61,7 @@
     "eslint-plugin-react-refresh": "^0.4.26",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
-    "globals": "^16.5.0",
+    "globals": "^17.2.0",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
     "katex": "^0.16.27",

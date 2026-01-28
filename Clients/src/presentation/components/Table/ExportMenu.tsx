@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Menu, MenuItem, ListItemText, IconButton } from '@mui/material';
+import { Menu, MenuItem, ListItemText, IconButton, useTheme } from '@mui/material';
 import { MoreVertical, ChevronRight } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF, printTable } from '../../../application/utils/tableExport';
 import pdfIcon from '../../assets/icons/pdf_icon.svg';
 import csvIcon from '../../assets/icons/csv_icon.svg';
 import xlsIcon from '../../assets/icons/xls_icon.svg';
+import { iconButton } from './styles';
 
 interface ExportColumn {
   id: string;
@@ -26,6 +27,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
   title,
   disabled: disabledProp = false,
 }) => {
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -75,23 +77,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
         onClick={handleClick}
         aria-label="Export options"
         disabled={disabled}
-        sx={{
-          height: '34px',
-          width: '34px',
-          padding: '8px',
-          borderRadius: '4px',
-          border: '1px solid #e5e7eb',
-          backgroundColor: '#ffffff',
-          '&:hover': {
-            backgroundColor: '#f9fafb',
-            borderColor: '#d1d5db',
-          },
-          '&.Mui-disabled': {
-            backgroundColor: '#f9fafb',
-            borderColor: '#e5e7eb',
-            opacity: 0.5,
-          },
-        }}
+        sx={iconButton(theme)}
       >
         <MoreVertical size={16} color={disabled ? "#d1d5db" : "#6b7280"} />
       </IconButton>

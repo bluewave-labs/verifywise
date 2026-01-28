@@ -25,11 +25,11 @@ interface ScorersTableBodyProps {
 const formatDate = (dateStr?: string | null): string => {
   if (!dateStr) return "-";
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }) + ", " + date.toLocaleTimeString("en-US", {
+  }) + ", " + date.toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
   });

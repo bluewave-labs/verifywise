@@ -1,5 +1,11 @@
 // import { StrictMode } from "react";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
+import * as jsxRuntime from "react/jsx-runtime";
+import * as MUI from "@mui/material";
+import * as emotionReact from "@emotion/react";
+import * as emotionStyled from "@emotion/styled";
 import App from "./App.tsx";
 import "./index.css";
 import { Provider } from "react-redux";
@@ -9,6 +15,14 @@ import { PersistGate } from "redux-persist/integration/react";
 import { BrowserRouter as Router } from "react-router-dom";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './application/config/queryClient';
+
+// Expose React and related libraries as globals for plugin UI bundles
+(window as any).React = React;
+(window as any).ReactDOM = ReactDOM;
+(window as any).jsxRuntime = jsxRuntime;
+(window as any).MUI = MUI;
+(window as any).emotionReact = emotionReact;
+(window as any).emotionStyled = emotionStyled;
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>

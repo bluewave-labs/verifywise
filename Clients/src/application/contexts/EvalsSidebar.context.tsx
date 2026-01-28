@@ -27,6 +27,8 @@ interface EvalsSidebarContextType {
   setDatasetsCount: (count: number) => void;
   scorersCount: number;
   setScorersCount: (count: number) => void;
+  modelsCount: number;
+  setModelsCount: (count: number) => void;
   arenaCount: number;
   setArenaCount: (count: number) => void;
   disabled: boolean;
@@ -55,6 +57,7 @@ export const EvalsSidebarProvider: FC<{ children: ReactNode }> = ({ children }) 
   const [experimentsCount, setExperimentsCount] = useState(0);
   const [datasetsCount, setDatasetsCount] = useState(0);
   const [scorersCount, setScorersCount] = useState(0);
+  const [modelsCount, setModelsCount] = useState(0);
   const [arenaCount, setArenaCount] = useState(0);
   const [disabled, setDisabled] = useState(false);
   const [recentExperiments, setRecentExperiments] = useState<RecentExperiment[]>([]);
@@ -76,6 +79,8 @@ export const EvalsSidebarProvider: FC<{ children: ReactNode }> = ({ children }) 
         setDatasetsCount,
         scorersCount,
         setScorersCount,
+        modelsCount,
+        setModelsCount,
         arenaCount,
         setArenaCount,
         disabled,

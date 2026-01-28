@@ -1,7 +1,7 @@
 import React, { useMemo, memo, useCallback, useEffect } from 'react';
 import { Stack, IconButton } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Puzzle, Zap, WorkflowIcon } from 'lucide-react';
+import { Search, Zap, WorkflowIcon, Package } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
@@ -185,19 +185,19 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
 
       {/* Integrations */}
       <VWTooltip
-        header="Integrations"
-        content={isAdmin ? "Connect external tools and services." : "Admin access required."}
+        header="Plugins"
+        content={isAdmin ? "Browse and manage plugins from the marketplace." : "Admin access required."}
         placement="bottom"
         maxWidth={200}
       >
         <span>
           <IconButton
             size="small"
-            onClick={isAdmin ? () => navigate('/integrations') : undefined}
+            onClick={isAdmin ? () => navigate('/plugins/marketplace') : undefined}
             disabled={!isAdmin}
             sx={{ ...baseStyles, ...actionButtonsStyles.integrations }}
           >
-            <Puzzle size={16} />
+            <Package size={16} />
           </IconButton>
         </span>
       </VWTooltip>

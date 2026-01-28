@@ -28,7 +28,8 @@ export type FileSource =
   | "Training registry report"
   | "Policy manager report"
   | "File Manager"
-  | "policy_editor";
+  | "policy_editor"
+  | "Post-Market Monitoring report";
 
 export interface File {
   filename: string;

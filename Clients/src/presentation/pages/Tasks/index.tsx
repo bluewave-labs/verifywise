@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
-import { CirclePlus as AddCircleIcon } from "lucide-react";
+import { CirclePlus as AddCircleIcon, Flag } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -27,6 +27,7 @@ import {
   getTaskById,
   restoreTask,
   hardDeleteTask,
+  updateTaskPriority,
 } from "../../../application/repository/task.repository";
 import TaskSummaryCards from "./TaskSummaryCards";
 import CreateTask from "../../components/Modals/CreateTask";
@@ -48,6 +49,7 @@ import TipBox from "../../components/TipBox";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import Alert from "../../components/Alert";
+import { TASK_PRIORITY_OPTIONS, PRIORITY_DISPLAY_MAP, PRIORITY_COLOR_MAP } from "../../constants/priorityOptions";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -65,8 +67,6 @@ const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.DELETED]: "Archived", // Show "Archived" instead of "Deleted" for better UX
 };
 
-// Reverse mapping for API calls
-
 const Tasks: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tasks, setTasks] = useState<TaskModel[]>([]);
@@ -81,7 +81,7 @@ const Tasks: React.FC = () => {
     title: string;
     body?: string;
   } | null>(null);
-  
+
   // Flash indicator state for updated rows
   const [flashRowId, setFlashRowId] = useState<number | null>(null);
 
@@ -347,13 +347,13 @@ const Tasks: React.FC = () => {
             task.id === editingTask.id ? response.data : task
           )
         );
-        
+
         // Flash the updated row
         setFlashRowId(editingTask.id!);
         setTimeout(() => {
           setFlashRowId(null);
         }, 3000);
-        
+
         setEditingTask(null);
         setAlert({
           variant: "success",
@@ -375,35 +375,67 @@ const Tasks: React.FC = () => {
 
   const handleTaskStatusChange =
     (taskId: number) =>
-    async (newStatus: string): Promise<boolean> => {
-      try {
-        const response = await updateTaskStatus({
-          id: taskId,
-          status: newStatus as TaskStatus,
-        });
-        if (response && response.data) {
-          setTasks((prev) =>
-            prev.map((task) =>
-              task.id === taskId
-                ? { ...task, status: newStatus as TaskStatus }
-                : task
-            )
-          );
-          
-          // Flash the updated row
-          setFlashRowId(taskId);
-          setTimeout(() => {
-            setFlashRowId(null);
-          }, 3000);
-          
-          return true;
+      async (newStatus: string): Promise<boolean> => {
+        try {
+          const response = await updateTaskStatus({
+            id: taskId,
+            status: newStatus as TaskStatus,
+          });
+          if (response && response.data) {
+            setTasks((prev) =>
+              prev.map((task) =>
+                task.id === taskId
+                  ? { ...task, status: newStatus as TaskStatus }
+                  : task
+              )
+            );
+
+            // Flash the updated row
+            setFlashRowId(taskId);
+            setTimeout(() => {
+              setFlashRowId(null);
+            }, 3000);
+
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Error updating task status:", error);
+          return false;
         }
-        return false;
-      } catch (error) {
-        console.error("Error updating task status:", error);
-        return false;
-      }
-    };
+      };
+
+  const handleTaskPriorityChange =
+    (taskId: number) =>
+      async (newPriority: string): Promise<boolean> => {
+        try {
+          const response = await updateTaskPriority({
+            id: taskId,
+            priority: newPriority as TaskPriority,
+          });
+          if (response && response.data) {
+            setTasks((prev) =>
+              prev.map((task) =>
+                task.id === taskId
+                  ? { ...task, priority: newPriority as TaskPriority }
+                  : task
+              )
+            );
+
+            // Flash the updated row
+            setFlashRowId(taskId);
+            setTimeout(() => {
+              setFlashRowId(null);
+            }, 3000);
+
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Error updating task priority:", error);
+          return false;
+        }
+      };
 
   const handleRestoreTask = async (taskId: number) => {
     try {
@@ -517,12 +549,12 @@ const Tasks: React.FC = () => {
       const assigneeNames =
         task.assignees && task.assignees.length > 0
           ? task.assignees
-              .map((assigneeId) => {
-                const user = users.find((u) => u.id === Number(assigneeId));
-                return user ? `${user.name} ${user.surname}`.trim() : null;
-              })
-              .filter(Boolean)
-              .join(", ") || "Unassigned"
+            .map((assigneeId) => {
+              const user = users.find((u) => u.id === Number(assigneeId));
+              return user ? `${user.name} ${user.surname}`.trim() : null;
+            })
+            .filter(Boolean)
+            .join(", ") || "Unassigned"
           : "Unassigned";
 
       // Look up creator name from creator_id
@@ -689,6 +721,17 @@ const Tasks: React.FC = () => {
                   const displayStatus =
                     STATUS_DISPLAY_MAP[status as TaskStatus] || status;
                   return displayStatus;
+                })}
+                onPriorityChange={handleTaskPriorityChange}
+                priorityOptions={TASK_PRIORITY_OPTIONS.map((priority) => {
+                  const displayPriority =
+                    PRIORITY_DISPLAY_MAP[priority as TaskPriority] || priority;
+                  return {
+                    value: priority,
+                    label: displayPriority,
+                    icon: Flag,
+                    color: PRIORITY_COLOR_MAP[priority as TaskPriority],
+                  };
                 })}
                 isUpdateDisabled={isCreatingDisabled}
                 onRowClick={handleEditTask}

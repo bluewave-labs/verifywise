@@ -145,6 +145,10 @@ const RisksView: FC<RisksViewProps> = memo(
       body: string;
     } | null>(null);
 
+    // Popup anchor state - moved from useCallback to component level to avoid rules-of-hooks violation
+    const [addRiskAnchor, setAddRiskAnchor] = useState<null | HTMLElement>(null);
+    const [addVendorRiskAnchor, setAddVendorRiskAnchor] = useState<null | HTMLElement>(null);
+
     /**
      * Handles closing the risk edit popup
      */
@@ -192,20 +196,22 @@ const RisksView: FC<RisksViewProps> = memo(
     }, [title]);
 
     /**
+     * Handles opening/closing the Add New Risk popup
+     */
+    const handleAddRiskOpenOrClose = useCallback((event: React.MouseEvent<HTMLElement>) => {
+      setAddRiskAnchor(addRiskAnchor ? null : event.currentTarget);
+    }, [addRiskAnchor]);
+
+    /**
      * Renders the "Add New Risk" popup component for project risks
      */
     const AddNewRiskPopupRender = useCallback(() => {
-      const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-      const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchor(anchor ? null : event.currentTarget);
-      };
-
       return (
         <Popup
           popupId="add-new-risk-popup"
           popupContent={
             <AddNewRiskForm
-              closePopup={() => setAnchor(null)}
+              closePopup={() => setAddRiskAnchor(null)}
               popupStatus="new"
               onSuccess={handleSuccess}
             />
@@ -213,27 +219,29 @@ const RisksView: FC<RisksViewProps> = memo(
           openPopupButtonName="Add new risk"
           popupTitle="Add a new risk"
           popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
-          handleOpenOrClose={handleOpenOrClose}
-          anchor={anchor}
+          handleOpenOrClose={handleAddRiskOpenOrClose}
+          anchor={addRiskAnchor}
         />
       );
-    }, []);
+    }, [addRiskAnchor, handleAddRiskOpenOrClose, handleSuccess]);
+
+    /**
+     * Handles opening/closing the Add New Vendor Risk popup
+     */
+    const handleAddVendorRiskOpenOrClose = useCallback((event: React.MouseEvent<HTMLElement>) => {
+      setAddVendorRiskAnchor(addVendorRiskAnchor ? null : event.currentTarget);
+    }, [addVendorRiskAnchor]);
 
     /**
      * Renders the "Add New Vendor Risk" popup component
      */
     const AddNewVendorRiskPopupRender = useCallback(() => {
-      const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-      const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchor(anchor ? null : event.currentTarget);
-      };
-
       return (
         <Popup
           popupId="add-new-vendor-risk-popup"
           popupContent={
             <AddNewVendorRiskForm
-              closePopup={() => setAnchor(null)}
+              closePopup={() => setAddVendorRiskAnchor(null)}
               onSuccess={handleSuccess}
               popupStatus="new"
             />
@@ -241,11 +249,11 @@ const RisksView: FC<RisksViewProps> = memo(
           openPopupButtonName="Add new risk"
           popupTitle="Add a new vendor risk"
           popupSubtitle="Create a list of vendor risks"
-          handleOpenOrClose={handleOpenOrClose}
-          anchor={anchor}
+          handleOpenOrClose={handleAddVendorRiskOpenOrClose}
+          anchor={addVendorRiskAnchor}
         />
       );
-    }, []);
+    }, [addVendorRiskAnchor, handleAddVendorRiskOpenOrClose, handleSuccess]);
 
     return (
       <Stack>

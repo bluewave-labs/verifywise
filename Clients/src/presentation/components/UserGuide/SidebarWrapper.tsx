@@ -135,7 +135,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
         if (savedTab) setActiveTab(savedTab);
         if (savedCollection) setCollectionId(savedCollection);
         if (savedArticle) setArticleId(savedArticle);
-      } catch (e) {
+      } catch (_e) {
         // Ignore parse errors
       }
     }

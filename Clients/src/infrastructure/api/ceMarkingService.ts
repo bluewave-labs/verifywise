@@ -16,14 +16,10 @@ export const ceMarkingService = {
    * Creates default record if none exists
    */
   async getCEMarking(projectId: string): Promise<CEMarkingData> {
-    try {
-      const response = await CustomAxios.get<CEMarkingData>(
-        `${CE_MARKING_API}/${projectId}`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await CustomAxios.get<CEMarkingData>(
+      `${CE_MARKING_API}/${projectId}`
+    );
+    return response.data;
   },
 
   /**
@@ -33,15 +29,11 @@ export const ceMarkingService = {
     projectId: string,
     data: Partial<CEMarkingData>
   ): Promise<CEMarkingData> {
-    try {
-      const response = await CustomAxios.put<CEMarkingData>(
-        `${CE_MARKING_API}/${projectId}`,
-        data
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await CustomAxios.put<CEMarkingData>(
+      `${CE_MARKING_API}/${projectId}`,
+      data
+    );
+    return response.data;
   },
 
   /**
@@ -59,20 +51,16 @@ export const ceMarkingService = {
       completedDate?: string | null;
     }
   ): Promise<CEMarkingData> {
-    try {
-      // Backend expects a simple object with the step update fields
-      // The controller will handle updating the specific step by ID
-      const updateData: ConformityStepsUpdatePayload = {
-        conformitySteps: [{
-          id: stepId,
-          ...stepData
-        }]
-      };
+    // Backend expects a simple object with the step update fields
+    // The controller will handle updating the specific step by ID
+    const updateData: ConformityStepsUpdatePayload = {
+      conformitySteps: [{
+        id: stepId,
+        ...stepData
+      }]
+    };
 
-      return await this.updateCEMarking(projectId, updateData as any);
-    } catch (error) {
-      throw error;
-    }
+    return await this.updateCEMarking(projectId, updateData as any);
   },
 
   /**
@@ -123,31 +111,23 @@ export const ceMarkingService = {
    * Get all available policies
    */
   async getAllPolicies(): Promise<any[]> {
-    try {
-      const response = await CustomAxios.get('/policies');
-      // The policies API returns { message: "OK", data: [...] }
-      // Extract the data array from the wrapped response
-      if (response.data && response.data.data) {
-        return response.data.data;
-      }
-      // Fallback in case the response format is different
-      return Array.isArray(response.data) ? response.data : [];
-    } catch (error) {
-      throw error;
+    const response = await CustomAxios.get('/policies');
+    // The policies API returns { message: "OK", data: [...] }
+    // Extract the data array from the wrapped response
+    if (response.data && response.data.data) {
+      return response.data.data;
     }
+    // Fallback in case the response format is different
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   /**
    * Get all available evidence/files
    */
   async getAllEvidences(): Promise<any[]> {
-    try {
-      const response = await CustomAxios.get('/files');
-      // The files API returns the array directly (not wrapped)
-      return Array.isArray(response.data) ? response.data : (response.data?.data || []);
-    } catch (error) {
-      throw error;
-    }
+    const response = await CustomAxios.get('/files');
+    // The files API returns the array directly (not wrapped)
+    return Array.isArray(response.data) ? response.data : (response.data?.data || []);
   },
 
   /**
@@ -182,17 +162,13 @@ export const ceMarkingService = {
    * Get all available incidents
    */
   async getAllIncidents(): Promise<any[]> {
-    try {
-      const response = await CustomAxios.get('/ai-incident-managements');
-      // The incidents API returns { message: "OK", data: [...] }
-      if (response.data && response.data.data) {
-        return response.data.data;
-      }
-      // Fallback in case the response format is different
-      return Array.isArray(response.data) ? response.data : [];
-    } catch (error) {
-      throw error;
+    const response = await CustomAxios.get('/ai-incident-managements');
+    // The incidents API returns { message: "OK", data: [...] }
+    if (response.data && response.data.data) {
+      return response.data.data;
     }
+    // Fallback in case the response format is different
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   /**

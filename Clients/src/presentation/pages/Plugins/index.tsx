@@ -1,18 +1,60 @@
 import React, { useState, useCallback, useMemo, Suspense } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { Box, Stack, TextField, InputAdornment, Chip } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { Search as SearchIcon, Home, Puzzle } from "lucide-react";
+import { Home, Puzzle, Layers, MessageSquare, GitBranch, Activity, Shield } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PluginCard from "../../components/PluginCard";
+import { SearchBox } from "../../components/Search";
 import { usePlugins } from "../../../application/hooks/usePlugins";
 import { usePluginInstallation } from "../../../application/hooks/usePluginInstallation";
 import { Plugin, PluginInstallationStatus } from "../../../domain/types/plugins";
 import Alert from "../../components/Alert";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { IBreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
+import Chip from "../../components/Chip";
+
+// Category configuration with descriptions and icons
+const CATEGORIES = [
+  {
+    id: "all",
+    name: "All plugins",
+    description: "Browse all available plugins to extend VerifyWise functionality.",
+    icon: Layers,
+  },
+  {
+    id: "communication",
+    name: "Communication",
+    description: "Integrate with messaging platforms and notification services to keep your team informed.",
+    icon: MessageSquare,
+  },
+  {
+    id: "ml_ops",
+    name: "ML operations",
+    description: "Connect with ML platforms to track experiments, models, and deployments.",
+    icon: Activity,
+  },
+  {
+    id: "version_control",
+    name: "Version control",
+    description: "Integrate with version control systems to track code changes and collaborate.",
+    icon: GitBranch,
+  },
+  {
+    id: "monitoring",
+    name: "Monitoring",
+    description: "Add observability and monitoring capabilities to track system health and performance.",
+    icon: Activity,
+  },
+  {
+    id: "security",
+    name: "Security",
+    description: "Enhance security with vulnerability scanning, access control, and compliance tools.",
+    icon: Shield,
+  },
+];
 
 const Plugins: React.FC = () => {
   const location = useLocation();
@@ -22,10 +64,10 @@ const Plugins: React.FC = () => {
   // Determine initial tab from URL
   const initialTab = location.pathname.includes("/my-plugins") ? "my-plugins" : "marketplace";
 
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState(initialTab);
-  const { plugins, loading, refetch } = usePlugins(selectedCategory);
+  const { plugins, loading, refetch } = usePlugins(selectedCategory === "all" ? undefined : selectedCategory);
   const { uninstall, uninstalling } = usePluginInstallation();
   const [toast, setToast] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -37,7 +79,6 @@ const Plugins: React.FC = () => {
 
   // Refetch plugins when navigating back to this page
   React.useEffect(() => {
-    // Refetch plugins whenever the location changes to the plugins page
     if (location.pathname.includes('/plugins') && !location.pathname.includes('/manage')) {
       refetch();
     }
@@ -65,6 +106,12 @@ const Plugins: React.FC = () => {
     []
   );
 
+  // Get current category config
+  const currentCategory = useMemo(
+    () => CATEGORIES.find((c) => c.id === selectedCategory) || CATEGORIES[0],
+    [selectedCategory]
+  );
+
   // Filter plugins by search query
   const filteredPlugins = useMemo(() => {
     if (!searchQuery) return plugins;
@@ -83,16 +130,6 @@ const Plugins: React.FC = () => {
     [plugins]
   );
 
-  // Plugin categories
-  const categories = [
-    { id: "all", name: "All Plugins" },
-    { id: "communication", name: "Communication" },
-    { id: "ml_ops", name: "ML Operations" },
-    { id: "version_control", name: "Version Control" },
-    { id: "monitoring", name: "Monitoring" },
-    { id: "security", name: "Security" },
-  ];
-
   // Handle plugin uninstallation
   const handleUninstall = useCallback(
     async (installationId: number, pluginKey: string) => {
@@ -103,7 +140,6 @@ const Plugins: React.FC = () => {
           body: "Plugin uninstalled successfully!",
           visible: true,
         });
-        // Refetch plugins to update the list
         refetch();
       } catch (err: any) {
         setToast({
@@ -127,8 +163,6 @@ const Plugins: React.FC = () => {
         });
         return;
       }
-
-      // Navigate to plugin management
       navigate(`/plugins/${plugin.key}/manage`);
     },
     [navigate]
@@ -169,7 +203,7 @@ const Plugins: React.FC = () => {
             tabs={[
               { label: "Marketplace", value: "marketplace", icon: "Store" },
               {
-                label: "My Plugins",
+                label: "My plugins",
                 value: "my-plugins",
                 icon: "Package",
                 count: installedPlugins.length,
@@ -182,98 +216,147 @@ const Plugins: React.FC = () => {
 
         {/* Marketplace Tab */}
         <TabPanel value="marketplace" sx={{ p: 0, pt: 2 }}>
-          <Stack gap={2} sx={{ px: 2 }}>
-            {/* Search Bar */}
-            <TextField
-              fullWidth
-              placeholder="Search plugins by name, description, or tags..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon size={20} />
-                  </InputAdornment>
-                ),
-              }}
+          <Stack direction="row" gap="16px">
+            {/* Left Sidebar - Category Menu */}
+            <Box
               sx={{
-                maxWidth: 600,
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: "white",
-                },
+                width: 220,
+                minWidth: 220,
+                flexShrink: 0,
               }}
-            />
-
-            {/* Category Filter */}
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              {categories.map((category) => {
-                const isSelected =
-                  (category.id === "all" && !selectedCategory) ||
-                  selectedCategory === category.id;
-                return (
-                  <Chip
-                    key={category.id}
-                    label={category.name}
-                    onClick={() =>
-                      setSelectedCategory(
-                        category.id === "all" ? undefined : category.id
-                      )
-                    }
-                    sx={{
-                      cursor: "pointer",
-                      borderRadius: "4px",
-                      fontSize: "13px",
-                      fontWeight: isSelected ? 500 : 400,
-                      backgroundColor: isSelected
-                        ? "rgba(19, 113, 91, 0.1)"
-                        : "transparent",
-                      color: isSelected ? "#13715B" : "#344054",
-                      border: `1px solid ${isSelected ? "#13715B" : "#d0d5dd"}`,
-                      "&:hover": {
-                        backgroundColor: isSelected
-                          ? "rgba(19, 113, 91, 0.15)"
-                          : "rgba(0, 0, 0, 0.04)",
-                        borderColor: isSelected ? "#13715B" : "#344054",
-                      },
-                    }}
-                  />
-                );
-              })}
+            >
+              <Stack gap={0.5}>
+                {CATEGORIES.map((category) => {
+                  const Icon = category.icon;
+                  const isSelected = selectedCategory === category.id;
+                  return (
+                    <Box
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        padding: "10px 12px",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        backgroundColor: isSelected ? "rgba(19, 113, 91, 0.08)" : "transparent",
+                        border: isSelected ? "1px solid #13715B" : "1px solid transparent",
+                        "&:hover": {
+                          backgroundColor: isSelected
+                            ? "rgba(19, 113, 91, 0.12)"
+                            : "rgba(0, 0, 0, 0.04)",
+                        },
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      <Icon
+                        size={16}
+                        color={isSelected ? "#13715B" : "#667085"}
+                        strokeWidth={1.5}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: "13px",
+                          fontWeight: isSelected ? 500 : 400,
+                          color: isSelected ? "#13715B" : "#344054",
+                        }}
+                      >
+                        {category.name}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Stack>
             </Box>
 
-            {/* Plugin Cards Grid */}
-            {loading ? (
-              <Box sx={{ textAlign: "center", py: 4 }}>Loading plugins...</Box>
-            ) : filteredPlugins.length === 0 ? (
-              <Box sx={{ textAlign: "center", py: 4 }}>
-                No plugins found matching your criteria
-              </Box>
-            ) : (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-                {filteredPlugins.map((plugin) => (
-                  <Box
-                    key={plugin.key}
+            {/* Right Content Area */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Stack gap="16px">
+                {/* Search Bar */}
+                <SearchBox
+                  placeholder="Search plugins by name, description, or tags..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  sx={{ maxWidth: 400 }}
+                />
+
+                {/* Category Header */}
+                <Box
+                  sx={{
+                    padding: "16px 20px",
+                    backgroundColor: "#f9fafb",
+                    border: "1px solid #d0d5dd",
+                    borderRadius: "4px",
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" gap={1.5} mb={1}>
+                    {React.createElement(currentCategory.icon, {
+                      size: 20,
+                      color: "#13715B",
+                      strokeWidth: 1.5,
+                    })}
+                    <Typography
+                      sx={{
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        color: "#101828",
+                      }}
+                    >
+                      {currentCategory.name}
+                    </Typography>
+                  </Stack>
+                  <Typography
                     sx={{
-                      width: {
-                        xs: "100%",
-                        md: "calc(50% - 8px)",
-                        lg: "calc(33.333% - 11px)",
-                      },
+                      fontSize: "13px",
+                      color: "#667085",
+                      lineHeight: 1.5,
                     }}
                   >
-                    <PluginCard
-                      plugin={plugin}
-                      onUninstall={handleUninstall}
-                      onManage={handleManage}
-                      loading={
-                        !!(plugin.installationId &&
-                          uninstalling === plugin.installationId)
-                      }
-                    />
+                    {currentCategory.description}
+                  </Typography>
+                </Box>
+
+                {/* Plugin Cards Grid */}
+                {loading ? (
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+                      Loading plugins...
+                    </Typography>
                   </Box>
-                ))}
-              </Box>
-            )}
+                ) : filteredPlugins.length === 0 ? (
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+                      No plugins found matching your criteria
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                    {filteredPlugins.map((plugin) => (
+                      <Box
+                        key={plugin.key}
+                        sx={{
+                          width: {
+                            xs: "100%",
+                            md: "calc(50% - 8px)", // 50% minus half of 16px gap
+                          },
+                        }}
+                      >
+                        <PluginCard
+                          plugin={plugin}
+                          onUninstall={handleUninstall}
+                          onManage={handleManage}
+                          loading={
+                            !!(plugin.installationId &&
+                              uninstalling === plugin.installationId)
+                          }
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Stack>
+            </Box>
           </Stack>
         </TabPanel>
 
@@ -284,23 +367,23 @@ const Plugins: React.FC = () => {
             <Box>
               <Chip
                 label={`${installedPlugins.length} plugin${installedPlugins.length !== 1 ? "s" : ""} installed`}
-                sx={{
-                  borderRadius: "4px",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  backgroundColor: "rgba(19, 113, 91, 0.1)",
-                  color: "#13715B",
-                  border: "1px solid #13715B",
-                }}
+                backgroundColor="rgba(19, 113, 91, 0.1)"
+                textColor="#13715B"
               />
             </Box>
 
             {/* Plugin Cards Grid */}
             {loading ? (
-              <Box sx={{ textAlign: "center", py: 4 }}>Loading plugins...</Box>
+              <Box sx={{ textAlign: "center", py: 4 }}>
+                <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+                  Loading plugins...
+                </Typography>
+              </Box>
             ) : installedPlugins.length === 0 ? (
               <Box sx={{ textAlign: "center", py: 4 }}>
-                No plugins installed yet. Visit the marketplace to install plugins.
+                <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+                  No plugins installed yet. Visit the marketplace to install plugins.
+                </Typography>
               </Box>
             ) : (
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>

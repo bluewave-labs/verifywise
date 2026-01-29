@@ -8,6 +8,17 @@ import { FormValidationBuilder } from "./mocks/formValidation.mock";
 
 describe("Test form validations", () => {
   describe("validateForm", () => {
+    it("should not accept empty name", () => {
+      const form = new FormValidationBuilder().withEmptyName().build();
+      const result = validateForm(form);
+      const expected = {
+        isFormValid: false,
+        errors: {
+          name: "Name is required.",
+        },
+      };
+      expect(result).toEqual(expected);
+    });
     it("should not accept name shorter than minimum length", () => {
       const form = new FormValidationBuilder().withShortName().build();
       const result = validateForm(form);
@@ -26,6 +37,17 @@ describe("Test form validations", () => {
         isFormValid: false,
         errors: {
           name: "Name can't be longer than 50 characters.",
+        },
+      };
+      expect(result).toEqual(expected);
+    });
+    it("should not accept empty surname", () => {
+      const form = new FormValidationBuilder().withEmptySurname().build();
+      const result = validateForm(form);
+      const expected = {
+        isFormValid: false,
+        errors: {
+          surname: "Surname is required.",
         },
       };
       expect(result).toEqual(expected);
@@ -52,8 +74,8 @@ describe("Test form validations", () => {
       };
       expect(result).toEqual(expected);
     });
-    it("should not accept email shorter than minimum length", () => {
-      const form = new FormValidationBuilder().withShortEmail().build();
+    it("should not accept invalid email", () => {
+      const form = new FormValidationBuilder().withInvalidEmail().build();
       const result = validateForm(form);
       const expected = {
         isFormValid: false,

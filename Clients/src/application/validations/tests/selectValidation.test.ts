@@ -37,4 +37,13 @@ describe("Test Select Validation", () => {
       message: "Success",
     });
   });
+  it("if value is a negative number, should return accepted true (non-zero validation)", () => {
+    const value = -1;
+    const title = "Test Select";
+    const result = selectValidation(title, value);
+    expect(result).toEqual({
+      accepted: true,
+      message: "Success",
+    });
+  });
 });

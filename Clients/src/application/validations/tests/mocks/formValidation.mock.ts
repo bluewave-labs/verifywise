@@ -17,6 +17,11 @@ export class FormValidationBuilder {
     this.form = { ...formMock };
   }
 
+  withEmptyName() {
+    this.form.name = "";
+    return this;
+  }
+
   withShortName() {
     this.form.name = "J";
     return this;
@@ -24,6 +29,11 @@ export class FormValidationBuilder {
 
   withLongName() {
     this.form.name = "J".repeat(51);
+    return this;
+  }
+
+  withEmptySurname() {
+    this.form.surname = "";
     return this;
   }
 
@@ -37,8 +47,8 @@ export class FormValidationBuilder {
     return this;
   }
 
-  withShortEmail() {
-    this.form.email = "";
+  withInvalidEmail() {
+    this.form.email = "invalid-email";
     return this;
   }
 

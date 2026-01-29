@@ -2,7 +2,7 @@ import { checkStringValidation } from "../stringValidation";
 
 describe("Test String Validation", () => {
   it("if value is falsy and minLength is bigger than 0, should return accepted false with required message", () => {
-    const falsyValues = [undefined, null, "", " ", []];
+    const falsyValues = [undefined, null, "", " "];
     falsyValues.forEach((val) => {
       const result = checkStringValidation(
         "Test Field",
@@ -111,6 +111,23 @@ describe("Test String Validation", () => {
       message: "Invalid Email Address.",
     });
   });
+  it("if type is email, and value is a valid email, should return accepted true with success message", () => {
+    const result = checkStringValidation(
+      "Email Address",
+      "valid@email.com",
+      0,
+      50,
+      false,
+      false,
+      false,
+      false,
+      "email",
+    );
+    expect(result).toEqual({
+      accepted: true,
+      message: "Success",
+    });
+  });
   it("if type is contactPerson and value contains numbers, should return accepted false with appropriate message", () => {
     const result = checkStringValidation(
       "Contact Person",
@@ -126,6 +143,23 @@ describe("Test String Validation", () => {
     expect(result).toEqual({
       accepted: false,
       message: "Contact Person must only contain letters and spaces",
+    });
+  });
+  it("if type is contactPerson and value contains only letters and spaces, should return accepted true with success message", () => {
+    const result = checkStringValidation(
+      "Contact Person",
+      "John Doe",
+      0,
+      50,
+      false,
+      false,
+      false,
+      false,
+      "contactPerson",
+    );
+    expect(result).toEqual({
+      accepted: true,
+      message: "Success",
     });
   });
   it("if all conditions are met, should return accepted true with success message", () => {

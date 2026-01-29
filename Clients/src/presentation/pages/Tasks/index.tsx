@@ -197,7 +197,7 @@ const Tasks: React.FC = () => {
       .map((id) => {
         const user = users.find((u) => u.id === id);
         return {
-          value: id.toString(),
+          value: String(id),
           label: user ? `${user.name} ${user.surname}`.trim() : `User ${id}`,
         };
       })
@@ -260,7 +260,7 @@ const Tasks: React.FC = () => {
           return item.priority;
         case "assignee":
           // Return comma-separated assignee IDs for matching
-          return item.assignees?.map((id) => id.toString()).join(",");
+          return item.assignees?.map((id) => String(id)).join(",");
         case "due_date":
           return item.due_date;
         default:
@@ -542,7 +542,11 @@ const Tasks: React.FC = () => {
         return "Unassigned";
       case "due_date":
         return task.due_date
-          ? new Date(task.due_date).toLocaleDateString()
+          ? new Date(task.due_date).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
           : "No Due Date";
       default:
         return "Other";
@@ -597,7 +601,11 @@ const Tasks: React.FC = () => {
         priority: task.priority || "-",
         assignees: assigneeNames,
         due_date: task.due_date
-          ? new Date(task.due_date).toLocaleDateString()
+          ? new Date(task.due_date).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
           : "-",
         creator: creatorName,
         categories: task.categories?.join(", ") || "-",
@@ -821,6 +829,17 @@ const Tasks: React.FC = () => {
               const displayStatus =
                 STATUS_DISPLAY_MAP[status as TaskStatus] || status;
               return displayStatus;
+            })}
+            onPriorityChange={handleTaskPriorityChange}
+            priorityOptions={TASK_PRIORITY_OPTIONS.map((priority) => {
+              const displayPriority =
+                PRIORITY_DISPLAY_MAP[priority as TaskPriority] || priority;
+              return {
+                value: priority,
+                label: displayPriority,
+                icon: Flag,
+                color: PRIORITY_COLOR_MAP[priority as TaskPriority],
+              };
             })}
             isUpdateDisabled={isCreatingDisabled}
             onRowClick={handleEditTask}

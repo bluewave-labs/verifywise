@@ -461,7 +461,18 @@ const Vendors = () => {
 
   // Handle risk card click to filter vendor risks by risk level
   const handleRiskCardClick = useCallback((riskLevel: string) => {
-    setSelectedRiskLevel(riskLevel || null);
+    if (riskLevel) {
+      setSelectedRiskLevel(riskLevel);
+      setAlert({
+        variant: "info",
+        title: `Filtering by ${riskLevel} risks`,
+        body: "The table now shows only vendor risks with this risk level. Click the card again to see all risks.",
+      });
+      setTimeout(() => setAlert(null), 5000);
+    } else {
+      setSelectedRiskLevel(null);
+      setAlert(null);
+    }
   }, []);
 
   // Mutation hooks

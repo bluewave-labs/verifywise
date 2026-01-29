@@ -58,21 +58,5 @@ export const styles = {
   }
 }
 
-export const iconButton = (theme: any) => ({
-  height: '34px',
-  width: '34px',
-  padding: '8px',
-  borderRadius: '4px',
-  border: `1px solid ${theme.palette.border.light}`,
-  backgroundColor: theme.palette.action.iconButtonBackground,
-  '&:hover': {
-    backgroundColor: theme.palette.background.accent,
-    borderColor: theme.palette.border.main,
-  },
-  '&.Mui-disabled': {
-    backgroundColor: theme.palette.action.disabledIconButtonBackground,
-    borderColor: theme.palette.action.disabledBackground
-  },
-});
 
 

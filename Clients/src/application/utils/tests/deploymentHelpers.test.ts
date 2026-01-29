@@ -8,15 +8,65 @@ function mockFetchResponse(opts: { ok: boolean; text?: string }) {
   } as any;
 }
 
+function createMockStorage(): Storage {
+  const storage = {} as Storage & Record<string, any>;
+
+  Object.defineProperties(storage, {
+    getItem: {
+      value: (key: string) => Object.prototype.hasOwnProperty.call(storage, key) ? storage[key] : null,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    },
+    setItem: {
+      value: (key: string, value: string) => { storage[key] = String(value); },
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    },
+    removeItem: {
+      value: (key: string) => { delete storage[key]; },
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    },
+    clear: {
+      value: () => {
+        Object.keys(storage).forEach(key => delete storage[key]);
+      },
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    },
+    key: {
+      value: (index: number) => Object.keys(storage)[index] ?? null,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    },
+    length: {
+      get: () => Object.keys(storage).length,
+      enumerable: false,
+      configurable: true,
+    },
+  });
+
+  return storage;
+}
+
 describe("deploymentHelpers", () => {
   const realLocation = window.location;
+  let mockLocalStorage: Storage;
+  let mockSessionStorage: Storage;
 
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();
 
-    localStorage.clear();
-    sessionStorage.clear();
+    mockLocalStorage = createMockStorage();
+    mockSessionStorage = createMockStorage();
+    vi.stubGlobal("localStorage", mockLocalStorage);
+    vi.stubGlobal("sessionStorage", mockSessionStorage);
 
     // mock fetch by default
     vi.stubGlobal("fetch", vi.fn());
@@ -202,16 +252,16 @@ describe("deploymentHelpers", () => {
     });
 
     it("logs error if something throws", () => {
-    const getItemSpy = vi.spyOn(localStorage, "getItem").mockImplementation(() => {
+      const getItemSpy = vi.spyOn(localStorage, "getItem").mockImplementation(() => {
         throw new Error("boom");
-    });
+      });
 
-    DeploymentManager.clearAllCache();
+      DeploymentManager.clearAllCache();
 
-    expect(console.error).toHaveBeenCalled();
+      expect(console.error).toHaveBeenCalled();
 
-    // restore
-    getItemSpy.mockRestore();
+      // restore
+      getItemSpy.mockRestore();
     });
 
   });

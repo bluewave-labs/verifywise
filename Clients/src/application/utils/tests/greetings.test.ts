@@ -106,6 +106,47 @@ describe("greetings", () => {
     });
   });
 
+  describe("getTimeBasedGreeting - displayName sanitization", () => {
+    it("trims whitespace from displayName", () => {
+      vi.setSystemTime(new Date(2026, 0, 15, 10, 0, 0));
+      const res = getTimeBasedGreeting("  SpacedName  ", null);
+      expect(res.text).toContain("SpacedName");
+      expect(res.text).not.toContain("  SpacedName");
+    });
+
+    it("removes HTML characters < and > from displayName", () => {
+      vi.setSystemTime(new Date(2026, 0, 15, 10, 0, 0));
+      const res = getTimeBasedGreeting("<script>alert</script>", null);
+      expect(res.text).not.toContain("<");
+      expect(res.text).not.toContain(">");
+      expect(res.text).toContain("scriptalert/script");
+    });
+
+    it("truncates displayName to 50 characters", () => {
+      vi.setSystemTime(new Date(2026, 0, 15, 10, 0, 0));
+      const longName = "A".repeat(100);
+      const res = getTimeBasedGreeting(longName, null);
+      // The name part should be at most 50 chars
+      expect(res.text).not.toContain("A".repeat(51));
+    });
+
+    it("sanitizes userToken.name", () => {
+      vi.setSystemTime(new Date(2026, 0, 15, 10, 0, 0));
+      const res = getTimeBasedGreeting(undefined, { name: "  <User>  " });
+      expect(res.text).toContain("User");
+      expect(res.text).not.toContain("<");
+      expect(res.text).not.toContain(">");
+    });
+
+    it("sanitizes email prefix from userToken.email", () => {
+      vi.setSystemTime(new Date(2026, 0, 15, 10, 0, 0));
+      const res = getTimeBasedGreeting(undefined, { email: "<admin>@example.com" });
+      expect(res.text).toContain("admin");
+      expect(res.text).not.toContain("<");
+      expect(res.text).not.toContain(">");
+    });
+  });
+
   describe("getTimeBasedGreeting - time buckets", () => {
     it("morning: 05:00-11:59", () => {
       vi.setSystemTime(new Date(2026, 0, 15, 5, 0, 0));

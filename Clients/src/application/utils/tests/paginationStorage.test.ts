@@ -6,15 +6,56 @@ import {
   clearAllPaginationSettings,
 } from "../paginationStorage";
 
+function createMockStorage(): Storage {
+  const storage = {} as Storage & Record<string, any>;
+
+  Object.defineProperties(storage, {
+    getItem: {
+      value: (key: string) => Object.prototype.hasOwnProperty.call(storage, key) ? storage[key] : null,
+      enumerable: false,
+      writable: true,
+    },
+    setItem: {
+      value: (key: string, value: string) => { storage[key] = String(value); },
+      enumerable: false,
+      writable: true,
+    },
+    removeItem: {
+      value: (key: string) => { delete storage[key]; },
+      enumerable: false,
+      writable: true,
+    },
+    clear: {
+      value: () => {
+        Object.keys(storage).forEach(key => delete storage[key]);
+      },
+      enumerable: false,
+    },
+    key: {
+      value: (index: number) => Object.keys(storage)[index] ?? null,
+      enumerable: false,
+    },
+    length: {
+      get: () => Object.keys(storage).length,
+      enumerable: false,
+    },
+  });
+
+  return storage;
+}
+
 describe("paginationStorage", () => {
+  let mockLocalStorage: Storage;
+
   beforeEach(() => {
-    localStorage.clear();
+    mockLocalStorage = createMockStorage();
+    vi.stubGlobal("localStorage", mockLocalStorage);
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    localStorage.clear();
+    vi.unstubAllGlobals();
   });
 
   describe("getPaginationRowCount", () => {
@@ -41,8 +82,8 @@ describe("paginationStorage", () => {
     });
 
     it("returns defaultCount and warns when localStorage.getItem throws", () => {
-      // IMPORTANT: spy on Storage.prototype in jsdom
-      vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      // Spy on the mock localStorage directly
+      mockLocalStorage.getItem = vi.fn(() => {
         throw new Error("boom");
       });
 
@@ -65,7 +106,7 @@ describe("paginationStorage", () => {
     });
 
     it("warns when localStorage.setItem throws", () => {
-      vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      mockLocalStorage.setItem = vi.fn(() => {
         throw new Error("boom");
       });
 
@@ -88,7 +129,7 @@ describe("paginationStorage", () => {
     });
 
     it("warns when localStorage.removeItem throws", () => {
-      vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+      mockLocalStorage.removeItem = vi.fn(() => {
         throw new Error("boom");
       });
 

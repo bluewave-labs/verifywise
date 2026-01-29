@@ -7,7 +7,13 @@ describe("generateId", () => {
   });
 
   it("returns a string with length 9", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.123456789);
+    const mockGetRandomValues = vi.fn((arr: Uint8Array) => {
+      for (let i = 0; i < arr.length; i++) {
+        arr[i] = (i * 37) % 256;
+      }
+      return arr;
+    });
+    vi.stubGlobal("crypto", { getRandomValues: mockGetRandomValues });
 
     const id = generateId();
 
@@ -15,31 +21,52 @@ describe("generateId", () => {
     expect(id).toHaveLength(9);
   });
 
-  it("generates a deterministic id when Math.random is mocked", () => {
-    // 0.5 -> base36 = "0.i"
-    // substr(2, 9) => "i"
-    vi.spyOn(Math, "random").mockReturnValue(0.5);
+  it("generates a deterministic id when crypto.getRandomValues is mocked", () => {
+    const mockGetRandomValues = vi.fn((arr: Uint8Array) => {
+      // Fill with specific values to get predictable output
+      arr[0] = 10;
+      arr[1] = 20;
+      arr[2] = 30;
+      arr[3] = 40;
+      arr[4] = 50;
+      arr[5] = 60;
+      arr[6] = 70;
+      return arr;
+    });
+    vi.stubGlobal("crypto", { getRandomValues: mockGetRandomValues });
 
-    const id = generateId();
+    const id1 = generateId();
+    const id2 = generateId();
 
-    expect(id).toBe("i");
+    expect(id1).toBe(id2);
   });
 
-  it("generates different ids when Math.random changes", () => {
-    const randomSpy = vi
-      .spyOn(Math, "random")
-      .mockReturnValueOnce(0.1)
-      .mockReturnValueOnce(0.2);
+  it("generates different ids when crypto.getRandomValues returns different values", () => {
+    let callCount = 0;
+    const mockGetRandomValues = vi.fn((arr: Uint8Array) => {
+      callCount++;
+      for (let i = 0; i < arr.length; i++) {
+        arr[i] = (callCount * 17 + i * 31) % 256;
+      }
+      return arr;
+    });
+    vi.stubGlobal("crypto", { getRandomValues: mockGetRandomValues });
 
     const id1 = generateId();
     const id2 = generateId();
 
     expect(id1).not.toBe(id2);
-    expect(randomSpy).toHaveBeenCalledTimes(2);
+    expect(mockGetRandomValues).toHaveBeenCalledTimes(2);
   });
 
   it("uses only base36 characters (a-z0-9)", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.987654321);
+    const mockGetRandomValues = vi.fn((arr: Uint8Array) => {
+      for (let i = 0; i < arr.length; i++) {
+        arr[i] = 255;
+      }
+      return arr;
+    });
+    vi.stubGlobal("crypto", { getRandomValues: mockGetRandomValues });
 
     const id = generateId();
 

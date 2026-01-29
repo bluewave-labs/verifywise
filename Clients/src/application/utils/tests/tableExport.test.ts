@@ -318,12 +318,19 @@ describe("tableExport", () => {
           configurable: true,
         });
       }
+      if (!(URL as any).revokeObjectURL) {
+        Object.defineProperty(URL, "revokeObjectURL", {
+          value: vi.fn(),
+          configurable: true,
+        });
+      }
       vi.spyOn(URL as any, "createObjectURL").mockReturnValue("blob:mock");
+      vi.spyOn(URL as any, "revokeObjectURL").mockImplementation(() => {});
     });
 
     it("opens new window and triggers print on load when popups are allowed", () => {
       const fakePrint = vi.fn();
-      const fakeWindow: any = { onload: null, print: fakePrint };
+      const fakeWindow: any = { onload: null, onafterprint: null, print: fakePrint };
 
       const openSpy = vi.spyOn(window, "open").mockReturnValue(fakeWindow);
 
@@ -337,12 +344,34 @@ describe("tableExport", () => {
       expect(fakePrint).toHaveBeenCalledTimes(1);
     });
 
-    it("alerts when popups are blocked (window.open returns null)", () => {
+    it("sets up cleanup via onafterprint and timeout fallback", () => {
+      vi.useFakeTimers();
+      const fakeWindow: any = { onload: null, onafterprint: null, print: vi.fn() };
+      vi.spyOn(window, "open").mockReturnValue(fakeWindow);
+
+      printTable([{ name: "A", note: "B" }] as any, columns as any);
+
+      // onafterprint should be set
+      expect(typeof fakeWindow.onafterprint).toBe("function");
+
+      // Simulate onafterprint to verify it revokes URL
+      fakeWindow.onafterprint();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock");
+
+      // Also verify fallback timeout triggers after 60s
+      vi.advanceTimersByTime(60000);
+      expect(URL.revokeObjectURL).toHaveBeenCalledTimes(2);
+
+      vi.useRealTimers();
+    });
+
+    it("alerts when popups are blocked (window.open returns null) and cleans up blob URL", () => {
       vi.spyOn(window, "open").mockReturnValue(null);
 
       printTable([{ name: "A", note: "B" }] as any, columns as any);
 
       expect(globalThis.alert).toHaveBeenCalledWith("Please allow popups to print the table.");
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock");
     });
 
     it("catches errors, logs and alerts", () => {

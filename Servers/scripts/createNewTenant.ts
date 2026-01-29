@@ -234,13 +234,6 @@ export const createNewTenant = async (
           REFERENCES public.users (id) MATCH SIMPLE
           ON UPDATE NO ACTION ON DELETE SET NULL
       );`,
-        `CREATE TABLE IF NOT EXISTS "${tenantHash}".model_files
-      (
-        id serial NOT NULL,
-        name character varying(255) NOT NULL,
-        file_content bytea NOT NULL,
-        CONSTRAINT model_files_pkey PRIMARY KEY (id)
-      );`,
         `CREATE TABLE IF NOT EXISTS "${tenantHash}".trainingregistar
       (
         id serial NOT NULL,
@@ -338,7 +331,7 @@ export const createNewTenant = async (
       risk_owner integer,
       ai_lifecycle_phase enum_projectrisks_ai_lifecycle_phase NOT NULL,
       risk_description text NOT NULL,
-      risk_category TEXT[] NOT NULL,
+      risk_category enum_projectrisks_risk_category[] NOT NULL,
       impact character varying(255) NOT NULL,
       assessment_mapping text NOT NULL,
       controls_mapping text NOT NULL,
@@ -522,37 +515,6 @@ export const createNewTenant = async (
       CONSTRAINT vendorrisks_action_owner_fkey FOREIGN KEY (action_owner)
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL
-    );`,
-      { transaction }
-    );
-
-    await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".model_data
-    (
-      id serial NOT NULL,
-      name character varying(255) NOT NULL,
-      file_content bytea NOT NULL,
-      model_id integer NOT NULL,
-      target_column character varying(255) NOT NULL,
-      sensitive_column character varying(255) NOT NULL,
-      CONSTRAINT model_data_pkey PRIMARY KEY (id),
-      CONSTRAINT model_data_model_id_fkey FOREIGN KEY (model_id)
-        REFERENCES "${tenantHash}".model_files (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`,
-      { transaction }
-    );
-
-    await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".fairness_runs
-    (
-      id serial NOT NULL,
-      data_id integer NOT NULL,
-      metrics jsonb NOT NULL,
-      CONSTRAINT fairness_runs_pkey PRIMARY KEY (id),
-      CONSTRAINT fairness_runs_data_id_fkey FOREIGN KEY (data_id)
-        REFERENCES "${tenantHash}".model_data (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
     );`,
       { transaction }
     );
@@ -1286,62 +1248,26 @@ export const createNewTenant = async (
       { transaction }
     );
 
+    // MLflow tables are now created by the MLflow plugin on installation
+    // Removed mlflow_integrations and mlflow_model_records from here
+
     await sequelize.query(
-      `CREATE TABLE "${tenantHash}".mlflow_integrations (
-      id SERIAL PRIMARY KEY,
-      tracking_server_url VARCHAR(255) NOT NULL,
-      auth_method VARCHAR(10) NOT NULL DEFAULT 'none' CHECK (auth_method IN ('none', 'basic', 'token')),
-      username VARCHAR(255),
-      username_iv VARCHAR(255),
-      password VARCHAR(255),
-      password_iv VARCHAR(255),
-      api_token VARCHAR(255),
-      api_token_iv VARCHAR(255),
-      verify_ssl BOOLEAN NOT NULL DEFAULT TRUE,
-      timeout INTEGER NOT NULL DEFAULT 30,
-      last_tested_at TIMESTAMP,
-      last_test_status VARCHAR(10) CHECK (last_test_status IN ('success', 'error')),
-      last_test_message TEXT,
-      last_synced_at TIMESTAMP,
-      last_sync_status VARCHAR(10) CHECK (last_sync_status IN ('success', 'partial', 'error')),
-      last_sync_message TEXT,
-      last_successful_test_at TIMESTAMP,
-      last_failed_test_at TIMESTAMP,
-      last_failed_test_message TEXT,
-      updated_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );`,
+      `CREATE TABLE "${tenantHash}".plugin_installations (
+        id SERIAL PRIMARY KEY,
+        plugin_key VARCHAR(100) NOT NULL UNIQUE,
+        status VARCHAR(20) NOT NULL DEFAULT 'installed' CHECK (status IN ('installed')),
+        installed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        error_message TEXT,
+        configuration JSONB,
+        metadata JSONB,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );`,
       { transaction }
     );
 
     await sequelize.query(
-      `CREATE TABLE "${tenantHash}".mlflow_model_records (
-      id SERIAL PRIMARY KEY,
-      model_name VARCHAR(255) NOT NULL,
-      version VARCHAR(255) NOT NULL,
-      lifecycle_stage VARCHAR(255),
-      run_id VARCHAR(255),
-      description TEXT,
-      source VARCHAR(255),
-      status VARCHAR(255),
-      tags JSONB NOT NULL DEFAULT '{}'::jsonb,
-      metrics JSONB NOT NULL DEFAULT '{}'::jsonb,
-      parameters JSONB NOT NULL DEFAULT '{}'::jsonb,
-      experiment_id VARCHAR(255),
-      experiment_name VARCHAR(255),
-      artifact_location TEXT,
-      training_status VARCHAR(255),
-      training_started_at TIMESTAMP,
-      training_ended_at TIMESTAMP,
-      source_version VARCHAR(255),
-      model_created_at TIMESTAMP,
-      model_updated_at TIMESTAMP,
-      last_synced_at TIMESTAMP,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      CONSTRAINT mlflow_model_records_org_model_version_unique UNIQUE (model_name, version)
-    );`,
+      `CREATE INDEX idx_plugin_installations_key_${tenantHash} ON "${tenantHash}".plugin_installations(plugin_key);`,
       { transaction }
     );
 
@@ -1756,9 +1682,9 @@ export const createNewTenant = async (
     // ========================================
     console.log(`🔬 Creating EvalServer (LLM Evals) tables for tenant: ${tenantHash}`);
 
-    // 1. deepeval_organizations table
+    // 1. llm_evals_organizations table
     await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_organizations (
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_organizations (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL UNIQUE,
         description TEXT,
@@ -1768,8 +1694,8 @@ export const createNewTenant = async (
       { transaction }
     );
     await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_org_members (
-        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_org_members (
+        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".llm_evals_organizations(id) ON DELETE CASCADE,
         user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
         role VARCHAR(50) DEFAULT 'member',
         joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -1777,14 +1703,14 @@ export const createNewTenant = async (
       );`, { transaction }
     );
 
-    // 2. deepeval_projects table
+    // 2. llm_evals_projects table
     await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_projects (
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_projects (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
         use_case VARCHAR(50) DEFAULT 'chatbot',
-        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
+        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".llm_evals_organizations(id) ON DELETE CASCADE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         created_by VARCHAR(255)
@@ -1792,21 +1718,21 @@ export const createNewTenant = async (
       { transaction }
     );
 
-    // Create indexes for deepeval_projects
+    // Create indexes for llm_evals_projects
     await Promise.all([
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_deepeval_projects_created_at ON "${tenantHash}".deepeval_projects(created_at DESC);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_projects_created_at ON "${tenantHash}".llm_evals_projects(created_at DESC);`,
         { transaction }
       ),
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_deepeval_projects_org_id ON "${tenantHash}".deepeval_projects(org_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_projects_org_id ON "${tenantHash}".llm_evals_projects(org_id);`,
         { transaction }
       ),
     ]);
 
-    // 3. deepeval_user_datasets table
+    // 3. llm_evals_datasets table
     await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_user_datasets (
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_datasets (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         path TEXT NOT NULL,
@@ -1814,7 +1740,7 @@ export const createNewTenant = async (
         prompt_count INTEGER DEFAULT 0,
         dataset_type VARCHAR(50) DEFAULT 'chatbot',
         turn_type VARCHAR(50) DEFAULT 'single-turn',
-        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
+        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".llm_evals_organizations(id) ON DELETE CASCADE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         created_by VARCHAR(255)
@@ -1822,11 +1748,11 @@ export const createNewTenant = async (
       { transaction }
     );
 
-    // 4. deepeval_scorers table
+    // 4. llm_evals_scorers table
     await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_scorers (
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_scorers (
         id VARCHAR(255) PRIMARY KEY,
-        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
+        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".llm_evals_organizations(id) ON DELETE CASCADE,
         name VARCHAR(255) NOT NULL,
         description TEXT,
         type VARCHAR(255) NOT NULL,
@@ -1842,15 +1768,30 @@ export const createNewTenant = async (
       { transaction }
     );
 
-    // 5. experiments table
+    // 4b. llm_evals_models table
     await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".experiments (
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_models (
         id VARCHAR(255) PRIMARY KEY,
-        project_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_projects(id) ON DELETE CASCADE,
+        org_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".llm_evals_organizations(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        provider VARCHAR(100) NOT NULL,
+        endpoint_url TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(255)
+      );`,
+      { transaction }
+    );
+
+    // 5. llm_evals_experiments table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_experiments (
+        id VARCHAR(255) PRIMARY KEY,
+        project_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".llm_evals_projects(id) ON DELETE CASCADE,
         name VARCHAR(255) NOT NULL,
         description TEXT,
         config JSONB NOT NULL,
-        baseline_experiment_id VARCHAR(255) REFERENCES "${tenantHash}".experiments(id) ON DELETE SET NULL,
+        baseline_experiment_id VARCHAR(255) REFERENCES "${tenantHash}".llm_evals_experiments(id) ON DELETE SET NULL,
         status VARCHAR(50) DEFAULT 'pending',
         results JSONB,
         error_message TEXT,
@@ -1863,24 +1804,24 @@ export const createNewTenant = async (
       { transaction }
     );
 
-    // Create indexes for experiments
+    // Create indexes for llm_evals_experiments
     await Promise.all([
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_experiments_project_id ON "${tenantHash}".experiments(project_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_experiments_project_id ON "${tenantHash}".llm_evals_experiments(project_id);`,
         { transaction }
       ),
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_experiments_status ON "${tenantHash}".experiments(status);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_experiments_status ON "${tenantHash}".llm_evals_experiments(status);`,
         { transaction }
       ),
     ]);
 
-    // 6. evaluation_logs table
+    // 6. llm_evals_logs table
     await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".evaluation_logs (
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        project_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_projects(id) ON DELETE CASCADE,
-        experiment_id VARCHAR(255) REFERENCES "${tenantHash}".experiments(id) ON DELETE CASCADE,
+        project_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".llm_evals_projects(id) ON DELETE CASCADE,
+        experiment_id VARCHAR(255) REFERENCES "${tenantHash}".llm_evals_experiments(id) ON DELETE CASCADE,
         trace_id UUID,
         parent_trace_id UUID,
         span_name VARCHAR(255),
@@ -1899,28 +1840,28 @@ export const createNewTenant = async (
       { transaction }
     );
 
-    // Create indexes for evaluation_logs
+    // Create indexes for llm_evals_logs
     await Promise.all([
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_logs_project_id ON "${tenantHash}".evaluation_logs(project_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_logs_project_id ON "${tenantHash}".llm_evals_logs(project_id);`,
         { transaction }
       ),
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_logs_experiment_id ON "${tenantHash}".evaluation_logs(experiment_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_logs_experiment_id ON "${tenantHash}".llm_evals_logs(experiment_id);`,
         { transaction }
       ),
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON "${tenantHash}".evaluation_logs(timestamp DESC);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_logs_timestamp ON "${tenantHash}".llm_evals_logs(timestamp DESC);`,
         { transaction }
       ),
     ]);
 
-    // 7. evaluation_metrics table
+    // 7. llm_evals_metrics table
     await sequelize.query(
-      `CREATE TABLE IF NOT EXISTS "${tenantHash}".evaluation_metrics (
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_metrics (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        project_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".deepeval_projects(id) ON DELETE CASCADE,
-        experiment_id VARCHAR(255) REFERENCES "${tenantHash}".experiments(id) ON DELETE CASCADE,
+        project_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".llm_evals_projects(id) ON DELETE CASCADE,
+        experiment_id VARCHAR(255) REFERENCES "${tenantHash}".llm_evals_experiments(id) ON DELETE CASCADE,
         metric_name VARCHAR(255) NOT NULL,
         metric_type VARCHAR(255) NOT NULL,
         value DOUBLE PRECISION NOT NULL,
@@ -1930,24 +1871,24 @@ export const createNewTenant = async (
       { transaction }
     );
 
-    // Create indexes for evaluation_metrics
+    // Create indexes for llm_evals_metrics
     await Promise.all([
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_metrics_project_id ON "${tenantHash}".evaluation_metrics(project_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_metrics_project_id ON "${tenantHash}".llm_evals_metrics(project_id);`,
         { transaction }
       ),
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_metrics_metric_name ON "${tenantHash}".evaluation_metrics(metric_name);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_metrics_metric_name ON "${tenantHash}".llm_evals_metrics(metric_name);`,
         { transaction }
       ),
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON "${tenantHash}".evaluation_metrics(timestamp DESC);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_metrics_timestamp ON "${tenantHash}".llm_evals_metrics(timestamp DESC);`,
         { transaction }
       ),
     ]);
 
     await sequelize.query(`
-      CREATE TABLE IF NOT EXISTS "${tenantHash}".evaluation_llm_api_keys (
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_api_keys (
         id SERIAL PRIMARY KEY,
         provider VARCHAR(50) NOT NULL UNIQUE,
         encrypted_api_key TEXT NOT NULL,
@@ -1956,20 +1897,20 @@ export const createNewTenant = async (
       );
     `, { transaction });
 
-    // Create trigger on evaluation_llm_api_keys table
+    // Create trigger on llm_evals_api_keys table
     await sequelize.query(`
-      CREATE TRIGGER trg_${tenantHash}_update_evaluation_llm_api_keys_updated_at
-      BEFORE UPDATE ON "${tenantHash}".evaluation_llm_api_keys
+      CREATE TRIGGER trg_${tenantHash}_update_llm_evals_api_keys_updated_at
+      BEFORE UPDATE ON "${tenantHash}".llm_evals_api_keys
       FOR EACH ROW EXECUTE PROCEDURE update_evaluation_llm_api_keys_updated_at();
     `, { transaction });
 
-    // 8. deepeval_arena_comparisons table (for LLM Arena head-to-head comparisons)
+    // 8. llm_evals_arena_comparisons table (for LLM Arena head-to-head comparisons)
     await sequelize.query(`
-      CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_arena_comparisons (
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_arena_comparisons (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
-        org_id VARCHAR(255) REFERENCES "${tenantHash}".deepeval_organizations(id) ON DELETE CASCADE,
+        org_id VARCHAR(255) REFERENCES "${tenantHash}".llm_evals_organizations(id) ON DELETE CASCADE,
         contestants JSONB NOT NULL DEFAULT '[]',
         contestant_names JSONB NOT NULL DEFAULT '[]',
         metric_config JSONB NOT NULL DEFAULT '{}',
@@ -1987,18 +1928,18 @@ export const createNewTenant = async (
       );
     `, { transaction });
 
-    // Create indexes for deepeval_arena_comparisons
+    // Create indexes for llm_evals_arena_comparisons
     await Promise.all([
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_org_id ON "${tenantHash}".deepeval_arena_comparisons(org_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_arena_comparisons_org_id ON "${tenantHash}".llm_evals_arena_comparisons(org_id);`,
         { transaction }
       ),
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_status ON "${tenantHash}".deepeval_arena_comparisons(status);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_arena_comparisons_status ON "${tenantHash}".llm_evals_arena_comparisons(status);`,
         { transaction }
       ),
       sequelize.query(
-        `CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_created_at ON "${tenantHash}".deepeval_arena_comparisons(created_at DESC);`,
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_arena_comparisons_created_at ON "${tenantHash}".llm_evals_arena_comparisons(created_at DESC);`,
         { transaction }
       ),
     ]);

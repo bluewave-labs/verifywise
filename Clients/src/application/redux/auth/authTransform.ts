@@ -2,7 +2,7 @@ import { createTransform } from "redux-persist";
 
 const authTransform = createTransform(
   (inboundState: any) => {
-    const { profileImage, ...rest } = inboundState;
+    const { profileImage: _profileImage, ...rest } = inboundState;
     return rest;
   },
   null,

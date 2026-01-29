@@ -99,7 +99,7 @@ const AITrustCenterSettings: React.FC = () => {
               setFormData(overviewData);
               setOriginalData(overviewData);
             }
-          } catch (error) {
+          } catch (_error) {
             // Logo fetch failed - this could be a network error or no logo exists
             setLogoLoadError(false);
             // Use the original data even if logo fetch fails
@@ -249,8 +249,8 @@ const AITrustCenterSettings: React.FC = () => {
             console.error("Could not extract tenant ID from token");
             setLogoError("Failed to get tenant information");
           }
-        } else {
-          }
+        }
+        // else: Logo was returned directly in response, no additional fetch needed
 
         // Clear the preview since we now have the uploaded URL
         if (selectedLogoPreview) {

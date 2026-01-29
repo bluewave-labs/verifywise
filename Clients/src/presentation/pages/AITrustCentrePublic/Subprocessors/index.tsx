@@ -30,18 +30,13 @@ const Subprocessors = ({
   loading: boolean;
   error: string | null;
 }) => {
-  if (loading) return <Typography>Loading...</Typography>;
-  if (error) return <Typography color="error">{error}</Typography>;
-  if (!data || !data.subprocessor || data.subprocessor.length === 0)
-    return <Typography>No subprocessors available.</Typography>;
-
   // Initialize sorting state from localStorage or default to no sorting
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
     const saved = localStorage.getItem(SUBPROCESSORS_SORTING_KEY);
     if (saved) {
       try {
         return JSON.parse(saved);
-      } catch {
+      } catch (_error) {
         return { key: "", direction: null };
       }
     }
@@ -71,8 +66,8 @@ const Subprocessors = ({
 
   // Sort the subprocessor data based on current sort configuration
   const sortedSubprocessors = useMemo(() => {
-    if (!data.subprocessor || !sortConfig.key || !sortConfig.direction) {
-      return data.subprocessor || [];
+    if (!data?.subprocessor || !sortConfig.key || !sortConfig.direction) {
+      return data?.subprocessor || [];
     }
 
     const sortableData = [...data.subprocessor];
@@ -114,7 +109,12 @@ const Subprocessors = ({
       const comparison = aValue.localeCompare(bValue);
       return sortConfig.direction === "asc" ? comparison : -comparison;
     });
-  }, [data.subprocessor, sortConfig]);
+  }, [data?.subprocessor, sortConfig]);
+
+  if (loading) return <Typography>Loading...</Typography>;
+  if (error) return <Typography color="error">{error}</Typography>;
+  if (!data || !data.subprocessor || data.subprocessor.length === 0)
+    return <Typography>No subprocessors available.</Typography>;
 
   return (
     <Box width="100%">

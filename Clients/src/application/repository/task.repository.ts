@@ -7,7 +7,6 @@ import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
  *
  * @param {object} params - Query parameters for filtering and pagination
  * @param {AbortSignal} [signal] - Optional abort signal for canceling the request
- * @param {string} [authToken] - Optional auth token, defaults to stored token
  * @returns {Promise<any>} The tasks data with pagination info
  * @throws Will throw an error if the request fails
  */
@@ -27,7 +26,6 @@ export async function getAllTasks({
   page_size = "25",
 }: {
   signal?: AbortSignal;
-  authToken?: string;
   status?: TaskStatus[];
   priority?: TaskPriority[];
   category?: string[];
@@ -87,7 +85,6 @@ export async function getAllTasks({
  * @param {object} params - Parameters for the request
  * @param {string} params.id - The task ID
  * @param {AbortSignal} [params.signal] - Optional abort signal
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The task data
  * @throws Will throw an error if the request fails
  */
@@ -97,7 +94,6 @@ export async function getTaskById({
 }: {
   id: string | number;
   signal?: AbortSignal;
-  authToken?: string;
 }): Promise<any> {
   try {
     const response = await apiServices.get(`/tasks/${id}`, {
@@ -115,7 +111,6 @@ export async function getTaskById({
  *
  * @param {object} params - Parameters for creating a task
  * @param {Partial<ITask>} params.body - The task data
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The created task data
  * @throws Will throw an error if the request fails
  */
@@ -123,7 +118,6 @@ export async function createTask({
   body,
 }: {
   body: Partial<ITask>;
-  authToken?: string;
 }): Promise<any> {
   try {
     const response = await apiServices.post("/tasks", body);
@@ -140,7 +134,6 @@ export async function createTask({
  * @param {object} params - Parameters for updating a task
  * @param {string|number} params.id - The task ID
  * @param {Partial<ITask>} params.body - The updated task data
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The updated task data
  * @throws Will throw an error if the request fails
  */
@@ -150,7 +143,6 @@ export async function updateTask({
 }: {
   id: string | number;
   body: Partial<ITask>;
-  authToken?: string;
 }): Promise<any> {
   try {
     const response = await apiServices.put(`/tasks/${id}`, body);
@@ -166,7 +158,6 @@ export async function updateTask({
  *
  * @param {object} params - Parameters for deleting a task
  * @param {string|number} params.id - The task ID
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The deletion response
  * @throws Will throw an error if the request fails
  */
@@ -174,7 +165,6 @@ export async function deleteTask({
   id,
 }: {
   id: string | number;
-  authToken?: string;
 }): Promise<any> {
   try {
     const response = await apiServices.delete(`/tasks/${id}`);
@@ -191,7 +181,6 @@ export async function deleteTask({
  * @param {object} params - Parameters for updating task status
  * @param {string|number} params.id - The task ID
  * @param {TaskStatus} params.status - The new status
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The updated task data
  * @throws Will throw an error if the request fails
  */
@@ -201,7 +190,6 @@ export async function updateTaskStatus({
 }: {
   id: string | number;
   status: TaskStatus;
-  authToken?: string;
 }): Promise<any> {
   try {
     const response = await apiServices.put(
@@ -216,11 +204,38 @@ export async function updateTaskStatus({
 }
 
 /**
+ * Updates only the priority of a task (quick priority change)
+ *
+ * @param {object} params - Parameters for updating task priority
+ * @param {string|number} params.id - The task ID
+ * @param {TaskPriority} params.priority - The new priority
+ * @returns {Promise<any>} The updated task data
+ * @throws Will throw an error if the request fails
+ */
+export async function updateTaskPriority({
+  id,
+  priority,
+}: {
+  id: string | number;
+  priority: TaskPriority;
+}): Promise<any> {
+  try {
+    const response = await apiServices.put(
+      `/tasks/${id}`,
+      { priority }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating priority:", error);
+    throw error;
+  }
+}
+
+/**
  * Restores an archived task back to active status
  *
  * @param {object} params - Parameters for restoring a task
  * @param {string|number} params.id - The task ID
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The restored task data
  * @throws Will throw an error if the request fails
  */
@@ -228,7 +243,6 @@ export async function restoreTask({
   id,
 }: {
   id: string | number;
-  authToken?: string;
 }): Promise<any> {
   try {
     const response = await apiServices.put(`/tasks/${id}/restore`, {});
@@ -244,7 +258,6 @@ export async function restoreTask({
  *
  * @param {object} params - Parameters for hard deleting a task
  * @param {string|number} params.id - The task ID
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The deletion response
  * @throws Will throw an error if the request fails
  */
@@ -252,7 +265,6 @@ export async function hardDeleteTask({
   id,
 }: {
   id: string | number;
-  authToken?: string;
 }): Promise<any> {
   try {
     const response = await apiServices.delete(`/tasks/${id}/hard`);

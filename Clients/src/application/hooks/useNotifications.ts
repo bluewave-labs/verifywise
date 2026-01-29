@@ -197,7 +197,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
             try {
               const notification: Notification = JSON.parse(data);
               displayNotification(notification);
-            } catch (error) {
+            } catch (_error) {
               // Silently ignore parsing errors
             }
           }

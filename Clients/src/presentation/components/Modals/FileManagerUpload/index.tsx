@@ -30,6 +30,16 @@ interface FileManagerUploadModalProps {
   onClose: () => void;
   onSuccess?: (uploadedFile: any) => void; // ✅ return uploaded file info
   modelId?: string | number | undefined; // save model Id
+  /** When true, files are selected but not uploaded - onFileSelect is called instead */
+  selectionOnly?: boolean;
+  /** Called when files are selected (in selectionOnly mode) */
+  onFileSelect?: (files: File[]) => void;
+  /** Restrict to specific MIME types (e.g., ["application/pdf"]) */
+  acceptedMimeTypes?: string[];
+  /** Custom title for the modal */
+  title?: string;
+  /** Whether to allow multiple file selection (default: true) */
+  multiple?: boolean;
 }
 
 type UploadStatus = "pending" | "uploading" | "success" | "error";
@@ -46,7 +56,12 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   open,
   onClose,
   onSuccess,
-  modelId
+  modelId,
+  selectionOnly = false,
+  onFileSelect,
+  acceptedMimeTypes,
+  title = "Upload Files",
+  multiple = true,
 }) => {
   const theme = useTheme();
   const [fileList, setFileList] = useState<UploadedFileInfo[]>([]);
@@ -84,6 +99,23 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   const addFiles = (files: File[]) => {
     // Validate each file and create entries with appropriate status (DRY: using shared validateFile)
     const newFiles = files.map((file) => {
+      // First check custom MIME types if provided
+      if (acceptedMimeTypes && acceptedMimeTypes.length > 0) {
+        if (!acceptedMimeTypes.includes(file.type)) {
+          const typeNames = acceptedMimeTypes.map(t => {
+            if (t === "application/pdf") return "PDF";
+            if (t.startsWith("image/")) return "Image";
+            return t;
+          }).join(", ");
+          return {
+            file,
+            status: "error" as const,
+            progress: 0,
+            error: `Only ${typeNames} files are allowed`,
+          };
+        }
+      }
+
       const validation = validateFile(file);
 
       if (!validation.valid) {
@@ -274,15 +306,49 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
     }
   };
 
-  // Check if there are any valid files to upload
+  // Check if there are any valid files to upload/select
   const hasValidFiles = fileList.some((f) => f.status === "pending");
+
+  // Handle selection-only mode - just return the files without uploading
+  const handleSelectFiles = () => {
+    const validFiles = fileList
+      .filter((f) => f.status === "pending")
+      .map((f) => f.file);
+    
+    if (validFiles.length > 0 && onFileSelect) {
+      onFileSelect(validFiles);
+    }
+    handleClose();
+  };
+
+  // Get the accept attribute for file input based on acceptedMimeTypes
+  const getAcceptAttribute = () => {
+    if (acceptedMimeTypes && acceptedMimeTypes.length > 0) {
+      return acceptedMimeTypes.join(",");
+    }
+    return undefined; // Accept all supported types
+  };
+
+  // Get display text for supported file types
+  const getSupportedTypesText = () => {
+    if (acceptedMimeTypes && acceptedMimeTypes.length > 0) {
+      return acceptedMimeTypes.map(t => {
+        if (t === "application/pdf") return "PDF";
+        if (t === "image/jpeg") return "JPEG";
+        if (t === "image/png") return "PNG";
+        if (t.startsWith("image/")) return "Images";
+        return t;
+      }).join(", ");
+    }
+    return SUPPORTED_FILE_TYPES_STRING;
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Typography variant="h6" fontWeight={600}>
-            Upload Files
+            {title}
           </Typography>
           <IconButton onClick={handleClose} disabled={isUploading} size="small">
             <CloseIcon size={20} />
@@ -317,7 +383,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
                 or click to browse
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Supports: {SUPPORTED_FILE_TYPES_STRING}
+                Supports: {getSupportedTypesText()}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 Maximum file size: {MAX_FILE_SIZE_MB}MB
@@ -326,7 +392,8 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
             <input
               ref={fileInputRef}
               type="file"
-              multiple
+              multiple={multiple}
+              accept={getAcceptAttribute()}
               onChange={handleFileSelect}
               style={{ display: "none" }}
             />
@@ -411,7 +478,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
             </Button>
             <Button
               variant="contained"
-              onClick={handleUpload}
+              onClick={selectionOnly ? handleSelectFiles : handleUpload}
               disabled={!hasValidFiles || isUploading}
               sx={{
                 backgroundColor: theme.palette.primary.main,
@@ -420,7 +487,11 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
                 },
               }}
             >
-              {isUploading ? "Uploading..." : "Upload"}
+              {selectionOnly 
+                ? "Select" 
+                : isUploading 
+                  ? "Uploading..." 
+                  : "Upload"}
             </Button>
           </Stack>
         </Stack>

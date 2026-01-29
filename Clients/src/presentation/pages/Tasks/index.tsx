@@ -8,6 +8,7 @@ import React, {
   useRef,
 } from "react";
 import { Box, Stack, Typography } from "@mui/material";
+import TabContext from "@mui/lab/TabContext";
 import { useSearchParams } from "react-router-dom";
 import { CirclePlus as AddCircleIcon, Flag } from "lucide-react";
 import { SearchBox } from "../../components/Search";
@@ -49,6 +50,9 @@ import TipBox from "../../components/TipBox";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import Alert from "../../components/Alert";
+import TabBar from "../../components/TabBar";
+import DeadlineView from "./DeadlineView";
+import { toggleLabelStyle, toggleContainerStyle } from "./style";
 import { TASK_PRIORITY_OPTIONS, PRIORITY_DISPLAY_MAP, PRIORITY_COLOR_MAP } from "../../constants/priorityOptions";
 
 // Task status options for CustomSelect
@@ -85,7 +89,21 @@ const Tasks: React.FC = () => {
   // Flash indicator state for updated rows
   const [flashRowId, setFlashRowId] = useState<number | null>(null);
 
-  const { userRoleName } = useContext(VerifyWiseContext);
+  // Admin toggle for "My Tasks" vs "Team Tasks"
+  const [showMyTasksOnly, setShowMyTasksOnly] = useState(false);
+
+  // Tab state - persisted to localStorage
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const saved = localStorage.getItem("verifywise_tasks_view_tab");
+    return saved || "list";
+  });
+
+  // Save tab preference to localStorage
+  useEffect(() => {
+    localStorage.setItem("verifywise_tasks_view_tab", activeTab);
+  }, [activeTab]);
+
+  const { userRoleName, userId } = useContext(VerifyWiseContext);
   const { users } = useUsers();
 
   // Track if we've already processed the URL param to avoid duplicate fetches
@@ -270,8 +288,17 @@ const Tasks: React.FC = () => {
       );
     }
 
+    // Apply "My Tasks" filter for Admin users
+    if (userRoleName === "Admin" && showMyTasksOnly && userId) {
+      result = result.filter(
+        (task) =>
+          task.creator_id === userId ||
+          (task.assignees && task.assignees.some((a) => a.user_id === userId))
+      );
+    }
+
     return result;
-  }, [filterTaskData, tasks, searchQuery]);
+  }, [filterTaskData, tasks, searchQuery, userRoleName, showMyTasksOnly, userId]);
 
   const handleCreateTask = () => {
     if (isCreatingDisabled) {
@@ -586,7 +613,13 @@ const Tasks: React.FC = () => {
       <Stack sx={vwhomeBody}>
         <PageHeader
           title="Task management"
-          description="This table includes a list of tasks assigned to team members. You can create and manage all tasks here."
+          description={
+            userRoleName === "Admin"
+              ? showMyTasksOnly
+                ? "Showing tasks you created or are assigned to. You can create and manage your tasks here."
+                : "Showing all tasks in your organization. You can create and manage tasks here."
+              : "Showing tasks you created or are assigned to. You can create and manage your tasks here."
+          }
           rightContent={
             <HelperIcon
               articlePath="ai-governance/task-management"
@@ -604,7 +637,21 @@ const Tasks: React.FC = () => {
         <TaskSummaryCards summary={summary} />
       </Box>
 
-      {/* Filter Controls */}
+      {/* Tab Navigation */}
+      <TabContext value={activeTab}>
+        <TabBar
+          tabs={[
+            { label: "List view", value: "list", icon: "List" },
+            { label: "Deadline view", value: "deadline", icon: "Calendar" },
+          ]}
+          activeTab={activeTab}
+          onChange={(_, newValue) => setActiveTab(newValue)}
+          dataJoyrideId="task-view-tabs"
+        />
+      </TabContext>
+
+      {/* Filter Controls - Only show for List view */}
+      {activeTab === "list" && (
       <Stack
         direction="row"
         justifyContent="space-between"
@@ -641,19 +688,37 @@ const Tasks: React.FC = () => {
             />
           </Box>
 
+          {/* My Tasks toggle - Admin only */}
+          {userRoleName === "Admin" && (
+            <Stack
+              sx={toggleContainerStyle}
+              data-joyride-id="my-tasks-toggle"
+            >
+              <Typography
+                component="span"
+                variant="body2"
+                color="text.secondary"
+                sx={toggleLabelStyle}
+              >
+                My tasks only
+              </Typography>
+              <Toggle
+                checked={showMyTasksOnly}
+                onChange={(_, checked) => setShowMyTasksOnly(checked)}
+              />
+            </Stack>
+          )}
+
           {/* Include archived toggle */}
           <Stack
-            direction="row"
-            alignItems="center"
-            gap={1}
+            sx={toggleContainerStyle}
             data-joyride-id="include-archived-toggle"
           >
             <Typography
               component="span"
               variant="body2"
               color="text.secondary"
-              fontWeight={500}
-              fontSize={"13px"}
+              sx={toggleLabelStyle}
             >
               Include archived
             </Typography>
@@ -691,6 +756,7 @@ const Tasks: React.FC = () => {
           />
         </Stack>
       </Stack>
+      )}
 
       {/* Content Area */}
       <Box>
@@ -706,7 +772,7 @@ const Tasks: React.FC = () => {
           </Box>
         )}
 
-        {!isLoading && !error && (
+        {!isLoading && !error && activeTab === "list" && (
           <GroupedTableView
             groupedData={groupedTasks}
             ungroupedData={filteredTasks}
@@ -741,6 +807,26 @@ const Tasks: React.FC = () => {
                 flashRowId={flashRowId}
               />
             )}
+          />
+        )}
+
+        {!isLoading && !error && activeTab === "deadline" && (
+          <DeadlineView
+            tasks={filteredTasks}
+            users={users}
+            onArchive={handleArchiveTask}
+            onEdit={handleEditTask}
+            onStatusChange={handleTaskStatusChange}
+            statusOptions={TASK_STATUS_OPTIONS.map((status) => {
+              const displayStatus =
+                STATUS_DISPLAY_MAP[status as TaskStatus] || status;
+              return displayStatus;
+            })}
+            isUpdateDisabled={isCreatingDisabled}
+            onRowClick={handleEditTask}
+            onRestore={handleRestoreTask}
+            onHardDelete={handleHardDeleteTask}
+            flashRowId={flashRowId}
           />
         )}
       </Box>

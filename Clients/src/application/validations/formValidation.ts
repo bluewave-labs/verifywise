@@ -3,7 +3,7 @@ import { checkStringValidation } from "./stringValidation";
 // Constants
 const PASSWORD_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
 // Validation constants
-const VALIDATION_RULES = {
+export const VALIDATION_RULES = {
   NAME: { min: 2, max: 50 },
   PASSWORD: { min: 8, max: 16 },
   EMAIL: { min: 0, max: 128 },

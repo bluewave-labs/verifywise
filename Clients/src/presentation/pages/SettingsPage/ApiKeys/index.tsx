@@ -77,7 +77,7 @@ const ApiKeys = () => {
         );
         setTokens(tokenModels);
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert("error", "Error", "Failed to fetch API tokens");
     } finally {
       setIsLoading(false);
@@ -206,7 +206,7 @@ const ApiKeys = () => {
         setDeletingTokenId(null);
         setTokenToDelete(null);
       }, 300);
-    } catch (error) {
+    } catch (_error) {
       setDeletingTokenId(null);
       showAlert("error", "Error", "Failed to delete API token");
     } finally {

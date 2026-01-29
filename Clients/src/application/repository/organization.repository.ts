@@ -14,15 +14,11 @@ export async function GetMyOrganization({
   signal,
   responseType = "json",
 }: GetRequestParams): Promise<any> {
-  try {
-    const response = await apiServices.get(routeUrl, {
-      signal,
-      responseType,
-    });
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.get(routeUrl, {
+    signal,
+    responseType,
+  });
+  return response;
 }
 
 /**
@@ -36,12 +32,8 @@ export async function CreateMyOrganization({
   routeUrl = "/organizations",
   body,
 }: RequestParams): Promise<any> {
-  try {
-    const response = await apiServices.post(routeUrl, body);
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.post(routeUrl, body);
+  return response;
 }
 
 /**
@@ -56,14 +48,10 @@ export async function UpdateMyOrganization({
   body,
   headers,
 }: RequestParams): Promise<any> {
-  try {
-    const response = await apiServices.patch(routeUrl, body, {
-      headers: { ...headers },
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.patch(routeUrl, body, {
+    headers: { ...headers },
+  });
+  return response.data;
 }
 
 /**
@@ -73,13 +61,9 @@ export async function UpdateMyOrganization({
  * @throws Will throw an error if the request fails.
  */
 export async function checkOrganizationExists(): Promise<boolean> {
-  try {
-    const response = await apiServices.get("/organizations/exists");
-    const data = response.data as { data?: { exists?: boolean } };
-    return data?.data?.exists ?? false;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.get("/organizations/exists");
+  const data = response.data as { data?: { exists?: boolean } };
+  return data?.data?.exists ?? false;
 }
 
 /**
@@ -91,10 +75,6 @@ export async function checkOrganizationExists(): Promise<boolean> {
  * @throws Will throw an error if the request fails.
  */
 export async function updateOnboardingStatus(organizationId: number): Promise<any> {
-  try {
-    const response = await apiServices.patch(`/organizations/${organizationId}/onboarding-status`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.patch(`/organizations/${organizationId}/onboarding-status`);
+  return response.data;
 }

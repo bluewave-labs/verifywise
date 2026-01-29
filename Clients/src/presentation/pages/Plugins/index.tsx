@@ -16,6 +16,20 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { IBreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
 import Chip from "../../components/Chip";
 import { CATEGORIES } from "./categories";
+import {
+  categorySidebar,
+  categoryMenuItem,
+  categoryMenuText,
+  categoryHeader,
+  categoryHeaderTitle,
+  categoryHeaderDescription,
+  pluginCardsGrid,
+  pluginCardWrapper,
+  pluginCardWrapperThreeColumn,
+  emptyStateContainer,
+  emptyStateText,
+  tabPanelStyle,
+} from "./style";
 
 const Plugins: React.FC = () => {
   const location = useLocation();
@@ -102,10 +116,10 @@ const Plugins: React.FC = () => {
           visible: true,
         });
         refetch();
-      } catch (err: any) {
+      } catch (err: unknown) {
         setToast({
           variant: "error",
-          body: err.message || "Failed to uninstall plugin. Please try again.",
+          body: err instanceof Error ? err.message : "Failed to uninstall plugin. Please try again.",
           visible: true,
         });
       }
@@ -176,16 +190,10 @@ const Plugins: React.FC = () => {
         </Box>
 
         {/* Marketplace Tab */}
-        <TabPanel value="marketplace" sx={{ p: 0, pt: 2 }}>
+        <TabPanel value="marketplace" sx={tabPanelStyle}>
           <Stack direction="row" gap="16px">
             {/* Left Sidebar - Category Menu */}
-            <Box
-              sx={{
-                width: 220,
-                minWidth: 220,
-                flexShrink: 0,
-              }}
-            >
+            <Box sx={categorySidebar}>
               <Stack gap={0.5}>
                 {CATEGORIES.map((category) => {
                   const Icon = category.icon;
@@ -194,35 +202,14 @@ const Plugins: React.FC = () => {
                     <Box
                       key={category.id}
                       onClick={() => setSelectedCategory(category.id)}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1.5,
-                        padding: "10px 12px",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        backgroundColor: isSelected ? "rgba(19, 113, 91, 0.08)" : "transparent",
-                        border: isSelected ? "1px solid #13715B" : "1px solid transparent",
-                        "&:hover": {
-                          backgroundColor: isSelected
-                            ? "rgba(19, 113, 91, 0.12)"
-                            : "rgba(0, 0, 0, 0.04)",
-                        },
-                        transition: "all 0.15s ease",
-                      }}
+                      sx={categoryMenuItem(isSelected)}
                     >
                       <Icon
                         size={16}
                         color={isSelected ? "#13715B" : "#667085"}
                         strokeWidth={1.5}
                       />
-                      <Typography
-                        sx={{
-                          fontSize: "13px",
-                          fontWeight: isSelected ? 500 : 400,
-                          color: isSelected ? "#13715B" : "#344054",
-                        }}
-                      >
+                      <Typography sx={categoryMenuText(isSelected)}>
                         {category.name}
                       </Typography>
                     </Box>
@@ -243,66 +230,39 @@ const Plugins: React.FC = () => {
                 />
 
                 {/* Category Header */}
-                <Box
-                  sx={{
-                    padding: "16px 20px",
-                    backgroundColor: "#f9fafb",
-                    border: "1px solid #d0d5dd",
-                    borderRadius: "4px",
-                  }}
-                >
+                <Box sx={categoryHeader}>
                   <Stack direction="row" alignItems="center" gap={1.5} mb={1}>
                     {React.createElement(currentCategory.icon, {
                       size: 20,
                       color: "#13715B",
                       strokeWidth: 1.5,
                     })}
-                    <Typography
-                      sx={{
-                        fontSize: "16px",
-                        fontWeight: 600,
-                        color: "#101828",
-                      }}
-                    >
+                    <Typography sx={categoryHeaderTitle}>
                       {currentCategory.name}
                     </Typography>
                   </Stack>
-                  <Typography
-                    sx={{
-                      fontSize: "13px",
-                      color: "#667085",
-                      lineHeight: 1.5,
-                    }}
-                  >
+                  <Typography sx={categoryHeaderDescription}>
                     {currentCategory.description}
                   </Typography>
                 </Box>
 
                 {/* Plugin Cards Grid */}
                 {loading ? (
-                  <Box sx={{ textAlign: "center", py: 4 }}>
-                    <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+                  <Box sx={emptyStateContainer}>
+                    <Typography sx={emptyStateText}>
                       Loading plugins...
                     </Typography>
                   </Box>
                 ) : filteredPlugins.length === 0 ? (
-                  <Box sx={{ textAlign: "center", py: 4 }}>
-                    <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+                  <Box sx={emptyStateContainer}>
+                    <Typography sx={emptyStateText}>
                       No plugins found matching your criteria
                     </Typography>
                   </Box>
                 ) : (
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                  <Box sx={pluginCardsGrid}>
                     {filteredPlugins.map((plugin) => (
-                      <Box
-                        key={plugin.key}
-                        sx={{
-                          width: {
-                            xs: "100%",
-                            md: "calc(50% - 8px)", // 50% minus half of 16px gap
-                          },
-                        }}
-                      >
+                      <Box key={plugin.key} sx={pluginCardWrapper}>
                         <PluginCard
                           plugin={plugin}
                           onUninstall={handleUninstall}
@@ -322,7 +282,7 @@ const Plugins: React.FC = () => {
         </TabPanel>
 
         {/* My Plugins Tab */}
-        <TabPanel value="my-plugins" sx={{ p: 0, pt: 2 }}>
+        <TabPanel value="my-plugins" sx={tabPanelStyle}>
           <Stack gap={2} sx={{ px: 2 }}>
             {/* Summary Chip */}
             <Box>
@@ -335,30 +295,21 @@ const Plugins: React.FC = () => {
 
             {/* Plugin Cards Grid */}
             {loading ? (
-              <Box sx={{ textAlign: "center", py: 4 }}>
-                <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+              <Box sx={emptyStateContainer}>
+                <Typography sx={emptyStateText}>
                   Loading plugins...
                 </Typography>
               </Box>
             ) : installedPlugins.length === 0 ? (
-              <Box sx={{ textAlign: "center", py: 4 }}>
-                <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+              <Box sx={emptyStateContainer}>
+                <Typography sx={emptyStateText}>
                   No plugins installed yet. Visit the marketplace to install plugins.
                 </Typography>
               </Box>
             ) : (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+              <Box sx={pluginCardsGrid}>
                 {installedPlugins.map((plugin) => (
-                  <Box
-                    key={plugin.key}
-                    sx={{
-                      width: {
-                        xs: "100%",
-                        md: "calc(50% - 8px)",
-                        lg: "calc(33.333% - 11px)",
-                      },
-                    }}
-                  >
+                  <Box key={plugin.key} sx={pluginCardWrapperThreeColumn}>
                     <PluginCard
                       plugin={plugin}
                       onUninstall={handleUninstall}

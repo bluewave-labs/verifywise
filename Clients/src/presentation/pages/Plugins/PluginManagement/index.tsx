@@ -17,6 +17,7 @@ import {
   Checkbox,
   FormControl,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import Chip from "../../../components/Chip";
 import {
   ArrowLeft as ArrowLeftIcon,
@@ -42,11 +43,26 @@ import { cardStyles } from "../../../themes/components";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import { IBreadcrumbItem } from "../../../../domain/types/breadcrumbs.types";
 import { ENV_VARs } from "../../../../../env.vars";
+import { getConfigFields, ConfigField, MLFLOW_DEFAULT_CONFIG } from "./config-fields";
+import {
+  backButton,
+  pluginIconPlaceholder,
+  installedStatusChip,
+  installButton,
+  uninstallButton,
+  formFieldLabel,
+  testConnectionButton,
+  saveConfigButton,
+  configTextField,
+  configSelect,
+  configCheckbox,
+} from "./style";
 
 const PluginManagement: React.FC = () => {
   const { pluginKey } = useParams<{ pluginKey: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
   const { userRoleName } = useAuth();
   const { install, uninstall, installing, uninstalling } = usePluginInstallation();
   const { getComponentsForSlot } = usePluginRegistry();
@@ -113,10 +129,10 @@ const PluginManagement: React.FC = () => {
           });
           // Remove code from URL - plugin component will fetch workspaces on mount
           navigate(`/plugins/${pluginKey}/manage`, { replace: true });
-        } catch (error: any) {
+        } catch (error: unknown) {
           setToast({
             variant: "error",
-            body: error.message || "Failed to connect Slack workspace",
+            body: error instanceof Error ? error.message : "Failed to connect Slack workspace",
             visible: true,
           });
           // Remove code from URL
@@ -155,12 +171,7 @@ const PluginManagement: React.FC = () => {
           });
 
           // Load existing configuration with defaults
-          const defaults: Record<string, any> = {};
-          if (pluginKey === "mlflow") {
-            defaults.auth_method = "none";
-            defaults.verify_ssl = "true";
-            defaults.timeout = "30";
-          }
+          const defaults: Record<string, string> = pluginKey === "mlflow" ? { ...MLFLOW_DEFAULT_CONFIG } : {};
 
           setConfigData({
             ...defaults,
@@ -202,15 +213,15 @@ const PluginManagement: React.FC = () => {
 
       // Navigate back to My Plugins after uninstall
       setTimeout(() => navigate("/plugins/my-plugins"), 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsDeleteModalOpen(false);
       setToast({
         variant: "error",
-        body: err.message || "Failed to uninstall plugin. Please try again.",
+        body: err instanceof Error ? err.message : "Failed to uninstall plugin. Please try again.",
         visible: true,
       });
     }
-  }, [plugin, uninstall, navigate]);
+  }, [plugin, pluginKey, uninstall, navigate]);
 
 
   const handleCloseToast = () => {
@@ -247,10 +258,10 @@ const PluginManagement: React.FC = () => {
           visible: true,
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setToast({
         variant: "error",
-        body: err.message || "Failed to test connection. Please try again.",
+        body: err instanceof Error ? err.message : "Failed to test connection. Please try again.",
         visible: true,
       });
     } finally {
@@ -273,10 +284,10 @@ const PluginManagement: React.FC = () => {
         body: "Configuration saved successfully!",
         visible: true,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setToast({
         variant: "error",
-        body: err.message || "Failed to save configuration. Please try again.",
+        body: err instanceof Error ? err.message : "Failed to save configuration. Please try again.",
         visible: true,
       });
     } finally {
@@ -285,80 +296,7 @@ const PluginManagement: React.FC = () => {
   };
 
   // Get configuration fields based on plugin type
-  const getConfigFields = () => {
-    const baseFields = [
-      {
-        key: "server_url",
-        label: "Server URL",
-        placeholder: "https://example.com",
-        type: "url",
-      },
-      {
-        key: "api_key",
-        label: "API Key",
-        placeholder: "Enter your API key",
-        type: "password",
-      },
-    ];
-
-    // Plugin-specific configurations
-    if (pluginKey === "mlflow") {
-      return [
-        {
-          key: "tracking_server_url",
-          label: "Tracking Server URL",
-          placeholder: "http://localhost:5000",
-          type: "url",
-        },
-        {
-          key: "auth_method",
-          label: "Authentication Method",
-          placeholder: "none",
-          type: "select",
-          options: [
-            { value: "none", label: "None" },
-            { value: "basic", label: "Basic Auth" },
-            { value: "token", label: "Token" },
-          ],
-        },
-        {
-          key: "username",
-          label: "Username",
-          placeholder: "Enter username",
-          type: "text",
-          showIf: (data: Record<string, string>) => data.auth_method === "basic",
-        },
-        {
-          key: "password",
-          label: "Password",
-          placeholder: "Enter password",
-          type: "password",
-          showIf: (data: Record<string, string>) => data.auth_method === "basic",
-        },
-        {
-          key: "api_token",
-          label: "API Token",
-          placeholder: "Enter API token",
-          type: "password",
-          showIf: (data: Record<string, string>) => data.auth_method === "token",
-        },
-        {
-          key: "verify_ssl",
-          label: "Verify SSL",
-          placeholder: "true",
-          type: "checkbox",
-        },
-        {
-          key: "timeout",
-          label: "Request Timeout (seconds)",
-          placeholder: "30",
-          type: "number",
-        },
-      ];
-    }
-
-    return baseFields;
-  };
+  const configFields = useMemo(() => getConfigFields(pluginKey), [pluginKey]);
 
   // Auto-hide toast after 3 seconds
   useEffect(() => {
@@ -415,14 +353,7 @@ const PluginManagement: React.FC = () => {
         <Button
           startIcon={<ArrowLeftIcon size={16} />}
           onClick={() => navigate("/plugins/my-plugins")}
-          sx={{
-            color: "#344054",
-            fontSize: "13px",
-            textTransform: "none",
-            "&:hover": {
-              backgroundColor: "rgba(0, 0, 0, 0.04)",
-            },
-          }}
+          sx={backButton}
         >
           Back to My Plugins
         </Button>
@@ -436,7 +367,7 @@ const PluginManagement: React.FC = () => {
       <Box sx={{ px: 2 }}>
         <Stack gap={2}>
           {/* Plugin Info Card */}
-          <Card sx={(theme) => ({ ...cardStyles.base(theme) as any })}>
+          <Card sx={cardStyles.base(theme)}>
             <CardContent sx={{ p: 3 }}>
               <Stack spacing={3}>
                 {/* Header with Icon */}
@@ -453,22 +384,7 @@ const PluginManagement: React.FC = () => {
                       }}
                     />
                   ) : (
-                    <Box
-                      sx={{
-                        width: 64,
-                        height: 64,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor:
-                          plugin.key === "risk-import"
-                            ? "rgba(16, 185, 129, 0.1)"
-                            : plugin.category === "data_management"
-                            ? "rgba(139, 92, 246, 0.1)"
-                            : "rgba(99, 102, 241, 0.1)",
-                        borderRadius: "12px",
-                      }}
-                    >
+                    <Box sx={pluginIconPlaceholder(plugin.key, plugin.category)}>
                       {plugin.key === "risk-import" ? (
                         <FileSpreadsheetIcon size={36} color="#10b981" />
                       ) : plugin.category === "data_management" ? (
@@ -488,15 +404,7 @@ const PluginManagement: React.FC = () => {
                           size="small"
                           label={plugin.installationStatus}
                           icon={<CheckIcon size={14} />}
-                          sx={{
-                            fontSize: "11px",
-                            height: 24,
-                            borderRadius: "4px",
-                            backgroundColor: "rgba(34, 197, 94, 0.1)",
-                            color: "#16a34a",
-                            border: "1px solid rgba(34, 197, 94, 0.2)",
-                            fontWeight: 500,
-                          }}
+                          sx={installedStatusChip}
                         />
                       )}
                     </Box>
@@ -569,54 +477,6 @@ const PluginManagement: React.FC = () => {
                   </>
                 )}
 
-                {/* Links */}
-                {/* TODO: Uncomment when ready to add Resources section
-                <Divider />
-                <Box>
-                  <Typography variant="subtitle2" fontWeight={600} fontSize={14} mb={1.5}>
-                    Resources
-                  </Typography>
-                  <Stack direction="row" spacing={2}>
-                    {plugin.documentationUrl && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<ExternalLinkIcon size={14} />}
-                        href={plugin.documentationUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          textTransform: "none",
-                          fontSize: "12px",
-                          borderColor: "#d0d5dd",
-                          color: "#344054",
-                        }}
-                      >
-                        Documentation
-                      </Button>
-                    )}
-                    {plugin.supportUrl && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<ExternalLinkIcon size={14} />}
-                        href={plugin.supportUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          textTransform: "none",
-                          fontSize: "12px",
-                          borderColor: "#d0d5dd",
-                          color: "#344054",
-                        }}
-                      >
-                        Support
-                      </Button>
-                    )}
-                  </Stack>
-                </Box>
-                */}
-
                 {/* Actions */}
                 <Divider />
 
@@ -654,24 +514,16 @@ const PluginManagement: React.FC = () => {
                               visible: true,
                             });
                           }
-                        } catch (err: any) {
+                        } catch (err: unknown) {
                           setToast({
                             variant: "error",
-                            body: err.message || "Failed to install plugin. Please try again.",
+                            body: err instanceof Error ? err.message : "Failed to install plugin. Please try again.",
                             visible: true,
                           });
                         }
                       }}
                       disabled={installing === plugin.key}
-                      sx={{
-                        backgroundColor: "#13715B",
-                        textTransform: "none",
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        "&:hover": {
-                          backgroundColor: "#0f5a47",
-                        },
-                      }}
+                      sx={installButton}
                     >
                       {installing === plugin.key
                         ? "Installing..."
@@ -690,17 +542,7 @@ const PluginManagement: React.FC = () => {
                       color="error"
                       onClick={handleUninstallClick}
                       disabled={uninstalling === plugin.installationId}
-                      sx={{
-                        textTransform: "none",
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        borderColor: "#dc2626",
-                        color: "#dc2626",
-                        "&:hover": {
-                          backgroundColor: "rgba(220, 38, 38, 0.04)",
-                          borderColor: "#dc2626",
-                        },
-                      }}
+                      sx={uninstallButton}
                     >
                       {uninstalling === plugin.installationId ? "Uninstalling..." : "Uninstall Plugin"}
                     </Button>
@@ -712,7 +554,7 @@ const PluginManagement: React.FC = () => {
 
           {/* Configuration Card - Only show for installed plugins that require configuration */}
           {plugin.installationStatus === PluginInstallationStatus.INSTALLED && plugin.requiresConfiguration !== false && (
-            <Card sx={(theme) => ({ ...cardStyles.base(theme) as any })}>
+            <Card sx={cardStyles.base(theme)}>
               <CardContent sx={{ p: 3 }}>
                 <Stack spacing={3}>
                   {/* Configuration Header */}
@@ -745,7 +587,10 @@ const PluginManagement: React.FC = () => {
                           installationId: plugin.installationId,
                           slackClientId: ENV_VARs.CLIENT_ID,
                           slackOAuthUrl: ENV_VARs.SLACK_URL,
-                          onToast: (t: { variant: string; body: string }) => setToast({ ...t, visible: true } as any),
+                          onToast: (t: { variant: string; body: string }) => {
+                            const variant = t.variant as "success" | "info" | "warning" | "error";
+                            setToast({ variant, body: t.body, visible: true });
+                          },
                           configData,
                           onConfigChange: handleConfigChange,
                           onSaveConfiguration: handleSaveConfiguration,
@@ -762,7 +607,7 @@ const PluginManagement: React.FC = () => {
 
                         {/* Generic Configuration Form */}
                         <Stack spacing={2.5}>
-                          {getConfigFields().map((field: any) => {
+                          {configFields.map((field: ConfigField) => {
                             // Skip field if showIf condition is false
                             if (field.showIf && !field.showIf(configData)) {
                               return null;
@@ -776,7 +621,7 @@ const PluginManagement: React.FC = () => {
                                     variant="body2"
                                     fontWeight={500}
                                     fontSize={13}
-                                    sx={{ mb: 0.75, color: "#344054" }}
+                                    sx={formFieldLabel}
                                   >
                                     {field.label}
                                   </Typography>
@@ -784,12 +629,9 @@ const PluginManagement: React.FC = () => {
                                     <Select
                                       value={configData[field.key] || field.placeholder || ""}
                                       onChange={(e) => handleConfigChange(field.key, e.target.value)}
-                                      sx={{
-                                        fontSize: "13px",
-                                        backgroundColor: "white",
-                                      }}
+                                      sx={configSelect}
                                     >
-                                      {field.options?.map((option: any) => (
+                                      {field.options?.map((option) => (
                                         <MenuItem key={option.value} value={option.value} sx={{ fontSize: "13px" }}>
                                           {option.label}
                                         </MenuItem>
@@ -813,7 +655,7 @@ const PluginManagement: React.FC = () => {
                                     variant="body2"
                                     fontWeight={500}
                                     fontSize={13}
-                                    sx={{ mb: 0.75, color: "#344054" }}
+                                    sx={formFieldLabel}
                                   >
                                     {field.label}
                                   </Typography>
@@ -828,21 +670,13 @@ const PluginManagement: React.FC = () => {
                                         handleConfigChange(field.key, JSON.stringify(value));
                                       }}
                                       renderValue={(selected) => (selected as string[]).join(", ")}
-                                      sx={{
-                                        fontSize: "13px",
-                                        backgroundColor: "white",
-                                      }}
+                                      sx={configSelect}
                                     >
-                                      {field.options?.map((option: any) => (
+                                      {field.options?.map((option) => (
                                         <MenuItem key={option.value} value={option.value} sx={{ fontSize: "13px" }}>
                                           <Checkbox
                                             checked={currentValue.indexOf(option.value) > -1}
-                                            sx={{
-                                              color: "#13715B",
-                                              "&.Mui-checked": {
-                                                color: "#13715B",
-                                              },
-                                            }}
+                                            sx={configCheckbox}
                                           />
                                           <Typography fontSize={13}>{option.label}</Typography>
                                         </MenuItem>
@@ -861,12 +695,7 @@ const PluginManagement: React.FC = () => {
                                       <Checkbox
                                         checked={configData[field.key] === "true"}
                                         onChange={(e) => handleConfigChange(field.key, e.target.checked ? "true" : "false")}
-                                        sx={{
-                                          color: "#13715B",
-                                          "&.Mui-checked": {
-                                            color: "#13715B",
-                                          },
-                                        }}
+                                        sx={configCheckbox}
                                       />
                                     }
                                     label={
@@ -886,7 +715,7 @@ const PluginManagement: React.FC = () => {
                                   variant="body2"
                                   fontWeight={500}
                                   fontSize={13}
-                                  sx={{ mb: 0.75, color: "#344054" }}
+                                  sx={formFieldLabel}
                                 >
                                   {field.label}
                                 </Typography>
@@ -897,12 +726,7 @@ const PluginManagement: React.FC = () => {
                                   value={configData[field.key] || ""}
                                   onChange={(e) => handleConfigChange(field.key, e.target.value)}
                                   size="small"
-                                  sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                      fontSize: "13px",
-                                      backgroundColor: "white",
-                                    },
-                                  }}
+                                  sx={configTextField}
                                 />
                               </Box>
                             );
@@ -915,21 +739,7 @@ const PluginManagement: React.FC = () => {
                             variant="outlined"
                             onClick={handleTestConnection}
                             disabled={isTestingConnection || isSavingConfig}
-                            sx={{
-                              borderColor: "#13715B",
-                              color: "#13715B",
-                              textTransform: "none",
-                              fontSize: "13px",
-                              fontWeight: 500,
-                              "&:hover": {
-                                borderColor: "#0f5a47",
-                                backgroundColor: "rgba(19, 113, 91, 0.04)",
-                              },
-                              "&:disabled": {
-                                borderColor: "#d0d5dd",
-                                color: "#98a2b3",
-                              },
-                            }}
+                            sx={testConnectionButton}
                           >
                             {isTestingConnection ? "Testing..." : "Test Connection"}
                           </Button>
@@ -937,18 +747,7 @@ const PluginManagement: React.FC = () => {
                             variant="contained"
                             onClick={handleSaveConfiguration}
                             disabled={isSavingConfig || isTestingConnection}
-                            sx={{
-                              backgroundColor: "#13715B",
-                              textTransform: "none",
-                              fontSize: "13px",
-                              fontWeight: 500,
-                              "&:hover": {
-                                backgroundColor: "#0f5a47",
-                              },
-                              "&:disabled": {
-                                backgroundColor: "#d0d5dd",
-                              },
-                            }}
+                            sx={saveConfigButton}
                           >
                             {isSavingConfig ? "Saving..." : "Save Configuration"}
                           </Button>

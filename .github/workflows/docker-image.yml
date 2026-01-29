@@ -34,7 +34,7 @@ jobs:
 
       # Build Frontend image
       - name: Build Clients image (for scanning)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Clients/Dockerfile
@@ -62,7 +62,7 @@ jobs:
           category: 'container-frontend'
 
       - name: Build and push Clients image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Clients/Dockerfile
@@ -77,7 +77,7 @@ jobs:
 
       # Build Backend image
       - name: Build Servers image (for scanning)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./Servers
           platforms: linux/amd64
@@ -101,7 +101,7 @@ jobs:
           category: 'container-backend'
 
       - name: Build and push Servers image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./Servers
           platforms: linux/amd64,linux/arm64
@@ -125,7 +125,7 @@ jobs:
 
       # Build EvalServer image
       - name: Build EvalServer image (for scanning)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./EvalServer/Dockerfile
@@ -150,7 +150,7 @@ jobs:
           category: 'container-evalserver'
 
       - name: Build and push EvalServer image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./EvalServer/Dockerfile

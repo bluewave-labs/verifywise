@@ -62,7 +62,7 @@ const CustomSelect: React.FC<CustomSelectProps> = React.memo(({
     }
   };
 
-  const selectItems = options.map(option => {
+  const selectItems = (options ?? []).map(option => {
     if (typeof option === 'string') {
       return {
         _id: option,

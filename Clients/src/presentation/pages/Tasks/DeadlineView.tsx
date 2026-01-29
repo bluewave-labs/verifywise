@@ -24,6 +24,8 @@ const DeadlineView: React.FC<DeadlineViewProps> = ({
   onEdit,
   onStatusChange,
   statusOptions,
+  onPriorityChange,
+  priorityOptions,
   isUpdateDisabled = false,
   onRowClick,
   onRestore,
@@ -303,6 +305,8 @@ const DeadlineView: React.FC<DeadlineViewProps> = ({
                     onEdit={onEdit}
                     onStatusChange={onStatusChange}
                     statusOptions={statusOptions}
+                    onPriorityChange={onPriorityChange}
+                    priorityOptions={priorityOptions}
                     isUpdateDisabled={isUpdateDisabled}
                     onRowClick={onRowClick}
                     hidePagination={true}

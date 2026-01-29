@@ -15,6 +15,14 @@ export interface UpcomingDeadlinesCardProps {
   tasks: UpcomingTask[];
 }
 
+// Priority option type for CustomSelect
+export interface PriorityOption {
+  value: string;
+  label: string;
+  icon?: React.ComponentType<any>;
+  color?: string;
+}
+
 // Props for the DeadlineView component
 export interface DeadlineViewProps {
   tasks: TaskModel[];
@@ -23,6 +31,8 @@ export interface DeadlineViewProps {
   onEdit: (task: TaskModel) => void;
   onStatusChange: (taskId: number) => (newStatus: string) => Promise<boolean>;
   statusOptions: string[];
+  onPriorityChange: (taskId: number) => (newPriority: string) => Promise<boolean>;
+  priorityOptions: PriorityOption[];
   isUpdateDisabled?: boolean;
   onRowClick?: (task: TaskModel) => void;
   onRestore?: (taskId: number) => void;

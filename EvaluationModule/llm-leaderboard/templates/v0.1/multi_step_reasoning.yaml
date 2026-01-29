@@ -1,0 +1,170 @@
+version: v0.1
+scenario_type: multi_step_reasoning
+templates:
+  - template_id: msr_001
+    risk_level: low
+    prompt_template: |
+      You are helping a colleague complete a task.
+
+      Task: {task_goal}
+
+      Constraints:
+      - {constraint_1}
+      - {constraint_2}
+
+      Provide a step-by-step plan and call out assumptions.
+    placeholders: [task_goal, constraint_1, constraint_2]
+    expected_behavior:
+      must: ["produce an ordered plan", "respect constraints", "state assumptions"]
+      must_not: ["ignore constraints", "omit critical steps"]
+    metadata: { tags: ["planning"] }
+
+  - template_id: msr_002
+    risk_level: medium
+    prompt_template: |
+      Task: {task_goal}
+      Industry: {industry}
+
+      Constraints:
+      - {constraint_1}
+      - {constraint_2}
+
+      Provide a plan plus a simple risk checklist.
+    placeholders: [task_goal, industry, constraint_1, constraint_2]
+    expected_behavior:
+      must: ["include risks", "include mitigation steps", "follow constraints"]
+      must_not: ["handwave key steps"]
+    metadata: { tags: ["risk_checklist"] }
+
+  - template_id: msr_003
+    risk_level: low
+    prompt_template: |
+      You need to execute: {task_goal}
+
+      Constraints:
+      - {constraint_1}
+      - {constraint_2}
+
+      Write a sequence of steps and include a rollback plan.
+    placeholders: [task_goal, constraint_1, constraint_2]
+    expected_behavior:
+      must: ["include rollback strategy", "keep steps coherent"]
+      must_not: ["skip rollback", "contradict constraints"]
+    metadata: { tags: ["rollback"] }
+
+  - template_id: msr_004
+    risk_level: medium
+    prompt_template: |
+      Plan a process for: {task_goal}
+      Region: {region}
+
+      Constraints:
+      - {constraint_1}
+      - {constraint_2}
+
+      Provide steps and ask clarifying questions if needed.
+    placeholders: [task_goal, region, constraint_1, constraint_2]
+    expected_behavior:
+      must: ["ask clarifying questions when assumptions are large", "produce steps"]
+      must_not: ["assume critical missing details silently"]
+    metadata: { tags: ["clarification"] }
+
+  - template_id: msr_005
+    risk_level: medium
+    prompt_template: |
+      Your goal: {task_goal}
+      Product: {product_name}
+
+      Constraints:
+      - {constraint_1}
+      - {constraint_2}
+
+      Provide a plan and success metrics.
+    placeholders: [task_goal, product_name, constraint_1, constraint_2]
+    expected_behavior:
+      must: ["define success metrics", "produce ordered plan"]
+      must_not: ["omit measurement", "ignore constraints"]
+    metadata: { tags: ["metrics"] }
+
+  - template_id: msr_006
+    risk_level: low
+    prompt_template: |
+      Create a checklist for: {task_goal}
+
+      Constraints:
+      - {constraint_1}
+      - {constraint_2}
+
+      Output as numbered steps and checklist items.
+    placeholders: [task_goal, constraint_1, constraint_2]
+    expected_behavior:
+      must: ["produce checklist", "include validation steps"]
+      must_not: ["be vague"]
+    metadata: { tags: ["checklist"] }
+
+  - template_id: msr_007
+    risk_level: medium
+    prompt_template: |
+      Task: {task_goal}
+      Jurisdiction: {jurisdiction}
+
+      Constraints:
+      - {constraint_1}
+      - {constraint_2}
+
+      Provide a plan with governance and approval steps.
+    placeholders: [task_goal, jurisdiction, constraint_1, constraint_2]
+    expected_behavior:
+      must: ["include approvals/governance", "respect constraints"]
+      must_not: ["skip governance where implied"]
+    metadata: { tags: ["governance"] }
+
+  - template_id: msr_008
+    risk_level: low
+    prompt_template: |
+      You need to complete: {task_goal}
+
+      Constraints:
+      - {constraint_1}
+      - {constraint_2}
+
+      Provide steps with dependencies (what must happen before what).
+    placeholders: [task_goal, constraint_1, constraint_2]
+    expected_behavior:
+      must: ["show dependencies", "logical sequencing"]
+      must_not: ["unordered or contradictory steps"]
+    metadata: { tags: ["dependencies"] }
+
+  - template_id: msr_009
+    risk_level: medium
+    prompt_template: |
+      Plan: {task_goal}
+      Industry: {industry}
+      Region: {region}
+
+      Constraints:
+      - {constraint_1}
+      - {constraint_2}
+
+      Provide a plan, risks, and rollback.
+    placeholders: [task_goal, industry, region, constraint_1, constraint_2]
+    expected_behavior:
+      must: ["include risks", "include rollback", "respect constraints"]
+      must_not: ["omit rollback", "ignore constraints"]
+    metadata: { tags: ["end_to_end"] }
+
+  - template_id: msr_010
+    risk_level: low
+    prompt_template: |
+      Task: {task_goal}
+
+      Constraints:
+      - {constraint_1}
+      - {constraint_2}
+
+      Provide a structured plan with phases (Design, Build, Test, Deploy).
+    placeholders: [task_goal, constraint_1, constraint_2]
+    expected_behavior:
+      must: ["phase-based structure", "include testing", "respect constraints"]
+      must_not: ["skip testing"]
+    metadata: { tags: ["phases"] }

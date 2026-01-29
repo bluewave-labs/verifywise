@@ -14,9 +14,11 @@ import { risksSummary, EnhancedRiskSummary, RiskTrend } from "../../../../domain
 
 interface RisksCardProps {
   risksSummary: risksSummary | EnhancedRiskSummary;
+  onCardClick?: (riskLevel: string) => void;
+  selectedLevel?: string | null;
 }
 
-const RisksCard = ({ risksSummary }: RisksCardProps) => {
+const RisksCard = ({ risksSummary, onCardClick, selectedLevel }: RisksCardProps) => {
   const getValidRiskValue = (value: number) => (isNaN(value) ? 0 : value);
 
   const renderTrendIndicator = (trend?: RiskTrend) => {
@@ -61,6 +63,13 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
 
   const enhancedSummary = risksSummary as EnhancedRiskSummary;
 
+  const handleCardClick = (levelLabel: string) => {
+    if (onCardClick) {
+      // Toggle: if same level clicked again, clear filter
+      onCardClick(selectedLevel === levelLabel ? '' : levelLabel);
+    }
+  };
+
   const riskLevels = [
     {
       key: "veryHigh",
@@ -71,7 +80,7 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
     },
     {
       key: "high",
-      label: "High", 
+      label: "High",
       value: risksSummary.highRisks,
       color: "#D68B61",
       trend: enhancedSummary.trends?.highTrend,
@@ -103,30 +112,36 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
     <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
 
       <Stack className="vw-project-risks" sx={{ ...projectRisksCard, flex: 1 }}>
-        {riskLevels.map((level) => (
-          <Tooltip
-            key={level.key}
-            title={getTrendTooltip(level.trend, level.label)}
-            arrow
-            placement="top"
-          >
-            <Stack
-              className="vw-project-risks-tile"
-              sx={{
-                ...projectRisksTileCard,
-                color: level.color,
-                border: `1px solid #d0d5dd`,
-                cursor: 'default',
-              }}
+        {riskLevels.map((level) => {
+          const isSelected = selectedLevel === level.label;
+          const isClickable = !!onCardClick;
+
+          return (
+            <Tooltip
+              key={level.key}
+              title={getTrendTooltip(level.trend, level.label)}
+              arrow
+              placement="top"
             >
-              <Typography sx={projectRisksTileCardKey}>{level.label}</Typography>
-              <Typography sx={projectRisksTileCardvalue}>
-                {getValidRiskValue(level.value)}
-              </Typography>
-              {level.trend && renderTrendIndicator(level.trend)}
-            </Stack>
-          </Tooltip>
-        ))}
+              <Stack
+                className="vw-project-risks-tile"
+                onClick={() => handleCardClick(level.label)}
+                sx={{
+                  ...projectRisksTileCard,
+                  color: level.color,
+                  cursor: isClickable ? 'pointer' : 'default',
+                  border: `2px solid ${isSelected ? level.color : '#d0d5dd'}`,
+                }}
+              >
+                <Typography sx={projectRisksTileCardKey}>{level.label}</Typography>
+                <Typography sx={projectRisksTileCardvalue}>
+                  {getValidRiskValue(level.value)}
+                </Typography>
+                {level.trend && renderTrendIndicator(level.trend)}
+              </Stack>
+            </Tooltip>
+          );
+        })}
       </Stack>
     </Box>
   );

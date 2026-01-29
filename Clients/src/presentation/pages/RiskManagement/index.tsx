@@ -32,7 +32,7 @@ import AnalyticsDrawer from "../../components/AnalyticsDrawer";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
-import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { FilterBy, FilterColumn, FilterCondition } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import HistorySidebar from "../../components/Common/HistorySidebar";
@@ -118,6 +118,9 @@ const RiskManagement = () => {
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // Selected risk level for card filtering
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState<string | null>(null);
 
   // Prefetch history data when modal opens in edit mode
   useEntityChangeHistory(
@@ -237,23 +240,73 @@ const RiskManagement = () => {
     }
   }, []);
 
-  const { filterData, handleFilterChange: handleFilterByChange } = useFilterBy<RiskModel>(getRiskFieldValue);
+  const { filterData, handleFilterChange: handleFilterByChangeBase } = useFilterBy<RiskModel>(getRiskFieldValue);
+
+  // Wrapper to sync selected risk level card with filter conditions
+  const handleFilterByChange = useCallback(
+    (conditions: FilterCondition[], logic: "and" | "or") => {
+      // Sync selected risk level card with filter conditions
+      const riskLevelCondition = conditions.find(
+        (c) => c.columnId === "risk_level"
+      );
+      if (
+        riskLevelCondition &&
+        riskLevelCondition.operator === "is" &&
+        riskLevelCondition.value
+      ) {
+        setSelectedRiskLevel(riskLevelCondition.value);
+      } else {
+        setSelectedRiskLevel(null);
+      }
+
+      // Pass to base handler for client-side filtering
+      handleFilterByChangeBase(conditions, logic);
+    },
+    [handleFilterByChangeBase]
+  );
+
+  // Handle risk card click to filter risks by risk level
+  const handleRiskCardClick = useCallback((riskLevel: string) => {
+    setSelectedRiskLevel(riskLevel || null);
+  }, []);
 
   // Apply FilterBy and search filters
   const filteredRisks = useMemo(() => {
     // First apply FilterBy conditions
-    const filterByResults = filterData(projectRisks);
+    let filtered = filterData(projectRisks);
+
+    // Apply card filter for risk level (using same matching logic as summary at lines 298-318)
+    if (selectedRiskLevel) {
+      const levelLower = selectedRiskLevel.toLowerCase();
+      filtered = filtered.filter((risk) => {
+        const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+        switch (levelLower) {
+          case "very high":
+            return riskLevel.includes("very high");
+          case "high":
+            return riskLevel.includes("high") && !riskLevel.includes("very high");
+          case "medium":
+            return riskLevel.includes("medium");
+          case "low":
+            return riskLevel.includes("low") && !riskLevel.includes("very low");
+          case "very low":
+            return riskLevel.includes("very low") || riskLevel.includes("no risk");
+          default:
+            return true;
+        }
+      });
+    }
 
     // Then apply search term
     if (!searchTerm.trim()) {
-      return filterByResults;
+      return filtered;
     }
 
-    return filterByResults.filter((risk) =>
+    return filtered.filter((risk) =>
       risk.risk_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       risk.risk_description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [filterData, projectRisks, searchTerm]);
+  }, [filterData, projectRisks, selectedRiskLevel, searchTerm]);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -618,7 +671,11 @@ const RiskManagement = () => {
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
       <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }} data-joyride-id="risk-summary-cards">
-        <RisksCard risksSummary={risksSummary} />
+        <RisksCard
+          risksSummary={risksSummary}
+          onCardClick={handleRiskCardClick}
+          selectedLevel={selectedRiskLevel}
+        />
       </Stack>
 
       <Stack

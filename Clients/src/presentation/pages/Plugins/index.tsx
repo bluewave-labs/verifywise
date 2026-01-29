@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, Suspense } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Box, Stack, Typography } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { Home, Puzzle, Layers, MessageSquare, GitBranch, Activity, Shield } from "lucide-react";
+import { Home, Puzzle } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
@@ -15,46 +15,7 @@ import Alert from "../../components/Alert";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { IBreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
 import Chip from "../../components/Chip";
-
-// Category configuration with descriptions and icons
-const CATEGORIES = [
-  {
-    id: "all",
-    name: "All plugins",
-    description: "Browse all available plugins to extend VerifyWise functionality.",
-    icon: Layers,
-  },
-  {
-    id: "communication",
-    name: "Communication",
-    description: "Integrate with messaging platforms and notification services to keep your team informed.",
-    icon: MessageSquare,
-  },
-  {
-    id: "ml_ops",
-    name: "ML operations",
-    description: "Connect with ML platforms to track experiments, models, and deployments.",
-    icon: Activity,
-  },
-  {
-    id: "version_control",
-    name: "Version control",
-    description: "Integrate with version control systems to track code changes and collaborate.",
-    icon: GitBranch,
-  },
-  {
-    id: "monitoring",
-    name: "Monitoring",
-    description: "Add observability and monitoring capabilities to track system health and performance.",
-    icon: Activity,
-  },
-  {
-    id: "security",
-    name: "Security",
-    description: "Enhance security with vulnerability scanning, access control, and compliance tools.",
-    icon: Shield,
-  },
-];
+import { CATEGORIES } from "./categories";
 
 const Plugins: React.FC = () => {
   const location = useLocation();

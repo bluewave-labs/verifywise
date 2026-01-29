@@ -65,7 +65,7 @@ export const useProfilePhotoFetch = () => {
           });
         }
         return null;
-      } catch (error) {
+      } catch (_error) {
         return null;
       }
     },

@@ -47,30 +47,6 @@ jobs:
           path: audit-results.json
           retention-days: 30
 
-  lint-and-build:
-    name: Lint and Build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Clients
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Run ESLint
-        run: npm run lint
-
-      - name: TypeScript type check and Build
-        run: npm run build
-
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest

@@ -29,7 +29,7 @@ async def create_arena_comparison(
     result = await db.execute(
         text(
             f'''
-            INSERT INTO "{tenant}".deepeval_arena_comparisons
+            INSERT INTO "{tenant}".llm_evals_arena_comparisons
             (id, name, description, org_id, contestants, contestant_names, 
              metric_config, judge_model, status, created_by)
             VALUES
@@ -78,7 +78,7 @@ async def get_arena_comparison(
                    metric_config, judge_model, status, progress, winner, win_counts,
                    detailed_results, error_message, created_at, updated_at,
                    completed_at, created_by
-            FROM "{tenant}".deepeval_arena_comparisons
+            FROM "{tenant}".llm_evals_arena_comparisons
             WHERE id = :id
             '''
         ),
@@ -114,7 +114,7 @@ async def list_arena_comparisons(
                    metric_config, judge_model, status, progress, winner, win_counts,
                    detailed_results, error_message, created_at, updated_at,
                    completed_at, created_by
-            FROM "{tenant}".deepeval_arena_comparisons
+            FROM "{tenant}".llm_evals_arena_comparisons
             {where_clause}
             ORDER BY created_at DESC
             '''
@@ -175,7 +175,7 @@ async def update_arena_comparison(
     result = await db.execute(
         text(
             f'''
-            UPDATE "{tenant}".deepeval_arena_comparisons
+            UPDATE "{tenant}".llm_evals_arena_comparisons
             SET {", ".join(updates)}
             WHERE id = :id
             RETURNING id, name, description, org_id, contestants, contestant_names,
@@ -206,7 +206,7 @@ async def delete_arena_comparison(
     result = await db.execute(
         text(
             f'''
-            DELETE FROM "{tenant}".deepeval_arena_comparisons
+            DELETE FROM "{tenant}".llm_evals_arena_comparisons
             WHERE id = :id
             RETURNING id
             '''

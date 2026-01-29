@@ -2,13 +2,11 @@ export * from "../services/slack/slackProducer";
 
 import { scheduleDailyNotification } from "../services/slack/slackProducer";
 import logger from "../utils/logger/fileLogger";
-import { scheduleMlflowSyncJob } from "../services/mlflow/mlflowSyncProducer";
 import { scheduleReportNotification, scheduleVendorReviewDateNotification, schedulePMMHourlyCheck } from "../services/automations/automationProducer";
 
 export async function addAllJobs(): Promise<void> {
   await scheduleDailyNotification();
   await scheduleVendorReviewDateNotification();
-  await scheduleMlflowSyncJob();
   await scheduleReportNotification();
   await schedulePMMHourlyCheck();
 }

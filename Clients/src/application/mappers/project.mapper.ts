@@ -18,7 +18,7 @@ import { CreateProjectFormUserModel } from "../../domain/models/Common/user/user
 /**
  * Converts API risk classification to domain enum
  */
-function mapRiskClassification(
+export function mapRiskClassification(
   value: number | string
 ): AiRiskClassification {
   if (typeof value === "number") {
@@ -44,7 +44,7 @@ function mapRiskClassification(
 /**
  * Converts API high risk role to domain enum
  */
-function mapHighRiskRole(value: number | string): HighRiskRole {
+export function mapHighRiskRole(value: number | string): HighRiskRole {
   if (typeof value === "number") {
     // Map numeric values to enum (assuming 0-5 mapping)
     const numericMapping: Record<number, HighRiskRole> = {

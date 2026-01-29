@@ -36,10 +36,10 @@ import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
+import pluginRoutes from "./routes/plugin.route";
 import tokenRoutes from "./routes/tokens.route";
 import shareLinkRoutes from "./routes/shareLink.route";
 import automation from "./routes/automation.route.js";
-import integrationsRoutes from "./routes/integrations.route.js";
 import fileManagerRoutes from "./routes/fileManager.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
@@ -68,6 +68,7 @@ import aiDetectionRoutes from "./routes/aiDetection.route";
 import githubIntegrationRoutes from "./routes/githubIntegration.route";
 import notificationRoutes from "./routes/notification.route";
 import postMarketMonitoringRoutes from "./routes/postMarketMonitoring.route";
+import complianceRoutes from "./routes/compliance.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -181,11 +182,11 @@ try {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
+  app.use("/api/plugins", pluginRoutes);
   app.use("/api/tokens", tokenRoutes);
   app.use("/api/shares", shareLinkRoutes);
   app.use("/api/file-manager", fileManagerRoutes);
   app.use("/api/automations", automation);
-  app.use("/api/integrations/mlflow", integrationsRoutes);
   app.use("/api/user-preferences", userPreferenceRouter);
   app.use("/api/llm-keys", llmKeyRouter);
   app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
@@ -215,6 +216,7 @@ try {
   app.use("/api/integrations/github", githubIntegrationRoutes);
   app.use("/api/notifications", notificationRoutes);
   app.use("/api/pmm", postMarketMonitoringRoutes);
+  app.use("/api/compliance", complianceRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {

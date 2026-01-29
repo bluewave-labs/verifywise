@@ -53,7 +53,7 @@ const ForgotPassword: React.FC = () => {
       };
       sendPasswordResetEmail(formData);
       navigate("/reset-password", { state: { email: values.email } });
-    } catch (error) {
+    } catch (_error) {
       handleAlert({
         variant: "error",
         body: "Failed to send reset email. Please try again.",

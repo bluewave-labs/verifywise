@@ -214,7 +214,7 @@ const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
           />
         )}
         renderOption={(props, option) => {
-          const { key, ...optionProps } = props;
+          const { key: _key, ...optionProps } = props;
           return (
             <li key={option._id} {...optionProps}>
               <div>{<span>{option.name}</span>}</div>

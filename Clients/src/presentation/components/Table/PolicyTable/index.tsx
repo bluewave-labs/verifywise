@@ -257,7 +257,7 @@ const CustomizablePolicyTable = ({
 
   const tableBody = (
     <TableBody>
-      {(hidePagination ? sortedData : sortedData?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage))
+      {(hidePagination ? sortedData : (sortedData ?? []).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage))
         .map((row) =>
           renderRow ? (
             renderRow(row, sortConfig)

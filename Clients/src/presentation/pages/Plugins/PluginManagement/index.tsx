@@ -4,7 +4,7 @@ import {
   Box,
   Stack,
   Typography,
-  Chip,
+  Chip as MuiChip,
   Button,
   Card,
   CardContent,
@@ -17,6 +17,7 @@ import {
   Checkbox,
   FormControl,
 } from "@mui/material";
+import Chip from "../../../components/Chip";
 import {
   ArrowLeft as ArrowLeftIcon,
   CheckCircle as CheckIcon,
@@ -483,7 +484,7 @@ const PluginManagement: React.FC = () => {
                         {plugin.displayName}
                       </Typography>
                       {plugin.installationStatus && (
-                        <Chip
+                        <MuiChip
                           size="small"
                           label={plugin.installationStatus}
                           icon={<CheckIcon size={14} />}
@@ -558,8 +559,9 @@ const PluginManagement: React.FC = () => {
                             key={index}
                             label={tag}
                             size="small"
-                            variant="outlined"
-                            sx={{ fontSize: "11px", height: 24 }}
+                            uppercase={false}
+                            backgroundColor="#F3F4F6"
+                            textColor="#6B7280"
                           />
                         ))}
                       </Box>

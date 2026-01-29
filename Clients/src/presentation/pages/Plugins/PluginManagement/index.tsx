@@ -553,7 +553,7 @@ const PluginManagement: React.FC = () => {
                       <Typography variant="subtitle2" fontWeight={600} fontSize={14} mb={1}>
                         Tags
                       </Typography>
-                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                         {plugin.tags.map((tag, index) => (
                           <Chip
                             key={index}

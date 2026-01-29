@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-grs-scenarios = "grs_scenarios.cli:main"
+grs-scenarios = "cli:main"
 
 [build-system]
 requires = ["setuptools"]

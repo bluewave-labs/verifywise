@@ -105,6 +105,9 @@ const Vendors = () => {
     handleGroupChange: handleGroupChangeRisk,
   } = useGroupByState();
 
+  // Selected risk level for card filtering
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState<string | null>(null);
+
   const currentPath = location.pathname;
   const isRisksTab = currentPath.includes("/vendors/risks");
   const value = isRisksTab ? "2" : "1";
@@ -373,10 +376,11 @@ const Vendors = () => {
         label: "Risk level",
         type: "select" as const,
         options: [
-          { value: "Low", label: "Low" },
-          { value: "Medium", label: "Medium" },
+          { value: "Very High", label: "Very High" },
           { value: "High", label: "High" },
-          { value: "Critical", label: "Critical" },
+          { value: "Medium", label: "Medium" },
+          { value: "Low", label: "Low" },
+          { value: "Very Low", label: "Very Low" },
         ],
       },
       {
@@ -434,11 +438,42 @@ const Vendors = () => {
       } else {
         setSelectedProjectId("all");
       }
+
+      // Sync selected risk level card with filter conditions
+      const riskLevelCondition = conditions.find(
+        (c) => c.columnId === "risk_level"
+      );
+      if (
+        riskLevelCondition &&
+        riskLevelCondition.operator === "is" &&
+        riskLevelCondition.value
+      ) {
+        setSelectedRiskLevel(riskLevelCondition.value);
+      } else {
+        setSelectedRiskLevel(null);
+      }
+
       // Pass to base handler for client-side filtering
       handleVendorRiskFilterChangeBase(conditions, logic);
     },
     [handleVendorRiskFilterChangeBase]
   );
+
+  // Handle risk card click to filter vendor risks by risk level
+  const handleRiskCardClick = useCallback((riskLevel: string) => {
+    if (riskLevel) {
+      setSelectedRiskLevel(riskLevel);
+      setAlert({
+        variant: "info",
+        title: `Filtering by ${riskLevel} risks`,
+        body: "The table now shows only vendor risks with this risk level. Click the card again to see all risks.",
+      });
+      setTimeout(() => setAlert(null), 5000);
+    } else {
+      setSelectedRiskLevel(null);
+      setAlert(null);
+    }
+  }, []);
 
   // Mutation hooks
   const deleteVendorMutation = useDeleteVendor();
@@ -762,6 +797,28 @@ const Vendors = () => {
     // First apply FilterBy conditions
     let filtered = filterVendorRiskData(vendorRisks);
 
+    // Apply card filter for risk level (using same matching logic as summary)
+    if (selectedRiskLevel) {
+      const levelLower = selectedRiskLevel.toLowerCase();
+      filtered = filtered.filter((risk) => {
+        const riskLevel = (risk.risk_level || "").toLowerCase();
+        switch (levelLower) {
+          case "very high":
+            return riskLevel.includes("very high");
+          case "high":
+            return riskLevel.includes("high") && !riskLevel.includes("very high");
+          case "medium":
+            return riskLevel.includes("medium");
+          case "low":
+            return riskLevel.includes("low") && !riskLevel.includes("very low");
+          case "very low":
+            return riskLevel.includes("very low");
+          default:
+            return true;
+        }
+      });
+    }
+
     // Then apply search filter
     if (risksSearchTerm.trim()) {
       const query = risksSearchTerm.toLowerCase();
@@ -771,7 +828,7 @@ const Vendors = () => {
     }
 
     return filtered;
-  }, [filterVendorRiskData, vendorRisks, risksSearchTerm]);
+  }, [filterVendorRiskData, vendorRisks, selectedRiskLevel, risksSearchTerm]);
 
   // Filter vendors using FilterBy and search
   const filteredVendors = useMemo(() => {
@@ -866,7 +923,7 @@ const Vendors = () => {
 
   // Apply grouping to vendor risks
   const groupedVendorRisks = useTableGrouping({
-    data: vendorRisks || [],
+    data: filteredVendorRisks,
     groupByField: groupByRisk,
     sortOrder: groupSortOrderRisk,
     getGroupKey: getVendorRiskGroupKey,
@@ -1019,7 +1076,11 @@ const Vendors = () => {
                 height={100}
               />
             ) : (
-              <RisksCard risksSummary={vendorRisksSummary} />
+              <RisksCard
+                risksSummary={vendorRisksSummary}
+                onCardClick={handleRiskCardClick}
+                selectedLevel={selectedRiskLevel}
+              />
             ))}
           {isVendorsLoading && value === "1" ? (
             <CustomizableSkeleton
@@ -1213,7 +1274,7 @@ const Vendors = () => {
             <TabPanel value="2" sx={tabPanelStyle}>
               <GroupedTableView
                 groupedData={groupedVendorRisks}
-                ungroupedData={vendorRisks || []}
+                ungroupedData={filteredVendorRisks}
                 renderTable={(data, options) => (
                   <RiskTable
                     users={users}

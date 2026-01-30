@@ -39,18 +39,13 @@ const Resources = ({
   error: string | null;
   hash: string | null;
 }) => {
-  if (loading) return <Typography>Loading...</Typography>;
-  if (error) return <Typography color="error">{error}</Typography>;
-  if (!data || !data.resources || data.resources.length === 0)
-    return <Typography>No resources available.</Typography>;
-
   // Initialize sorting state from localStorage or default to no sorting
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
     const saved = localStorage.getItem(RESOURCES_SORTING_KEY);
     if (saved) {
       try {
         return JSON.parse(saved);
-      } catch {
+      } catch (_error) {
         return { key: "", direction: null };
       }
     }
@@ -80,8 +75,8 @@ const Resources = ({
 
   // Sort the resources data based on current sort configuration
   const sortedResources = useMemo(() => {
-    if (!data.resources || !sortConfig.key || !sortConfig.direction) {
-      return data.resources || [];
+    if (!data?.resources || !sortConfig.key || !sortConfig.direction) {
+      return data?.resources || [];
     }
 
     const sortableData = [...data.resources];
@@ -100,13 +95,18 @@ const Resources = ({
         return 0;
       }
     });
-  }, [data.resources, sortConfig]);
+  }, [data?.resources, sortConfig]);
 
   const handleDownload = async (id: string) => {
     if (hash) {
       await downloadResource(id, hash);
     }
   };
+
+  if (loading) return <Typography>Loading...</Typography>;
+  if (error) return <Typography color="error">{error}</Typography>;
+  if (!data || !data.resources || data.resources.length === 0)
+    return <Typography>No resources available.</Typography>;
 
   return (
     <Box width="100%">

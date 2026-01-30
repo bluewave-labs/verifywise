@@ -98,7 +98,7 @@ class EvaluationLlmApiKeysService {
     try {
       const keys = await this.getAllKeys();
       return keys.some(k => k.provider === provider);
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

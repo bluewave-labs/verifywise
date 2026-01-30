@@ -612,7 +612,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
     // Remove orphaned closing </span> tags (from the spans we opened above)
     // Count and remove only the extra ones
-    let spanOpenCount = (normalized.match(/<span[^>]*>/gi) || []).length;
+    const spanOpenCount = (normalized.match(/<span[^>]*>/gi) || []).length;
     let spanCloseCount = (normalized.match(/<\/span>/gi) || []).length;
     while (spanCloseCount > spanOpenCount) {
       normalized = normalized.replace(/<\/span>/, '');

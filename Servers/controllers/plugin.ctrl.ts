@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import { PluginService } from "../services/plugin/pluginService";
-import { ValidationException } from "../domain.layer/exceptions/custom.exception";
+import { PluginService, PluginRouteContext } from "../services/plugin/pluginService";
+import { ValidationException, NotFoundException } from "../domain.layer/exceptions/custom.exception";
 
 const fileName = "plugin.ctrl.ts";
 
@@ -414,494 +414,40 @@ export async function testPluginConnection(
 }
 
 /**
- * Connect OAuth workspace for plugin (Slack)
+ * Forward request to plugin router
+ *
+ * This is the generic catch-all handler that forwards requests to plugin-defined routes.
+ * Plugins export a `router` object that maps route patterns to handler functions.
+ *
+ * Route pattern: /:key/*
+ * Examples:
+ *   GET /api/plugins/mlflow/models -> plugin's "GET /models" handler
+ *   POST /api/plugins/mlflow/sync -> plugin's "POST /sync" handler
+ *   GET /api/plugins/slack/oauth/workspaces -> plugin's "GET /oauth/workspaces" handler
+ *   DELETE /api/plugins/slack/oauth/workspaces/123 -> plugin's "DELETE /oauth/workspaces/:id" handler
  */
-export async function connectOAuthWorkspace(
+export async function forwardToPlugin(
   req: Request,
   res: Response
 ): Promise<any> {
   const pluginKey = req.params.key;
-  const { code } = req.body;
   const userId = (req as any).userId;
   const organizationId = (req as any).organizationId;
   const tenantId = (req as any).tenantId;
 
-  const functionName = "connectOAuthWorkspace";
+  // Extract the path after /api/plugins/:key/
+  // req.params[0] contains the wildcard match from "/:key/*"
+  const pluginPath = "/" + (req.params[0] || "");
+
+  const functionName = "forwardToPlugin";
   logStructured(
     "processing",
-    `connecting OAuth workspace for plugin ${pluginKey}`,
+    `forwarding ${req.method} ${pluginPath} to plugin ${pluginKey}`,
     functionName,
     fileName
   );
 
-  if (!code) {
-    return res.status(400).json(STATUS_CODE[400]("OAuth code is required"));
-  }
-
-  if (!userId || !organizationId || !tenantId) {
-    return res
-      .status(401)
-      .json(STATUS_CODE[401]("User not authenticated"));
-  }
-
-  try {
-    const result = await PluginService.connectOAuthWorkspace(
-      pluginKey,
-      code,
-      userId,
-      tenantId
-    );
-
-    logStructured(
-      "successful",
-      `OAuth workspace connected for plugin ${pluginKey}`,
-      functionName,
-      fileName
-    );
-
-    return res.status(201).json(STATUS_CODE[201](result));
-  } catch (error) {
-    logStructured("error", "failed to connect OAuth workspace", functionName, fileName);
-    logger.error("❌ Error in connectOAuthWorkspace:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Get connected OAuth workspaces for plugin (Slack)
- */
-export async function getOAuthWorkspaces(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const pluginKey = req.params.key;
-  const userId = (req as any).userId;
-  const tenantId = (req as any).tenantId;
-
-  const functionName = "getOAuthWorkspaces";
-  logStructured(
-    "processing",
-    `fetching OAuth workspaces for plugin ${pluginKey}`,
-    functionName,
-    fileName
-  );
-
-  if (!userId || !tenantId) {
-    return res
-      .status(401)
-      .json(STATUS_CODE[401]("User not authenticated"));
-  }
-
-  try {
-    const workspaces = await PluginService.getOAuthWorkspaces(
-      pluginKey,
-      userId,
-      tenantId
-    );
-
-    logStructured(
-      "successful",
-      `${workspaces.length} OAuth workspaces found for plugin ${pluginKey}`,
-      functionName,
-      fileName
-    );
-
-    return res.status(200).json(STATUS_CODE[200](workspaces));
-  } catch (error) {
-    logStructured("error", "failed to fetch OAuth workspaces", functionName, fileName);
-    logger.error("❌ Error in getOAuthWorkspaces:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Update OAuth workspace settings (Slack routing types)
- */
-export async function updateOAuthWorkspace(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const pluginKey = req.params.key;
-  const webhookId = parseInt(req.params.webhookId);
-  const { routing_type, is_active } = req.body;
-  const userId = (req as any).userId;
-  const tenantId = (req as any).tenantId;
-
-  const functionName = "updateOAuthWorkspace";
-  logStructured(
-    "processing",
-    `updating OAuth workspace ${webhookId} for plugin ${pluginKey}`,
-    functionName,
-    fileName
-  );
-
-  if (!userId || !tenantId) {
-    return res
-      .status(401)
-      .json(STATUS_CODE[401]("User not authenticated"));
-  }
-
-  try {
-    const result = await PluginService.updateOAuthWorkspace(
-      pluginKey,
-      webhookId,
-      userId,
-      tenantId,
-      { routing_type, is_active }
-    );
-
-    logStructured(
-      "successful",
-      `OAuth workspace ${webhookId} updated for plugin ${pluginKey}`,
-      functionName,
-      fileName
-    );
-
-    return res.status(200).json(STATUS_CODE[200](result));
-  } catch (error) {
-    logStructured("error", "failed to update OAuth workspace", functionName, fileName);
-    logger.error("❌ Error in updateOAuthWorkspace:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Disconnect OAuth workspace for plugin (Slack)
- */
-export async function disconnectOAuthWorkspace(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const pluginKey = req.params.key;
-  const webhookId = parseInt(req.params.webhookId);
-  const userId = (req as any).userId;
-  const tenantId = (req as any).tenantId;
-
-  const functionName = "disconnectOAuthWorkspace";
-  logStructured(
-    "processing",
-    `disconnecting OAuth workspace ${webhookId} for plugin ${pluginKey}`,
-    functionName,
-    fileName
-  );
-
-  if (!userId || !tenantId) {
-    return res
-      .status(401)
-      .json(STATUS_CODE[401]("User not authenticated"));
-  }
-
-  try {
-    await PluginService.disconnectOAuthWorkspace(
-      pluginKey,
-      webhookId,
-      userId,
-      tenantId
-    );
-
-    logStructured(
-      "successful",
-      `OAuth workspace ${webhookId} disconnected for plugin ${pluginKey}`,
-      functionName,
-      fileName
-    );
-
-    return res.status(200).json(STATUS_CODE[200]("Workspace disconnected successfully"));
-  } catch (error) {
-    logStructured("error", "failed to disconnect OAuth workspace", functionName, fileName);
-    logger.error("❌ Error in disconnectOAuthWorkspace:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Get MLflow models from plugin
- */
-export async function getMLflowModels(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const pluginKey = req.params.key;
-  const tenantId = (req as any).tenantId;
-
-  const functionName = "getMLflowModels";
-  logStructured(
-    "processing",
-    `fetching MLflow models for plugin ${pluginKey}`,
-    functionName,
-    fileName
-  );
-
-  if (!tenantId) {
-    return res
-      .status(401)
-      .json(STATUS_CODE[401]("User not authenticated"));
-  }
-
-  if (pluginKey !== "mlflow") {
-    return res
-      .status(400)
-      .json(STATUS_CODE[400]("Invalid plugin key"));
-  }
-
-  try {
-    const models = await PluginService.getMLflowModels(tenantId);
-
-    logStructured(
-      "successful",
-      `${models.length} MLflow models found`,
-      functionName,
-      fileName
-    );
-
-    return res.status(200).json(STATUS_CODE[200]({
-      configured: true,
-      models: models,
-    }));
-  } catch (error) {
-    // If error is about plugin not being installed
-    if (error instanceof Error && error.message.includes("not installed")) {
-      return res.status(200).json(STATUS_CODE[200]({
-        configured: false,
-        models: [],
-      }));
-    }
-
-    // If error is about table not existing
-    if (error instanceof Error && error.message.includes("does not exist")) {
-      return res.status(200).json(STATUS_CODE[200]({
-        configured: false,
-        models: [],
-      }));
-    }
-
-    logStructured("error", "failed to fetch MLflow models", functionName, fileName);
-    logger.error("❌ Error in getMLflowModels:", error);
-
-    // Return gracefully for connection errors
-    return res.status(200).json(STATUS_CODE[200]({
-      configured: true,
-      connected: false,
-      models: [],
-      error: "Failed to fetch MLflow models",
-    }));
-  }
-}
-
-/**
- * Sync MLflow models from tracking server
- */
-export async function syncMLflowModels(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const pluginKey = req.params.key;
-  const tenantId = (req as any).tenantId;
-
-  const functionName = "syncMLflowModels";
-  logStructured(
-    "processing",
-    `syncing MLflow models for plugin ${pluginKey}`,
-    functionName,
-    fileName
-  );
-
-  if (!tenantId) {
-    return res
-      .status(401)
-      .json(STATUS_CODE[401]("User not authenticated"));
-  }
-
-  if (pluginKey !== "mlflow") {
-    return res
-      .status(400)
-      .json(STATUS_CODE[400]("Invalid plugin key"));
-  }
-
-  try {
-    const result = await PluginService.syncMLflowModels(tenantId);
-
-    logStructured(
-      "successful",
-      `synced ${result.modelCount} MLflow models`,
-      functionName,
-      fileName
-    );
-
-    return res.status(200).json(STATUS_CODE[200](result));
-  } catch (error) {
-    // If error is about plugin not being installed
-    if (error instanceof Error && error.message.includes("not installed")) {
-      return res.status(400).json(STATUS_CODE[400]("MLflow plugin is not installed"));
-    }
-
-    // If error is about plugin not being configured
-    if (error instanceof Error && error.message.includes("not configured")) {
-      return res.status(400).json(STATUS_CODE[400](error.message));
-    }
-
-    logStructured("error", "failed to sync MLflow models", functionName, fileName);
-    logger.error("❌ Error in syncMLflowModels:", error);
-
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Get Excel template for risk import
- */
-export async function getRiskImportTemplate(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const pluginKey = req.params.key;
-  const tenantId = (req as any).tenantId;
-  const organizationId = (req as any).organizationId;
-
-  const functionName = "getRiskImportTemplate";
-  logStructured(
-    "processing",
-    `getting risk import template for plugin ${pluginKey}, tenantId: ${tenantId}, organizationId: ${organizationId}`,
-    functionName,
-    fileName
-  );
-
-  if (!tenantId) {
-    return res
-      .status(401)
-      .json(STATUS_CODE[401]("User not authenticated"));
-  }
-
-  if (!organizationId) {
-    return res
-      .status(400)
-      .json(STATUS_CODE[400]("Organization ID is required"));
-  }
-
-  if (pluginKey !== "risk-import") {
-    return res
-      .status(400)
-      .json(STATUS_CODE[400]("Invalid plugin key"));
-  }
-
-  try {
-    const result = await PluginService.getRiskImportTemplate(tenantId, organizationId);
-
-    logStructured(
-      "successful",
-      `risk import template generated`,
-      functionName,
-      fileName
-    );
-
-    // Set headers for Excel file download
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${result.filename}"`
-    );
-
-    // Send the buffer directly
-    return res.status(200).send(result.buffer);
-  } catch (error) {
-    // If error is about plugin not being installed
-    if (error instanceof Error && error.message.includes("not installed")) {
-      return res.status(400).json(STATUS_CODE[400]("Risk Import plugin is not installed"));
-    }
-
-    logStructured("error", "failed to get risk import template", functionName, fileName);
-    logger.error("❌ Error in getRiskImportTemplate:", error);
-
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Import risks from CSV
- */
-export async function importRisks(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const pluginKey = req.params.key;
-  const { csvData } = req.body;
-  const tenantId = (req as any).tenantId;
-
-  const functionName = "importRisks";
-  logStructured(
-    "processing",
-    `importing risks for plugin ${pluginKey}`,
-    functionName,
-    fileName
-  );
-
-  if (!tenantId) {
-    return res
-      .status(401)
-      .json(STATUS_CODE[401]("User not authenticated"));
-  }
-
-  if (pluginKey !== "risk-import") {
-    return res
-      .status(400)
-      .json(STATUS_CODE[400]("Invalid plugin key"));
-  }
-
-  if (!csvData || !Array.isArray(csvData)) {
-    return res
-      .status(400)
-      .json(STATUS_CODE[400]("CSV data is required and must be an array"));
-  }
-
-  try {
-    const result = await PluginService.importRisks(csvData, tenantId);
-
-    logStructured(
-      result.success ? "successful" : "error",
-      `imported ${result.imported} risks, ${result.failed} failed`,
-      functionName,
-      fileName
-    );
-
-    return res.status(200).json(STATUS_CODE[200](result));
-  } catch (error) {
-    // If error is about plugin not being installed
-    if (error instanceof Error && error.message.includes("not installed")) {
-      return res.status(400).json(STATUS_CODE[400]("Risk Import plugin is not installed"));
-    }
-
-    logStructured("error", "failed to import risks", functionName, fileName);
-    logger.error("❌ Error in importRisks:", error);
-
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Execute a plugin method dynamically
- * Generic endpoint that allows calling any exported function from a plugin
- */
-export async function executePluginMethod(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const pluginKey = req.params.key;
-  const methodName = req.params.method;
-  const tenantId = (req as any).tenantId;
-  const params = req.body || {};
-
-  const functionName = "executePluginMethod";
-  logStructured(
-    "processing",
-    `executing ${pluginKey}.${methodName}`,
-    functionName,
-    fileName
-  );
-
-  if (!tenantId) {
+  if (!tenantId || !userId) {
     return res
       .status(401)
       .json(STATUS_CODE[401]("User not authenticated"));
@@ -913,30 +459,80 @@ export async function executePluginMethod(
       .json(STATUS_CODE[400]("Plugin key is required"));
   }
 
-  if (!methodName) {
-    return res
-      .status(400)
-      .json(STATUS_CODE[400]("Method name is required"));
-  }
-
   try {
-    const result = await PluginService.executePluginMethod(
-      pluginKey,
-      methodName,
+    // Build the context for the plugin handler
+    const context: PluginRouteContext = {
       tenantId,
-      params
-    );
+      userId,
+      organizationId,
+      method: req.method,
+      path: pluginPath,
+      params: {},  // Will be populated by route matching
+      query: req.query as Record<string, any>,
+      body: req.body,
+      sequelize: null,  // Will be set by PluginService
+      configuration: {},  // Will be set by PluginService
+    };
 
+    // Forward to the plugin
+    const response = await PluginService.forwardToPlugin(pluginKey, context);
+
+    // Handle different response types
+    const statusCode = response.status || 200;
+
+    // Set custom headers if provided
+    if (response.headers) {
+      for (const [key, value] of Object.entries(response.headers)) {
+        res.setHeader(key, value);
+      }
+    }
+
+    // Handle binary response (file download)
+    if (response.buffer) {
+      if (response.contentType) {
+        res.setHeader("Content-Type", response.contentType);
+      } else {
+        res.setHeader("Content-Type", "application/octet-stream");
+      }
+
+      if (response.filename) {
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${response.filename}"`
+        );
+      }
+
+      logStructured(
+        "successful",
+        `${pluginKey} returned file: ${response.filename || "unnamed"}`,
+        functionName,
+        fileName
+      );
+
+      return res.status(statusCode).send(response.buffer);
+    }
+
+    // Handle JSON response
     logStructured(
       "successful",
-      `${pluginKey}.${methodName} executed successfully`,
+      `${pluginKey} responded with status ${statusCode}`,
       functionName,
       fileName
     );
 
-    return res.status(200).json(STATUS_CODE[200](result));
+    return res.status(statusCode).json((STATUS_CODE as any)[statusCode](response.data));
   } catch (error) {
     // Handle specific error types
+    if (error instanceof NotFoundException) {
+      logStructured("error", `route not found in plugin ${pluginKey}`, functionName, fileName);
+      return res.status(404).json(STATUS_CODE[404](error.message));
+    }
+
+    if (error instanceof ValidationException) {
+      logStructured("error", `validation error in plugin ${pluginKey}`, functionName, fileName);
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
     if (error instanceof Error) {
       if (error.message.includes("not installed")) {
         return res.status(400).json(STATUS_CODE[400](`Plugin '${pluginKey}' is not installed`));
@@ -944,13 +540,15 @@ export async function executePluginMethod(
       if (error.message.includes("not found")) {
         return res.status(404).json(STATUS_CODE[404](error.message));
       }
-      if (error.message.includes("Invalid method") || error.message.includes("cannot be called")) {
-        return res.status(400).json(STATUS_CODE[400](error.message));
-      }
     }
 
-    logStructured("error", `failed to execute ${pluginKey}.${methodName}`, functionName, fileName);
-    logger.error(`❌ Error in executePluginMethod (${pluginKey}.${methodName}):`, error);
+    logStructured(
+      "error",
+      `failed to forward to plugin ${pluginKey}: ${(error as Error).message}`,
+      functionName,
+      fileName
+    );
+    logger.error(`❌ Error in forwardToPlugin (${pluginKey}):`, error);
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

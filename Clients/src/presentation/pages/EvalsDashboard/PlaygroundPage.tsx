@@ -2,7 +2,11 @@
  * PlaygroundPage
  * 
  * A chat interface for testing and interacting with LLM models directly.
- * Features quick eval with dataset functionality.
+ * Features:
+ * - Streaming responses
+ * - Markdown rendering with syntax highlighting
+ * - File attachments
+ * - Quick eval with dataset functionality
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -12,7 +16,6 @@ import {
   Stack,
   Typography,
   IconButton,
-  CircularProgress,
   Tooltip,
 } from "@mui/material";
 import {
@@ -23,9 +26,12 @@ import {
   Check,
   Sparkles,
   FileText,
+  RefreshCw,
+  StopCircle,
 } from "lucide-react";
 import ModelSelector from "../../components/Inputs/ModelSelector";
 import PlaygroundInputBar, { AttachedFile } from "../../components/PlaygroundInputBar";
+import MarkdownRenderer from "../../components/MarkdownRenderer";
 import { 
   getAllLlmApiKeys, 
   type LLMApiKey 
@@ -67,6 +73,7 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Copy state
@@ -74,6 +81,9 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
 
   // File attachments
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+
+  // Abort controller for streaming
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Load configured providers
   useEffect(() => {
@@ -127,7 +137,17 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
     });
   };
 
-  // Handle send message
+  // Stop streaming
+  const handleStopStreaming = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsStreaming(false);
+    setIsLoading(false);
+  }, []);
+
+  // Handle send message with streaming support
   const handleSend = useCallback(async () => {
     if ((!inputValue.trim() && attachedFiles.length === 0) || !model || isLoading) return;
 
@@ -153,7 +173,21 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
     setInputValue("");
     setAttachedFiles([]);
     setIsLoading(true);
+    setIsStreaming(true);
     setError(null);
+
+    // Create assistant message placeholder for streaming
+    const assistantMessageId = `msg-${Date.now()}-assistant`;
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      role: "assistant",
+      content: "",
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, assistantMessage]);
+
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
 
     try {
       // Convert files to base64 for API
@@ -167,7 +201,7 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
       );
 
       const apiMessages = [
-        { role: "system", content: "You are a helpful AI assistant." },
+        { role: "system", content: "You are a helpful AI assistant. Format your responses using markdown when appropriate - use code blocks with language tags for code, bullet points for lists, **bold** for emphasis, etc." },
         ...messages.map((m) => ({ role: m.role, content: m.content })),
         { role: "user", content: userMessage.content },
       ];
@@ -184,8 +218,10 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
           messages: apiMessages,
           temperature: 0.7,
           maxTokens: 4096,
+          stream: true,
           attachments: fileContents.length > 0 ? fileContents : undefined,
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -193,29 +229,117 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
         throw new Error(errorData.message || `API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      // Check if response is streaming (SSE) or regular JSON
+      const contentType = response.headers.get("content-type") || "";
       
-      const assistantMessage: Message = {
-        id: `msg-${Date.now()}-assistant`,
-        role: "assistant",
-        content: data.content || data.message || "No response",
-        timestamp: new Date(),
-      };
+      if (contentType.includes("text/event-stream") || contentType.includes("text/plain")) {
+        // Handle streaming response
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let accumulatedContent = "";
 
-      setMessages((prev) => [...prev, assistantMessage]);
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split("\n");
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                const data = line.slice(6);
+                if (data === "[DONE]") continue;
+
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices?.[0]?.delta?.content || 
+                                  parsed.content || 
+                                  parsed.delta?.content ||
+                                  parsed.text ||
+                                  "";
+                  
+                  if (content) {
+                    accumulatedContent += content;
+                    setMessages((prev) =>
+                      prev.map((m) =>
+                        m.id === assistantMessageId
+                          ? { ...m, content: accumulatedContent }
+                          : m
+                      )
+                    );
+                  }
+                } catch {
+                  // If not JSON, treat as plain text
+                  if (data.trim()) {
+                    accumulatedContent += data;
+                    setMessages((prev) =>
+                      prev.map((m) =>
+                        m.id === assistantMessageId
+                          ? { ...m, content: accumulatedContent }
+                          : m
+                      )
+                    );
+                  }
+                }
+              } else if (line.trim() && !line.startsWith(":")) {
+                // Handle non-SSE streaming (plain chunks)
+                accumulatedContent += line;
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMessageId
+                      ? { ...m, content: accumulatedContent }
+                      : m
+                  )
+                );
+              }
+            }
+          }
+        }
+
+        // If no content was streamed, show error
+        if (!accumulatedContent) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantMessageId
+                ? { ...m, content: "No response received from the model." }
+                : m
+            )
+          );
+        }
+      } else {
+        // Handle regular JSON response (fallback for non-streaming)
+        const data = await response.json();
+        const content = data.content || data.message || data.choices?.[0]?.message?.content || "No response";
+        
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantMessageId
+              ? { ...m, content }
+              : m
+          )
+        );
+      }
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        // User cancelled - keep partial response
+        return;
+      }
+      
       const errorMessage = err instanceof Error ? err.message : "Failed to get response";
       setError(errorMessage);
       
-      const errorAssistantMessage: Message = {
-        id: `msg-${Date.now()}-error`,
-        role: "assistant",
-        content: `Error: ${errorMessage}. Please check that your API key is configured and the model is available.`,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorAssistantMessage]);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantMessageId
+            ? { ...m, content: `Error: ${errorMessage}. Please check that your API key is configured and the model is available.` }
+            : m
+        )
+      );
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
+      abortControllerRef.current = null;
     }
   }, [inputValue, model, isLoading, messages, provider, attachedFiles]);
 
@@ -230,8 +354,31 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
     });
   };
 
+  // Regenerate last response
+  const handleRegenerate = useCallback(() => {
+    if (messages.length < 2) return;
+    
+    // Remove the last assistant message and resend the last user message
+    const lastUserMessageIndex = messages.map(m => m.role).lastIndexOf("user");
+    if (lastUserMessageIndex === -1) return;
+    
+    const lastUserMessage = messages[lastUserMessageIndex];
+    
+    // Remove messages after and including last assistant response
+    setMessages(messages.slice(0, lastUserMessageIndex));
+    
+    // Set input to resend
+    setInputValue(lastUserMessage.content);
+    
+    // Trigger send after a brief delay to let state update
+    setTimeout(() => {
+      handleSend();
+    }, 100);
+  }, [messages, handleSend]);
+
   // Clear conversation
   const handleClear = () => {
+    handleStopStreaming();
     setMessages([]);
     setError(null);
   };
@@ -447,51 +594,102 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
                           </Stack>
                         )}
 
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: "#374151",
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-word",
-                            lineHeight: 1.7,
-                          }}
-                        >
-                          {msg.content}
-                        </Typography>
+                        {/* Render content - markdown for assistant, plain text for user */}
+                        {msg.role === "assistant" ? (
+                          <Box sx={{ "& > *:first-of-type": { mt: 0 } }}>
+                            <MarkdownRenderer content={msg.content} />
+                            {/* Streaming cursor */}
+                            {isStreaming && msg === messages[messages.length - 1] && (
+                              <Box
+                                component="span"
+                                sx={{
+                                  display: "inline-block",
+                                  width: 2,
+                                  height: 16,
+                                  bgcolor: "#13715B",
+                                  ml: 0.5,
+                                  animation: "blink 1s infinite",
+                                  "@keyframes blink": {
+                                    "0%, 50%": { opacity: 1 },
+                                    "51%, 100%": { opacity: 0 },
+                                  },
+                                }}
+                              />
+                            )}
+                          </Box>
+                        ) : (
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "#374151",
+                              whiteSpace: "pre-wrap",
+                              wordBreak: "break-word",
+                              lineHeight: 1.7,
+                            }}
+                          >
+                            {msg.content}
+                          </Typography>
+                        )}
                       </Box>
 
-                      {/* Copy */}
-                      <Tooltip title={copiedId === msg.id ? "Copied!" : "Copy"}>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleCopy(msg.content, msg.id)}
-                          sx={{
-                            width: 28, height: 28,
-                            opacity: 0.3,
-                            "&:hover": { opacity: 1, bgcolor: "#f3f4f6" },
-                          }}
-                        >
-                          {copiedId === msg.id ? <Check size={14} color="#13715B" /> : <Copy size={14} />}
-                        </IconButton>
-                      </Tooltip>
+                      {/* Action buttons */}
+                      <Stack direction="row" gap={0.5} sx={{ flexShrink: 0 }}>
+                        <Tooltip title={copiedId === msg.id ? "Copied!" : "Copy"}>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCopy(msg.content, msg.id)}
+                            sx={{
+                              width: 28, height: 28,
+                              opacity: 0.3,
+                              "&:hover": { opacity: 1, bgcolor: "#f3f4f6" },
+                            }}
+                          >
+                            {copiedId === msg.id ? <Check size={14} color="#13715B" /> : <Copy size={14} />}
+                          </IconButton>
+                        </Tooltip>
+                        {msg.role === "assistant" && msg === messages[messages.length - 1] && !isLoading && (
+                          <Tooltip title="Regenerate response">
+                            <IconButton
+                              size="small"
+                              onClick={handleRegenerate}
+                              sx={{
+                                width: 28, height: 28,
+                                opacity: 0.3,
+                                "&:hover": { opacity: 1, bgcolor: "#f3f4f6" },
+                              }}
+                            >
+                              <RefreshCw size={14} />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Stack>
                     </Box>
                   ))}
 
-                  {/* Loading */}
-                  {isLoading && (
-                    <Box sx={{ display: "flex", gap: 2 }}>
-                      <Box
-                        sx={{
-                          width: 32, height: 32, borderRadius: "8px", bgcolor: "#f0fdf4",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                        }}
-                      >
-                        <Bot size={16} color="#13715B" />
-                      </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, pt: 0.5 }}>
-                        <CircularProgress size={14} thickness={5} sx={{ color: "#13715B" }} />
-                        <Typography variant="body2" color="#6b7280">Thinking...</Typography>
-                      </Box>
+                  {/* Streaming indicator with stop button */}
+                  {isStreaming && (
+                    <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                      <Tooltip title="Stop generating">
+                        <IconButton
+                          onClick={handleStopStreaming}
+                          size="small"
+                          sx={{
+                            px: 2,
+                            py: 0.75,
+                            borderRadius: "20px",
+                            bgcolor: "#f3f4f6",
+                            color: "#6b7280",
+                            fontSize: 13,
+                            gap: 1,
+                            "&:hover": { bgcolor: "#e5e7eb", color: "#374151" },
+                          }}
+                        >
+                          <StopCircle size={16} />
+                          <Typography variant="body2" sx={{ fontSize: 13 }}>
+                            Stop generating
+                          </Typography>
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   )}
 

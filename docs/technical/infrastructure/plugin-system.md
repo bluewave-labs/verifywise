@@ -376,14 +376,9 @@ Core service handling all plugin operations:
 | `getCategories` | - | `Category[]` | Get plugin categories |
 | `updateConfiguration` | `installationId, userId, tenantId, config` | `IPluginInstallation` | Update config and call `configure()` |
 | `testConnection` | `pluginKey, configuration, context?` | `{success, message}` | Test plugin connection |
-| `connectOAuthWorkspace` | `pluginKey, code, userId, tenantId` | `Workspace` | Connect Slack OAuth |
-| `getOAuthWorkspaces` | `pluginKey, userId, tenantId` | `Workspace[]` | List connected workspaces |
-| `updateOAuthWorkspace` | `pluginKey, webhookId, userId, tenantId, data` | `Workspace` | Update workspace settings |
-| `disconnectOAuthWorkspace` | `pluginKey, webhookId, userId, tenantId` | `void` | Disconnect workspace |
-| `getMLflowModels` | `tenantId` | `Model[]` | Get synced MLflow models |
-| `syncMLflowModels` | `tenantId` | `{success, modelCount}` | Sync from MLflow server |
-| `getRiskImportTemplate` | `tenantId, organizationId` | `{buffer, filename}` | Generate Excel template |
-| `importRisks` | `csvData[], tenantId` | `{success, imported, failed}` | Import risks from CSV |
+| `forwardToPlugin` | `pluginKey, context` | `PluginRouteResponse` | Forward request to plugin's router |
+
+**Note:** Plugin-specific methods (OAuth, MLflow, Risk Import) are no longer in PluginService. All plugin functionality is now handled via the generic `forwardToPlugin` method which routes requests to plugin-defined handlers.
 
 #### Private Methods
 
@@ -394,8 +389,7 @@ Core service handling all plugin operations:
 | `downloadAndLoadPlugin(plugin)` | Download, cache, install deps, load |
 | `downloadPluginPackageJson(plugin, tempPath)` | Download package.json |
 | `installPluginDependencies(plugin, tempPath, packageJson)` | Run `npm install` |
-| `validateSlackOAuth(code)` | Exchange code for access token |
-| `inviteBotToChannel(token, channelId, botUserId)` | Invite bot to Slack channel |
+| `matchRoute(router, method, path, params)` | Match incoming request to plugin route handler |
 
 #### Plugin Loading Flow
 
@@ -501,14 +495,9 @@ HTTP request handlers with structured logging:
 | `getCategories` | GET /categories | List categories |
 | `updatePluginConfiguration` | PUT /installations/:id/configuration | Update config |
 | `testPluginConnection` | POST /:key/test-connection | Test connection |
-| `connectOAuthWorkspace` | POST /:key/oauth/connect | OAuth connect |
-| `getOAuthWorkspaces` | GET /:key/oauth/workspaces | List workspaces |
-| `updateOAuthWorkspace` | PATCH /:key/oauth/workspaces/:webhookId | Update workspace |
-| `disconnectOAuthWorkspace` | DELETE /:key/oauth/workspaces/:webhookId | Disconnect |
-| `getMLflowModels` | GET /:key/models | Get MLflow models |
-| `syncMLflowModels` | POST /:key/sync | Sync MLflow |
-| `getRiskImportTemplate` | GET /:key/template | Get Excel template |
-| `importRisks` | POST /:key/import | Import risks |
+| `forwardToPlugin` | ALL /:key/* | Forward to plugin router |
+
+**Note:** Plugin-specific controllers (OAuth, MLflow, Risk Import) have been removed. The `forwardToPlugin` controller handles all plugin-specific requests by forwarding them to the plugin's `router` export.
 
 #### Request Context
 
@@ -574,22 +563,17 @@ router.get("/installations", authenticateJWT, getInstalledPlugins);
 router.put("/installations/:id/configuration", authenticateJWT, updatePluginConfiguration);
 router.post("/:key/test-connection", authenticateJWT, testPluginConnection);
 
-// OAuth workspace management routes (Slack plugin)
-router.post("/:key/oauth/connect", authenticateJWT, connectOAuthWorkspace);
-router.get("/:key/oauth/workspaces", authenticateJWT, getOAuthWorkspaces);
-router.patch("/:key/oauth/workspaces/:webhookId", authenticateJWT, updateOAuthWorkspace);
-router.delete("/:key/oauth/workspaces/:webhookId", authenticateJWT, disconnectOAuthWorkspace);
+// Plugin UI bundles
+router.get("/:key/ui/dist/:filename", servePluginUIBundle);
 
-// MLflow plugin routes
-router.get("/:key/models", authenticateJWT, getMLflowModels);
-router.post("/:key/sync", authenticateJWT, syncMLflowModels);
-
-// Risk Import plugin routes
-router.get("/:key/template", authenticateJWT, getRiskImportTemplate);
-router.post("/:key/import", authenticateJWT, importRisks);
+// Generic plugin router - forwards all requests to plugin-defined routes
+// Plugins export a `router` object that maps route patterns to handlers
+router.all("/:key/*", authenticateJWT, forwardToPlugin);
 
 export default router;
 ```
+
+**Note:** The generic `/:key/*` route forwards requests to plugin-defined routes. Plugins define their own API endpoints via the `router` export. No plugin-specific routes are hardcoded in the backend.
 
 ---
 
@@ -616,23 +600,24 @@ export default router;
 | PUT | `/installations/:id/configuration` | Update configuration | JWT |
 | POST | `/:key/test-connection` | Test plugin connection | JWT |
 
-### OAuth (Slack)
+### Generic Plugin Router
+
+All plugin-specific endpoints are handled via a generic router. Plugins define their own routes via the `router` export.
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/:key/oauth/connect` | Connect OAuth workspace | JWT |
-| GET | `/:key/oauth/workspaces` | Get connected workspaces | JWT |
-| PATCH | `/:key/oauth/workspaces/:webhookId` | Update workspace settings | JWT |
-| DELETE | `/:key/oauth/workspaces/:webhookId` | Disconnect workspace | JWT |
+| ALL | `/:key/*` | Forward to plugin's router | JWT |
 
-### Plugin-Specific
+**Examples:**
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/:key/models` | Get MLflow models | JWT |
-| POST | `/:key/sync` | Sync MLflow models | JWT |
-| GET | `/:key/template` | Get risk import template | JWT |
-| POST | `/:key/import` | Import risks from CSV | JWT |
+| Request | Plugin Route Handler |
+|---------|---------------------|
+| `GET /api/plugins/mlflow/models` | MLflow plugin's `GET /models` |
+| `POST /api/plugins/mlflow/sync` | MLflow plugin's `POST /sync` |
+| `GET /api/plugins/slack/oauth/workspaces` | Slack plugin's `GET /oauth/workspaces` |
+| `DELETE /api/plugins/slack/oauth/workspaces/123` | Slack plugin's `DELETE /oauth/workspaces/:webhookId` |
+| `GET /api/plugins/risk-import/template` | Risk Import plugin's `GET /template` |
+| `POST /api/plugins/risk-import/import` | Risk Import plugin's `POST /import` |
 
 ### Rate Limiting
 
@@ -644,7 +629,7 @@ export default router;
 
 ## Plugin Interface
 
-Plugins must export functions that the system calls during lifecycle events.
+Plugins must export functions that the system calls during lifecycle events, and a `router` object for custom API endpoints.
 
 ### Required Methods
 
@@ -671,7 +656,7 @@ export async function uninstall(
 ): Promise<{ success: boolean; message?: string }>;
 ```
 
-### Optional Methods
+### Optional Lifecycle Methods
 
 ```typescript
 /**
@@ -691,27 +676,71 @@ export async function testConnection(
   configuration: Record<string, any>,
   context?: { sequelize: Sequelize; userId: number; tenantId: string }
 ): Promise<{ success: boolean; message: string }>;
+```
+
+### Plugin Router (Required for Custom API Endpoints)
+
+Plugins define their own API routes via the `router` export. The backend forwards requests to the appropriate handler based on the route pattern.
+
+```typescript
+/**
+ * Context passed to route handlers
+ */
+interface PluginRouteContext {
+  tenantId: string;
+  userId: number;
+  organizationId: number;
+  method: string;           // HTTP method (GET, POST, etc.)
+  path: string;             // Route path (e.g., /models, /sync)
+  params: Record<string, string>;  // URL params (e.g., { modelId: "123" })
+  query: Record<string, any>;      // Query string params
+  body: any;                       // Request body
+  sequelize: any;                  // Database connection
+  configuration: Record<string, any>; // Plugin configuration
+}
 
 /**
- * Plugin-specific methods (examples)
+ * Response format for route handlers
  */
-export async function syncModels(
-  tenantId: string,
-  configuration: Record<string, any>,
-  context: { sequelize: Sequelize }
-): Promise<{ success: boolean; modelCount: number }>;
+interface PluginRouteResponse {
+  status?: number;           // HTTP status code (default 200)
+  data?: any;                // JSON response data
+  buffer?: any;              // Binary data for file downloads
+  filename?: string;         // Filename for Content-Disposition header
+  contentType?: string;      // Custom content type
+  headers?: Record<string, string>; // Additional response headers
+}
 
-export async function getExcelTemplate(
-  organizationId: string,
-  context: { sequelize: Sequelize }
-): Promise<{ buffer: Buffer; filename: string }>;
+/**
+ * Plugin router - maps route patterns to handler functions
+ * Format: "METHOD /path" -> handler function
+ */
+export const router: Record<string, (ctx: PluginRouteContext) => Promise<PluginRouteResponse>> = {
+  "GET /models": handleGetModels,
+  "POST /sync": handleSyncModels,
+  "GET /models/:modelId": handleGetModelById,
+};
 
-export async function importRisks(
-  csvData: any[],
-  tenantId: string,
-  context: { sequelize: Sequelize }
-): Promise<{ success: boolean; imported: number; failed: number }>;
+// Handler implementation
+async function handleGetModels(ctx: PluginRouteContext): Promise<PluginRouteResponse> {
+  const { sequelize, tenantId } = ctx;
+
+  const models = await sequelize.query(
+    `SELECT * FROM "${tenantId}".my_table ORDER BY created_at DESC`,
+    { type: "SELECT" }
+  );
+
+  return {
+    status: 200,
+    data: { models },
+  };
+}
 ```
+
+**Route Pattern Matching:**
+- Exact match: `"GET /models"` matches `GET /api/plugins/:key/models`
+- With params: `"GET /models/:modelId"` matches `GET /api/plugins/:key/models/123` (params.modelId = "123")
+- Nested paths: `"GET /oauth/workspaces"` matches `GET /api/plugins/:key/oauth/workspaces`
 
 ### Example Plugin Implementation
 

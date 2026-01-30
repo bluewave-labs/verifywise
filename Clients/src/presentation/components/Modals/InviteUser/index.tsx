@@ -149,7 +149,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
         } else {
           onSendInvite(values.email, response.status);
         }
-      } catch (error) {
+      } catch (_error) {
         onSendInvite(values.email, -1);
       } finally {
         setIsOpen(false);

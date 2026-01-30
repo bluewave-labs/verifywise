@@ -248,7 +248,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
     try {
       const date = new Date(timestamp);
       if (isNaN(date.getTime())) return timestamp;
-      return date.toLocaleString("en-US", {
+      return date.toLocaleString(undefined, {
         month: "short",
         day: "numeric",
         year: "numeric",

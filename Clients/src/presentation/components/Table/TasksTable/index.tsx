@@ -23,10 +23,12 @@ import IconButtonComponent from "../../IconButton";
 import Chip from "../../Chip";
 import DaysChip from "../../Chip/DaysChip";
 
-import { TaskStatus } from "../../../../domain/enums/task.enum";
+import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../types/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
 import CategoryChip from "../../Chip/CategoryChip/CategoryChip";
+import { DISPLAY_TO_PRIORITY_MAP, PRIORITY_DISPLAY_MAP } from "../../../constants/priorityOptions";
+import { taskTableStyles } from "./styles";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -158,6 +160,8 @@ const TasksTable: React.FC<ITasksTableProps> = ({
   onRestore,
   onHardDelete,
   flashRowId,
+  onPriorityChange,
+  priorityOptions,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -183,7 +187,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
 
   // Save rowsPerPage to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem(TASKS_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
+    localStorage.setItem(TASKS_ROWS_PER_PAGE_KEY, String(rowsPerPage));
   }, [rowsPerPage]);
 
   // Save sorting state to localStorage whenever it changes
@@ -216,7 +220,11 @@ const TasksTable: React.FC<ITasksTableProps> = ({
     }
 
     // Priority order for sorting
-    const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+    const priorityOrder = {
+      [TaskPriority.LOW]: 1,
+      [TaskPriority.MEDIUM]: 2,
+      [TaskPriority.HIGH]: 3,
+    };
 
     // Status order for sorting
     const statusOrder = {
@@ -341,12 +349,12 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                         sx={{
                           textTransform: "capitalize",
                           textDecoration: isArchived ? "line-through" : "none",
-                          color: isArchived ? "#9ca3af" : "inherit",
+                          color: isArchived ? "text.accent" : "inherit",
                         }}
                       >
                         {task.title}
                       </Typography>
-                      <CategoryChip categories={task.categories || []}/>
+                      <CategoryChip categories={task.categories || []} />
                     </Box>
                   </TableCell>
 
@@ -356,8 +364,27 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                       ...cellStyle,
                       backgroundColor: sortConfig.key === "priority" ? singleTheme.tableColors.sortedColumn : undefined,
                     }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <Chip label={task.priority} />
+                    {isArchived ? (
+                      <Typography sx={taskTableStyles(theme).archivedText}>
+                        Archived
+                      </Typography>
+                    ) : (
+                      <CustomSelect
+                        currentValue={
+                          PRIORITY_DISPLAY_MAP[task.priority] || task.priority
+                        }
+                        onValueChange={async (displayValue: string) => {
+                          const apiValue =
+                            DISPLAY_TO_PRIORITY_MAP[displayValue] || displayValue;
+                          return await onPriorityChange(task.id!)(apiValue);
+                        }}
+                        options={priorityOptions}
+                        disabled={isUpdateDisabled}
+                        size="small"
+                      />
+                    )}
                   </TableCell>
 
                   {/* Status */}
@@ -369,14 +396,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     onClick={(e) => e.stopPropagation()}
                   >
                     {isArchived ? (
-                      <Typography
-                        sx={{
-                          fontSize: 13,
-                          color: "#6b7280",
-                          fontStyle: "italic",
-                          px: 1,
-                        }}
-                      >
+                      <Typography sx={taskTableStyles(theme).archivedText}>
                         Archived
                       </Typography>
                     ) : (
@@ -555,6 +575,9 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       onHardDelete,
       sortConfig,
       flashRowId,
+      priorityOptions,
+      onPriorityChange,
+      theme,
     ]
   );
 

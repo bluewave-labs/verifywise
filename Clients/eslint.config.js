@@ -1,13 +1,16 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
+import js from '@eslint/js';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   { ignores: ['dist'] },
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    extends: [
+      js.configs.recommended,
+      ...tseslint.configs.recommended,
+    ],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
@@ -23,6 +26,43 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      'no-restricted-syntax': [
+        'warn',
+
+        {
+          selector:
+            'CallExpression:matches(' +
+            '  [callee.property.name="toString"],' +
+            '  [callee.property.name="toDateString"],' +
+            '  [callee.property.name="toTimeString"],' +
+            '  [callee.property.name="toUTCString"],' +
+            '  [callee.property.name="toGMTString"]' +
+            ')',
+          message:
+            'Use locale-based date formatting instead of Date string methods.',
+        },
+        {
+          selector:
+            'ChainExpression CallExpression:matches(' +
+            '  [callee.property.name="toString"],' +
+            '  [callee.property.name="toDateString"],' +
+            '  [callee.property.name="toTimeString"],' +
+            '  [callee.property.name="toUTCString"],' +
+            '  [callee.property.name="toGMTString"]' +
+            ')',
+          message:
+            'Use locale-based date formatting instead of Date string methods.',
+        },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn'
     },
-  },
-)
+  }
+);

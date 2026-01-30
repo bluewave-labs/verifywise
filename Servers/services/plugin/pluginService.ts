@@ -4,7 +4,6 @@ import { execSync } from "child_process";
 import axios from "axios";
 import { createInstallation, findByIdWithValidation, getInstalledPlugins, toJSON, updateConfiguration, deleteInstallation, findByPlugin } from "../../utils/pluginInstallation.utils";
 import { PluginInstallationStatus } from "../../domain.layer/enums/plugin.enum";
-import { QueryTypes } from "sequelize";
 import {
   ValidationException,
   NotFoundException,
@@ -51,6 +50,51 @@ interface Plugin {
     }>;
   };
 }
+
+/**
+ * Context passed to plugin route handlers
+ * Contains all information needed to handle a request
+ */
+export interface PluginRouteContext {
+  // Authentication
+  tenantId: string;
+  userId: number;
+  organizationId: number;
+
+  // Request details
+  method: string;           // HTTP method (GET, POST, PUT, PATCH, DELETE)
+  path: string;             // Route path after /api/plugins/:key (e.g., /models, /sync)
+  params: Record<string, string>;  // URL params (e.g., { modelId: "123" })
+  query: Record<string, any>;      // Query string params
+  body: any;                       // Request body
+
+  // Services
+  sequelize: any;
+
+  // Plugin configuration
+  configuration: Record<string, any>;
+}
+
+/**
+ * Response from plugin route handlers
+ */
+export interface PluginRouteResponse {
+  status?: number;                    // HTTP status code (default 200)
+  data?: any;                         // JSON response data
+  buffer?: Buffer;                    // Binary data for file downloads
+  filename?: string;                  // Filename for Content-Disposition header
+  contentType?: string;               // Custom content type
+  headers?: Record<string, string>;   // Additional response headers
+}
+
+/**
+ * Plugin router type - maps route patterns to handler functions
+ * Format: "METHOD /path" -> handler function
+ * Example: "GET /models" -> getModels
+ * Example: "POST /sync" -> syncModels
+ * Example: "GET /models/:modelId" -> getModelById
+ */
+export type PluginRouter = Record<string, (context: PluginRouteContext) => Promise<PluginRouteResponse>>;
 
 interface PluginMarketplace {
   version: string;
@@ -385,339 +429,6 @@ export class PluginService {
     }
   }
 
-  /**
-   * Connect OAuth workspace (Slack)
-   */
-  static async connectOAuthWorkspace(
-    pluginKey: string,
-    code: string,
-    userId: number,
-    _tenantId: string
-  ): Promise<any> {
-    try {
-      // Verify plugin exists
-      const plugin = await this.getPluginByKey(pluginKey);
-      if (!plugin) {
-        throw new NotFoundException(
-          "Plugin not found in marketplace",
-          "plugin",
-          pluginKey
-        );
-      }
-
-      // Only Slack plugin supports OAuth for now
-      if (pluginKey !== "slack") {
-        throw new ValidationException(
-          "OAuth is only supported for Slack plugin",
-          "pluginKey",
-          pluginKey
-        );
-      }
-
-      // Validate OAuth code with Slack API
-      const slackData = await this.validateSlackOAuth(code);
-
-      // Create slack_webhooks entry
-      const result: any = await sequelize.query(
-        `INSERT INTO public.slack_webhooks
-         (access_token, scope, team_name, team_id, channel, channel_id,
-          configuration_url, url, user_id, is_active, created_at, updated_at)
-         VALUES (:access_token, :scope, :team_name, :team_id, :channel, :channel_id,
-                 :configuration_url, :url, :user_id, :is_active, NOW(), NOW())
-         RETURNING *`,
-        {
-          replacements: {
-            access_token: Buffer.from(slackData.access_token).toString('base64'),
-            scope: slackData.scope,
-            team_name: slackData.team.name,
-            team_id: slackData.team.id,
-            channel: slackData.incoming_webhook.channel,
-            channel_id: slackData.incoming_webhook.channel_id,
-            configuration_url: slackData.incoming_webhook.configuration_url,
-            url: Buffer.from(slackData.incoming_webhook.url).toString('base64'),
-            user_id: userId,
-            is_active: true,
-          },
-        }
-      );
-
-      // Invite bot to channel
-      if (slackData.authed_user && slackData.bot_user_id) {
-        try {
-          await this.inviteBotToChannel(
-            slackData.authed_user.access_token,
-            slackData.incoming_webhook.channel_id,
-            slackData.bot_user_id
-          );
-        } catch (error) {
-          console.warn('[PluginService] Failed to invite bot to channel:', error);
-        }
-      }
-
-      const webhook = result[0][0];
-      return {
-        id: webhook.id,
-        team_name: webhook.team_name,
-        channel: webhook.channel,
-        is_active: webhook.is_active,
-        routing_type: webhook.routing_type || [],
-      };
-    } catch (error: any) {
-      console.error(
-        `[PluginService] Error connecting OAuth workspace:`,
-        error
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Get OAuth workspaces (Slack)
-   */
-  static async getOAuthWorkspaces(
-    pluginKey: string,
-    userId: number,
-    _tenantId: string
-  ): Promise<any[]> {
-    try {
-      // Only Slack plugin supports OAuth for now
-      if (pluginKey !== "slack") {
-        return [];
-      }
-
-      const result: any = await sequelize.query(
-        `SELECT id, team_name, channel, channel_id, is_active, routing_type, created_at
-         FROM public.slack_webhooks
-         WHERE user_id = :userId
-         ORDER BY created_at DESC`,
-        {
-          replacements: { userId },
-        }
-      );
-
-      return result[0].map((row: any) => ({
-        id: row.id,
-        team_name: row.team_name,
-        channel: row.channel,
-        channel_id: row.channel_id,
-        is_active: row.is_active,
-        routing_type: row.routing_type || [],
-        created_at: row.created_at,
-      }));
-    } catch (error: any) {
-      console.error(
-        `[PluginService] Error fetching OAuth workspaces:`,
-        error
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Update OAuth workspace (Slack routing types)
-   */
-  static async updateOAuthWorkspace(
-    pluginKey: string,
-    webhookId: number,
-    userId: number,
-    _tenantId: string,
-    updateData: { routing_type?: string[]; is_active?: boolean }
-  ): Promise<any> {
-    try {
-      // Only Slack plugin supports OAuth for now
-      if (pluginKey !== "slack") {
-        throw new ValidationException(
-          "OAuth is only supported for Slack plugin",
-          "pluginKey",
-          pluginKey
-        );
-      }
-
-      // Verify webhook belongs to user
-      const checkResult: any = await sequelize.query(
-        `SELECT id FROM public.slack_webhooks WHERE id = :webhookId AND user_id = :userId`,
-        { replacements: { webhookId, userId } }
-      );
-
-      if (!checkResult[0] || checkResult[0].length === 0) {
-        throw new NotFoundException(
-          "Webhook not found or unauthorized",
-          "webhook",
-          webhookId
-        );
-      }
-
-      // Build update query dynamically
-      const updates: string[] = [];
-      const replacements: any = { webhookId, userId };
-
-      if (updateData.routing_type !== undefined) {
-        const routingTypeArray = `{${updateData.routing_type.map((t: string) => `"${t}"`).join(',')}}`;
-        updates.push("routing_type = :routing_type");
-        replacements.routing_type = routingTypeArray;
-      }
-
-      if (updateData.is_active !== undefined) {
-        updates.push("is_active = :is_active");
-        replacements.is_active = updateData.is_active;
-      }
-
-      if (updates.length === 0) {
-        throw new ValidationException(
-          "No update data provided",
-          "updateData",
-          updateData
-        );
-      }
-
-      updates.push("updated_at = NOW()");
-
-      const result: any = await sequelize.query(
-        `UPDATE public.slack_webhooks
-         SET ${updates.join(", ")}
-         WHERE id = :webhookId AND user_id = :userId
-         RETURNING id, team_name, channel, is_active, routing_type`,
-        { replacements }
-      );
-
-      const webhook = result[0][0];
-      return {
-        id: webhook.id,
-        team_name: webhook.team_name,
-        channel: webhook.channel,
-        is_active: webhook.is_active,
-        routing_type: webhook.routing_type || [],
-      };
-    } catch (error: any) {
-      console.error(
-        `[PluginService] Error updating OAuth workspace:`,
-        error
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Disconnect OAuth workspace (Slack)
-   */
-  static async disconnectOAuthWorkspace(
-    pluginKey: string,
-    webhookId: number,
-    userId: number,
-    _tenantId: string
-  ): Promise<void> {
-    try {
-      // Only Slack plugin supports OAuth for now
-      if (pluginKey !== "slack") {
-        throw new ValidationException(
-          "OAuth is only supported for Slack plugin",
-          "pluginKey",
-          pluginKey
-        );
-      }
-
-      // Verify webhook belongs to user
-      const checkResult: any = await sequelize.query(
-        `SELECT id FROM public.slack_webhooks WHERE id = :webhookId AND user_id = :userId`,
-        { replacements: { webhookId, userId } }
-      );
-
-      if (!checkResult[0] || checkResult[0].length === 0) {
-        throw new NotFoundException(
-          "Webhook not found or unauthorized",
-          "webhook",
-          webhookId
-        );
-      }
-
-      // Delete webhook
-      await sequelize.query(
-        `DELETE FROM public.slack_webhooks WHERE id = :webhookId AND user_id = :userId`,
-        { replacements: { webhookId, userId } }
-      );
-
-      console.log(
-        `[PluginService] OAuth workspace ${webhookId} disconnected for user ${userId}`
-      );
-    } catch (error: any) {
-      console.error(
-        `[PluginService] Error disconnecting OAuth workspace:`,
-        error
-      );
-      throw error;
-    }
-  }
-
-  // ========== OAUTH HELPER METHODS ==========
-
-  /**
-   * Validate Slack OAuth code
-   */
-  private static async validateSlackOAuth(code: string): Promise<any> {
-    try {
-      const url = process.env.SLACK_API_URL;
-      const searchParams = {
-        client_id: process.env.SLACK_CLIENT_ID || "",
-        client_secret: process.env.SLACK_CLIENT_SECRET || "",
-        code: code,
-        redirect_uri: `${process.env.FRONTEND_URL}/plugins/slack/manage`,
-      };
-
-      if (!url) {
-        throw new Error("Slack API URL is not configured");
-      }
-
-      const tokenResponse = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams(searchParams),
-      });
-
-      const data = await tokenResponse.json();
-
-      if (data.ok) {
-        return data;
-      } else {
-        throw new Error(data.error || "Slack OAuth failed");
-      }
-    } catch (error) {
-      throw new Error("Failed to validate Slack OAuth code");
-    }
-  }
-
-  /**
-   * Invite bot to Slack channel
-   */
-  private static async inviteBotToChannel(
-    userAccessToken: string,
-    channelId: string,
-    botUserId: string
-  ): Promise<void> {
-    try {
-      const response = await fetch("https://slack.com/api/conversations.invite", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userAccessToken}`,
-        },
-        body: JSON.stringify({
-          channel: channelId,
-          users: botUserId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!data.ok && data.error !== "already_in_channel") {
-        console.warn(`[PluginService] Failed to invite bot to channel: ${data.error}`);
-      }
-    } catch (error) {
-      console.warn(`[PluginService] Error inviting bot to channel:`, error);
-    }
-  }
-
   // ========== PRIVATE METHODS ==========
 
   /**
@@ -961,205 +672,20 @@ export class PluginService {
   }
 
   /**
-   * Get MLflow models from mlflow_model_records table
+   * Forward a request to a plugin's router
+   * This is the generic routing mechanism that allows plugins to define their own routes
+   *
+   * @param pluginKey - The plugin key (e.g., "mlflow", "slack", "risk-import")
+   * @param context - The request context containing all request details
+   * @returns The plugin's response
    */
-  static async getMLflowModels(tenantId: string): Promise<any[]> {
-    try {
-      // Check if MLflow plugin is installed
-      const installation = await findByPlugin("mlflow", tenantId);
-
-      if (!installation) {
-        throw new Error("MLflow plugin is not installed");
-      }
-
-      // Query mlflow_model_records table
-      const models = await sequelize.query(
-        `SELECT * FROM "${tenantId}".mlflow_model_records ORDER BY created_at DESC`,
-        {
-          type: QueryTypes.SELECT,
-        }
-      );
-
-      return models;
-    } catch (error: any) {
-      console.error("[PluginService] Error fetching MLflow models:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Sync MLflow models from tracking server
-   */
-  static async syncMLflowModels(tenantId: string): Promise<any> {
-    try {
-      // Check if MLflow plugin is installed
-      const installation = await findByPlugin("mlflow", tenantId);
-
-      if (!installation) {
-        throw new Error("MLflow plugin is not installed");
-      }
-
-      // Get configuration
-      const configuration = installation.configuration;
-      if (!configuration || !configuration.tracking_server_url) {
-        throw new Error("MLflow plugin is not configured. Please configure the tracking server URL.");
-      }
-
-      // Load plugin and execute syncModels method
-      const plugin = await this.getPluginByKey("mlflow");
-      if (!plugin) {
-        throw new Error("MLflow plugin not found in marketplace");
-      }
-
-      const pluginCode = await this.loadPluginCode(plugin);
-      if (!pluginCode || typeof pluginCode.syncModels !== "function") {
-        throw new Error("MLflow plugin does not support sync operation");
-      }
-
-      const context = {
-        sequelize,
-      };
-
-      // Execute sync
-      const result = await pluginCode.syncModels(
-        tenantId,
-        configuration,
-        context
-      );
-
-      console.log(`[PluginService] MLflow models synced for tenant ${tenantId}:`, result);
-
-      return result;
-    } catch (error: any) {
-      console.error("[PluginService] Error syncing MLflow models:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get Excel template for risk import
-   */
-  static async getRiskImportTemplate(tenantId: string, organizationId: string): Promise<any> {
-    try {
-      // Check if Risk Import plugin is installed
-      const installation = await findByPlugin("risk-import", tenantId);
-
-      if (!installation) {
-        throw new Error("Risk Import plugin is not installed");
-      }
-
-      // Load plugin and execute getExcelTemplate method
-      const plugin = await this.getPluginByKey("risk-import");
-      if (!plugin) {
-        throw new Error("Risk Import plugin not found in marketplace");
-      }
-
-      const pluginCode = await this.loadPluginCode(plugin);
-      if (!pluginCode || typeof pluginCode.getExcelTemplate !== "function") {
-        throw new Error("Risk Import plugin does not support template generation");
-      }
-
-      // Create context with sequelize instance
-      const context = {
-        sequelize,
-      };
-
-      // Execute get template (returns a Promise)
-      const result = await pluginCode.getExcelTemplate(organizationId, context);
-
-      console.log(`[PluginService] Excel template generated for tenant ${tenantId}, organization ${organizationId}`);
-
-      return result;
-    } catch (error: any) {
-      console.error("[PluginService] Error getting risk import template:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Import risks from CSV data
-   */
-  static async importRisks(
-    csvData: any[],
-    tenantId: string
-  ): Promise<any> {
-    try {
-      // Check if Risk Import plugin is installed
-      const installation = await findByPlugin("risk-import", tenantId);
-
-      if (!installation) {
-        throw new Error("Risk Import plugin is not installed");
-      }
-
-      // Load plugin and execute importRisks method
-      const plugin = await this.getPluginByKey("risk-import");
-      if (!plugin) {
-        throw new Error("Risk Import plugin not found in marketplace");
-      }
-
-      const pluginCode = await this.loadPluginCode(plugin);
-      if (!pluginCode || typeof pluginCode.importRisks !== "function") {
-        throw new Error("Risk Import plugin does not support risk import");
-      }
-
-      const context = {
-        sequelize,
-      };
-
-      // Execute import
-      const result = await pluginCode.importRisks(
-        csvData,
-        tenantId,
-        context
-      );
-
-      console.log(
-        `[PluginService] Risks imported for tenant ${tenantId}:`,
-        `${result.imported} succeeded, ${result.failed} failed`
-      );
-
-      return result;
-    } catch (error: any) {
-      console.error("[PluginService] Error importing risks:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Execute a plugin method dynamically
-   * This generic method allows calling any exported function from a plugin
-   * without requiring hardcoded routes for each plugin feature
-   */
-  static async executePluginMethod(
+  static async forwardToPlugin(
     pluginKey: string,
-    methodName: string,
-    tenantId: string,
-    params: Record<string, any> = {}
-  ): Promise<any> {
+    context: PluginRouteContext
+  ): Promise<PluginRouteResponse> {
     try {
-      // Validate method name - only allow alphanumeric and camelCase methods
-      if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(methodName)) {
-        throw new ValidationException(`Invalid method name: ${methodName}`);
-      }
-
-      // Blocklist of methods that should not be called directly via execute
-      // These have dedicated endpoints or are internal lifecycle methods
-      const blockedMethods = [
-        "install",
-        "uninstall",
-        "configure",
-        "testConnection",
-        "validateConfig",
-      ];
-
-      if (blockedMethods.includes(methodName)) {
-        throw new ValidationException(
-          `Method '${methodName}' cannot be called via execute endpoint. Use the dedicated endpoint instead.`
-        );
-      }
-
       // Check if plugin is installed for this tenant
-      const installation = await findByPlugin(pluginKey, tenantId);
+      const installation = await findByPlugin(pluginKey, context.tenantId);
       if (!installation) {
         throw new NotFoundException(`Plugin '${pluginKey}' is not installed`);
       }
@@ -1176,42 +702,130 @@ export class PluginService {
         throw new Error(`Failed to load plugin code for '${pluginKey}'`);
       }
 
-      // Check if the method exists and is a function
-      if (typeof pluginCode[methodName] !== "function") {
+      // Check if plugin exports a router
+      if (!pluginCode.router || typeof pluginCode.router !== "object") {
         throw new NotFoundException(
-          `Method '${methodName}' not found in plugin '${pluginKey}'`
+          `Plugin '${pluginKey}' does not export a router. ` +
+          `Ensure the plugin exports: export const router: PluginRouter = { ... }`
         );
       }
 
-      // Create context with sequelize instance
-      const context = {
-        sequelize,
-      };
+      const router: PluginRouter = pluginCode.router;
 
-      // Get plugin configuration
-      const configuration = installation.configuration || {};
+      // Add plugin configuration to context
+      context.configuration = installation.configuration || {};
+      context.sequelize = sequelize;
 
-      // Execute the plugin method
-      // Standard signature: (tenantId, config, context, ...additionalParams)
-      const result = await pluginCode[methodName](
-        tenantId,
-        configuration,
-        context,
-        params
+      // Find matching route handler
+      const handler = this.matchRoute(router, context.method, context.path, context.params);
+
+      if (!handler) {
+        // List available routes for debugging
+        const availableRoutes = Object.keys(router).join(", ");
+        throw new NotFoundException(
+          `Route '${context.method} ${context.path}' not found in plugin '${pluginKey}'. ` +
+          `Available routes: ${availableRoutes || "none"}`
+        );
+      }
+
+      // Execute the handler
+      console.log(
+        `[PluginService] Forwarding request to plugin: ${pluginKey}`,
+        { method: context.method, path: context.path }
       );
+
+      const response = await handler(context);
 
       console.log(
-        "[PluginService] Plugin method executed:",
-        { pluginKey, methodName, tenantId, result }
+        `[PluginService] Plugin '${pluginKey}' responded:`,
+        { status: response.status || 200, hasData: !!response.data, hasBuffer: !!response.buffer }
       );
 
-      return result;
+      return response;
     } catch (error: any) {
       console.error(
-        "[PluginService] Error executing plugin method:",
-        { pluginKey, methodName, error }
+        "[PluginService] Error forwarding to plugin:",
+        { pluginKey, method: context.method, path: context.path, error: error.message }
       );
       throw error;
     }
+  }
+
+  /**
+   * Match a route pattern to a handler in the plugin router
+   * Supports path parameters like /models/:modelId
+   *
+   * @param router - The plugin's router object
+   * @param method - HTTP method (GET, POST, etc.)
+   * @param path - The request path (e.g., /models/123)
+   * @param params - Object to populate with extracted path parameters
+   * @returns The matched handler function or null
+   */
+  private static matchRoute(
+    router: PluginRouter,
+    method: string,
+    path: string,
+    params: Record<string, string>
+  ): ((context: PluginRouteContext) => Promise<PluginRouteResponse>) | null {
+    const normalizedMethod = method.toUpperCase();
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+    // First, try exact match
+    const exactKey = `${normalizedMethod} ${normalizedPath}`;
+    if (router[exactKey]) {
+      return router[exactKey];
+    }
+
+    // Then, try pattern matching for routes with parameters
+    for (const [routeKey, handler] of Object.entries(router)) {
+      const [routeMethod, routePattern] = routeKey.split(" ");
+
+      if (routeMethod.toUpperCase() !== normalizedMethod) {
+        continue;
+      }
+
+      // Check if this is a pattern with parameters (contains :)
+      if (!routePattern.includes(":")) {
+        // Exact match only
+        if (routePattern === normalizedPath) {
+          return handler;
+        }
+        continue;
+      }
+
+      // Pattern matching with parameters
+      const patternParts = routePattern.split("/").filter(Boolean);
+      const pathParts = normalizedPath.split("/").filter(Boolean);
+
+      if (patternParts.length !== pathParts.length) {
+        continue;
+      }
+
+      let isMatch = true;
+      const extractedParams: Record<string, string> = {};
+
+      for (let i = 0; i < patternParts.length; i++) {
+        const patternPart = patternParts[i];
+        const pathPart = pathParts[i];
+
+        if (patternPart.startsWith(":")) {
+          // This is a parameter - extract it
+          const paramName = patternPart.slice(1);
+          extractedParams[paramName] = pathPart;
+        } else if (patternPart !== pathPart) {
+          // Static part doesn't match
+          isMatch = false;
+          break;
+        }
+      }
+
+      if (isMatch) {
+        // Populate params object with extracted values
+        Object.assign(params, extractedParams);
+        return handler;
+      }
+    }
+
+    return null;
   }
 }

@@ -1,15 +1,22 @@
 name: Backend Checks
+
 permissions:
   contents: read
+  security-events: write
 
 on:
   pull_request:
     branches: ['master', 'develop']
     paths:
       - 'Servers/**'
+  push:
+    branches: ['master', 'develop']
+    paths:
+      - 'Servers/**'
+
 jobs:
-  build-check:
-    name: Backend Checks / build-check
+  security-audit:
+    name: Security Audit
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,8 +33,53 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Run npm audit (JSON output for review)
+        run: npm audit --json > ../audit-results.json || true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v6
+        with:
+          name: backend-npm-audit-results
+          path: audit-results.json
+          retention-days: 30
+
+  lint-and-build:
+    name: Lint and Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Servers
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
         run: npm run build
 
-      - name: Run Tests
+      - name: Run tests
         run: npm test
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0

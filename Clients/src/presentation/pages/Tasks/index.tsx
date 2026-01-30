@@ -8,8 +8,9 @@ import React, {
   useRef,
 } from "react";
 import { Box, Stack, Typography } from "@mui/material";
+import TabContext from "@mui/lab/TabContext";
 import { useSearchParams } from "react-router-dom";
-import { CirclePlus as AddCircleIcon } from "lucide-react";
+import { CirclePlus as AddCircleIcon, Flag } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -27,6 +28,7 @@ import {
   getTaskById,
   restoreTask,
   hardDeleteTask,
+  updateTaskPriority,
 } from "../../../application/repository/task.repository";
 import TaskSummaryCards from "./TaskSummaryCards";
 import CreateTask from "../../components/Modals/CreateTask";
@@ -48,6 +50,10 @@ import TipBox from "../../components/TipBox";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import Alert from "../../components/Alert";
+import TabBar from "../../components/TabBar";
+import DeadlineView from "./DeadlineView";
+import { toggleLabelStyle, toggleContainerStyle } from "./style";
+import { TASK_PRIORITY_OPTIONS, PRIORITY_DISPLAY_MAP, PRIORITY_COLOR_MAP } from "../../constants/priorityOptions";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -65,8 +71,6 @@ const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.DELETED]: "Archived", // Show "Archived" instead of "Deleted" for better UX
 };
 
-// Reverse mapping for API calls
-
 const Tasks: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tasks, setTasks] = useState<TaskModel[]>([]);
@@ -81,11 +85,25 @@ const Tasks: React.FC = () => {
     title: string;
     body?: string;
   } | null>(null);
-  
+
   // Flash indicator state for updated rows
   const [flashRowId, setFlashRowId] = useState<number | null>(null);
 
-  const { userRoleName } = useContext(VerifyWiseContext);
+  // Admin toggle for "My Tasks" vs "Team Tasks"
+  const [showMyTasksOnly, setShowMyTasksOnly] = useState(false);
+
+  // Tab state - persisted to localStorage
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const saved = localStorage.getItem("verifywise_tasks_view_tab");
+    return saved || "list";
+  });
+
+  // Save tab preference to localStorage
+  useEffect(() => {
+    localStorage.setItem("verifywise_tasks_view_tab", activeTab);
+  }, [activeTab]);
+
+  const { userRoleName, userId } = useContext(VerifyWiseContext);
   const { users } = useUsers();
 
   // Track if we've already processed the URL param to avoid duplicate fetches
@@ -179,7 +197,7 @@ const Tasks: React.FC = () => {
       .map((id) => {
         const user = users.find((u) => u.id === id);
         return {
-          value: id.toString(),
+          value: String(id),
           label: user ? `${user.name} ${user.surname}`.trim() : `User ${id}`,
         };
       })
@@ -242,7 +260,7 @@ const Tasks: React.FC = () => {
           return item.priority;
         case "assignee":
           // Return comma-separated assignee IDs for matching
-          return item.assignees?.map((id) => id.toString()).join(",");
+          return item.assignees?.map((id) => String(id)).join(",");
         case "due_date":
           return item.due_date;
         default:
@@ -270,8 +288,17 @@ const Tasks: React.FC = () => {
       );
     }
 
+    // Apply "My Tasks" filter for Admin users
+    if (userRoleName === "Admin" && showMyTasksOnly && userId) {
+      result = result.filter(
+        (task) =>
+          task.creator_id === userId ||
+          (task.assignees && task.assignees.some((a) => a.user_id === userId))
+      );
+    }
+
     return result;
-  }, [filterTaskData, tasks, searchQuery]);
+  }, [filterTaskData, tasks, searchQuery, userRoleName, showMyTasksOnly, userId]);
 
   const handleCreateTask = () => {
     if (isCreatingDisabled) {
@@ -347,13 +374,13 @@ const Tasks: React.FC = () => {
             task.id === editingTask.id ? response.data : task
           )
         );
-        
+
         // Flash the updated row
         setFlashRowId(editingTask.id!);
         setTimeout(() => {
           setFlashRowId(null);
         }, 3000);
-        
+
         setEditingTask(null);
         setAlert({
           variant: "success",
@@ -375,35 +402,67 @@ const Tasks: React.FC = () => {
 
   const handleTaskStatusChange =
     (taskId: number) =>
-    async (newStatus: string): Promise<boolean> => {
-      try {
-        const response = await updateTaskStatus({
-          id: taskId,
-          status: newStatus as TaskStatus,
-        });
-        if (response && response.data) {
-          setTasks((prev) =>
-            prev.map((task) =>
-              task.id === taskId
-                ? { ...task, status: newStatus as TaskStatus }
-                : task
-            )
-          );
-          
-          // Flash the updated row
-          setFlashRowId(taskId);
-          setTimeout(() => {
-            setFlashRowId(null);
-          }, 3000);
-          
-          return true;
+      async (newStatus: string): Promise<boolean> => {
+        try {
+          const response = await updateTaskStatus({
+            id: taskId,
+            status: newStatus as TaskStatus,
+          });
+          if (response && response.data) {
+            setTasks((prev) =>
+              prev.map((task) =>
+                task.id === taskId
+                  ? { ...task, status: newStatus as TaskStatus }
+                  : task
+              )
+            );
+
+            // Flash the updated row
+            setFlashRowId(taskId);
+            setTimeout(() => {
+              setFlashRowId(null);
+            }, 3000);
+
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Error updating task status:", error);
+          return false;
         }
-        return false;
-      } catch (error) {
-        console.error("Error updating task status:", error);
-        return false;
-      }
-    };
+      };
+
+  const handleTaskPriorityChange =
+    (taskId: number) =>
+      async (newPriority: string): Promise<boolean> => {
+        try {
+          const response = await updateTaskPriority({
+            id: taskId,
+            priority: newPriority as TaskPriority,
+          });
+          if (response && response.data) {
+            setTasks((prev) =>
+              prev.map((task) =>
+                task.id === taskId
+                  ? { ...task, priority: newPriority as TaskPriority }
+                  : task
+              )
+            );
+
+            // Flash the updated row
+            setFlashRowId(taskId);
+            setTimeout(() => {
+              setFlashRowId(null);
+            }, 3000);
+
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Error updating task priority:", error);
+          return false;
+        }
+      };
 
   const handleRestoreTask = async (taskId: number) => {
     try {
@@ -483,7 +542,11 @@ const Tasks: React.FC = () => {
         return "Unassigned";
       case "due_date":
         return task.due_date
-          ? new Date(task.due_date).toLocaleDateString()
+          ? new Date(task.due_date).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
           : "No Due Date";
       default:
         return "Other";
@@ -517,12 +580,12 @@ const Tasks: React.FC = () => {
       const assigneeNames =
         task.assignees && task.assignees.length > 0
           ? task.assignees
-              .map((assigneeId) => {
-                const user = users.find((u) => u.id === Number(assigneeId));
-                return user ? `${user.name} ${user.surname}`.trim() : null;
-              })
-              .filter(Boolean)
-              .join(", ") || "Unassigned"
+            .map((assigneeId) => {
+              const user = users.find((u) => u.id === Number(assigneeId));
+              return user ? `${user.name} ${user.surname}`.trim() : null;
+            })
+            .filter(Boolean)
+            .join(", ") || "Unassigned"
           : "Unassigned";
 
       // Look up creator name from creator_id
@@ -538,7 +601,11 @@ const Tasks: React.FC = () => {
         priority: task.priority || "-",
         assignees: assigneeNames,
         due_date: task.due_date
-          ? new Date(task.due_date).toLocaleDateString()
+          ? new Date(task.due_date).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
           : "-",
         creator: creatorName,
         categories: task.categories?.join(", ") || "-",
@@ -554,7 +621,13 @@ const Tasks: React.FC = () => {
       <Stack sx={vwhomeBody}>
         <PageHeader
           title="Task management"
-          description="This table includes a list of tasks assigned to team members. You can create and manage all tasks here."
+          description={
+            userRoleName === "Admin"
+              ? showMyTasksOnly
+                ? "Showing tasks you created or are assigned to. You can create and manage your tasks here."
+                : "Showing all tasks in your organization. You can create and manage tasks here."
+              : "Showing tasks you created or are assigned to. You can create and manage your tasks here."
+          }
           rightContent={
             <HelperIcon
               articlePath="ai-governance/task-management"
@@ -572,7 +645,21 @@ const Tasks: React.FC = () => {
         <TaskSummaryCards summary={summary} />
       </Box>
 
-      {/* Filter Controls */}
+      {/* Tab Navigation */}
+      <TabContext value={activeTab}>
+        <TabBar
+          tabs={[
+            { label: "List view", value: "list", icon: "List" },
+            { label: "Deadline view", value: "deadline", icon: "Calendar" },
+          ]}
+          activeTab={activeTab}
+          onChange={(_, newValue) => setActiveTab(newValue)}
+          dataJoyrideId="task-view-tabs"
+        />
+      </TabContext>
+
+      {/* Filter Controls - Only show for List view */}
+      {activeTab === "list" && (
       <Stack
         direction="row"
         justifyContent="space-between"
@@ -609,19 +696,37 @@ const Tasks: React.FC = () => {
             />
           </Box>
 
+          {/* My Tasks toggle - Admin only */}
+          {userRoleName === "Admin" && (
+            <Stack
+              sx={toggleContainerStyle}
+              data-joyride-id="my-tasks-toggle"
+            >
+              <Typography
+                component="span"
+                variant="body2"
+                color="text.secondary"
+                sx={toggleLabelStyle}
+              >
+                My tasks only
+              </Typography>
+              <Toggle
+                checked={showMyTasksOnly}
+                onChange={(_, checked) => setShowMyTasksOnly(checked)}
+              />
+            </Stack>
+          )}
+
           {/* Include archived toggle */}
           <Stack
-            direction="row"
-            alignItems="center"
-            gap={1}
+            sx={toggleContainerStyle}
             data-joyride-id="include-archived-toggle"
           >
             <Typography
               component="span"
               variant="body2"
               color="text.secondary"
-              fontWeight={500}
-              fontSize={"13px"}
+              sx={toggleLabelStyle}
             >
               Include archived
             </Typography>
@@ -659,6 +764,7 @@ const Tasks: React.FC = () => {
           />
         </Stack>
       </Stack>
+      )}
 
       {/* Content Area */}
       <Box>
@@ -674,7 +780,7 @@ const Tasks: React.FC = () => {
           </Box>
         )}
 
-        {!isLoading && !error && (
+        {!isLoading && !error && activeTab === "list" && (
           <GroupedTableView
             groupedData={groupedTasks}
             ungroupedData={filteredTasks}
@@ -690,6 +796,17 @@ const Tasks: React.FC = () => {
                     STATUS_DISPLAY_MAP[status as TaskStatus] || status;
                   return displayStatus;
                 })}
+                onPriorityChange={handleTaskPriorityChange}
+                priorityOptions={TASK_PRIORITY_OPTIONS.map((priority) => {
+                  const displayPriority =
+                    PRIORITY_DISPLAY_MAP[priority as TaskPriority] || priority;
+                  return {
+                    value: priority,
+                    label: displayPriority,
+                    icon: Flag,
+                    color: PRIORITY_COLOR_MAP[priority as TaskPriority],
+                  };
+                })}
                 isUpdateDisabled={isCreatingDisabled}
                 onRowClick={handleEditTask}
                 hidePagination={options?.hidePagination}
@@ -698,6 +815,37 @@ const Tasks: React.FC = () => {
                 flashRowId={flashRowId}
               />
             )}
+          />
+        )}
+
+        {!isLoading && !error && activeTab === "deadline" && (
+          <DeadlineView
+            tasks={filteredTasks}
+            users={users}
+            onArchive={handleArchiveTask}
+            onEdit={handleEditTask}
+            onStatusChange={handleTaskStatusChange}
+            statusOptions={TASK_STATUS_OPTIONS.map((status) => {
+              const displayStatus =
+                STATUS_DISPLAY_MAP[status as TaskStatus] || status;
+              return displayStatus;
+            })}
+            onPriorityChange={handleTaskPriorityChange}
+            priorityOptions={TASK_PRIORITY_OPTIONS.map((priority) => {
+              const displayPriority =
+                PRIORITY_DISPLAY_MAP[priority as TaskPriority] || priority;
+              return {
+                value: priority,
+                label: displayPriority,
+                icon: Flag,
+                color: PRIORITY_COLOR_MAP[priority as TaskPriority],
+              };
+            })}
+            isUpdateDisabled={isCreatingDisabled}
+            onRowClick={handleEditTask}
+            onRestore={handleRestoreTask}
+            onHardDelete={handleHardDeleteTask}
+            flashRowId={flashRowId}
           />
         )}
       </Box>

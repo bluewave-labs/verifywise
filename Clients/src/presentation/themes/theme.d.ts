@@ -1,4 +1,5 @@
-import {
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type {
   Palette,
   PaletteOptions,
   TypeBackground,
@@ -8,6 +9,7 @@ import {
   Shape,
   ShapeOptions,
 } from "@mui/material/styles";
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 declare module "@mui/material/styles" {
   interface Palette {

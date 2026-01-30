@@ -354,27 +354,25 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
     });
   };
 
-  // Regenerate last response
+  // Regenerate last response - sets up state for resend
   const handleRegenerate = useCallback(() => {
-    if (messages.length < 2) return;
+    if (messages.length < 2 || isLoading) return;
     
-    // Remove the last assistant message and resend the last user message
+    // Find the last user message
     const lastUserMessageIndex = messages.map(m => m.role).lastIndexOf("user");
     if (lastUserMessageIndex === -1) return;
     
     const lastUserMessage = messages[lastUserMessageIndex];
     
-    // Remove messages after and including last assistant response
-    setMessages(messages.slice(0, lastUserMessageIndex));
+    // Remove the last assistant message (keep everything up to and including the last user message)
+    const newMessages = messages.slice(0, lastUserMessageIndex + 1);
     
-    // Set input to resend
+    // Remove the user message too since we'll resend it
+    setMessages(newMessages.slice(0, -1));
+    
+    // Set input to the last user message content so user can resend
     setInputValue(lastUserMessage.content);
-    
-    // Trigger send after a brief delay to let state update
-    setTimeout(() => {
-      handleSend();
-    }, 100);
-  }, [messages, handleSend]);
+  }, [messages, isLoading]);
 
   // Clear conversation
   const handleClear = () => {
@@ -597,9 +595,15 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
                         {/* Render content - markdown for assistant, plain text for user */}
                         {msg.role === "assistant" ? (
                           <Box sx={{ "& > *:first-of-type": { mt: 0 } }}>
-                            <MarkdownRenderer content={msg.content} />
+                            {msg.content ? (
+                              <MarkdownRenderer content={msg.content} />
+                            ) : isStreaming && msg === messages[messages.length - 1] ? (
+                              <Typography variant="body2" color="#9ca3af">
+                                Thinking...
+                              </Typography>
+                            ) : null}
                             {/* Streaming cursor */}
-                            {isStreaming && msg === messages[messages.length - 1] && (
+                            {isStreaming && msg === messages[messages.length - 1] && msg.content && (
                               <Box
                                 component="span"
                                 sx={{
@@ -608,6 +612,7 @@ export default function PlaygroundPage({ orgId }: PlaygroundPageProps) {
                                   height: 16,
                                   bgcolor: "#13715B",
                                   ml: 0.5,
+                                  verticalAlign: "middle",
                                   animation: "blink 1s infinite",
                                   "@keyframes blink": {
                                     "0%, 50%": { opacity: 1 },

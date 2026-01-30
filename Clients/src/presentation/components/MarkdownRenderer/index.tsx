@@ -11,11 +11,9 @@
  * - Blockquotes
  */
 
-import { useState } from "react";
+import { useState, ReactNode, Component, ErrorInfo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Box, Typography, IconButton, Tooltip } from "@mui/material";
 import { Copy, Check } from "lucide-react";
 
@@ -23,18 +21,48 @@ interface MarkdownRendererProps {
   content: string;
 }
 
-// Custom code block component with copy button
+// Error boundary to catch rendering errors
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class MarkdownErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  ErrorBoundaryState
+> {
+  constructor(props: { children: ReactNode; fallback: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("MarkdownRenderer error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
+// Simple code block component with copy button
 const CodeBlock = ({
   language,
-  children,
+  code,
 }: {
   language: string | undefined;
-  children: string;
+  code: string;
 }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(children);
+    navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -71,7 +99,7 @@ const CodeBlock = ({
             letterSpacing: 0.5,
           }}
         >
-          {language || "text"}
+          {language || "code"}
         </Typography>
         <Tooltip title={copied ? "Copied!" : "Copy code"}>
           <IconButton
@@ -90,40 +118,60 @@ const CodeBlock = ({
       </Box>
 
       {/* Code content */}
-      <SyntaxHighlighter
-        language={language || "text"}
-        style={oneLight}
-        customStyle={{
-          margin: 0,
-          padding: "16px",
+      <Box
+        component="pre"
+        sx={{
+          m: 0,
+          p: 2,
+          bgcolor: "#fafafa",
+          overflow: "auto",
           fontSize: "13px",
           lineHeight: 1.6,
-          background: "#fafafa",
-        }}
-        codeTagProps={{
-          style: {
-            fontFamily: "'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace",
-          },
         }}
       >
-        {children}
-      </SyntaxHighlighter>
+        <Box
+          component="code"
+          sx={{
+            fontFamily: "'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace",
+            color: "#374151",
+          }}
+        >
+          {code}
+        </Box>
+      </Box>
     </Box>
   );
 };
 
-export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+// Helper to extract text from React children
+const getTextFromChildren = (children: ReactNode): string => {
+  if (typeof children === "string") return children;
+  if (typeof children === "number") return String(children);
+  if (Array.isArray(children)) {
+    return children.map(getTextFromChildren).join("");
+  }
+  if (children && typeof children === "object" && "props" in children) {
+    return getTextFromChildren((children as React.ReactElement).props.children);
+  }
+  return "";
+};
+
+function MarkdownContent({ content }: MarkdownRendererProps) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
         // Code blocks and inline code
-        code({ className, children, ...props }) {
+        code(props) {
+          const { className, children } = props;
           const match = /language-(\w+)/.exec(className || "");
-          const isInline = !match && !className;
-          const codeString = String(children).replace(/\n$/, "");
+          const codeString = getTextFromChildren(children).replace(/\n$/, "");
+          
+          // Check if this is a code block or inline code
+          const isCodeBlock = Boolean(match) || Boolean(className);
 
-          if (isInline) {
+          if (!isCodeBlock) {
+            // Inline code
             return (
               <Box
                 component="code"
@@ -136,14 +184,13 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
                   fontSize: "0.875em",
                   color: "#dc2626",
                 }}
-                {...props}
               >
                 {children}
               </Box>
             );
           }
 
-          return <CodeBlock language={match?.[1]} children={codeString} />;
+          return <CodeBlock language={match?.[1]} code={codeString} />;
         },
 
         // Paragraphs
@@ -371,7 +418,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
           );
         },
 
-        // Pre (wrapper for code blocks - we handle this in code component)
+        // Pre (wrapper for code blocks)
         pre({ children }) {
           return <>{children}</>;
         },
@@ -379,5 +426,33 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
     >
       {content}
     </ReactMarkdown>
+  );
+}
+
+export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+  // Handle empty content
+  if (!content) {
+    return null;
+  }
+
+  // Fallback for plain text if markdown parsing fails
+  const fallback = (
+    <Typography
+      variant="body2"
+      sx={{
+        color: "#374151",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        lineHeight: 1.7,
+      }}
+    >
+      {content}
+    </Typography>
+  );
+
+  return (
+    <MarkdownErrorBoundary fallback={fallback}>
+      <MarkdownContent content={content} />
+    </MarkdownErrorBoundary>
   );
 }

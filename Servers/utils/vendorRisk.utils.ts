@@ -214,11 +214,24 @@ export const getAllVendorRisksAllProjectsQuery = async (
   }
 
   const risks = await sequelize.query(
-    `SELECT 
+    `SELECT
       vr.id AS risk_id,
-      vr.*, 
-      v.*, 
-      vp.project_id AS project_id, 
+      vr.vendor_id,
+      vr.order_no,
+      vr.risk_description,
+      vr.impact_description,
+      vr.likelihood,
+      vr.risk_severity,
+      vr.action_plan,
+      vr.action_owner,
+      vr.risk_level,
+      vr.is_demo,
+      vr.created_at,
+      vr.updated_at,
+      vr.is_deleted,
+      vr.deleted_at,
+      v.vendor_name,
+      vp.project_id AS project_id,
       p.project_title AS project_title
     FROM "${tenant}".vendorRisks AS vr
     JOIN "${tenant}".vendors AS v ON vr.vendor_id = v.id
@@ -227,8 +240,6 @@ export const getAllVendorRisksAllProjectsQuery = async (
     ${whereClause}
     ORDER BY vp.project_id, v.id, vr.id`,
     {
-      mapToModel: true,
-      model: VendorRiskModel,
       type: QueryTypes.SELECT,
     }
   );

@@ -19,7 +19,7 @@ sentence-transformers==2.7.0
 huggingface-hub==0.33.4
 
 # Data handling
-datasets==4.0.0
+datasets==4.5.0
 pyarrow==23.0.0
 
 # Utilities

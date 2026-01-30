@@ -32,14 +32,46 @@ export const DASHBOARD_COLORS = {
   restricted: "#F97316",
   blocked: "#EF4444",
 
+  // Deadline/urgency colors
+  overdue: "#dc2626",
+  overdueBackground: "#fef2f2",
+  dueToday: "#ea580c",
+  dueTodayBackground: "#fff7ed",
+  dueThisWeek: "#ca8a04",
+  dueThisWeekBackground: "#fefce8",
+  dueNextWeek: "#2563eb",
+  dueNextWeekBackground: "#eff6ff",
+  dueThisMonth: "#7c3aed",
+  dueThisMonthBackground: "#f5f3ff",
+  dueLater: "#6b7280",
+  dueLaterBackground: "#f9fafb",
+  noDueDate: "#9ca3af",
+  noDueDateBackground: "#f3f4f6",
+
   // UI colors
   primary: "#13715B",
+  white: "#ffffff",
   textPrimary: "#1F2937",
   textSecondary: "#667085",
+  textMuted: "#374151",
   border: "#d0d5dd",
+  borderLight: "#f3f4f6",
+  backgroundWhite: "#ffffff",
   backgroundHover: "#E5E7EB",
   backgroundLight: "#F3F4F6",
+  backgroundSubtle: "#f9fafb",
   progressBackground: "#E5E7EB",
+} as const;
+
+// Deadline group color configurations for DeadlineView component
+export const DEADLINE_COLORS = {
+  overdue: { color: DASHBOARD_COLORS.overdue, bgColor: DASHBOARD_COLORS.overdueBackground },
+  today: { color: DASHBOARD_COLORS.dueToday, bgColor: DASHBOARD_COLORS.dueTodayBackground },
+  thisWeek: { color: DASHBOARD_COLORS.dueThisWeek, bgColor: DASHBOARD_COLORS.dueThisWeekBackground },
+  nextWeek: { color: DASHBOARD_COLORS.dueNextWeek, bgColor: DASHBOARD_COLORS.dueNextWeekBackground },
+  thisMonth: { color: DASHBOARD_COLORS.dueThisMonth, bgColor: DASHBOARD_COLORS.dueThisMonthBackground },
+  later: { color: DASHBOARD_COLORS.dueLater, bgColor: DASHBOARD_COLORS.dueLaterBackground },
+  noDueDate: { color: DASHBOARD_COLORS.noDueDate, bgColor: DASHBOARD_COLORS.noDueDateBackground },
 } as const;
 
 // Common text styles

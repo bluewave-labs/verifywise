@@ -187,7 +187,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
 
   // Save rowsPerPage to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem(TASKS_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
+    localStorage.setItem(TASKS_ROWS_PER_PAGE_KEY, String(rowsPerPage));
   }, [rowsPerPage]);
 
   // Save sorting state to localStorage whenever it changes
@@ -577,6 +577,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       flashRowId,
       priorityOptions,
       onPriorityChange,
+      theme,
     ]
   );
 

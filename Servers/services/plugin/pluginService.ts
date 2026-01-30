@@ -549,7 +549,17 @@ export class PluginService {
         },
       });
 
-      return response.data;
+      const data = response.data as PluginMarketplace;
+
+      // Transform relative iconUrl paths to full URLs
+      data.plugins = data.plugins.map((plugin) => {
+        if (plugin.iconUrl && !plugin.iconUrl.startsWith("http")) {
+          plugin.iconUrl = `${PLUGIN_MARKETPLACE_BASE_URL}/${plugin.iconUrl}`;
+        }
+        return plugin;
+      });
+
+      return data;
     } catch (error: any) {
       console.error("[PluginService] Error fetching remote marketplace:", error);
       throw new Error(`Failed to fetch remote marketplace: ${error.message}`);

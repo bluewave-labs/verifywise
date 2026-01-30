@@ -23,6 +23,8 @@ import {
   Users as UsersIcon,
   Clock as ClockIcon
 } from "lucide-react";
+import { PluginSlot } from "../../../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../../../domain/constants/pluginSlots";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [projectFrameworkId, setProjectFrameworkId] = useState<number | null>(
@@ -279,7 +281,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
             </>
           )}
         </Stack>
-        <Stack className="vw-project-overview-row" sx={rowStyle}>
+        <Stack className="vw-project-overview-frameworks" sx={{ width: "100%", gap: 10, mb: 10 }}>
           {project ? (
             <>
               {projectFrameworkId && (
@@ -308,17 +310,26 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
                   />
                 </Stack>
               )}
+              {/* Custom Framework Progress - Plugin Slot */}
+              <PluginSlot
+                id={PLUGIN_SLOTS.PROJECT_OVERVIEW_CUSTOM_FRAMEWORK}
+                slotProps={{
+                  project,
+                  columnStyle,
+                  projectRiskSection,
+                }}
+              />
             </>
           ) : (
             <>
               <CustomizableSkeleton
                 variant="rectangular"
-                width="45%"
+                width="100%"
                 height={100}
               />
               <CustomizableSkeleton
                 variant="rectangular"
-                width="45%"
+                width="100%"
                 height={100}
               />
             </>

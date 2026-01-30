@@ -5,6 +5,7 @@ import {
   PluginSlotId,
   PluginRenderType,
 } from "../../../domain/constants/pluginSlots";
+import { apiServices } from "../../../infrastructure/api/networkServices";
 
 interface PluginSlotProps {
   id: PluginSlotId;
@@ -82,6 +83,7 @@ export function PluginSlot({
             <loaded.Component
               {...loaded.props}
               {...slotProps}
+              apiServices={apiServices}
               onTriggerModal={slotProps.onTriggerModal || handleTriggerModal}
             />
           </Suspense>
@@ -117,6 +119,7 @@ export function PluginSlot({
               <loaded.Component
                 {...loaded.props}
                 {...slotProps}
+                apiServices={apiServices}
                 open={isOpen}
                 onClose={handleClose}
               />

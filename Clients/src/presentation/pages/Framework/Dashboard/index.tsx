@@ -14,6 +14,9 @@ import StatusBreakdownCard from "./StatusBreakdownCard";
 import ControlCategoriesCard from "./ControlCategoriesCard";
 import AnnexOverviewCard from "./AnnexOverviewCard";
 import NISTFunctionsOverviewCard from "./NISTFunctionsOverviewCard";
+import { PluginSlot } from "../../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
+import { usePluginRegistry } from "../../../../application/contexts/PluginRegistry.context";
 
 // localStorage keys for framework controls navigation
 const FRAMEWORK_SELECTED_KEY = "verifywise_framework_selected";
@@ -120,6 +123,7 @@ const FrameworkDashboard = ({
   filteredFrameworks,
 }: DashboardProps) => {
   const navigate = useNavigate();
+  const { getComponentsForSlot } = usePluginRegistry();
   const [loading, setLoading] = useState(true);
   const [frameworksData, setFrameworksData] = useState<FrameworkData[]>([]);
   const [activeTab, setActiveTab] = useState(() => {
@@ -430,7 +434,22 @@ const FrameworkDashboard = ({
     );
   }
 
+  // Check if plugin provides custom framework dashboard
+  const hasCustomFrameworkDashboard = getComponentsForSlot(PLUGIN_SLOTS.FRAMEWORK_DASHBOARD_CUSTOM).length > 0;
+
   if (frameworksData.length === 0) {
+    // If plugin provides custom framework dashboard, render it
+    if (hasCustomFrameworkDashboard) {
+      return (
+        <PluginSlot
+          id={PLUGIN_SLOTS.FRAMEWORK_DASHBOARD_CUSTOM}
+          slotProps={{
+            project: organizationalProject,
+          }}
+        />
+      );
+    }
+
     return (
       <Box
         sx={{
@@ -468,6 +487,47 @@ const FrameworkDashboard = ({
 
   return (
     <Stack spacing={0}>
+      {/* System Frameworks Section Header - only show if custom frameworks also exist */}
+      {hasCustomFrameworkDashboard && (
+        <Box
+          sx={{
+            mb: 3,
+            pb: 2,
+            borderBottom: "2px solid #13715B",
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+          }}
+        >
+          <Box
+            sx={{
+              width: 4,
+              height: 20,
+              backgroundColor: "#13715B",
+              borderRadius: 1,
+            }}
+          />
+          <Typography
+            sx={{
+              fontSize: 15,
+              fontWeight: 600,
+              color: "#101828",
+            }}
+          >
+            System Frameworks
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: 12,
+              color: "#667085",
+              ml: 1,
+            }}
+          >
+            ISO 42001, ISO 27001, NIST AI RMF
+          </Typography>
+        </Box>
+      )}
+
       {/* Framework Progress, Assignment Status, and Status Breakdown in a row */}
       <Box
         sx={{
@@ -563,6 +623,17 @@ const FrameworkDashboard = ({
       {/* Fallback when no frameworks */}
       {!hasISO27001 && !hasISO42001 && !hasNISTAIRMF && (
         <ControlCategoriesCard frameworksData={frameworksData} onNavigate={handleNavigateToControls} />
+      )}
+
+      {/* Custom Framework Dashboard - Plugin Slot */}
+      {/* Header is rendered inside the plugin component, so it only shows when there are custom frameworks */}
+      {hasCustomFrameworkDashboard && (
+        <PluginSlot
+          id={PLUGIN_SLOTS.FRAMEWORK_DASHBOARD_CUSTOM}
+          slotProps={{
+            project: organizationalProject,
+          }}
+        />
       )}
     </Stack>
   );

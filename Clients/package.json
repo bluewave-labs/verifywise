@@ -26,7 +26,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@mui/lab": "^7.0.1-beta.20",
     "@mui/material": "^7.3.6",
-    "@mui/styled-engine-sc": "^6.1.0",
+    "@mui/styled-engine-sc": "^7.3.7",
     "@mui/x-charts": "^8.23.0",
     "@mui/x-date-pickers": "^8.23.0",
     "@platejs/autoformat": "^52.0.11",

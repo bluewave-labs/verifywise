@@ -98,7 +98,7 @@ const useProjectProgress = (
             setAnnexesProgressData
           );
         }
-      } catch (error) {
+      } catch (_error) {
         // Optionally handle error globally
       }
     };

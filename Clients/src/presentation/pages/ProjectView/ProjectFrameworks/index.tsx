@@ -270,7 +270,9 @@ const ProjectFrameworks = ({
               const nextFramework = project.framework?.find(
                 (f) => Number(f.framework_id) !== frameworkId
               );
-              handleFrameworkChange(nextFramework?.framework_id!);
+              if (nextFramework?.framework_id) {
+                handleFrameworkChange(nextFramework.framework_id);
+              }
             } else triggerRefresh(true);
           }
           refreshFilteredFrameworks();

@@ -164,7 +164,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
           visible: true,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       setAlert({
         variant: "error",
         body: "An unexpected error occurred. Please try again.",
@@ -201,7 +201,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
           visible: true,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       setAlert({
         variant: "error",
         body: "An unexpected error occurred. Please try again.",

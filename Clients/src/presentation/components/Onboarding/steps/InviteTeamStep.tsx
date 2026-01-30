@@ -41,7 +41,7 @@ const InviteTeamStep: React.FC<OnboardingStepProps> = () => {
 
     if (filledInvites.length > 0 && emptyInvites.length > 1) {
       // Keep filled invites and only one empty row
-      const finalInvites: TeamMemberInvite[] = [...filledInvites, { email: "", role: "editor" as "editor" }];
+      const finalInvites: TeamMemberInvite[] = [...filledInvites, { email: "", role: "editor" as const }];
       setInvites(finalInvites);
     } else {
       setInvites(newInvites);

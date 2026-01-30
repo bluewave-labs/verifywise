@@ -12,6 +12,13 @@ interface ExportRow {
   [key: string]: any;
 }
 
+const sanitizeFilename = (filename: string): string => {
+  return filename
+    .replace(/[<>:"/\\|?*]/g, '_')
+    .replace(/\.+/g, '.')
+    .slice(0, 200);
+};
+
 /**
  * Export table data to CSV
  */
@@ -34,7 +41,7 @@ export const exportToCSV = (
 
   const csv = [headers, ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  saveAs(blob, `${filename}.csv`);
+  saveAs(blob, `${sanitizeFilename(filename)}.csv`);
 };
 
 /**
@@ -67,7 +74,7 @@ export const exportToExcel = (
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
 
   // Write and trigger download
-  XLSX.writeFile(wb, `${filename}.xlsx`);
+  XLSX.writeFile(wb, `${sanitizeFilename(filename)}.xlsx`);
 };
 
 /**
@@ -114,7 +121,7 @@ export const exportToPDF = (
       margin: { top: title ? 25 : 10 },
     });
 
-    doc.save(`${filename}.pdf`);
+    doc.save(`${sanitizeFilename(filename)}.pdf`);
   } catch (error) {
     console.error('Error generating PDF:', error);
     alert('Failed to generate PDF. Please try again or use CSV/Excel export instead.');
@@ -174,7 +181,11 @@ export const printTable = (
       printWindow.onload = () => {
         printWindow.print();
       };
+      printWindow.onafterprint = () => URL.revokeObjectURL(blobUrl);
+      // Fallback cleanup after timeout
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
     } else {
+      URL.revokeObjectURL(blobUrl);
       alert('Please allow popups to print the table.');
     }
   } catch (error) {

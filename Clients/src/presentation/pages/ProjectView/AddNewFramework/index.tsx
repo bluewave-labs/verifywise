@@ -103,7 +103,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
           visible: true,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       logEngine({
         type: "error",
         message: "An error occurred while adding the framework.",
@@ -144,7 +144,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
           visible: true,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       logEngine({
         type: "error",
         message: "An error occurred while removing the framework.",

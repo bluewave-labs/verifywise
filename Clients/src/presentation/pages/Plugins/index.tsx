@@ -1,18 +1,35 @@
 import React, { useState, useCallback, useMemo, Suspense } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { Box, Stack, TextField, InputAdornment, Chip } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { Search as SearchIcon, Home, Puzzle } from "lucide-react";
+import { Home, Puzzle } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PluginCard from "../../components/PluginCard";
+import { SearchBox } from "../../components/Search";
 import { usePlugins } from "../../../application/hooks/usePlugins";
 import { usePluginInstallation } from "../../../application/hooks/usePluginInstallation";
 import { Plugin, PluginInstallationStatus } from "../../../domain/types/plugins";
 import Alert from "../../components/Alert";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { IBreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
+import Chip from "../../components/Chip";
+import { CATEGORIES } from "./categories";
+import {
+  categorySidebar,
+  categoryMenuItem,
+  categoryMenuText,
+  categoryHeader,
+  categoryHeaderTitle,
+  categoryHeaderDescription,
+  pluginCardsGrid,
+  pluginCardWrapper,
+  pluginCardWrapperThreeColumn,
+  emptyStateContainer,
+  emptyStateText,
+  tabPanelStyle,
+} from "./style";
 
 const Plugins: React.FC = () => {
   const location = useLocation();
@@ -22,10 +39,10 @@ const Plugins: React.FC = () => {
   // Determine initial tab from URL
   const initialTab = location.pathname.includes("/my-plugins") ? "my-plugins" : "marketplace";
 
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState(initialTab);
-  const { plugins, loading, refetch } = usePlugins(selectedCategory);
+  const { plugins, loading, refetch } = usePlugins(selectedCategory === "all" ? undefined : selectedCategory);
   const { uninstall, uninstalling } = usePluginInstallation();
   const [toast, setToast] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -37,7 +54,6 @@ const Plugins: React.FC = () => {
 
   // Refetch plugins when navigating back to this page
   React.useEffect(() => {
-    // Refetch plugins whenever the location changes to the plugins page
     if (location.pathname.includes('/plugins') && !location.pathname.includes('/manage')) {
       refetch();
     }
@@ -65,6 +81,12 @@ const Plugins: React.FC = () => {
     []
   );
 
+  // Get current category config
+  const currentCategory = useMemo(
+    () => CATEGORIES.find((c) => c.id === selectedCategory) || CATEGORIES[0],
+    [selectedCategory]
+  );
+
   // Filter plugins by search query
   const filteredPlugins = useMemo(() => {
     if (!searchQuery) return plugins;
@@ -83,16 +105,6 @@ const Plugins: React.FC = () => {
     [plugins]
   );
 
-  // Plugin categories
-  const categories = [
-    { id: "all", name: "All Plugins" },
-    { id: "communication", name: "Communication" },
-    { id: "ml_ops", name: "ML Operations" },
-    { id: "version_control", name: "Version Control" },
-    { id: "monitoring", name: "Monitoring" },
-    { id: "security", name: "Security" },
-  ];
-
   // Handle plugin uninstallation
   const handleUninstall = useCallback(
     async (installationId: number, pluginKey: string) => {
@@ -103,12 +115,11 @@ const Plugins: React.FC = () => {
           body: "Plugin uninstalled successfully!",
           visible: true,
         });
-        // Refetch plugins to update the list
         refetch();
-      } catch (err: any) {
+      } catch (err: unknown) {
         setToast({
           variant: "error",
-          body: err.message || "Failed to uninstall plugin. Please try again.",
+          body: err instanceof Error ? err.message : "Failed to uninstall plugin. Please try again.",
           visible: true,
         });
       }
@@ -127,8 +138,6 @@ const Plugins: React.FC = () => {
         });
         return;
       }
-
-      // Navigate to plugin management
       navigate(`/plugins/${plugin.key}/manage`);
     },
     [navigate]
@@ -169,7 +178,7 @@ const Plugins: React.FC = () => {
             tabs={[
               { label: "Marketplace", value: "marketplace", icon: "Store" },
               {
-                label: "My Plugins",
+                label: "My plugins",
                 value: "my-plugins",
                 icon: "Package",
                 count: installedPlugins.length,
@@ -181,140 +190,126 @@ const Plugins: React.FC = () => {
         </Box>
 
         {/* Marketplace Tab */}
-        <TabPanel value="marketplace" sx={{ p: 0, pt: 2 }}>
-          <Stack gap={2} sx={{ px: 2 }}>
-            {/* Search Bar */}
-            <TextField
-              fullWidth
-              placeholder="Search plugins by name, description, or tags..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon size={20} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                maxWidth: 600,
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: "white",
-                },
-              }}
-            />
-
-            {/* Category Filter */}
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              {categories.map((category) => {
-                const isSelected =
-                  (category.id === "all" && !selectedCategory) ||
-                  selectedCategory === category.id;
-                return (
-                  <Chip
-                    key={category.id}
-                    label={category.name}
-                    onClick={() =>
-                      setSelectedCategory(
-                        category.id === "all" ? undefined : category.id
-                      )
-                    }
-                    sx={{
-                      cursor: "pointer",
-                      borderRadius: "4px",
-                      fontSize: "13px",
-                      fontWeight: isSelected ? 500 : 400,
-                      backgroundColor: isSelected
-                        ? "rgba(19, 113, 91, 0.1)"
-                        : "transparent",
-                      color: isSelected ? "#13715B" : "#344054",
-                      border: `1px solid ${isSelected ? "#13715B" : "#d0d5dd"}`,
-                      "&:hover": {
-                        backgroundColor: isSelected
-                          ? "rgba(19, 113, 91, 0.15)"
-                          : "rgba(0, 0, 0, 0.04)",
-                        borderColor: isSelected ? "#13715B" : "#344054",
-                      },
-                    }}
-                  />
-                );
-              })}
+        <TabPanel value="marketplace" sx={tabPanelStyle}>
+          <Stack direction="row" gap="16px">
+            {/* Left Sidebar - Category Menu */}
+            <Box sx={categorySidebar}>
+              <Stack gap={0.5}>
+                {CATEGORIES.map((category) => {
+                  const Icon = category.icon;
+                  const isSelected = selectedCategory === category.id;
+                  return (
+                    <Box
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
+                      sx={categoryMenuItem(isSelected)}
+                    >
+                      <Icon
+                        size={16}
+                        color={isSelected ? "#13715B" : "#667085"}
+                        strokeWidth={1.5}
+                      />
+                      <Typography sx={categoryMenuText(isSelected)}>
+                        {category.name}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Stack>
             </Box>
 
-            {/* Plugin Cards Grid */}
-            {loading ? (
-              <Box sx={{ textAlign: "center", py: 4 }}>Loading plugins...</Box>
-            ) : filteredPlugins.length === 0 ? (
-              <Box sx={{ textAlign: "center", py: 4 }}>
-                No plugins found matching your criteria
-              </Box>
-            ) : (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-                {filteredPlugins.map((plugin) => (
-                  <Box
-                    key={plugin.key}
-                    sx={{
-                      width: {
-                        xs: "100%",
-                        md: "calc(50% - 8px)",
-                        lg: "calc(33.333% - 11px)",
-                      },
-                    }}
-                  >
-                    <PluginCard
-                      plugin={plugin}
-                      onUninstall={handleUninstall}
-                      onManage={handleManage}
-                      loading={
-                        !!(plugin.installationId &&
-                          uninstalling === plugin.installationId)
-                      }
-                    />
+            {/* Right Content Area */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Stack gap="16px">
+                {/* Search Bar */}
+                <SearchBox
+                  placeholder="Search plugins by name, description, or tags..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  sx={{ maxWidth: 400 }}
+                />
+
+                {/* Category Header */}
+                <Box sx={categoryHeader}>
+                  <Stack direction="row" alignItems="center" gap={1.5} mb={1}>
+                    {React.createElement(currentCategory.icon, {
+                      size: 20,
+                      color: "#13715B",
+                      strokeWidth: 1.5,
+                    })}
+                    <Typography sx={categoryHeaderTitle}>
+                      {currentCategory.name}
+                    </Typography>
+                  </Stack>
+                  <Typography sx={categoryHeaderDescription}>
+                    {currentCategory.description}
+                  </Typography>
+                </Box>
+
+                {/* Plugin Cards Grid */}
+                {loading ? (
+                  <Box sx={emptyStateContainer}>
+                    <Typography sx={emptyStateText}>
+                      Loading plugins...
+                    </Typography>
                   </Box>
-                ))}
-              </Box>
-            )}
+                ) : filteredPlugins.length === 0 ? (
+                  <Box sx={emptyStateContainer}>
+                    <Typography sx={emptyStateText}>
+                      No plugins found matching your criteria
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box sx={pluginCardsGrid}>
+                    {filteredPlugins.map((plugin) => (
+                      <Box key={plugin.key} sx={pluginCardWrapper}>
+                        <PluginCard
+                          plugin={plugin}
+                          onUninstall={handleUninstall}
+                          onManage={handleManage}
+                          loading={
+                            !!(plugin.installationId &&
+                              uninstalling === plugin.installationId)
+                          }
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Stack>
+            </Box>
           </Stack>
         </TabPanel>
 
         {/* My Plugins Tab */}
-        <TabPanel value="my-plugins" sx={{ p: 0, pt: 2 }}>
+        <TabPanel value="my-plugins" sx={tabPanelStyle}>
           <Stack gap={2} sx={{ px: 2 }}>
             {/* Summary Chip */}
             <Box>
               <Chip
                 label={`${installedPlugins.length} plugin${installedPlugins.length !== 1 ? "s" : ""} installed`}
-                sx={{
-                  borderRadius: "4px",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  backgroundColor: "rgba(19, 113, 91, 0.1)",
-                  color: "#13715B",
-                  border: "1px solid #13715B",
-                }}
+                backgroundColor="rgba(19, 113, 91, 0.1)"
+                textColor="#13715B"
               />
             </Box>
 
             {/* Plugin Cards Grid */}
             {loading ? (
-              <Box sx={{ textAlign: "center", py: 4 }}>Loading plugins...</Box>
+              <Box sx={emptyStateContainer}>
+                <Typography sx={emptyStateText}>
+                  Loading plugins...
+                </Typography>
+              </Box>
             ) : installedPlugins.length === 0 ? (
-              <Box sx={{ textAlign: "center", py: 4 }}>
-                No plugins installed yet. Visit the marketplace to install plugins.
+              <Box sx={emptyStateContainer}>
+                <Typography sx={emptyStateText}>
+                  No plugins installed yet. Visit the marketplace to install plugins.
+                </Typography>
               </Box>
             ) : (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+              <Box sx={pluginCardsGrid}>
                 {installedPlugins.map((plugin) => (
-                  <Box
-                    key={plugin.key}
-                    sx={{
-                      width: {
-                        xs: "100%",
-                        md: "calc(50% - 8px)",
-                        lg: "calc(33.333% - 11px)",
-                      },
-                    }}
-                  >
+                  <Box key={plugin.key} sx={pluginCardWrapperThreeColumn}>
                     <PluginCard
                       plugin={plugin}
                       onUninstall={handleUninstall}

@@ -62,7 +62,7 @@ const CustomSelect: React.FC<CustomSelectProps> = React.memo(({
     }
   };
 
-  const selectItems = options.map(option => {
+  const selectItems = (options ?? []).map(option => {
     if (typeof option === 'string') {
       return {
         _id: option,
@@ -84,7 +84,7 @@ const CustomSelect: React.FC<CustomSelectProps> = React.memo(({
       value={currentValue}
       items={selectItems}
       onChange={handleChange}
-      getOptionValue={(item: any) => item._id}
+      getOptionValue={(item) => item._id}
       disabled={disabled || isUpdating}
       sx={{
         minWidth: size === "small" ? 120 : 140,

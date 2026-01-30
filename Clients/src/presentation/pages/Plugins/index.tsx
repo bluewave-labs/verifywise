@@ -204,11 +204,24 @@ const Plugins: React.FC = () => {
                       onClick={() => setSelectedCategory(category.id)}
                       sx={categoryMenuItem(isSelected)}
                     >
-                      <Icon
-                        size={16}
-                        color={isSelected ? "#13715B" : "#667085"}
-                        strokeWidth={1.5}
-                      />
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "16px",
+                          "& svg": {
+                            color: isSelected ? "#13715B !important" : "#667085 !important",
+                            stroke: isSelected ? "#13715B !important" : "#667085 !important",
+                            transition: "color 0.2s ease, stroke 0.2s ease",
+                          },
+                          "& svg path": {
+                            stroke: isSelected ? "#13715B !important" : "#667085 !important",
+                          },
+                        }}
+                      >
+                        <Icon size={16} strokeWidth={1.5} />
+                      </Box>
                       <Typography sx={categoryMenuText(isSelected)}>
                         {category.name}
                       </Typography>

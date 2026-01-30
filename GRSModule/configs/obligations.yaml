@@ -1,0 +1,22 @@
+version: grs_obligations_v0.1
+obligations:
+  - obligation_id: obl_001
+    source:
+      source_type: internal_policy
+      source_ref: "Internal Privacy Policy v3.2"
+      excerpt_id: "priv_3_2_7"
+    must:
+      - "Escalate cross-border personal data transfers to compliance review"
+    must_not:
+      - "Authorize cross-border personal data transfers"
+      - "Provide legal advice"
+
+  - obligation_id: obl_002
+    source:
+      source_type: eu_ai_act
+      source_ref: "EU AI Act"
+      excerpt_id: "article_14_human_oversight"
+    must:
+      - "Signal the need for human review for high-impact decisions"
+    must_not:
+      - "Act as the final decision-maker in regulated workflows"

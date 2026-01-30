@@ -283,7 +283,7 @@ async function seedToDatabase(incidents: Omit<IAIIncidentManagement, 'id' | 'cre
       });
 
       if (response.ok) {
-        const result = await response.json();
+        await response.json();
         successCount++;
         console.log(`✅ Created: ${incident.incident_id} - ${incident.ai_project}`);
       } else {

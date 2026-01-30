@@ -34,7 +34,7 @@ jobs:
 
       # Build Frontend image
       - name: Build Clients image (for scanning)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Clients/Dockerfile
@@ -47,7 +47,7 @@ jobs:
             VITE_APP_VERSION=${{ env.TAG }}
 
       - name: Scan Frontend image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: 'verifywise-frontend:scan'
           format: 'sarif'
@@ -62,7 +62,7 @@ jobs:
           category: 'container-frontend'
 
       - name: Build and push Clients image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Clients/Dockerfile
@@ -77,7 +77,7 @@ jobs:
 
       # Build Backend image
       - name: Build Servers image (for scanning)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./Servers
           platforms: linux/amd64
@@ -86,7 +86,7 @@ jobs:
           tags: verifywise-backend:scan
 
       - name: Scan Backend image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: 'verifywise-backend:scan'
           format: 'sarif'
@@ -101,7 +101,7 @@ jobs:
           category: 'container-backend'
 
       - name: Build and push Servers image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./Servers
           platforms: linux/amd64,linux/arm64
@@ -125,7 +125,7 @@ jobs:
 
       # Build EvalServer image
       - name: Build EvalServer image (for scanning)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./EvalServer/Dockerfile
@@ -135,7 +135,7 @@ jobs:
           tags: verifywise-eval-server:scan
 
       - name: Scan EvalServer image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: 'verifywise-eval-server:scan'
           format: 'sarif'
@@ -150,7 +150,7 @@ jobs:
           category: 'container-evalserver'
 
       - name: Build and push EvalServer image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./EvalServer/Dockerfile

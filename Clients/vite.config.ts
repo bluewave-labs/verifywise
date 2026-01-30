@@ -53,6 +53,24 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
+      extension: [".ts", ".tsx"],
+      exclude: [
+        "src/test/**",
+        "src/mocks/**",
+        "src/**/*.d.ts",
+        "vite.config.ts",
+        "**/node_modules/**",
+        "src/**/**/tests/**",
+      ],
+      // all: false,
+      thresholds: {
+        global: {
+          statements: 80,
+          branches: 80,
+          functions: 80,
+          lines: 80,
+        },
+      }
     },
   },
 });

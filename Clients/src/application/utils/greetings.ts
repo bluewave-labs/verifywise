@@ -6,6 +6,13 @@ interface GreetingResult {
   greetingText: string;
 }
 
+const sanitizeDisplayName = (name: string): string => {
+  return name
+    .trim()
+    .slice(0, 50)
+    .replace(/[<>]/g, '');
+};
+
 /**
  * Get special day greeting based on date
  */
@@ -80,11 +87,11 @@ export const getTimeBasedGreeting = (
 
   let displayName = "there";
   if (userToken?.name) {
-    displayName = userToken.name;
+    displayName = sanitizeDisplayName(userToken.name);
   } else if (userName) {
-    displayName = userName;
+    displayName = sanitizeDisplayName(userName);
   } else if (userToken?.email) {
-    displayName = userToken.email.split("@")[0];
+    displayName = sanitizeDisplayName(userToken.email.split("@")[0]);
   }
 
   const specialDay = getSpecialDayGreeting(month, day, displayName);

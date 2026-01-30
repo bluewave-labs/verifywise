@@ -17,15 +17,7 @@ import {
   getCategories,
   updatePluginConfiguration,
   testPluginConnection,
-  connectOAuthWorkspace,
-  getOAuthWorkspaces,
-  updateOAuthWorkspace,
-  disconnectOAuthWorkspace,
-  executePluginMethod,
-  getMLflowModels,
-  syncMLflowModels,
-  getRiskImportTemplate,
-  importRisks,
+  forwardToPlugin,
 } from "../controllers/plugin.ctrl";
 
 // Rate limiter for plugin installation (prevent abuse)
@@ -50,25 +42,6 @@ router.delete("/installations/:id", authenticateJWT, uninstallPlugin);
 router.get("/installations", authenticateJWT, getInstalledPlugins);
 router.put("/installations/:id/configuration", authenticateJWT, updatePluginConfiguration);
 router.post("/:key/test-connection", authenticateJWT, testPluginConnection);
-
-// Generic plugin method execution route
-// Allows calling any exported function from a plugin without hardcoded routes
-// Example: POST /api/plugins/azure-ai-foundry/execute/syncModels
-router.post("/:key/execute/:method", authenticateJWT, executePluginMethod);
-
-// OAuth workspace management routes (for Slack plugin)
-router.post("/:key/oauth/connect", authenticateJWT, connectOAuthWorkspace);
-router.get("/:key/oauth/workspaces", authenticateJWT, getOAuthWorkspaces);
-router.patch("/:key/oauth/workspaces/:webhookId", authenticateJWT, updateOAuthWorkspace);
-router.delete("/:key/oauth/workspaces/:webhookId", authenticateJWT, disconnectOAuthWorkspace);
-
-// MLflow plugin routes
-router.get("/:key/models", authenticateJWT, getMLflowModels);
-router.post("/:key/sync", authenticateJWT, syncMLflowModels);
-
-// Risk Import plugin routes
-router.get("/:key/template", authenticateJWT, getRiskImportTemplate);
-router.post("/:key/import", authenticateJWT, importRisks);
 
 // Serve plugin UI bundles from temp/plugins/{key}/ui/dist/
 // If bundle doesn't exist locally, download it from the marketplace
@@ -106,5 +79,25 @@ router.get("/:key/ui/dist/:filename", async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(bundlePath);
 });
+
+// ============================================================================
+// GENERIC PLUGIN ROUTER - Forward all requests to plugin-defined routes
+// ============================================================================
+// This catch-all route forwards requests to plugin-defined route handlers.
+// Plugins export a `router` object that maps route patterns to handler functions.
+//
+// Route pattern: /:key/*
+// Examples:
+//   GET    /api/plugins/mlflow/models              -> plugin's "GET /models" handler
+//   POST   /api/plugins/mlflow/sync                -> plugin's "POST /sync" handler
+//   GET    /api/plugins/slack/oauth/workspaces     -> plugin's "GET /oauth/workspaces" handler
+//   DELETE /api/plugins/slack/oauth/workspaces/123 -> plugin's "DELETE /oauth/workspaces/:id" handler
+//   GET    /api/plugins/risk-import/template       -> plugin's "GET /template" handler
+//   POST   /api/plugins/risk-import/import         -> plugin's "POST /import" handler
+//
+// NOTE: This catch-all MUST be last to allow specific routes above to match first.
+// Plugins define their own routes - no hardcoded plugin-specific routes needed here!
+// ============================================================================
+router.all("/:key/*", authenticateJWT, forwardToPlugin);
 
 export default router;

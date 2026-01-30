@@ -32,6 +32,7 @@ import {
   Users,
   Building2,
   Key,
+  WorkflowIcon,
 } from "lucide-react";
 
 /**
@@ -182,6 +183,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/framework/linked-models": () => React.createElement(Link, { size: 14, strokeWidth: 1.5 }),
   "/framework/controls": () => React.createElement(FileCode, { size: 14, strokeWidth: 1.5 }),
   "/framework/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+
+  //ApprovalWorkflow
+  "/approval-workflows": () => React.createElement(WorkflowIcon, { size: 14, strokeWidth: 1.5 }),
 };
 
 /**

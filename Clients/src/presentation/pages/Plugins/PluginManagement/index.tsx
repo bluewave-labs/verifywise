@@ -368,8 +368,8 @@ const PluginManagement: React.FC = () => {
         <Stack gap={2}>
           {/* Plugin Info Card */}
           <Card sx={cardStyles.base(theme)}>
-            <CardContent sx={{ p: 3 }}>
-              <Stack spacing={3}>
+            <CardContent sx={{ p: "16px" }}>
+              <Stack spacing="16px">
                 {/* Header with Icon */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   {plugin.iconUrl ? (
@@ -414,11 +414,9 @@ const PluginManagement: React.FC = () => {
                   </Box>
                 </Box>
 
-                <Divider />
-
                 {/* Description */}
                 <Box>
-                  <Typography variant="subtitle2" fontWeight={600} fontSize={14} mb={1}>
+                  <Typography variant="subtitle2" fontWeight={600} fontSize={14} mb="8px">
                     About
                   </Typography>
                   <Typography variant="body2" color="text.secondary" fontSize={13}>
@@ -428,37 +426,54 @@ const PluginManagement: React.FC = () => {
 
                 {/* Features */}
                 {plugin.features && plugin.features.length > 0 && (
-                  <>
-                    <Divider />
-                    <Box>
-                      <Typography variant="subtitle2" fontWeight={600} fontSize={14} mb={2}>
+                  <Box>
+                      <Typography variant="subtitle2" fontWeight={600} fontSize={14} mb="8px">
                         Features
                       </Typography>
-                      <Stack spacing={1.5}>
+                      <Stack spacing="8px">
                         {plugin.features.map((feature, index) => (
-                          <Box key={index} sx={{ display: "flex", gap: 1 }}>
-                            <CheckIcon size={16} color="#13715B" style={{ marginTop: 2, flexShrink: 0 }} />
+                          <Box
+                            key={index}
+                            sx={{
+                              display: "flex",
+                              gap: "12px",
+                              padding: "12px",
+                              backgroundColor: "#f9fafb",
+                              borderRadius: "6px",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                backgroundColor: "#E8F5E9",
+                                borderRadius: "6px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                              }}
+                            >
+                              <CheckIcon size={16} color="#13715B" />
+                            </Box>
                             <Box>
                               <Typography variant="body2" fontWeight={500} fontSize={13}>
                                 {feature.name}
                               </Typography>
-                              <Typography variant="caption" color="text.secondary" fontSize={12}>
+                              <Typography variant="caption" color="text.secondary" fontSize={12} sx={{ mt: "2px", display: "block" }}>
                                 {feature.description}
                               </Typography>
                             </Box>
                           </Box>
                         ))}
                       </Stack>
-                    </Box>
-                  </>
+                  </Box>
                 )}
 
                 {/* Tags */}
                 {plugin.tags && plugin.tags.length > 0 && (
-                  <>
-                    <Divider />
-                    <Box>
-                      <Typography variant="subtitle2" fontWeight={600} fontSize={14} mb={1}>
+                  <Box>
+                      <Typography variant="subtitle2" fontWeight={600} fontSize={14} mb="8px">
                         Tags
                       </Typography>
                       <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
@@ -473,12 +488,8 @@ const PluginManagement: React.FC = () => {
                           />
                         ))}
                       </Box>
-                    </Box>
-                  </>
+                  </Box>
                 )}
-
-                {/* Actions */}
-                <Divider />
 
                 {/* Install Button - Show when plugin is not installed */}
                 {(!plugin.installationStatus || plugin.installationStatus === PluginInstallationStatus.UNINSTALLED || plugin.installationStatus === PluginInstallationStatus.FAILED) && (
@@ -529,7 +540,7 @@ const PluginManagement: React.FC = () => {
                         ? "Installing..."
                         : plugin.installationStatus === PluginInstallationStatus.FAILED
                         ? "Retry Installation"
-                        : "Install Plugin"}
+                        : "Install plugin"}
                     </Button>
                   </Box>
                 )}
@@ -560,7 +571,7 @@ const PluginManagement: React.FC = () => {
                   {/* Configuration Header */}
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                     <SettingsIcon size={20} color="#13715B" />
-                    <Typography variant="h6" fontWeight={600} fontSize={16}>
+                    <Typography variant="h6" fontWeight={600} fontSize={15}>
                       Configuration
                     </Typography>
                   </Box>

@@ -49,7 +49,7 @@ export const categoryHeader: SxProps<Theme> = {
 };
 
 export const categoryHeaderTitle: SxProps<Theme> = {
-  fontSize: "16px",
+  fontSize: "15px",
   fontWeight: 600,
   color: "#101828",
 };

@@ -15,6 +15,7 @@ import Alert from "../../components/Alert";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { IBreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
 import Chip from "../../components/Chip";
+import EmptyState from "../../components/EmptyState";
 import { CATEGORIES } from "./categories";
 import {
   categorySidebar,
@@ -297,14 +298,16 @@ const Plugins: React.FC = () => {
         {/* My Plugins Tab */}
         <TabPanel value="my-plugins" sx={tabPanelStyle}>
           <Stack gap={2} sx={{ px: 2 }}>
-            {/* Summary Chip */}
-            <Box>
-              <Chip
-                label={`${installedPlugins.length} plugin${installedPlugins.length !== 1 ? "s" : ""} installed`}
-                backgroundColor="rgba(19, 113, 91, 0.1)"
-                textColor="#13715B"
-              />
-            </Box>
+            {/* Summary Chip - only show when there are installed plugins */}
+            {installedPlugins.length > 0 && (
+              <Box>
+                <Chip
+                  label={`${installedPlugins.length} plugin${installedPlugins.length !== 1 ? "s" : ""} installed`}
+                  backgroundColor="rgba(19, 113, 91, 0.1)"
+                  textColor="#13715B"
+                />
+              </Box>
+            )}
 
             {/* Plugin Cards Grid */}
             {loading ? (
@@ -314,11 +317,10 @@ const Plugins: React.FC = () => {
                 </Typography>
               </Box>
             ) : installedPlugins.length === 0 ? (
-              <Box sx={emptyStateContainer}>
-                <Typography sx={emptyStateText}>
-                  No plugins installed yet. Visit the marketplace to install plugins.
-                </Typography>
-              </Box>
+              <EmptyState
+                message="No plugins installed yet. Visit the marketplace to install plugins."
+                showBorder={true}
+              />
             ) : (
               <Box sx={pluginCardsGrid}>
                 {installedPlugins.map((plugin) => (

@@ -133,7 +133,7 @@ export async function getAllRoles(_req: Request, res: Response): Promise<any> {
  * }
  */
 export async function getRoleById(req: Request, res: Response): Promise<any> {
-  const roleId = parseInt(req.params.id);
+  const roleId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getRoleById for ID ${roleId}`,
@@ -324,7 +324,7 @@ export async function updateRoleById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const roleId = parseInt(req.params.id);
+  const roleId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting updateRoleById for ID ${roleId}`,
@@ -421,7 +421,7 @@ export async function deleteRoleById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const roleId = parseInt(req.params.id);
+  const roleId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting deleteRoleById for ID ${roleId}`,

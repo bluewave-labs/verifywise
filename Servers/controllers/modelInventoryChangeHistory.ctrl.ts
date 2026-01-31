@@ -10,9 +10,9 @@ export async function getModelInventoryChangeHistoryById(
   req: Request,
   res: Response
 ) {
-  const modelInventoryId = parseInt(req.params.id);
-  const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
-  const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+  const modelInventoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+    const limit = req.query.limit ? parseInt(Array.isArray(req.query.limit) ? String(req.query.limit[0]) : String(req.query.limit), 10) : 100;
+    const offset = req.query.offset ? parseInt(Array.isArray(req.query.offset) ? String(req.query.offset[0]) : String(req.query.offset), 10) : 0;
 
   logStructured(
     "processing",

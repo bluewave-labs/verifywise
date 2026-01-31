@@ -196,7 +196,7 @@ export async function updateUserPreferences(req: Request, res: Response) {
 
   const transaction = await sequelize.transaction();
   const preferenceData = req.body;
-  const userId = parseInt(req.params.userId);
+  const userId = parseInt(Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId);
 
   logStructured(
     "processing",

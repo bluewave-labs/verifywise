@@ -48,7 +48,7 @@ export async function getPluginByKey(
   req: Request,
   res: Response
 ): Promise<any> {
-  const pluginKey = req.params.key;
+  const pluginKey = Array.isArray(req.params.key) ? req.params.key[0] : req.params.key;
   const functionName = "getPluginByKey";
   logStructured(
     "processing",
@@ -176,7 +176,7 @@ export async function uninstallPlugin(
   req: Request,
   res: Response
 ): Promise<any> {
-  const installationId = parseInt(req.params.id);
+  const installationId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const userId = (req as any).userId;
   const organizationId = (req as any).organizationId;
   const tenantId = (req as any).tenantId;
@@ -300,7 +300,7 @@ export async function updatePluginConfiguration(
   req: Request,
   res: Response
 ): Promise<any> {
-  const installationId = parseInt(req.params.id);
+  const installationId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const { configuration } = req.body;
   const userId = (req as any).userId;
   const organizationId = (req as any).organizationId;
@@ -365,7 +365,7 @@ export async function testPluginConnection(
   req: Request,
   res: Response
 ): Promise<any> {
-  const pluginKey = req.params.key;
+  const pluginKey = Array.isArray(req.params.key) ? req.params.key[0] : req.params.key;
   const { configuration } = req.body;
   const userId = (req as any).userId;
   const organizationId = (req as any).organizationId;
@@ -430,14 +430,20 @@ export async function forwardToPlugin(
   req: Request,
   res: Response
 ): Promise<any> {
-  const pluginKey = req.params.key;
+  const pluginKey = Array.isArray(req.params.key) ? req.params.key[0] : req.params.key;
   const userId = (req as any).userId;
   const organizationId = (req as any).organizationId;
   const tenantId = (req as any).tenantId;
 
   // Extract the path after /api/plugins/:key/
-  // req.params[0] contains the wildcard match from "/:key/*"
-  const pluginPath = "/" + (req.params[0] || "");
+  // When using router.use("/:key", ...), the remaining path is in req.path
+  // req.path will be something like "/mlflow/models" when the full URL is "/api/plugins/mlflow/models"
+  // We need to remove the "/:key" part to get just the plugin path
+  const fullPath = req.path || req.url.split('?')[0];
+  const keyPath = `/${pluginKey}`;
+  const pluginPath = fullPath.startsWith(keyPath) 
+    ? fullPath.substring(keyPath.length) || "/"
+    : fullPath || "/";
 
   const functionName = "forwardToPlugin";
   logStructured(

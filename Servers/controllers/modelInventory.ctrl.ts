@@ -71,7 +71,7 @@ export async function getAllModelInventories(req: Request, res: Response) {
 }
 
 export async function getModelInventoryById(req: Request, res: Response) {
-  const modelInventoryId = parseInt(req.params.id);
+  const modelInventoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",
@@ -117,7 +117,7 @@ export async function getModelInventoryById(req: Request, res: Response) {
 }
 
 export async function getModelByProjectId(req: Request, res: Response) {
-  const projectId = parseInt(req.params.projectId);
+  const projectId = parseInt(Array.isArray(req.params.projectId) ? req.params.projectId[0] : req.params.projectId);
 
   logStructured(
     "processing",
@@ -159,7 +159,7 @@ export async function getModelByProjectId(req: Request, res: Response) {
 }
 
 export async function getModelByFrameworkId(req: Request, res: Response) {
-  const frameworkId = parseInt(req.params.frameworkId);
+  const frameworkId = parseInt(Array.isArray(req.params.frameworkId) ? req.params.frameworkId[0] : req.params.frameworkId);
 
   logStructured(
     "processing",
@@ -306,7 +306,7 @@ export async function createNewModelInventory(req: Request, res: Response) {
 }
 
 export async function updateModelInventoryById(req: Request, res: Response) {
-  const modelInventoryId = parseInt(req.params.id);
+  const modelInventoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   // Get existing model inventory for business rule validation
   try {
@@ -468,7 +468,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
 }
 
 export async function deleteModelInventoryById(req: Request, res: Response) {
-  const modelInventoryId = parseInt(req.params.id);
+  const modelInventoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const deleteRisks = req.query.deleteRisks === "true";
 
   logStructured(

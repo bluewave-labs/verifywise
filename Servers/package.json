@@ -35,7 +35,7 @@
     "docx": "^9.5.1",
     "dotenv": "^16.4.5",
     "ejs": "^4.0.1",
-    "express": "^4.21.2",
+    "express": "^5.2.1",
     "express-rate-limit": "^8.2.0",
     "express-validator": "^7.2.1",
     "google-auth-library": "^10.5.0",
@@ -57,7 +57,7 @@
     "pickleparser": "^0.2.1",
     "playwright": "^1.58.0",
     "redis": "^5.8.2",
-    "resend": "^4.6.0",
+    "resend": "^6.9.1",
     "sanitize-filename": "^1.6.3",
     "sequelize": "^6.37.6",
     "sequelize-typescript": "^2.1.6",
@@ -74,7 +74,7 @@
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/ejs": "^3.1.5",
-    "@types/express": "^4.17.21",
+    "@types/express": "^5.0.6",
     "@types/helmet": "^4.0.0",
     "@types/jest": "^30.0.0",
     "@types/jsdom": "^27.0.0",
@@ -97,7 +97,7 @@
     "swagger-ui-express": "^5.0.1",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
-    "tsc-watch": "^6.2.0"
+    "tsc-watch": "^7.2.0"
   },
   "overrides": {
     "@awaismirza/bypass-cors": {

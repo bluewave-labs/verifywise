@@ -74,7 +74,7 @@ export async function getControlCategoryById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const controlCategoryId = parseInt(req.params.id);
+  const controlCategoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching control category by ID: ${controlCategoryId}`,
@@ -128,7 +128,7 @@ export async function getControlCategoryByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectId = parseInt(req.params.id);
+  const projectId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching control categories for project ID: ${projectId}`,
@@ -323,7 +323,7 @@ export async function updateControlCategoryById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const controlCategoryId = parseInt(req.params.id);
+  const controlCategoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const { title, order_no } = req.body;
 
   logStructured(
@@ -516,7 +516,7 @@ export async function deleteControlCategoryById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const controlCategoryId = parseInt(req.params.id);
+  const controlCategoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",

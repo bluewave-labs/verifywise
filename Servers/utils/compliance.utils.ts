@@ -339,8 +339,9 @@ function calculateRiskManagementScore(data: RiskManagementData): IModuleScore {
   const components: IComponentScore[] = [];
 
   // Risk Mitigation Rate (50% weight)
+  // Return 0 when no data exists (empty database should show 0, not 100)
   const mitigationRate =
-    data.totalRisks > 0 ? (data.mitigatedRisks / data.totalRisks) * 100 : 100;
+    data.totalRisks > 0 ? (data.mitigatedRisks / data.totalRisks) * 100 : 0;
   components.push({
     name: "Risk Mitigation Rate",
     score: Math.min(100, mitigationRate),
@@ -350,8 +351,11 @@ function calculateRiskManagementScore(data: RiskManagementData): IModuleScore {
   });
 
   // Critical Risk Management (50% weight) - penalize for unmitigated critical risks
+  // Return 0 when no data exists
   const criticalRiskScore =
-    data.criticalRisks > 0 ? Math.max(0, 100 - data.criticalRisks * 20) : 100;
+    data.totalRisks > 0
+      ? (data.criticalRisks > 0 ? Math.max(0, 100 - data.criticalRisks * 20) : 100)
+      : 0;
   components.push({
     name: "Critical Risk Management",
     score: criticalRiskScore,
@@ -382,10 +386,11 @@ function calculateVendorManagementScore(
   const components: IComponentScore[] = [];
 
   // Vendor Assessment Rate (60% weight)
+  // Return 0 when no data exists (empty database should show 0, not 100)
   const assessmentRate =
     data.totalVendors > 0
       ? (data.assessedVendors / data.totalVendors) * 100
-      : 100;
+      : 0;
   components.push({
     name: "Vendor Assessment Rate",
     score: Math.min(100, assessmentRate),
@@ -395,11 +400,12 @@ function calculateVendorManagementScore(
   });
 
   // High-Risk Vendor Management (40% weight)
+  // Return 0 when no data exists
   const highRiskRate =
     data.totalVendors > 0
       ? (data.highRiskVendors / data.totalVendors) * 100
       : 0;
-  const highRiskScore = Math.max(0, 100 - highRiskRate * 2);
+  const highRiskScore = data.totalVendors > 0 ? Math.max(0, 100 - highRiskRate * 2) : 0;
   components.push({
     name: "High-Risk Vendor Control",
     score: highRiskScore,
@@ -489,8 +495,9 @@ function calculateModelLifecycleScore(data: ModelLifecycleData): IModuleScore {
   });
 
   // Pending Review Management (40% weight) - penalize for blocked models
+  // Return 0 when no data exists
   const blockedPenalty = data.blockedModels * 25;
-  const pendingScore = Math.max(0, 100 - blockedPenalty);
+  const pendingScore = data.totalModels > 0 ? Math.max(0, 100 - blockedPenalty) : 0;
   components.push({
     name: "Model Status Health",
     score: pendingScore,
@@ -534,11 +541,12 @@ function calculatePolicyDocumentationScore(
   });
 
   // Policy Review Compliance (30% weight)
+  // Return 0 when no data exists
   const overdueRate =
     data.totalPolicies > 0
       ? (data.overduePolicies / data.totalPolicies) * 100
       : 0;
-  const reviewScore = Math.max(0, 100 - overdueRate * 2);
+  const reviewScore = data.totalPolicies > 0 ? Math.max(0, 100 - overdueRate * 2) : 0;
   components.push({
     name: "Policy Review Compliance",
     score: reviewScore,

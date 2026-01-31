@@ -82,7 +82,7 @@
     "@types/lusca": "^1.7.5",
     "@types/mjml": "^4.7.4",
     "@types/multer": "^2.0.0",
-    "@types/node": "^22.15.33",
+    "@types/node": "^25.1.0",
     "@types/nodemailer": "^7.0.9",
     "@types/pg": "^8.11.10",
     "@types/sanitize-filename": "^1.6.3",

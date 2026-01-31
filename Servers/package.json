@@ -33,7 +33,7 @@
     "cors": "^2.8.6",
     "crypto": "^1.0.1",
     "docx": "^9.5.1",
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.2.3",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.0",

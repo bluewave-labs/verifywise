@@ -74,7 +74,7 @@ export async function getTrainingRegistarById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const trainingRegistarId = parseInt(req.params.id);
+  const trainingRegistarId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getTrainingRegistarById for training registrar ID ${trainingRegistarId}`,
@@ -195,7 +195,7 @@ export async function updateTrainingRegistarById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const trainingRegistarId = parseInt(req.params.id);
+  const trainingRegistarId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   const transaction = await sequelize.transaction();
 
@@ -266,7 +266,7 @@ export async function deleteTrainingRegistarById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const trainingRegistarId = parseInt(req.params.id);
+  const trainingRegistarId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const transaction = await sequelize.transaction();
 
   logProcessing({

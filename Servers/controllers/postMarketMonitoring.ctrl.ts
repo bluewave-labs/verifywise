@@ -60,7 +60,7 @@ export async function getConfigByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectId = parseInt(req.params.projectId, 10);
+  const projectId = parseInt(Array.isArray(req.params.projectId) ? req.params.projectId[0] : req.params.projectId, 10);
 
   logProcessing({
     description: `Getting PMM config for project ${projectId}`,
@@ -192,7 +192,7 @@ export async function createConfig(req: Request, res: Response): Promise<any> {
 }
 
 export async function updateConfig(req: Request, res: Response): Promise<any> {
-  const configId = parseInt(req.params.configId, 10);
+  const configId = parseInt(Array.isArray(req.params.configId) ? req.params.configId[0] : req.params.configId, 10);
 
   logProcessing({
     description: `Updating PMM config ${configId}`,
@@ -246,7 +246,7 @@ export async function updateConfig(req: Request, res: Response): Promise<any> {
 }
 
 export async function deleteConfig(req: Request, res: Response): Promise<any> {
-  const configId = parseInt(req.params.configId, 10);
+  const configId = parseInt(Array.isArray(req.params.configId) ? req.params.configId[0] : req.params.configId, 10);
 
   logProcessing({
     description: `Deleting PMM config ${configId}`,
@@ -303,7 +303,7 @@ export async function deleteConfig(req: Request, res: Response): Promise<any> {
 // ============================================================================
 
 export async function getQuestions(req: Request, res: Response): Promise<any> {
-  const configId = req.params.configId ? parseInt(req.params.configId, 10) : null;
+  const configId = req.params.configId ? parseInt(Array.isArray(req.params.configId) ? req.params.configId[0] : req.params.configId, 10) : null;
 
   logProcessing({
     description: `Getting PMM questions for config ${configId}`,
@@ -391,7 +391,7 @@ export async function addQuestion(req: Request, res: Response): Promise<any> {
 }
 
 export async function updateQuestion(req: Request, res: Response): Promise<any> {
-  const questionId = parseInt(req.params.questionId, 10);
+  const questionId = parseInt(Array.isArray(req.params.questionId) ? req.params.questionId[0] : req.params.questionId, 10);
 
   logProcessing({
     description: `Updating PMM question ${questionId}`,
@@ -448,7 +448,7 @@ export async function updateQuestion(req: Request, res: Response): Promise<any> 
 }
 
 export async function deleteQuestion(req: Request, res: Response): Promise<any> {
-  const questionId = parseInt(req.params.questionId, 10);
+  const questionId = parseInt(Array.isArray(req.params.questionId) ? req.params.questionId[0] : req.params.questionId, 10);
 
   logProcessing({
     description: `Deleting PMM question ${questionId}`,
@@ -551,7 +551,7 @@ export async function reorderQuestions(req: Request, res: Response): Promise<any
 // ============================================================================
 
 export async function getActiveCycle(req: Request, res: Response): Promise<any> {
-  const projectId = parseInt(req.params.projectId, 10);
+  const projectId = parseInt(Array.isArray(req.params.projectId) ? req.params.projectId[0] : req.params.projectId, 10);
 
   logProcessing({
     description: `Getting active PMM cycle for project ${projectId}`,
@@ -606,7 +606,7 @@ export async function getActiveCycle(req: Request, res: Response): Promise<any> 
 }
 
 export async function getCycleById(req: Request, res: Response): Promise<any> {
-  const cycleId = parseInt(req.params.cycleId, 10);
+  const cycleId = parseInt(Array.isArray(req.params.cycleId) ? req.params.cycleId[0] : req.params.cycleId, 10);
 
   logProcessing({
     description: `Getting PMM cycle ${cycleId}`,
@@ -651,7 +651,7 @@ export async function getCycleById(req: Request, res: Response): Promise<any> {
 }
 
 export async function getResponses(req: Request, res: Response): Promise<any> {
-  const cycleId = parseInt(req.params.cycleId, 10);
+  const cycleId = parseInt(Array.isArray(req.params.cycleId) ? req.params.cycleId[0] : req.params.cycleId, 10);
 
   logProcessing({
     description: `Getting PMM responses for cycle ${cycleId}`,
@@ -698,7 +698,7 @@ export async function getResponses(req: Request, res: Response): Promise<any> {
 }
 
 export async function saveResponses(req: Request, res: Response): Promise<any> {
-  const cycleId = parseInt(req.params.cycleId, 10);
+  const cycleId = parseInt(Array.isArray(req.params.cycleId) ? req.params.cycleId[0] : req.params.cycleId, 10);
 
   logProcessing({
     description: `Saving PMM responses for cycle ${cycleId}`,
@@ -762,7 +762,7 @@ export async function saveResponses(req: Request, res: Response): Promise<any> {
 }
 
 export async function submitCycle(req: Request, res: Response): Promise<any> {
-  const cycleId = parseInt(req.params.cycleId, 10);
+  const cycleId = parseInt(Array.isArray(req.params.cycleId) ? req.params.cycleId[0] : req.params.cycleId, 10);
 
   logProcessing({
     description: `Submitting PMM cycle ${cycleId}`,
@@ -891,7 +891,7 @@ export async function submitCycle(req: Request, res: Response): Promise<any> {
 }
 
 export async function flagConcern(req: Request, res: Response): Promise<any> {
-  const cycleId = parseInt(req.params.cycleId, 10);
+  const cycleId = parseInt(Array.isArray(req.params.cycleId) ? req.params.cycleId[0] : req.params.cycleId, 10);
 
   logProcessing({
     description: `Flagging concern for PMM cycle ${cycleId}`,
@@ -967,13 +967,13 @@ export async function getReports(req: Request, res: Response): Promise<any> {
 
   try {
     const filters: IPMMReportsFilterRequest = {
-      project_id: req.query.project_id ? parseInt(req.query.project_id as string, 10) : undefined,
-      start_date: req.query.start_date as string,
-      end_date: req.query.end_date as string,
-      completed_by: req.query.completed_by ? parseInt(req.query.completed_by as string, 10) : undefined,
-      flagged_only: req.query.flagged_only === "true",
-      page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
-      limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 10,
+      project_id: req.query.project_id ? parseInt(Array.isArray(req.query.project_id) ? String(req.query.project_id[0]) : String(req.query.project_id), 10) : undefined,
+      start_date: Array.isArray(req.query.start_date) ? String(req.query.start_date[0]) : (req.query.start_date ? String(req.query.start_date) : undefined),
+      end_date: Array.isArray(req.query.end_date) ? String(req.query.end_date[0]) : (req.query.end_date ? String(req.query.end_date) : undefined),
+      completed_by: req.query.completed_by ? parseInt(Array.isArray(req.query.completed_by) ? String(req.query.completed_by[0]) : String(req.query.completed_by), 10) : undefined,
+      flagged_only: Array.isArray(req.query.flagged_only) ? String(req.query.flagged_only[0]) === "true" : String(req.query.flagged_only) === "true",
+      page: req.query.page ? parseInt(Array.isArray(req.query.page) ? String(req.query.page[0]) : String(req.query.page), 10) : 1,
+      limit: req.query.limit ? parseInt(Array.isArray(req.query.limit) ? String(req.query.limit[0]) : String(req.query.limit), 10) : 10,
     };
 
     // Validate pagination
@@ -1022,7 +1022,7 @@ export async function getReports(req: Request, res: Response): Promise<any> {
 }
 
 export async function downloadReport(req: Request, res: Response): Promise<any> {
-  const reportId = parseInt(req.params.reportId, 10);
+  const reportId = parseInt(Array.isArray(req.params.reportId) ? req.params.reportId[0] : req.params.reportId, 10);
 
   logProcessing({
     description: `Downloading PMM report ${reportId}`,
@@ -1092,7 +1092,7 @@ export async function downloadReport(req: Request, res: Response): Promise<any> 
 // ============================================================================
 
 export async function reassignStakeholder(req: Request, res: Response): Promise<any> {
-  const cycleId = parseInt(req.params.cycleId, 10);
+  const cycleId = parseInt(Array.isArray(req.params.cycleId) ? req.params.cycleId[0] : req.params.cycleId, 10);
 
   logProcessing({
     description: `Reassigning stakeholder for PMM cycle ${cycleId}`,
@@ -1154,7 +1154,7 @@ export async function reassignStakeholder(req: Request, res: Response): Promise<
 }
 
 export async function startNewCycle(req: Request, res: Response): Promise<any> {
-  const projectId = parseInt(req.params.projectId, 10);
+  const projectId = parseInt(Array.isArray(req.params.projectId) ? req.params.projectId[0] : req.params.projectId, 10);
 
   logProcessing({
     description: `Starting new PMM cycle for project ${projectId}`,

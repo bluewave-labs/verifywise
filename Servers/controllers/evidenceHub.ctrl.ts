@@ -65,7 +65,7 @@ export async function getAllEvidences(req: Request, res: Response) {
  * Get evidence by ID
  */
 export async function getEvidenceById(req: Request, res: Response) {
-  const evidenceId = parseInt(req.params.id);
+  const evidenceId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   if (isNaN(evidenceId)) {
     logStructured(
@@ -179,7 +179,7 @@ export async function createNewEvidence(req: Request, res: Response) {
  * Update evidence by ID
  */
 export async function updateEvidenceById(req: Request, res: Response) {
-  const evidenceId = parseInt(req.params.id);
+  const evidenceId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   if (isNaN(evidenceId)) {
     return res.status(400).json({
       status: "error",
@@ -299,7 +299,7 @@ export async function updateEvidenceById(req: Request, res: Response) {
  * Delete evidence by ID
  */
 export async function deleteEvidenceById(req: Request, res: Response) {
-  const evidenceId = parseInt(req.params.id);
+  const evidenceId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   if (isNaN(evidenceId)) {
     return res.status(400).json({
       status: "error",

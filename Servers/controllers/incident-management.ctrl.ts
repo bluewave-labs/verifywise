@@ -77,7 +77,7 @@ export async function getAllIncidents(req: Request, res: Response) {
  * Get incident by ID
  */
 export async function getIncidentById(req: Request, res: Response) {
-  const incidentId = parseInt(req.params.id);
+  const incidentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   const idValidation = validateIncidentIdParam(incidentId);
   if (!idValidation.isValid) {
@@ -233,7 +233,7 @@ export async function createNewIncident(req: Request, res: Response) {
  * Update incident by ID
  */
 export async function updateIncidentById(req: Request, res: Response) {
-  const incidentId = parseInt(req.params.id);
+  const incidentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   const idValidation = validateIncidentIdParam(incidentId);
   if (!idValidation.isValid) {
@@ -348,7 +348,7 @@ export async function updateIncidentById(req: Request, res: Response) {
  * Delete incident by ID
  */
 export async function deleteIncidentById(req: Request, res: Response) {
-  const incidentId = parseInt(req.params.id);
+  const incidentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   const idValidation = validateIncidentIdParam(incidentId);
   if (!idValidation.isValid) {
@@ -410,7 +410,7 @@ export async function deleteIncidentById(req: Request, res: Response) {
  * Archive incident by ID
  */
 export async function archiveIncidentById(req: Request, res: Response) {
-  const incidentId = parseInt(req.params.id);
+  const incidentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   const idValidation = validateIncidentIdParam(incidentId);
   if (!idValidation.isValid) {

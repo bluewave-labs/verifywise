@@ -38,7 +38,7 @@ export async function getAssessmentsByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logProcessing({
     description: `starting getAssessmentsByProjectId for project framework ID ${projectFrameworkId}`,
     functionName: "getAssessmentsByProjectId",
@@ -85,7 +85,7 @@ export async function getCompliancesByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logProcessing({
     description: `starting getCompliancesByProjectId for project framework ID ${projectFrameworkId}`,
     functionName: "getCompliancesByProjectId",
@@ -262,7 +262,7 @@ export async function saveControls(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const controlId = parseInt(req.params.id);
+  const controlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting saveControls for control ID ${controlId}`,
@@ -450,7 +450,7 @@ export async function updateQuestionById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const questionId = parseInt(req.params.id);
+  const questionId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting updateQuestionById for question ID ${questionId}`,
@@ -685,7 +685,7 @@ export async function deleteAssessmentsByProjectId(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting deleteAssessmentsByProjectId for project framework ID ${projectFrameworkId}`,
@@ -749,7 +749,7 @@ export async function deleteCompliancesByProjectId(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting deleteCompliancesByProjectId for project framework ID ${projectFrameworkId}`,
@@ -812,7 +812,7 @@ export async function getProjectAssessmentProgress(
   req: Request,
   res: Response
 ) {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getProjectAssessmentProgress for project framework ID ${projectFrameworkId}`,
@@ -868,7 +868,7 @@ export async function getProjectComplianceProgress(
   req: Request,
   res: Response
 ) {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getProjectComplianceProgress for project framework ID ${projectFrameworkId}`,
@@ -1151,7 +1151,7 @@ export async function getControlsByControlCategoryId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const controlCategoryId = parseInt(req.params.id);
+  const controlCategoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
   const owner =
     req.query.owner && req.query.owner !== ""

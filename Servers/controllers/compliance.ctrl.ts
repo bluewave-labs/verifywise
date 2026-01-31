@@ -76,7 +76,7 @@ export async function getComplianceScoreByOrganization(req: Request, res: Respon
   });
 
   try {
-    const organizationId = parseInt(req.params.organizationId);
+    const organizationId = parseInt(Array.isArray(req.params.organizationId) ? req.params.organizationId[0] : req.params.organizationId);
 
     if (isNaN(organizationId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid organization ID"));
@@ -133,7 +133,7 @@ export async function getComplianceDetails(req: Request, res: Response) {
   });
 
   try {
-    const organizationId = parseInt(req.params.organizationId);
+    const organizationId = parseInt(Array.isArray(req.params.organizationId) ? req.params.organizationId[0] : req.params.organizationId);
 
     if (isNaN(organizationId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid organization ID"));

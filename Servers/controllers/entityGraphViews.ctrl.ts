@@ -169,7 +169,7 @@ export async function getViews(req: Request, res: Response): Promise<any> {
  * @returns {Promise<any>} JSON response with view or error
  */
 export async function getViewById(req: Request, res: Response): Promise<any> {
-  const viewId = parseInt(req.params.id, 10);
+  const viewId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const userId = req.userId!;
   const tenantId = req.tenantId!;
 
@@ -240,7 +240,7 @@ export async function getViewById(req: Request, res: Response): Promise<any> {
  * @returns {Promise<any>} JSON response with updated view or error
  */
 export async function updateView(req: Request, res: Response): Promise<any> {
-  const viewId = parseInt(req.params.id, 10);
+  const viewId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const { name, config } = req.body;
   const userId = req.userId!;
   const tenantId = req.tenantId!;
@@ -316,7 +316,7 @@ export async function updateView(req: Request, res: Response): Promise<any> {
  * @returns {Promise<any>} JSON response with success message or error
  */
 export async function deleteView(req: Request, res: Response): Promise<any> {
-  const viewId = parseInt(req.params.id, 10);
+  const viewId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const userId = req.userId!;
   const tenantId = req.tenantId!;
 

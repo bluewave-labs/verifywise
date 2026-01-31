@@ -83,7 +83,7 @@ export async function getApprovalWorkflowById(
 
   try {
     const { tenantId } = req;
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     if (!tenantId) {
       return res.status(401).json(STATUS_CODE[401]("Unauthorized"));
@@ -252,7 +252,7 @@ export async function updateApprovalWorkflow(
 
   try {
     const { tenantId } = req;
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const { workflow_title, description, steps } = req.body;
 
     if (!tenantId) {
@@ -347,7 +347,7 @@ export async function deleteApprovalWorkflow(
 
   try {
     const { tenantId } = req;
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     if (!tenantId) {
       await transaction.rollback();

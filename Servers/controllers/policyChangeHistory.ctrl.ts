@@ -10,7 +10,7 @@ export async function getPolicyChangeHistoryById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const policyId = parseInt(req.params.id);
+  const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   if (isNaN(policyId) || policyId <= 0) {
     return res.status(400).json(STATUS_CODE[400]("Invalid policy ID"));

@@ -49,7 +49,7 @@ export async function getAllNISTAIRMFfunctions(
 }
 
 export async function getNISTAIRMFfunctionById(req: Request, res: Response) {
-  const functionId = parseInt(req.params.id);
+  const functionId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `starting to get NIST AI RMF function by ID: ${functionId}`,

@@ -66,7 +66,7 @@ export async function getSubcontrolById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const subcontrolId = parseInt(req.params.id);
+  const subcontrolId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching subcontrol by ID: ${subcontrolId}`,
@@ -279,7 +279,7 @@ export async function updateSubcontrolById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const subcontrolId = parseInt(req.params.id);
+  const subcontrolId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const updateData = req.body;
 
   logStructured(
@@ -444,7 +444,7 @@ export async function deleteSubcontrolById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const subcontrolId = parseInt(req.params.id);
+  const subcontrolId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",

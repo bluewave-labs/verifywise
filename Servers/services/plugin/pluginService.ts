@@ -148,7 +148,8 @@ export class PluginService {
       return plugin || null;
     } catch (error: any) {
       console.error(
-        `[PluginService] Error fetching plugin ${pluginKey}:`,
+        "[PluginService] Error fetching plugin %s:",
+        pluginKey,
         error
       );
       throw new Error(`Failed to fetch plugin: ${error.message}`);
@@ -409,7 +410,8 @@ export class PluginService {
         const pluginContext = context ? { sequelize, ...context } : undefined;
         const result = await pluginCode.testConnection(configuration, pluginContext);
         console.log(
-          `[PluginService] Plugin ${pluginKey} connection test:`,
+          "[PluginService] Plugin %s connection test:",
+          pluginKey,
           result
         );
         return result;

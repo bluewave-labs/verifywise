@@ -71,7 +71,7 @@ export async function getProjectScopeById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectScopeId = parseInt(req.params.id);
+  const projectScopeId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching project scope by ID: ${projectScopeId}`,
@@ -264,7 +264,7 @@ export async function updateProjectScopeById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const projectScopeId = parseInt(req.params.id);
+  const projectScopeId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",
@@ -409,7 +409,7 @@ export async function deleteProjectScopeById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const projectScopeId = parseInt(req.params.id);
+  const projectScopeId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",

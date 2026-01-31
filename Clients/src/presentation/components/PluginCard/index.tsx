@@ -21,6 +21,8 @@ import {
   MoreVertical as MoreVerticalIcon,
   Settings as SettingsIcon,
   Trash2 as TrashIcon,
+  Building2 as OrgIcon,
+  FolderKanban as ProjectIcon,
 } from 'lucide-react';
 import { cardStyles } from '../../themes/components';
 import { Plugin, PluginInstallationStatus } from '../../../domain/types/plugins';
@@ -250,8 +252,46 @@ const PluginCard: React.FC<PluginCardProps> = ({
             {plugin.description}
           </Typography>
 
+          {/* Framework Type Badge */}
+          {plugin.frameworkType && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 2 }}>
+              <Chip
+                size="small"
+                icon={
+                  plugin.frameworkType === 'organizational' ? (
+                    <OrgIcon size={11} />
+                  ) : (
+                    <ProjectIcon size={11} />
+                  )
+                }
+                label={plugin.frameworkType === 'organizational' ? 'Organizational' : 'Project'}
+                variant="outlined"
+                sx={{
+                  fontSize: '10px',
+                  height: 20,
+                  borderRadius: '10px',
+                  backgroundColor: 'transparent',
+                  color:
+                    plugin.frameworkType === 'organizational'
+                      ? '#13715B'
+                      : '#6366f1',
+                  borderColor:
+                    plugin.frameworkType === 'organizational'
+                      ? '#13715B'
+                      : '#6366f1',
+                  fontWeight: 500,
+                  '& .MuiChip-icon': {
+                    color: 'inherit',
+                    marginLeft: '4px',
+                    marginRight: '-2px',
+                  },
+                }}
+              />
+            </Box>
+          )}
+
           {/* Plugin Features */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 3 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 2 }}>
             {plugin.features.slice(0, 2).map((feature, index) => (
               <Chip
                 key={index}

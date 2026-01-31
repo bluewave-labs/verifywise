@@ -22,6 +22,8 @@ export interface PluginFeature {
   displayOrder: number;
 }
 
+export type FrameworkType = "organizational" | "project";
+
 export interface Plugin {
   key: string;
   name: string;
@@ -31,6 +33,8 @@ export interface Plugin {
   version: string;
   author?: string;
   category: PluginCategory;
+  region?: string;
+  frameworkType?: FrameworkType;
   iconUrl?: string;
   documentationUrl?: string;
   supportUrl?: string;

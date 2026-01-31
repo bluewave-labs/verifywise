@@ -126,6 +126,22 @@ Manifest URL: https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace
 | Security | `security` | Security scanning |
 | Data Management | `data_management` | Risk import, data tools |
 | Analytics | `analytics` | Reporting, dashboards |
+| Compliance | `compliance` | Compliance frameworks (GDPR, SOC2, etc.) |
+
+### Framework Plugin Fields
+
+Framework plugins (category: `compliance`) have additional fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `region` | string | Geographic region (e.g., "United States", "European Union") |
+| `frameworkType` | string | `"organizational"` or `"project"` |
+
+**Framework Types:**
+
+- **`organizational`**: Applies to entire organization. One org-level project contains all organizational frameworks. Used for legal requirements (GDPR, CCPA), certifications (SOC 2, ISO 27001), and org-wide standards.
+
+- **`project`**: Applies to specific projects based on their needs. Different projects can have different frameworks. Used for PCI-DSS (payment projects), HIPAA (healthcare projects), AI Ethics (AI/ML projects).
 
 ---
 
@@ -4977,6 +4993,82 @@ Use descriptive names with camelCase:
 2. **Validate payload**: Check `event.detail?.projectId === project.id`
 3. **Clean up listeners**: Always remove listeners in useEffect cleanup
 4. **Type safety**: Cast handler as `EventListener` for TypeScript
+
+---
+
+## Framework Plugin Types
+
+Framework plugins can be either **Organizational** or **Project** level, determined by the `frameworkType` field in plugins.json and `is_organizational` in template.json.
+
+### Organizational Frameworks (🏢)
+
+**Scope**: Apply to the entire organization
+
+**Behavior**:
+- Managed at org level with a single org-level project
+- All organizational frameworks enabled in this project
+- Compliance tracked at organization level
+
+**Examples**: GDPR, SOC 2, ISO 27001, CCPA, DORA, NIST CSF, CIS Controls, Data Governance, UAE/Saudi/Qatar/Bahrain PDPL
+
+**Configuration**:
+```json
+// plugins.json
+{
+  "key": "gdpr",
+  "frameworkType": "organizational"
+}
+
+// template.json
+{
+  "framework": {
+    "is_organizational": true
+  }
+}
+```
+
+### Project Frameworks (📁)
+
+**Scope**: Apply only to specific projects
+
+**Behavior**:
+- Can be enabled per individual project
+- Different projects may have different frameworks
+- Compliance tracked at project level
+
+**Examples**: PCI-DSS (payment projects), HIPAA (healthcare projects), AI Ethics (AI/ML projects)
+
+**Configuration**:
+```json
+// plugins.json
+{
+  "key": "pci-dss",
+  "frameworkType": "project"
+}
+
+// template.json
+{
+  "framework": {
+    "is_organizational": false
+  }
+}
+```
+
+### UI Display
+
+The framework type is displayed as a badge on plugin cards in **Plugins > Frameworks**:
+- 🏢 **Organizational** - Purple badge
+- 📁 **Project** - Orange badge
+
+**Frontend Type Definition** (`Clients/src/domain/types/plugins.ts`):
+```typescript
+export type FrameworkType = "organizational" | "project";
+
+export interface Plugin {
+  // ... other fields
+  frameworkType?: FrameworkType;
+}
+```
 
 ---
 

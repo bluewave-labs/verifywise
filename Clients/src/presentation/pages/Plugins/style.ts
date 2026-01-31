@@ -82,3 +82,55 @@ export const tabPanelStyle: SxProps<Theme> = {
   p: 0,
   pt: 2,
 };
+
+// Region collapsible section styles
+export const regionHeader = (theme: Theme): SxProps<Theme> => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(3),
+  py: theme.spacing(3),
+  px: theme.spacing(2),
+  mx: theme.spacing(-2),
+  borderBottom: `1px solid ${theme.palette.border?.light || "#eaecf0"}`,
+  cursor: "pointer",
+  borderRadius: theme.shape.borderRadius,
+  transition: "all 0.2s ease",
+  "&:hover": {
+    backgroundColor: theme.palette.action?.hover || "rgba(19, 113, 91, 0.04)",
+  },
+  "&:hover svg": {
+    color: theme.palette.primary.main,
+  },
+});
+
+export const regionChevron = (theme: Theme, isExpanded: boolean): SxProps<Theme> => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  transition: "transform 0.2s ease",
+  transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
+  color: theme.palette.text.secondary,
+});
+
+export const regionFlagStyle: SxProps<Theme> = {
+  fontSize: "22px",
+  lineHeight: 1,
+};
+
+export const regionNameStyle = (theme: Theme): SxProps<Theme> => ({
+  fontSize: "15px",
+  fontWeight: 600,
+  color: theme.palette.text.primary,
+});
+
+export const regionCountStyle = (theme: Theme): SxProps<Theme> => ({
+  fontSize: "13px",
+  color: theme.palette.text.tertiary || "#98A2B3",
+  fontWeight: 500,
+});
+
+export const regionContent = (theme: Theme): SxProps<Theme> => ({
+  ...pluginCardsGrid,
+  mt: theme.spacing(4),
+  mb: theme.spacing(2),
+});

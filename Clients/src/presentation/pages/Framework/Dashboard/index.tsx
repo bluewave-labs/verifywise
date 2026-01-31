@@ -1,5 +1,5 @@
 import { Box, Stack, Typography, CircularProgress } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -419,6 +419,21 @@ const FrameworkDashboard = ({
     };
   }, [organizationalProject, filteredFrameworks]);
 
+  // Memoize filtered framework data to prevent unnecessary re-renders in child components
+  // These must be called before any early returns to follow React's Rules of Hooks
+  const iso42001FrameworksData = useMemo(
+    () => frameworksData.filter(f => f.frameworkName.toLowerCase().includes("iso 42001")),
+    [frameworksData]
+  );
+  const iso27001FrameworksData = useMemo(
+    () => frameworksData.filter(f => f.frameworkName.toLowerCase().includes("iso 27001")),
+    [frameworksData]
+  );
+  const nistAiRmfFrameworksData = useMemo(
+    () => frameworksData.filter(f => f.frameworkName.toLowerCase().includes("nist ai rmf")),
+    [frameworksData]
+  );
+
   if (loading) {
     return (
       <Box
@@ -577,7 +592,7 @@ const FrameworkDashboard = ({
             <Stack spacing={0}>
               {/* ISO 42001 Clauses Overview */}
               <ControlCategoriesCard
-                frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("iso 42001"))}
+                frameworksData={iso42001FrameworksData}
                 onNavigate={handleNavigateToControls}
               />
 
@@ -586,7 +601,7 @@ const FrameworkDashboard = ({
 
               {/* ISO 42001 Annexes Overview */}
               <AnnexOverviewCard
-                frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("iso 42001"))}
+                frameworksData={iso42001FrameworksData}
                 onNavigate={handleNavigateToControls}
               />
             </Stack>
@@ -594,7 +609,7 @@ const FrameworkDashboard = ({
 
           <TabPanel value="nist-ai-rmf" sx={tabPanelStyle}>
             <NISTFunctionsOverviewCard
-              frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("nist ai rmf"))}
+              frameworksData={nistAiRmfFrameworksData}
               onNavigate={handleNavigateToControls}
             />
           </TabPanel>
@@ -603,7 +618,7 @@ const FrameworkDashboard = ({
             <Stack spacing={0}>
               {/* ISO 27001 Clauses Overview */}
               <ControlCategoriesCard
-                frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("iso 27001"))}
+                frameworksData={iso27001FrameworksData}
                 onNavigate={handleNavigateToControls}
               />
 
@@ -612,7 +627,7 @@ const FrameworkDashboard = ({
 
               {/* ISO 27001 Annexes Overview */}
               <AnnexOverviewCard
-                frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("iso 27001"))}
+                frameworksData={iso27001FrameworksData}
                 onNavigate={handleNavigateToControls}
               />
             </Stack>

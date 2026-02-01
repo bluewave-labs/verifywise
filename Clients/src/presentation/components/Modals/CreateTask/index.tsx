@@ -20,13 +20,13 @@ const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
 import ChipInput from "../../Inputs/ChipInput";
-import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
+import { ChevronDown as GreyDownArrowIcon, Flag } from "lucide-react";
 import StandardModal from "../StandardModal";
 import {
   ICreateTaskFormErrors,
   ICreateTaskFormValues,
   ICreateTaskProps,
-} from "../../../../domain/interfaces/i.task";
+} from "../../../types/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
 import { datePickerStyle } from "../../Forms/ProjectForm/style";
 import useUsers from "../../../../application/hooks/useUsers";
@@ -34,6 +34,8 @@ import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHa
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
+import CustomSelect from "../../CustomSelect";
+import { PRIORITY_COLOR_MAP, PRIORITY_DISPLAY_MAP, TASK_PRIORITY_OPTIONS } from "../../../constants/priorityOptions";
 
 const initialState: ICreateTaskFormValues = {
   title: "",
@@ -44,12 +46,6 @@ const initialState: ICreateTaskFormValues = {
   assignees: [],
   categories: [],
 };
-
-const priorityOptions = [
-  { _id: TaskPriority.LOW, name: "Low" },
-  { _id: TaskPriority.MEDIUM, name: "Medium" },
-  { _id: TaskPriority.HIGH, name: "High" },
-];
 
 const statusOptions = [
   { _id: TaskStatus.OPEN, name: "Open" },
@@ -87,7 +83,7 @@ const CreateTask: FC<ICreateTaskProps> = ({
         assignees: (() => {
           if (!initialData.assignees || !users) return [];
 
-          
+
           // Handle both possible data structures
           return initialData.assignees
             .map((assignee) => {
@@ -99,11 +95,11 @@ const CreateTask: FC<ICreateTaskProps> = ({
                 const user = users.find((u) => u.id === Number(assignee));
                 return user
                   ? {
-                      id: user.id,
-                      name: user.name,
-                      surname: user.surname || "",
-                      email: user.email,
-                    }
+                    id: user.id,
+                    name: user.name,
+                    surname: user.surname || "",
+                    email: user.email,
+                  }
                   : null;
               }
               // If assignee is an ITaskAssignee object
@@ -117,11 +113,11 @@ const CreateTask: FC<ICreateTaskProps> = ({
                 );
                 return user
                   ? {
-                      id: user.id,
-                      name: user.name,
-                      surname: user.surname || "",
-                      email: user.email,
-                    }
+                    id: user.id,
+                    name: user.name,
+                    surname: user.surname || "",
+                    email: user.email,
+                  }
                   : null;
               }
               return null;
@@ -162,6 +158,12 @@ const CreateTask: FC<ICreateTaskProps> = ({
     },
     []
   );
+
+  const handlePrioritySelect = useCallback(async (newValue: string) => {
+    setValues((prev) => ({ ...prev, priority: newValue as TaskPriority }));
+    setErrors((prev) => ({ ...prev, priority: "" }));
+    return true;
+  }, []);
 
   const handleAssigneesChange = useCallback(
     (_event: React.SyntheticEvent, newValue: any[]) => {
@@ -310,7 +312,7 @@ const CreateTask: FC<ICreateTaskProps> = ({
     >
       <Stack spacing={6}>
         {/* Row 1: Task title | Assignees */}
-        <Stack direction="row" spacing={6}>
+        <Stack direction="row" spacing={6} sx={{ width: "748px" }}>
           <Suspense fallback={<div>Loading...</div>}>
             <Field
               id="title"
@@ -454,7 +456,7 @@ const CreateTask: FC<ICreateTaskProps> = ({
         </Stack>
 
         {/* Row 2: Status | Categories */}
-        <Stack direction="row" spacing={6}>
+        <Stack direction="row" spacing={6} sx={{ width: "748px" }}>
           <SelectComponent
             items={statusOptions}
             value={values.status}
@@ -488,21 +490,53 @@ const CreateTask: FC<ICreateTaskProps> = ({
         </Stack>
 
         {/* Row 3: Priority | Due date */}
-        <Stack direction="row" spacing={6}>
-          <SelectComponent
-            items={priorityOptions}
-            value={values.priority}
-            error={errors.priority}
-            sx={{
-              width: "350px",
-              backgroundColor: theme.palette.background.main,
-            }}
-            id="priority"
-            label="Priority"
-            isRequired
-            onChange={handleOnSelectChange("priority")}
-            placeholder="Select priority"
-          />
+        <Stack direction="row" spacing={6} sx={{ width: "748px" }}>
+          <Stack gap={theme.spacing(2)} sx={{ width: "350px" }}>
+            <Typography
+              component="p"
+              variant="body1"
+              color={theme.palette.text.secondary}
+              fontWeight={500}
+              fontSize={"13px"}
+              sx={{ margin: 0, height: "22px" }}
+            >
+              Priority *
+            </Typography>
+            <CustomSelect
+              currentValue={values.priority}
+              onValueChange={handlePrioritySelect}
+              options={TASK_PRIORITY_OPTIONS.map((priority) => {
+                const displayPriority =
+                  PRIORITY_DISPLAY_MAP[priority as TaskPriority] || priority;
+                return {
+                  value: priority,
+                  label: displayPriority,
+                  icon: Flag,
+                  color: PRIORITY_COLOR_MAP[priority as TaskPriority],
+                };
+              })}
+              disabled={isSubmitting}
+              size="medium"
+              sx={{
+                width: "350px",
+                backgroundColor: theme.palette.background.main,
+              }}
+            />
+            {errors.priority && (
+              <Typography
+                color="error"
+                variant="caption"
+                sx={{
+                  mt: theme.spacing(0.5),
+                  ml: theme.spacing(0.5),
+                  color: theme.palette.error.main,
+                  fontSize: theme.typography.caption.fontSize,
+                }}
+              >
+                {errors.priority}
+              </Typography>
+            )}
+          </Stack>
 
           <Suspense fallback={<div>Loading...</div>}>
             <DatePicker
@@ -520,20 +554,23 @@ const CreateTask: FC<ICreateTaskProps> = ({
           </Suspense>
         </Stack>
 
-        {/* Row 4: Description (full width) */}
-        <Suspense fallback={<div>Loading...</div>}>
-          <Field
-            id="description"
-            label="Description"
-            width="100%"
-            type="description"
-            value={values.description}
-            onChange={handleOnTextFieldChange("description")}
-            error={errors.description}
-            sx={fieldStyle}
-            placeholder="Enter description"
-          />
-        </Suspense>
+        {/* Row 4: Description (full width = 350px + 350px + 48px gap) */}
+        <Stack direction="row" spacing={6}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Field
+              id="description"
+              label="Description"
+              width="350px"
+              type="description"
+              value={values.description}
+              onChange={handleOnTextFieldChange("description")}
+              error={errors.description}
+              sx={fieldStyle}
+              placeholder="Enter description"
+            />
+          </Suspense>
+          <Box sx={{ width: "350px" }} />
+        </Stack>
       </Stack>
     </StandardModal>
   );

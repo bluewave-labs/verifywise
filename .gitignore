@@ -15,11 +15,12 @@ fastapi.log
 react.log
 .idea/
 .claude
-.github
+CLAUDE.md
 .kombai
 .vscode
 agent.md
 agent-output.md
+plan.md
 
 
 FILE_MANAGER_WORKFLOW.md
@@ -27,3 +28,15 @@ SYSTEM_DESIGN_FILE_MANAGER.md
 SYSTEM_DESIGN_EMAIL_NOTIFICATION.md
 FILE_STORAGE_ARCHITECTURE.md
 Authentication_Authorization_Workflow_Documentation.md
+scripts/sync-docs-to-website.sh
+
+nulGateway/data/config.json
+Gateway/data/config.json.bak
+
+# Node modules
+node_modules/
+
+# EvalServer user uploads (keep directory structure, ignore uploaded files)
+EvaluationModule/data/uploads/*
+!EvaluationModule/data/uploads/.gitkeep
+nul

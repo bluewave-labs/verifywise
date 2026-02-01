@@ -10,7 +10,7 @@ import PageTour from "../../../components/PageTour";
 import ComplianceSteps from "./ComplianceSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { ComplianceData } from "../../../../domain/interfaces/iCompliance";
+import { ComplianceData } from "../../../../domain/interfaces/i.compliance";
 import { Project } from "../../../../domain/types/Project";
 import { getComplianceProgress } from "../../../../application/repository/control_eu_act.repository";
 
@@ -28,7 +28,7 @@ const ComplianceTracker = ({
   dueDateFilter?: string;
 }) => {
   const currentProjectId = project?.id;
-  const currentProjectFramework = project.framework.filter(
+  const currentProjectFramework = project.framework?.filter(
     (p) => p.framework_id === 1
   )[0]?.project_framework_id;
   const [complianceData, setComplianceData] = useState<ComplianceData>();

@@ -1,7 +1,8 @@
-import { BarChart3, Filter, Search, PlusCircle } from "lucide-react";
-import { IPageTourStep } from "../../../domain/interfaces/i.tour";
+import { BarChart3, Filter, Search, PlusCircle, AlertTriangle, FileText } from "lucide-react";
+import { IPageTourStep } from "../../types/interfaces/i.tour";
 
 const ModelInventorySteps: IPageTourStep[] = [
+  // Model inventory tab
   {
     target: '[data-joyride-id="add-model-button"]',
     content: {
@@ -35,6 +36,26 @@ const ModelInventorySteps: IPageTourStep[] = [
       header: "Search models",
       body: "Search your model inventory by model name, provider, or version to quickly locate specific AI models in your registry.",
       icon: <Search size={20} color="#ffffff" />,
+    },
+    placement: "bottom",
+  },
+  // Model risks tab
+  {
+    target: '[data-joyride-id="add-model-risk-button"]',
+    content: {
+      header: "Add model risk",
+      body: "Document risks specific to your AI models. Track risk severity, assign owners, and define mitigation strategies.",
+      icon: <AlertTriangle size={20} color="#ffffff" />,
+    },
+    placement: "bottom-end",
+  },
+  // Evidence hub tab
+  {
+    target: '[data-joyride-id="evidence-type-filter"]',
+    content: {
+      header: "Filter evidence",
+      body: "Filter evidence files by type to quickly find compliance documentation, assessments, and audit artifacts.",
+      icon: <FileText size={20} color="#ffffff" />,
     },
     placement: "bottom",
   },

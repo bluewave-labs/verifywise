@@ -1,8 +1,7 @@
 import { Worker, Job } from "bullmq";
-import redisClient from "../../database/redis"
+import { REDIS_URL } from "../../database/redis";
 
 import { sendPolicyDueSoonNotification } from "./policyDueSoonNotification";
-import { logSuccess, logFailure } from "../../utils/logger/logHelper";
 
 export const createNotificationWorker = () => {
   const worker = new Worker(
@@ -15,28 +14,28 @@ export const createNotificationWorker = () => {
         throw new Error(`Unknown job type: ${job.data.type}`);
       }
     },
-    { connection: redisClient },
+    { connection: { url: REDIS_URL } }
   );
 
-  worker.on("completed", (job) => {
-    const userId = job.returnvalue?.userId;
-    logSuccess({
-      eventType: "Update",
-      description: "Completed Job Processing",
-      functionName: "createNotificationWorker",
-      fileName: "slackWorker.ts",
-      userId,
-    });
+  worker.on("completed", (_job) => {
+    // const userId = job.returnvalue?.userId;
+    // logSuccess({
+    //   eventType: "Update",
+    //   description: "Completed Job Processing",
+    //   functionName: "createNotificationWorker",
+    //   fileName: "slackWorker.ts",
+    //   userId,
+    // });
   });
 
-  worker.on("failed", (job, err) => {
-    logFailure({
-      eventType: "Update",
-      description: "Processed Jobs",
-      functionName: "createNotificationWorker",
-      fileName: "slackWorker.ts",
-      error: err,
-    });
+  worker.on("failed", (_job, _err) => {
+    // logFailure({
+    //   eventType: "Update",
+    //   description: "Processed Jobs",
+    //   functionName: "createNotificationWorker",
+    //   fileName: "slackWorker.ts",
+    //   error: err,
+    // });
   });
 
   return worker;

@@ -7,36 +7,55 @@ import {
 } from "sequelize-typescript";
 import { UserModel } from "../user/user.model";
 import { ProjectModel } from "../project/project.model";
+import { OrganizationModel } from "../organization/organization.model";
+
+export type FileSource =
+  | "Assessment tracker group"
+  | "Compliance tracker group"
+  | "Management system clauses group"
+  | "Reference controls group"
+  | "Main clauses group"
+  | "Annex controls group"
+  | "Project risks report"
+  | "Compliance tracker report"
+  | "Assessment tracker report"
+  | "Vendors and risks report"
+  | "All reports"
+  | "Clauses and annexes report"
+  | "AI trust center group"
+  | "ISO 27001 report"
+  | "Models and risks report"
+  | "Training registry report"
+  | "Policy manager report"
+  | "File Manager"
+  | "policy_editor"
+  | "Post-Market Monitoring report";
 
 export interface File {
   filename: string;
   content: Buffer;
-  project_id: number;
+  project_id?: number;
   uploaded_by: number;
   uploaded_time: Date;
-  source:
-    | "Assessment tracker group"
-    | "Compliance tracker group"
-    | "Management system clauses group"
-    | "Reference controls group"
-    | "Main clauses group"
-    | "Annex controls group";
+  size?: number;
+  file_path?: string;
+  org_id?: number;
+  model_id?: number;
+  source: FileSource;
 }
 
 export interface FileType {
   id: string;
   fileName: string;
-  project_id: number;
+  project_id?: number;
   uploaded_by: number;
   uploaded_time: Date;
   type: string;
-  source:
-    | "Assessment tracker group"
-    | "Compliance tracker group"
-    | "Management system clauses group"
-    | "Reference controls group"
-    | "Main clauses group"
-    | "Annex controls group";
+  size?: number;
+  file_path?: string;
+  org_id?: number;
+  model_id?: number;
+  source: FileSource;
 }
 
 export interface FileList extends FileType {
@@ -72,8 +91,9 @@ export class FileModel extends Model<File> {
   @ForeignKey(() => ProjectModel)
   @Column({
     type: DataType.INTEGER,
+    allowNull: true,
   })
-  project_id!: number;
+  project_id?: number;
 
   @ForeignKey(() => UserModel)
   @Column({
@@ -87,6 +107,31 @@ export class FileModel extends Model<File> {
   uploaded_time!: Date;
 
   @Column({
+    type: DataType.BIGINT,
+    allowNull: true,
+  })
+  size?: number;
+
+  @Column({
+    type: DataType.STRING(500),
+    allowNull: true,
+  })
+  file_path?: string;
+
+  @ForeignKey(() => OrganizationModel)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  org_id?: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  model_id?: number;
+
+  @Column({
     type: DataType.ENUM(
       "Assessment tracker group",
       "Compliance tracker group",
@@ -94,15 +139,22 @@ export class FileModel extends Model<File> {
       "Reference controls group",
       "Main clauses group",
       "Annex controls group",
+      "Project risks report",
+      "Compliance tracker report",
+      "Assessment tracker report",
+      "Vendors and risks report",
+      "All reports",
+      "Clauses and annexes report",
+      "AI trust center group",
+      "ISO 27001 report",
+      "Models and risks report",
+      "Training registry report",
+      "Policy manager report",
+      "File Manager",
+      "policy_editor",
     ),
   })
-  source!:
-    | "Assessment tracker group"
-    | "Compliance tracker group"
-    | "Management system clauses group"
-    | "Reference controls group"
-    | "Main clauses group"
-    | "Annex controls group";
+  source!: FileSource;
 
   @Column({
     type: DataType.STRING,

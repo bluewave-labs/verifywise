@@ -107,7 +107,6 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
 
   @Column({
     type: DataType.DATE,
-    allowNull: false,
   })
   updated_at?: Date;
 
@@ -593,6 +592,7 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       review_date: this.review_date?.toISOString(),
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
+      updated_at: this.updated_at?.toISOString(),
     };
   }
 

@@ -180,4 +180,26 @@ export class VendorRiskModel
       this.likelihood = updateData.likelihood;
     }
   }
+
+  /**
+   * Convert to JSON representation
+   */
+  toJSON(): any {
+    return {
+      id: this.id,
+      vendor_id: this.vendor_id,
+      order_no: this.order_no,
+      risk_description: this.risk_description,
+      impact_description: this.impact_description,
+      impact: this.impact,
+      likelihood: this.likelihood,
+      risk_severity: this.risk_severity,
+      action_plan: this.action_plan,
+      action_owner: this.action_owner,
+      risk_level: this.risk_level,
+      is_demo: this.is_demo,
+      created_at: this.created_at?.toISOString(),
+      updated_at: this.updated_at?.toISOString(),
+    };
+  }
 }

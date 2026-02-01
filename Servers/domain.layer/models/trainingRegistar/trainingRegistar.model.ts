@@ -3,7 +3,6 @@ import { ITrainingRegister } from "../../interfaces/i.trainingRegister";
 import { numberValidation } from "../../validations/number.valid";
 import {
   ValidationException,
-  BusinessLogicException,
   NotFoundException,
 } from "../../exceptions/custom.exception";
 
@@ -374,6 +373,8 @@ export class TrainingRegistarModel
       numberOfPeople: this.numberOfPeople,
       description: this.description,
       progressPercentage: this.getProgressPercentage(),
+      createdAt: this.getDataValue("createdAt"),
+      updatedAt: this.getDataValue("updatedAt"),
     };
   }
 

@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Box, Typography, Stack, Chip } from "@mui/material";
-import { IRiskTimelineProps } from "../../../domain/interfaces/i.risk";
-import { ITimelineEvent } from "../../../domain/interfaces/iWidget";
+import { IRiskTimelineProps } from "../../types/interfaces/i.risk";
+import { ITimelineEvent } from "../../../domain/interfaces/i.widget";
 
 const RiskTimeline: React.FC<IRiskTimelineProps> = ({
   risks,
@@ -81,7 +81,7 @@ const RiskTimeline: React.FC<IRiskTimelineProps> = ({
   }, [risks]);
 
   const formatTime = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
     });
@@ -92,7 +92,7 @@ const RiskTimeline: React.FC<IRiskTimelineProps> = ({
     const groups: { [key: string]: ITimelineEvent[] } = {};
 
     timelineEvents.forEach((event) => {
-      const monthKey = event.date.toLocaleDateString("en-US", {
+      const monthKey = event.date.toLocaleDateString(undefined, {
         year: "numeric",
         month: "long",
       });

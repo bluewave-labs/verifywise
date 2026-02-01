@@ -1,11 +1,13 @@
-import React, { CSSProperties, useEffect, useState, useCallback } from "react";
+import React, { CSSProperties, useEffect, useState, useCallback, useRef } from "react";
 import DOMPurify from "dompurify";
 import PolicyForm from "./PolicyForm";
-import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../../domain/interfaces/IPolicy";
+import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../types/interfaces/i.policy";
 import { Plate, PlateContent, createPlateEditor } from "platejs/react";
+import { serializeHtml } from "platejs/static";
 import { AutoformatPlugin } from "@platejs/autoformat";
-import InsertImageUploaderModal from "../Modals/InsertImageModal/InsertImageUploaderModal";
+import { Range, Editor, BaseRange, Transforms, Path } from "slate";
 import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
+import { uploadFileToManager } from "../../../application/repository/file.repository";
 
 import {
   BoldPlugin,
@@ -15,6 +17,8 @@ import {
   H2Plugin,
   H3Plugin,
   StrikethroughPlugin,
+  BlockquotePlugin,
+  HighlightPlugin,
 } from "@platejs/basic-nodes/react";
 import {
   ListPlugin,
@@ -24,7 +28,8 @@ import {
   ListItemContentPlugin,
 } from "@platejs/list-classic/react";
 import { TextAlignPlugin } from "@platejs/basic-styles/react";
-import { serializeHtml } from "platejs";
+import { insertTable } from "@platejs/table";
+import { tablePlugin, tableRowPlugin, tableCellPlugin, tableCellHeaderPlugin } from "../PlatePlugins/CustomTablePlugin";
 import {
   Underline,
   Bold,
@@ -36,19 +41,30 @@ import {
   AlignLeft,
   AlignCenter,
   Link,
+  Unlink,
   AlignRight,
   Image,
   Redo2,
   Undo2,
+  History as HistoryIcon,
+  Quote,
+  Highlighter,
+  Table,
+  FileText,
+  FileDown,
+  Loader2,
 } from "lucide-react";
 
 const FormatUnderlined = () => <Underline size={16} />;
 const FormatBold = () => <Bold size={16} />;
 const FormatItalic = () => <Italic size={16} />;
-import { IconButton, Tooltip, useTheme, Box, Select, MenuItem } from "@mui/material";
+import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
+import Select from "../Inputs/Select";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
 import CustomizableButton from "../Button/CustomizableButton";
+import HistorySidebar from "../Common/HistorySidebar";
+import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChangeHistory";
 import {
   createPolicy,
   updatePolicy,
@@ -57,9 +73,9 @@ import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
-import { linkPlugin } from "../PlatePlugins/CustomLinkPlugin";
+import { linkPlugin, insertLink, removeLink, isLinkActive } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
-import { insertLink } from "../PlatePlugins/CustomLinkPlugin";
+import { store } from "../../../application/redux/store";
 
 
 const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
@@ -67,16 +83,25 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   tags,
   template,
   onClose,
-  onSaved,
+  onSaved: _onSaved,
 }) => {
   const isNew = !policy;
   const { users } = useUsers();
   const theme = useTheme();
   const [errors, setErrors] = useState<PolicyFormErrors>({});
   const [openLink, setOpenLink] = useState(false);
-  const [openImage, setOpenImage] = useState(false);
+  const [selectedTextForLink, setSelectedTextForLink] = useState("");
+  const [savedSelection, setSavedSelection] = useState<BaseRange | null>(null);
+  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingDOCX, setIsExportingDOCX] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
-  // const [isSubmitting, setIsSubmitting] = useState(false);
+  // Prefetch history data when drawer opens in edit mode
+  usePolicyChangeHistory(!isNew && policy?.id ? policy.id : undefined);
+
+  const [isSaving, setIsSaving] = useState(false);
 
   // Track toggle state for toolbar buttons
   type ToolbarKey =
@@ -92,7 +117,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     | "align-center"
     | "align-right"
     | "link"
-    | "image";
+    | "image"
+    | "highlight"
+    | "blockquote"
+    | "table";
 
   const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>(
     {
@@ -109,6 +137,9 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       "align-right": false,
       link: false,
       image: false,
+      highlight: false,
+      blockquote: false,
+      table: false,
     }
   );
 
@@ -124,13 +155,59 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       assignedReviewers: [],
       content: "",
     });
+    setIsHistorySidebarOpen(false);
     onClose();
   }
 
+  // Disable ESC key closing for policy editor to prevent accidental data loss
+  // Users can still close via the X button or Cancel button
   useModalKeyHandling({
     isOpen: true,
     onClose: handleClose,
+    onEscapeKey: () => {
+      // Do nothing on ESC - prevent accidental close with unsaved content
+    },
   });
+
+  // Handle image file selection and upload
+  const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Reset the input so the same file can be selected again
+    event.target.value = "";
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      console.error("Selected file is not an image");
+      return;
+    }
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      console.error("Image file is too large (max 10MB)");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const response = await uploadFileToManager({
+        file,
+        model_id: null,
+        source: "policy_editor",
+        signal: undefined,
+      });
+
+      const fileId = response.data.id;
+      // Use relative /api path - Vite dev server proxies this to backend
+      const imageUrl = `/api/file-manager/${fileId}`;
+      insertImage(editor, imageUrl, file.name);
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: PolicyFormErrors = {};
@@ -196,6 +273,12 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
           H2Plugin,
           H3Plugin,
           StrikethroughPlugin,
+          HighlightPlugin,
+          BlockquotePlugin,
+          tablePlugin,
+          tableRowPlugin,
+          tableCellPlugin,
+          tableCellHeaderPlugin,
           imagePlugin,
           linkPlugin,
           ListPlugin,
@@ -222,7 +305,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                   "justify",
                 ],
               },
-              targetPlugins: ["h1", "h2", "h3", "p"],
+              targetPlugins: ["h1", "h2", "h3", "p", "blockquote"],
             },
           }),
           AutoformatPlugin.configure({
@@ -232,8 +315,68 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
           }),
         ],
         value: [{ type: "p", children: [{ text: "" }] }],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       }) as any
   );
+
+  // Add error handling for editor operations to prevent crashes from invalid paths
+  useEffect(() => {
+    if (editor) {
+      const originalApply = editor.apply;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.apply = (operation: any) => {
+        try {
+          // Check for operations that might target invalid paths
+          if (operation.path && operation.path.length === 0) {
+            // Skip operations targeting root path
+            console.warn("Skipping operation targeting root path:", operation.type);
+            return;
+          }
+          originalApply(operation);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+          // Catch and log errors instead of crashing
+          if (e.message?.includes("Cannot get the parent path of the root path")) {
+            console.warn("Editor operation failed (root path error):", operation.type);
+          } else {
+            console.error("Editor operation failed:", e);
+          }
+        }
+      };
+
+      // Wrap deleteBackward to catch root path errors from list plugin
+      const originalDeleteBackward = editor.deleteBackward;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteBackward = (unit: any) => {
+        try {
+          return originalDeleteBackward(unit);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+          if (e.message?.includes("Cannot get the parent path of the root path")) {
+            console.warn("deleteBackward failed (root path error) - this is a known issue with list handling");
+            return;
+          }
+          throw e;
+        }
+      };
+
+      // Wrap deleteForward as well
+      const originalDeleteForward = editor.deleteForward;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteForward = (unit: any) => {
+        try {
+          return originalDeleteForward(unit);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+          if (e.message?.includes("Cannot get the parent path of the root path")) {
+            console.warn("deleteForward failed (root path error)");
+            return;
+          }
+          throw e;
+        }
+      };
+    }
+  }, [editor]);
 
   useEffect(() => {
     if (policy) {
@@ -252,12 +395,12 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         content: policy.content_html || "",
       });
     } else if (template) {
-      setFormData({
-        ...formData, 
+      setFormData((prev) => ({
+        ...prev, 
         title: template.title, 
         tags: template.tags, 
         content: template.content
-      })
+      }));
     } else {
       setFormData({
         title: "",
@@ -344,27 +487,234 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     },
     {
       key: "link",
-      title: "Insert Link",
-      icon: <Link size={16} />,
-      action: () => setOpenLink(true),
+      title: isLinkActive(editor) ? "Remove Link" : "Insert Link",
+      icon: isLinkActive(editor) ? <Unlink size={16} /> : <Link size={16} />,
+      action: () => {
+        // If cursor is in a link, remove the link
+        if (isLinkActive(editor)) {
+          removeLink(editor);
+          return;
+        }
+        // Otherwise, open the insert link modal
+        const { selection } = editor;
+        if (selection && !Range.isCollapsed(selection)) {
+          const selectedText = Editor.string(editor, selection);
+          setSelectedTextForLink(selectedText);
+          // Save the selection range so we can restore it after modal closes
+          setSavedSelection(selection);
+        } else {
+          setSelectedTextForLink("");
+          setSavedSelection(selection);
+        }
+        setOpenLink(true);
+      },
     },
     {
       key: "image",
-      title: "Insert Image",
+      title: isUploadingImage ? "Uploading..." : "Insert Image",
       icon: <Image size={16} />,
-      action: () => setOpenImage(true),
+      action: () => {
+        if (!isUploadingImage) {
+          imageInputRef.current?.click();
+        }
+      },
+    },
+    {
+      key: "highlight",
+      title: "Highlight",
+      icon: <Highlighter size={16} />,
+      action: () => editor.tf.highlight.toggle(),
+    },
+    {
+      key: "blockquote",
+      title: "Blockquote",
+      icon: <Quote size={16} />,
+      action: () => editor.tf.blockquote.toggle(),
+    },
+    {
+      key: "table",
+      title: "Insert Table",
+      icon: <Table size={16} />,
+      action: () => {
+        insertTable(editor, { colCount: 4, rowCount: 3, header: true }, { select: true });
+        // Insert an empty paragraph after the table so users can continue typing below it
+        const { selection } = editor;
+        if (selection) {
+          // Find the table node and insert paragraph after it
+          const tableEntry = Editor.above(editor, {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            match: (n: any) => n.type === 'table',
+          });
+          if (tableEntry) {
+            const [, tablePath] = tableEntry;
+            const afterTablePath = Path.next(tablePath);
+            Transforms.insertNodes(
+              editor,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              { type: 'p', children: [{ text: '' }] } as any,
+              { at: afterTablePath }
+            );
+          }
+        }
+      },
     },
   ];
+
+  // Convert Slate-specific HTML markup to standard HTML tags for proper deserialization
+  const normalizeSlateHtml = (html: string): string => {
+    // Convert <div data-slate-type="p"> to <p>
+    let normalized = html.replace(/<div([^>]*?)data-slate-type="p"([^>]*)>/gi, '<p$1$2>');
+    normalized = normalized.replace(/<\/div>/gi, (match, offset) => {
+      // Check if this closing div corresponds to a paragraph we converted
+      const before = normalized.substring(0, offset);
+      const openParagraphs = (before.match(/<p[^>]*>/gi) || []).length;
+      const closedParagraphs = (before.match(/<\/p>/gi) || []).length;
+      if (openParagraphs > closedParagraphs) {
+        return '</p>';
+      }
+      return match;
+    });
+
+    // Convert <div data-slate-type="lic"> (list item content) to just extract the content
+    normalized = normalized.replace(/<div[^>]*data-slate-type="lic"[^>]*>/gi, '');
+
+    // Remove Slate wrapper spans that don't add semantic meaning
+    normalized = normalized.replace(/<span[^>]*data-slate-string="true"[^>]*>([^<]*)<\/span>/gi, '$1');
+    normalized = normalized.replace(/<span[^>]*data-slate-leaf="true"[^>]*>([^<]*)<\/span>/gi, '$1');
+    normalized = normalized.replace(/<span[^>]*data-slate-node="text"[^>]*>/gi, '');
+    normalized = normalized.replace(/<\/span>/gi, (match, offset) => {
+      // Only remove closing spans that were wrapping text nodes
+      const before = normalized.substring(0, offset);
+      const textNodeSpans = (before.match(/<span[^>]*data-slate-node="text"[^>]*>/gi) || []).length;
+      const closedTextSpans = before.substring(0, offset).split('</span>').length - 1;
+      if (textNodeSpans > closedTextSpans) {
+        return '';
+      }
+      return match;
+    });
+
+    // Remove the outer slate-editor wrapper div
+    normalized = normalized.replace(/<div[^>]*class="slate-editor"[^>]*>/gi, '');
+
+    return normalized;
+  };
+
+  // Convert Plate's serialized HTML output to standard semantic HTML for storage
+  // This ensures proper paragraph formatting when content is displayed outside the editor
+  const normalizeSerializedHtml = (html: string): string => {
+    let normalized = html;
+
+    // Remove nested span wrappers that Plate adds (data-slate-node="text", data-slate-leaf, data-slate-string)
+    // Keep the innermost text content and formatting tags like <strong>, <em>, etc.
+    normalized = normalized.replace(/<span[^>]*data-slate-string="true"[^>]*>([^<]*)<\/span>/gi, '$1');
+    normalized = normalized.replace(/<span[^>]*data-slate-leaf="true"[^>]*>/gi, '');
+    normalized = normalized.replace(/<span[^>]*data-slate-node="text"[^>]*>/gi, '');
+
+    // Remove orphaned closing </span> tags (from the spans we opened above)
+    // Count and remove only the extra ones
+    const spanOpenCount = (normalized.match(/<span[^>]*>/gi) || []).length;
+    let spanCloseCount = (normalized.match(/<\/span>/gi) || []).length;
+    while (spanCloseCount > spanOpenCount) {
+      normalized = normalized.replace(/<\/span>/, '');
+      spanCloseCount--;
+    }
+
+    // Convert element divs to proper semantic HTML based on block-id patterns
+    // Headings: data-block-id starting with "heading-" or "title-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="(?:title|heading)-[^"]*"[^>]*>/gi, '<h2>');
+
+    // Paragraphs: data-block-id starting with "paragraph-" or "summary-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="(?:paragraph|summary)-[^"]*"[^>]*>/gi, '<p>');
+
+    // List containers: data-block-id starting with "bullets-" or "numbered-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="bullets-[^"]*"[^>]*>/gi, '<ul>');
+    normalized = normalized.replace(/<div[^>]*data-block-id="numbered-[^"]*"[^>]*>/gi, '<ol>');
+
+    // List items: data-block-id starting with "li-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="li-[^"]*"[^>]*>/gi, '<li>');
+
+    // Any remaining element divs become paragraphs (generic content blocks)
+    normalized = normalized.replace(/<div[^>]*data-slate-node="element"[^>]*>/gi, '<p>');
+
+    // Now convert closing </div> tags to match the opening tags we converted
+    // Parse through and match them properly
+    const tokens = normalized.split(/(<[^>]+>)/);
+    const tagStack: string[] = [];
+    const result: string[] = [];
+
+    for (const token of tokens) {
+      if (token.startsWith('<') && !token.startsWith('</') && !token.endsWith('/>')) {
+        // Opening tag
+        const tagMatch = token.match(/^<(\w+)/);
+        if (tagMatch) {
+          tagStack.push(tagMatch[1]);
+        }
+        result.push(token);
+      } else if (token.startsWith('</')) {
+        // Closing tag
+        const tagMatch = token.match(/^<\/(\w+)/);
+        if (tagMatch) {
+          const closingTag = tagMatch[1].toLowerCase();
+          if (closingTag === 'div' && tagStack.length > 0) {
+            // Replace </div> with the appropriate closing tag
+            const openTag = tagStack.pop()!.toLowerCase();
+            if (['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'li', 'blockquote'].includes(openTag)) {
+              result.push(`</${openTag}>`);
+            } else {
+              result.push(token);
+            }
+          } else {
+            if (tagStack.length > 0) tagStack.pop();
+            result.push(token);
+          }
+        } else {
+          result.push(token);
+        }
+      } else {
+        result.push(token);
+      }
+    }
+
+    normalized = result.join('');
+
+    // Clean up any remaining data-* attributes
+    normalized = normalized.replace(/\s*data-[a-z-]+="[^"]*"/gi, '');
+
+    // Clean up style attributes with just position:relative
+    normalized = normalized.replace(/\s*style="position:\s*relative;?\s*"/gi, '');
+
+    // Clean up empty attributes
+    normalized = normalized.replace(/\s*style=""\s*/gi, ' ');
+    normalized = normalized.replace(/\s*class=""\s*/gi, ' ');
+
+    // Clean up multiple spaces
+    normalized = normalized.replace(/\s+/g, ' ');
+
+    // Trim whitespace around tags
+    normalized = normalized.replace(/>\s+</g, '><');
+
+    return normalized;
+  };
 
   useEffect(() => {
     if ((policy || template) && editor) {
       const api = editor.api.html;
       const content = policy?.content_html || template?.content;
+
+      // First normalize Slate-specific HTML to standard HTML tags
+      let processedContent = typeof content === "string" ? normalizeSlateHtml(content) : content;
+
+      // Replace img src with data-src to prevent browser from loading images during deserialization
+      // The browser automatically tries to fetch <img src="..."> when setting innerHTML,
+      // which fails for authenticated API URLs. Our ImageElement component handles the auth fetch.
+      processedContent = typeof processedContent === "string"
+        ? processedContent.replace(/<img\s+([^>]*)src=/gi, "<img $1data-src=")
+        : processedContent;
       const nodes =
-        typeof content === "string"
+        typeof processedContent === "string"
           ? api.deserialize({
               element: Object.assign(document.createElement("div"), {
-                innerHTML: DOMPurify.sanitize(content, {
+                innerHTML: DOMPurify.sanitize(processedContent, {
                   ALLOWED_TAGS: [
                     "p",
                     "br",
@@ -390,20 +740,30 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                     "img",
                     "span",
                     "div",
+                    "mark",
+                    "table",
+                    "thead",
+                    "tbody",
+                    "tr",
+                    "th",
+                    "td",
                   ],
                   ALLOWED_ATTR: [
                     "href",
                     "title",
                     "alt",
                     "src",
+                    "data-src",
                     "class",
                     "id",
                     "style",
                     "target",
                     "rel",
+                    "colspan",
+                    "rowspan",
                   ],
                   ALLOWED_URI_REGEXP:
-                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+\-]+(?:[^a-z.+\-:]|$))/i,
+                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+-]+(?:[^a-z.+-:]|$))/i,
                   ADD_ATTR: ["target"],
                   FORBID_TAGS: [
                     "script",
@@ -429,6 +789,12 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
       editor.tf.reset();
       editor.tf.setValue(nodes);
+      // Clear undo history so the initial content is the baseline
+      // and undo doesn't revert to an empty editor
+      if (editor.history) {
+        editor.history.undos = [];
+        editor.history.redos = [];
+      }
     }
   }, [policy, template, editor]);
 
@@ -443,12 +809,34 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       // Get current marks (bold, italic, etc.)
       const marks = editor.marks || {};
 
-      // Get current block type
-      const [block] = editor.api.block.getBlockAbove() || [];
-      const blockType = block?.type || 'p';
+      // Get current block type - traverse up to find a block element
+      let blockType = 'p';
+      let align = 'left';
 
-      // Get text alignment
-      const align = block?.align || 'left';
+      try {
+        // Get the current block using editor.api.block()
+        const blockEntry = editor.api.block();
+        if (blockEntry && blockEntry[0]) {
+          const block = blockEntry[0];
+          const type = block.type as string;
+          if (type === 'h1' || type === 'heading-one') {
+            blockType = 'h1';
+          } else if (type === 'h2' || type === 'heading-two') {
+            blockType = 'h2';
+          } else if (type === 'h3' || type === 'heading-three') {
+            blockType = 'h3';
+          } else if (type === 'blockquote') {
+            blockType = 'blockquote';
+          } else {
+            blockType = 'p';
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          align = (block as any).align || 'left';
+        }
+      } catch {
+        // Fallback to paragraph
+        blockType = 'p';
+      }
 
       // Update block type for dropdown
       setCurrentBlockType(blockType);
@@ -464,10 +852,13 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         'align-center': align === 'center',
         'align-right': align === 'right' || align === 'end',
         link: !!marks.link,
+        highlight: !!marks.highlight,
+        blockquote: blockType === 'blockquote',
         // These don't have persistent state
         undo: false,
         redo: false,
         image: false,
+        table: false,
       });
     } catch (error) {
       // Silently handle errors during state sync
@@ -476,8 +867,8 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   }, [editor]);
 
   // Handle block type change from dropdown
-  const handleBlockTypeChange = (event: any) => {
-    const newType = event.target.value;
+  const handleBlockTypeChange = (event: { target: { value: string | number } }) => {
+    const newType = String(event.target.value);
     setCurrentBlockType(newType);
 
     if (!editor) return;
@@ -498,12 +889,147 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     setTimeout(() => updateToolbarState(), 0);
   };
 
+  // Helper to serialize image node to HTML (avoids hooks issue)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const serializeImageToHtml = (node: any): string => {
+    const url = node.url || node.src || "";
+    const alt = node.alt || "";
+    const width = node.width || "100%";
+    const align = node.align || "center";
+    const caption = node.caption || "";
+
+    const alignItems = align === "left" ? "flex-start" : align === "right" ? "flex-end" : "center";
+    const widthStyle = typeof width === "number" ? `${width}px` : width;
+
+    let html = `<div style="display: flex; flex-direction: column; align-items: ${alignItems}; margin: 12px 0;">`;
+    html += `<img src="${url}" alt="${alt}" style="width: ${widthStyle}; max-width: 100%; border-radius: 8px;" />`;
+    if (caption) {
+      html += `<div style="margin-top: 8px; font-size: 0.85rem; color: #667085; font-style: italic; text-align: center;">${caption}</div>`;
+    }
+    html += `</div>`;
+    return html;
+  };
+
+  // Helper to serialize table node to HTML (avoids hooks issue)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const serializeTableToHtml = (node: any): string => {
+    let html = '<table style="border-collapse: collapse; width: 100%; margin: 12px 0;">';
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const serializeChildren = (children: any[]): string => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return children.map((child: any) => {
+        if (child.text !== undefined) {
+          let text = child.text;
+          if (child.bold) text = `<strong>${text}</strong>`;
+          if (child.italic) text = `<em>${text}</em>`;
+          if (child.underline) text = `<u>${text}</u>`;
+          return text;
+        }
+        return '';
+      }).join('');
+    };
+
+    if (node.children) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      node.children.forEach((row: any) => {
+        if (row.type === 'tr') {
+          html += '<tr>';
+          if (row.children) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            row.children.forEach((cell: any) => {
+              const isHeader = cell.type === 'th';
+              const tag = isHeader ? 'th' : 'td';
+              const bgStyle = isHeader ? 'background-color: #f9fafb; font-weight: 600;' : '';
+              html += `<${tag} style="border: 1px solid #d0d5dd; padding: 8px 12px; text-align: left; ${bgStyle}">`;
+              if (cell.children) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                cell.children.forEach((content: any) => {
+                  if (content.children) {
+                    html += serializeChildren(content.children);
+                  } else if (content.text !== undefined) {
+                    html += content.text;
+                  }
+                });
+              }
+              html += `</${tag}>`;
+            });
+          }
+          html += '</tr>';
+        }
+      });
+    }
+
+    html += '</table>';
+    return html;
+  };
+
+  // Custom HTML serializer that handles images and tables without hooks
+  const serializeToHtml = async (): Promise<string> => {
+    // Get HTML from serializeHtml but replace image/table placeholders
+    // First, temporarily remove special nodes and track their positions
+    const editorValue = JSON.parse(JSON.stringify(editor.children));
+
+    // Process nodes recursively to replace images and tables with placeholder markers
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const imageMap = new Map<string, any>();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tableMap = new Map<string, any>();
+    let imageIndex = 0;
+    let tableIndex = 0;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const processNode = (node: any): any => {
+      if (node.type === "image") {
+        const placeholder = `__IMAGE_PLACEHOLDER_${imageIndex}__`;
+        imageMap.set(placeholder, node);
+        imageIndex++;
+        return { type: "p", children: [{ text: placeholder }] };
+      }
+      if (node.type === "table") {
+        const placeholder = `__TABLE_PLACEHOLDER_${tableIndex}__`;
+        tableMap.set(placeholder, node);
+        tableIndex++;
+        return { type: "p", children: [{ text: placeholder }] };
+      }
+      if (node.children) {
+        return { ...node, children: node.children.map(processNode) };
+      }
+      return node;
+    };
+
+    const processedValue = editorValue.map(processNode);
+
+    // Create a temporary editor clone for serialization to avoid modifying the actual editor
+    // This prevents placeholders from appearing in the UI
+    const tempEditor = createPlateEditor({
+      plugins: editor.pluginList,
+      value: processedValue,
+    });
+
+    let html = await serializeHtml(tempEditor);
+
+    // Replace placeholders with actual HTML
+    imageMap.forEach((imageNode, placeholder) => {
+      html = html.replace(placeholder, serializeImageToHtml(imageNode));
+    });
+    tableMap.forEach((tableNode, placeholder) => {
+      html = html.replace(placeholder, serializeTableToHtml(tableNode));
+    });
+
+    // Normalize Slate's div-based output to proper semantic HTML with <p> tags
+    // This ensures proper paragraph formatting when displayed outside the editor
+    html = normalizeSerializedHtml(html);
+
+    return html;
+  };
+
   const save = async () => {
     if (!validateForm()) {
       return;
     }
-    // setIsSubmitting(true);
-    const html = await serializeHtml(editor);
+    setIsSaving(true);
+    const html = await serializeToHtml();
     const assignedReviewers = formData.assignedReviewers.map((user) => user.id);
     const payload = {
       title: formData.title,
@@ -517,20 +1043,33 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     };
 
     try {
+      const startTime = Date.now();
+
       if (isNew) {
         await createPolicy(payload);
       } else {
         await updatePolicy(policy!.id, payload);
       }
 
-      // Close modal immediately and pass success message to parent
-      const successMessage = isNew
-        ? "Policy created successfully!"
-        : "Policy updated successfully!";
+      // Ensure saving state is visible for at least 1 second
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+      }
 
-      onSaved(successMessage);
+      setIsSaving(false);
+
+      // Close modal and notify parent to refresh the table
+      if (isNew && template) {
+        _onSaved("Policy created successfully from template");
+      } else if (isNew) {
+        _onSaved("Policy created successfully");
+      } else {
+        _onSaved("Policy updated successfully");
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      // setIsSubmitting(false);
+      setIsSaving(false);
       console.error("Full error object:", err);
       console.error("Original error:", err?.originalError);
       console.error("Original error response:", err?.originalError?.response);
@@ -543,6 +1082,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       if (errorData?.errors) {
         console.error("Processing server errors:", errorData.errors);
         const serverErrors: PolicyFormErrors = {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         errorData.errors.forEach((error: any) => {
           console.error("Processing error:", error);
           if (error.field === "title") {
@@ -567,6 +1107,103 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     }
   };
 
+  // Export policy as PDF
+  const exportPDF = async () => {
+    if (!policy?.id) return;
+
+    setIsExportingPDF(true);
+    try {
+      const token = store.getState().auth.authToken;
+      const response = await fetch(`/api/policies/${policy.id}/export/pdf`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export PDF");
+      }
+
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+
+      // Extract filename from Content-Disposition header if available
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+          filename = match[1];
+        }
+      }
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export PDF:", error);
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
+  // Export policy as DOCX
+  const exportDOCX = async () => {
+    if (!policy?.id) return;
+
+    setIsExportingDOCX(true);
+    try {
+      const token = store.getState().auth.authToken;
+      const response = await fetch(`/api/policies/${policy.id}/export/docx`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export DOCX");
+      }
+
+      const blob = await response.blob();
+      console.log("DOCX blob size:", blob.size, "type:", blob.type);
+
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.docx`;
+
+      // Extract filename from Content-Disposition header if available
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+          filename = match[1];
+        }
+      }
+
+      // Create download link with proper MIME type
+      const docxBlob = new Blob([blob], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      });
+      const url = window.URL.createObjectURL(docxBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export DOCX:", error);
+    } finally {
+      setIsExportingDOCX(false);
+    }
+  };
+
   return (
     <>
       {/* {isSubmitting && (
@@ -586,31 +1223,48 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       )} */}
       <InsertLinkModal
         open={openLink}
-        onClose={() => setOpenLink(false)}
-        onInsert={(url, text) => insertLink(editor, url, text)}
+        onClose={() => {
+          setOpenLink(false);
+          setSelectedTextForLink("");
+          setSavedSelection(null);
+        }}
+        onInsert={(url, text) => {
+          // Restore the saved selection before inserting the link
+          if (savedSelection) {
+            editor.select(savedSelection);
+          }
+          insertLink(editor, url, text);
+          setSavedSelection(null);
+        }}
+        selectedText={selectedTextForLink}
       />
 
-      <InsertImageUploaderModal
-        open={openImage}
-        onClose={() => setOpenImage(false)}
-        onInsert={(url, alt) => insertImage(editor, url, alt)}
+      {/* Hidden file input for native OS file picker */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleImageFileChange}
       />
       <Drawer
         open={true}
         onClose={(_event, reason) => {
-          if (reason !== "backdropClick") {
+          if (reason !== "backdropClick" && reason !== "escapeKeyDown") {
             handleClose();
           }
         }}
         anchor="right"
+        disableEscapeKeyDown
         sx={{
-          width: 900,
+          width: isHistorySidebarOpen ? 1236 : 900,
           "& .MuiDrawer-paper": {
-            width: 900,
+            width: isHistorySidebarOpen ? 1236 : 900,
             borderRadius: 0,
             padding: "15px 20px",
             marginTop: "0",
             overflow: "hidden",
+            transition: "width 300ms ease-in-out",
           },
         }}
       >
@@ -625,27 +1279,57 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             <Typography
               sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
             >
-              {isNew ? "Create new policy" : formData.title}
+              {isNew ? (template ? "Create new policy from the template" : "Create new policy") : formData.title}
             </Typography>
           </Stack>
-          <CloseGreyIcon
-            size={16}
-            style={{ color: "#98A2B3", cursor: "pointer" }}
-            onClick={handleClose}
-          />
+          <Stack direction="row" alignItems="center" gap={1}>
+            {!isNew && policy?.id && (
+              <Tooltip title="View activity history" arrow>
+                <IconButton
+                  onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
+                  size="small"
+                  sx={{
+                    color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                    padding: "4px",
+                    borderRadius: "4px",
+                    backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
+                    "&:hover": {
+                      backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
+                    },
+                  }}
+                >
+                  <HistoryIcon size={16} />
+                </IconButton>
+              </Tooltip>
+            )}
+            <CloseGreyIcon
+              size={16}
+              style={{ color: "#98A2B3", cursor: "pointer" }}
+              onClick={handleClose}
+            />
+          </Stack>
         </Stack>
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack spacing={2} sx={{ paddingBottom: "16px" }}>
-          <PolicyForm
-            formData={formData}
-            setFormData={setFormData}
-            tags={tags}
-            errors={errors}
-            setErrors={setErrors}
-          />
-          <Stack sx={{ width: "100%", height: "100%" }}>
+        <Stack
+          direction="row"
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflow: "hidden",
+          }}
+        >
+          {/* Main Content */}
+          <Stack spacing={2} sx={{ flex: 1, paddingBottom: "16px", minWidth: 0, overflow: "auto" }}>
+            <PolicyForm
+              formData={formData}
+              setFormData={setFormData}
+              tags={tags}
+              errors={errors}
+              setErrors={setErrors}
+            />
+            <Stack sx={{ width: "100%", height: "100%" }}>
             <Box
               sx={{
                 display: "flex",
@@ -656,34 +1340,23 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
               }}
             >
               {/* Block Type Dropdown */}
-              <Select
-                value={currentBlockType}
-                onChange={handleBlockTypeChange}
-                size="small"
-                sx={{
-                  minWidth: 120,
-                  height: "32px",
-                  fontSize: "13px",
-                  backgroundColor: "#FFFFFF",
-                  "& .MuiSelect-select": {
-                    padding: "6px 32px 6px 10px",
-                  },
-                  "& fieldset": {
-                    borderColor: "#D0D5DD",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#13715B",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#13715B",
-                  },
-                }}
-              >
-                <MenuItem value="p" sx={{ fontSize: "13px" }}>Text</MenuItem>
-                <MenuItem value="h1" sx={{ fontSize: "13px" }}>Header 1</MenuItem>
-                <MenuItem value="h2" sx={{ fontSize: "13px" }}>Header 2</MenuItem>
-                <MenuItem value="h3" sx={{ fontSize: "13px" }}>Header 3</MenuItem>
-              </Select>
+              <Box sx={{ marginRight: "8px" }}>
+                <Select
+                  id="block-type-select"
+                  value={currentBlockType}
+                  onChange={handleBlockTypeChange}
+                  items={[
+                    { _id: "p", name: "Text" },
+                    { _id: "h1", name: "Header 1" },
+                    { _id: "h2", name: "Header 2" },
+                    { _id: "h3", name: "Header 3" },
+                  ]}
+                  sx={{
+                    width: 120,
+                    height: "34px",
+                  }}
+                />
+              </Box>
 
               {/* Toolbar */}
               {toolbarConfig.map(({ key, title, icon, action }) => (
@@ -744,6 +1417,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                   // Update toolbar state when editor content changes
                   updateToolbarState();
                 }}
+                onSelectionChange={() => {
+                  // Update toolbar state when selection/cursor changes
+                  updateToolbarState();
+                }}
               >
                 <PlateContent
                   style={
@@ -758,10 +1435,45 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                       color: theme.palette.text.primary,
                       boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
                       outline: "none",
+                      "--plate-highlight-bg": "#fef08a",
+                      "--plate-blockquote-border": "#d0d5dd",
                     } as CSSProperties
                   }
                   placeholder="Start typing..."
                 />
+                <style>{`
+                  [data-slate-editor] mark {
+                    background-color: #fef08a;
+                    padding: 0 2px;
+                    border-radius: 2px;
+                  }
+                  [data-slate-editor] blockquote {
+                    border-left: 3px solid #d0d5dd;
+                    margin: 8px 0;
+                    padding: 8px 16px;
+                    color: #475467;
+                    background-color: #f9fafb;
+                    border-radius: 0 4px 4px 0;
+                  }
+                  [data-slate-editor] table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin: 12px 0;
+                  }
+                  [data-slate-editor] th,
+                  [data-slate-editor] td {
+                    border: 1px solid #d0d5dd;
+                    padding: 8px 12px;
+                    text-align: left;
+                  }
+                  [data-slate-editor] th {
+                    background-color: #f9fafb;
+                    font-weight: 600;
+                  }
+                  [data-slate-editor] tr:hover td {
+                    background-color: #f9fafb;
+                  }
+                `}</style>
               </Plate>
             </Box>
             {errors.content && (
@@ -780,13 +1492,24 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
               </Typography>
             )}
           </Stack>
+          </Stack>
+
+          {/* History Sidebar - Only shown when editing */}
+          {!isNew && policy?.id && (
+            <HistorySidebar
+              isOpen={isHistorySidebarOpen}
+              entityType="policy"
+              entityId={policy.id}
+              height="100%"
+            />
+          )}
         </Stack>
 
         <Box
           sx={{
             position: "fixed",
             bottom: 0,
-            right: 20,
+            right: isHistorySidebarOpen ? 356 : 20,
             left: "auto",
             width: "calc(900px - 40px)",
             pt: 2,
@@ -795,12 +1518,74 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             backgroundColor: "#fff",
             display: "flex",
             justifyContent: "flex-end",
+            gap: "8px",
             zIndex: 1201,
+            transition: "right 300ms ease-in-out",
           }}
         >
+          {/* Export buttons - only show when editing existing policy */}
+          {!isNew && policy?.id && (
+            <>
+              <Tooltip title="Download as PDF" arrow>
+                <span>
+                  <CustomizableButton
+                    variant="outlined"
+                    text={isExportingPDF ? "Exporting..." : "PDF"}
+                    isDisabled={isExportingPDF || isExportingDOCX}
+                    sx={{
+                      backgroundColor: "#fff",
+                      border: "1px solid #D0D5DD",
+                      color: "#344054",
+                      gap: 1,
+                      minWidth: "90px",
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#98A2B3",
+                      },
+                      "&:disabled": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#E4E7EC",
+                        color: "#98A2B3",
+                      },
+                    }}
+                    onClick={exportPDF}
+                    icon={<FileText size={16} />}
+                  />
+                </span>
+              </Tooltip>
+              <Tooltip title="Download as Word" arrow>
+                <span>
+                  <CustomizableButton
+                    variant="outlined"
+                    text={isExportingDOCX ? "Exporting..." : "Word"}
+                    isDisabled={isExportingPDF || isExportingDOCX}
+                    sx={{
+                      backgroundColor: "#fff",
+                      border: "1px solid #D0D5DD",
+                      color: "#344054",
+                      gap: 1,
+                      minWidth: "90px",
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#98A2B3",
+                      },
+                      "&:disabled": {
+                        backgroundColor: "#F9FAFB",
+                        borderColor: "#E4E7EC",
+                        color: "#98A2B3",
+                      },
+                    }}
+                    onClick={exportDOCX}
+                    icon={<FileDown size={16} />}
+                  />
+                </span>
+              </Tooltip>
+            </>
+          )}
           <CustomizableButton
             variant="contained"
-            text="Save"
+            text={isSaving ? "Saving..." : (isNew && template ? "Save in organizational policies" : "Save")}
+            isDisabled={isSaving}
             sx={{
               backgroundColor: "#13715B",
               border: "1px solid #13715B",
@@ -809,9 +1594,13 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                 backgroundColor: "#0F5B4D",
                 borderColor: "#0F5B4D",
               },
+              "&:disabled": {
+                backgroundColor: "#13715B",
+                opacity: 0.7,
+              },
             }}
             onClick={save}
-            icon={<SaveIcon size={16} />}
+            icon={isSaving ? <Loader2 size={16} className="animate-spin" style={{ animation: "spin 1s linear infinite" }} /> : <SaveIcon size={16} />}
           />
         </Box>
       </Drawer>

@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useContext } from "react";
-import { OnboardingState, UserPreferences, SampleProjectData } from "../../domain/interfaces/i.onboarding";
+import { useSelector, useDispatch } from "react-redux";
+import { OnboardingState, UserPreferences, SampleProjectData } from "../../presentation/types/interfaces/i.onboarding";
 import { VerifyWiseContext } from "../contexts/VerifyWise.context";
 import { useAuth } from "./useAuth";
+import { setOnboardingStatus as setReduxOnboardingStatus } from "../redux/auth/authSlice";
+import type { RootState } from "../redux/store";
 
 const getStorageKey = (userId: number) => `verifywise_onboarding_${userId}`;
 
@@ -11,17 +14,23 @@ const initialState: OnboardingState = {
   skippedSteps: [],
   preferences: {},
   sampleProject: {},
-  isComplete: false,
+  isComplete: true, // Default to true, will be overridden by server-side status
   lastUpdated: new Date().toISOString(),
 };
 
 export const useOnboarding = () => {
   const { userId } = useAuth();
   const { users, organizationId } = useContext(VerifyWiseContext);
+  const dispatch = useDispatch();
+
+  // Get server-side onboarding status from Redux
+  const serverOnboardingStatus = useSelector((state: RootState) => state.auth?.onboardingStatus);
+  const isOrgCreator = useSelector((state: RootState) => state.auth?.isOrgCreator);
+
   const [state, setState] = useState<OnboardingState>(initialState);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load state from localStorage on mount
+  // Load state from localStorage on mount, but use server-side status for isComplete
   useEffect(() => {
     if (!userId) {
       setIsLoading(false);
@@ -31,21 +40,27 @@ export const useOnboarding = () => {
     const storageKey = getStorageKey(userId);
     const savedState = localStorage.getItem(storageKey);
 
+    // Determine isComplete from server-side status
+    // Only show setup modal if:
+    // 1. Server says onboarding is pending
+    // 2. User is the org creator
+    const isCompleteFromServer = serverOnboardingStatus !== "pending" || !isOrgCreator;
+
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
-        setState(parsed);
+        // Override isComplete with server-side status
+        setState({ ...parsed, isComplete: isCompleteFromServer });
       } catch (error) {
         console.error("Failed to parse onboarding state:", error);
-        // If parse fails, mark as complete to prevent showing broken state
-        setState({ ...initialState, isComplete: true });
+        setState({ ...initialState, isComplete: isCompleteFromServer });
       }
     } else {
-      // First time for this user - initialize with default state
-      setState(initialState);
+      // First time for this user - initialize with server-side status
+      setState({ ...initialState, isComplete: isCompleteFromServer });
     }
     setIsLoading(false);
-  }, [userId]);
+  }, [userId, serverOnboardingStatus, isOrgCreator]);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -161,14 +176,16 @@ export const useOnboarding = () => {
     }));
   }, []);
 
-  // Complete onboarding
+  // Complete onboarding - updates both local state and Redux
   const completeOnboarding = useCallback(() => {
     setState((prev) => ({
       ...prev,
       isComplete: true,
       lastUpdated: new Date().toISOString(),
     }));
-  }, []);
+    // Update Redux to mark onboarding as completed
+    dispatch(setReduxOnboardingStatus("completed"));
+  }, [dispatch]);
 
   // Reset onboarding (for restart)
   const resetOnboarding = useCallback(() => {
@@ -181,12 +198,9 @@ export const useOnboarding = () => {
 
   // Check if onboarding should be shown
   const shouldShowOnboarding = useCallback(() => {
-    if (!userId || isLoading) return false;
-
-    // Simply check if onboarding is complete in state
-    // No session storage needed - localStorage persistence handles everything
-    return !state.isComplete;
-  }, [state.isComplete, userId, isLoading]);
+    // Onboarding is temporarily disabled
+    return false;
+  }, []);
 
   return {
     state,
@@ -194,6 +208,8 @@ export const useOnboarding = () => {
     isFirstUserInOrg: isFirstUserInOrg(),
     isAdmin: isAdmin(),
     isInvitedUser: isInvitedUser(),
+    isOrgCreator: isOrgCreator ?? false,
+    serverOnboardingStatus: serverOnboardingStatus ?? "completed",
     setCurrentStep,
     completeStep,
     skipStep,

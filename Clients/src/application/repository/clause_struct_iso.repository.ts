@@ -1,4 +1,4 @@
-import { GetRequestParams } from "../../domain/interfaces/iRequestParams";
+import { GetRequestParams } from "../../domain/interfaces/i.requestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 export async function GetClausesByProjectFrameworkId({

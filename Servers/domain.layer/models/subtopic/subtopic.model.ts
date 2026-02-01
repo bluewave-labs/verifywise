@@ -214,6 +214,7 @@ export class SubtopicModel extends Model<SubtopicModel> implements ISubtopic {
    * Convert subtopic model to JSON representation
    */
   toJSON(): any {
+    const dataValues = this.dataValues as any;
     return {
       id: this.id,
       title: this.title,
@@ -222,6 +223,8 @@ export class SubtopicModel extends Model<SubtopicModel> implements ISubtopic {
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
       updated_at: this.updated_at?.toISOString(),
+      // Include dynamically added properties from queries
+      questions: dataValues?.questions,
     };
   }
 

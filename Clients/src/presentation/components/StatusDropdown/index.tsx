@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import { ChevronDown as WhiteDownArrowIcon } from "lucide-react";
 import { getStatusColor } from "../../pages/ISO/style";
-import { IStatusDropdownProps } from "../../../domain/interfaces/iWidget";
+import { IStatusDropdownProps } from "../../../domain/interfaces/i.widget";
 
 const STATUS_OPTIONS = [
   "Not started",

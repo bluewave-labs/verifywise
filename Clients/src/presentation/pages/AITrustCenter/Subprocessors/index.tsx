@@ -30,7 +30,7 @@ import {
 } from "../../../../application/hooks/useAITrustCentreSubprocessorsQuery";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
-import { Subprocessor } from "../../../../domain/interfaces/iAITrustCenter";
+import { Subprocessor } from "../../../../domain/interfaces/i.aiTrustCenter";
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 import { GroupBy } from "../../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../../application/hooks/useTableGrouping";
@@ -331,7 +331,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
       }
 
       // Validate URL (accept without http/https)
-      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w]*)*(\?.*)?(#.*)?)$/i;
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+(\/[^\s?#]*)?(\?.*)?(#.*)?)$/i;
       if (!urlPattern.test(newSubprocessor.url)) {
         setEditSubprocessorError("Subprocessor URL must be a valid URL");
         return;
@@ -382,7 +382,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
       }
 
        // Validate URL (accept without http/https)
-      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w-]*)*(\?.*)?(#.*)?)$/i;
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+(\/[\w-]*)*(\?.*)?(#.*)?)$/i;
       if (!urlPattern.test(form.url)) {
         setEditSubprocessorError("Subprocessor URL must be a valid URL");
         return;
@@ -533,8 +533,13 @@ const AITrustCenterSubprocessors: React.FC = () => {
             </Box>
             <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
               <Box sx={styles.toggleRow}>
-                <Typography sx={styles.toggleLabel}>
-                  Enabled and visible
+                <Typography
+                  sx={{ ...styles.toggleLabel, cursor: "pointer" }}
+                  onClick={() =>
+                    handleFieldChange("info", "subprocessor_visible", !formData?.info?.subprocessor_visible)
+                  }
+                >
+                  Visible?
                 </Typography>
                 <Toggle
                   checked={formData?.info?.subprocessor_visible ?? false}

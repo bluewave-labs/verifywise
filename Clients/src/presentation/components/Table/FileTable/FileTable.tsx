@@ -7,11 +7,16 @@ import {
 } from "lucide-react";
 import EmptyState from "../../EmptyState";
 import { FileModel } from "../../../../domain/models/Common/file/file.model";
-import { IFileTableProps } from "../../../../domain/interfaces/i.table";
+import { IFileTableProps } from "../../../types/interfaces/i.table";
 
 type SortDirection = "asc" | "desc" | null;
 
-const FileTable: React.FC<IFileTableProps> = ({ cols, files, onFileDeleted, hidePagination = false }) => {
+const FileTable: React.FC<IFileTableProps> = ({
+  cols,
+  files,
+  onFileDeleted,
+  hidePagination = false,
+}) => {
   const [sortField, setSortField] = useState<keyof FileModel | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 

@@ -37,18 +37,19 @@ const registerJWT = async (
         .status(406)
         .json(STATUS_CODE[406]({ message: "This invitation link is expired. You need to be invited again to gain access to the dashboard" }));
 
-    // Validate payload structure
-    if (
-      !decoded.id ||
-      typeof decoded.id !== 'number' ||
-      decoded.id <= 0 ||
-      !decoded.roleName ||
-      typeof decoded.roleName !== 'string'
-    ) {
-      return res.status(400).json({ message: 'Invalid token' });
-    }
+    console.log("🔍 Registration validation:", {
+      tokenRoleId: decoded.roleId,
+      requestRoleId: roleId,
+      tokenOrgId: decoded.organizationId,
+      requestOrgId: organizationId,
+      roleIdMatch: Number(decoded.roleId) === Number(roleId),
+      orgIdMatch: Number(decoded.organizationId) === Number(organizationId),
+      roleInMap: roleMap.has(Number(roleId))
+    });
 
-    if (decoded.roleName !== roleMap.get(roleId) || decoded.organizationId !== organizationId) {
+    // Convert both to numbers for comparison to handle string/number mismatches
+    if (Number(decoded.roleId) !== Number(roleId) || Number(decoded.organizationId) !== Number(organizationId) || !roleMap.has(Number(roleId))) {
+      console.error("❌ Registration validation failed");
       return res.status(403).json({ message: 'Role or Organization mismatch' });
     }
 

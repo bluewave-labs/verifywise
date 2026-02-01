@@ -1,4 +1,4 @@
-import { IStatusData } from "../../domain/interfaces/i.chart";
+import { IStatusData } from "../types/interfaces/i.chart";
 
 // Generate distribution summary text
 export const getDistributionSummary = (statusData: IStatusData[]): string => {
@@ -33,32 +33,36 @@ export const getQuickStats = (
   if (!entityType || total === 0) return "";
 
   switch (entityType) {
-    case "models":
+    case "models": {
       const productionModels =
         statusData?.find((s) => s.label.toLowerCase().includes("production"))
           ?.value || Math.floor(total * 0.4);
       return `${productionModels} in production`;
+    }
 
-    case "trainings":
+    case "trainings": {
       const completedTrainings =
         statusData?.find((s) => s.label.toLowerCase().includes("completed"))
           ?.value || Math.floor(total * 0.6);
       const completionRate = Math.round((completedTrainings / total) * 100);
       return `${completionRate}% completion rate`;
+    }
 
-    case "policies":
+    case "policies": {
       const publishedPolicies =
         statusData?.find((s) => s.label.toLowerCase().includes("published"))
           ?.value || Math.floor(total * 0.5);
       return `${publishedPolicies} published`;
+    }
 
-    case "vendors":
+    case "vendors": {
       const activeVendors =
         statusData?.find((s) => s.label.toLowerCase().includes("active"))
           ?.value || Math.floor(total * 0.7);
       return `${activeVendors} active`;
+    }
 
-    case "vendorRisks":
+    case "vendorRisks": {
       const highRisks =
         statusData
           ?.filter(
@@ -75,12 +79,14 @@ export const getQuickStats = (
       return criticalCount > 0
         ? `${criticalCount} require attention`
         : "All risks managed";
+    }
 
-    case "incidents":
+    case "incidents": {
       const openIncidents =
         statusData?.find((s) => s.label.toLowerCase().includes("open"))
           ?.value || Math.floor(total * 0.3);
       return openIncidents > 0 ? `${openIncidents} open` : "All resolved";
+    }
 
     default:
       return "";
@@ -104,7 +110,7 @@ export const hasCriticalItems = (
   }
 
   switch (entityType) {
-    case "vendorRisks":
+    case "vendorRisks": {
       const highRisk =
         statusData.find((s) => s.label.toLowerCase().includes("high"))?.value ||
         0;
@@ -118,8 +124,9 @@ export const hasCriticalItems = (
         actionLabel: `View ${criticalRisks} High Risk`,
         actionRoute: "/vendors?filter=high-risk",
       };
+    }
 
-    case "policies":
+    case "policies": {
       const inReview =
         statusData.find((s) => s.label.toLowerCase().includes("in review"))
           ?.value || 0;
@@ -133,8 +140,9 @@ export const hasCriticalItems = (
         actionLabel: `Review ${needsAttention} Policies`,
         actionRoute: "/policies?filter=needs-review",
       };
+    }
 
-    case "trainings":
+    case "trainings": {
       const inProgress =
         statusData.find((s) => s.label.toLowerCase().includes("in progress"))
           ?.value || 0;
@@ -144,8 +152,9 @@ export const hasCriticalItems = (
         actionLabel: `Track ${inProgress} Active`,
         actionRoute: "/training?filter=in-progress",
       };
+    }
 
-    case "vendors":
+    case "vendors": {
       const requiresFollowUp =
         statusData.find((s) => s.label.toLowerCase().includes("follow up"))
           ?.value || 0;
@@ -155,8 +164,9 @@ export const hasCriticalItems = (
         actionLabel: `Follow up ${requiresFollowUp}`,
         actionRoute: "/vendors?filter=follow-up",
       };
+    }
 
-    case "incidents":
+    case "incidents": {
       const openIncidents =
         statusData.find((s) => s.label.toLowerCase().includes("open"))
           ?.value || 0;
@@ -166,6 +176,7 @@ export const hasCriticalItems = (
         actionLabel: `Resolve ${openIncidents} Open`,
         actionRoute: "/ai-incident-managements?filter=open",
       };
+    }
 
     default:
       return { hasCritical: false, actionLabel: "", actionRoute: "" };
@@ -188,7 +199,7 @@ export const getPriorityLevel = (
   if (!entityType || total === 0) return "none";
 
   switch (entityType) {
-    case "vendorRisks":
+    case "vendorRisks": {
       const veryHighRisk =
         statusData?.find((s) => s.label.toLowerCase().includes("very high"))
           ?.value || 0;
@@ -202,8 +213,9 @@ export const getPriorityLevel = (
       if (veryHighRisk > 0) return "high";
       if (highRisk > 0) return "medium";
       return "none";
+    }
 
-    case "policies":
+    case "policies": {
       const overdue =
         statusData?.find((s) => s.label.toLowerCase().includes("draft"))
           ?.value || 0;
@@ -212,8 +224,9 @@ export const getPriorityLevel = (
       if (draftPercentage > 30) return "high";
       if (draftPercentage > 10) return "medium";
       return "none";
+    }
 
-    case "trainings":
+    case "trainings": {
       const completed =
         statusData?.find((s) => s.label.toLowerCase().includes("completed"))
           ?.value || 0;
@@ -222,8 +235,9 @@ export const getPriorityLevel = (
       if (completionRate < 50) return "high";
       if (completionRate < 75) return "medium";
       return "none";
+    }
 
-    case "incidents":
+    case "incidents": {
       const openIncidents =
         statusData?.find((s) => s.label.toLowerCase().includes("open"))
           ?.value || 0;
@@ -232,6 +246,7 @@ export const getPriorityLevel = (
       if (openPercentage > 50) return "high";
       if (openPercentage > 20) return "medium";
       return "none";
+    }
 
     default:
       return "none";

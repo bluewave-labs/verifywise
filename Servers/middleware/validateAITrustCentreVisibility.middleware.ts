@@ -1,8 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { getIsVisibleQuery } from "../utils/aiTrustCentre.utils";
 
-export const validateVisibility = async (req: Request, res: Response, next: NextFunction) => {
-  const { hash } = req.params;
+export const validateVisibility = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const hash = Array.isArray(req.params.hash) ? req.params.hash[0] : req.params.hash;
 
   if (!hash || hash.replace(/\s+/g, " ").trim().length !== 10) {
     return res.status(400).json({ error: "Invalid hash" });
@@ -10,9 +14,10 @@ export const validateVisibility = async (req: Request, res: Response, next: Next
 
   const isVisible = await getIsVisibleQuery(hash);
 
-  if (!isVisible) { // Removed Unnecessary validation
-    next();
+  if (!isVisible) {
+    // Removed Unnecessary validation
+    return next();
   } else {
-    next();
+    return next();
   }
-}
+};

@@ -31,7 +31,6 @@ import { IOrganization } from "../../interfaces/i.organization";
 import { numberValidation } from "../../validations/number.valid";
 import {
   ValidationException,
-  BusinessLogicException,
   NotFoundException,
 } from "../../exceptions/custom.exception";
 
@@ -42,7 +41,8 @@ import {
 })
 export class OrganizationModel
   extends Model<OrganizationModel>
-  implements IOrganization {
+  implements IOrganization
+{
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -71,6 +71,13 @@ export class OrganizationModel
     allowNull: false,
   })
   updated_at?: Date;
+
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: false,
+    defaultValue: 'pending',
+  })
+  onboarding_status?: string;
 
   /**
    * Creates a new organization with validation
@@ -103,7 +110,7 @@ export class OrganizationModel
     name: string,
     logo?: string,
     members?: number[],
-    projects?: number[],
+    projects?: number[]
   ): Promise<OrganizationModel> {
     // Validate name
     if (!name || name.trim().length === 0) {
@@ -327,7 +334,6 @@ export class OrganizationModel
         );
       }
     }
-
   }
 
   /**
@@ -359,6 +365,7 @@ export class OrganizationModel
       name: this.name,
       logo: this.logo,
       created_at: this.created_at?.toISOString(),
+      onboarding_status: this.onboarding_status,
     };
   }
 
@@ -371,6 +378,7 @@ export class OrganizationModel
       name: this.name,
       logo: this.logo,
       created_at: this.created_at?.toISOString(),
+      onboarding_status: this.onboarding_status,
       ageInDays: this.getAgeInDays(),
     };
   }

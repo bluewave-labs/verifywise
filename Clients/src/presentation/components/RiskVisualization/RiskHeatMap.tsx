@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Box, Typography, Tooltip, Stack, useTheme } from "@mui/material";
-import { IRiskHeatMapProps } from "../../../domain/interfaces/i.risk";
-import { IHeatMapCell } from "../../../domain/interfaces/iWidget";
+import { IRiskHeatMapProps } from "../../types/interfaces/i.risk";
+import { IHeatMapCell } from "../../../domain/interfaces/i.widget";
 
 const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
   risks,
@@ -71,7 +71,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
 
         const riskLevel = likelihood * severity;
 
-        
+
         row.push({
           likelihood,
           severity,
@@ -150,10 +150,10 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
             "&:hover":
               cell.risks.length > 0
                 ? {
-                    transform: "scale(1.05)",
-                    boxShadow: theme.shadows[4],
-                    borderColor: "#13715B",
-                  }
+                  transform: "scale(1.05)",
+                  boxShadow: theme.shadows[4],
+                  borderColor: "#13715B",
+                }
                 : {},
           }}
           onClick={() => {
@@ -237,7 +237,11 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
               >
                 <Typography
                   variant="subtitle2"
-                  sx={{ fontWeight: 600, color: "#4B5563" }}
+                  sx={{
+                    fontWeight: 600,
+                    color: "#4B5563",
+                    transform: "rotate(180deg)",
+                  }}
                 >
                   SEVERITY
                 </Typography>

@@ -18,7 +18,6 @@ export const createProjectButtonStyle = {
 
 export const datePickerStyle = {
   width: "130px",
-  "& input": { width: "85px" },
 };
 
 export const teamMembersRenderInputStyle = {
@@ -32,7 +31,7 @@ export const teamMembersRenderInputStyle = {
 };
 
 export const teamMembersSxStyle = {
-  width: "350px",
+  width: "100%",
   "& .MuiChip-root": {
     borderRadius: "4px",
   },

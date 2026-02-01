@@ -19,6 +19,15 @@ import { sequelize } from "../database/db";
 import { QueryTypes } from "sequelize";
 
 /**
+ * Search constants
+ */
+export const SEARCH_CONSTANTS = {
+  MIN_QUERY_LENGTH: 3,
+  DEFAULT_LIMIT: 20,
+  MAX_LIMIT: 100,
+};
+
+/**
  * Sanitize tenant ID to prevent SQL injection
  * Only allows alphanumeric characters, underscores, and hyphens
  */
@@ -27,6 +36,37 @@ function sanitizeTenantId(tenantId: string): string {
     throw new Error("Invalid tenant ID format");
   }
   return tenantId;
+}
+
+/**
+ * Whitelist of allowed table names for search queries
+ * This prevents SQL injection via table name manipulation
+ */
+const ALLOWED_TABLE_NAMES = new Set([
+  "projects",
+  "tasks",
+  "vendors",
+  "vendor_risks",
+  "model_inventories",
+  "evidence_hub",
+  "risks",
+  "files",
+  "policy_manager",
+  "ai_trust_center_resources",
+  "ai_trust_center_subprocessor",
+  "trainingregistar",
+  "ai_incident_managements",
+  "llm_evals_projects",
+]);
+
+/**
+ * Validate table name against whitelist to prevent SQL injection
+ */
+function validateTableName(tableName: string): string {
+  if (!ALLOWED_TABLE_NAMES.has(tableName)) {
+    throw new Error(`Invalid table name: ${tableName}`);
+  }
+  return tableName;
 }
 
 /**
@@ -44,7 +84,7 @@ function escapeILikePattern(query: string): string {
  * Search result interface for individual matches
  */
 export interface SearchResult {
-  id: number;
+  id: number | string;
   entityType: string;
   title: string;
   subtitle?: string;
@@ -86,11 +126,12 @@ interface EntityConfig {
   titleColumn: string;
   subtitleColumn?: string;
   icon: string;
-  route: (id: number) => string;
+  route: (id: number | string) => string;
   requiresProjectAccess?: boolean;
   requiresVendorAccess?: boolean;
   organizationColumn?: string;
   projectColumn?: string;
+  tenantColumn?: string;
 }
 
 /**
@@ -161,12 +202,14 @@ const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     // Tenant schema isolation provides security
   },
   file_manager: {
-    tableName: "file_manager",
+    tableName: "files",
     searchColumns: ["filename"],
     titleColumn: "filename",
     icon: "Folder",
     route: (id) => `/file-manager?fileId=${id}`,
     organizationColumn: "org_id",
+    // Note: For file manager, we only search org-level files (project_id IS NULL)
+    // This is handled via additionalWhereClause in the search query
   },
   policy_manager: {
     tableName: "policy_manager",
@@ -206,6 +249,16 @@ const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     subtitleColumn: "description",
     icon: "AlertCircle",
     route: (id) => `/ai-incident-managements?incidentId=${id}`,
+  },
+  llm_evals_projects: {
+    tableName: "llm_evals_projects",
+    searchColumns: ["name", "description"],
+    titleColumn: "name",
+    subtitleColumn: "description",
+    icon: "FlaskConical",
+    route: (id) => `/evals/${id}`,
+    // Note: No tenantColumn filter needed - schema isolation is sufficient
+    // The EvalServer stores "default" in tenant column but uses schema "a4ayc80OGd"
   },
 };
 
@@ -302,6 +355,12 @@ async function searchEntity(
     replacements.organizationId = organizationId;
   }
 
+  // Add tenant filter if applicable (for tables with explicit tenant column)
+  if (config.tenantColumn) {
+    conditions.push(`${config.tenantColumn} = :tenantId`);
+    replacements.tenantId = tenantId;
+  }
+
   // Add project access filter if applicable
   if (config.requiresProjectAccess) {
     if (projectIds.length === 0) return [];
@@ -331,13 +390,21 @@ async function searchEntity(
     replacements.vendorIds = vendorIds;
   }
 
+  // For file_manager searches, only include org-level files (project_id IS NULL)
+  if (entityType === "file_manager") {
+    conditions.push(`project_id IS NULL`);
+  }
+
+  // Validate table name against whitelist (SQL injection prevention)
+  const safeTableName = validateTableName(config.tableName);
+
   // Build and execute query
   const sql = `
-    SELECT DISTINCT * FROM "${safeTenantId}".${config.tableName}
+    SELECT DISTINCT * FROM "${safeTenantId}".${safeTableName}
     WHERE ${conditions.join(" AND ")}
     LIMIT :limit
   `;
-  replacements.limit = limit;
+  replacements.limit = Math.min(limit, SEARCH_CONSTANTS.MAX_LIMIT);
 
   try {
     const rows = await sequelize.query(sql, {
@@ -371,8 +438,8 @@ async function searchEntity(
 export async function wiseSearch(options: SearchOptions): Promise<GroupedSearchResults> {
   const { query, tenantId, userId } = options;
 
-  // Minimum 3 characters required
-  if (!query || query.trim().length < 3) {
+  // Minimum characters required for search
+  if (!query || query.trim().length < SEARCH_CONSTANTS.MIN_QUERY_LENGTH) {
     return {};
   }
 

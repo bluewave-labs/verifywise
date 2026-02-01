@@ -22,7 +22,7 @@ import {
 import { logEngine } from "../../../../application/tools/log.engine";
 import Alert from "../../../components/Alert";
 import CustomizableToast from "../../../components/Toast";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface AddFrameworkModalProps {
@@ -79,7 +79,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
           visible: true,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       logEngine({
         type: "error",
         message: "An error occurred while adding the framework.",
@@ -120,7 +120,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
           visible: true,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       logEngine({
         type: "error",
         message: "An error occurred while removing the framework.",
@@ -261,7 +261,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
             })}
         </Stack>
         {isRemoveModalOpen && frameworkToRemove && (
-          <DualButtonModal
+          <ConfirmationModal
             title="Confirm framework removal"
             body={
               <Typography fontSize={13}>

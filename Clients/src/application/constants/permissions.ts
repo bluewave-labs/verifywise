@@ -49,6 +49,28 @@ const allowedRoles = {
     view: ["Admin"],
     manage: ["Admin"],
   },
+  llmKeys: {
+    view: ["Admin"],
+    manage: ["Admin"],
+  },
+  evals: {
+    view: ["Admin", "Editor", "Reviewer", "Auditor"],
+    createProject: ["Admin", "Editor"],
+    editProject: ["Admin", "Editor"],
+    deleteProject: ["Admin", "Editor"],
+    createExperiment: ["Admin", "Editor"],
+    deleteExperiment: ["Admin", "Editor"],
+    createScorer: ["Admin", "Editor"],
+    editScorer: ["Admin", "Editor"],
+    deleteScorer: ["Admin", "Editor"],
+    uploadDataset: ["Admin", "Editor"],
+    deleteDataset: ["Admin", "Editor"],
+    manageApiKeys: ["Admin"],
+  },
+  postMarketMonitoring: {
+    view: ["Admin", "Editor", "Auditor"],
+    edit: ["Admin", "Editor"],
+  },
 };
 
 export default allowedRoles;

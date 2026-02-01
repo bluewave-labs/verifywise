@@ -1,11 +1,5 @@
-import { Stack, Typography, Tooltip, Box } from "@mui/material";
-import {
-  projectRisksCard,
-  projectRisksTileCard,
-  projectRisksTileCardKey,
-  projectRisksTileCardvalue,
-} from "../../components/Cards/RisksCard/style";
-
+import React from "react";
+import StatusTileCards, { StatusTileItem } from "../../components/Cards/StatusTileCards";
 import { ModelRiskLevel } from "../../../domain/interfaces/i.modelRisk";
 import { ModelRiskSummaryProps } from "../../../domain/interfaces/i.modelInventory";
 
@@ -17,41 +11,14 @@ const ModelRiskSummary: React.FC<ModelRiskSummaryProps> = ({ modelRisks }) => {
     { key: ModelRiskLevel.CRITICAL, label: "Critical", color: "#F44336" },
   ];
 
-  // Count how many risks per level
-  const riskCounts = riskLevels.map((level) => ({
-    ...level,
+  const items: StatusTileItem[] = riskLevels.map((level) => ({
+    key: level.key,
+    label: level.label,
     count: modelRisks.filter((risk) => risk.risk_level === level.key).length,
+    color: level.color,
   }));
 
-  return (
-    <Box sx={{ width: "100%" }}>
-      <Stack className="vw-model-risk-summary" sx={projectRisksCard}>
-        {riskCounts.map((level) => (
-          <Tooltip
-            key={level.key}
-            title={`${level.count} ${level.label} Risk${level.count !== 1 ? 's' : ''}`}
-            arrow
-            placement="top"
-          >
-            <Stack
-              className="vw-model-risk-tile"
-              sx={{
-                ...projectRisksTileCard,
-                color: level.color,
-                border: `1px solid #E5E7EB`,
-                cursor: "default",
-              }}
-            >
-              <Typography sx={projectRisksTileCardKey}>{level.label}</Typography>
-              <Typography sx={projectRisksTileCardvalue}>
-                {level.count}
-              </Typography>
-            </Stack>
-          </Tooltip>
-        ))}
-      </Stack>
-    </Box>
-  );
+  return <StatusTileCards items={items} entityName="risk" />;
 };
 
 export default ModelRiskSummary;

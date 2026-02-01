@@ -1,0 +1,39 @@
+# Core dependencies
+numpy>=1.26.4,<2.0.0
+pandas>=2.3.0
+pydantic>=2.11.0
+pyyaml>=6.0.0
+
+# Machine learning and fairness
+scikit-learn>=1.7.0
+fairlearn>=0.12.0
+langfair>=0.6.6
+
+# Deep learning and transformers
+torch>=2.7.0
+transformers>=4.53.0
+sentence-transformers>=2.7.0
+huggingface-hub>=0.33.0
+
+# Data handling
+datasets>=4.0.0
+pyarrow>=21.0.0
+
+# Utilities
+tqdm>=4.67.0
+textblob>=0.17.1
+python-dotenv>=1.0.0
+
+# LLM API Clients
+openai>=1.0.0
+anthropic>=0.18.0
+google-generativeai>=0.3.0
+ollama>=0.1.0
+xai-sdk>=1.0.0
+mistralai>=1.0.0
+
+# DeepEval for comprehensive LLM evaluation
+deepeval>=1.0.0
+
+# Optional: GPU support (uncomment if using CUDA)
+# torch>=2.7.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118

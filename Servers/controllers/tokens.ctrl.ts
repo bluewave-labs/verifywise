@@ -42,11 +42,11 @@ export const createApiToken = async (req: Request, res: Response) => {
     await transaction.rollback();
     if (error instanceof ValidationException) {
       logStructured('error', `validation failed: ${error.message}`, 'createApiToken', 'tokens.ctrl.ts');
-      await logEvent('Error', `Validation error during API token creation: ${error.message}`);
+      await logEvent('Error', `Validation error during API token creation: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
     logStructured('error', `unexpected error: ${name}`, 'createApiToken', 'tokens.ctrl.ts');
-    await logEvent('Error', `Unexpected error during API token creation: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during API token creation: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in createApiToken:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -62,7 +62,7 @@ export const getApiTokens = async (req: Request, res: Response) => {
     return res.status(200).json(STATUS_CODE[200](tokens));
   } catch (error) {
     logStructured('error', `unexpected error fetching API tokens`, 'getApiTokens', 'tokens.ctrl.ts');
-    await logEvent('Error', `Unexpected error fetching API tokens: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error fetching API tokens: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in getApiTokens:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -73,10 +73,10 @@ export const deleteApiToken = async (req: Request, res: Response) => {
   logger.debug(`🛠️ Deleting API token: ${id}`);
   logStructured('processing', `starting API token deletion for ${id}`, 'deleteApiToken', 'tokens.ctrl.ts');
   try {
-    const success = await deleteApiTokenQuery(parseInt(id), req.tenantId!);
+    const success = await deleteApiTokenQuery(parseInt(Array.isArray(id) ? id[0] : id), req.tenantId!);
     if (!success) {
       logStructured('error', `API token not found: ${id}`, 'deleteApiToken', 'tokens.ctrl.ts');
-      await logEvent('Error', `API token not found for deletion: ${id}`);
+      await logEvent('Error', `API token not found for deletion: ${id}`, req.userId!, req.tenantId!);
       return res.status(404).json(STATUS_CODE[404]({ message: "API token not found" }));
     }
     logStructured('successful', `deleted API token: ${id}`, 'deleteApiToken', 'tokens.ctrl.ts');
@@ -84,7 +84,7 @@ export const deleteApiToken = async (req: Request, res: Response) => {
     return res.status(200).json(STATUS_CODE[200]({ message: "API token deleted successfully" }));
   } catch (error) {
     logStructured('error', `unexpected error: ${id}`, 'deleteApiToken', 'tokens.ctrl.ts');
-    await logEvent('Error', `Unexpected error during API token deletion: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during API token deletion: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in deleteApiToken:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

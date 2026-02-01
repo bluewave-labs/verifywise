@@ -15,7 +15,7 @@ import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
 import { DashboardState, UIValues, AuthValues, InputValues } from "./application/interfaces/appStates";
 import { ComponentVisible } from "./application/interfaces/ComponentVisible";
-import { AlertProps } from "./domain/interfaces/iAlert";
+import { AlertProps } from "./presentation/types/alert.types";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
@@ -26,7 +26,46 @@ import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
-import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
+import { SetupModal, useOnboarding } from "./presentation/components/Onboarding";
+import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
+import { AdvisorConversationProvider } from './application/contexts/AdvisorConversation.context';
+import { PluginRegistryProvider } from './application/contexts/PluginRegistry.context';
+import PluginLoader from './presentation/components/PluginLoader';
+// SSE notifications disabled for now - can be re-enabled later if needed
+// import { useNotifications } from "./application/hooks/useNotifications";
+
+// Auth routes where the helper sidebar should not be shown
+const AUTH_ROUTES = [
+  '/login',
+  '/admin-reg',
+  '/user-reg',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/set-new-password',
+  '/reset-password-continue',
+];
+
+// Component for User Guide Sidebar that uses the context
+const UserGuideSidebarContainer = () => {
+  const location = useLocation();
+  const userGuideSidebar = useUserGuideSidebarContext();
+
+  // Don't show the helper sidebar on auth pages
+  const isAuthPage = AUTH_ROUTES.some(route => location.pathname === route);
+  if (isAuthPage) {
+    return null;
+  }
+
+  return (
+    <SidebarWrapper
+      isOpen={userGuideSidebar.isOpen}
+      onClose={userGuideSidebar.close}
+      onOpen={userGuideSidebar.open}
+      initialPath={userGuideSidebar.currentPath}
+    />
+  );
+};
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -60,33 +99,34 @@ function App() {
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
   const { completeOnboarding, state, isLoading: isOnboardingLoading } = useOnboarding();
-  const [showModal, setShowModal] = useState(false);
+
+  // SSE notifications disabled for now - can be re-enabled later if needed
+  // useNotifications({
+  //   enabled: !!token, // Only enable notifications when user is authenticated
+  //   autoReconnect: true,
+  //   reconnectDelay: 3000,
+  // });
 
   // Onboarding should ONLY show on the dashboard (/) route
   const isDashboardRoute = location.pathname === '/';
 
-  // Update modal visibility based on onboarding state and current route
-  useEffect(() => {
-    // Only show modal if:
-    // 1. User is authenticated (has token and userId)
-    // 2. Onboarding state is loaded (not loading)
-    // 3. Onboarding is not complete (first login)
-    // 4. Currently on dashboard route (/)
-    if (token && userId && !isOnboardingLoading && !state.isComplete && isDashboardRoute) {
-      setShowModal(true);
-    } else {
-      setShowModal(false);
-    }
-  }, [token, userId, isOnboardingLoading, state.isComplete, isDashboardRoute]);
+  // Derive modal visibility from onboarding state and current route
+  // Only show modal if:
+  // 1. User is authenticated (has token and userId)
+  // 2. Onboarding state is loaded (not loading)
+  // 3. Onboarding is not complete (first login)
+  // 4. Currently on dashboard route (/)
+  const showModal = useMemo(
+    () => token && userId && !isOnboardingLoading && !state.isComplete && isDashboardRoute,
+    [token, userId, isOnboardingLoading, state.isComplete, isDashboardRoute]
+  );
 
   const handleOnboardingComplete = useCallback(() => {
     completeOnboarding();
-    setShowModal(false);
   }, [completeOnboarding]);
 
   const handleOnboardingSkip = useCallback(() => {
     completeOnboarding();
-    setShowModal(false);
   }, [completeOnboarding]);
 
   useEffect(() => {
@@ -145,6 +185,8 @@ function App() {
     []
   );
 
+  const [photoRefreshFlag, setPhotoRefreshFlag] = useState(false);
+
   const contextValues = useMemo(
     () => ({
       uiValues,
@@ -169,7 +211,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     }),
     [
       uiValues,
@@ -186,7 +230,7 @@ function App() {
       errorFetchingProjectStatus,
       currentProjectId,
       setCurrentProjectId,
-      userIdForProject,
+      userId,
       projects,
       setProjects,
       componentsVisible,
@@ -194,7 +238,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     ]
   );
 
@@ -207,32 +253,42 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
-            <ConditionalThemeWrapper>
-              {alert && (
-                <Alert
-                  variant={alert.variant}
-                  title={alert.title}
-                  body={alert.body}
-                  isToast={true}
-                  onClick={() => setAlert(null)}
-                />
-              )}
-              <CommandPaletteErrorBoundary>
-                <CommandPalette
-                  open={commandPalette.isOpen}
-                  onOpenChange={commandPalette.close}
-                />
-              </CommandPaletteErrorBoundary>
-              {showModal && (
-                <OnboardingModal
-                  onComplete={handleOnboardingComplete}
-                  onSkip={handleOnboardingSkip}
-                />
-              )}
-              <Routes>
-                {createRoutes(triggerSidebar, triggerSidebarReload)}
-              </Routes>
-            </ConditionalThemeWrapper>
+            <PluginRegistryProvider>
+              <PluginLoader />
+              <UserGuideSidebarProvider>
+                <ConditionalThemeWrapper>
+                {alert && (
+                  <Alert
+                    variant={alert.variant}
+                    title={alert.title}
+                    body={alert.body}
+                    isToast={true}
+                    onClick={() => setAlert(null)}
+                  />
+                )}
+                <CommandPaletteErrorBoundary>
+                  <CommandPalette
+                    open={commandPalette.isOpen}
+                    onOpenChange={commandPalette.close}
+                  />
+                </CommandPaletteErrorBoundary>
+                {showModal && (
+                  <SetupModal
+                    onComplete={handleOnboardingComplete}
+                    onSkip={handleOnboardingSkip}
+                  />
+                )}
+                <Routes>
+                  {createRoutes(triggerSidebar, triggerSidebarReload)}
+                </Routes>
+
+                {/* User Guide Sidebar with Advisor Conversation persistence */}
+                <AdvisorConversationProvider>
+                  <UserGuideSidebarContainer />
+                </AdvisorConversationProvider>
+              </ConditionalThemeWrapper>
+              </UserGuideSidebarProvider>
+            </PluginRegistryProvider>
           </VerifyWiseContext.Provider>
         </PersistGate>
       </Provider>

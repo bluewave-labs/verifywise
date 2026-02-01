@@ -33,7 +33,12 @@ router.patch(
   upload.any(),
   saveControls
 );
-router.patch("/saveAnswer/:id", authenticateJWT, updateQuestionById);
+router.patch(
+  "/saveAnswer/:id",
+  authenticateJWT,
+  upload.any(),
+  updateQuestionById
+);
 
 router.delete("/assessments/byProjectId/:id", authenticateJWT, deleteAssessmentsByProjectId);
 router.delete("/compliances/byProjectId/:id", authenticateJWT, deleteCompliancesByProjectId);

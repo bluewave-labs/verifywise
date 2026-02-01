@@ -92,7 +92,7 @@ export function checkStringValidation(
 
   if (
     hasSpecialCharacter &&
-    !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(value)
+    !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+/.test(value)
   ) {
     return feedbackToString(
       false,

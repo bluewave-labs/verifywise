@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { Stack, useTheme, Divider } from "@mui/material";
 import Breadcrumbs from "./index";
-import { IPageBreadcrumbsProps } from "../../../domain/interfaces/i.breadcrumbs";
+import { IPageBreadcrumbsProps } from "../../types/breadcrumbs.types";
 import DashboardActionButtons from "../Layout/DashboardActionButtons";
 
 /**
@@ -47,7 +47,7 @@ const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
         role="navigation"
         aria-label="Page breadcrumb navigation"
         sx={{
-          mt: 4,
+          mt: "-16px",
           mb: 3,
           width: "100%",
           position: "relative",
@@ -60,7 +60,7 @@ const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
             width: "100%",
             justifyContent: "space-between",
             alignItems: "flex-end",
-            mb: 4,
+            mb: 3,
             pt: 0,
           }}
         >

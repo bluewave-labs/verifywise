@@ -14,15 +14,12 @@ import {
   PriorityLevel,
 } from "../../pages/Assessment/NewAssessment/priorities";
 import RichTextEditor from "../RichTextEditor";
-import { useCallback, useMemo, useState, useEffect, Suspense } from "react";
-import UppyUploadFile from "../Inputs/FileUpload";
-import createUppy from "../../../application/tools/createUppy";
+import { useCallback, useState, useEffect, Suspense } from "react";
+import FileManagementDialog from "../Inputs/FileUpload/FileManagementDialog";
 import Alert from "../Alert";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../types/alert.types";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import { apiServices } from "../../../infrastructure/api/networkServices";
 import { FileData } from "../../../domain/types/File";
-import { useSelector } from "react-redux";
 import Button from "../Button";
 import Select from "../Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
@@ -60,7 +57,6 @@ const QuestionFrame = ({
   });
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
-  const authToken = useSelector((state: any) => state.auth.authToken);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
     useState<boolean>(false);
@@ -68,6 +64,10 @@ const QuestionFrame = ({
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
   const [auditedStatusModalOpen, setAuditedStatusModalOpen] =
     useState<boolean>(false);
+  
+  // File management state
+  const [pendingFiles, setPendingFiles] = useState<FileData[]>([]);
+  const [deletedFileIds, setDeletedFileIds] = useState<number[]>([]);
 
   const isEditingDisabled = !(allowedRoles?.frameworks?.edit || []).includes(
     userRoleName || ""
@@ -79,11 +79,12 @@ const QuestionFrame = ({
     { _id: "done", name: "Done" },
   ];
 
-  const handleChangeEvidenceFiles = useCallback((files: FileData[]) => {
-    setValues((prevValues) => ({
-      ...prevValues,
-      evidence_files: files || [],
-    }));
+  const handleAddFiles = useCallback((files: FileData[]) => {
+    setPendingFiles((prev) => [...prev, ...files]);
+  }, []);
+
+  const handleRemovePendingFile = useCallback((fileId: string) => {
+    setPendingFiles((prev) => prev.filter((f) => f.id !== fileId));
   }, []);
 
   const handleStatusChange = (field: string, statusValue: string | number) => {
@@ -108,42 +109,44 @@ const QuestionFrame = ({
       ...question,
       risks: question.risks || [],
     });
+    // Reset file management state when question changes
+    setPendingFiles([]);
+    setDeletedFileIds([]);
   }, [question, currentProjectId]);
-
-  const createUppyProps = useMemo(
-    () => ({
-      onChangeFiles: handleChangeEvidenceFiles,
-      allowedMetaFields: ["question_id", "user_id", "project_id", "delete"],
-      meta: {
-        question_id: question.question_id || "",
-        user_id: userId || "",
-        project_id: currentProjectId?.toString() || "",
-        delete: "[]",
-      },
-      routeUrl: "api/files",
-      authToken,
-    }),
-    [
-      question.question_id,
-      userId,
-      currentProjectId,
-      handleChangeEvidenceFiles,
-      authToken,
-    ]
-  );
-
-  const [uppy] = useState(createUppy(createUppyProps));
 
   const handleSave = async () => {
     try {
+      // Build FormData if we have files to upload
+      const formDataToSend = new FormData();
+      
+      // Add basic fields
+      formDataToSend.append("answer", values.answer || "");
+      formDataToSend.append("status", values.status || "notStarted");
+      formDataToSend.append("question_id", question.question_id?.toString() || "");
+      formDataToSend.append("user_id", userId?.toString() || "");
+      formDataToSend.append("project_id", currentProjectId?.toString() || "");
+      
+      // Add deleted file IDs
+      formDataToSend.append("delete", JSON.stringify(deletedFileIds));
+      formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));
+      formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
+      
+      // Add pending files
+      pendingFiles.forEach((file) => {
+        if (file.data instanceof Blob) {
+          const fileToUpload =
+            file.data instanceof File
+              ? file.data
+              : new File([file.data], file.fileName, { type: file.type });
+          formDataToSend.append("files", fileToUpload);
+        }
+      });
+
       const response = await updateEUAIActAnswerById({
         answerId: question.answer_id,
-        body: {
-          ...values,
-          risksDelete: deletedRisks,
-          risksMitigated: selectedRisks,
-        },
+        body: formDataToSend,
       });
+      
       if (response.status === 202) {
         setValues({
           ...response.data.data,
@@ -151,6 +154,8 @@ const QuestionFrame = ({
         });
         setSelectedRisks([]);
         setDeletedRisks([]);
+        setPendingFiles([]);
+        setDeletedFileIds([]);
         setRefreshKey();
         handleAlert({
           variant: "success",
@@ -180,8 +185,7 @@ const QuestionFrame = ({
     setValues({ ...values, answer: cleanedAnswer || "" });
   };
 
-  const handleRemoveFile = async (fileId: string) => {
-    const formData = new FormData();
+  const handleRemoveFile = (fileId: string) => {
     const fileIdNumber = parseInt(fileId);
     if (isNaN(fileIdNumber)) {
       handleAlert({
@@ -191,48 +195,24 @@ const QuestionFrame = ({
       });
       return;
     }
-    formData.append("delete", JSON.stringify([fileIdNumber]));
-    formData.append("question_id", question.question_id?.toString() || "");
-    formData.append("user_id", String(userId || ""));
-    if (currentProjectId) {
-      formData.append("project_id", currentProjectId.toString());
-    }
-    try {
-      const response = await apiServices.post("/files", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+    
+    // Mark file for deletion (will be deleted on save)
+    setDeletedFileIds((prev) => [...prev, fileIdNumber]);
+    
+    // Remove from local display
+    const newEvidenceFiles = (values?.evidence_files || []).filter(
+      (file) => file?.id !== fileId
+    );
+    setValues((prevValues) => ({
+      ...prevValues,
+      evidence_files: newEvidenceFiles,
+    }));
 
-      if (response.status === 201 && response.data) {
-        const newEvidenceFiles = (values?.evidence_files || []).filter(
-          (file) => file?.id !== fileId
-        );
-        setValues((prevValues) => ({
-          ...prevValues,
-          evidence_files: newEvidenceFiles,
-        }));
-
-        handleAlert({
-          variant: "success",
-          body: "File deleted successfully",
-          setAlert,
-        });
-      } else {
-        handleAlert({
-          variant: "error",
-          body: `Unexpected response status: ${response.status}. Please try again.`,
-          setAlert,
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      handleAlert({
-        variant: "error",
-        body: "Failed to delete file. Please try again.",
-        setAlert,
-      });
-    }
+    handleAlert({
+      variant: "info",
+      body: "File marked for deletion. Save to apply changes.",
+      setAlert,
+    });
   };
 
   return (
@@ -375,6 +355,30 @@ const QuestionFrame = ({
           >
             {`${values?.evidence_files?.length || 0} evidence files attached`}
           </Typography>
+          {pendingFiles.length > 0 && (
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "#13715B",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {`+${pendingFiles.length} pending upload`}
+            </Typography>
+          )}
+          {deletedFileIds.length > 0 && (
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "#D32F2F",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {`-${deletedFileIds.length} pending delete`}
+            </Typography>
+          )}
 
           <Stack direction="row" spacing={2} sx={{ ml: "36px" }}>
             <Button
@@ -460,12 +464,17 @@ const QuestionFrame = ({
       <Dialog
         open={isFileUploadOpen}
         onClose={() => setIsFileUploadOpen(false)}
+        maxWidth="sm"
+        fullWidth
       >
-        <UppyUploadFile
-          uppy={uppy}
+        <FileManagementDialog
           files={values?.evidence_files || []}
+          pendingFiles={pendingFiles}
           onClose={() => setIsFileUploadOpen(false)}
           onRemoveFile={handleRemoveFile}
+          onAddFiles={handleAddFiles}
+          onRemovePendingFile={handleRemovePendingFile}
+          disabled={isEditingDisabled}
         />
       </Dialog>
       <Dialog

@@ -68,7 +68,9 @@ export async function getAllControls(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve controls: ${(error as Error).message}`
+      `Failed to retrieve controls: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllControls:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -79,7 +81,7 @@ export async function getControlById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const controlId = parseInt(req.params.id);
+  const controlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching control by ID: ${controlId}`,
@@ -115,7 +117,7 @@ export async function getControlById(
       "getControlById",
       "control.ctrl.ts"
     );
-    await logEvent("Error", `Failed to retrieve control by ID: ${controlId}`);
+    await logEvent("Error", `Failed to retrieve control by ID: ${controlId}`, req.userId!, req.tenantId!);
     logger.error("❌ Error in getControlById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -177,7 +179,7 @@ export async function createControl(req: Request, res: Response): Promise<any> {
         "createControl",
         "control.ctrl.ts"
       );
-      await logEvent("Create", `Control created: ${title}`, createdControl.id);
+      await logEvent("Create", `Control created: ${title}`, req.userId!, req.tenantId!);
       return res.status(201).json(STATUS_CODE[201](createdControl.toJSON()));
     }
 
@@ -187,7 +189,7 @@ export async function createControl(req: Request, res: Response): Promise<any> {
       "createControl",
       "control.ctrl.ts"
     );
-    await logEvent("Error", `Control creation failed: ${title}`);
+    await logEvent("Error", `Control creation failed: ${title}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to create control"));
   } catch (error) {
@@ -202,7 +204,9 @@ export async function createControl(req: Request, res: Response): Promise<any> {
       );
       await logEvent(
         "Error",
-        `Validation error during control creation: ${error.message}`
+        `Validation error during control creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -216,7 +220,9 @@ export async function createControl(req: Request, res: Response): Promise<any> {
       );
       await logEvent(
         "Error",
-        `Business logic error during control creation: ${error.message}`
+        `Business logic error during control creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -229,7 +235,9 @@ export async function createControl(req: Request, res: Response): Promise<any> {
     );
     await logEvent(
       "Error",
-      `Unexpected error during control creation: ${(error as Error).message}`
+      `Unexpected error during control creation: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createControl:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -241,7 +249,7 @@ export async function updateControlById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const controlId = parseInt(req.params.id);
+  const controlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const updateData = req.body;
 
   logStructured(
@@ -265,7 +273,9 @@ export async function updateControlById(
       );
       await logEvent(
         "Error",
-        `Update failed — control not found: ID ${controlId}`
+        `Update failed — control not found: ID ${controlId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Control not found"));
@@ -287,7 +297,9 @@ export async function updateControlById(
       );
       await logEvent(
         "Error",
-        `Permission denied for control update: ID ${controlId}, user: ${currentUserId}`
+        `Permission denied for control update: ID ${controlId}, user: ${currentUserId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -320,7 +332,9 @@ export async function updateControlById(
       );
       await logEvent(
         "Update",
-        `Control updated: ID ${controlId}, title: ${updatedControl.title}`
+        `Control updated: ID ${controlId}, title: ${updatedControl.title}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(STATUS_CODE[200](updatedControl.toJSON()));
     }
@@ -331,7 +345,7 @@ export async function updateControlById(
       "updateControlById",
       "control.ctrl.ts"
     );
-    await logEvent("Error", `Control update failed: ID ${controlId}`);
+    await logEvent("Error", `Control update failed: ID ${controlId}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to update control"));
   } catch (error) {
@@ -346,7 +360,9 @@ export async function updateControlById(
       );
       await logEvent(
         "Error",
-        `Validation error during control update: ${error.message}`
+        `Validation error during control update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -360,7 +376,9 @@ export async function updateControlById(
       );
       await logEvent(
         "Error",
-        `Business logic error during control update: ${error.message}`
+        `Business logic error during control update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -373,9 +391,10 @@ export async function updateControlById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during control update for ID ${controlId}: ${
-        (error as Error).message
-      }`
+      `Unexpected error during control update for ID ${controlId}: ${(error as Error).message
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateControlById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -387,7 +406,7 @@ export async function deleteControlById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const controlId = parseInt(req.params.id);
+  const controlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",
@@ -410,7 +429,9 @@ export async function deleteControlById(
       );
       await logEvent(
         "Error",
-        `Delete failed — control not found: ID ${controlId}`
+        `Delete failed — control not found: ID ${controlId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Control not found"));
@@ -427,7 +448,7 @@ export async function deleteControlById(
         "deleteControlById",
         "control.ctrl.ts"
       );
-      await logEvent("Error", `Control deletion blocked: ID ${controlId}`);
+      await logEvent("Error", `Control deletion blocked: ID ${controlId}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res
         .status(403)
@@ -447,7 +468,9 @@ export async function deleteControlById(
       );
       await logEvent(
         "Error",
-        `Permission denied for control deletion: ID ${controlId}, user: ${currentUserId}`
+        `Permission denied for control deletion: ID ${controlId}, user: ${currentUserId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -473,7 +496,9 @@ export async function deleteControlById(
       );
       await logEvent(
         "Delete",
-        `Control deleted: ID ${controlId}, title: ${existingControl?.title}`
+        `Control deleted: ID ${controlId}, title: ${existingControl?.title}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(STATUS_CODE[200](controlModel.toJSON()));
     }
@@ -484,7 +509,7 @@ export async function deleteControlById(
       "deleteControlById",
       "control.ctrl.ts"
     );
-    await logEvent("Error", `Control deletion failed: ID ${controlId}`);
+    await logEvent("Error", `Control deletion failed: ID ${controlId}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to delete control"));
   } catch (error) {
@@ -499,7 +524,9 @@ export async function deleteControlById(
       );
       await logEvent(
         "Error",
-        `Validation error during control deletion: ${error.message}`
+        `Validation error during control deletion: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -513,7 +540,9 @@ export async function deleteControlById(
       );
       await logEvent(
         "Error",
-        `Business logic error during control deletion: ${error.message}`
+        `Business logic error during control deletion: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -526,9 +555,10 @@ export async function deleteControlById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during control deletion for ID ${controlId}: ${
-        (error as Error).message
-      }`
+      `Unexpected error during control deletion for ID ${controlId}: ${(error as Error).message
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteControlById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -541,7 +571,7 @@ export async function saveControls(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const controlId = parseInt(req.params.id);
+    const controlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
     const Control = req.body as ControlModel & {
       subControls: string;
       user_id: number;
@@ -569,7 +599,9 @@ export async function saveControls(
       );
       await logEvent(
         "Error",
-        `Save failed — control not found: ID ${controlId}`
+        `Save failed — control not found: ID ${controlId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Control not found"));
@@ -591,7 +623,9 @@ export async function saveControls(
       );
       await logEvent(
         "Error",
-        `Permission denied for control save: ID ${controlId}, user: ${currentUserId}`
+        `Permission denied for control save: ID ${controlId}, user: ${currentUserId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -752,7 +786,9 @@ export async function saveControls(
     );
     await logEvent(
       "Update",
-      `Controls saved: ID ${controlId}, title: ${control.title}`
+      `Controls saved: ID ${controlId}, title: ${control.title}`,
+      req.userId!,
+      req.tenantId!
     );
 
     return res.status(200).json(STATUS_CODE[200]({ response }));
@@ -768,7 +804,9 @@ export async function saveControls(
       );
       await logEvent(
         "Error",
-        `Validation error during control save: ${error.message}`
+        `Validation error during control save: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -782,7 +820,9 @@ export async function saveControls(
       );
       await logEvent(
         "Error",
-        `Business logic error during control save: ${error.message}`
+        `Business logic error during control save: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -795,9 +835,10 @@ export async function saveControls(
     );
     await logEvent(
       "Error",
-      `Unexpected error during control save for ID ${req.params.id}: ${
-        (error as Error).message
-      }`
+      `Unexpected error during control save for ID ${req.params.id}: ${(error as Error).message
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in saveControls:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -808,7 +849,7 @@ export async function getComplianceById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const control_id = req.params.id;
+  const control_id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   logStructured(
     "processing",
     `fetching compliance for control ID: ${control_id}`,
@@ -844,7 +885,9 @@ export async function getComplianceById(
       );
       await logEvent(
         "Error",
-        `Compliance lookup failed — control not found: ID ${control_id}`
+        `Compliance lookup failed — control not found: ID ${control_id}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(404).json(STATUS_CODE[404]("Control not found"));
     }
@@ -857,7 +900,9 @@ export async function getComplianceById(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve compliance for control ID: ${control_id}`
+      `Failed to retrieve compliance for control ID: ${control_id}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getComplianceById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -868,7 +913,7 @@ export async function getControlsByControlCategoryId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const controlCategoryId = parseInt(req.params.id);
+  const controlCategoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching controls for category ID: ${controlCategoryId}`,
@@ -920,7 +965,9 @@ export async function getControlsByControlCategoryId(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve controls for category ID: ${controlCategoryId}`
+      `Failed to retrieve controls for category ID: ${controlCategoryId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getControlsByControlCategoryId:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

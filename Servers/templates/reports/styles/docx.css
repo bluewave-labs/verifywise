@@ -1,0 +1,251 @@
+/**
+ * DOCX Report Styles
+ * Simplified CSS for html-to-docx conversion
+ * Uses tables for layout, inline-compatible styles only
+ */
+
+/* Base styles - DOCX compatible */
+body {
+  font-family: Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #1C2130;
+}
+
+/* Headings - reduced sizes for better DOCX formatting */
+h1 {
+  font-size: 16pt;
+  font-weight: bold;
+  color: #1C2130;
+  margin-bottom: 10pt;
+}
+
+h2 {
+  font-size: 14pt;
+  font-weight: bold;
+  color: #1C2130;
+  margin-top: 18pt;
+  margin-bottom: 10pt;
+  padding-bottom: 4pt;
+  border-bottom: 2px solid #13715B;
+}
+
+h3 {
+  font-size: 12pt;
+  font-weight: bold;
+  color: #1C2130;
+  margin-top: 14pt;
+  margin-bottom: 8pt;
+}
+
+h4 {
+  font-size: 11pt;
+  font-weight: bold;
+  color: #1C2130;
+  margin-top: 10pt;
+  margin-bottom: 6pt;
+}
+
+h5 {
+  font-size: 10pt;
+  font-weight: bold;
+  color: #667085;
+  margin-top: 8pt;
+  margin-bottom: 4pt;
+}
+
+/* Paragraphs */
+p {
+  margin-bottom: 12pt;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 18pt;
+}
+
+th {
+  background-color: #F2F4F7;
+  font-weight: bold;
+  text-align: left;
+  padding: 8pt;
+  border: 1px solid #E4E7EC;
+  font-size: 10pt;
+}
+
+td {
+  padding: 8pt;
+  border: 1px solid #E4E7EC;
+  vertical-align: top;
+  font-size: 10pt;
+}
+
+tr:nth-child(even) td {
+  background-color: #F9FAFB;
+}
+
+/* Cover page elements */
+.cover-title {
+  font-size: 28pt;
+  font-weight: bold;
+  text-align: center;
+  color: #1C2130;
+  margin-top: 120pt;
+  margin-bottom: 12pt;
+}
+
+.cover-subtitle {
+  font-size: 18pt;
+  text-align: center;
+  color: #667085;
+  margin-bottom: 48pt;
+}
+
+.cover-meta {
+  text-align: center;
+  margin-top: 48pt;
+}
+
+.cover-meta p {
+  font-size: 11pt;
+  margin-bottom: 8pt;
+}
+
+/* Status indicators using text */
+.status-compliant {
+  color: #027A48;
+  font-weight: bold;
+}
+
+.status-in-progress {
+  color: #B54708;
+  font-weight: bold;
+}
+
+.status-non-compliant {
+  color: #B42318;
+  font-weight: bold;
+}
+
+.status-not-applicable {
+  color: #667085;
+}
+
+/* Risk level text */
+.risk-critical {
+  color: #B42318;
+  font-weight: bold;
+}
+
+.risk-high {
+  color: #C4320A;
+  font-weight: bold;
+}
+
+.risk-medium {
+  color: #B54708;
+  font-weight: bold;
+}
+
+.risk-low {
+  color: #027A48;
+  font-weight: bold;
+}
+
+.risk-very-low {
+  color: #026AA2;
+  font-weight: bold;
+}
+
+/* Summary section */
+.summary-table {
+  margin-bottom: 18pt;
+}
+
+.summary-table td {
+  text-align: center;
+  padding: 12pt;
+}
+
+.summary-value {
+  font-size: 20pt;
+  font-weight: bold;
+  color: #13715B;
+}
+
+.summary-label {
+  font-size: 9pt;
+  color: #667085;
+}
+
+/* Progress indicator using text */
+.progress-text {
+  font-size: 10pt;
+  color: #667085;
+}
+
+/* Section dividers */
+.section-divider {
+  border-top: 1px solid #E4E7EC;
+  margin: 18pt 0;
+}
+
+/* Footer */
+.footer {
+  font-size: 9pt;
+  color: #98A2B3;
+  text-align: center;
+  margin-top: 24pt;
+  padding-top: 12pt;
+  border-top: 1px solid #E4E7EC;
+}
+
+/* Chart placeholder - will be replaced with PNG image */
+.chart-image {
+  text-align: center;
+  margin: 18pt 0;
+}
+
+.chart-image img {
+  max-width: 100%;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 24pt;
+  color: #667085;
+  background-color: #F9FAFB;
+}
+
+/* Lists */
+ul, ol {
+  margin-bottom: 12pt;
+  padding-left: 24pt;
+}
+
+li {
+  margin-bottom: 6pt;
+}
+
+/* Links */
+a {
+  color: #13715B;
+  text-decoration: underline;
+}
+
+/* Bold and emphasis */
+strong, b {
+  font-weight: bold;
+}
+
+em, i {
+  font-style: italic;
+}
+
+/* Page break hints */
+.page-break {
+  page-break-before: always;
+}

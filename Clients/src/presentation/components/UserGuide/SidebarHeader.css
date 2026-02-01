@@ -1,0 +1,40 @@
+/* SidebarHeader styles */
+
+.header-icon-button {
+  transition: all 150ms ease;
+}
+
+.header-icon-button:hover {
+  background-color: #f4f4f4 !important;
+  color: #13715B !important;
+}
+
+.header-icon-button.active {
+  background-color: #f9fafb;
+  color: #13715B;
+}
+
+.breadcrumb-dropdown-trigger {
+  transition: background-color 150ms ease;
+}
+
+.breadcrumb-dropdown-trigger:hover {
+  background-color: #f4f4f4;
+}
+
+.breadcrumb-item {
+  transition: background-color 150ms ease;
+}
+
+.breadcrumb-item:hover {
+  background-color: #f4f4f4;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #13715B;
+}
+
+.search-input::placeholder {
+  color: #667085;
+}

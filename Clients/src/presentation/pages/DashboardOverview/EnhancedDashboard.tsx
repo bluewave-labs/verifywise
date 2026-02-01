@@ -25,17 +25,16 @@ import {
   Upload as UploadIcon,
   RotateCcw as ResetIcon,
 } from 'lucide-react';
-import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout';
+import { Responsive, LayoutItem, verticalCompactor, useContainerWidth } from 'react-grid-layout';
 import { DashboardProvider, useDashboardContext } from './contexts/DashboardContext';
 import { MetricsWidget, ProjectsWidget, RisksWidget } from './widgets';
-import { WidgetConfig } from '../../../domain/interfaces/iDashboard';
-import { WidgetType } from '../../../domain/enums/dashboard.enum';
+import { WidgetConfig, WidgetType, Layouts } from '../../types/interfaces/i.dashboard';
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
-// Make GridLayout responsive
-const ResponsiveGridLayout = WidthProvider(Responsive);
+// Type definitions for react-grid-layout v2
+type Layout = readonly LayoutItem[];
 
 // Main Dashboard Component (wrapped with context)
 const DashboardContent: React.FC = () => {
@@ -43,6 +42,12 @@ const DashboardContent: React.FC = () => {
   const { state, actions } = useDashboardContext();
   const [mounted, setMounted] = useState(false);
   const [settingsAnchor, setSettingsAnchor] = useState<null | HTMLElement>(null);
+  
+  // Get container width for responsive grid (react-grid-layout v2 requirement)
+  const { width, containerRef } = useContainerWidth();
+  
+  // Fallback width for initial render
+  const gridWidth = width && width > 0 ? width : (typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   // Sample widgets configuration
   const widgets: WidgetConfig[] = [
@@ -145,16 +150,21 @@ const DashboardContent: React.FC = () => {
     const storedLayouts = localStorage.getItem('verifywise_dashboard_layouts');
     if (storedLayouts) {
       try {
-        setLayouts(JSON.parse(storedLayouts));
+        const parsedLayouts = JSON.parse(storedLayouts);
+        // Use setTimeout to avoid synchronous setState in effect
+        setTimeout(() => {
+          setLayouts(parsedLayouts);
+        }, 0);
       } catch (error) {
         console.error('Failed to parse stored layouts:', error);
       }
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
   // Handle layout change
-  const handleLayoutChange = useCallback((_: Layout[], allLayouts: Layouts) => {
+  const handleLayoutChange = useCallback((_layout: Layout, allLayouts: Layouts) => {
     setLayouts(allLayouts);
     localStorage.setItem('verifywise_dashboard_layouts', JSON.stringify(allLayouts));
     actions.saveLayout(allLayouts);
@@ -381,21 +391,29 @@ const DashboardContent: React.FC = () => {
       `}</style>
 
       {/* Grid Layout */}
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={layouts}
-        onLayoutChange={handleLayoutChange}
-        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
-        cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
-        rowHeight={60}
-        isDraggable={state.editMode}
-        isResizable={state.editMode}
-        draggableHandle=".dashboard-card-header"
-        draggableCancel=".no-drag"
-        margin={[16, 16]}
-        containerPadding={[0, 0]}
-        useCSSTransforms={true}
-      >
+      <Box ref={containerRef} sx={{ width: '100%' }}>
+        <Responsive
+          className="layout"
+          width={Math.floor(gridWidth)}
+          layouts={layouts}
+          onLayoutChange={handleLayoutChange}
+          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
+          cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
+          rowHeight={60}
+          dragConfig={{
+            enabled: state.editMode,
+            handle: ".dashboard-card-header",
+            bounded: true,
+          }}
+          resizeConfig={{
+            enabled: state.editMode,
+            handles: ["se", "sw", "ne", "nw", "s", "e", "n", "w"],
+          }}
+          margin={[16, 16]}
+          containerPadding={[0, 0]}
+          compactor={verticalCompactor}
+          autoSize={true}
+        >
         {widgets.map((widget) => (
           <Card
             key={widget.id}
@@ -460,7 +478,8 @@ const DashboardContent: React.FC = () => {
             </CardContent>
           </Card>
         ))}
-      </ResponsiveGridLayout>
+        </Responsive>
+      </Box>
     </Box>
   );
 };

@@ -110,24 +110,6 @@ export const ENTITY_TIPS: EntityTips = {
       content: "Even with mitigations, some risk remains. This is residual risk. Tracking residual risk helps leadership make informed decisions about risk acceptance. If residual risk is too high, additional controls may be needed.",
     },
   ],
-  "fairness-dashboard": [
-    {
-      header: "Bias testing ensures AI treats all groups fairly.",
-      content: "AI models can perpetuate or amplify societal biases present in training data. Regular bias assessments identify these issues before they harm individuals or create legal liability. Many regulations now require bias testing for high-risk AI systems.",
-    },
-    {
-      header: "Fairness metrics should align with your use case.",
-      content: "Different fairness definitions exist (demographic parity, equalized odds, etc.), and the right metric depends on your application. Document which fairness metrics you're using and why. This shows thoughtful consideration during audits.",
-    },
-    {
-      header: "Bias monitoring is ongoing, not one-time.",
-      content: "Model behavior changes as real-world data evolves. Continuous bias monitoring catches issues that emerge post-deployment. Set up regular bias testing schedules and automated alerts for when fairness metrics degrade.",
-    },
-    {
-      header: "Document bias findings and remediation actions.",
-      content: "When you discover bias, document the finding, its severity, and how you addressed it. This creates an audit trail showing responsible AI practices. Even if you can't fully eliminate bias, showing mitigation efforts demonstrates due diligence.",
-    },
-  ],
   training: [
     {
       header: "Training records prove your team understands AI governance.",
@@ -258,6 +240,42 @@ export const ENTITY_TIPS: EntityTips = {
     {
       header: "Integration settings connect VerifyWise to your existing tools.",
       content: "If your organization uses other systems for task management, documentation, or communication, integration settings can connect them to VerifyWise. These connections reduce duplicate data entry and keep information synchronized across platforms.",
+    },
+  ],
+  "evals-overview": [
+    {
+      header: "Monitor trends to track progress over time.",
+      content: "The overview highlights performance trends across your experiments. Watch for improvements after model updates or regressions that need investigation. Consistent monitoring catches issues before they impact production.",
+    },
+  ],
+  "evals-experiments": [
+    {
+      header: "Compare experiments to understand what changed.",
+      content: "When you update prompts, models, or configurations, run new experiments to measure the impact. Comparing results side-by-side reveals whether changes improved or degraded performance.",
+    },
+    {
+      header: "Use multiple scorers for comprehensive evaluation.",
+      content: "A single metric rarely tells the whole story. Combine scorers for accuracy, relevance, safety, and task-specific criteria to get a complete picture of model quality. Different use cases need different evaluation approaches.",
+    },
+  ],
+  "evals-datasets": [
+    {
+      header: "Start with templates to accelerate dataset creation.",
+      content: "Built-in dataset templates provide professionally designed test cases for common AI tasks. Use them as starting points, then customize with your own examples to match your specific use case.",
+    },
+    {
+      header: "Include both expected successes and known challenges.",
+      content: "Good evaluation datasets test both what models should handle well and where they might struggle. Include adversarial examples, edge cases, and boundary conditions to stress-test your models thoroughly.",
+    },
+  ],
+  "evals-scorers": [
+    {
+      header: "LLM-based scorers evaluate nuanced quality aspects.",
+      content: "Some qualities like helpfulness or tone are hard to measure with rules. LLM scorers use AI to judge these subjective aspects consistently. They work well for evaluating open-ended or creative outputs.",
+    },
+    {
+      header: "Calibrate scorers against human judgment.",
+      content: "Periodically compare scorer results to human evaluations. If scorers and humans disagree consistently, adjust thresholds or scorer configurations. Well-calibrated scorers save time while maintaining quality standards.",
     },
   ],
 };

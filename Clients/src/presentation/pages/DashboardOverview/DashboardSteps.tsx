@@ -1,13 +1,13 @@
-import { Plus, Lock, LayoutGrid, BarChart3 } from "lucide-react";
-import { IPageTourStep } from "../../../domain/interfaces/i.tour";
+import { Plus, BarChart3 } from "lucide-react";
+import { IPageTourStep } from "../../types/interfaces/i.tour";
 
 const DashboardSteps: IPageTourStep[] = [
   {
-    target: '[data-joyride-id="dashboard-widgets"]',
+    target: '[data-joyride-id="dashboard-stats"]',
     content: {
-      header: "Dashboard overview",
-      body: "Your centralized view of AI governance metrics. Monitor use cases, models, vendors, policies, trainings, and reports at a glance with status breakdowns.",
-      icon: <LayoutGrid size={20} color="#ffffff" />,
+      header: "Quick stats overview",
+      body: "Monitor your AI governance metrics at a glance. View counts for models, vendors, policies, trainings, and incidents. Click any card to navigate to its detailed view.",
+      icon: <BarChart3 size={20} color="#ffffff" />,
     },
     placement: "bottom",
   },
@@ -19,24 +19,6 @@ const DashboardSteps: IPageTourStep[] = [
       icon: <Plus size={20} color="#ffffff" />,
     },
     placement: "bottom-end",
-  },
-  {
-    target: '[data-joyride-id="edit-mode-toggle"]',
-    content: {
-      header: "Customize layout",
-      body: "Toggle edit mode to rearrange widgets by dragging and resizing them. Create a dashboard layout that matches your workflow.",
-      icon: <Lock size={20} color="#ffffff" />,
-    },
-    placement: "bottom-end",
-  },
-  {
-    target: '[data-joyride-id="widget-card"]',
-    content: {
-      header: "Interactive metric cards",
-      body: "Click any widget to navigate to detailed views. Hover to see status distributions and critical items requiring attention.",
-      icon: <BarChart3 size={20} color="#ffffff" />,
-    },
-    placement: "left",
   },
 ];
 

@@ -84,7 +84,7 @@ const RegisterUser: React.FC = () => {
         values,
         user,
         setIsSubmitting,
-      });
+      }, userToken);
       if (isSuccess === 201) {
         setValues(initialState);
         setErrors({});
@@ -162,7 +162,7 @@ const RegisterUser: React.FC = () => {
             name: userInfo.name ?? "",
             surname: userInfo.surname ?? "",
             email: userInfo.email ?? "",
-            roleId: Number(userInfo.roleId) ?? 1,
+            roleId: Number(userInfo.roleId) || 1,
             organizationId: Number(userInfo.organizationId),
           };
           setValues(userData);

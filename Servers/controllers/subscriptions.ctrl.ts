@@ -11,7 +11,7 @@ import {
 import { sequelize } from "../database/db";
 import { SubscriptionModel } from "../domain.layer/models/subscriptions/subscriptions.model";
 
-export async function getSubscriptionController(req: Request, res: Response) {
+export async function getSubscriptionController(_req: Request, res: Response) {
   logStructured(
     "processing",
     "Fetching subscriptions",
@@ -111,7 +111,7 @@ export async function createSubscriptionController(
       "createSubscriptionController",
       "subscriptions.ctrl.ts"
     );
-    await logEvent("Error", `Failed to create subscription`);
+    await logEvent("Error", `Failed to create subscription`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -135,11 +135,10 @@ export async function updateSubscriptionController(
   req: Request,
   res: Response
 ) {
-  const subscriptionId = parseInt(req.params.id);
+  const subscriptionId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   // Get existing subscription for business rule validation
-  let existingSubscription = null;
   try {
-    existingSubscription = await getSubscriptionById(subscriptionId);
+    await getSubscriptionById(subscriptionId);
   } catch (error) {
     // Continue without existing data if query fails
   }
@@ -186,7 +185,7 @@ export async function updateSubscriptionController(
         "updateSubscriptionController",
         "subscriptions.ctrl.ts"
       );
-      await logEvent("Update", `Subscription updated successfully`);
+      await logEvent("Update", `Subscription updated successfully`, req.userId!, req.tenantId!);
       return res.status(200).json(STATUS_CODE[200](updatedSubscription));
     }
 
@@ -196,7 +195,7 @@ export async function updateSubscriptionController(
       "updateSubscriptionController",
       "subscriptions.ctrl.ts"
     );
-    await logEvent("Error", `Subscription not found`);
+    await logEvent("Error", `Subscription not found`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(404)

@@ -152,14 +152,14 @@ export const updateSubcontrolByIdQuery = async (
   evidenceUploadedFiles: {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[] = [],
   feedbackUploadedFiles: {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[] = [],
@@ -180,7 +180,7 @@ export const updateSubcontrolByIdQuery = async (
   ) as {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[];
@@ -189,7 +189,7 @@ export const updateSubcontrolByIdQuery = async (
   ) as {
     id: string;
     fileName: string;
-    project_id: number;
+    project_id?: number;
     uploaded_by: number;
     uploaded_time: Date;
   }[];
@@ -240,6 +240,7 @@ export const updateSubcontrolByIdQuery = async (
           subcontrol[f as keyof SubcontrolModel];
         return true;
       }
+      return false;
     })
     .map((f) => {
       return `${f} = :${f}`;

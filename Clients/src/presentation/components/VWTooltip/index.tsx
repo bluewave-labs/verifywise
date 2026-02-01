@@ -66,7 +66,7 @@ const VWTooltip: React.FC<VWTooltipProps> = ({
   return (
     <Tooltip
       title={
-        <Box>
+        <Box sx={{ width: '100%' }}>
           {header && (
             <Typography
               sx={{
@@ -75,6 +75,10 @@ const VWTooltip: React.FC<VWTooltipProps> = ({
                 lineHeight: 1.5,
                 marginBottom: "8px",
                 color: "#FFFFFF",
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+                overflow: "visible",
+                textOverflow: "clip",
               }}
             >
               {header}
@@ -123,6 +127,12 @@ const VWTooltip: React.FC<VWTooltipProps> = ({
             backgroundColor: backgroundColor,
             padding: "12px 16px",
             borderRadius: "4px",
+            marginRight: "8px",
+            "& *": {
+              overflow: "visible !important",
+              textOverflow: "clip !important",
+              whiteSpace: "normal !important",
+            },
           },
         },
         arrow: {

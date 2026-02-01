@@ -33,16 +33,15 @@ const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
 import rateLimit from "express-rate-limit";
+import { authLimiter } from "../middleware/rateLimit.middleware";
 
 import {
   checkUserExists,
   createNewUser,
   deleteUserById,
   getAllUsers,
-  getUserByEmail,
   getUserById,
   loginUser,
-  resetPassword,
   updateUserById,
   calculateProgress,
   ChangePassword,
@@ -50,7 +49,9 @@ import {
   uploadUserProfilePhoto,
   getUserProfilePhoto,
   deleteUserProfilePhoto,
+  resetPassword,
 } from "../controllers/user.ctrl";
+import resetPasswordMiddleware from "../middleware/resetPassword.middleware";
 import authenticateJWT from "../middleware/auth.middleware";
 import registerJWT from "../middleware/register.middleware";
 
@@ -108,7 +109,7 @@ router.get("/:id", authenticateJWT, getUserById);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.post("/register", registerJWT, createNewUser);
+router.post("/register", authLimiter, registerJWT, createNewUser);
 
 /**
  * POST /users/login
@@ -126,11 +127,12 @@ router.post("/register", registerJWT, createNewUser);
 const loginLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 5, // limit each IP to 5 login requests per windowMs
-  message: "Too many login attempts from this IP, please try again after a minute",
+  message:
+    "Too many login attempts from this IP, please try again after a minute",
 });
 router.post("/login", loginLimiter, loginUser);
 
-router.post("/refresh-token", refreshAccessToken);
+router.post("/refresh-token", authLimiter, refreshAccessToken);
 
 /**
  * POST /users/reset-password
@@ -144,7 +146,21 @@ router.post("/refresh-token", refreshAccessToken);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-// router.post("/reset-password", resetPassword);
+router.post("/reset-password", authLimiter, resetPasswordMiddleware, resetPassword);
+
+/**
+ * PATCH /users/chng-pass/:id
+ *
+ * Changes a user's password.
+ *
+ * @name patch/chng-pass/:id
+ * @function
+ * @memberof module:routes/user.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ */
+router.patch("/chng-pass/:id", authLimiter, authenticateJWT, ChangePassword);
 
 /**
  * PATCH /users/:id
@@ -159,8 +175,6 @@ router.post("/refresh-token", refreshAccessToken);
  * @param {express.Response} res - Express response object
  */
 router.patch("/:id", authenticateJWT, updateUserById);
-
-router.patch("/chng-pass/:id", ChangePassword);
 
 /**
  * DELETE /users/:id
@@ -195,7 +209,12 @@ router.get("/:id/calculate-progress", authenticateJWT, calculateProgress);
 /**
  * Profile Photo Routes
  */
-router.post("/:id/profile-photo", authenticateJWT, upload.single("photo"), uploadUserProfilePhoto);
+router.post(
+  "/:id/profile-photo",
+  authenticateJWT,
+  upload.single("photo"),
+  uploadUserProfilePhoto
+);
 router.get("/:id/profile-photo", authenticateJWT, getUserProfilePhoto);
 router.delete("/:id/profile-photo", authenticateJWT, deleteUserProfilePhoto);
 

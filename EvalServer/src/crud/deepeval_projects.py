@@ -1,0 +1,262 @@
+"""
+CRUD operations for DeepEval Projects.
+"""
+
+import json
+from typing import List, Dict, Any, Optional
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
+
+
+async def create_project(
+    project_id: str,
+    name: str,
+    description: str,
+    org_id: str,
+    tenant: str,
+    created_by: str,
+    db: AsyncSession,
+    use_case: str = "chatbot"
+) -> Optional[Dict[str, Any]]:
+    """
+    Create a new DeepEval project.
+
+    Args:
+        project_id: Unique project identifier
+        name: Project name
+        description: Project description
+        org_id: Organization ID
+        tenant: Tenant ID (used for schema selection)
+        created_by: Creator identifier
+        db: Database session
+        use_case: Use case type (chatbot, rag, agent)
+
+    Returns:
+        Created project as dictionary, or None if failed
+    """
+
+    if org_id:
+        result = await db.execute(
+            text(f'''
+                INSERT INTO "{tenant}".llm_evals_projects
+                (id, name, description, org_id, created_by, use_case)
+                VALUES (:id, :name, :description, :org_id, :created_by, :use_case)
+                RETURNING id, name, description, org_id, created_at, updated_at, created_by, use_case
+            '''),
+            {
+                "id": project_id,
+                "name": name,
+                "description": description,
+                "org_id": org_id,
+                "created_by": created_by,
+                "use_case": use_case
+            }
+        )
+    else:
+        result = await db.execute(
+            text(f'''
+                INSERT INTO "{tenant}".llm_evals_projects
+                (id, name, description, created_by, use_case)
+                VALUES (:id, :name, :description, :created_by, :use_case)
+                RETURNING id, name, description, NULL::varchar as org_id, created_at, updated_at, created_by, use_case
+            '''),
+            {
+                "id": project_id,
+                "name": name,
+                "description": description,
+                "created_by": created_by,
+                "use_case": use_case
+            }
+        )
+
+    row = result.mappings().first()
+    if row:
+        return {
+            "id": row["id"],
+            "name": row["name"],
+            "description": row["description"],
+            "orgId": row["org_id"],
+            "useCase": row["use_case"],
+            "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
+            "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
+            "createdBy": row["created_by"]
+        }
+    return None
+
+
+async def get_all_projects(tenant: str, db: AsyncSession) -> List[Dict[str, Any]]:
+    """
+    Get all projects for a tenant.
+
+    Args:
+        tenant: Tenant ID (used for schema selection and filtering)
+        db: Database session
+
+    Returns:
+        List of projects
+    """
+
+    result = await db.execute(
+        text(f'''
+            SELECT id, name, description, org_id, created_at, updated_at, created_by, use_case
+            FROM "{tenant}".llm_evals_projects
+            ORDER BY created_at DESC
+        ''')
+    )
+
+    rows = result.mappings().all()
+    projects = []
+    for row in rows:
+        projects.append({
+            "id": row["id"],
+            "name": row["name"],
+            "description": row["description"],
+            "orgId": row["org_id"],
+            "useCase": row["use_case"],
+            "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
+            "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
+            "createdBy": row["created_by"]
+        })
+    return projects
+
+
+async def get_project_by_id(
+    project_id: str,
+    tenant: str,
+    db: AsyncSession
+) -> Optional[Dict[str, Any]]:
+    """
+    Get a project by ID.
+
+    Args:
+        project_id: Project ID
+        tenant: Tenant ID (used for schema selection and filtering)
+        db: Database session
+
+    Returns:
+        Project as dictionary, or None if not found
+    """
+
+    result = await db.execute(
+        text(f'''
+            SELECT id, name, description, org_id, created_at, updated_at, created_by, use_case
+            FROM "{tenant}".llm_evals_projects
+            WHERE id = :id
+        '''),
+        {"id": project_id}
+    )
+
+    row = result.mappings().first()
+    if row:
+        return {
+            "id": row["id"],
+            "name": row["name"],
+            "description": row["description"],
+            "orgId": row.get("org_id"),
+            "useCase": row["use_case"],
+            "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
+            "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
+            "createdBy": row["created_by"]
+        }
+    return None
+
+
+async def update_project(
+    project_id: str,
+    name: Optional[str],
+    description: Optional[str],
+    tenant: str,
+    db: AsyncSession,
+    use_case: Optional[str] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Update a project.
+
+    Args:
+        project_id: Project ID
+        name: New name (optional)
+        description: New description (optional)
+        tenant: Tenant ID (used for schema selection and filtering)
+        db: Database session
+        use_case: New use case (optional)
+
+    Returns:
+        Updated project as dictionary, or None if not found
+    """
+
+    # Build update query dynamically based on provided fields
+    updates = []
+    params = {"id": project_id}
+
+    if name is not None:
+        updates.append("name = :name")
+        params["name"] = name
+
+    if description is not None:
+        updates.append("description = :description")
+        params["description"] = description
+
+    if use_case is not None:
+        updates.append("use_case = :use_case")
+        params["use_case"] = use_case
+
+    if not updates:
+        # Nothing to update, just return existing project
+        return await get_project_by_id(project_id, tenant, db)
+
+    updates.append("updated_at = CURRENT_TIMESTAMP")
+
+    result = await db.execute(
+        text(f'''
+            UPDATE "{tenant}".llm_evals_projects
+            SET {", ".join(updates)}
+            WHERE id = :id
+            RETURNING id, name, description, org_id, created_at, updated_at, created_by, use_case
+        '''),
+        params
+    )
+
+    row = result.mappings().first()
+    if row:
+        return {
+            "id": row["id"],
+            "name": row["name"],
+            "description": row["description"],
+            "orgId": row.get("org_id"),
+            "useCase": row["use_case"],
+            "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
+            "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
+            "createdBy": row["created_by"]
+        }
+    return None
+
+
+async def delete_project(
+    project_id: str,
+    tenant: str,
+    db: AsyncSession
+) -> bool:
+    """
+    Delete a project.
+
+    Args:
+        project_id: Project ID
+        tenant: Tenant ID (used for schema selection and filtering)
+        db: Database session
+
+    Returns:
+        True if deleted, False if not found
+    """
+
+    result = await db.execute(
+        text(f'''
+            DELETE FROM "{tenant}".llm_evals_projects
+            WHERE id = :id
+            RETURNING id
+        '''),
+        {"id": project_id}
+    )
+
+    row = result.fetchone()
+    return row is not None

@@ -5,7 +5,6 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { ProjectModel } from "../project/project.model";
 import { UserModel } from "../user/user.model";
 import { IRisk } from "../../interfaces/I.risk";
 import {
@@ -18,9 +17,7 @@ import {
   timestamps: true,
   underscored: true,
 })
-export class RiskModel
-  extends Model<RiskModel>
-  implements IRisk {
+export class RiskModel extends Model<RiskModel> implements IRisk {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -502,6 +499,7 @@ export class RiskModel
       date_of_assessment: this.date_of_assessment,
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
+      updated_at: this.updated_at?.toISOString(),
     };
   }
 
@@ -528,9 +526,7 @@ export class RiskModel
   /**
    * Static method to find project risks by risk owner
    */
-  static async findByRiskOwner(
-    riskOwnerId: number
-  ): Promise<RiskModel[]> {
+  static async findByRiskOwner(riskOwnerId: number): Promise<RiskModel[]> {
     if (!riskOwnerId || riskOwnerId < 1) {
       throw new ValidationException(
         "Valid risk owner ID is required (must be >= 1)",

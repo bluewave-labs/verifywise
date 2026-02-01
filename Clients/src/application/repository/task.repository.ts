@@ -1,5 +1,4 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 import { ITask } from "../../domain/interfaces/i.task";
 import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
 
@@ -8,13 +7,11 @@ import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
  *
  * @param {object} params - Query parameters for filtering and pagination
  * @param {AbortSignal} [signal] - Optional abort signal for canceling the request
- * @param {string} [authToken] - Optional auth token, defaults to stored token
  * @returns {Promise<any>} The tasks data with pagination info
  * @throws Will throw an error if the request fails
  */
 export async function getAllTasks({
   signal,
-  authToken = getAuthToken(),
   status,
   priority,
   category,
@@ -29,7 +26,6 @@ export async function getAllTasks({
   page_size = "25",
 }: {
   signal?: AbortSignal;
-  authToken?: string;
   status?: TaskStatus[];
   priority?: TaskPriority[];
   category?: string[];
@@ -73,7 +69,6 @@ export async function getAllTasks({
     const url = `/tasks${queryString ? `?${queryString}` : ""}`;
 
     const response = await apiServices.get(url, {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     });
 
@@ -90,22 +85,18 @@ export async function getAllTasks({
  * @param {object} params - Parameters for the request
  * @param {string} params.id - The task ID
  * @param {AbortSignal} [params.signal] - Optional abort signal
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The task data
  * @throws Will throw an error if the request fails
  */
 export async function getTaskById({
   id,
   signal,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   signal?: AbortSignal;
-  authToken?: string;
 }): Promise<any> {
   try {
     const response = await apiServices.get(`/tasks/${id}`, {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
     });
     return response.data;
@@ -120,21 +111,16 @@ export async function getTaskById({
  *
  * @param {object} params - Parameters for creating a task
  * @param {Partial<ITask>} params.body - The task data
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The created task data
  * @throws Will throw an error if the request fails
  */
 export async function createTask({
   body,
-  authToken = getAuthToken(),
 }: {
   body: Partial<ITask>;
-  authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.post("/tasks", body, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.post("/tasks", body);
     return response.data;
   } catch (error) {
     console.error("Error creating task:", error);
@@ -148,23 +134,18 @@ export async function createTask({
  * @param {object} params - Parameters for updating a task
  * @param {string|number} params.id - The task ID
  * @param {Partial<ITask>} params.body - The updated task data
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The updated task data
  * @throws Will throw an error if the request fails
  */
 export async function updateTask({
   id,
   body,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   body: Partial<ITask>;
-  authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.put(`/tasks/${id}`, body, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.put(`/tasks/${id}`, body);
     return response.data;
   } catch (error) {
     console.error("Error updating task:", error);
@@ -177,21 +158,16 @@ export async function updateTask({
  *
  * @param {object} params - Parameters for deleting a task
  * @param {string|number} params.id - The task ID
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The deletion response
  * @throws Will throw an error if the request fails
  */
 export async function deleteTask({
   id,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
-  authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.delete(`/tasks/${id}`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.delete(`/tasks/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting task:", error);
@@ -205,30 +181,96 @@ export async function deleteTask({
  * @param {object} params - Parameters for updating task status
  * @param {string|number} params.id - The task ID
  * @param {TaskStatus} params.status - The new status
- * @param {string} [params.authToken] - Optional auth token
  * @returns {Promise<any>} The updated task data
  * @throws Will throw an error if the request fails
  */
 export async function updateTaskStatus({
   id,
   status,
-  authToken = getAuthToken(),
 }: {
   id: string | number;
   status: TaskStatus;
-  authToken?: string;
 }): Promise<any> {
   try {
     const response = await apiServices.put(
       `/tasks/${id}`,
-      { status },
-      {
-        headers: { Authorization: `Bearer ${authToken}` },
-      }
+      { status }
     );
     return response.data;
   } catch (error) {
     console.error("Error updating task status:", error);
+    throw error;
+  }
+}
+
+/**
+ * Updates only the priority of a task (quick priority change)
+ *
+ * @param {object} params - Parameters for updating task priority
+ * @param {string|number} params.id - The task ID
+ * @param {TaskPriority} params.priority - The new priority
+ * @returns {Promise<any>} The updated task data
+ * @throws Will throw an error if the request fails
+ */
+export async function updateTaskPriority({
+  id,
+  priority,
+}: {
+  id: string | number;
+  priority: TaskPriority;
+}): Promise<any> {
+  try {
+    const response = await apiServices.put(
+      `/tasks/${id}`,
+      { priority }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating priority:", error);
+    throw error;
+  }
+}
+
+/**
+ * Restores an archived task back to active status
+ *
+ * @param {object} params - Parameters for restoring a task
+ * @param {string|number} params.id - The task ID
+ * @returns {Promise<any>} The restored task data
+ * @throws Will throw an error if the request fails
+ */
+export async function restoreTask({
+  id,
+}: {
+  id: string | number;
+}): Promise<any> {
+  try {
+    const response = await apiServices.put(`/tasks/${id}/restore`, {});
+    return response.data;
+  } catch (error) {
+    console.error("Error restoring task:", error);
+    throw error;
+  }
+}
+
+/**
+ * Permanently deletes a task (hard delete)
+ *
+ * @param {object} params - Parameters for hard deleting a task
+ * @param {string|number} params.id - The task ID
+ * @returns {Promise<any>} The deletion response
+ * @throws Will throw an error if the request fails
+ */
+export async function hardDeleteTask({
+  id,
+}: {
+  id: string | number;
+}): Promise<any> {
+  try {
+    const response = await apiServices.delete(`/tasks/${id}/hard`);
+    return response.data;
+  } catch (error) {
+    console.error("Error permanently deleting task:", error);
     throw error;
   }
 }

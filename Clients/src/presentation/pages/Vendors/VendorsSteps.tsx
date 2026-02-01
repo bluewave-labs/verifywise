@@ -1,7 +1,8 @@
-import { Building2, CirclePlus } from "lucide-react";
-import { IPageTourStep } from "../../../domain/interfaces/i.tour";
+import { CirclePlus, AlertTriangle } from "lucide-react";
+import { IPageTourStep } from "../../types/interfaces/i.tour";
 
 const VendorsSteps: IPageTourStep[] = [
+  // Vendors list tab
   {
     target: '[data-joyride-id="add-new-vendor"]',
     content: {
@@ -11,14 +12,15 @@ const VendorsSteps: IPageTourStep[] = [
     },
     placement: "bottom-end",
   },
+  // Vendor risks tab
   {
-    target: '[data-joyride-id="vendor-list-tab"]',
+    target: '[data-joyride-id="add-vendor-risk-button"]',
     content: {
-      header: "Vendor management tabs",
-      body: "Switch between managing vendor details and tracking vendor-related risks. Monitor both vendor information and associated security concerns.",
-      icon: <Building2 size={20} color="#ffffff" />,
+      header: "Add vendor risk",
+      body: "Document and track risks associated with your vendors. Assess severity, assign owners, and define mitigation strategies for each vendor-related risk.",
+      icon: <AlertTriangle size={20} color="#ffffff" />,
     },
-    placement: "bottom",
+    placement: "bottom-end",
   },
 ];
 

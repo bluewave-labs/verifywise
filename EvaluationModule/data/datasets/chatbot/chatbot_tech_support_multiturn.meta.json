@@ -1,0 +1,9 @@
+{
+  "name": "Tech Support Multi-Turn",
+  "description": "Multi-turn technical support conversations covering installation issues, app crashes, and API integration.",
+  "type": "multi-turn",
+  "use_case": "chatbot",
+  "tags": ["tech-support", "multi-turn", "troubleshooting"],
+  "prompt_count": 3
+}
+

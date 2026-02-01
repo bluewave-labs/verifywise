@@ -171,14 +171,15 @@ const LinkedModelsView = ({
               {linkedModels.map((model) => (
                 <TableRow
                   key={model.id}
+                  onClick={() => model.id && navigate(`/model-inventory?modelId=${model.id}`)}
                   sx={{
                     ...singleTheme.tableStyles.primary.body.row,
                     "&:hover": {
-                      cursor: "default",
-                      backgroundColor: "white",
+                      cursor: model.id ? "pointer" : "default",
+                      backgroundColor: "#F9FAFB",
                     },
                     "&:hover td": {
-                      backgroundColor: "white",
+                      backgroundColor: "#F9FAFB",
                     },
                   }}
                 >

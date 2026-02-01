@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= metadata.projectTitle %> - <%= metadata.frameworkName %> Report</title>
+  <style>
+    <%- include('./styles/pdf.css') %>
+
+    /* Custom branding colors */
+    :root {
+      --color-primary: <%= branding.primaryColor || '#13715B' %>;
+    }
+
+    /* Group Header Styles */
+    .group-header {
+      background: var(--color-background-alt);
+      padding: 16px 24px;
+      margin: 32px 0 24px 0;
+      border-left: 4px solid var(--color-primary);
+    }
+
+    .group-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .subsection {
+      margin-bottom: 32px;
+    }
+
+    .subsection:last-child {
+      margin-bottom: 60px;
+    }
+
+    .subsection-header {
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .subsection-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="report-container">
+
+    <!-- Cover Page -->
+    <div class="cover-page">
+      <% if (branding.organizationLogo) { %>
+        <img src="<%= branding.organizationLogo %>" alt="<%= branding.organizationName %>" class="cover-logo">
+      <% } else { %>
+        <div style="font-size: 32px; font-weight: 700; color: var(--color-primary); margin-bottom: 48px;">
+          <%= branding.organizationName %>
+        </div>
+      <% } %>
+
+      <h1 class="cover-title"><%= metadata.frameworkName %> Report</h1>
+      <% if (!metadata.isOrganizational) { %>
+      <p class="cover-subtitle"><%= metadata.projectTitle %></p>
+      <% } %>
+
+      <div class="cover-meta">
+        <% if (!metadata.isOrganizational) { %>
+        <p class="cover-meta-item"><strong>Project:</strong> <%= metadata.projectTitle %></p>
+        <p class="cover-meta-item"><strong>Owner:</strong> <%= metadata.projectOwner %></p>
+        <% } %>
+        <p class="cover-meta-item"><strong>Generated:</strong> <%= metadata.generatedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+        <p class="cover-meta-item"><strong>Prepared by:</strong> <%= metadata.generatedBy %></p>
+      </div>
+
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="toc">
+      <h2 class="toc-title">Table of contents</h2>
+      <ul class="toc-list">
+        <%
+        // Determine which groups have content
+        const hasRiskAnalysis = sections.projectRisks || sections.vendorRisks || sections.modelRisks;
+        const hasComplianceGovernance = sections.compliance || sections.assessment || sections.clausesAndAnnexes || sections.nistSubcategories;
+        const hasOrganization = sections.vendors || sections.models || sections.trainingRegistry || sections.policyManager || sections.incidentManagement;
+        let sectionNum = 1;
+        %>
+
+        <% if (hasRiskAnalysis) { %>
+        <li class="toc-item">
+          <span><span class="toc-item-number"><%= sectionNum++ %>.</span> Risk analysis</span>
+        </li>
+        <% } %>
+
+        <% if (hasComplianceGovernance) { %>
+        <li class="toc-item">
+          <span><span class="toc-item-number"><%= sectionNum++ %>.</span> Compliance & governance</span>
+        </li>
+        <% } %>
+
+        <% if (hasOrganization) { %>
+        <li class="toc-item">
+          <span><span class="toc-item-number"><%= sectionNum++ %>.</span> Organization</span>
+        </li>
+        <% } %>
+      </ul>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- RISK ANALYSIS GROUP -->
+    <!-- ============================================ -->
+    <% if (sections.projectRisks || sections.vendorRisks || sections.modelRisks) { %>
+    <div class="group-header">
+      <h2 class="group-title">Risk Analysis</h2>
+    </div>
+
+    <!-- Use Case Risks Subsection -->
+    <% if (sections.projectRisks) { %>
+    <div class="subsection" id="use-case-risks">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Use case risks</h3>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Total Risks</span>
+          </div>
+          <div class="stat-card-value"><%= sections.projectRisks.totalRisks %></div>
+        </div>
+        <% sections.projectRisks.risksByLevel.forEach(function(level) { %>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title"><%= level.level %></span>
+          </div>
+          <div class="stat-card-value" style="color: <%= level.color %>"><%= level.count %></div>
+        </div>
+        <% }); %>
+      </div>
+
+      <% if (sections.projectRisks.risks.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Risk Name</th>
+            <th>Owner</th>
+            <th>Severity</th>
+            <th>Likelihood</th>
+            <th>Mitigation Status</th>
+            <th>Risk Level</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.projectRisks.risks.forEach(function(risk) { %>
+          <tr>
+            <td><strong><%= risk.name %></strong></td>
+            <td><%= risk.owner %></td>
+            <td><%= risk.impact %></td>
+            <td><%= risk.likelihood %></td>
+            <td><span class="chip chip-<%= risk.mitigationStatus.toLowerCase().replace(/\s+/g, '-') %>"><%= risk.mitigationStatus %></span></td>
+            <td><span class="chip chip-<%= risk.riskLevel.toLowerCase().replace(/\s+/g, '-') %>"><%= risk.riskLevel %></span></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="empty-state">
+        <p class="empty-state-text">No use case risks have been identified.</p>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Vendor Risks Subsection -->
+    <% if (sections.vendorRisks) { %>
+    <div class="subsection" id="vendor-risks">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Vendor risks (<%= sections.vendorRisks.totalRisks %>)</h3>
+      </div>
+
+      <% if (sections.vendorRisks.risks.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Vendor</th>
+            <th>Risk</th>
+            <th>Risk Level</th>
+            <th>Action Owner</th>
+            <th>Action Plan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.vendorRisks.risks.forEach(function(risk) { %>
+          <tr>
+            <td><%= risk.vendorName %></td>
+            <td><%= risk.riskName %></td>
+            <td><span class="chip chip-<%= risk.riskLevel.toLowerCase().replace(/\s+/g, '-') %>"><%= risk.riskLevel %></span></td>
+            <td><%= risk.actionOwner || '-' %></td>
+            <td><%= risk.actionPlan || '-' %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="empty-state">
+        <p class="empty-state-text">No vendor risks have been identified.</p>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Model Risks Subsection -->
+    <% if (sections.modelRisks) { %>
+    <div class="subsection" id="model-risks">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Model risks (<%= sections.modelRisks.totalRisks %>)</h3>
+      </div>
+
+      <% if (sections.modelRisks.risks.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Risk</th>
+            <th>Risk Level</th>
+            <th>Mitigation Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.modelRisks.risks.forEach(function(risk) { %>
+          <tr>
+            <td><%= risk.modelName %></td>
+            <td><%= risk.riskName %></td>
+            <td><span class="chip chip-<%= risk.riskLevel.toLowerCase().replace(/\s+/g, '-') %>"><%= risk.riskLevel %></span></td>
+            <td><%= risk.mitigationStatus %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="empty-state">
+        <p class="empty-state-text">No model risks have been identified.</p>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+    <% } %>
+
+    <!-- ============================================ -->
+    <!-- COMPLIANCE & GOVERNANCE GROUP -->
+    <!-- ============================================ -->
+    <% if (sections.compliance || sections.assessment || sections.clausesAndAnnexes || sections.nistSubcategories) { %>
+    <div class="group-header">
+      <h2 class="group-title">Compliance & Governance</h2>
+    </div>
+
+    <!-- Controls Subsection (EU AI Act) -->
+    <% if (sections.compliance) { %>
+    <div class="subsection" id="compliance">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Controls</h3>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Overall Progress</span>
+          </div>
+          <div class="stat-card-value" style="color: var(--color-primary)"><%= sections.compliance.overallProgress %>%</div>
+          <div class="progress-bar">
+            <div class="progress-bar-fill" style="width: <%= sections.compliance.overallProgress %>%"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Total Controls</span>
+          </div>
+          <div class="stat-card-value"><%= sections.compliance.totalControls %></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Completed</span>
+          </div>
+          <div class="stat-card-value" style="color: var(--color-success)"><%= sections.compliance.completedControls %></div>
+        </div>
+      </div>
+
+      <% if (sections.compliance.controls.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Control ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.compliance.controls.forEach(function(control) { %>
+          <tr>
+            <td><strong><%= control.controlId %></strong></td>
+            <td><%= control.title %></td>
+            <td>
+              <span class="chip chip-<%= control.status === 'Compliant' || control.status === 'Complete' ? 'success' : control.status === 'In Progress' ? 'warning' : 'error' %>">
+                <%= control.status %>
+              </span>
+            </td>
+            <td><%= control.owner || '-' %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Assessment Tracker Subsection (EU AI Act) -->
+    <% if (sections.assessment) { %>
+    <div class="subsection" id="assessment">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Assessment tracker</h3>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Questions Answered</span>
+          </div>
+          <div class="stat-card-value"><%= sections.assessment.answeredQuestions %> / <%= sections.assessment.totalQuestions %></div>
+          <div class="progress-bar">
+            <div class="progress-bar-fill" style="width: <%= sections.assessment.totalQuestions > 0 ? Math.round((sections.assessment.answeredQuestions / sections.assessment.totalQuestions) * 100) : 0 %>%"></div>
+          </div>
+        </div>
+        <% if (renderedCharts.assessmentStatus) { %>
+        <div class="stat-card" style="align-items: center;">
+          <%- renderedCharts.assessmentStatus %>
+        </div>
+        <% } %>
+      </div>
+
+      <% sections.assessment.topics.forEach(function(topic) { %>
+      <div class="avoid-break">
+        <h4 class="section-subtitle"><%= topic.title %> (<%= topic.progress %>% complete)</h4>
+        <div class="progress-bar" style="margin-bottom: 16px;">
+          <div class="progress-bar-fill" style="width: <%= topic.progress %>%"></div>
+        </div>
+
+        <% topic.subtopics.forEach(function(subtopic) { %>
+        <h5 style="font-size: 12px; margin: 12px 0 8px 0; color: var(--color-text-secondary);"><%= subtopic.title %></h5>
+        <% if (subtopic.questions.length > 0) { %>
+        <table class="data-table" style="font-size: 10px;">
+          <thead>
+            <tr>
+              <th style="width: 50%;">Question</th>
+              <th style="width: 40%;">Answer</th>
+              <th style="width: 10%;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% subtopic.questions.forEach(function(q) { %>
+            <tr>
+              <td><%= q.question %></td>
+              <td><%= q.answer || '-' %></td>
+              <td><span class="chip chip-<%= q.status === 'Answered' ? 'success' : 'warning' %>"><%= q.status %></span></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% } %>
+        <% }); %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <!-- Clauses and Annexes Subsection (ISO) -->
+    <% if (sections.clausesAndAnnexes) { %>
+    <div class="subsection" id="clauses-annexes">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Clauses and annexes</h3>
+      </div>
+
+      <% if (sections.clausesAndAnnexes.clauses.length > 0) { %>
+      <h4 class="section-subtitle">Clauses</h4>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Clause ID</th>
+            <th>Title</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.clausesAndAnnexes.clauses.forEach(function(clause) { %>
+          <tr>
+            <td><strong><%= clause.clauseId %></strong></td>
+            <td><%= clause.title %></td>
+            <td><span class="chip chip-<%= clause.status === 'Compliant' ? 'success' : clause.status === 'In Progress' ? 'warning' : 'default' %>"><%= clause.status %></span></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } %>
+
+      <% if (sections.clausesAndAnnexes.annexes.length > 0) { %>
+      <h4 class="section-subtitle">Annexes</h4>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Annex ID</th>
+            <th>Title</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.clausesAndAnnexes.annexes.forEach(function(annex) { %>
+          <tr>
+            <td><strong><%= annex.annexId %></strong></td>
+            <td><%= annex.title %></td>
+            <td><span class="chip chip-<%= annex.status === 'Compliant' ? 'success' : annex.status === 'In Progress' ? 'warning' : 'default' %>"><%= annex.status %></span></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- NIST AI RMF Subcategories Subsection -->
+    <% if (sections.nistSubcategories) { %>
+    <div class="subsection" id="nist-subcategories">
+      <div class="subsection-header">
+        <h3 class="subsection-title">NIST AI RMF subcategories</h3>
+      </div>
+
+      <% sections.nistSubcategories.functions.forEach(function(func) { %>
+      <h4 class="section-subtitle"><%= func.name %></h4>
+
+      <% func.categories.forEach(function(category) { %>
+      <h5 style="font-size: 12px; margin: 12px 0 8px 0; color: var(--color-text-secondary);"><%= category.name %></h5>
+
+      <% if (category.subcategories.length > 0) { %>
+      <table class="data-table" style="font-size: 10px;">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Subcategory</th>
+            <th>Status</th>
+            <th>Risks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% category.subcategories.forEach(function(sub) { %>
+          <tr>
+            <td><strong><%= sub.subcategoryId %></strong></td>
+            <td><%= sub.name %></td>
+            <td><span class="chip chip-<%= sub.status === 'Completed' ? 'success' : sub.status === 'In Progress' ? 'warning' : 'default' %>"><%= sub.status %></span></td>
+            <td>
+              <% if (sub.risks.length > 0) { %>
+              <% sub.risks.forEach(function(risk, idx) { %>
+              <span class="chip chip-<%= risk.riskLevel.toLowerCase().replace(/\s+/g, '-') %>"><%= risk.riskName %></span><%= idx < sub.risks.length - 1 ? ' ' : '' %>
+              <% }); %>
+              <% } else { %>
+              -
+              <% } %>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } %>
+      <% }); %>
+      <% }); %>
+    </div>
+    <% } %>
+    <% } %>
+
+    <!-- ============================================ -->
+    <!-- ORGANIZATION GROUP -->
+    <!-- ============================================ -->
+    <% if (sections.vendors || sections.models || sections.trainingRegistry || sections.policyManager || sections.incidentManagement) { %>
+    <div class="group-header">
+      <h2 class="group-title">Organization</h2>
+    </div>
+
+    <!-- AI Models Subsection -->
+    <% if (sections.models) { %>
+    <div class="subsection" id="models">
+      <div class="subsection-header">
+        <h3 class="subsection-title">AI models (<%= sections.models.totalModels %>)</h3>
+      </div>
+
+      <% if (sections.models.models.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Model Name</th>
+            <th>Version</th>
+            <th>Status</th>
+            <th>Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.models.models.forEach(function(model) { %>
+          <tr>
+            <td><strong><%= model.name %></strong></td>
+            <td><%= model.version || '-' %></td>
+            <td><span class="chip chip-<%= model.status.toLowerCase().replace(/\s+/g, '-') %>"><%= model.status %></span></td>
+            <td><%= model.owner || '-' %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="empty-state">
+        <p class="empty-state-text">No AI models have been registered.</p>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Vendors Subsection -->
+    <% if (sections.vendors) { %>
+    <div class="subsection" id="vendors">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Vendors (<%= sections.vendors.totalVendors %>)</h3>
+      </div>
+
+      <% if (sections.vendors.vendors.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Vendor Name</th>
+            <th>Website</th>
+            <th>Contact</th>
+            <th>Risk Status</th>
+            <th>Assignee</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.vendors.vendors.forEach(function(vendor) { %>
+          <tr>
+            <td><strong><%= vendor.name %></strong></td>
+            <td><%= vendor.website || '-' %></td>
+            <td><%= vendor.contactPerson || '-' %></td>
+            <td><span class="chip chip-<%= vendor.riskStatus.toLowerCase().replace(/\s+/g, '-') %>"><%= vendor.riskStatus %></span></td>
+            <td><%= vendor.assignee || '-' %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="empty-state">
+        <p class="empty-state-text">No vendors have been added.</p>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Training Registry Subsection -->
+    <% if (sections.trainingRegistry) { %>
+    <div class="subsection" id="training">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Training registry (<%= sections.trainingRegistry.totalRecords %>)</h3>
+      </div>
+
+      <% if (sections.trainingRegistry.records.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Training Name</th>
+            <th>Completion Date</th>
+            <th>Status</th>
+            <th>Assignee</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.trainingRegistry.records.forEach(function(record) { %>
+          <tr>
+            <td><strong><%= record.trainingName %></strong></td>
+            <td><%= record.completionDate || '-' %></td>
+            <td><span class="chip chip-<%= record.status === 'Completed' ? 'success' : record.status === 'In Progress' ? 'warning' : 'default' %>"><%= record.status %></span></td>
+            <td><%= record.assignee || '-' %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="empty-state">
+        <p class="empty-state-text">No training records have been added.</p>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Policy Manager Subsection -->
+    <% if (sections.policyManager) { %>
+    <div class="subsection" id="policies">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Policy manager (<%= sections.policyManager.totalPolicies %>)</h3>
+      </div>
+
+      <% if (sections.policyManager.policies.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Policy Name</th>
+            <th>Version</th>
+            <th>Status</th>
+            <th>Review Date</th>
+            <th>Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.policyManager.policies.forEach(function(policy) { %>
+          <tr>
+            <td><strong><%= policy.policyName %></strong></td>
+            <td><%= policy.version || '-' %></td>
+            <td><span class="chip chip-<%= policy.status === 'Approved' ? 'success' : policy.status === 'Draft' ? 'default' : 'warning' %>"><%= policy.status %></span></td>
+            <td><%= policy.reviewDate || '-' %></td>
+            <td><%= policy.owner || '-' %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="empty-state">
+        <p class="empty-state-text">No policies have been created.</p>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Incident Management Subsection -->
+    <% if (sections.incidentManagement) { %>
+    <div class="subsection" id="incidents">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Incident management (<%= sections.incidentManagement.totalIncidents %>)</h3>
+      </div>
+
+      <% if (sections.incidentManagement.incidents.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Incident ID</th>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Reported</th>
+            <th>Assignee</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.incidentManagement.incidents.forEach(function(incident) { %>
+          <tr>
+            <td><strong><%= incident.incidentId %></strong></td>
+            <td><%= incident.title %></td>
+            <td><%= incident.type %></td>
+            <td><span class="chip chip-<%= incident.severity === 'Very serious' ? 'critical' : incident.severity === 'Serious' ? 'high' : 'medium' %>"><%= incident.severity %></span></td>
+            <td><span class="chip chip-<%= incident.status === 'Closed' ? 'success' : incident.status === 'Mitigated' ? 'info' : 'warning' %>"><%= incident.status %></span></td>
+            <td><%= incident.reportedDate || '-' %></td>
+            <td><%= incident.assignee || '-' %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="empty-state">
+        <p class="empty-state-text">No incidents have been reported.</p>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+    <% } %>
+
+    <!-- Page Footer (rendered as part of content) -->
+    <div class="page-footer">
+      <span><%= branding.organizationName %></span>
+      <span><%= metadata.generatedAt.toLocaleDateString() %></span>
+    </div>
+
+  </div>
+</body>
+</html>

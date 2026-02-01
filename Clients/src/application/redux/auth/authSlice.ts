@@ -8,6 +8,8 @@ const initialState = {
 	success: null as boolean | null,
 	message: null as string | null,
 	expirationDate: null as number | null,
+	onboardingStatus: "completed" as string,
+	isOrgCreator: false as boolean,
 };
 
 export const register = createAsyncThunk(
@@ -134,6 +136,8 @@ const authSlice = createSlice({
 			state.success = true;
 			state.message = "Logged out successfully";
 			state.expirationDate = null;
+			state.onboardingStatus = "completed";
+			state.isOrgCreator = false;
 		},
 		setAuthToken: (state, action: PayloadAction<string>) => {
 			state.authToken = action.payload;
@@ -144,6 +148,12 @@ const authSlice = createSlice({
 		},
 		setUserExists: (state, action: PayloadAction<boolean>) => {
 			state.userExists = action.payload;
+		},
+		setOnboardingStatus: (state, action: PayloadAction<string>) => {
+			state.onboardingStatus = action.payload;
+		},
+		setIsOrgCreator: (state, action: PayloadAction<boolean>) => {
+			state.isOrgCreator = action.payload;
 		},
 	},
 	extraReducers(builder) {
@@ -200,6 +210,6 @@ const authSlice = createSlice({
 	},
 });
 
-export const { clearAuthState, setAuthToken, setUserExists, setExpiration } =
+export const { clearAuthState, setAuthToken, setUserExists, setExpiration, setOnboardingStatus, setIsOrgCreator } =
 	authSlice.actions;
 export default authSlice.reducer;

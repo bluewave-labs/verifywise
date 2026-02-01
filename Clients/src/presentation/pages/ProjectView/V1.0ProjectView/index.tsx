@@ -17,10 +17,12 @@ import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
 import CustomizableToast from "../../../components/Toast";
 import CEMarking from "../CEMarking";
+import Activity from "../Activity";
+import PostMarketMonitoring from "../PostMarketMonitoring";
 import allowedRoles from "../../../../application/constants/permissions";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { IBreadcrumbItem } from "../../../../domain/interfaces/i.breadcrumbs";
+import { IBreadcrumbItem } from "../../../types/interfaces/i.breadcrumbs";
 import { getRouteIcon } from "../../../components/Breadcrumbs/routeMapping";
 import { FileText as FileTextIcon } from "lucide-react";
 import TabBar from "../../../components/TabBar";
@@ -146,8 +148,22 @@ const VWProjectView = () => {
     }
   };
 
+  // Check approval status
+  const approvalStatus = project && (project as any).approval_status;
+  const isApprovalBlocked = approvalStatus === 'pending' || approvalStatus === 'rejected';
+
+  // Determine tooltip message based on approval status
+  const getDisabledTooltip = () => {
+    if (approvalStatus === 'rejected') {
+      return "This use case has been rejected. All tabs are disabled as the use case is no longer usable.";
+    } else if (approvalStatus === 'pending') {
+      return "This use case has a pending approval request. All tabs are disabled until the request is approved.";
+    }
+    return "This tab is currently unavailable.";
+  };
+
   return (
-    <Stack className="vw-project-view" overflow={"hidden"}>
+    <Stack className="vw-project-view">
       <PageBreadcrumbs
         items={breadcrumbItems}
         autoGenerate={false}
@@ -182,6 +198,7 @@ const VWProjectView = () => {
                 label: "Overview",
                 value: "overview",
                 icon: "LayoutDashboard",
+                disabled: isApprovalBlocked,
               },
               {
                 label: "Use case risks",
@@ -189,6 +206,7 @@ const VWProjectView = () => {
                 icon: "AlertTriangle",
                 count: projectRisksCount,
                 isLoading: isLoadingRisks,
+                disabled: isApprovalBlocked,
               },
               {
                 label: "Linked models",
@@ -196,26 +214,42 @@ const VWProjectView = () => {
                 icon: "Box",
                 count: linkedModelsCount,
                 isLoading: isLoadingModels,
+                disabled: isApprovalBlocked,
               },
               {
                 label: "Frameworks/regulations",
                 value: "frameworks",
                 icon: "Shield",
+                disabled: isApprovalBlocked,
               },
               {
                 label: "CE Marking",
                 value: "ce-marking",
                 icon: "Award",
+                disabled: isApprovalBlocked,
+              },
+              {
+                label: "Activity",
+                value: "activity",
+                icon: "History",
+                disabled: isApprovalBlocked,
+              },
+              {
+                label: "Monitoring",
+                value: "monitoring",
+                icon: "ClipboardCheck",
+                disabled: isApprovalBlocked,
               },
               {
                 label: "Settings",
                 value: "settings",
                 icon: "Settings",
-                disabled: !allowedRoles.projects.edit.includes(userRoleName),
+                disabled: isApprovalBlocked || !allowedRoles.projects.edit.includes(userRoleName),
               },
             ]}
             activeTab={value}
             onChange={handleChange}
+            disabledTabTooltip={getDisabledTooltip()}
           />
 
           <TabPanel value="overview" sx={tabPanelStyle}>
@@ -264,7 +298,9 @@ const VWProjectView = () => {
                     ? 2
                     : framework === "eu-ai-act"
                     ? 1
-                    : project.framework[0].framework_id
+                    : project.framework && project.framework.length > 0
+                    ? project.framework[0].framework_id
+                    : 1
                 }
               />
             ) : (
@@ -290,6 +326,28 @@ const VWProjectView = () => {
             {project ? (
               // Render settings content here
               <ProjectSettings triggerRefresh={handleRefresh} />
+            ) : (
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
+            )}
+          </TabPanel>
+          <TabPanel value="activity" sx={tabPanelStyle}>
+            {project ? (
+              <Activity entityType="use_case" entityId={parseInt(projectId)} />
+            ) : (
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
+            )}
+          </TabPanel>
+          <TabPanel value="monitoring" sx={tabPanelStyle}>
+            {project ? (
+              <PostMarketMonitoring />
             ) : (
               <CustomizableSkeleton
                 variant="rectangular"

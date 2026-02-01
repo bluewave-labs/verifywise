@@ -5,15 +5,17 @@ const { getTenantHash } = require("../../dist/tools/getTenantHash");
 /**
  * Migration to create nist_ai_rmf_subcategories tables for all tenant schemas
  *
- * This migration fixes the issue where nist_ai_rmf_subcategories tables were not
- * being created for tenant schemas, causing the application to fail when trying
- * to access NIST AI RMF subcategories for specific tenants.
+ * This migration creates the table structure for nist_ai_rmf_subcategories in each
+ * tenant schema. Subcategories are populated when NIST AI RMF projects are created
+ * via the createNISTAI_RMFFrameworkQuery() function in nistAiRmfCorrect.utils.ts
  *
  * The migration:
  * 1. Creates status ENUM if it doesn't exist
  * 2. Creates nist_ai_rmf_subcategories table for each tenant
- * 3. Inserts initial subcategories based on the public.nist_ai_rmf_categories
- * 4. Adds necessary indexes and foreign key constraints
+ * 3. Adds necessary indexes and foreign key constraints
+ *
+ * Note: Subcategories are NOT pre-populated here because they are project-specific,
+ * not tenant-wide. Each project instantiation creates its own set of 73 subcategories.
  *
  * @type {import('sequelize-cli').Migration}
  */
@@ -46,20 +48,6 @@ module.exports = {
 
       logger.info(`Processing ${organizations[0].length} tenant schemas`);
 
-      // Get NIST AI RMF categories to create subcategories from
-      const categories = await queryInterface.sequelize.query(`
-        SELECT id, title, function_id, index
-        FROM public.nist_ai_rmf_categories
-        ORDER BY function_id, index;
-      `, { transaction });
-
-      if (categories[0].length === 0) {
-        logger.error('No NIST AI RMF categories found. Please run the NIST AI RMF categories migration first.');
-        throw new Error('NIST AI RMF categories not found. Run the categories migration first.');
-      }
-
-      logger.info(`Found ${categories[0].length} NIST AI RMF categories to create subcategories from`);
-
       // Process each tenant with individual error handling
       let successCount = 0;
       let errorCount = 0;
@@ -69,7 +57,7 @@ module.exports = {
           const tenantHash = getTenantHash(organization.id);
           logger.info(`Processing tenant: ${tenantHash} (org_id: ${organization.id})`);
 
-          await createNistSubcategoriesForTenant(queryInterface, tenantHash, categories[0], transaction);
+          await createNistSubcategoriesForTenant(queryInterface, tenantHash, transaction);
           successCount++;
 
         } catch (tenantError) {
@@ -155,7 +143,7 @@ async function createNistStatusEnumIfNeeded(queryInterface, transaction) {
 /**
  * Creates nist_ai_rmf_subcategories table for a specific tenant
  */
-async function createNistSubcategoriesForTenant(queryInterface, tenantHash, categories, transaction) {
+async function createNistSubcategoriesForTenant(queryInterface, tenantHash, transaction) {
   // Check if table already exists to avoid unnecessary work
   const [tableExists] = await queryInterface.sequelize.query(`
     SELECT 1 FROM information_schema.tables
@@ -204,38 +192,8 @@ async function createNistSubcategoriesForTenant(queryInterface, tenantHash, cate
     await queryInterface.sequelize.query(query, { transaction });
   }
 
-  // Insert initial subcategories based on categories
-  // Each category becomes a subcategory for the tenant
-  const insertValues = categories.map(category => {
-    const cleanDescription = category.description ? category.description.replace(/'/g, "''") : '';
-    return `(${category.index}, '${category.title}', '${cleanDescription}', ${category.id})`;
-  }).join(', ');
+  // Note: Subcategories are NOT inserted here because they are project-specific
+  // and created when NIST AI RMF projects are instantiated via createNISTAI_RMFFrameworkQuery()
 
-  if (insertValues) {
-    // Let's insert subcategories one by one to better handle any errors
-    let insertedCount = 0;
-    for (let i = 0; i < categories.length; i++) {
-      const category = categories[i];
-      const cleanDescription = category.description ? category.description.replace(/'/g, "''") : '';
-
-      const singleInsertQuery = `
-        INSERT INTO "${tenantHash}".nist_ai_rmf_subcategories (
-          index, title, description, category_id, created_at, updated_at
-        ) VALUES (${category.index}, '${category.title}', '${cleanDescription}', ${category.id}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-      `;
-
-      try {
-        await queryInterface.sequelize.query(singleInsertQuery, { transaction });
-        insertedCount++;
-      } catch (singleInsertError) {
-        logger.error(`Failed to insert subcategory ${category.title} for tenant ${tenantHash}:`, singleInsertError);
-        logger.error(`Query was: ${singleInsertQuery}`);
-        throw singleInsertError;
-      }
-    }
-
-    logger.info(`Successfully inserted ${insertedCount} subcategories for tenant ${tenantHash}`);
-  }
-
-  logger.success(`Successfully created nist_ai_rmf_subcategories table for tenant: ${tenantHash} with ${categories.length} subcategories`);
+  logger.success(`Successfully created nist_ai_rmf_subcategories table for tenant: ${tenantHash}`);
 }

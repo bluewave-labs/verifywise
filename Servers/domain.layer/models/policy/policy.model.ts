@@ -58,12 +58,6 @@ export class PolicyManagerModel extends Model<PolicyManagerModel> implements IPo
   })
   author_id!: number;
 
-  @Column({
-    type: DataType.ARRAY(DataType.INTEGER),
-    allowNull: true,
-  })
-  assigned_reviewer_ids?: number[];
-
   @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER,
@@ -98,9 +92,9 @@ export class PolicyManagerModel extends Model<PolicyManagerModel> implements IPo
       tags: this.tags,
       next_review_date: this.next_review_date,
       author_id: this.author_id,
-      assigned_reviewer_ids: this.assigned_reviewer_ids,
       last_updated_by: this.last_updated_by,
       last_updated_at: this.last_updated_at,
+      created_at: this.created_at?.toISOString(),
     };
   }
 

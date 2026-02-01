@@ -1,0 +1,10 @@
+# Ignore actual secrets file with real credentials
+secrets.yaml
+secrets-generated.yaml
+
+# Ignore any local override files
+*-local.yaml
+*.local.yaml
+
+# Ignore generated files with real credentials
+*-generated.yaml

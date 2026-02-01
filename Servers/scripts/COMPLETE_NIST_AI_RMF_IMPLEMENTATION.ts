@@ -15,7 +15,6 @@
 
 import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
-import { getTenantHash } from "../tools/getTenantHash";
 
 /**
  * Creates complete NIST AI RMF tables for a new tenant

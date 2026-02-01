@@ -28,7 +28,7 @@ const useUserPreferences = () => {
     } catch (err) {
       setIsDefault(true);
       setError(
-        err instanceof Error ? err.message : "Failed to fetch user preferences",
+        err instanceof Error ? err.message : "Failed to fetch user preferences"
       );
     } finally {
       setLoading(false);

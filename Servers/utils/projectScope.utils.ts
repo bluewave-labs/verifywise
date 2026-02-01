@@ -94,6 +94,7 @@ export const updateProjectScopeByIdQuery = async (
           projectScope[f as keyof ProjectScopeModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

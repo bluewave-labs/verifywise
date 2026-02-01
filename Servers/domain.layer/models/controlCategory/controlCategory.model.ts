@@ -278,6 +278,7 @@ export class ControlCategoryModel
    * Convert control category model to JSON representation
    */
   toJSON(): any {
+    const dataValues = this.dataValues as any;
     return {
       id: this.id,
       project_id: this.project_id,
@@ -285,6 +286,8 @@ export class ControlCategoryModel
       order_no: this.order_no,
       created_at: this.created_at?.toISOString(),
       is_demo: this.is_demo,
+      // Include dynamically added properties from queries
+      controls: dataValues?.controls,
     };
   }
 

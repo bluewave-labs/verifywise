@@ -1,13 +1,7 @@
-import { Dispatch, SetStateAction } from "react";
 import { Likelihood } from "../enums/likelihood.enum";
 import { Severity } from "../enums/severity.enum";
 
-export interface IMitigationSectionProps {
-  mitigationValues: IMitigation;
-  setMitigationValues: Dispatch<SetStateAction<IMitigation>>;
-  mitigationErrors?: IMitigationErrors;
-  userRoleName: string;
-}
+// Note: IMitigationSectionProps has been moved to: presentation/types/interfaces/i.mitigation.ts
 
 export interface IMitigation {
   mitigationStatus: number;

@@ -7,11 +7,9 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
-import { setAuthToken } from "../../../../application/redux/auth/authSlice";
-import { setExpiration } from "../../../../application/redux/auth/authSlice";
+import { setAuthToken, setExpiration, setOnboardingStatus, setIsOrgCreator } from "../../../../application/redux/auth/authSlice";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
-import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
 import { loginUser } from "../../../../application/repository/user.repository";
 
 // Animated loading component specifically for login
@@ -116,7 +114,6 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
-  const { isMultiTenant } = useIsMultiTenant();
 
   const loginText = isDemoApp
     ? "Click on Sign in button directly to continue"
@@ -150,6 +147,8 @@ const Login: React.FC = () => {
 
         if (response.status === 202) {
           const token = response.data.data.token;
+          const onboardingStatus = response.data.data.onboarding_status || "completed";
+          const isOrgCreatorFlag = response.data.data.is_org_creator || false;
 
           if (values.rememberMe) {
             const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
@@ -160,6 +159,10 @@ const Login: React.FC = () => {
             dispatch(setExpiration(null));
           }
 
+          // Store onboarding status from server
+          dispatch(setOnboardingStatus(onboardingStatus));
+          dispatch(setIsOrgCreator(isOrgCreatorFlag));
+
           localStorage.setItem("root_version", __APP_VERSION__);
 
           logEngine({
@@ -167,29 +170,20 @@ const Login: React.FC = () => {
             message: "Login successful.",
           });
 
-          setTimeout(() => {
-            setIsSubmitting(false);
-            navigate("/");
-          }, 3000);
+          setIsSubmitting(false);
+          navigate("/");
         }
       })
       .catch((error) => {
-        console.error("Error submitting form:", error);
-
         setIsSubmitting(false);
 
         let message = "An error occurred. Please try again.";
-        const status = error.response?.status;
+        const status = error.status || error.response?.status;
         const responseData = error.response?.data;
 
-        if (status === 401) {
-          // Backend returns: { message: "Unauthorized", data: "Invalid email or password" }
-          message = "Invalid email or password";
-
-          logEngine({
-            type: "event",
-            message: "Invalid credentials during login.",
-          });
+        if (status === 401 || status === 429) {
+          // Expected user errors - no logging needed, just show the message
+          message = error.message || "Invalid email or password";
         } else if (status === 500) {
           // Backend returns: { message: "Internal Server Error", error: <error message> }
           const errorMessage = responseData?.error || responseData?.message;
@@ -212,7 +206,7 @@ const Login: React.FC = () => {
             message: "Network error during login.",
           });
         } else {
-          // Handle other status codes
+          // Handle other unexpected status codes - these are worth logging
           const errorMessage =
             responseData?.message || responseData?.error || error.message;
           message =
@@ -356,7 +350,6 @@ const Login: React.FC = () => {
             >
               Sign in
             </Button>
-            {isMultiTenant && (
               <Stack
                 sx={{
                   display: "flex",
@@ -384,7 +377,6 @@ const Login: React.FC = () => {
                   Register here
                 </Typography>
               </Stack>
-            )}
           </Stack>
         </Stack>
       </form>

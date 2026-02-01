@@ -17,7 +17,7 @@ import {
 } from "../../../../application/repository/organization.repository";
 import Alert from "../../../components/Alert";
 import allowedRoles from "../../../../application/constants/permissions";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import {
   uploadAITrustCentreLogo,
   deleteAITrustCentreLogo,
@@ -34,7 +34,6 @@ interface AlertState {
   body: string;
   isToast?: boolean;
 }
-
 
 const Organization = () => {
   const { userRoleName, organizationId } = useAuth();
@@ -127,13 +126,13 @@ const Organization = () => {
               setLogoLoadError(true);
             }
           }
-        } catch (error) {
+        } catch (_error) {
           setLogoLoadError(true);
         } finally {
           setLogoLoading(false);
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setOrganizationExists(false);
       setOrganizationName("");
       setHasChanges(false);
@@ -150,11 +149,15 @@ const Organization = () => {
 
       const tempOrganization = OrganizationModel.createNewOrganization({
         name: value,
-        logo: ""
+        logo: "",
       } as OrganizationModel);
-      
+
       const validation = tempOrganization.validateName();
-      setOrganizationNameError(validation.accepted ? null : validation.message || "Invalid organization name");
+      setOrganizationNameError(
+        validation.accepted
+          ? null
+          : validation.message || "Invalid organization name"
+      );
       setIsSaveDisabled(!value.trim() || !validation.accepted);
     },
     []
@@ -293,7 +296,7 @@ const Organization = () => {
     try {
       const organizationData = OrganizationModel.createNewOrganization({
         name: organizationName,
-        logo: ""
+        logo: "",
       } as OrganizationModel);
 
       const response = await CreateMyOrganization({
@@ -307,13 +310,13 @@ const Organization = () => {
         "The organization was created successfully."
       );
 
-      if (response && response.id) {
-        setOrganizationName(response.name || "");
+      if (response?.data && response.data.id) {
+        setOrganizationName(response.data.name || "");
         setOrganizationExists(true);
         setHasChanges(false);
       }
       await fetchOrganization();
-    } catch (error) {
+    } catch (_error) {
       showAlert("error", "Error", "Failed to create organization.");
     } finally {
       setTimeout(() => setIsLoading(false), 1500);
@@ -333,7 +336,7 @@ const Organization = () => {
       const organizationData = OrganizationModel.createNewOrganization({
         id: organizationId,
         name: organizationName,
-        logo: ""
+        logo: "",
       } as OrganizationModel);
 
       const response = await UpdateMyOrganization({
@@ -352,7 +355,7 @@ const Organization = () => {
         setHasChanges(false);
       }
       await fetchOrganization();
-    } catch (error) {
+    } catch (_error) {
       showAlert("error", "Error", "Failed to update organization.");
     } finally {
       setTimeout(() => setIsLoading(false), 1500);
@@ -375,6 +378,7 @@ const Organization = () => {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   // Cleanup function to revoke object URLs when component unmounts
@@ -578,7 +582,7 @@ const Organization = () => {
                     Loading...
                   </>
                 ) : (
-                  "Update"
+                  "Change"
                 )}
                 <input
                   type="file"
@@ -608,7 +612,7 @@ const Organization = () => {
 
       {/* Remove Logo Confirmation Modal */}
       {isRemoveLogoModalOpen && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm logo removal"
           body={
             <Typography fontSize={13}>

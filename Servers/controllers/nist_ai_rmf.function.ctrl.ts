@@ -39,7 +39,9 @@ export async function getAllNISTAIRMFfunctions(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve NIST AI RMF functions: ${(error as Error).message}`
+      `Failed to retrieve NIST AI RMF functions: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllNISTAIRMFfunctions:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -47,7 +49,7 @@ export async function getAllNISTAIRMFfunctions(
 }
 
 export async function getNISTAIRMFfunctionById(req: Request, res: Response) {
-  const functionId = parseInt(req.params.id);
+  const functionId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `starting to get NIST AI RMF function by ID: ${functionId}`,
@@ -85,7 +87,9 @@ export async function getNISTAIRMFfunctionById(req: Request, res: Response) {
     );
     await logEvent(
       "Error",
-      `Failed to retrieve NIST AI RMF function by ID: ${functionId}`
+      `Failed to retrieve NIST AI RMF function by ID: ${functionId}`,
+      req.userId!,
+      req.tenantId!
     );
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

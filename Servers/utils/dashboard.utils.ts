@@ -40,5 +40,36 @@ export const getDashboardDataQuery = async (
   ) as [{ count: string }[], number];
   dashboard.reports = parseInt(reports[0][0].count);
 
+  // Task radar - calculate overdue, due within 7 days, and upcoming tasks
+  try {
+    // Overdue: tasks where due_date < today and status is not 'Completed' or 'Deleted'
+    const overdueTasks = await sequelize.query(
+      `SELECT COUNT(*) FROM "${tenant}".tasks
+       WHERE due_date < CURRENT_DATE
+       AND status NOT IN ('Completed', 'Deleted')`
+    ) as [{ count: string }[], number];
+    dashboard.task_radar.overdue = parseInt(overdueTasks[0][0].count);
+
+    // Due within 7 days: tasks where due_date is between today and 7 days from now
+    const dueSoonTasks = await sequelize.query(
+      `SELECT COUNT(*) FROM "${tenant}".tasks
+       WHERE due_date >= CURRENT_DATE
+       AND due_date <= CURRENT_DATE + INTERVAL '7 days'
+       AND status NOT IN ('Completed', 'Deleted')`
+    ) as [{ count: string }[], number];
+    dashboard.task_radar.due = parseInt(dueSoonTasks[0][0].count);
+
+    // Upcoming: tasks where due_date is more than 7 days from now
+    const upcomingTasks = await sequelize.query(
+      `SELECT COUNT(*) FROM "${tenant}".tasks
+       WHERE due_date > CURRENT_DATE + INTERVAL '7 days'
+       AND status NOT IN ('Completed', 'Deleted')`
+    ) as [{ count: string }[], number];
+    dashboard.task_radar.upcoming = parseInt(upcomingTasks[0][0].count);
+  } catch (error) {
+    // If tasks table doesn't exist or query fails, keep defaults (0)
+    console.warn("Failed to fetch task radar data:", error);
+  }
+
   return dashboard;
 }

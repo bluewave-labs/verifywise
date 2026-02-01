@@ -9,10 +9,10 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
+import logger from "../utils/logger/fileLogger";
 
 export const invite = async (
-  req: Request,
+  _req: Request,
   res: Response,
   body: {
     to: string;
@@ -28,6 +28,8 @@ export const invite = async (
     description: `starting invite email for user: ${to}`,
     functionName: "invite",
     fileName: "vwmailer.ctrl.ts",
+    userId: _req.userId!,
+    tenantId: _req.tenantId!,
   });
   logger.debug(
     `📧 Sending invitation email to ${to} for user ${name} ${surname || ""}`
@@ -73,6 +75,8 @@ export const invite = async (
         functionName: "invite",
         fileName: "vwmailer.ctrl.ts",
         error: new Error(`${info.error.name}: ${info.error.message}`),
+        userId: _req.userId!,
+        tenantId: _req.tenantId!,
       });
       return res.status(206).json({
         error: `${info.error.name}: ${info.error.message}`,
@@ -84,6 +88,8 @@ export const invite = async (
         description: `Successfully sent invitation email to ${to} for user ${name}`,
         functionName: "invite",
         fileName: "vwmailer.ctrl.ts",
+        userId: _req.userId!,
+        tenantId: _req.tenantId!,
       });
       return res.status(200).json({ message: "Email sent successfully" });
     }
@@ -95,6 +101,8 @@ export const invite = async (
       functionName: "invite",
       fileName: "vwmailer.ctrl.ts",
       error: error as Error,
+      userId: _req.userId!,
+      tenantId: _req.tenantId!,
     });
     return res.status(500).json({
       error: "Failed to send email",

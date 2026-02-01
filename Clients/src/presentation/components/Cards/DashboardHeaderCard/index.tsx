@@ -8,13 +8,17 @@ interface HeaderCardProps {
   count: ReactNode;
   disableNavigation?: boolean;
   icon?: ReactNode;
+  navigateTo?: string;
 }
 
-const HeaderCard = ({ title, count, disableNavigation = false, icon }: HeaderCardProps) => {
+const HeaderCard = ({ title, count, disableNavigation = false, icon, navigateTo }: HeaderCardProps) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
   const getNavigationPath = (cardTitle: string): string | null => {
+    // If navigateTo is provided, use it directly
+    if (navigateTo) return navigateTo;
+
     switch (cardTitle) {
       case "Trainings":
         return "/training";
@@ -42,7 +46,6 @@ const HeaderCard = ({ title, count, disableNavigation = false, icon }: HeaderCar
         border: "1px solid #d0d5dd",
         borderRadius: 2,
         background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-        minWidth: 228,
         width: "100%",
         padding: "8px 36px 14px 14px",
         cursor: isClickable ? "pointer" : "default",

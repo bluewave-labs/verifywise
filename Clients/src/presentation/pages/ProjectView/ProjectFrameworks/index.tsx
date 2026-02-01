@@ -267,10 +267,12 @@ const ProjectFrameworks = ({
             else if (action === "remove") {
               triggerRefresh(true, "Framework removed successfully");
               // Find a framework whose id is not the removed one, and set its id as selected
-              const nextFramework = project.framework.find(
+              const nextFramework = project.framework?.find(
                 (f) => Number(f.framework_id) !== frameworkId
               );
-              handleFrameworkChange(nextFramework?.framework_id!);
+              if (nextFramework?.framework_id) {
+                handleFrameworkChange(nextFramework.framework_id);
+              }
             } else triggerRefresh(true);
           }
           refreshFilteredFrameworks();

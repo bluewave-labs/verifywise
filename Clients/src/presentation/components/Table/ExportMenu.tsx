@@ -16,16 +16,21 @@ interface ExportMenuProps {
   columns: ExportColumn[];
   filename?: string;
   title?: string;
+  disabled?: boolean;
 }
 
 export const ExportMenu: React.FC<ExportMenuProps> = ({
   data,
   columns,
   filename = 'export',
-  title
+  title,
+  disabled: disabledProp = false,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
+
+  // Auto-disable when no data is available
+  const disabled = disabledProp || !data || data.length === 0;
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -69,6 +74,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
       <IconButton
         onClick={handleClick}
         aria-label="Export options"
+        disabled={disabled}
         sx={{
           height: '34px',
           width: '34px',
@@ -80,9 +86,14 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             backgroundColor: '#f9fafb',
             borderColor: '#d1d5db',
           },
+          '&.Mui-disabled': {
+            backgroundColor: '#f9fafb',
+            borderColor: '#e5e7eb',
+            opacity: 0.5,
+          },
         }}
       >
-        <MoreVertical size={16} color="#6b7280" />
+        <MoreVertical size={16} color={disabled ? "#d1d5db" : "#6b7280"} />
       </IconButton>
       {/* Main Menu */}
       <Menu
@@ -133,7 +144,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: Boolean(exportAnchorEl) ? '#f9fafb' : 'transparent',
+            backgroundColor: exportAnchorEl ? '#f9fafb' : 'transparent',
             '&:hover': {
               backgroundColor: '#f9fafb !important',
             }

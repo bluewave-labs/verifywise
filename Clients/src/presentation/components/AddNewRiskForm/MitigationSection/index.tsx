@@ -24,25 +24,29 @@ import {
   riskLevelItems,
   approvalStatusItems,
 } from "../projectRiskValue";
-import { alertState } from "../../../../domain/interfaces/iAlert";
+import { alertState } from "../../../../domain/interfaces/i.alert";
 import allowedRoles from "../../../../application/constants/permissions";
 
 // Layout constants - matching RisksSection
 const LAYOUT = {
-  FIELD_WIDTH: 325,
+  FIELD_WIDTH: 323,
+  COMPACT_FIELD_WIDTH: 318,
   HORIZONTAL_GAP: 8,
   VERTICAL_GAP: 16,
+  COMPACT_CONTENT_WIDTH: 970, // Account for scrollbar (~17px)
   get TOTAL_CONTENT_WIDTH() {
-    return (this.FIELD_WIDTH * 3) + (this.HORIZONTAL_GAP * 2); // 991px
+    return (this.FIELD_WIDTH * 3) + (this.HORIZONTAL_GAP * 2); // 985px
   },
   get TWO_COLUMN_WIDTH() {
-    return (this.FIELD_WIDTH * 2) + this.HORIZONTAL_GAP; // 658px
+    return (this.FIELD_WIDTH * 2) + this.HORIZONTAL_GAP; // 654px
+  },
+  get COMPACT_TWO_COLUMN_WIDTH() {
+    return (this.COMPACT_FIELD_WIDTH * 2) + this.HORIZONTAL_GAP; // 644px
   },
 } as const;
 
 // Constants
 const FORM_FIELD_WIDTH = LAYOUT.FIELD_WIDTH;
-const DATE_INPUT_WIDTH = 85;
 const MIN_HEIGHT = 500;
 const MAX_HEIGHT = 500;
 
@@ -59,6 +63,7 @@ interface MitigationSectionProps {
   mitigationErrors?: MitigationFormErrors;
   userRoleName: string;
   disableInternalScroll?: boolean;
+  compactMode?: boolean;
 }
 /**
  * MitigationSection component manages mitigation details for risk assessment.
@@ -80,6 +85,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   mitigationErrors = {},
   userRoleName,
   disableInternalScroll = false,
+  compactMode = false,
 }) => {
   const theme = useTheme();
   const isEditingDisabled =
@@ -88,6 +94,20 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   const [alert, setAlert] = useState<alertState | null>(null);
 
   const { users, loading: usersLoading } = useUsers();
+
+  // Dynamic layout based on compactMode - squeeze into 990px when sidebar is open
+  const fieldWidth = compactMode ? `${LAYOUT.COMPACT_FIELD_WIDTH}px` : `${FORM_FIELD_WIDTH}px`;
+  const contentWidth = compactMode ? `${LAYOUT.COMPACT_CONTENT_WIDTH}px` : `${LAYOUT.TOTAL_CONTENT_WIDTH}px`;
+  const twoColumnWidth = compactMode ? `${LAYOUT.COMPACT_TWO_COLUMN_WIDTH}px` : `${LAYOUT.TWO_COLUMN_WIDTH}px`;
+
+  const formRowStyles = {
+    display: "flex",
+    flexDirection: "row" as const,
+    justifyContent: "flex-start",
+    flexWrap: "wrap" as const,
+    gap: `${LAYOUT.HORIZONTAL_GAP}px`,
+    width: contentWidth,
+  };
 
   // Memoized values
   const userOptions = useMemo(
@@ -101,10 +121,10 @@ const MitigationSection: FC<MitigationSectionProps> = ({
 
   const formFieldStyles = useMemo(
     () => ({
-      width: `${FORM_FIELD_WIDTH}px`,
+      width: fieldWidth,
       backgroundColor: theme.palette.background.main,
     }),
-    [theme.palette.background.main]
+    [theme.palette.background.main, fieldWidth]
   );
 
   const handleOnSelectChange = useCallback(
@@ -174,19 +194,10 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             }),
           }}
         >
-          <Stack sx={{ width: `${LAYOUT.TOTAL_CONTENT_WIDTH}px` }}>
+          <Stack sx={{ width: contentWidth }}>
             <Stack sx={{ gap: `${LAYOUT.VERTICAL_GAP}px` }}>
               {/* Row 1: Three columns */}
-              <Stack
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "flex-start",
-                  flexWrap: "wrap",
-                  gap: `${LAYOUT.HORIZONTAL_GAP}px`,
-                  width: `${LAYOUT.TOTAL_CONTENT_WIDTH}px`,
-                }}
-              >
+              <Stack sx={formRowStyles}>
                 {/* Mitigation Status */}
                 <Select
                   id="mitigation-status-input"
@@ -222,36 +233,22 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   disabled={isEditingDisabled}
                 />
                 {/* Deadline */}
-                <Stack style={{ width: `${FORM_FIELD_WIDTH}px` }}>
-                  <DatePicker
-                    label="Deadline"
-                    date={
-                      mitigationValues.deadline
-                        ? dayjs(mitigationValues.deadline)
-                        : dayjs(new Date())
-                    }
-                    handleDateChange={(e) => handleDateChange("deadline", e)}
-                    sx={{
-                      width: `${FORM_FIELD_WIDTH}px`,
-                      "& input": { width: DATE_INPUT_WIDTH },
-                    }}
-                    isRequired
-                    error={mitigationErrors?.deadline}
-                    disabled={isEditingDisabled}
-                  />
-                </Stack>
+                <DatePicker
+                  label="Deadline"
+                  date={
+                    mitigationValues.deadline
+                      ? dayjs(mitigationValues.deadline)
+                      : dayjs(new Date())
+                  }
+                  handleDateChange={(e) => handleDateChange("deadline", e)}
+                  sx={{ width: fieldWidth }}
+                  isRequired
+                  error={mitigationErrors?.deadline}
+                  disabled={isEditingDisabled}
+                />
               </Stack>
               {/* Row 2: Mitigation Plan and Implementation Strategy */}
-              <Stack
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "flex-start",
-                  flexWrap: "wrap",
-                  gap: `${LAYOUT.HORIZONTAL_GAP}px`,
-                  width: `${LAYOUT.TOTAL_CONTENT_WIDTH}px`,
-                }}
-              >
+              <Stack sx={formRowStyles}>
                 {/* Mitigation Plan */}
                 <Field
                   id="mitigation-plan-input"
@@ -260,7 +257,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   rows={3}
                   value={mitigationValues.mitigationPlan}
                   onChange={handleOnTextFieldChange("mitigationPlan")}
-                  sx={{ width: `${FORM_FIELD_WIDTH}px` }}
+                  sx={{ width: fieldWidth }}
                   isRequired
                   error={mitigationErrors?.mitigationPlan}
                   disabled={isEditingDisabled}
@@ -274,7 +271,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   rows={3}
                   value={mitigationValues.implementationStrategy}
                   onChange={handleOnTextFieldChange("implementationStrategy")}
-                  sx={{ width: `${LAYOUT.TWO_COLUMN_WIDTH}px` }}
+                  sx={{ width: twoColumnWidth }}
                   isRequired
                   error={mitigationErrors?.implementationStrategy}
                   disabled={isEditingDisabled}
@@ -284,7 +281,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             </Stack>
           </Stack>
           <Divider sx={{ mt: `${LAYOUT.VERTICAL_GAP}px` }} />
-          <Stack sx={{ gap: `${LAYOUT.HORIZONTAL_GAP}px`, mt: `${LAYOUT.VERTICAL_GAP}px`, width: `${LAYOUT.TOTAL_CONTENT_WIDTH}px` }}>
+          <Stack sx={{ gap: `${LAYOUT.HORIZONTAL_GAP}px`, mt: `${LAYOUT.VERTICAL_GAP}px`, width: contentWidth }}>
             <Typography sx={{ fontSize: 16, fontWeight: 600 }}>
               Calculate residual risk level
             </Typography>
@@ -294,7 +291,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               determined based on your inputs.
             </Typography>
           </Stack>
-          <Stack sx={{ mt: `${LAYOUT.VERTICAL_GAP}px`, width: `${LAYOUT.TOTAL_CONTENT_WIDTH}px` }}>
+          <Stack sx={{ mt: `${LAYOUT.VERTICAL_GAP}px`, width: contentWidth }}>
             <RiskLevel
               likelihood={mitigationValues.likelihood}
               riskSeverity={mitigationValues.riskSeverity}
@@ -306,14 +303,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
           <Typography sx={{ fontSize: 16, fontWeight: 600, mt: `${LAYOUT.VERTICAL_GAP}px` }}>
             Risk approval
           </Typography>
-          <Stack
-            sx={{
-              flexDirection: "row",
-              gap: `${LAYOUT.HORIZONTAL_GAP}px`,
-              mt: `${LAYOUT.VERTICAL_GAP}px`,
-              width: `${LAYOUT.TOTAL_CONTENT_WIDTH}px`,
-            }}
-          >
+          <Stack sx={{ ...formRowStyles, mt: `${LAYOUT.VERTICAL_GAP}px` }}>
             <Select
               id="approver-input"
               label="Approver"
@@ -348,26 +338,21 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               error={mitigationErrors?.approvalStatus}
               disabled={isEditingDisabled}
             />
-            <Stack style={{ width: `${FORM_FIELD_WIDTH}px` }}>
-              <DatePicker
-                label="Assessment date"
-                date={
-                  mitigationValues.dateOfAssessment
-                    ? dayjs(mitigationValues.dateOfAssessment)
-                    : dayjs(new Date())
-                }
-                handleDateChange={(e) => handleDateChange("dateOfAssessment", e)}
-                sx={{
-                  width: `${FORM_FIELD_WIDTH}px`,
-                  "& input": { width: DATE_INPUT_WIDTH },
-                }}
-                isRequired
-                error={mitigationErrors?.dateOfAssessment}
-                disabled={isEditingDisabled}
-              />
-            </Stack>
+            <DatePicker
+              label="Assessment date"
+              date={
+                mitigationValues.dateOfAssessment
+                  ? dayjs(mitigationValues.dateOfAssessment)
+                  : dayjs(new Date())
+              }
+              handleDateChange={(e) => handleDateChange("dateOfAssessment", e)}
+              sx={{ width: fieldWidth }}
+              isRequired
+              error={mitigationErrors?.dateOfAssessment}
+              disabled={isEditingDisabled}
+            />
           </Stack>
-          <Stack sx={{ mt: `${LAYOUT.VERTICAL_GAP}px`, width: `${LAYOUT.TOTAL_CONTENT_WIDTH}px` }}>
+          <Stack sx={{ mt: `${LAYOUT.VERTICAL_GAP}px`, width: contentWidth }}>
             <Field
               id="recommendations-input"
               label="Recommendations"

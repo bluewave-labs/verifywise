@@ -5,12 +5,11 @@
 
 import {
   validateString,
-  validateNumber,
   validateForeignKey,
   validateSchema,
   ValidationResult,
-  ValidationError
-} from './validation.utils';
+  ValidationError,
+} from "./validation.utils";
 
 /**
  * Email validation using regex pattern
@@ -18,7 +17,11 @@ import {
 const validateEmail = (
   value: any,
   fieldName: string,
-  options: { required?: boolean; maxLength?: number; trimWhitespace?: boolean } = {}
+  options: {
+    required?: boolean;
+    maxLength?: number;
+    trimWhitespace?: boolean;
+  } = {}
 ): ValidationResult => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const { required = false, maxLength = 128, trimWhitespace = true } = options;
@@ -28,7 +31,7 @@ const validateEmail = (
     required,
     maxLength,
     trimWhitespace,
-    minLength: required ? 1 : 0
+    minLength: required ? 1 : 0,
   });
 
   if (!stringValidation.isValid) {
@@ -36,13 +39,13 @@ const validateEmail = (
   }
 
   // If value is provided, validate email format
-  if (value !== undefined && value !== null && String(value).trim() !== '') {
+  if (value !== undefined && value !== null && String(value).trim() !== "") {
     const emailValue = trimWhitespace ? String(value).trim() : String(value);
     if (!emailRegex.test(emailValue)) {
       return {
         isValid: false,
         message: `${fieldName} must be a valid email address`,
-        code: 'INVALID_EMAIL_FORMAT'
+        code: "INVALID_EMAIL_FORMAT",
       };
     }
   }
@@ -73,7 +76,7 @@ const validatePassword = (
     requireUppercase = true,
     requireLowercase = true,
     requireNumber = true,
-    requireSpecialChar = false
+    requireSpecialChar = false,
   } = options;
 
   // First validate as string (don't trim passwords)
@@ -82,7 +85,7 @@ const validatePassword = (
     minLength,
     maxLength,
     trimWhitespace: false,
-    allowEmpty: !required
+    allowEmpty: !required,
   });
 
   if (!stringValidation.isValid) {
@@ -90,20 +93,20 @@ const validatePassword = (
   }
 
   // If password is provided, validate complexity
-  if (value !== undefined && value !== null && String(value) !== '') {
+  if (value !== undefined && value !== null && String(value) !== "") {
     const password = String(value);
     const errors = [];
 
     if (requireUppercase && !/[A-Z]/.test(password)) {
-      errors.push('at least one uppercase letter (A-Z)');
+      errors.push("at least one uppercase letter (A-Z)");
     }
 
     if (requireLowercase && !/[a-z]/.test(password)) {
-      errors.push('at least one lowercase letter (a-z)');
+      errors.push("at least one lowercase letter (a-z)");
     }
 
     if (requireNumber && !/\d/.test(password)) {
-      errors.push('at least one number (0-9)');
+      errors.push("at least one number (0-9)");
     }
 
     if (requireSpecialChar && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
@@ -113,8 +116,8 @@ const validatePassword = (
     if (errors.length > 0) {
       return {
         isValid: false,
-        message: `${fieldName} must contain ${errors.join(', ')}`,
-        code: 'PASSWORD_COMPLEXITY_FAILED'
+        message: `${fieldName} must contain ${errors.join(", ")}`,
+        code: "PASSWORD_COMPLEXITY_FAILED",
       };
     }
   }
@@ -131,26 +134,26 @@ export const USER_VALIDATION_LIMITS = {
   EMAIL: { MIN: 1, MAX: 128 },
   PASSWORD: { MIN: 8, MAX: 20 },
   ROLE_ID: { MIN: 1 },
-  ORGANIZATION_ID: { MIN: 1 }
+  ORGANIZATION_ID: { MIN: 1 },
 } as const;
 
 /**
  * User validation enums
  */
 export const USER_VALIDATION_ENUMS = {
-  DEMO_USER: [true, false] as const
+  DEMO_USER: [true, false] as const,
 } as const;
 
 /**
  * Validates name field
  */
 export const validateName = (value: any): ValidationResult => {
-  return validateString(value, 'Name', {
+  return validateString(value, "Name", {
     required: true,
     minLength: USER_VALIDATION_LIMITS.NAME.MIN,
     maxLength: USER_VALIDATION_LIMITS.NAME.MAX,
     trimWhitespace: true,
-    allowEmpty: false
+    allowEmpty: false,
   });
 };
 
@@ -158,12 +161,12 @@ export const validateName = (value: any): ValidationResult => {
  * Validates surname field
  */
 export const validateSurname = (value: any): ValidationResult => {
-  return validateString(value, 'Surname', {
+  return validateString(value, "Surname", {
     required: true,
     minLength: USER_VALIDATION_LIMITS.SURNAME.MIN,
     maxLength: USER_VALIDATION_LIMITS.SURNAME.MAX,
     trimWhitespace: true,
-    allowEmpty: false
+    allowEmpty: false,
   });
 };
 
@@ -171,10 +174,10 @@ export const validateSurname = (value: any): ValidationResult => {
  * Validates email field with enhanced validation
  */
 export const validateUserEmail = (value: any): ValidationResult => {
-  return validateEmail(value, 'Email', {
+  return validateEmail(value, "Email", {
     required: true,
     maxLength: USER_VALIDATION_LIMITS.EMAIL.MAX,
-    trimWhitespace: true
+    trimWhitespace: true,
   });
 };
 
@@ -182,34 +185,38 @@ export const validateUserEmail = (value: any): ValidationResult => {
  * Validates password field with complexity requirements
  */
 export const validateUserPassword = (value: any): ValidationResult => {
-  return validatePassword(value, 'Password', {
+  return validatePassword(value, "Password", {
     required: true,
     minLength: USER_VALIDATION_LIMITS.PASSWORD.MIN,
     maxLength: USER_VALIDATION_LIMITS.PASSWORD.MAX,
     requireUppercase: true,
     requireLowercase: true,
     requireNumber: true,
-    requireSpecialChar: true
+    requireSpecialChar: true,
   });
 };
 
 /**
  * Validates password confirmation field
  */
-export const validatePasswordConfirmation = (password: any, confirmPassword: any): ValidationResult => {
+export const validatePasswordConfirmation = (
+  password: any,
+  confirmPassword: any
+): ValidationResult => {
   if (!confirmPassword) {
     return {
       isValid: false,
-      message: 'Password confirmation is required',
-      code: 'REQUIRED'
+      message: "Password confirmation is required",
+      code: "REQUIRED",
     };
   }
 
   if (password !== confirmPassword) {
     return {
       isValid: false,
-      message: 'Passwords do not match. Please ensure both fields are identical.',
-      code: 'PASSWORD_MISMATCH'
+      message:
+        "Passwords do not match. Please ensure both fields are identical.",
+      code: "PASSWORD_MISMATCH",
     };
   }
 
@@ -220,31 +227,31 @@ export const validatePasswordConfirmation = (password: any, confirmPassword: any
  * Validates role ID field
  */
 export const validateRoleId = (value: any): ValidationResult => {
-  return validateForeignKey(value, 'Role ID', true);
+  return validateForeignKey(value, "Role ID", true);
 };
 
 /**
  * Validates organization ID field
  */
 export const validateOrganizationId = (value: any): ValidationResult => {
-  return validateForeignKey(value, 'Organization ID', true);
+  return validateForeignKey(value, "Organization ID", true);
 };
 
 /**
  * Validates user ID for existing records
  */
 export const validateUserId = (value: any): ValidationResult => {
-  return validateForeignKey(value, 'User ID', true);
+  return validateForeignKey(value, "User ID", true);
 };
 
 /**
  * Validates current password for password change operations
  */
 export const validateCurrentPassword = (value: any): ValidationResult => {
-  return validateString(value, 'Current password', {
+  return validateString(value, "Current password", {
     required: true,
     minLength: 1,
-    trimWhitespace: false // Don't trim passwords
+    trimWhitespace: false, // Don't trim passwords
   });
 };
 
@@ -260,8 +267,8 @@ export const validateLastLogin = (value: any): ValidationResult => {
   if (isNaN(date.getTime())) {
     return {
       isValid: false,
-      message: 'Last login must be a valid date',
-      code: 'INVALID_DATE'
+      message: "Last login must be a valid date",
+      code: "INVALID_DATE",
     };
   }
 
@@ -276,11 +283,11 @@ export const validateIsDemo = (value: any): ValidationResult => {
     return { isValid: true }; // Optional field, defaults to false
   }
 
-  if (typeof value !== 'boolean') {
+  if (typeof value !== "boolean") {
     return {
       isValid: false,
-      message: 'Is demo must be a boolean value',
-      code: 'INVALID_TYPE'
+      message: "Is demo must be a boolean value",
+      code: "INVALID_TYPE",
     };
   }
 
@@ -296,7 +303,7 @@ export const createUserSchema = {
   email: validateUserEmail,
   password: validateUserPassword,
   roleId: validateRoleId,
-  organizationId: validateOrganizationId
+  organizationId: validateOrganizationId,
 };
 
 /**
@@ -304,11 +311,12 @@ export const createUserSchema = {
  */
 export const loginUserSchema = {
   email: validateUserEmail,
-  password: (value: any) => validateString(value, 'Password', {
-    required: true,
-    minLength: 1,
-    trimWhitespace: false
-  })
+  password: (value: any) =>
+    validateString(value, "Password", {
+      required: true,
+      minLength: 1,
+      trimWhitespace: false,
+    }),
 };
 
 /**
@@ -316,11 +324,16 @@ export const loginUserSchema = {
  * All fields are optional for updates
  */
 export const updateUserSchema = {
-  name: (value: any) => value !== undefined ? validateName(value) : { isValid: true },
-  surname: (value: any) => value !== undefined ? validateSurname(value) : { isValid: true },
-  email: (value: any) => value !== undefined ? validateUserEmail(value) : { isValid: true },
-  roleId: (value: any) => value !== undefined ? validateRoleId(value) : { isValid: true },
-  last_login: (value: any) => value !== undefined ? validateLastLogin(value) : { isValid: true }
+  name: (value: any) =>
+    value !== undefined ? validateName(value) : { isValid: true },
+  surname: (value: any) =>
+    value !== undefined ? validateSurname(value) : { isValid: true },
+  email: (value: any) =>
+    value !== undefined ? validateUserEmail(value) : { isValid: true },
+  roleId: (value: any) =>
+    value !== undefined ? validateRoleId(value) : { isValid: true },
+  last_login: (value: any) =>
+    value !== undefined ? validateLastLogin(value) : { isValid: true },
 };
 
 /**
@@ -328,7 +341,7 @@ export const updateUserSchema = {
  */
 export const resetPasswordSchema = {
   email: validateUserEmail,
-  newPassword: validateUserPassword
+  newPassword: validateUserPassword,
 };
 
 /**
@@ -337,14 +350,14 @@ export const resetPasswordSchema = {
 export const changePasswordSchema = {
   id: validateUserId,
   currentPassword: validateCurrentPassword,
-  newPassword: validateUserPassword
+  newPassword: validateUserPassword,
 };
 
 /**
  * Validation schema for role update
  */
 export const updateRoleSchema = {
-  newRoleId: validateRoleId
+  newRoleId: validateRoleId,
 };
 
 /**
@@ -355,12 +368,16 @@ export const validateCreateUser = (data: any): ValidationError[] => {
 
   // Add password confirmation validation if provided
   if (data.confirmPassword !== undefined) {
-    const confirmResult = validatePasswordConfirmation(data.password, data.confirmPassword);
+    const confirmResult = validatePasswordConfirmation(
+      data.password,
+      data.confirmPassword
+    );
     if (!confirmResult.isValid) {
       errors.push({
-        field: 'confirmPassword',
-        message: confirmResult.message || 'Password confirmation validation failed',
-        code: confirmResult.code || 'VALIDATION_FAILED'
+        field: "confirmPassword",
+        message:
+          confirmResult.message || "Password confirmation validation failed",
+        code: confirmResult.code || "VALIDATION_FAILED",
       });
     }
   }
@@ -380,15 +397,19 @@ export const validateLoginUser = (data: any): ValidationError[] => {
  */
 export const validateUpdateUser = (data: any): ValidationError[] => {
   // Check if at least one field is provided for update
-  const updateFields = ['name', 'surname', 'email', 'roleId', 'last_login'];
-  const hasUpdateField = updateFields.some(field => data[field] !== undefined);
+  const updateFields = ["name", "surname", "email", "roleId", "last_login"];
+  const hasUpdateField = updateFields.some(
+    (field) => data[field] !== undefined
+  );
 
   if (!hasUpdateField) {
-    return [{
-      field: 'body',
-      message: 'At least one field must be provided for update',
-      code: 'NO_UPDATE_FIELDS'
-    }];
+    return [
+      {
+        field: "body",
+        message: "At least one field must be provided for update",
+        code: "NO_UPDATE_FIELDS",
+      },
+    ];
   }
 
   return validateSchema(data, updateUserSchema);
@@ -402,12 +423,16 @@ export const validateResetPassword = (data: any): ValidationError[] => {
 
   // Add password confirmation validation if provided
   if (data.confirmPassword !== undefined) {
-    const confirmResult = validatePasswordConfirmation(data.newPassword, data.confirmPassword);
+    const confirmResult = validatePasswordConfirmation(
+      data.newPassword,
+      data.confirmPassword
+    );
     if (!confirmResult.isValid) {
       errors.push({
-        field: 'confirmPassword',
-        message: confirmResult.message || 'Password confirmation validation failed',
-        code: confirmResult.code || 'VALIDATION_FAILED'
+        field: "confirmPassword",
+        message:
+          confirmResult.message || "Password confirmation validation failed",
+        code: confirmResult.code || "VALIDATION_FAILED",
       });
     }
   }
@@ -423,12 +448,16 @@ export const validateChangePassword = (data: any): ValidationError[] => {
 
   // Add password confirmation validation if provided
   if (data.confirmPassword !== undefined) {
-    const confirmResult = validatePasswordConfirmation(data.newPassword, data.confirmPassword);
+    const confirmResult = validatePasswordConfirmation(
+      data.newPassword,
+      data.confirmPassword
+    );
     if (!confirmResult.isValid) {
       errors.push({
-        field: 'confirmPassword',
-        message: confirmResult.message || 'Password confirmation validation failed',
-        code: confirmResult.code || 'VALIDATION_FAILED'
+        field: "confirmPassword",
+        message:
+          confirmResult.message || "Password confirmation validation failed",
+        code: confirmResult.code || "VALIDATION_FAILED",
       });
     }
   }
@@ -476,8 +505,9 @@ export const validateUserUpdatePermission = (
   if (!isAdmin && !isSelfUpdate) {
     return {
       isValid: false,
-      message: 'You can only update your own profile or be an admin to update other users',
-      code: 'INSUFFICIENT_PERMISSIONS'
+      message:
+        "You can only update your own profile or be an admin to update other users",
+      code: "INSUFFICIENT_PERMISSIONS",
     };
   }
 
@@ -497,8 +527,8 @@ export const validateUserDeletePermission = (
   if (currentUserRoleId !== 1) {
     return {
       isValid: false,
-      message: 'Only administrators can delete users',
-      code: 'INSUFFICIENT_PERMISSIONS'
+      message: "Only administrators can delete users",
+      code: "INSUFFICIENT_PERMISSIONS",
     };
   }
 
@@ -506,8 +536,8 @@ export const validateUserDeletePermission = (
   if (targetUserIsDemo) {
     return {
       isValid: false,
-      message: 'Demo users cannot be deleted',
-      code: 'DEMO_USER_RESTRICTION'
+      message: "Demo users cannot be deleted",
+      code: "DEMO_USER_RESTRICTION",
     };
   }
 
@@ -515,8 +545,8 @@ export const validateUserDeletePermission = (
   if (targetUserId === currentUserId) {
     return {
       isValid: false,
-      message: 'You cannot delete your own account',
-      code: 'SELF_DELETION_RESTRICTION'
+      message: "You cannot delete your own account",
+      code: "SELF_DELETION_RESTRICTION",
     };
   }
 
@@ -537,8 +567,8 @@ export const validateRoleUpdatePermission = (
   if (currentUserRoleId !== 1) {
     return {
       isValid: false,
-      message: 'Only administrators can update user roles',
-      code: 'INSUFFICIENT_PERMISSIONS'
+      message: "Only administrators can update user roles",
+      code: "INSUFFICIENT_PERMISSIONS",
     };
   }
 
@@ -546,17 +576,21 @@ export const validateRoleUpdatePermission = (
   if (targetUserIsDemo && newRoleId === 1) {
     return {
       isValid: false,
-      message: 'Demo users cannot be assigned admin roles',
-      code: 'DEMO_USER_RESTRICTION'
+      message: "Demo users cannot be assigned admin roles",
+      code: "DEMO_USER_RESTRICTION",
     };
   }
 
   // Admins cannot demote themselves
-  if (targetUserId === currentUserId && currentUserRoleId === 1 && newRoleId !== 1) {
+  if (
+    targetUserId === currentUserId &&
+    currentUserRoleId === 1 &&
+    newRoleId !== 1
+  ) {
     return {
       isValid: false,
-      message: 'Administrators cannot demote themselves from admin role',
-      code: 'SELF_DEMOTION_RESTRICTION'
+      message: "Administrators cannot demote themselves from admin role",
+      code: "SELF_DEMOTION_RESTRICTION",
     };
   }
 
@@ -567,7 +601,9 @@ export const validateRoleUpdatePermission = (
  * Validates that user exists (placeholder for database check)
  * In real implementation, this would query the database
  */
-export const validateUserExists = async (userId: number): Promise<ValidationResult> => {
+export const validateUserExists = async (
+  userId: number
+): Promise<ValidationResult> => {
   // This would be implemented to check if user exists in database
   // For now, just validate the ID format
   return validateUserId(userId);
@@ -579,7 +615,7 @@ export const validateUserExists = async (userId: number): Promise<ValidationResu
  */
 export const validateEmailUniqueness = async (
   email: string,
-  excludeUserId?: number
+  _excludeUserId?: number
 ): Promise<ValidationResult> => {
   // This would be implemented to check email uniqueness in database
   // For now, just validate the email format
@@ -590,7 +626,9 @@ export const validateEmailUniqueness = async (
  * Validates that role exists (placeholder for database check)
  * In real implementation, this would query the database
  */
-export const validateRoleExists = async (roleId: number): Promise<ValidationResult> => {
+export const validateRoleExists = async (
+  roleId: number
+): Promise<ValidationResult> => {
   // This would be implemented to check if role exists in database
   // For now, just validate the ID format
   return validateRoleId(roleId);
@@ -600,7 +638,9 @@ export const validateRoleExists = async (roleId: number): Promise<ValidationResu
  * Validates that organization exists (placeholder for database check)
  * In real implementation, this would query the database
  */
-export const validateOrganizationExists = async (organizationId: number): Promise<ValidationResult> => {
+export const validateOrganizationExists = async (
+  organizationId: number
+): Promise<ValidationResult> => {
   // This would be implemented to check if organization exists in database
   // For now, just validate the ID format
   return validateOrganizationId(organizationId);
@@ -639,9 +679,9 @@ export const validateCompleteUserUpdate = (
 
     if (!permissionResult.isValid) {
       errors.push({
-        field: 'permissions',
-        message: permissionResult.message || 'Permission validation failed',
-        code: permissionResult.code || 'PERMISSION_DENIED'
+        field: "permissions",
+        message: permissionResult.message || "Permission validation failed",
+        code: permissionResult.code || "PERMISSION_DENIED",
       });
     }
   }

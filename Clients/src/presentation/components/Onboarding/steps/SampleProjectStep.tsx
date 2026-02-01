@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, Stack, FormControl, Checkbox, SelectChangeEvent } from "@mui/material";
-import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
+import { OnboardingStepProps } from "../../../types/interfaces/i.onboarding";
 import { DEMO_PROJECT_BANNER } from "../onboardingConstants";
 import Select from "../../../components/Inputs/Select";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
@@ -168,9 +168,10 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
                   onClick={() => handleFrameworkToggle(Number(framework.id))}
                   sx={{
                     padding: 2,
-                    border: selectedFrameworks.includes(Number(framework.id))
-                      ? "2px solid #13715B"
-                      : "1px solid #E5E7EB",
+                    border: "1px solid",
+                    borderColor: selectedFrameworks.includes(Number(framework.id))
+                      ? "#13715B"
+                      : "#E5E7EB",
                     borderRadius: "4px",
                     cursor: "pointer",
                     display: "flex",

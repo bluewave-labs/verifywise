@@ -1,0 +1,56 @@
+# DeepEval Standalone Configuration
+# Separate from BiasAndFairnessModule - for general LLM evaluation
+
+# Model Configuration (chatbot use case)
+model:
+  name: "gpt-4o-mini" # Can be any OpenAI/HF/Ollama model
+  provider: "openai" # Options: "openai", "huggingface", "ollama"
+
+  # Generation parameters
+  generation:
+    max_tokens: 2048
+    temperature: 0.3
+    top_p: 0.95
+
+# Dataset Configuration
+dataset:
+  # Use built-in evaluation dataset by name or load from file
+  # Builtins: chatbot | rag | agent | safety
+  use_builtin: "chatbot"
+
+  # Optional: load from custom file
+  # path: "data/evaluation_prompts.json"
+
+  # Optional: filter dataset
+  # categories: ["coding", "mathematics", "reasoning"]
+  # difficulties: ["easy", "medium"]
+  # ids: ["code_001", "math_001"]
+
+# Task category: rag | agent | chatbot (auto-select bundles)
+task_type: "chatbot"
+
+# Optional bundles to auto-enable specialized metrics by category
+bundles:
+  # RAG bundles (not used for chatbot)
+  contextual_recall: false
+  contextual_precision: false
+  ragas: false
+  hallucination: false
+  # Chatbot additions
+  summarization: false
+  bias: true
+  toxicity: true
+
+# Output Configuration
+output:
+  dir: "artifacts/deepeval_results"
+  save_detailed_results: true # Save detailed JSON
+  save_summary: true # Save summary JSON
+  save_csv: true # Save CSV format
+  save_report: true # Save human-readable text report
+
+# Example Usage:
+# python main.py --config configs/deepeval_config.yaml
+# python main.py --config configs/deepeval_config.yaml --limit 10
+# python main.py --config configs/deepeval_config.yaml --use-g-eval
+

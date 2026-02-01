@@ -1,0 +1,42 @@
+[
+  {
+    "scenario": "User wants to plan and book a trip",
+    "expected_outcome": "Successfully use multiple tools to research and plan trip",
+    "tools_available": ["web_search", "calendar", "calculator", "email"],
+    "turns": [
+      { "role": "user", "content": "I want to plan a 3-day trip to Paris next month. Can you help?" },
+      { "role": "assistant", "content": "I'd love to help you plan your Paris trip! Let me search for the best times to visit and current travel requirements. [Using web_search tool]\n\nBased on my search, next month is a great time to visit with mild weather around 15-20°C. What dates work best for you, and what's your budget range?", "tools_used": ["web_search"] },
+      { "role": "user", "content": "I'm thinking the 15th to 18th. Budget around $2000 total." },
+      { "role": "assistant", "content": "Let me check flight and hotel prices for those dates. [Using web_search tool]\n\nI found roundtrip flights for ~$600 and 3-star hotels near the center for ~$150/night ($450 total). That leaves about $950 for activities, food, and transport. Would you like me to add these dates to your calendar?", "tools_used": ["web_search", "calculator"] },
+      { "role": "user", "content": "Yes, add it to my calendar and suggest some activities." },
+      { "role": "assistant", "content": "I've added 'Paris Trip' to your calendar for the 15th-18th. [Using calendar tool]\n\nWith your remaining $950 budget, here are top activities:\n- Louvre Museum: $20\n- Eiffel Tower summit: $30\n- Seine River cruise: $25\n- Day trip to Versailles: $50\n\nTotal: ~$125, leaving plenty for dining and transport. Want me to email you this itinerary?", "tools_used": ["calendar", "web_search"] }
+    ]
+  },
+  {
+    "scenario": "User needs help with financial calculations and scheduling",
+    "expected_outcome": "Accurately calculate finances and manage calendar",
+    "tools_available": ["calculator", "calendar", "email"],
+    "turns": [
+      { "role": "user", "content": "I need to split a dinner bill of $247.50 between 5 people, including 20% tip." },
+      { "role": "assistant", "content": "Let me calculate that for you. [Using calculator tool]\n\n- Original bill: $247.50\n- 20% tip: $49.50\n- Total: $297.00\n- Per person: $59.40\n\nEach person owes $59.40. Would you like me to do anything else with this?", "tools_used": ["calculator"] },
+      { "role": "user", "content": "Can you schedule a reminder to collect money from everyone tomorrow at noon?" },
+      { "role": "assistant", "content": "I've created a reminder for tomorrow at 12:00 PM: 'Collect $59.40 from each dinner guest (5 people, total $297.00)'. [Using calendar tool]\n\nWould you like me to also send an email to your friends with the breakdown?", "tools_used": ["calendar"] },
+      { "role": "user", "content": "Yes, send it to my dinner group." },
+      { "role": "assistant", "content": "I've drafted and sent an email to your dinner group with the subject 'Dinner Bill Split - $59.40 each'. [Using email tool]\n\nThe email includes:\n- Original bill: $247.50\n- Tip (20%): $49.50\n- Each person's share: $59.40\n- Your preferred payment method\n\nIs there anything else you need help with?", "tools_used": ["email"] }
+    ]
+  },
+  {
+    "scenario": "User needs research and data compilation",
+    "expected_outcome": "Use tools to gather, calculate, and organize information",
+    "tools_available": ["web_search", "calculator", "file_writer"],
+    "turns": [
+      { "role": "user", "content": "Research the top 3 electric vehicles under $50,000 and compare their range." },
+      { "role": "assistant", "content": "I'll research current EV options for you. [Using web_search tool]\n\nTop 3 EVs under $50,000:\n1. Tesla Model 3: 272 miles range, $40,240\n2. Chevrolet Bolt EUV: 247 miles range, $27,800\n3. Hyundai Ioniq 6: 361 miles range, $45,500\n\nThe Ioniq 6 has the best range, while the Bolt offers the best value. Want me to compare any specific features?", "tools_used": ["web_search"] },
+      { "role": "user", "content": "Calculate the cost per mile of range for each." },
+      { "role": "assistant", "content": "Calculating cost per mile of range: [Using calculator tool]\n\n1. Tesla Model 3: $40,240 ÷ 272 = **$147.94/mile**\n2. Chevrolet Bolt EUV: $27,800 ÷ 247 = **$112.55/mile**\n3. Hyundai Ioniq 6: $45,500 ÷ 361 = **$126.04/mile**\n\nThe Bolt EUV offers the best value per mile of range. Would you like me to save this comparison to a file?", "tools_used": ["calculator"] },
+      { "role": "user", "content": "Yes, save it as a summary document." },
+      { "role": "assistant", "content": "I've created and saved 'EV_Comparison_Summary.txt' with all the data. [Using file_writer tool]\n\nThe document includes:\n- Vehicle specs and pricing\n- Range comparison\n- Cost per mile analysis\n- Value recommendation\n\nThe file is ready for your review. Need anything else?", "tools_used": ["file_writer"] }
+    ]
+  }
+]
+

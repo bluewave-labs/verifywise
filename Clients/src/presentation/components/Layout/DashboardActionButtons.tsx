@@ -1,10 +1,19 @@
-import React, { useMemo, memo, useCallback } from 'react';
+import React, { useMemo, memo, useCallback, useEffect } from 'react';
 import { Stack, IconButton } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Puzzle, Zap } from 'lucide-react';
+import { Search, Zap, WorkflowIcon, Package } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
+import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
+import ApprovalButton from './ApprovalButton';
+import {
+  getPendingApprovals,
+  getMyApprovalRequests,
+} from '../../../application/repository/approvalRequest.repository';
+import { actionButtonsStyles } from './style';
+// SSE notifications disabled for now - can be re-enabled later if needed
+// import { useNotifications } from '../../../application/hooks/useNotifications';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -32,10 +41,10 @@ const KeyboardBadge: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 );
 
 // Tooltip content for Wise Search
-const WiseSearchTooltipContent = () => (
+const WiseSearchTooltipContent: React.FC<{ isMac: boolean }> = ({ isMac }) => (
   <Box>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-      <KeyboardBadge>⌘</KeyboardBadge>
+      <KeyboardBadge>{isMac ? '⌘' : 'Ctrl'}</KeyboardBadge>
       <KeyboardBadge>K</KeyboardBadge>
     </Box>
     <Box sx={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '13px', lineHeight: 1.5 }}>
@@ -43,29 +52,6 @@ const WiseSearchTooltipContent = () => (
     </Box>
   </Box>
 );
-
-// Ghost style - transparent with borders
-const STYLE = {
-  search: {
-    backgroundColor: 'transparent',
-    color: '#666',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: '#d0d5dd' },
-  },
-  integrations: {
-    backgroundColor: 'transparent',
-    color: '#8B5CF6',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(139, 92, 246, 0.08)', borderColor: '#8B5CF6' },
-    '&.Mui-disabled': { backgroundColor: 'transparent', color: '#8B5CF6', opacity: 0.5 },
-  },
-  automations: {
-    backgroundColor: 'transparent',
-    color: '#F97316',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(249, 115, 22, 0.08)', borderColor: '#F97316' },
-  },
-};
 
 const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   hideOnMainDashboard = true
@@ -75,6 +61,18 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   const { userRoleName } = useAuth();
   const isAdmin = userRoleName === "Admin";
 
+  // Detect if user is on Mac for keyboard shortcuts
+  const isMac = useMemo(() => {
+    if (typeof navigator !== 'undefined') {
+      return navigator.platform?.toLowerCase().includes('mac') ||
+        navigator.userAgent?.toLowerCase().includes('mac');
+    }
+    return false;
+  }, []);
+
+  const [isRequestModalOpen, setIsRequestModalOpen] = React.useState(false);
+
+  // Check if we're on the main dashboard - memoized to prevent unnecessary re-renders
   const isMainDashboard = useMemo(
     () => location.pathname === '/' || location.pathname === '',
     [location.pathname]
@@ -99,6 +97,44 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     transition: 'all 0.2s ease',
   };
 
+  const [totalApprovalCount, setTotalApprovalCount] = React.useState(0);
+
+  // Function to fetch approval counts
+  const fetchApprovalCounts = useCallback(async () => {
+    try {
+      const [approvalsResponse, myRequestsResponse] = await Promise.all([
+        getPendingApprovals(),
+        getMyApprovalRequests(),
+      ]);
+
+      const approvalsCount = approvalsResponse?.data?.length || 0;
+      const myRequestsCount = myRequestsResponse?.data?.length || 0;
+
+      setTotalApprovalCount(approvalsCount + myRequestsCount);
+    } catch (error) {
+      console.error("Failed to fetch approval counts:", error);
+      setTotalApprovalCount(0);
+    }
+  }, []);
+
+  // SSE notifications disabled for now - can be re-enabled later if needed
+  // useNotifications({
+  //   enabled: true,
+  //   onNotification: useCallback((notification: any) => {
+  //     // Refresh count when approval-related notifications are received
+  //     const approvalTypes = ['approval_request', 'approval_approved', 'approval_rejected', 'approval_complete'];
+  //     if (approvalTypes.includes(notification?.type)) {
+  //       fetchApprovalCounts();
+  //     }
+  //   }, [fetchApprovalCounts]),
+  // });
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchApprovalCounts();
+  }, [fetchApprovalCounts]);
+
+
   return (
     <Stack
       direction="row"
@@ -112,37 +148,72 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
       }}
     >
       {/* Wise Search */}
-      <VWTooltip header="Wise Search" content={<WiseSearchTooltipContent />} placement="bottom" maxWidth={280}>
-        <IconButton size="small" onClick={handleOpenCommandPalette} sx={{ ...baseStyles, ...STYLE.search }}>
+      <VWTooltip header="Wise Search" content={<WiseSearchTooltipContent isMac={isMac} />} placement="bottom" maxWidth={280}>
+        <IconButton size="small" onClick={handleOpenCommandPalette} sx={{ ...baseStyles, ...actionButtonsStyles.search }}>
           <Search size={16} />
         </IconButton>
       </VWTooltip>
 
-      {/* Integrations */}
-      <VWTooltip
-        header="Integrations"
-        content={isAdmin ? "Connect external tools and services." : "Admin access required."}
+      <ApprovalButton
+        label="Approval requests"
+        count={totalApprovalCount}
+        onClick={() => {
+          setIsRequestModalOpen(true);
+          // Refresh count when modal is opened to ensure it's up-to-date
+          fetchApprovalCounts();
+        }}
+      />
+
+      {/* Approval workflows */}
+      {isAdmin && <VWTooltip
+        header="Approval Workflows"
+        content={"Set up approval workflows."}
         placement="bottom"
         maxWidth={200}
       >
         <span>
           <IconButton
             size="small"
-            onClick={isAdmin ? () => navigate('/integrations') : undefined}
-            disabled={!isAdmin}
-            sx={{ ...baseStyles, ...STYLE.integrations }}
+            onClick={() => navigate('/approval-workflows')}
+            sx={{ ...baseStyles, ...actionButtonsStyles.approval_workflows }}
           >
-            <Puzzle size={16} />
+            <WorkflowIcon size={16} strokeWidth={2} />
+          </IconButton>
+        </span>
+      </VWTooltip>
+      }
+
+      {/* Integrations */}
+      <VWTooltip
+        header="Plugins"
+        content={isAdmin ? "Browse and manage plugins from the marketplace." : "Admin access required."}
+        placement="bottom"
+        maxWidth={200}
+      >
+        <span>
+          <IconButton
+            size="small"
+            onClick={isAdmin ? () => navigate('/plugins/marketplace') : undefined}
+            disabled={!isAdmin}
+            sx={{ ...baseStyles, ...actionButtonsStyles.integrations }}
+          >
+            <Package size={16} />
           </IconButton>
         </span>
       </VWTooltip>
 
       {/* Automations */}
       <VWTooltip header="Automations" content="Set up automated workflows." placement="bottom" maxWidth={200}>
-        <IconButton size="small" onClick={() => navigate('/automations')} sx={{ ...baseStyles, ...STYLE.automations }}>
+        <IconButton size="small" onClick={() => navigate('/automations')} sx={{ ...baseStyles, ...actionButtonsStyles.automations }}>
           <Zap size={16} />
         </IconButton>
       </VWTooltip>
+
+
+      <RequestorApprovalModal
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
+        onRefresh={fetchApprovalCounts} />
     </Stack>
   );
 });

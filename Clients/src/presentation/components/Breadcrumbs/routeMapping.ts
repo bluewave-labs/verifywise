@@ -16,7 +16,6 @@ import {
   Building,
   Settings,
   FileText,
-  Scale,
   Brain,
   Shield,
   GraduationCap,
@@ -26,7 +25,6 @@ import {
   Layers,
   Puzzle,
   Zap,
-  Activity,
   FileCode,
   Link,
   User,
@@ -43,12 +41,10 @@ import {
 export const routeMapping: Record<string, string> = {
   // Main pages
   "/": "Dashboard",
-  "/test": "Dashboard",
   "/overview": "Use cases",
 
   // Project related
   "/project-view": "Project overview",
-  "/test/project-view": "Project overview",
 
   // Vendor management
   "/vendors": "Vendor Management",
@@ -66,9 +62,9 @@ export const routeMapping: Record<string, string> = {
   // File management
   "/file-manager": "Evidence",
 
-  // Integrations
-  "/integrations": "Integrations",
-  "/integrations/mlflow": "MLFlow",
+  // Plugins
+  "/plugins/marketplace": "Plugins",
+  "/plugins/my-plugins": "Plugins",
 
   // Reporting
   "/reporting": "Reporting Dashboard",
@@ -77,15 +73,12 @@ export const routeMapping: Record<string, string> = {
   "/ai-trust-center": "AI Trust Center",
   "/public": "Public AI Trust Center",
 
-  // Fairness and Bias
-  "/fairness-dashboard": "Fairness Dashboard",
-  "/fairness-results": "Fairness Results",
-
   // Training
   "/training": "Training Registry",
 
   // Event tracking
   "/event-tracker": "Event Tracker",
+  "/event-tracker/logs": "Logs",
 
   // Automations
   "/automations": "Automations",
@@ -93,8 +86,8 @@ export const routeMapping: Record<string, string> = {
   // Model inventory
   "/model-inventory": "Model Inventory",
   "/model-inventory/model-risks": "Model risks",
-  "/model-inventory/mlflow": "MLFlow data",
   "/model-inventory/evidence-hub": "Evidence hub",
+  // Plugin tabs are handled dynamically by the breadcrumb component
 
   // Incident management
   "/ai-incident-managements": "Incident Management",
@@ -115,8 +108,6 @@ export const routeMapping: Record<string, string> = {
   "/set-new-password": "Set New Password",
   "/reset-password-continue": "Continue Password Reset",
 
-  // Playground
-  "/playground": "Component Playground",
 };
 
 /**
@@ -126,11 +117,9 @@ export const routeMapping: Record<string, string> = {
 export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // Main pages
   "/": () => React.createElement(Home, { size: 14, strokeWidth: 1.5 }),
-  "/test": () => React.createElement(Home, { size: 14, strokeWidth: 1.5 }),
 
   // Project related
   "/project-view": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
-  "/test/project-view": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
   "/overview": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
 
   // Tasks
@@ -145,8 +134,8 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // Model inventory
   "/model-inventory": () => React.createElement(ListIcon, { size: 14, strokeWidth: 1.5 }),
   "/model-inventory/model-risks": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
-  "/model-inventory/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),
   "/model-inventory/evidence-hub": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
+  // Plugin tabs use default icon (or could be made dynamic via plugin registry)
 
   // Risk management
   "/risk-management": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
@@ -164,8 +153,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // File management
   "/file-manager": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
 
-  // Integrations
-  "/integrations": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
+  // Plugins
+  "/plugins/marketplace": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
+  "/plugins/my-plugins": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
 
   // Reporting
   "/reporting": () => React.createElement(BarChart3, { size: 14, strokeWidth: 1.5 }),
@@ -174,24 +164,18 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/ai-trust-center": () => React.createElement(Brain, { size: 14, strokeWidth: 1.5 }),
   "/public": () => React.createElement(Brain, { size: 14, strokeWidth: 1.5 }),
 
-  // Fairness and Bias
-  "/fairness-dashboard": () => React.createElement(Scale, { size: 14, strokeWidth: 1.5 }),
-  "/fairness-results": () => React.createElement(Scale, { size: 14, strokeWidth: 1.5 }),
-
   // Training
   "/training": () => React.createElement(GraduationCap, { size: 14, strokeWidth: 1.5 }),
 
   // Event tracking
   "/event-tracker": () => React.createElement(Telescope, { size: 14, strokeWidth: 1.5 }),
+  "/event-tracker/logs": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
 
   // Policy Manager
   "/policies": () => React.createElement(Shield, { size: 14, strokeWidth: 1.5 }),
 
   // Automations
   "/automations": () => React.createElement(Zap, { size: 14, strokeWidth: 1.5 }),
-
-  // MLFlow
-  "/integrations/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),
 
   // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
   "/framework/framework-risks": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
@@ -229,6 +213,11 @@ export const dynamicRoutePatterns = [
     pattern: /\/ai-incident-managements\/\d+/,
     label: "Incident Management Details",
     description: "Specific incident management information",
+  },
+  {
+    pattern: /\/plugins\/[a-zA-Z0-9-]+\/manage/,
+    label: "Plugin Details",
+    description: "Specific plugin management page",
   },
 ] as const;
 
@@ -302,12 +291,6 @@ export const getRouteMapping = (path: string): string => {
  */
 export const getRouteIcon = (path: string): React.ReactNode | null => {
   const iconFunction = routeIconMapping[path];
-
-  // Debug logging to help troubleshoot icon matching
-  if (process.env.NODE_ENV === 'development') {
-    console.log('getRouteIcon - path:', path, 'has icon:', !!iconFunction);
-  }
-
   return iconFunction ? iconFunction() : null;
 };
 

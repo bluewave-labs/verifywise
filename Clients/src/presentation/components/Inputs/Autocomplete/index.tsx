@@ -30,7 +30,8 @@
 
 import { Autocomplete, TextField, Typography, useTheme, Stack } from "@mui/material";
 import "./index.css";
-import { AutoCompleteFieldProps, AutoCompleteOption } from "../../../../domain/interfaces/iWidget";
+import { AutoCompleteFieldProps } from "../../../types/widget.types";
+import { AutoCompleteOption } from "../../../../domain/interfaces/i.widget";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
 
 const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
@@ -213,7 +214,7 @@ const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
           />
         )}
         renderOption={(props, option) => {
-          const { key, ...optionProps } = props;
+          const { key: _key, ...optionProps } = props;
           return (
             <li key={option._id} {...optionProps}>
               <div>{<span>{option.name}</span>}</div>

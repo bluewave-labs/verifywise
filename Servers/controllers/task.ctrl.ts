@@ -6,20 +6,31 @@ import {
   getTaskByIdQuery,
   updateTaskByIdQuery,
   deleteTaskByIdQuery,
+  restoreTaskByIdQuery,
+  hardDeleteTaskByIdQuery,
 } from "../utils/task.utils";
 import { sequelize } from "../database/db";
 import { ITask } from "../domain.layer/interfaces/i.task";
 import { TaskPriority } from "../domain.layer/enums/task-priority.enum";
 import { TaskStatus } from "../domain.layer/enums/task-status.enum";
-import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
-import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
-import { ValidationException, BusinessLogicException } from "../domain.layer/exceptions/custom.exception";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
+import {
+  ValidationException,
+  BusinessLogicException,
+  ForbiddenException,
+} from "../domain.layer/exceptions/custom.exception";
 
 export async function createTask(req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting createTask",
     functionName: "createTask",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   const transaction = await sequelize.transaction();
@@ -29,7 +40,15 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { title, description, due_date, priority, status, categories, assignees } = req.body;
+    const {
+      title,
+      description,
+      due_date,
+      priority,
+      status,
+      categories,
+      assignees,
+    } = req.body;
 
     // Create task with current user as creator
     const taskData: ITask = {
@@ -43,21 +62,28 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       categories: categories || [],
     };
 
-    const task = await createNewTaskQuery(taskData, req.tenantId!, transaction, assignees);
+    const task = await createNewTaskQuery(
+      taskData,
+      req.tenantId!,
+      transaction,
+      assignees
+    );
 
     await transaction.commit();
 
     // Add assignees to response (manually from dataValues)
     const taskResponse = {
       ...task.toJSON(),
-      assignees: (task.dataValues as any)["assignees"] || []
+      assignees: (task.dataValues as any)["assignees"] || [],
     };
-    
+
     await logSuccess({
       eventType: "Create",
       description: `Created new task: ${title}`,
       functionName: "createTask",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(201).json(STATUS_CODE[201](taskResponse));
@@ -71,6 +97,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
         functionName: "createTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -82,6 +110,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
         functionName: "createTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -92,6 +122,8 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       functionName: "createTask",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -103,6 +135,8 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     description: "starting getAllTasks",
     functionName: "getAllTasks",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -119,38 +153,42 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       due_date_end,
       category,
       assignee,
-      organization_id,
       search,
       include_archived,
-      sort_by = 'created_at',
-      sort_order = 'DESC',
-      page = '1',
-      page_size = '25'
+      sort_by = "created_at",
+      sort_order = "DESC",
+      page = "1",
+      page_size = "25",
     } = req.query;
 
     // Parse filters
     const filters: any = {};
     if (status) filters.status = Array.isArray(status) ? status : [status];
-    if (priority) filters.priority = Array.isArray(priority) ? priority : [priority];
+    if (priority)
+      filters.priority = Array.isArray(priority) ? priority : [priority];
     if (due_date_start) filters.due_date_start = due_date_start as string;
     if (due_date_end) filters.due_date_end = due_date_end as string;
-    if (category) filters.category = Array.isArray(category) ? category : [category];
-    if (assignee) filters.assignee = Array.isArray(assignee) ? assignee.map(Number) : [Number(assignee)];
+    if (category)
+      filters.category = Array.isArray(category) ? category : [category];
+    if (assignee)
+      filters.assignee = Array.isArray(assignee)
+        ? assignee.map(Number)
+        : [Number(assignee)];
     if (search) filters.search = search as string;
-    if (include_archived) filters.include_archived = include_archived === 'true';
+    if (include_archived)
+      filters.include_archived = include_archived === "true";
     filters.organization_id = Number(req.organizationId);
 
     // Parse sorting
     const sort = {
-      sort_by: sort_by as 'due_date' | 'priority' | 'created_at',
-      sort_order: sort_order as 'ASC' | 'DESC'
+      sort_by: sort_by as "due_date" | "priority" | "created_at",
+      sort_order: sort_order as "ASC" | "DESC",
     };
 
     // Parse pagination
     const pageNum = parseInt(page as string, 10);
     const pageSize = parseInt(page_size as string, 10);
     const limit = Math.min(pageSize, 100); // Cap at 100 items per page
-    const offset = (pageNum - 1) * limit;
 
     const tasks = await getTasksQuery(
       { userId, role },
@@ -167,13 +205,13 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       total: totalTasks, // This would need to be calculated properly
       totalPages: Math.ceil(totalTasks / limit),
       hasNext: tasks.length === limit,
-      hasPrev: pageNum > 1
+      hasPrev: pageNum > 1,
     };
 
     // Add assignees to each task response (manually from dataValues)
-    const tasksWithAssignees = tasks.map(task => ({
+    const tasksWithAssignees = tasks.map((task) => ({
       ...task.toJSON(),
-      assignees: (task.dataValues as any)["assignees"] || []
+      assignees: (task.dataValues as any)["assignees"] || [],
     }));
 
     await logSuccess({
@@ -181,12 +219,16 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       description: "Retrieved tasks list",
       functionName: "getAllTasks",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
-    return res.status(200).json(STATUS_CODE[200]({
-      tasks: tasksWithAssignees,
-      pagination
-    }));
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        tasks: tasksWithAssignees,
+        pagination,
+      })
+    );
   } catch (error) {
     await logFailure({
       eventType: "Read",
@@ -194,6 +236,8 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       functionName: "getAllTasks",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -201,12 +245,14 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
 }
 
 export async function getTaskById(req: Request, res: Response): Promise<any> {
-  const taskId = parseInt(req.params.id);
+  const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getTaskById for ID ${taskId}`,
     functionName: "getTaskById",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -215,13 +261,18 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const task = await getTaskByIdQuery(taskId, { userId, role }, req.tenantId!, req.organizationId!);
+    const task = await getTaskByIdQuery(
+      taskId,
+      { userId, role },
+      req.tenantId!,
+      req.organizationId!
+    );
 
     if (task) {
       // Add assignees to response (manually from dataValues)
       const taskResponse = {
         ...task.toJSON(),
-        assignees: (task.dataValues as any)["assignees"] || []
+        assignees: (task.dataValues as any)["assignees"] || [],
       };
 
       await logSuccess({
@@ -229,6 +280,8 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
         description: `Retrieved task ID ${taskId}`,
         functionName: "getTaskById",
         fileName: "task.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(STATUS_CODE[200](taskResponse));
@@ -239,6 +292,8 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
       description: `Task not found: ID ${taskId}`,
       functionName: "getTaskById",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -249,6 +304,8 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
       functionName: "getTaskById",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -256,11 +313,15 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
 }
 
 export async function updateTask(req: Request, res: Response): Promise<any> {
-  const taskId = parseInt(req.params.id);
+  const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   // Get existing task for business rule validation
-  let existingTask = null;
   try {
-    existingTask = await getTaskByIdQuery(taskId, { userId: req.userId!, role: req.role! }, req.tenantId!, req.organizationId!);
+    await getTaskByIdQuery(
+      taskId,
+      { userId: req.userId!, role: req.role! },
+      req.tenantId!,
+      req.organizationId!
+    );
   } catch (error) {
     // Continue without existing data if query fails
   }
@@ -269,6 +330,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
     description: `starting updateTask for ID ${taskId}`,
     functionName: "updateTask",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   const transaction = await sequelize.transaction();
@@ -279,12 +342,21 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
     }
 
     const updateData: Partial<ITask> = {};
-    const { title, description, due_date, priority, status, categories, assignees } = req.body;
+    const {
+      title,
+      description,
+      due_date,
+      priority,
+      status,
+      categories,
+      assignees,
+    } = req.body;
 
     // Only include fields that are being updated
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
-    if (due_date !== undefined) updateData.due_date = due_date ? new Date(due_date) : undefined;
+    if (due_date !== undefined)
+      updateData.due_date = due_date ? new Date(due_date) : undefined;
     if (priority !== undefined) updateData.priority = priority;
     if (status !== undefined) updateData.status = status;
     if (categories !== undefined) updateData.categories = categories;
@@ -309,12 +381,14 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       description: `Updated task ID ${taskId}`,
       functionName: "updateTask",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     // Add assignees to response (manually from dataValues)
     const taskResponse = {
       ...updatedTask.toJSON(),
-      assignees: (updatedTask.dataValues as any)["assignees"] || []
+      assignees: (updatedTask.dataValues as any)["assignees"] || [],
     };
 
     return res.status(200).json(STATUS_CODE[200](taskResponse));
@@ -328,6 +402,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
         functionName: "updateTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -339,6 +415,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
         functionName: "updateTask",
         fileName: "task.ctrl.ts",
         error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -349,22 +427,31 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       functionName: "updateTask",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
-    const statusCode = (error as Error).message.includes("not found") ? 404 : 
-                      (error as Error).message.includes("Only") ? 403 : 500;
+    const statusCode = (error as Error).message.includes("not found")
+      ? 404
+      : (error as Error).message.includes("Only")
+        ? 403
+        : 500;
 
-    return res.status(statusCode).json(STATUS_CODE[statusCode]((error as Error).message));
+    return res
+      .status(statusCode)
+      .json(STATUS_CODE[statusCode]((error as Error).message));
   }
 }
 
 export async function deleteTask(req: Request, res: Response): Promise<any> {
-  const taskId = parseInt(req.params.id);
+  const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting deleteTask for ID ${taskId}`,
     functionName: "deleteTask",
     fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   const transaction = await sequelize.transaction();
@@ -393,9 +480,13 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
         description: `Deleted task ID ${taskId}`,
         functionName: "deleteTask",
         fileName: "task.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
-      return res.status(200).json(STATUS_CODE[200]({ message: "Task deleted successfully" }));
+      return res
+        .status(200)
+        .json(STATUS_CODE[200]({ message: "Task deleted successfully" }));
     }
 
     await logSuccess({
@@ -403,6 +494,8 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
       description: `Task not found for deletion: ID ${taskId}`,
       functionName: "deleteTask",
       fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -415,11 +508,265 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
       functionName: "deleteTask",
       fileName: "task.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
-    const statusCode = (error as Error).message.includes("not found") ? 404 : 
-                      (error as Error).message.includes("Only") ? 403 : 500;
+    const statusCode = (error as Error).message.includes("not found")
+      ? 404
+      : (error as Error).message.includes("Only")
+        ? 403
+        : 500;
 
-    return res.status(statusCode).json(STATUS_CODE[statusCode]((error as Error).message));
+    return res
+      .status(statusCode)
+      .json(STATUS_CODE[statusCode]((error as Error).message));
+  }
+}
+
+export async function restoreTask(req: Request, res: Response): Promise<any> {
+  const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+
+  logProcessing({
+    description: `starting restoreTask for ID ${taskId}`,
+    functionName: "restoreTask",
+    fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  const transaction = await sequelize.transaction();
+  try {
+    const { userId, role } = req;
+    if (!userId || !role) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const restoredTask = await restoreTaskByIdQuery(
+      {
+        id: taskId,
+        userId,
+        role,
+        transaction,
+        organizationId: req.organizationId!,
+      },
+      req.tenantId!
+    );
+
+    await transaction.commit();
+
+    if (restoredTask) {
+      await logSuccess({
+        eventType: "Update",
+        description: `Restored task ID ${taskId}`,
+        functionName: "restoreTask",
+        fileName: "task.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+
+      // Add assignees to response
+      const taskResponse = {
+        ...restoredTask,
+        assignees: (restoredTask as any)["assignees"] || [],
+      };
+
+      return res.status(200).json(STATUS_CODE[200](taskResponse));
+    }
+
+    await logSuccess({
+      eventType: "Update",
+      description: `Task not found for restoration: ID ${taskId}`,
+      functionName: "restoreTask",
+      fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(404).json(STATUS_CODE[404]({}));
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Validation failed: ${error.message}`,
+        functionName: "restoreTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Business logic error: ${error.message}`,
+        functionName: "restoreTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    if (error instanceof ForbiddenException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Forbidden: ${error.message}`,
+        functionName: "restoreTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    await logFailure({
+      eventType: "Update",
+      description: "Failed to restore task",
+      functionName: "restoreTask",
+      fileName: "task.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    const statusCode = (error as Error).message.includes("not found")
+      ? 404
+      : (error as Error).message.includes("Only")
+        ? 403
+        : 500;
+
+    return res
+      .status(statusCode)
+      .json(STATUS_CODE[statusCode]((error as Error).message));
+  }
+}
+
+export async function hardDeleteTask(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+
+  logProcessing({
+    description: `starting hardDeleteTask for ID ${taskId}`,
+    functionName: "hardDeleteTask",
+    fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  const transaction = await sequelize.transaction();
+  try {
+    const { userId, role } = req;
+    if (!userId || !role) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const deleted = await hardDeleteTaskByIdQuery(
+      {
+        id: taskId,
+        userId,
+        role,
+        transaction,
+        organizationId: req.organizationId!,
+      },
+      req.tenantId!
+    );
+
+    await transaction.commit();
+
+    if (deleted) {
+      await logSuccess({
+        eventType: "Delete",
+        description: `Permanently deleted task ID ${taskId}`,
+        functionName: "hardDeleteTask",
+        fileName: "task.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+
+      return res
+        .status(200)
+        .json(STATUS_CODE[200]({ message: "Task permanently deleted" }));
+    }
+
+    await logSuccess({
+      eventType: "Delete",
+      description: `Task not found for permanent deletion: ID ${taskId}`,
+      functionName: "hardDeleteTask",
+      fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(404).json(STATUS_CODE[404]({}));
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      await logFailure({
+        eventType: "Delete",
+        description: `Validation failed: ${error.message}`,
+        functionName: "hardDeleteTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      await logFailure({
+        eventType: "Delete",
+        description: `Business logic error: ${error.message}`,
+        functionName: "hardDeleteTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    if (error instanceof ForbiddenException) {
+      await logFailure({
+        eventType: "Delete",
+        description: `Forbidden: ${error.message}`,
+        functionName: "hardDeleteTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    await logFailure({
+      eventType: "Delete",
+      description: "Failed to permanently delete task",
+      functionName: "hardDeleteTask",
+      fileName: "task.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    const statusCode = (error as Error).message.includes("not found")
+      ? 404
+      : (error as Error).message.includes("Only")
+        ? 403
+        : 500;
+
+    return res
+      .status(statusCode)
+      .json(STATUS_CODE[statusCode]((error as Error).message));
   }
 }

@@ -56,4 +56,3 @@ export interface VendorFormErrors {
   pastIssues?: string;
   regulatoryExposure?: string;
 }
-

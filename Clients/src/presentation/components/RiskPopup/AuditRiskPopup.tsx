@@ -2,7 +2,7 @@ import { Stack, Typography } from "@mui/material";
 import CustomizableButton from "../Button/CustomizableButton";
 import { AuditRiskTable } from "../Table/AuditRiskTable/AuditRiskTable";
 import { useState } from "react";
-import { IAuditRiskModalProps } from "../../../domain/interfaces/iRiskForm";
+import { IAuditRiskModalProps } from "../../../domain/interfaces/i.riskForm";
 
 export const AuditRiskPopup: React.FC<IAuditRiskModalProps> = ({
   onClose,

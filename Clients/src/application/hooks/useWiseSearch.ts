@@ -9,12 +9,12 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
-  wiseSearch,
+  performWiseSearch,
   GroupedSearchResults,
   SearchResult,
   getEntityDisplayName,
-} from "../../infrastructure/api/searchService";
-import PolicyTemplates from "../../presentation/assets/PolicyTemplates.json";
+} from "../repository/search.repository";
+import PolicyTemplates from "../data/PolicyTemplates.json";
 
 /**
  * Recent search entry
@@ -164,7 +164,7 @@ export function useWiseSearch(): UseWiseSearchReturn {
     try {
       // Perform API search and local policy templates search in parallel
       const [apiResponse, policyTemplateResults] = await Promise.all([
-        wiseSearch({ q: searchQuery, limit: 20, signal: abortControllerRef.current?.signal }),
+        performWiseSearch({ q: searchQuery, limit: 20, signal: abortControllerRef.current?.signal }),
         Promise.resolve(searchPolicyTemplates(searchQuery)),
       ]);
 

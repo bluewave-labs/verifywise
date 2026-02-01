@@ -18,6 +18,8 @@ import {
 
 @Table({
   tableName: "project_members",
+  timestamps: true,
+  underscored: true,
 })
 export class ProjectsMembersModel
   extends Model<ProjectsMembersModel>
@@ -43,6 +45,18 @@ export class ProjectsMembersModel
     defaultValue: false,
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create a new project member with comprehensive validation

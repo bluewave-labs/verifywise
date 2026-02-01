@@ -1,4 +1,4 @@
-import { QueryInterface, DataTypes, Transaction } from "sequelize";
+import { QueryInterface, Transaction } from "sequelize";
 
 /**
  * Migration to standardize timestamps across all tables
@@ -112,14 +112,14 @@ const TENANT_TABLES_NEED_UPDATED_AT = [
 ];
 
 async function addColumnIfNotExists(
-  queryInterface: QueryInterface,
-  schema: string,
-  tableName: string,
-  columnName: string,
-  transaction: Transaction
+  queryInterface,
+  schema,
+  tableName,
+  columnName,
+  transaction
 ) {
   try {
-    const columnExists: any[] = await queryInterface.sequelize.query(
+    const columnExists = await queryInterface.sequelize.query(
       `SELECT EXISTS (
         SELECT FROM information_schema.columns
         WHERE table_schema = :schema
@@ -134,7 +134,7 @@ async function addColumnIfNotExists(
     );
 
     if (!columnExists[0].exists) {
-      const tableExists: any[] = await queryInterface.sequelize.query(
+      const tableExists = await queryInterface.sequelize.query(
         `SELECT EXISTS (
           SELECT FROM information_schema.tables
           WHERE table_schema = :schema
@@ -168,14 +168,14 @@ async function addColumnIfNotExists(
 }
 
 async function dropColumnIfExists(
-  queryInterface: QueryInterface,
-  schema: string,
-  tableName: string,
-  columnName: string,
-  transaction: Transaction
+  queryInterface,
+  schema,
+  tableName,
+  columnName,
+  transaction
 ) {
   try {
-    const columnExists: any[] = await queryInterface.sequelize.query(
+    const columnExists = await queryInterface.sequelize.query(
       `SELECT EXISTS (
         SELECT FROM information_schema.columns
         WHERE table_schema = :schema
@@ -192,7 +192,7 @@ async function dropColumnIfExists(
     if (columnExists[0].exists) {
       // Check if this column was added by this migration (has default NOW())
       // To be safe, we only drop columns that have the default value pattern
-      const columnInfo: any[] = await queryInterface.sequelize.query(
+      const columnInfo = await queryInterface.sequelize.query(
         `SELECT column_default
          FROM information_schema.columns
          WHERE table_schema = :schema
@@ -225,7 +225,7 @@ async function dropColumnIfExists(
 }
 
 export default {
-  up: async (queryInterface: QueryInterface) => {
+  up: async (queryInterface) => {
     const transaction = await queryInterface.sequelize.transaction();
 
     try {
@@ -241,7 +241,7 @@ export default {
       }
 
       // Get all tenant schemas
-      const tenantSchemas: any[] = await queryInterface.sequelize.query(
+      const tenantSchemas = await queryInterface.sequelize.query(
         `SELECT schema_name
          FROM information_schema.schemata
          WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')
@@ -271,7 +271,7 @@ export default {
     }
   },
 
-  down: async (queryInterface: QueryInterface) => {
+  down: async (queryInterface) => {
     const transaction = await queryInterface.sequelize.transaction();
 
     try {
@@ -288,7 +288,7 @@ export default {
       }
 
       // Get all tenant schemas
-      const tenantSchemas: any[] = await queryInterface.sequelize.query(
+      const tenantSchemas = await queryInterface.sequelize.query(
         `SELECT schema_name
          FROM information_schema.schemata
          WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')

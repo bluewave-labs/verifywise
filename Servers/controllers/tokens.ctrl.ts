@@ -73,7 +73,7 @@ export const deleteApiToken = async (req: Request, res: Response) => {
   logger.debug(`🛠️ Deleting API token: ${id}`);
   logStructured('processing', `starting API token deletion for ${id}`, 'deleteApiToken', 'tokens.ctrl.ts');
   try {
-    const success = await deleteApiTokenQuery(parseInt(id), req.tenantId!);
+    const success = await deleteApiTokenQuery(parseInt(Array.isArray(id) ? id[0] : id), req.tenantId!);
     if (!success) {
       logStructured('error', `API token not found: ${id}`, 'deleteApiToken', 'tokens.ctrl.ts');
       await logEvent('Error', `API token not found for deletion: ${id}`, req.userId!, req.tenantId!);

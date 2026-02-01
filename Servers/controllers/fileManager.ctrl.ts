@@ -234,8 +234,8 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
   const { orgId, tenant } = auth;
 
   // Parse pagination parameters
-  const page = req.query.page ? Number(req.query.page) : undefined;
-  const pageSize = req.query.pageSize ? Number(req.query.pageSize) : undefined;
+  const page = req.query.page ? Number(Array.isArray(req.query.page) ? req.query.page[0] : req.query.page) : undefined;
+  const pageSize = req.query.pageSize ? Number(Array.isArray(req.query.pageSize) ? req.query.pageSize[0] : req.query.pageSize) : undefined;
 
   logProcessing({
     description: `Retrieving file list for organization ${orgId}`,
@@ -316,11 +316,11 @@ export const downloadFile = async (
   res: Response
 ): Promise<any> => {
   // Validate file ID is numeric-only string before parsing
-  if (!/^\d+$/.test(req.params.id)) {
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
     return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
   }
 
-  const fileId = parseInt(req.params.id, 10);
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
 
   // Validate parsed file ID is a safe integer
   if (!Number.isSafeInteger(fileId)) {
@@ -480,11 +480,11 @@ export const downloadFile = async (
  */
 export const removeFile = async (req: Request, res: Response): Promise<any> => {
   // Validate file ID is numeric-only string before parsing
-  if (!/^\d+$/.test(req.params.id)) {
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
     return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
   }
 
-  const fileId = parseInt(req.params.id, 10);
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
 
   // Validate parsed file ID is a safe integer
   if (!Number.isSafeInteger(fileId)) {

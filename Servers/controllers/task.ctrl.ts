@@ -245,7 +245,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
 }
 
 export async function getTaskById(req: Request, res: Response): Promise<any> {
-  const taskId = parseInt(req.params.id);
+  const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getTaskById for ID ${taskId}`,
@@ -313,7 +313,7 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
 }
 
 export async function updateTask(req: Request, res: Response): Promise<any> {
-  const taskId = parseInt(req.params.id);
+  const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   // Get existing task for business rule validation
   try {
     await getTaskByIdQuery(
@@ -444,7 +444,7 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
 }
 
 export async function deleteTask(req: Request, res: Response): Promise<any> {
-  const taskId = parseInt(req.params.id);
+  const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting deleteTask for ID ${taskId}`,
@@ -525,7 +525,7 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
 }
 
 export async function restoreTask(req: Request, res: Response): Promise<any> {
-  const taskId = parseInt(req.params.id);
+  const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting restoreTask for ID ${taskId}`,
@@ -652,7 +652,7 @@ export async function hardDeleteTask(
   req: Request,
   res: Response
 ): Promise<any> {
-  const taskId = parseInt(req.params.id);
+  const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting hardDeleteTask for ID ${taskId}`,

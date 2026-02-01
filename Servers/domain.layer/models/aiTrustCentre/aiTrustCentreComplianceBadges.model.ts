@@ -5,6 +5,8 @@ type IAITrustCentreOverviewComplianceBadges = IAITrustCentreOverview["compliance
 
 @Table({
   tableName: "ai_trust_center_compliance_badges",
+  timestamps: true,
+  underscored: true,
 })
 export class AITrustCenterComplianceBadgesModel extends Model<AITrustCenterComplianceBadgesModel> implements IAITrustCentreOverviewComplianceBadges {
   @Column({
@@ -75,5 +77,17 @@ export class AITrustCenterComplianceBadgesModel extends Model<AITrustCenterCompl
     defaultValue: true,
   })
   eu_ai_act!: boolean;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
 }

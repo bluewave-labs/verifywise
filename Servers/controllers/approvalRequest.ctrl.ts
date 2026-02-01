@@ -244,7 +244,7 @@ export async function getApprovalRequestById(
 
   try {
     const { userId, tenantId } = req;
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     if (!userId || !tenantId) {
       return res.status(401).json(STATUS_CODE[401]("Unauthorized"));
@@ -300,7 +300,7 @@ export async function approveRequest(
 
   try {
     const { userId, tenantId } = req;
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const { comments } = req.body;
 
     if (!userId || !tenantId) {
@@ -391,7 +391,7 @@ export async function rejectRequest(
 
   try {
     const { userId, tenantId } = req;
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const { comments } = req.body;
 
     if (!userId || !tenantId) {
@@ -471,7 +471,7 @@ export async function withdrawRequest(
 
   try {
     const { userId, tenantId } = req;
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     if (!userId || !tenantId) {
       await transaction.rollback();

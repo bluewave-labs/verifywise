@@ -281,6 +281,32 @@ describe('CommandActionHandler', () => {
           }),
         })
       )
-    })   
+    })
+
+    it('logs error message and stack when handler throws an Error object', () => {
+      const handlers = makeHandlers()
+
+      handlers.navigate.mockImplementation(() => {
+        throw new Error('connection failed')
+      })
+
+      const sut = new CommandActionHandler(handlers)
+
+      expect(() => sut.execute({ type: 'navigate', payload: '/dashboard' } as any)).toThrow(
+        'Command execution failed: connection failed'
+      )
+
+      expect(logEngine).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          message: 'Command execution failed: navigate',
+          details: expect.objectContaining({
+            error: 'connection failed',
+            payload: '/dashboard',
+            stack: expect.stringContaining('Error: connection failed'),
+          }),
+        })
+      )
+    })
   })
 })

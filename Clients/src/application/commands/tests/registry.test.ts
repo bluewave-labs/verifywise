@@ -121,6 +121,19 @@ describe('commandRegistry (registry.ts)', () => {
       expect(results).toEqual([])
     })
 
+    it('returns all matching commands when searchTerm is empty string', async () => {
+      const { commandRegistry } = await loadRegistryModule()
+
+      const allResults = commandRegistry.getCommands({ userRole: 'Admin' } as any)
+      const emptySearchResults = commandRegistry.getCommands({
+        userRole: 'Admin',
+        searchTerm: '',
+      } as any)
+
+      // Empty search term should behave same as no search term
+      expect(emptySearchResults.length).toBe(allResults.length)
+    })
+
     it('excludes command and logs error for invalid scope format', async () => {
         const { commandRegistry } = await loadRegistryModule()
         const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -394,7 +407,14 @@ describe('commandRegistry (registry.ts)', () => {
         action: { type: 'navigate', payload: '/new' },
       } as any)
 
-      expect(info).toHaveBeenCalled()
+      expect(info).toHaveBeenCalledWith(
+        expect.stringContaining('Replacing existing command: nav-dashboard')
+      )
+
+      // Verify the command was actually replaced
+      const updatedCommand = commandRegistry.commands.find(c => c.id === 'nav-dashboard')
+      expect(updatedCommand?.label).toBe('Dashboard Updated')
+      expect(updatedCommand?.action.payload).toBe('/new')
     })
   })
 
@@ -413,6 +433,18 @@ describe('commandRegistry (registry.ts)', () => {
       commandRegistry.unregisterCommand('to-remove')
 
       expect(commandRegistry.commands.some(c => c.id === 'to-remove')).toBe(false)
+    })
+
+    it('does not throw when unregistering a non-existent command', async () => {
+      const { commandRegistry } = await loadRegistryModule()
+
+      const initialCount = commandRegistry.commands.length
+
+      // Should not throw
+      expect(() => commandRegistry.unregisterCommand('non-existent-id')).not.toThrow()
+
+      // Command count should remain unchanged
+      expect(commandRegistry.commands.length).toBe(initialCount)
     })
   })
 })

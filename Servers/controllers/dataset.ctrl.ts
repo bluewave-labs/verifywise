@@ -20,6 +20,12 @@ import {
 } from "../utils/datasetChangeHistory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
+import { ValidationError } from "../utils/validations/validation.utils";
+import {
+  validateCompleteDatasetCreation,
+  validateCompleteDatasetUpdate,
+  validateDatasetIdParam,
+} from "../utils/validations/datasetValidation.utils";
 
 export async function getAllDatasets(req: Request, res: Response) {
   logStructured(
@@ -72,6 +78,21 @@ export async function getDatasetById(req: Request, res: Response) {
   const datasetId = parseInt(
     Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
   );
+
+  const idValidation = validateDatasetIdParam(datasetId);
+  if (!idValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid dataset ID parameter: ${req.params.id}`,
+      "getDatasetById",
+      "dataset.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: "error",
+      message: idValidation.message || "Invalid dataset ID",
+      code: idValidation.code || "INVALID_PARAMETER",
+    });
+  }
 
   logStructured(
     "processing",
@@ -205,6 +226,26 @@ export async function getDatasetsByProjectId(req: Request, res: Response) {
 }
 
 export async function createNewDataset(req: Request, res: Response) {
+  // Validate request body
+  const validationErrors = validateCompleteDatasetCreation(req.body);
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      "Dataset creation validation failed",
+      "createNewDataset",
+      "dataset.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: "error",
+      message: "Dataset creation validation failed",
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code,
+      })),
+    });
+  }
+
   const {
     name,
     description,
@@ -318,6 +359,22 @@ export async function updateDatasetById(req: Request, res: Response) {
     Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
   );
 
+  // Validate dataset ID
+  const idValidation = validateDatasetIdParam(datasetId);
+  if (!idValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid dataset ID parameter: ${req.params.id}`,
+      "updateDatasetById",
+      "dataset.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: "error",
+      message: idValidation.message || "Invalid dataset ID",
+      code: idValidation.code || "INVALID_PARAMETER",
+    });
+  }
+
   const {
     name,
     description,
@@ -370,6 +427,29 @@ export async function updateDatasetById(req: Request, res: Response) {
         "dataset.ctrl.ts"
       );
       return res.status(404).json(STATUS_CODE[404]("Dataset not found"));
+    }
+
+    // Validate request body with existing data for business rules
+    const validationErrors = validateCompleteDatasetUpdate(
+      req.body,
+      currentDataset.toJSON()
+    );
+    if (validationErrors.length > 0) {
+      logStructured(
+        "error",
+        "Dataset update validation failed",
+        "updateDatasetById",
+        "dataset.ctrl.ts"
+      );
+      return res.status(400).json({
+        status: "error",
+        message: "Dataset update validation failed",
+        errors: validationErrors.map((err: ValidationError) => ({
+          field: err.field,
+          message: err.message,
+          code: err.code,
+        })),
+      });
     }
 
     // Track changes before updating
@@ -477,6 +557,22 @@ export async function deleteDatasetById(req: Request, res: Response) {
     Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
   );
 
+  // Validate dataset ID
+  const idValidation = validateDatasetIdParam(datasetId);
+  if (!idValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid dataset ID parameter: ${req.params.id}`,
+      "deleteDatasetById",
+      "dataset.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: "error",
+      message: idValidation.message || "Invalid dataset ID",
+      code: idValidation.code || "INVALID_PARAMETER",
+    });
+  }
+
   logStructured(
     "processing",
     "starting deleteDatasetById",
@@ -552,6 +648,22 @@ export async function getDatasetHistory(req: Request, res: Response) {
   const datasetId = parseInt(
     Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
   );
+
+  // Validate dataset ID
+  const idValidation = validateDatasetIdParam(datasetId);
+  if (!idValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid dataset ID parameter: ${req.params.id}`,
+      "getDatasetHistory",
+      "dataset.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: "error",
+      message: idValidation.message || "Invalid dataset ID",
+      code: idValidation.code || "INVALID_PARAMETER",
+    });
+  }
 
   logStructured(
     "processing",

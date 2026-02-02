@@ -364,30 +364,33 @@ const NewDataset: FC<NewDatasetProps> = ({
     },
   };
 
-  const autocompleteSlotProps = {
-    paper: {
-      sx: {
-        "& .MuiAutocomplete-listbox": {
-          "& .MuiAutocomplete-option": {
+  const autocompleteSlotProps = useMemo(
+    () => ({
+      paper: {
+        sx: {
+          "& .MuiAutocomplete-listbox": {
+            "& .MuiAutocomplete-option": {
+              fontSize: 13,
+              fontWeight: 400,
+              color: theme.palette.text.primary,
+              paddingLeft: "9px",
+              paddingRight: "9px",
+            },
+            "& .MuiAutocomplete-option.Mui-focused": {
+              background: theme.palette.background.fill,
+            },
+          },
+          "& .MuiAutocomplete-noOptions": {
             fontSize: 13,
             fontWeight: 400,
-            color: "#1c2130",
             paddingLeft: "9px",
             paddingRight: "9px",
           },
-          "& .MuiAutocomplete-option.Mui-focused": {
-            background: "#f9fafb",
-          },
-        },
-        "& .MuiAutocomplete-noOptions": {
-          fontSize: 13,
-          fontWeight: 400,
-          paddingLeft: "9px",
-          paddingRight: "9px",
         },
       },
-    },
-  };
+    }),
+    [theme.palette.text.primary, theme.palette.background.fill]
+  );
 
   return (
     <StandardModal

@@ -141,8 +141,8 @@ const RisksCard = ({ risksSummary, onCardClick, selectedLevel }: RisksCardProps)
                   ...projectRisksTileCard,
                   color: level.color,
                   cursor: isClickable ? 'pointer' : 'default',
-                  border: `2px solid ${isSelected ? level.color : '#d0d5dd'}`,
-                  background: isSelected ? 'rgba(19, 113, 91, 0.1)' : undefined,
+                  border: isSelected ? `1px solid ${level.color}` : '1px solid #d0d5dd',
+                  background: isSelected ? 'rgba(146, 247, 224, 0.08)' : undefined,
                 }}
               >
                 <Typography sx={projectRisksTileCardKey}>{level.label}</Typography>

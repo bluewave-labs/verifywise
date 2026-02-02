@@ -71,7 +71,7 @@ export async function getFrameworkById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const frameworkId = parseInt(req.params.id);
+  const frameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",

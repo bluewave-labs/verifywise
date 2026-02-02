@@ -22,6 +22,10 @@ interface StatusTileCardsProps {
   entityName?: string;
   /** Optional: custom styles to override individual card styling */
   cardSx?: Record<string, unknown>;
+  /** Optional: callback when a card is clicked */
+  onCardClick?: (key: string) => void;
+  /** Optional: key of the currently selected card */
+  selectedKey?: string | null;
 }
 
 const StatusTileCards: React.FC<StatusTileCardsProps> = ({
@@ -29,6 +33,8 @@ const StatusTileCards: React.FC<StatusTileCardsProps> = ({
   tooltipFormat,
   entityName = "item",
   cardSx,
+  onCardClick,
+  selectedKey,
 }) => {
   const getTooltip = (item: StatusTileItem): string => {
     if (tooltipFormat) {
@@ -57,10 +63,12 @@ const StatusTileCards: React.FC<StatusTileCardsProps> = ({
               sx={{
                 ...projectRisksTileCard,
                 color: item.color,
-                border: "1px solid #d0d5dd",
-                cursor: "default",
+                border: selectedKey === item.key ? `2px solid ${item.color}` : "1px solid #d0d5dd",
+                cursor: onCardClick ? "pointer" : "default",
+                backgroundColor: selectedKey === item.key ? "rgba(19, 113, 91, 0.1)" : "transparent",
                 ...cardSx,
               }}
+              onClick={() => onCardClick?.(item.key)}
             >
               <Typography sx={projectRisksTileCardKey}>{item.label}</Typography>
               <Typography sx={projectRisksTileCardvalue}>{item.count}</Typography>

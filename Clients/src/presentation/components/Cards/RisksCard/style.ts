@@ -11,10 +11,10 @@ export const projectRisksCard = {
 export const projectRisksTileCard = {
   paddingY: { xs: "10px", sm: "15px" },
   paddingX: { xs: "15px", sm: "30px" },
-  textAlign: "center",
+  textAlign: "center" as const,
   fontWeight: 600,
   gap: 5,
-  position: "relative",
+  position: "relative" as const,
   minWidth: { xs: "120px", sm: "140px" },
   width: { xs: "120px", sm: "140px" },
   background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",

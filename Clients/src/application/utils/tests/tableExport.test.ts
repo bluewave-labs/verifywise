@@ -58,6 +58,7 @@ describe("tableExport", () => {
   const originalAlert = globalThis.alert;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.restoreAllMocks();
 
     // Mock alert + console for clean test output

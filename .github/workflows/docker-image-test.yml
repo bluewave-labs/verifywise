@@ -2,8 +2,8 @@ name: Build and Deploy to Testing
 
 on:
   schedule:
-    # Run every 24 hours at midnight UTC
-    - cron: '0 0 * * *'
+    # Run every hour
+    - cron: '0 * * * *'
 
 jobs:
   build-and-deploy:
@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           ref: develop
 

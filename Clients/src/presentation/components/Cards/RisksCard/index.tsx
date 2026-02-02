@@ -65,12 +65,23 @@ const RisksCard = ({ risksSummary, onCardClick, selectedLevel }: RisksCardProps)
 
   const handleCardClick = (levelLabel: string) => {
     if (onCardClick) {
-      // Toggle: if same level clicked again, clear filter
-      onCardClick(selectedLevel === levelLabel ? '' : levelLabel);
+      // Clear filter if "Total" clicked or same level clicked again
+      if (levelLabel === 'Total' || selectedLevel === levelLabel) {
+        onCardClick('');
+      } else {
+        onCardClick(levelLabel);
+      }
     }
   };
 
   const riskLevels = [
+    {
+      key: "total",
+      label: "Total",
+      value: risksSummary.total,
+      color: "#4B5563",
+      trend: undefined,
+    },
     {
       key: "veryHigh",
       label: "Very High",

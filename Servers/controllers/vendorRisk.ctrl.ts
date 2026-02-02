@@ -61,7 +61,7 @@ export async function getAllVendorRisks(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectId = parseInt(req.params.id);
+  const projectId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
 
   logProcessing({
@@ -114,7 +114,7 @@ export async function getAllVendorRisksByVendorId(
   req: Request,
   res: Response
 ) {
-  const vendorId = parseInt(req.params.id);
+  const vendorId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
 
   logProcessing({
@@ -167,7 +167,7 @@ export async function getVendorRiskById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const vendorRiskId = parseInt(req.params.id);
+  const vendorRiskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getVendorRiskById for ID ${vendorRiskId}`,
@@ -293,7 +293,7 @@ export async function updateVendorRiskById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const vendorRiskId = parseInt(req.params.id);
+  const vendorRiskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const updatedVendorRisk = req.body;
 
   logProcessing({
@@ -391,7 +391,7 @@ export async function deleteVendorRiskById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const vendorRiskId = parseInt(req.params.id);
+  const vendorRiskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting deleteVendorRiskById for ID ${vendorRiskId}`,

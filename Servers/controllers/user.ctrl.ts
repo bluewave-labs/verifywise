@@ -137,7 +137,7 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
 }
 
 async function getUserByEmail(req: Request, res: Response) {
-  const email = req.params.email;
+  const email = Array.isArray(req.params.email) ? req.params.email[0] : req.params.email;
   logStructured(
     "processing",
     `fetching user by email: ${email}`,
@@ -181,7 +181,7 @@ async function getUserByEmail(req: Request, res: Response) {
 }
 
 async function getUserById(req: Request, res: Response) {
-  const id = parseInt(req.params.id);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching user by ID: ${id}`,
@@ -829,7 +829,7 @@ async function resetPassword(req: Request, res: Response) {
 
 async function updateUserById(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
-  const id = parseInt(req.params.id);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const { name, surname, email, roleId: roleIdRaw, last_login } = req.body;
 
   // Convert roleId to number if it exists (frontend may send as string)
@@ -1016,7 +1016,7 @@ async function updateUserById(req: Request, res: Response) {
 
 async function deleteUserById(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
-  const id = parseInt(req.params.id);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",
@@ -1149,7 +1149,7 @@ async function calculateProgress(
   req: Request,
   res: Response
 ): Promise<Response> {
-  const id = parseInt(req.params.id);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `calculating progress for user ID ${id}`,
@@ -1359,7 +1359,7 @@ async function ChangePassword(req: Request, res: Response) {
 // New function to update user role
 async function updateUserRole(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
-  const { id } = req.params;
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const { newRoleId: newRoleIdRaw } = req.body;
 
   // Normalize newRoleId from the request payload (frontend may send as string)
@@ -1423,7 +1423,7 @@ async function updateUserRole(req: Request, res: Response) {
     await targetUser.updateRole(newRoleId, currentUser);
 
     const updatedUser = (await updateUserByIdQuery(
-      parseInt(id),
+      parseInt(Array.isArray(id) ? id[0] : id),
       { role_id: targetUser.role_id },
       transaction
     )) as UserModel;
@@ -1446,7 +1446,7 @@ async function updateUserRole(req: Request, res: Response) {
     if (oldRoleId === 3 && newRoleId === 1) {
       // Get all projects where the user is a member
       try {
-        const userProjects = await getUserProjects(parseInt(id), req.tenantId!);
+        const userProjects = await getUserProjects(parseInt(Array.isArray(id) ? id[0] : id), req.tenantId!);
 
         // Send notification for each project (fire-and-forget)
         for (const project of userProjects) {
@@ -1540,7 +1540,7 @@ async function updateUserRole(req: Request, res: Response) {
 
 async function uploadUserProfilePhoto(req: any, res: Response) {
   const transaction = await sequelize.transaction();
-  const userId = parseInt(req.params.id);
+  const userId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const attachment = req.file;
 
   logStructured(
@@ -1670,7 +1670,7 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
 }
 
 async function getUserProfilePhoto(req: Request, res: Response) {
-  const userId = parseInt(req.params.id);
+  const userId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching profile photo for user ID ${userId}`,
@@ -1736,7 +1736,7 @@ async function getUserProfilePhoto(req: Request, res: Response) {
 
 async function deleteUserProfilePhoto(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
-  const userId = parseInt(req.params.id);
+  const userId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",

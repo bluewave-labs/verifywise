@@ -10,7 +10,7 @@ export async function getVendorChangeHistoryById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const vendorId = parseInt(req.params.id);
+  const vendorId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   // Validate vendor ID
   if (isNaN(vendorId) || vendorId <= 0) {

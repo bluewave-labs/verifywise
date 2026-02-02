@@ -13,9 +13,9 @@ export async function getProjectRiskChangeHistoryByRiskId(
   res: Response
 ): Promise<any> {
   try {
-    const projectRiskId = parseInt(req.params.projectRiskId);
-    const limit = parseInt(req.query.limit as string) || 100;
-    const offset = parseInt(req.query.offset as string) || 0;
+    const projectRiskId = parseInt(Array.isArray(req.params.projectRiskId) ? req.params.projectRiskId[0] : req.params.projectRiskId);
+    const limit = parseInt(Array.isArray(req.query.limit) ? String(req.query.limit[0]) : String(req.query.limit || '100'), 10) || 100;
+    const offset = parseInt(Array.isArray(req.query.offset) ? String(req.query.offset[0]) : String(req.query.offset || '0'), 10) || 0;
 
     if (isNaN(projectRiskId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid project risk ID"));

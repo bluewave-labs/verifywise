@@ -185,7 +185,7 @@ export const updateLLMKey = async (req: Request, res: Response) => {
 
   const transaction = await sequelize.transaction();
   const { name, key, model } = req.body;
-  const id = parseInt(req.params.id);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   // Validate that name is a valid LLM provider if provided
   if (name && !isValidLLMProvider(name)) {
@@ -301,7 +301,8 @@ export const deleteLLMKey = async (req: Request, res: Response) => {
     fileName,
   );
   try {
-    const success = await deleteLLMKeyQuery(parseInt(id), req.tenantId!);
+    const idValue = Array.isArray(id) ? id[0] : id;
+    const success = await deleteLLMKeyQuery(parseInt(idValue), req.tenantId!);
     if (!success) {
       logStructured(
         "error",

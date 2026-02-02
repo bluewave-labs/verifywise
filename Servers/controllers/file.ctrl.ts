@@ -22,7 +22,7 @@ export async function getFileContentById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const fileId = parseInt(req.params.id, 10);
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
 
   // Validate fileId is a valid number
   if (isNaN(fileId)) {
@@ -114,7 +114,7 @@ export async function getFileMetaByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectId = parseInt(req.params.id);
+  const projectId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getFileMetaByProjectId for project ID ${projectId}`,
@@ -158,8 +158,8 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
   const userId = Number(req.userId);
 
   // Validate pagination parameters
-  const page = req.query.page ? Number(req.query.page) : undefined;
-  const pageSize = req.query.pageSize ? Number(req.query.pageSize) : undefined;
+  const page = req.query.page ? Number(Array.isArray(req.query.page) ? req.query.page[0] : req.query.page) : undefined;
+  const pageSize = req.query.pageSize ? Number(Array.isArray(req.query.pageSize) ? req.query.pageSize[0] : req.query.pageSize) : undefined;
 
   logProcessing({
     description: `starting getUserFilesMetaData for user ID ${userId}`,

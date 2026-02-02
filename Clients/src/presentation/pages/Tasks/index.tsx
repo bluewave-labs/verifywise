@@ -936,7 +936,7 @@ const Tasks: React.FC = () => {
       {/* Notification Toast */}
       {alert && (
         <Fade in={showAlert} timeout={300}>
-          <Box>
+          <Box sx={{ position: 'fixed' }}>
             <Alert
               variant={alert.variant}
               title={alert.title}

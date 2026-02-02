@@ -1028,7 +1028,7 @@ const Vendors = () => {
         {alert && (
           <Suspense fallback={<div>Loading...</div>}>
             <Fade in={showAlert} timeout={300}>
-              <Box>
+              <Box sx={{ position: 'fixed' }}>
                 <Alert
                   variant={alert.variant}
                   title={alert.title}

@@ -6,6 +6,7 @@ export enum PluginCategory {
   SECURITY = "security",
   DATA_MANAGEMENT = "data_management",
   ANALYTICS = "analytics",
+  COMPLIANCE = "compliance",
 }
 
 export enum PluginInstallationStatus {

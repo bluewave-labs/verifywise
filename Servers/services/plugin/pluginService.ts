@@ -11,7 +11,7 @@ import {
 import { sequelize } from "../../database/db";
 
 // Environment configuration
-export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/hp-jan-30-enhance-custom-import-plugin-marketplace/plugins.json";
+export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/main/plugins.json";
 export const PLUGIN_MARKETPLACE_BASE_URL = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
 
 interface Plugin {

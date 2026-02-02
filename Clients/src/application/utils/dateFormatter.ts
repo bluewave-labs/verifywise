@@ -16,20 +16,6 @@ export const formatRelativeDate = (dateString: string): string => {
 };
 
 /**
- * Format a date string to a locale date string
- * @param dateString - ISO date string or date-parseable string
- * @returns Formatted locale date string
- */
-export const formatLocaleDate = (dateString: string): string => {
-  if (!dateString) return "Unknown";
-
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "Unknown";
-
-  return date.toLocaleDateString();
-};
-
-/**
  * Format a date string to a locale date and time string
  * @param dateString - ISO date string or date-parseable string
  * @returns Formatted locale date and time string

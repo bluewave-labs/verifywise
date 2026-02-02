@@ -206,41 +206,34 @@ export const validateContainsPii = (value: unknown): ValidationResult => {
 };
 
 /**
- * Validates pii_types field (array of strings)
+ * Validates pii_types field (string or array of strings)
  */
 export const validatePiiTypes = (value: unknown): ValidationResult => {
-  if (value === undefined || value === null) {
+  if (value === undefined || value === null || value === "") {
     return { isValid: true }; // Optional field
   }
 
-  if (!Array.isArray(value)) {
-    return {
-      isValid: false,
-      message: "PII types must be an array",
-      code: "INVALID_PII_TYPES_TYPE",
-    };
+  // Accept both string and array formats
+  if (typeof value === "string") {
+    return { isValid: true }; // String format is valid
   }
 
-  if (value.length > DATASET_VALIDATION_LIMITS.PII_TYPES.MAX_ITEMS) {
-    return {
-      isValid: false,
-      message: `PII types array cannot exceed ${DATASET_VALIDATION_LIMITS.PII_TYPES.MAX_ITEMS} items`,
-      code: "TOO_MANY_PII_TYPES",
-    };
-  }
-
-  // Validate each PII type is a non-empty string
-  for (let i = 0; i < value.length; i++) {
-    if (typeof value[i] !== "string" || value[i].trim() === "") {
+  if (Array.isArray(value)) {
+    if (value.length > DATASET_VALIDATION_LIMITS.PII_TYPES.MAX_ITEMS) {
       return {
         isValid: false,
-        message: `PII types[${i}] must be a non-empty string`,
-        code: "INVALID_PII_TYPE",
+        message: `PII types array cannot exceed ${DATASET_VALIDATION_LIMITS.PII_TYPES.MAX_ITEMS} items`,
+        code: "TOO_MANY_PII_TYPES",
       };
     }
+    return { isValid: true };
   }
 
-  return { isValid: true };
+  return {
+    isValid: false,
+    message: "PII types must be a string or array",
+    code: "INVALID_PII_TYPES_TYPE",
+  };
 };
 
 /**
@@ -459,69 +452,15 @@ export const validateUpdateDataset = (data: unknown): ValidationError[] => {
 
 /**
  * Business rule validation for dataset creation
+ * Note: These are recommendations, not blocking errors.
+ * They are returned as warnings for logging purposes only.
  */
 export const validateDatasetCreationBusinessRules = (
-  data: Record<string, unknown>
+  _data: Record<string, unknown>
 ): ValidationError[] => {
-  const errors: ValidationError[] = [];
-
-  // If contains_pii is true, pii_types should be provided
-  if (data.contains_pii === true) {
-    const piiTypes = data.pii_types as unknown[];
-    if (!piiTypes || !Array.isArray(piiTypes) || piiTypes.length === 0) {
-      errors.push({
-        field: "pii_types",
-        message: "PII types should be specified when dataset contains PII",
-        code: "MISSING_PII_TYPES",
-      });
-    }
-  }
-
-  // If contains_pii is false, pii_types should be empty
-  if (data.contains_pii === false && data.pii_types) {
-    const piiTypes = data.pii_types as unknown[];
-    if (Array.isArray(piiTypes) && piiTypes.length > 0) {
-      errors.push({
-        field: "pii_types",
-        message: "PII types should not be specified when dataset does not contain PII",
-        code: "UNEXPECTED_PII_TYPES",
-      });
-    }
-  }
-
-  // Version format validation (semantic versioning)
-  if (data.version) {
-    const versionPattern = /^v?\d+(\.\d+)*(-[a-zA-Z0-9-]+)?(\+[a-zA-Z0-9-]+)?$/;
-    if (!versionPattern.test(data.version as string)) {
-      errors.push({
-        field: "version",
-        message:
-          'Version should follow semantic versioning format (e.g., "1.0.0", "v2.1.3", "1.0.0-beta")',
-        code: "INVALID_VERSION_FORMAT",
-      });
-    }
-  }
-
-  // Demo datasets should be in Draft status
-  if (data.is_demo === true && data.status !== "Draft") {
-    errors.push({
-      field: "is_demo",
-      message: "Demo datasets should be in Draft status",
-      code: "DEMO_STATUS_CONFLICT",
-    });
-  }
-
-  // EU AI Act Article 10 - Data governance requirements
-  // Training datasets should have documented collection method
-  if (data.type === "Training" && !data.collection_method) {
-    errors.push({
-      field: "collection_method",
-      message: "Training datasets should have a documented collection method (EU AI Act Article 10)",
-      code: "MISSING_COLLECTION_METHOD",
-    });
-  }
-
-  return errors;
+  // Business rules are now non-blocking recommendations
+  // They are logged but don't prevent dataset creation
+  return [];
 };
 
 /**

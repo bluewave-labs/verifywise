@@ -32,7 +32,7 @@
     "@platejs/autoformat": "^52.0.11",
     "@platejs/basic-nodes": "^52.0.11",
     "@platejs/basic-styles": "^52.0.11",
-    "@platejs/code-block": "^49.0.0",
+    "@platejs/code-block": "^52.0.11",
     "@platejs/floating": "^50.2.5",
     "@platejs/link": "^52.0.11",
     "@platejs/list-classic": "^52.0.11",

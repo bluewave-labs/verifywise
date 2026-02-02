@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Box, Stack } from "@mui/material";
+import { Box, Stack, Fade } from "@mui/material";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
@@ -49,6 +49,8 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   // New state for filter + search
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -165,6 +167,33 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     setLinkedObjectsModalOpen(false);
   };
 
+  // Handle policy card click to filter by status
+  const handleStatusCardClick = useCallback((status: string) => {
+    if (!status || status === "total") {
+      setSelectedStatus(null);
+      setAlert(null);
+    } else {
+      setSelectedStatus(status);
+      setAlert({
+        variant: "info",
+        title: `Filtering by ${status} status`,
+        body: "Click the card again or click Total to see all policies.",
+      });
+    }
+  }, []);
+
+  // Auto-dismiss info alert after 3 seconds with fade animation
+  useEffect(() => {
+    if (alert && alert.variant === 'info') {
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
   const { users } = useUsers();
 
   // FilterBy - Dynamic options generators
@@ -243,6 +272,11 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const filteredPolicies = useMemo(() => {
     let result = filterPolicyData(policies);
 
+    // Apply card filter for status
+    if (selectedStatus) {
+      result = result.filter((p) => p.status === selectedStatus);
+    }
+
     // Apply search filter
     if (searchTerm.trim()) {
       const query = searchTerm.toLowerCase();
@@ -252,7 +286,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     }
 
     return result;
-  }, [filterPolicyData, policies, searchTerm]);
+  }, [filterPolicyData, policies, selectedStatus, searchTerm]);
 
   // Define how to get the group key for each policy
   const getPolicyGroupKey = useCallback((policy: PolicyManagerModel, field: string): string => {
@@ -316,7 +350,11 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     <Stack className="vwhome" gap={"16px"}>
       {/* Policy by Status Cards */}
       <Box data-joyride-id="policy-status-cards">
-        <PolicyStatusCard policies={policies} />
+        <PolicyStatusCard
+          policies={policies}
+          onCardClick={handleStatusCardClick}
+          selectedStatus={selectedStatus}
+        />
       </Box>
 
       {/* Filter + Search + Add Button row */}
@@ -432,13 +470,20 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       )}
 
       {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
+        <Fade in={showAlert} timeout={300}>
+          <Box>
+            <Alert
+              variant={alert.variant}
+              title={alert.title}
+              body={alert.body}
+              isToast={true}
+              onClick={() => {
+                setShowAlert(false);
+                setTimeout(() => setAlert(null), 300);
+              }}
+            />
+          </Box>
+        </Fade>
       )}
     </Stack>
   );

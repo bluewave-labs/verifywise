@@ -185,7 +185,7 @@ export async function getOrganizationById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const organizationId = parseInt(req.params.id);
+  const organizationId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",
@@ -475,7 +475,7 @@ export async function updateOrganizationById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const organizationId = parseInt(req.params.id);
+  const organizationId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const transaction = await sequelize.transaction();
   logStructured(
     "processing",
@@ -623,7 +623,7 @@ export async function deleteOrganizationById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const organizationId = parseInt(req.params.id);
+  const organizationId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const transaction = await sequelize.transaction();
   logStructured(
     "processing",
@@ -731,7 +731,7 @@ export async function updateOnboardingStatus(
   req: Request,
   res: Response
 ): Promise<any> {
-  const organizationId = parseInt(req.params.id);
+  const organizationId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const transaction = await sequelize.transaction();
 
   logStructured(

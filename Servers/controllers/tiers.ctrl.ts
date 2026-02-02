@@ -4,7 +4,7 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 
 async function getTiersFeatures(req: Request, res: Response) {
-    const tierId = parseInt(req.params.id);
+    const tierId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
     logStructured("processing", "Fetching tiers features", "getTiersFeatures", "tiers.ctrl.ts");
     logger.debug('🔍 Fetching tiers features');

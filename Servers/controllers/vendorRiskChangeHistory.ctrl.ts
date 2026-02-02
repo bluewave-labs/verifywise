@@ -10,7 +10,7 @@ export async function getVendorRiskChangeHistoryById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const vendorRiskId = parseInt(req.params.id);
+  const vendorRiskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   if (isNaN(vendorRiskId) || vendorRiskId <= 0) {
     return res.status(400).json(STATUS_CODE[400]("Invalid vendor risk ID"));

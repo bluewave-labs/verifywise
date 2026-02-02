@@ -7,7 +7,8 @@ import { AutomationActionModel } from "../automationAction/automationAction.mode
 @Table({
   tableName: "automation_triggers_actions",
   schema: "public",
-  timestamps: false,
+  timestamps: true,
+  underscored: true,
 })
 export class AutomationTriggerActionModel extends Model<AutomationTriggerActionModel> implements IAutomationTriggerAction {
   @ForeignKey(() => AutomationTriggerModel)
@@ -31,6 +32,18 @@ export class AutomationTriggerActionModel extends Model<AutomationTriggerActionM
 
   @BelongsTo(() => AutomationActionModel)
   action?: AutomationActionModel;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Factory method to create a new trigger-action association
@@ -193,6 +206,8 @@ export class AutomationTriggerActionModel extends Model<AutomationTriggerActionM
       action_id: this.action_id,
       trigger: this.trigger?.toJSON(),
       action: this.action?.toJSON(),
+      created_at: this.created_at,
+      updated_at: this.updated_at,
     };
   }
 }

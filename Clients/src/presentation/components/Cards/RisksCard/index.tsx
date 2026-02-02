@@ -65,12 +65,23 @@ const RisksCard = ({ risksSummary, onCardClick, selectedLevel }: RisksCardProps)
 
   const handleCardClick = (levelLabel: string) => {
     if (onCardClick) {
-      // Toggle: if same level clicked again, clear filter
-      onCardClick(selectedLevel === levelLabel ? '' : levelLabel);
+      // Clear filter if "Total" clicked or same level clicked again
+      if (levelLabel === 'Total' || selectedLevel === levelLabel) {
+        onCardClick('');
+      } else {
+        onCardClick(levelLabel);
+      }
     }
   };
 
   const riskLevels = [
+    {
+      key: "total",
+      label: "Total",
+      value: risksSummary.total,
+      color: "#4B5563",
+      trend: undefined,
+    },
     {
       key: "veryHigh",
       label: "Very High",
@@ -130,8 +141,8 @@ const RisksCard = ({ risksSummary, onCardClick, selectedLevel }: RisksCardProps)
                   ...projectRisksTileCard,
                   color: level.color,
                   cursor: isClickable ? 'pointer' : 'default',
-                  border: `2px solid ${isSelected ? level.color : '#d0d5dd'}`,
-                  background: isSelected ? 'rgba(19, 113, 91, 0.1)' : undefined,
+                  border: isSelected ? `1px solid ${level.color}` : '1px solid #d0d5dd',
+                  background: isSelected ? 'rgba(146, 247, 224, 0.08)' : undefined,
                 }}
               >
                 <Typography sx={projectRisksTileCardKey}>{level.label}</Typography>

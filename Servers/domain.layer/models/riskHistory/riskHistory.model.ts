@@ -5,8 +5,7 @@ import { IRiskHistory } from "../../interfaces/i.riskHistory";
 @Table({
   tableName: "risk_history",
   timestamps: true,
-  createdAt: "created_at",
-  updatedAt: false,
+  underscored: true,
 })
 export class RiskHistoryModel extends Model<RiskHistoryModel> implements IRiskHistory {
   @Column({
@@ -58,4 +57,10 @@ export class RiskHistoryModel extends Model<RiskHistoryModel> implements IRiskHi
     defaultValue: DataType.NOW,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 }

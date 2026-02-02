@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { Box, Stack, Popover, Typography, IconButton, Tooltip } from "@mui/material";
+import { Box, Stack, Popover, Typography, IconButton, Tooltip, Fade } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -71,6 +71,7 @@ const RiskManagement = () => {
     title?: string;
     body: string;
   } | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] =
     useState<LoadingStatus>(initialLoadingState);
@@ -267,8 +268,31 @@ const RiskManagement = () => {
 
   // Handle risk card click to filter risks by risk level
   const handleRiskCardClick = useCallback((riskLevel: string) => {
-    setSelectedRiskLevel(riskLevel || null);
+    if (!riskLevel || riskLevel === 'Total') {
+      setSelectedRiskLevel(null);
+      setAlert(null);
+      setShowAlert(false);
+    } else {
+      setSelectedRiskLevel(riskLevel);
+      setAlert({
+        variant: 'info',
+        title: `Filtering by ${riskLevel} risk level`,
+        body: 'Click the card again or click Total to see all risks.',
+      });
+    }
   }, []);
+
+  // Auto-dismiss info alert after 3 seconds with fade animation
+  useEffect(() => {
+    if (alert && alert.variant === 'info') {
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   // Apply FilterBy and search filters
   const filteredRisks = useMemo(() => {
@@ -332,6 +356,7 @@ const RiskManagement = () => {
     }).length;
 
     return {
+      total: projectRisks.length,
       veryHighRisks,
       highRisks,
       mediumRisks,
@@ -658,15 +683,20 @@ const RiskManagement = () => {
 
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
-          <Box>
-            <Alert
-              variant={alert.variant}
-              title={alert.title}
-              body={alert.body}
-              isToast={true}
-              onClick={() => setAlert(null)}
-            />
-          </Box>
+          <Fade in={showAlert} timeout={300}>
+            <Box sx={{ position: 'fixed' }}>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body}
+                isToast={true}
+                onClick={() => {
+                  setShowAlert(false);
+                  setTimeout(() => setAlert(null), 300);
+                }}
+              />
+            </Box>
+          </Fade>
         </Suspense>
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}

@@ -46,6 +46,7 @@ import ModelRisksTable from "./ModelRisksTable";
 import {
   IModelRisk,
   IModelRiskFormData,
+  ModelRiskLevel,
 } from "../../../domain/interfaces/i.modelRisk";
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
@@ -127,6 +128,7 @@ const ModelInventory: React.FC = () => {
   const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
     null
   );
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState<string | null>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [showAlert, setShowAlert] = useState(false);
 
@@ -158,6 +160,7 @@ const ModelInventory: React.FC = () => {
   const [flashRowId, setFlashRowId] = useState<number | string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   // GroupBy state - models tab
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -644,12 +647,26 @@ const ModelInventory: React.FC = () => {
     total: modelInventoryData.length,
   };
 
-  // Filter data using FilterBy and search
+  // Filter data using FilterBy, card filter, and search
   const filteredData = useMemo(() => {
-    // First apply FilterBy conditions
+    // Stage 1: Apply FilterBy conditions
     let data = filterModelData(modelInventoryData);
 
-    // Then apply search filter
+    // Stage 2: Apply card filter for status
+    if (selectedStatus) {
+      const statusMap: Record<string, string> = {
+        approved: ModelInventoryStatus.APPROVED,
+        restricted: ModelInventoryStatus.RESTRICTED,
+        pending: ModelInventoryStatus.PENDING,
+        blocked: ModelInventoryStatus.BLOCKED,
+      };
+      const targetStatus = statusMap[selectedStatus];
+      if (targetStatus) {
+        data = data.filter((item) => item.status === targetStatus);
+      }
+    }
+
+    // Stage 3: Apply search filter
     if (searchTerm) {
       data = data.filter(
         (item) =>
@@ -660,7 +677,7 @@ const ModelInventory: React.FC = () => {
     }
 
     return data;
-  }, [filterModelData, modelInventoryData, searchTerm]);
+  }, [filterModelData, modelInventoryData, selectedStatus, searchTerm]);
 
   // Define how to get the group key for each model
   const getModelInventoryGroupKey = (
@@ -1501,10 +1518,18 @@ const ModelInventory: React.FC = () => {
     }
   };
 
-  // Filter model risks using FilterBy
+  // Filter model risks using FilterBy and card filter
   const filteredModelRisks = useMemo(() => {
-    return filterModelRiskData(modelRisksData);
-  }, [filterModelRiskData, modelRisksData]);
+    // Stage 1: Apply FilterBy conditions
+    let data = filterModelRiskData(modelRisksData);
+
+    // Stage 2: Apply card filter for risk level
+    if (selectedRiskLevel) {
+      data = data.filter((risk) => risk.risk_level === selectedRiskLevel);
+    }
+
+    return data;
+  }, [filterModelRiskData, modelRisksData, selectedRiskLevel]);
 
   // Define how to get the group key for each model risk
   const getModelRiskGroupKey = (
@@ -1836,6 +1861,58 @@ const ModelInventory: React.FC = () => {
     }
   };
 
+  const handleStatusCardClick = useCallback((statusKey: string) => {
+    if (statusKey === 'total' || selectedStatus === statusKey) {
+      setSelectedStatus(null);
+      setAlert(null);
+      setShowAlert(false);
+    } else {
+      setSelectedStatus(statusKey);
+      const labelMap: Record<string, string> = {
+        approved: 'Approved',
+        restricted: 'Restricted',
+        pending: 'Pending',
+        blocked: 'Blocked',
+      };
+      setAlert({
+        variant: 'info',
+        title: `Filtering by ${labelMap[statusKey]} models`,
+        body: 'Click the card again or click Total to see all models.',
+      });
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 5000);
+    }
+  }, [selectedStatus]);
+
+  const handleRiskLevelCardClick = useCallback((riskLevelKey: string) => {
+    if (riskLevelKey === 'total' || selectedRiskLevel === riskLevelKey) {
+      setSelectedRiskLevel(null);
+      setAlert(null);
+      setShowAlert(false);
+    } else {
+      setSelectedRiskLevel(riskLevelKey);
+      const labelMap: Record<string, string> = {
+        [ModelRiskLevel.LOW]: 'Low',
+        [ModelRiskLevel.MEDIUM]: 'Medium',
+        [ModelRiskLevel.HIGH]: 'High',
+        [ModelRiskLevel.CRITICAL]: 'Critical',
+      };
+      setAlert({
+        variant: 'info',
+        title: `Filtering by ${labelMap[riskLevelKey]} risk level`,
+        body: 'Click the card again or click Total to see all risks.',
+      });
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 5000);
+    }
+  }, [selectedRiskLevel]);
+
   return (
     <Stack className="vwhome" sx={mainStackStyle}>
       {/* <PageBreadcrumbs /> */}
@@ -1972,11 +2049,19 @@ const ModelInventory: React.FC = () => {
         {/* Summary Cards */}
         {activeTab === "models" && (
           <div data-joyride-id="model-summary-cards">
-            <ModelInventorySummary summary={summary} />
+            <ModelInventorySummary
+              summary={summary}
+              onCardClick={handleStatusCardClick}
+              selectedStatus={selectedStatus}
+            />
           </div>
         )}
         {activeTab === "model-risks" && (
-          <ModelRiskSummary modelRisks={modelRisksData} />
+          <ModelRiskSummary
+            modelRisks={modelRisksData}
+            onCardClick={handleRiskLevelCardClick}
+            selectedRiskLevel={selectedRiskLevel}
+          />
         )}
 
         {/* Tab Bar */}

@@ -46,6 +46,7 @@ import ModelRisksTable from "./ModelRisksTable";
 import {
   IModelRisk,
   IModelRiskFormData,
+  ModelRiskLevel,
 } from "../../../domain/interfaces/i.modelRisk";
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
@@ -127,6 +128,7 @@ const ModelInventory: React.FC = () => {
   const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
     null
   );
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState<string | null>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [showAlert, setShowAlert] = useState(false);
 
@@ -1516,10 +1518,18 @@ const ModelInventory: React.FC = () => {
     }
   };
 
-  // Filter model risks using FilterBy
+  // Filter model risks using FilterBy and card filter
   const filteredModelRisks = useMemo(() => {
-    return filterModelRiskData(modelRisksData);
-  }, [filterModelRiskData, modelRisksData]);
+    // Stage 1: Apply FilterBy conditions
+    let data = filterModelRiskData(modelRisksData);
+
+    // Stage 2: Apply card filter for risk level
+    if (selectedRiskLevel) {
+      data = data.filter((risk) => risk.risk_level === selectedRiskLevel);
+    }
+
+    return data;
+  }, [filterModelRiskData, modelRisksData, selectedRiskLevel]);
 
   // Define how to get the group key for each model risk
   const getModelRiskGroupKey = (
@@ -1877,6 +1887,32 @@ const ModelInventory: React.FC = () => {
     }
   }, [selectedStatus]);
 
+  const handleRiskLevelCardClick = useCallback((riskLevelKey: string) => {
+    if (riskLevelKey === 'total' || selectedRiskLevel === riskLevelKey) {
+      setSelectedRiskLevel(null);
+      setAlert(null);
+      setShowAlert(false);
+    } else {
+      setSelectedRiskLevel(riskLevelKey);
+      const labelMap: Record<string, string> = {
+        [ModelRiskLevel.LOW]: 'Low',
+        [ModelRiskLevel.MEDIUM]: 'Medium',
+        [ModelRiskLevel.HIGH]: 'High',
+        [ModelRiskLevel.CRITICAL]: 'Critical',
+      };
+      setAlert({
+        variant: 'info',
+        title: `Filtering by ${labelMap[riskLevelKey]} risk level`,
+        body: 'Click the card again or click Total to see all risks.',
+      });
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 5000);
+    }
+  }, [selectedRiskLevel]);
+
   return (
     <Stack className="vwhome" sx={mainStackStyle}>
       {/* <PageBreadcrumbs /> */}
@@ -2021,7 +2057,11 @@ const ModelInventory: React.FC = () => {
           </div>
         )}
         {activeTab === "model-risks" && (
-          <ModelRiskSummary modelRisks={modelRisksData} />
+          <ModelRiskSummary
+            modelRisks={modelRisksData}
+            onCardClick={handleRiskLevelCardClick}
+            selectedRiskLevel={selectedRiskLevel}
+          />
         )}
 
         {/* Tab Bar */}

@@ -89,4 +89,6 @@ export interface ModelRisksTableProps {
 
 export interface ModelRiskSummaryProps {
   modelRisks: IModelRisk[];
+  onCardClick?: (riskLevelKey: string) => void;
+  selectedRiskLevel?: string | null;
 }

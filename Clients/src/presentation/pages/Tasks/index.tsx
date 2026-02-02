@@ -291,7 +291,7 @@ const Tasks: React.FC = () => {
           case 'open':
             return task.status === 'Open';
           case 'inProgress':
-            return task.status === 'In Progress' || task.status === 'In progress';
+            return task.status === TaskStatus.IN_PROGRESS;
           case 'completed':
             return task.status === 'Completed';
           case 'overdue':

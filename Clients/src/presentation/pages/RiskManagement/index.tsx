@@ -267,7 +267,17 @@ const RiskManagement = () => {
 
   // Handle risk card click to filter risks by risk level
   const handleRiskCardClick = useCallback((riskLevel: string) => {
-    setSelectedRiskLevel(riskLevel || null);
+    if (!riskLevel || riskLevel === 'Total') {
+      setSelectedRiskLevel(null);
+      setAlert(null);
+    } else {
+      setSelectedRiskLevel(riskLevel);
+      setAlert({
+        variant: 'info',
+        title: `Filtering by ${riskLevel} risk level`,
+        body: 'Click the card again or click Total to see all risks.',
+      });
+    }
   }, []);
 
   // Apply FilterBy and search filters
@@ -332,6 +342,7 @@ const RiskManagement = () => {
     }).length;
 
     return {
+      total: projectRisks.length,
       veryHighRisks,
       highRisks,
       mediumRisks,

@@ -1,4 +1,5 @@
 export interface risksSummary {
+  total: number;
   veryHighRisks: number;
   highRisks: number;
   mediumRisks: number;

@@ -13,9 +13,14 @@ from io_utils.manifest import write_manifest
 from io_utils.checksums import sha256_file
 from io_utils.jsonl import write_jsonl
 from reports.seed_report import build_seed_report
+from reports.render_report import build_render_report
 
 from render.load_catalogs import load_render_inputs
 from render.renderer import render_base_scenarios, RenderConfig
+from render.dedup import prompt_hash
+
+import json
+
 
 console = Console()
 
@@ -79,13 +84,67 @@ def _cmd_generate(args: argparse.Namespace) -> int:
             cfg=RenderConfig(seed=int(args.seed), per_obligation=int(args.per_obligation)),
         )
 
+        seen: set[str] = set()
+        deduped: list[dict] = []
+
+        for s in base_scenarios:
+            h = prompt_hash(s["prompt"])
+            s["prompt_hash"] = h
+            if h in seen:
+                continue
+            seen.add(h)
+            deduped.append(s)
+
         out_path = intermediate_dir / "base_scenarios.jsonl"
+        raw_out = intermediate_dir / "base_scenarios.jsonl"
+        dedup_out = intermediate_dir / "base_scenarios_deduped.jsonl"
         write_jsonl(out_path, base_scenarios)
+        write_jsonl(raw_out, base_scenarios)
+        write_jsonl(dedup_out, deduped)
+
+        report = build_render_report(
+            obligations_version=obligations_version,
+            base_scenarios=base_scenarios,
+            deduped_scenarios=deduped,
+        )
+        report["generated_at"] = datetime.now(timezone.utc).isoformat()
+        report["dataset_version"] = args.dataset_version
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+        manifest = {
+            "dataset_version": args.dataset_version,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "stage": "render",
+            "inputs": {
+                "obligations_yaml": str(obligations_path),
+                "obligations_yaml_sha256": sha256_file(obligations_path),
+                "seed": int(args.seed),
+                "per_obligation": int(args.per_obligation),
+            },
+            "outputs": {
+                "base_scenarios_jsonl": str(raw_out),
+                "base_scenarios_jsonl_sha256": sha256_file(raw_out),
+                "base_scenarios_deduped_jsonl": str(dedup_out),
+                "base_scenarios_deduped_jsonl_sha256": sha256_file(dedup_out),
+                "sampling_report_json": str(report_path),
+                "sampling_report_json_sha256": sha256_file(report_path),
+            },
+            "counts": {
+                "base_scenarios_raw": len(base_scenarios),
+                "base_scenarios_deduped": len(deduped),
+            },
+        }
+        write_manifest(manifest_path, manifest)
 
         console.print("[bold green]Render layer complete.[/bold green]")
-        console.print(f"- obligations_version: {obligations_version}")
-        console.print(f"- base_scenarios: {len(base_scenarios)}")
-        console.print(f"- wrote: {out_path}")
+        console.print(f"- base_scenarios_raw: {len(base_scenarios)}")
+        console.print(f"- base_scenarios_deduped: {len(deduped)}")
+        console.print(f"- wrote: {raw_out}")
+        console.print(f"- wrote: {dedup_out}")
+        console.print(f"- wrote: {report_path}")
+        console.print(f"- wrote: {manifest_path}")
+
         return 0
 
     console.print(f"[red]Unsupported stage:[/red] {args.stage}")

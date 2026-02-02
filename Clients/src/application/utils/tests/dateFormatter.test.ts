@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { formatLocaleDateTime, formatRelativeDate } from "../dateFormatter";
+import { formatRelativeDate } from "../dateFormatter";
 
 // Mock date-fns to make formatRelativeDate deterministic
 vi.mock("date-fns", () => ({
@@ -43,27 +43,6 @@ describe("dateFormatter utils", () => {
       expect(passedDate).toBeInstanceOf(Date);
       expect((passedDate as Date).toISOString()).toBe(input);
       expect(passedOptions).toEqual({ addSuffix: true });
-    });
-  });
-
-  describe("formatLocaleDateTime", () => {
-    it('returns "Unknown" when dateString is empty', () => {
-      expect(formatLocaleDateTime("")).toBe("Unknown");
-    });
-
-    it('returns "Unknown" when dateString is invalid', () => {
-      expect(formatLocaleDateTime("not-a-date")).toBe("Unknown");
-    });
-
-    it("returns date.toLocaleString() when valid", () => {
-      const spy = vi.spyOn(Date.prototype, "toLocaleString").mockReturnValue("01/22/2026, 12:00:00");
-
-      const result = formatLocaleDateTime("2026-01-22T12:00:00.000Z");
-
-      expect(result).toBe("01/22/2026, 12:00:00");
-      expect(spy).toHaveBeenCalledTimes(1);
-
-      spy.mockRestore();
     });
   });
 });

@@ -14,17 +14,3 @@ export const formatRelativeDate = (dateString: string): string => {
 
   return formatDistanceToNow(date, { addSuffix: true });
 };
-
-/**
- * Format a date string to a locale date and time string
- * @param dateString - ISO date string or date-parseable string
- * @returns Formatted locale date and time string
- */
-export const formatLocaleDateTime = (dateString: string): string => {
-  if (!dateString) return "Unknown";
-
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "Unknown";
-
-  return date.toLocaleString();
-};

@@ -65,7 +65,7 @@ const StatusTileCards: React.FC<StatusTileCardsProps> = ({
                 color: item.color,
                 border: selectedKey === item.key ? `2px solid ${item.color}` : "1px solid #d0d5dd",
                 cursor: onCardClick ? "pointer" : "default",
-                background: selectedKey === item.key ? "rgba(19, 113, 91, 0.15)" : undefined,
+                background: selectedKey === item.key ? "rgba(146, 247, 224, 0.08)" : undefined,
                 ...cardSx,
               }}
               onClick={() => onCardClick?.(item.key)}

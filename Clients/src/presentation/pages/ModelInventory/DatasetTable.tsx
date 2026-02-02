@@ -258,7 +258,7 @@ const DatasetTable: React.FC<DatasetTableProps> = ({
 
   return (
     <TableContainer>
-      <Table sx={{ minWidth: 650 }}>
+      <Table sx={{ minWidth: 650, ...singleTheme.tableStyles.primary.frame }}>
         <TableHead
           sx={{
             backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors,

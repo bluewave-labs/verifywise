@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Box, Stack } from "@mui/material";
+import { Box, Stack, Fade } from "@mui/material";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
@@ -49,6 +49,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   // New state for filter + search
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   // GroupBy state
@@ -180,6 +181,18 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       });
     }
   }, []);
+
+  // Auto-dismiss info alert after 3 seconds with fade animation
+  useEffect(() => {
+    if (alert && alert.variant === 'info') {
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   const { users } = useUsers();
 
@@ -457,13 +470,20 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       )}
 
       {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
+        <Fade in={showAlert} timeout={300}>
+          <Box>
+            <Alert
+              variant={alert.variant}
+              title={alert.title}
+              body={alert.body}
+              isToast={true}
+              onClick={() => {
+                setShowAlert(false);
+                setTimeout(() => setAlert(null), 300);
+              }}
+            />
+          </Box>
+        </Fade>
       )}
     </Stack>
   );

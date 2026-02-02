@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Stack, Typography, LinearProgress } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { DASHBOARD_COLORS, TEXT_STYLES } from "../../styles/colors";
 
 const C = DASHBOARD_COLORS;
@@ -88,42 +88,20 @@ const ModuleProgressBar: React.FC<{ module: ModuleScore }> = ({ module }) => {
   const scoreColor = getScoreColor(module.score);
 
   return (
-    <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
-        <Typography sx={{ fontSize: 12, color: C.textSecondary }}>
-          {module.name}
-        </Typography>
-        <Stack direction="row" alignItems="center" gap={1}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: scoreColor }}>
-            {module.score}%
-          </Typography>
-          <Typography sx={{ fontSize: 10, color: C.textSecondary }}>
-            ({Math.round(module.weight * 100)}%)
-          </Typography>
-        </Stack>
-      </Stack>
-      <LinearProgress
-        variant="determinate"
-        value={module.score}
-        sx={{
-          height: 6,
-          borderRadius: 3,
-          backgroundColor: C.progressBackground,
-          "& .MuiLinearProgress-bar": {
-            backgroundColor: scoreColor,
-            borderRadius: 3,
-          },
-        }}
-      />
-    </Box>
+    <Stack direction="row" alignItems="center" gap={2}>
+      <Typography sx={{ fontSize: 12, color: C.textSecondary, whiteSpace: "nowrap" }}>
+        {module.name} {" "}
+        <span style={{ fontWeight: 600, color: scoreColor }}>{module.score}%</span>
+      </Typography>
+    </Stack>
   );
 };
 
 export const GovernanceScoreCard: React.FC<GovernanceScoreProps> = ({ score, modules }) => {
   return (
-    <Stack direction="row" alignItems="flex-start" justifyContent="space-between" gap={3}>
+    <Stack direction="row" alignItems="center" justifyContent="space-between" gap={2}>
       {/* Left side: Score gauge */}
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 1 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
         <ScoreGauge score={score} size={100} />
         <Typography sx={{ ...TEXT_STYLES.label, mt: 1, textAlign: "center" }}>
           Overall score
@@ -131,7 +109,7 @@ export const GovernanceScoreCard: React.FC<GovernanceScoreProps> = ({ score, mod
       </Box>
 
       {/* Right side: Module breakdown */}
-      <Stack gap={1.5} sx={{ flex: 1, minWidth: 0 }}>
+      <Stack gap={2} sx={{ minWidth: 0, alignItems: "flex-end" }}>
         {modules.map((module) => (
           <ModuleProgressBar key={module.name} module={module} />
         ))}

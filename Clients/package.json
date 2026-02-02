@@ -62,7 +62,7 @@
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "globals": "^17.3.0",
-    "jspdf": "^4.0.0",
+    "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
     "katex": "^0.16.27",
     "lucide-react": "^0.563.0",

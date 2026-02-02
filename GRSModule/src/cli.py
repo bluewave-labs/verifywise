@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
+import json
 
 from rich.console import Console
 
@@ -13,14 +14,13 @@ from io_utils.checksums import sha256_file
 from io_utils.jsonl import write_jsonl
 from reports.seed_report import build_seed_report
 
+from render.load_catalogs import load_render_inputs
+from render.renderer import render_base_scenarios, RenderConfig
+
 console = Console()
 
 
 def _cmd_generate(args: argparse.Namespace) -> int:
-    if args.stage != "seeds":
-        console.print(f"[red]Unsupported stage:[/red] {args.stage}")
-        return 2
-
     dataset_root = Path(args.out_dir) / args.dataset_version
     intermediate_dir = dataset_root / "intermediate"
     final_dir = dataset_root / "final"
@@ -31,44 +31,65 @@ def _cmd_generate(args: argparse.Namespace) -> int:
     manifest_path = final_dir / "manifest.json"
     report_path = final_dir / "sampling_report.json"
 
-    obligations_version, obligations = load_obligations_yaml(obligations_path)
-    export_obligations_jsonl(obligations_out, obligations)
+    if args.stage == "seeds":
+        obligations_version, obligations = load_obligations_yaml(obligations_path)
+        export_obligations_jsonl(obligations_out, obligations)
 
-    # Build and write report
-    report = build_seed_report(obligations_version=obligations_version, obligations=obligations)
-    report["generated_at"] = datetime.now(timezone.utc).isoformat()
-    report["dataset_version"] = args.dataset_version
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(__import__("json").dumps(report, indent=2) + "\n", encoding="utf-8")
+        report = build_seed_report(obligations_version=obligations_version, obligations=obligations)
+        report["generated_at"] = datetime.now(timezone.utc).isoformat()
+        report["dataset_version"] = args.dataset_version
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
-    # Build and write manifest
-    manifest = {
-        "dataset_version": args.dataset_version,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "stage": "seeds",
-        "inputs": {
-            "obligations_yaml": str(obligations_path),
-            "obligations_yaml_sha256": sha256_file(obligations_path),
-        },
-        "outputs": {
-            "behavioral_obligations_jsonl": str(obligations_out),
-            "behavioral_obligations_jsonl_sha256": sha256_file(obligations_out),
-            "sampling_report_json": str(report_path),
-            "sampling_report_json_sha256": sha256_file(report_path),
-        },
-        "counts": {
-            "obligations": len(obligations),
-        },
-    }
-    write_manifest(manifest_path, manifest)
+        manifest = {
+            "dataset_version": args.dataset_version,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "stage": "seeds",
+            "inputs": {
+                "obligations_yaml": str(obligations_path),
+                "obligations_yaml_sha256": sha256_file(obligations_path),
+            },
+            "outputs": {
+                "behavioral_obligations_jsonl": str(obligations_out),
+                "behavioral_obligations_jsonl_sha256": sha256_file(obligations_out),
+                "sampling_report_json": str(report_path),
+                "sampling_report_json_sha256": sha256_file(report_path),
+            },
+            "counts": {
+                "obligations": len(obligations),
+            },
+        }
+        write_manifest(manifest_path, manifest)
 
-    console.print("[bold green]Seed layer complete.[/bold green]")
-    console.print(f"- obligations_version: {obligations_version}")
-    console.print(f"- obligations_count: {len(obligations)}")
-    console.print(f"- wrote: {obligations_out}")
-    console.print(f"- wrote: {report_path}")
-    console.print(f"- wrote: {manifest_path}")
-    return 0
+        console.print("[bold green]Seed layer complete.[/bold green]")
+        console.print(f"- obligations_version: {obligations_version}")
+        console.print(f"- obligations_count: {len(obligations)}")
+        console.print(f"- wrote: {obligations_out}")
+        console.print(f"- wrote: {report_path}")
+        console.print(f"- wrote: {manifest_path}")
+        return 0
+
+    if args.stage == "render":
+        obligations_version, obligations = load_obligations_yaml(obligations_path)
+
+        inputs = load_render_inputs(config_dir=Path("configs"))
+        base_scenarios = render_base_scenarios(
+            obligations=obligations,
+            inputs=inputs,
+            cfg=RenderConfig(seed=int(args.seed), per_obligation=int(args.per_obligation)),
+        )
+
+        out_path = intermediate_dir / "base_scenarios.jsonl"
+        write_jsonl(out_path, base_scenarios)
+
+        console.print("[bold green]Render layer complete.[/bold green]")
+        console.print(f"- obligations_version: {obligations_version}")
+        console.print(f"- base_scenarios: {len(base_scenarios)}")
+        console.print(f"- wrote: {out_path}")
+        return 0
+
+    console.print(f"[red]Unsupported stage:[/red] {args.stage}")
+    return 2
 
 
 def main() -> None:
@@ -76,7 +97,9 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     gen = sub.add_parser("generate", help="Generate artifacts for the scenario pipeline")
-    gen.add_argument("--stage", choices=["seeds"], required=True)
+    gen.add_argument("--stage", choices=["seeds", "render"], required=True)
+    gen.add_argument("--seed", default="42")
+    gen.add_argument("--per-obligation", default="2")
     gen.add_argument("--dataset-version", default="grs_scenarios_v0.1")
     gen.add_argument("--obligations", default="configs/obligations.yaml")
     gen.add_argument("--out-dir", default="datasets")

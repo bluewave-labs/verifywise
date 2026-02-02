@@ -9,21 +9,21 @@ pyyaml==6.0.2
 
 # Machine learning and fairness
 scikit-learn==1.7.0
-fairlearn==0.12.0
+fairlearn==0.13.0
 langfair==0.8.0
 
 # Deep learning and transformers
 torch==2.10.0
 transformers==4.53.2
 sentence-transformers==2.7.0
-huggingface-hub==0.33.4
+huggingface-hub==1.3.5
 
 # Data handling
 datasets==4.5.0
 pyarrow==23.0.0
 
 # Utilities
-tqdm==4.67.1
+tqdm==4.67.2
 
 # Additional dependencies that may be needed
 pydantic-core==2.41.5

@@ -3,7 +3,11 @@ import StatusTileCards, { StatusTileItem } from "../../components/Cards/StatusTi
 import { ModelRiskLevel } from "../../../domain/interfaces/i.modelRisk";
 import { ModelRiskSummaryProps } from "../../../domain/interfaces/i.modelInventory";
 
-const ModelRiskSummary: React.FC<ModelRiskSummaryProps> = ({ modelRisks }) => {
+const ModelRiskSummary: React.FC<ModelRiskSummaryProps> = ({
+  modelRisks,
+  onCardClick,
+  selectedRiskLevel,
+}) => {
   const riskLevels = [
     { key: ModelRiskLevel.LOW, label: "Low", color: "#4CAF50" },
     { key: ModelRiskLevel.MEDIUM, label: "Medium", color: "#FF9800" },
@@ -11,14 +15,24 @@ const ModelRiskSummary: React.FC<ModelRiskSummaryProps> = ({ modelRisks }) => {
     { key: ModelRiskLevel.CRITICAL, label: "Critical", color: "#F44336" },
   ];
 
-  const items: StatusTileItem[] = riskLevels.map((level) => ({
-    key: level.key,
-    label: level.label,
-    count: modelRisks.filter((risk) => risk.risk_level === level.key).length,
-    color: level.color,
-  }));
+  const items: StatusTileItem[] = [
+    { key: "total", label: "Total", count: modelRisks.length, color: "#4B5563" },
+    ...riskLevels.map((level) => ({
+      key: level.key,
+      label: level.label,
+      count: modelRisks.filter((risk) => risk.risk_level === level.key).length,
+      color: level.color,
+    })),
+  ];
 
-  return <StatusTileCards items={items} entityName="risk" />;
+  return (
+    <StatusTileCards
+      items={items}
+      entityName="risk"
+      onCardClick={onCardClick}
+      selectedKey={selectedRiskLevel}
+    />
+  );
 };
 
 export default ModelRiskSummary;

@@ -92,6 +92,9 @@ const Tasks: React.FC = () => {
   // Admin toggle for "My Tasks" vs "Team Tasks"
   const [showMyTasksOnly, setShowMyTasksOnly] = useState(false);
 
+  // Card filter state for status filtering
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+
   // Tab state - persisted to localStorage
   const [activeTab, setActiveTab] = useState<string>(() => {
     const saved = localStorage.getItem("verifywise_tasks_view_tab");
@@ -278,9 +281,28 @@ const Tasks: React.FC = () => {
 
   // Apply FilterBy and search filtering
   const filteredTasks = useMemo(() => {
+    // Stage 1: Apply FilterBy conditions
     let result = filterTaskData(tasks);
 
-    // Apply search filter
+    // Stage 2: Apply card filter for status
+    if (selectedStatus) {
+      result = result.filter((task) => {
+        switch (selectedStatus) {
+          case 'open':
+            return task.status === 'Open';
+          case 'inProgress':
+            return task.status === TaskStatus.IN_PROGRESS;
+          case 'completed':
+            return task.status === 'Completed';
+          case 'overdue':
+            return task.isOverdue === true;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Stage 3: Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter((task) =>
@@ -288,7 +310,7 @@ const Tasks: React.FC = () => {
       );
     }
 
-    // Apply "My Tasks" filter for Admin users
+    // Stage 4: Apply "My Tasks" filter for Admin users
     if (userRoleName === "Admin" && showMyTasksOnly && userId) {
       result = result.filter(
         (task) =>
@@ -298,7 +320,7 @@ const Tasks: React.FC = () => {
     }
 
     return result;
-  }, [filterTaskData, tasks, searchQuery, userRoleName, showMyTasksOnly, userId]);
+  }, [filterTaskData, tasks, selectedStatus, searchQuery, userRoleName, showMyTasksOnly, userId]);
 
   const handleCreateTask = () => {
     if (isCreatingDisabled) {
@@ -517,6 +539,28 @@ const Tasks: React.FC = () => {
     }
   };
 
+  // Handle status card click for filtering
+  const handleStatusCardClick = useCallback((statusKey: string) => {
+    if (statusKey === 'total' || selectedStatus === statusKey) {
+      setSelectedStatus(null);
+      setAlert(null);
+    } else {
+      setSelectedStatus(statusKey);
+      const labelMap: Record<string, string> = {
+        open: 'Open',
+        inProgress: 'In Progress',
+        completed: 'Completed',
+        overdue: 'Overdue',
+      };
+      setAlert({
+        variant: 'info',
+        title: `Filtering by ${labelMap[statusKey]} tasks`,
+        body: 'Click the card again or click Total to see all tasks.',
+      });
+      setTimeout(() => setAlert(null), 5000);
+    }
+  }, [selectedStatus]);
+
   // Define how to get the group key for each task
   const getTaskGroupKey = (
     task: TaskModel,
@@ -642,7 +686,11 @@ const Tasks: React.FC = () => {
 
       {/* Summary Cards */}
       <Box data-joyride-id="task-summary-cards">
-        <TaskSummaryCards summary={summary} />
+        <TaskSummaryCards
+          summary={summary}
+          onCardClick={handleStatusCardClick}
+          selectedStatus={selectedStatus}
+        />
       </Box>
 
       {/* Tab Navigation */}

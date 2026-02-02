@@ -49,6 +49,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   // New state for filter + search
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -165,6 +166,21 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     setLinkedObjectsModalOpen(false);
   };
 
+  // Handle policy card click to filter by status
+  const handleStatusCardClick = useCallback((status: string) => {
+    if (!status || status === "total") {
+      setSelectedStatus(null);
+      setAlert(null);
+    } else {
+      setSelectedStatus(status);
+      setAlert({
+        variant: "info",
+        title: `Filtering by ${status} status`,
+        body: "Click the card again or click Total to see all policies.",
+      });
+    }
+  }, []);
+
   const { users } = useUsers();
 
   // FilterBy - Dynamic options generators
@@ -243,6 +259,11 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const filteredPolicies = useMemo(() => {
     let result = filterPolicyData(policies);
 
+    // Apply card filter for status
+    if (selectedStatus) {
+      result = result.filter((p) => p.status === selectedStatus);
+    }
+
     // Apply search filter
     if (searchTerm.trim()) {
       const query = searchTerm.toLowerCase();
@@ -252,7 +273,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     }
 
     return result;
-  }, [filterPolicyData, policies, searchTerm]);
+  }, [filterPolicyData, policies, selectedStatus, searchTerm]);
 
   // Define how to get the group key for each policy
   const getPolicyGroupKey = useCallback((policy: PolicyManagerModel, field: string): string => {
@@ -316,7 +337,11 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     <Stack className="vwhome" gap={"16px"}>
       {/* Policy by Status Cards */}
       <Box data-joyride-id="policy-status-cards">
-        <PolicyStatusCard policies={policies} />
+        <PolicyStatusCard
+          policies={policies}
+          onCardClick={handleStatusCardClick}
+          selectedStatus={selectedStatus}
+        />
       </Box>
 
       {/* Filter + Search + Add Button row */}

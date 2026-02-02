@@ -34,6 +34,8 @@ export interface PolicyTableProps {
  */
 export interface PolicyStatusCardProps {
   policies: PolicyManagerModel[];
+  onCardClick?: (status: string) => void;
+  selectedStatus?: string | null;
 }
 
 /**

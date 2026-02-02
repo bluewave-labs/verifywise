@@ -28,61 +28,17 @@ import {
   DatasetType,
   DataClassification,
 } from "../../../../domain/enums/dataset.enum";
+import {
+  NewDatasetFormValues,
+  NewDatasetFormErrors,
+  NewDatasetProps,
+} from "../../../../domain/interfaces/i.dataset";
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import { Project } from "../../../../domain/types/Project";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
-import { IModelInventory } from "../../../../domain/interfaces/i.modelInventory";
-
-dayjs.extend(utc);
-
-interface NewDatasetFormValues {
-  name: string;
-  description: string;
-  version: string;
-  owner: string;
-  type: DatasetType;
-  function: string;
-  source: string;
-  license: string;
-  format: string;
-  classification: DataClassification;
-  contains_pii: boolean;
-  pii_types: string;
-  status: DatasetStatus;
-  status_date: string;
-  known_biases: string;
-  bias_mitigation: string;
-  collection_method: string;
-  preprocessing_steps: string;
-  models: number[];
-  projects: number[];
-}
-
-interface NewDatasetFormErrors {
-  name?: string;
-  description?: string;
-  version?: string;
-  owner?: string;
-  type?: string;
-  function?: string;
-  source?: string;
-  classification?: string;
-  status?: string;
-  status_date?: string;
-}
-
-interface NewDatasetProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: (data: NewDatasetFormValues) => void;
-  onError?: (error: any) => void;
-  initialData?: NewDatasetFormValues;
-  isEdit?: boolean;
-  modelInventoryData?: IModelInventory[];
-}
 
 const initialState: NewDatasetFormValues = {
   name: "",

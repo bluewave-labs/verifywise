@@ -3,6 +3,7 @@ import {
   DatasetType,
   DataClassification,
 } from "../enums/dataset.enum";
+import { IModelInventory } from "./i.modelInventory";
 
 export interface IDataset {
   id?: number;
@@ -70,4 +71,50 @@ export interface DatasetChangeHistory {
   changed_by_user_id?: number;
   changed_by_name?: string;
   changed_at: Date | string;
+}
+
+export interface NewDatasetFormValues {
+  name: string;
+  description: string;
+  version: string;
+  owner: string;
+  type: DatasetType;
+  function: string;
+  source: string;
+  license: string;
+  format: string;
+  classification: DataClassification;
+  contains_pii: boolean;
+  pii_types: string;
+  status: DatasetStatus;
+  status_date: string;
+  known_biases: string;
+  bias_mitigation: string;
+  collection_method: string;
+  preprocessing_steps: string;
+  models: number[];
+  projects: number[];
+}
+
+export interface NewDatasetFormErrors {
+  name?: string;
+  description?: string;
+  version?: string;
+  owner?: string;
+  type?: string;
+  function?: string;
+  source?: string;
+  classification?: string;
+  status?: string;
+  status_date?: string;
+}
+
+export interface NewDatasetProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  onSuccess?: (data: NewDatasetFormValues) => void;
+  onError?: (error: unknown) => void;
+  initialData?: NewDatasetFormValues;
+  isEdit?: boolean;
+  modelInventoryData?: IModelInventory[];
 }

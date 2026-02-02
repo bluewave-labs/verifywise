@@ -18,6 +18,7 @@ def apply_mutations(
     catalog: MutationCatalog,
     seed: int,
     k_per_base: int,
+    coverage: str = "random",  # "random" | "per_family"
 ) -> List[Dict[str, Any]]:
     rng = random.Random(seed)
 
@@ -30,7 +31,23 @@ def apply_mutations(
         if not specs:
             continue
 
-        chosen = [specs[rng.randrange(0, len(specs))] for _ in range(k_per_base)]
+        if coverage == "per_family":
+            # pick at most one mutation per family, shuffle deterministically
+            by_family: dict[str, list[MutationSpec]] = {}
+            for s in specs:
+                by_family.setdefault(s.family, []).append(s)
+
+            families = list(by_family.keys())
+            rng.shuffle(families)
+
+            chosen: list[MutationSpec] = []
+            for fam in families:
+                pool = by_family[fam]
+                chosen.append(pool[rng.randrange(0, len(pool))])
+                if len(chosen) >= k_per_base:
+                    break
+        else:
+            chosen = [specs[rng.randrange(0, len(specs))] for _ in range(k_per_base)]
 
         for spec in chosen:
             cand_id += 1

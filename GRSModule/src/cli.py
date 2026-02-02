@@ -14,6 +14,7 @@ from io_utils.checksums import sha256_file
 from io_utils.jsonl import write_jsonl, read_jsonl
 from reports.seed_report import build_seed_report
 from reports.render_report import build_render_report
+from reports.perturb_report import build_perturb_report
 
 from render.load_catalogs import load_render_inputs
 from render.renderer import render_base_scenarios, RenderConfig
@@ -21,7 +22,6 @@ from render.dedup import prompt_hash
 
 from perturb.load_catalog import load_mutation_catalog
 from perturb.perturbator import apply_mutations
-
 
 import json
 
@@ -166,15 +166,57 @@ def _cmd_generate(args: argparse.Namespace) -> int:
             catalog=catalog,
             seed=int(args.seed),
             k_per_base=int(args.k_per_base),
+            coverage=args.coverage,
         )
 
         out_path = intermediate_dir / "mutated_candidates.jsonl"
         write_jsonl(out_path, mutated)
 
+        # Report
+        report = build_perturb_report(
+            mutation_catalog_version=catalog.version,
+            mutated_candidates=mutated,
+        )
+        report["generated_at"] = datetime.now(timezone.utc).isoformat()
+        report["dataset_version"] = args.dataset_version
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+        # Manifest
+        manifest = {
+            "dataset_version": args.dataset_version,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "stage": "perturb",
+            "inputs": {
+                "base_scenarios_deduped_jsonl": str(base_in),
+                "base_scenarios_deduped_jsonl_sha256": sha256_file(base_in),
+                "mutations_yaml": str(Path(args.mutations)),
+                "mutations_yaml_sha256": sha256_file(Path(args.mutations)),
+                "seed": int(args.seed),
+                "k_per_base": int(args.k_per_base),
+                "coverage": args.coverage,
+            },
+            "outputs": {
+                "mutated_candidates_jsonl": str(out_path),
+                "mutated_candidates_jsonl_sha256": sha256_file(out_path),
+                "sampling_report_json": str(report_path),
+                "sampling_report_json_sha256": sha256_file(report_path),
+            },
+            "counts": {
+                "base_scenarios_in": len(base_scenarios),
+                "mutated_candidates": len(mutated),
+            },
+        }
+        write_manifest(manifest_path, manifest)
+
         console.print("[bold green]Perturbation layer complete.[/bold green]")
         console.print(f"- base_scenarios_in: {len(base_scenarios)}")
         console.print(f"- mutated_candidates: {len(mutated)}")
+        console.print(f"- coverage: {args.coverage}")
         console.print(f"- wrote: {out_path}")
+        console.print(f"- wrote: {report_path}")
+        console.print(f"- wrote: {manifest_path}")
+
         return 0
 
 
@@ -192,6 +234,7 @@ def main() -> None:
     gen.add_argument("--per-obligation", default="2")
     gen.add_argument("--mutations", default="configs/mutations.yaml")
     gen.add_argument("--k-per-base", default="3")
+    gen.add_argument("--coverage", choices=["random", "per_family"], default="random")
     gen.add_argument("--dataset-version", default="grs_scenarios_v0.1")
     gen.add_argument("--obligations", default="configs/obligations.yaml")
     gen.add_argument("--out-dir", default="datasets")

@@ -23,7 +23,7 @@ datasets==4.5.0
 pyarrow==23.0.0
 
 # Utilities
-tqdm==4.67.1
+tqdm==4.67.2
 
 # Additional dependencies that may be needed
 pydantic-core==2.41.5

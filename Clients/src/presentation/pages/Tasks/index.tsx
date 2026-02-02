@@ -7,7 +7,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography, Fade } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
 import { useSearchParams } from "react-router-dom";
 import { CirclePlus as AddCircleIcon, Flag } from "lucide-react";
@@ -85,6 +85,7 @@ const Tasks: React.FC = () => {
     title: string;
     body?: string;
   } | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
 
   // Flash indicator state for updated rows
   const [flashRowId, setFlashRowId] = useState<number | null>(null);
@@ -544,6 +545,7 @@ const Tasks: React.FC = () => {
     if (statusKey === 'total' || selectedStatus === statusKey) {
       setSelectedStatus(null);
       setAlert(null);
+      setShowAlert(false);
     } else {
       setSelectedStatus(statusKey);
       const labelMap: Record<string, string> = {
@@ -557,9 +559,20 @@ const Tasks: React.FC = () => {
         title: `Filtering by ${labelMap[statusKey]} tasks`,
         body: 'Click the card again or click Total to see all tasks.',
       });
-      setTimeout(() => setAlert(null), 5000);
     }
   }, [selectedStatus]);
+
+  // Auto-dismiss info alert after 3 seconds with fade animation
+  useEffect(() => {
+    if (alert && alert.variant === 'info') {
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   // Define how to get the group key for each task
   const getTaskGroupKey = (
@@ -922,13 +935,20 @@ const Tasks: React.FC = () => {
 
       {/* Notification Toast */}
       {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body || ""}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
+        <Fade in={showAlert} timeout={300}>
+          <Box sx={{ position: 'fixed' }}>
+            <Alert
+              variant={alert.variant}
+              title={alert.title}
+              body={alert.body || ""}
+              isToast={true}
+              onClick={() => {
+                setShowAlert(false);
+                setTimeout(() => setAlert(null), 300);
+              }}
+            />
+          </Box>
+        </Fade>
       )}
 
       {/* Page Tour */}

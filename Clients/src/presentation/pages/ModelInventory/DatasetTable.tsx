@@ -364,8 +364,19 @@ const DatasetTable: React.FC<DatasetTableProps> = ({
         </TableBody>
         {paginated && !hidePagination && (
           <TableFooter>
-            <TableRow sx={tableFooterRowStyle(theme)}>
-              <TableCell colSpan={4} sx={showingTextCellStyle(theme)}>
+            <TableRow
+              sx={{
+                ...tableFooterRowStyle(theme),
+                borderTop: "1px solid #d0d5dd",
+              }}
+            >
+              <TableCell
+                colSpan={4}
+                sx={{
+                  ...showingTextCellStyle(theme),
+                  borderBottom: "none",
+                }}
+              >
                 Showing {paginatedData.length} of {data.length} datasets
               </TableCell>
               <TableCell colSpan={6} align="right" sx={{ borderBottom: "none" }}>

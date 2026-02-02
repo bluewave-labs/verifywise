@@ -10,7 +10,6 @@ vi.mock("../../constants/fileManager", () => ({
 import {
   getFileErrorMessage,
   isFileMissingError,
-  isPermissionError,
 } from "../fileErrorHandler.utils";
 
 describe("fileErrorHandler.utils", () => {
@@ -136,23 +135,4 @@ describe("fileErrorHandler.utils", () => {
     });
   });
 
-  describe("isPermissionError", () => {
-    it("returns true for statusCode 403", () => {
-      expect(isPermissionError({ statusCode: 403 })).toBe(true);
-    });
-
-    it('returns true when message includes "permission"', () => {
-      expect(isPermissionError({ message: "permission missing" })).toBe(true);
-    });
-
-    it('returns true when message includes "denied"', () => {
-      expect(isPermissionError({ message: "denied" })).toBe(true);
-    });
-
-    it("returns false when none match", () => {
-      expect(isPermissionError({ statusCode: 401, message: "unauthorized" })).toBe(false);
-      expect(isPermissionError(undefined as any)).toBeUndefined();
-
-    });
-  });
 });

@@ -109,17 +109,3 @@ export const isFileMissingError = (error: any): boolean => {
         error?.message?.includes("deleted")
     );
 };
-
-/**
- * Checks if an error indicates a permission issue
- *
- * @param {any} error - The error object
- * @returns {boolean} True if permission denied
- */
-export const isPermissionError = (error: any): boolean => {
-    return (
-        error?.statusCode === 403 ||
-        error?.message?.includes("permission") ||
-        error?.message?.includes("denied")
-    );
-};

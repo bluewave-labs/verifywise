@@ -11,13 +11,17 @@ from seeds.load import load_obligations_yaml
 from seeds.export import export_obligations_jsonl
 from io_utils.manifest import write_manifest
 from io_utils.checksums import sha256_file
-from io_utils.jsonl import write_jsonl
+from io_utils.jsonl import write_jsonl, read_jsonl
 from reports.seed_report import build_seed_report
 from reports.render_report import build_render_report
 
 from render.load_catalogs import load_render_inputs
 from render.renderer import render_base_scenarios, RenderConfig
 from render.dedup import prompt_hash
+
+from perturb.load_catalog import load_mutation_catalog
+from perturb.perturbator import apply_mutations
+
 
 import json
 
@@ -147,6 +151,33 @@ def _cmd_generate(args: argparse.Namespace) -> int:
 
         return 0
 
+    if args.stage == "perturb":
+        # read deduped base scenarios
+        base_in = intermediate_dir / "base_scenarios_deduped.jsonl"
+        if not base_in.exists():
+            console.print(f"[red]Missing input:[/red] {base_in} (run --stage render first)")
+            return 2
+
+        base_scenarios = list(read_jsonl(base_in))
+        catalog = load_mutation_catalog(Path(args.mutations))
+
+        mutated = apply_mutations(
+            base_scenarios=base_scenarios,
+            catalog=catalog,
+            seed=int(args.seed),
+            k_per_base=int(args.k_per_base),
+        )
+
+        out_path = intermediate_dir / "mutated_candidates.jsonl"
+        write_jsonl(out_path, mutated)
+
+        console.print("[bold green]Perturbation layer complete.[/bold green]")
+        console.print(f"- base_scenarios_in: {len(base_scenarios)}")
+        console.print(f"- mutated_candidates: {len(mutated)}")
+        console.print(f"- wrote: {out_path}")
+        return 0
+
+
     console.print(f"[red]Unsupported stage:[/red] {args.stage}")
     return 2
 
@@ -156,9 +187,11 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     gen = sub.add_parser("generate", help="Generate artifacts for the scenario pipeline")
-    gen.add_argument("--stage", choices=["seeds", "render"], required=True)
+    gen.add_argument("--stage", choices=["seeds", "render", "perturb"], required=True)
     gen.add_argument("--seed", default="42")
     gen.add_argument("--per-obligation", default="2")
+    gen.add_argument("--mutations", default="configs/mutations.yaml")
+    gen.add_argument("--k-per-base", default="3")
     gen.add_argument("--dataset-version", default="grs_scenarios_v0.1")
     gen.add_argument("--obligations", default="configs/obligations.yaml")
     gen.add_argument("--out-dir", default="datasets")

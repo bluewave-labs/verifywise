@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from seeds.index import ObligationIndex
+from validate.signals import compute_risk_and_reasons, compute_governance_triggers
 
 
 def enrich_with_obligations(
@@ -38,6 +39,27 @@ def enrich_with_obligations(
                 "excerpt_id": obl.source.excerpt_id,
             }
         ]
+
+        # Overwrite risk fields (Option A)
+        risk_level, risk_reasons = compute_risk_and_reasons(
+            domain=s.get("domain", "unknown"),
+            obligation=obl,
+            prompt=s.get("prompt", ""),
+        )
+        s["risk_level"] = risk_level
+        s["risk_reasons"] = risk_reasons
+
+        # Overwrite triggers (Option A)
+        mut_family = None
+        muts = (s.get("mutation_trace") or {}).get("mutations", [])
+        if isinstance(muts, list) and muts:
+            mut_family = muts[0].get("family")
+
+        s["governance_triggers"] = compute_governance_triggers(
+            mutation_family=mut_family,
+            obligation=obl,
+            prompt=s.get("prompt", ""),
+        )
 
         # Optionally inject constraints into the prompt (for candidate LLM and/or judge context)
         if inject_constraints_into_prompt:

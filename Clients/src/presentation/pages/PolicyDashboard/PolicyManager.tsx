@@ -192,6 +192,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   const { users } = useUsers();

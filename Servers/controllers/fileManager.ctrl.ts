@@ -20,9 +20,16 @@ import {
   uploadOrganizationFile,
   getFileById,
   getOrganizationFiles,
+  getOrganizationFilesWithMetadata,
   logFileAccess,
   deleteFileById,
+  updateFileMetadata,
+  getFileWithMetadata,
+  getHighlightedFiles,
+  getFilePreview,
   FileSource,
+  UpdateFileMetadataInput,
+  ReviewStatus,
 } from "../repositories/file.repository";
 import {
   validateFileUpload,
@@ -624,6 +631,445 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
       eventType: "Error",
       description: "Failed to delete file",
       functionName: "removeFile",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get file with full metadata
+ *
+ * GET /file-manager/:id/metadata
+ *
+ * @param {Request} req - Express request with file ID in params
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} File metadata including tags, status, version, etc.
+ */
+export const getFileMetadata = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+
+  if (!Number.isSafeInteger(fileId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { orgId, tenant } = auth;
+
+  logProcessing({
+    description: `Getting metadata for file ID ${fileId}`,
+    functionName: "getFileMetadata",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const file = await getFileWithMetadata(fileId, tenant);
+
+    if (!file) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    // Verify organization access
+    if (Number(file.org_id) !== orgId) {
+      return res.status(403).json(STATUS_CODE[403]("Access denied"));
+    }
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved metadata for file: ${file.filename}`,
+      functionName: "getFileMetadata",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](file));
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to get file metadata",
+      functionName: "getFileMetadata",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Update file metadata
+ *
+ * PATCH /file-manager/:id/metadata
+ *
+ * @param {Request} req - Express request with file ID in params and metadata in body
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} Updated file metadata
+ */
+export const updateMetadata = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+
+  if (!Number.isSafeInteger(fileId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { userId, orgId, tenant } = auth;
+
+  // Defense-in-depth: Verify user has edit permission
+  if (!hasPermission(req, "update:file-metadata", ["Admin", "Reviewer", "Editor"])) {
+    return res
+      .status(403)
+      .json(STATUS_CODE[403]("Insufficient permissions to update file metadata"));
+  }
+
+  logProcessing({
+    description: `Updating metadata for file ID ${fileId}`,
+    functionName: "updateMetadata",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    // Get current file to verify access
+    const currentFile = await getFileById(fileId, tenant);
+
+    if (!currentFile) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    // Verify organization access
+    if (Number(currentFile.org_id) !== orgId) {
+      return res.status(403).json(STATUS_CODE[403]("Access denied"));
+    }
+
+    // Validate input
+    const { tags, review_status, version, expiry_date, description } = req.body;
+
+    // Validate review_status if provided
+    const validStatuses: ReviewStatus[] = ['draft', 'pending_review', 'approved', 'rejected', 'expired'];
+    if (review_status && !validStatuses.includes(review_status)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid review status"));
+    }
+
+    // Validate version format if provided (semver-like: X.Y or X.Y.Z)
+    if (version && !/^[0-9]+\.[0-9]+(\.[0-9]+)?$/.test(version)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid version format. Use X.Y or X.Y.Z"));
+    }
+
+    // Validate tags is an array if provided
+    if (tags && !Array.isArray(tags)) {
+      return res.status(400).json(STATUS_CODE[400]("Tags must be an array"));
+    }
+
+    // Validate expiry_date format if provided
+    if (expiry_date && !/^\d{4}-\d{2}-\d{2}$/.test(expiry_date)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid date format. Use YYYY-MM-DD"));
+    }
+
+    const updates: UpdateFileMetadataInput = {
+      last_modified_by: userId,
+    };
+
+    if (tags !== undefined) updates.tags = tags;
+    if (review_status !== undefined) updates.review_status = review_status;
+    if (version !== undefined) updates.version = version;
+    if (expiry_date !== undefined) updates.expiry_date = expiry_date;
+    if (description !== undefined) updates.description = description;
+
+    const updatedFile = await updateFileMetadata(fileId, updates, tenant);
+
+    if (!updatedFile) {
+      return res.status(404).json(STATUS_CODE[404]("File not found after update"));
+    }
+
+    await logSuccess({
+      eventType: "Update",
+      description: `Updated metadata for file: ${currentFile.filename}`,
+      functionName: "updateMetadata",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](updatedFile));
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to update file metadata",
+      functionName: "updateMetadata",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get list of files with full metadata
+ *
+ * GET /file-manager/with-metadata
+ *
+ * Query parameters:
+ * - page: Page number (optional)
+ * - pageSize: Items per page (optional)
+ *
+ * @param {Request} req - Express request
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} List of files with full metadata
+ */
+export const listFilesWithMetadata = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { orgId, tenant } = auth;
+
+  const page = req.query.page ? Number(Array.isArray(req.query.page) ? req.query.page[0] : req.query.page) : undefined;
+  const pageSize = req.query.pageSize ? Number(Array.isArray(req.query.pageSize) ? req.query.pageSize[0] : req.query.pageSize) : undefined;
+
+  logProcessing({
+    description: `Retrieving files with metadata for organization ${orgId}`,
+    functionName: "listFilesWithMetadata",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const validPage = page && page > 0 ? page : undefined;
+    const validPageSize = pageSize && pageSize > 0 ? pageSize : undefined;
+    const offset =
+      validPage !== undefined && validPageSize !== undefined
+        ? (validPage - 1) * validPageSize
+        : undefined;
+
+    const { files, total } = await getOrganizationFilesWithMetadata(orgId, tenant, {
+      limit: validPageSize,
+      offset,
+    });
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved ${files.length} files with metadata for organization ${orgId}`,
+      functionName: "listFilesWithMetadata",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        files,
+        pagination: {
+          total,
+          page: validPage,
+          pageSize: validPageSize,
+          totalPages: validPageSize ? Math.ceil(total / validPageSize) : 1,
+        },
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to retrieve files with metadata",
+      functionName: "listFilesWithMetadata",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get highlighted files (due for update, pending approval, recently modified)
+ *
+ * GET /file-manager/highlighted
+ *
+ * Query parameters:
+ * - daysUntilExpiry: Days before expiry to flag (default 30)
+ * - recentDays: Days to consider as recent (default 7)
+ *
+ * @param {Request} req - Express request
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} Categorized file IDs
+ */
+export const getHighlighted = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { orgId, tenant } = auth;
+
+  const daysUntilExpiry = req.query.daysUntilExpiry
+    ? Number(Array.isArray(req.query.daysUntilExpiry) ? req.query.daysUntilExpiry[0] : req.query.daysUntilExpiry)
+    : 30;
+  const recentDays = req.query.recentDays
+    ? Number(Array.isArray(req.query.recentDays) ? req.query.recentDays[0] : req.query.recentDays)
+    : 7;
+
+  logProcessing({
+    description: `Getting highlighted files for organization ${orgId}`,
+    functionName: "getHighlighted",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const highlighted = await getHighlightedFiles(orgId, tenant, daysUntilExpiry, recentDays);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved highlighted files for organization ${orgId}`,
+      functionName: "getHighlighted",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](highlighted));
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to get highlighted files",
+      functionName: "getHighlighted",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get file preview content
+ *
+ * GET /file-manager/:id/preview
+ *
+ * @param {Request} req - Express request with file ID in params
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} File content for preview or error if too large
+ */
+export const previewFile = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+
+  if (!Number.isSafeInteger(fileId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { userId, orgId, tenant } = auth;
+
+  logProcessing({
+    description: `Getting preview for file ID ${fileId}`,
+    functionName: "previewFile",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    // First check file access
+    const fileMeta = await getFileById(fileId, tenant);
+
+    if (!fileMeta) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    // Verify organization access
+    if (Number(fileMeta.org_id) !== orgId) {
+      return res.status(403).json(STATUS_CODE[403]("Access denied"));
+    }
+
+    // Get preview content
+    const preview = await getFilePreview(fileId, tenant);
+
+    if (!preview) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    if (!preview.canPreview) {
+      return res.status(413).json(STATUS_CODE[400]("File too large for preview"));
+    }
+
+    // Log file access for preview
+    try {
+      await logFileAccess(fileId, userId, orgId, "view", tenant);
+    } catch (error) {
+      console.error("Failed to log file access:", error);
+    }
+
+    // Set headers for inline display
+    res.setHeader("Content-Type", preview.mimetype || "application/octet-stream");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${preview.filename}"`
+    );
+    res.setHeader("Content-Length", preview.content.length);
+
+    res.send(preview.content);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Preview served for file: ${preview.filename}`,
+      functionName: "previewFile",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to get file preview",
+      functionName: "previewFile",
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
       userId: req.userId!,

@@ -31,6 +31,8 @@ export type FileSource =
   | "policy_editor"
   | "Post-Market Monitoring report";
 
+export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired';
+
 export interface File {
   filename: string;
   content: Buffer;
@@ -42,6 +44,13 @@ export interface File {
   org_id?: number;
   model_id?: number;
   source: FileSource;
+  // New metadata fields
+  tags?: string[];
+  review_status?: ReviewStatus;
+  version?: string;
+  expiry_date?: Date;
+  last_modified_by?: number;
+  description?: string;
 }
 
 export interface FileType {
@@ -56,6 +65,13 @@ export interface FileType {
   org_id?: number;
   model_id?: number;
   source: FileSource;
+  // New metadata fields
+  tags?: string[];
+  review_status?: ReviewStatus;
+  version?: string;
+  expiry_date?: Date;
+  last_modified_by?: number;
+  description?: string;
 }
 
 export interface FileList extends FileType {
@@ -63,6 +79,10 @@ export interface FileList extends FileType {
   parent_id?: number; // Could be topic_id for assessment, control_id for control
   sub_id?: number; // Could be subtopic_id for assessment (intermediate ids)
   meta_id?: number; // Could be question_id for assessment, sub_control_id for control
+  // For file manager views
+  uploader_name?: string;
+  last_modifier_name?: string;
+  folder_ids?: number[];
 }
 
 @Table({
@@ -167,6 +187,46 @@ export class FileModel extends Model<File> {
     defaultValue: false,
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    defaultValue: [],
+  })
+  tags?: string[];
+
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: true,
+    defaultValue: 'draft',
+  })
+  review_status?: ReviewStatus;
+
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: true,
+    defaultValue: '1.0',
+  })
+  version?: string;
+
+  @Column({
+    type: DataType.DATEONLY,
+    allowNull: true,
+  })
+  expiry_date?: Date;
+
+  @ForeignKey(() => UserModel)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  last_modified_by?: number;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+  })
+  description?: string;
 
   @Column({
     type: DataType.DATE,

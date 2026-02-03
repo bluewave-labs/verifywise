@@ -5,6 +5,7 @@ import React, {
   lazy,
   Suspense,
   useEffect,
+  type JSX,
 } from "react";
 import {
   Box,

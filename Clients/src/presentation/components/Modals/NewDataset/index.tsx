@@ -34,7 +34,6 @@ import {
   NewDatasetProps,
 } from "../../../../domain/interfaces/i.dataset";
 import dayjs, { Dayjs } from "dayjs";
-import utc from "dayjs/plugin/utc";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import { Project } from "../../../../domain/types/Project";

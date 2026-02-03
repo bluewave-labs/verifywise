@@ -83,7 +83,7 @@ export class RiskCalculator {
 
   private static mapRiskLevel(score: number): RiskLevel {
     if (score <= 4) {
-      return { level: "Very low risk", color: RISK_LABELS.noRisk.color };
+      return { level: "No risk", color: RISK_LABELS.noRisk.color };
     } else if (score <= 8) {
       return { level: "Low risk", color: RISK_LABELS.low.color };
     } else if (score <= 12) {

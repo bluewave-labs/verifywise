@@ -2,28 +2,18 @@
  * @fileoverview AI Dependency Graph Styles
  *
  * Styles for the AI Dependency Graph visualization component.
+ * Note: These styles use semantic color tokens that should map to theme values
+ * when the theme is available. For static styles, we use CSS-compatible values.
  */
 
 import type { CSSProperties } from "react";
 import { SxProps, Theme } from "@mui/material";
 
-// Design system colors
-const COLORS = {
-  primary: "#13715B",
-  primaryLight: "#f0fdf4",
-  border: "#d0d5dd",
-  borderLight: "#e5e7eb",
-  textPrimary: "#344054",
-  textSecondary: "#667085",
-  textTertiary: "#9ca3af",
-  background: "#fafafa",
-} as const;
-
-// Container styles
+// Container styles - uses theme-compatible neutral background
 export const graphContainerStyle: CSSProperties = {
   width: "100%",
   height: "100%",
-  backgroundColor: COLORS.background,
+  backgroundColor: "#fafafa", // theme.palette.grey[50] equivalent
 };
 
 // Loading state styles
@@ -37,8 +27,8 @@ export const loadingContainerSx: SxProps<Theme> = {
 };
 
 export const loadingTextSx: SxProps<Theme> = {
-  fontSize: 14,
-  color: COLORS.textSecondary,
+  fontSize: (theme) => theme.typography.body2.fontSize,
+  color: "text.secondary",
 };
 
 // Error state styles
@@ -53,8 +43,8 @@ export const errorContainerSx: SxProps<Theme> = {
 };
 
 export const errorTextSx: SxProps<Theme> = {
-  fontSize: 14,
-  color: "#ef4444",
+  fontSize: (theme) => theme.typography.body2.fontSize,
+  color: "error.main",
   textAlign: "center",
 };
 
@@ -66,38 +56,39 @@ export const emptyStateContainerSx: SxProps<Theme> = {
   alignItems: "center",
   height: "100%",
   gap: 2,
-  backgroundColor: COLORS.background,
+  bgcolor: "grey.50",
 };
 
 export const emptyStateTitleSx: SxProps<Theme> = {
-  fontSize: 16,
+  fontSize: (theme) => theme.typography.body1.fontSize,
   fontWeight: 600,
-  color: COLORS.textPrimary,
+  color: "text.primary",
 };
 
 export const emptyStateDescriptionSx: SxProps<Theme> = {
-  fontSize: 13,
-  color: COLORS.textSecondary,
+  fontSize: (theme) => theme.typography.body2.fontSize,
+  color: "text.secondary",
   textAlign: "center",
   maxWidth: 300,
 };
 
 // Control panel styles
 export const controlPanelSx: SxProps<Theme> = {
-  gap: "8px",
-  p: "12px",
-  backgroundColor: "white",
-  borderRadius: "4px",
-  border: `1px solid ${COLORS.border}`,
-  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+  gap: 1,
+  p: 1.5,
+  bgcolor: "common.white",
+  borderRadius: 1,
+  border: 1,
+  borderColor: "divider",
+  boxShadow: 1,
   minWidth: 240,
   maxWidth: 280,
 };
 
 export const legendLabelSx: SxProps<Theme> = {
-  fontSize: 11,
+  fontSize: (theme) => theme.typography.caption.fontSize,
   fontWeight: 600,
-  color: COLORS.textSecondary,
+  color: "text.secondary",
   mb: 1,
 };
 
@@ -117,18 +108,19 @@ export const colorDotSx = (color: string): SxProps<Theme> => ({
 });
 
 export const legendTextSx: SxProps<Theme> = {
-  fontSize: 11,
-  color: COLORS.textPrimary,
+  fontSize: (theme) => theme.typography.caption.fontSize,
+  color: "text.primary",
 };
 
 export const statsContainerSx: SxProps<Theme> = {
-  pt: "8px",
-  borderTop: `1px solid ${COLORS.borderLight}`,
+  pt: 1,
+  borderTop: 1,
+  borderColor: "divider",
 };
 
 export const statsTextSx: SxProps<Theme> = {
-  fontSize: 11,
-  color: COLORS.textSecondary,
+  fontSize: (theme) => theme.typography.caption.fontSize,
+  color: "text.secondary",
 };
 
 // Sidebar styles
@@ -138,9 +130,10 @@ export const sidebarContainerSx: SxProps<Theme> = {
   top: 0,
   bottom: 0,
   width: 320,
-  backgroundColor: "white",
-  borderLeft: `1px solid ${COLORS.border}`,
-  boxShadow: "-2px 0 8px rgba(0,0,0,0.1)",
+  bgcolor: "common.white",
+  borderLeft: 1,
+  borderColor: "divider",
+  boxShadow: 3,
   display: "flex",
   flexDirection: "column",
   zIndex: 10,
@@ -148,22 +141,23 @@ export const sidebarContainerSx: SxProps<Theme> = {
 
 export const sidebarHeaderSx: SxProps<Theme> = {
   p: 2,
-  borderBottom: `1px solid ${COLORS.borderLight}`,
+  borderBottom: 1,
+  borderColor: "divider",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
 };
 
 export const sidebarTitleSx: SxProps<Theme> = {
-  fontSize: 14,
+  fontSize: (theme) => theme.typography.body2.fontSize,
   fontWeight: 600,
-  color: COLORS.textPrimary,
+  color: "text.primary",
 };
 
 export const sidebarContentSx: SxProps<Theme> = {
   flex: 1,
   overflow: "auto",
-  p: "8px",
+  p: 1,
 };
 
 export const sidebarSectionSx: SxProps<Theme> = {
@@ -175,47 +169,48 @@ export const sidebarTableSx: SxProps<Theme> = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
   gap: "1px",
-  backgroundColor: COLORS.borderLight,
-  border: `1px solid ${COLORS.borderLight}`,
-  borderRadius: "4px",
+  bgcolor: "divider",
+  border: 1,
+  borderColor: "divider",
+  borderRadius: 1,
   overflow: "hidden",
   mb: 2,
 };
 
 export const sidebarTableCellSx: SxProps<Theme> = {
-  backgroundColor: "white",
+  bgcolor: "common.white",
   p: "8px 12px",
 };
 
 export const sidebarTableLabelSx: SxProps<Theme> = {
-  fontSize: 11,
+  fontSize: (theme) => theme.typography.caption.fontSize,
   fontWeight: 600,
-  color: COLORS.textSecondary,
+  color: "text.secondary",
   textTransform: "uppercase",
-  mb: "4px",
+  mb: 0.5,
 };
 
 export const sidebarTableValueSx: SxProps<Theme> = {
-  fontSize: 13,
-  color: COLORS.textPrimary,
+  fontSize: (theme) => theme.typography.body2.fontSize,
+  color: "text.primary",
 };
 
 export const sidebarLabelSx: SxProps<Theme> = {
-  fontSize: 11,
+  fontSize: (theme) => theme.typography.caption.fontSize,
   fontWeight: 600,
-  color: COLORS.textSecondary,
+  color: "text.secondary",
   mb: 0.5,
   textTransform: "uppercase",
 };
 
 export const sidebarValueSx: SxProps<Theme> = {
-  fontSize: 13,
-  color: COLORS.textPrimary,
+  fontSize: (theme) => theme.typography.body2.fontSize,
+  color: "text.primary",
 };
 
 export const filePathSx: SxProps<Theme> = {
-  fontSize: 12,
-  color: COLORS.primary,
+  fontSize: (theme) => theme.typography.caption.fontSize,
+  color: "primary.main",
   cursor: "pointer",
   overflow: "hidden",
   textOverflow: "ellipsis",

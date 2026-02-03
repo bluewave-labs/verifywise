@@ -1332,7 +1332,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
             onError={(error) => {
               setAlert({
                 variant: "error",
-                body: error?.message || "Failed to update risk",
+                body: error || "Failed to update risk",
               });
               setTimeout(() => setAlert(null), 3000);
             }}

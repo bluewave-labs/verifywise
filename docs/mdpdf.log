@@ -1,0 +1,1573 @@
+    INFO: 2026-02-02 10:23:00,665:               log.py:   20: Logging to /Users/gorkemcetin/verifywise/docs/mdpdf.log
+   DEBUG: 2026-02-02 10:23:00,665:               cli.py:  103: VERIFYWISE_VS_ONETRUST_COMPARISON.md
+    INFO: 2026-02-02 10:23:00,666:         converter.py:   14: VERIFYWISE_VS_ONETRUST_COMPARISON.md
+   DEBUG: 2026-02-02 10:23:00,681:      pdf_renderer.py:  470: printSegment: VerifyWise vs OneTrust AI Governance
+   DEBUG: 2026-02-02 10:23:00,682:      pdf_renderer.py:  470: printSegment: Comprehensive Feature Comparison Report
+   DEBUG: 2026-02-02 10:23:00,684:      pdf_renderer.py:  470: printSegment: Document Version:
+   DEBUG: 2026-02-02 10:23:00,685:      pdf_renderer.py:  470: printSegment:  1.0
+   DEBUG: 2026-02-02 10:23:00,687:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,688:      pdf_renderer.py:  470: printSegment: Date:
+   DEBUG: 2026-02-02 10:23:00,688:      pdf_renderer.py:  470: printSegment:  February 2026
+   DEBUG: 2026-02-02 10:23:00,688:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,689:      pdf_renderer.py:  470: printSegment: Classification:
+   DEBUG: 2026-02-02 10:23:00,689:      pdf_renderer.py:  470: printSegment:  Internal Analysis
+   DEBUG: 2026-02-02 10:23:00,689:      pdf_renderer.py:  470: printSegment: Table of Contents
+   DEBUG: 2026-02-02 10:23:00,690:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-02 10:23:00,690:      pdf_renderer.py:  470: printSegment: Executive Summary
+   ERROR: 2026-02-02 10:23:00,690:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:12: #1-executive-summary: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,690:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-02 10:23:00,691:      pdf_renderer.py:  470: printSegment: Platform Overview
+   ERROR: 2026-02-02 10:23:00,691:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:13: #2-platform-overview: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,691:      pdf_renderer.py:  470: printSegment:  3 
+   DEBUG: 2026-02-02 10:23:00,691:      pdf_renderer.py:  470: printSegment: Inventory Management
+   ERROR: 2026-02-02 10:23:00,692:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:14: #3-inventory-management: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,692:      pdf_renderer.py:  470: printSegment:  4 
+   DEBUG: 2026-02-02 10:23:00,692:      pdf_renderer.py:  470: printSegment: Risk Management
+   ERROR: 2026-02-02 10:23:00,692:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:15: #4-risk-management: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,692:      pdf_renderer.py:  470: printSegment:  5 
+   DEBUG: 2026-02-02 10:23:00,693:      pdf_renderer.py:  470: printSegment: Compliance Frameworks
+   ERROR: 2026-02-02 10:23:00,693:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:16: #5-compliance-frameworks: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,693:      pdf_renderer.py:  470: printSegment:  6 
+   DEBUG: 2026-02-02 10:23:00,693:      pdf_renderer.py:  470: printSegment: Assessments 
+   DEBUG: 2026-02-02 10:23:00,693:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:00,694:      pdf_renderer.py:  470: printSegment:  Questionnaires
+   ERROR: 2026-02-02 10:23:00,694:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:17: #6-assessments--questionnaires: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,694:      pdf_renderer.py:  470: printSegment:  7 
+   DEBUG: 2026-02-02 10:23:00,694:      pdf_renderer.py:  470: printSegment: Workflow 
+   DEBUG: 2026-02-02 10:23:00,695:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:00,695:      pdf_renderer.py:  470: printSegment:  Automation
+   ERROR: 2026-02-02 10:23:00,695:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:18: #7-workflow--automation: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,695:      pdf_renderer.py:  470: printSegment:  8 
+   DEBUG: 2026-02-02 10:23:00,696:      pdf_renderer.py:  470: printSegment: Reporting 
+   DEBUG: 2026-02-02 10:23:00,696:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:00,696:      pdf_renderer.py:  470: printSegment:  Analytics
+   ERROR: 2026-02-02 10:23:00,696:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:19: #8-reporting--analytics: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,696:      pdf_renderer.py:  470: printSegment:  9 
+   DEBUG: 2026-02-02 10:23:00,697:      pdf_renderer.py:  470: printSegment: Integrations
+   ERROR: 2026-02-02 10:23:00,698:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:20: #9-integrations: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,698:      pdf_renderer.py:  470: printSegment:  10 
+   DEBUG: 2026-02-02 10:23:00,698:      pdf_renderer.py:  470: printSegment: Unique VerifyWise Features
+   ERROR: 2026-02-02 10:23:00,699:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:21: #10-unique-verifywise-features: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,699:      pdf_renderer.py:  470: printSegment:  11 
+   DEBUG: 2026-02-02 10:23:00,699:      pdf_renderer.py:  470: printSegment: Unique OneTrust Features
+   ERROR: 2026-02-02 10:23:00,700:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:22: #11-unique-onetrust-features: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,700:      pdf_renderer.py:  470: printSegment:  12 
+   DEBUG: 2026-02-02 10:23:00,700:      pdf_renderer.py:  470: printSegment: EU AI Act Compliance Coverage
+   ERROR: 2026-02-02 10:23:00,700:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:23: #12-eu-ai-act-compliance-coverage: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,700:      pdf_renderer.py:  470: printSegment:  13 
+   DEBUG: 2026-02-02 10:23:00,701:      pdf_renderer.py:  470: printSegment: Gap Analysis 
+   DEBUG: 2026-02-02 10:23:00,701:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:00,701:      pdf_renderer.py:  470: printSegment:  Recommendations
+   ERROR: 2026-02-02 10:23:00,702:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:24: #13-gap-analysis--recommendations: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,702:      pdf_renderer.py:  470: printSegment:  14 
+   DEBUG: 2026-02-02 10:23:00,702:      pdf_renderer.py:  470: printSegment: Conclusion
+   ERROR: 2026-02-02 10:23:00,703:      pdf_renderer.py:  217: /Users/gorkemcetin/verifywise/docs/VERIFYWISE_VS_ONETRUST_COMPARISON.md:25: #14-conclusion: No such file or directory
+   DEBUG: 2026-02-02 10:23:00,703:      pdf_renderer.py:  470: printSegment: 1. Executive Summary
+   DEBUG: 2026-02-02 10:23:00,703:      pdf_renderer.py:  470: printSegment: This report provides a comprehensive comparison between 
+   DEBUG: 2026-02-02 10:23:00,704:      pdf_renderer.py:  470: printSegment: VerifyWise
+   DEBUG: 2026-02-02 10:23:00,705:      pdf_renderer.py:  470: printSegment: , an open-source AI governance platform,
+   DEBUG: 2026-02-02 10:23:00,705:      pdf_renderer.py:  470: printSegment: and 
+   DEBUG: 2026-02-02 10:23:00,705:      pdf_renderer.py:  470: printSegment: OneTrust AI Governance
+   DEBUG: 2026-02-02 10:23:00,709:      pdf_renderer.py:  470: printSegment: , an enterprise GRC (Governance, Risk, and Compliance) solution. The analysis
+   DEBUG: 2026-02-02 10:23:00,709:      pdf_renderer.py:  470: printSegment: covers feature parity, compliance coverage, and strategic recommendations for VerifyWise product development.
+   DEBUG: 2026-02-02 10:23:00,710:      pdf_renderer.py:  470: printSegment: Key Findings
+   DEBUG: 2026-02-02 10:23:00,710:      pdf_renderer.py:  470: printSegment: | Dimension | VerifyWise | OneTrust |
+   DEBUG: 2026-02-02 10:23:00,711:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,711:      pdf_renderer.py:  470: printSegment: |-----------|------------|----------|
+   DEBUG: 2026-02-02 10:23:00,711:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,712:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,712:      pdf_renderer.py:  470: printSegment: Deployment Model
+   DEBUG: 2026-02-02 10:23:00,713:      pdf_renderer.py:  470: printSegment:  | Self-hosted
+   DEBUG: 2026-02-02 10:23:00,713:      pdf_renderer.py:  470: printSegment: (on-premise/private cloud) | SaaS only |
+   DEBUG: 2026-02-02 10:23:00,714:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,714:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,714:      pdf_renderer.py:  470: printSegment: License Type
+   DEBUG: 2026-02-02 10:23:00,715:      pdf_renderer.py:  470: printSegment:  | Source-available (BSL 1.1) | Proprietary |
+   DEBUG: 2026-02-02 10:23:00,715:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,716:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,716:      pdf_renderer.py:  470: printSegment: Pricing
+   DEBUG: 2026-02-02 10:23:00,717:      pdf_renderer.py:  470: printSegment:  | Free
+   DEBUG: 2026-02-02 10:23:00,717:      pdf_renderer.py:  470: printSegment: community + Enterprise tier | Enterprise pricing ($100K+/year) |
+   DEBUG: 2026-02-02 10:23:00,718:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,718:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,718:      pdf_renderer.py:  470: printSegment: Target Market
+   DEBUG: 2026-02-02 10:23:00,719:      pdf_renderer.py:  470: printSegment:  | SMBs to Enterprise | Enterprise
+   DEBUG: 2026-02-02 10:23:00,719:      pdf_renderer.py:  470: printSegment: only |
+   DEBUG: 2026-02-02 10:23:00,720:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,720:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,720:      pdf_renderer.py:  470: printSegment: Core Focus
+   DEBUG: 2026-02-02 10:23:00,721:      pdf_renderer.py:  470: printSegment:  | EU AI Act + Technical AI Governance | Broad GRC platform with AI module |
+   DEBUG: 2026-02-02 10:23:00,721:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,722:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,722:      pdf_renderer.py:  470: printSegment: Competitive
+   DEBUG: 2026-02-02 10:23:00,722:      pdf_renderer.py:  470: printSegment: Position
+   DEBUG: 2026-02-02 10:23:00,723:      pdf_renderer.py:  470: printSegment:  | Technical depth, transparency | Breadth of GRC integration |
+   DEBUG: 2026-02-02 10:23:00,723:      pdf_renderer.py:  470: printSegment: Strategic Assessment
+   DEBUG: 2026-02-02 10:23:00,724:      pdf_renderer.py:  470: printSegment: VerifyWise Strengths:
+   DEBUG: 2026-02-02 10:23:00,724:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,725:      pdf_renderer.py:  470: printSegment: Self-hosted deployment for data sovereignty
+   DEBUG: 2026-02-02 10:23:00,726:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,726:      pdf_renderer.py:  470: printSegment: Technical AI capabilities (AI Detection, LLM Evals, C2PA)
+   DEBUG: 2026-02-02 10:23:00,727:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,727:      pdf_renderer.py:  470: printSegment: Source-available codebase for customization
+   DEBUG: 2026-02-02 10:23:00,728:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,728:      pdf_renderer.py:  470: printSegment: Strong EU AI Act Article 50 support (Content Authenticity)
+   DEBUG: 2026-02-02 10:23:00,729:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,729:      pdf_renderer.py:  470: printSegment: MLOps integration (MLFlow)
+   DEBUG: 2026-02-02 10:23:00,730:      pdf_renderer.py:  470: printSegment: Areas Requiring Investment:
+   DEBUG: 2026-02-02 10:23:00,730:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,731:      pdf_renderer.py:  470: printSegment: Dataset inventory management
+   DEBUG: 2026-02-02 10:23:00,732:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,732:      pdf_renderer.py:  470: printSegment: Assessment template builder
+   DEBUG: 2026-02-02 10:23:00,733:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,733:      pdf_renderer.py:  470: printSegment: Fairness/bias metrics
+   DEBUG: 2026-02-02 10:23:00,734:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,734:      pdf_renderer.py:  470: printSegment: Multi-cloud AI discovery
+   DEBUG: 2026-02-02 10:23:00,734:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,735:      pdf_renderer.py:  470: printSegment: Additional regulatory frameworks
+   DEBUG: 2026-02-02 10:23:00,735:      pdf_renderer.py:  470: printSegment: 2. Platform Overview
+   DEBUG: 2026-02-02 10:23:00,736:      pdf_renderer.py:  470: printSegment: 2.1 VerifyWise Platform
+   DEBUG: 2026-02-02 10:23:00,737:      pdf_renderer.py:  470: printSegment: VerifyWise is a source-available AI governance platform designed to help organizations use AI safely and
+   DEBUG: 2026-02-02 10:23:00,738:      pdf_renderer.py:  470: printSegment: responsibly. Key characteristics include:
+   DEBUG: 2026-02-02 10:23:00,738:      pdf_renderer.py:  470: printSegment: Architecture:
+   DEBUG: 2026-02-02 10:23:00,739:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,739:      pdf_renderer.py:  470: printSegment: Frontend: React 18 + TypeScript + Material UI
+   DEBUG: 2026-02-02 10:23:00,739:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,740:      pdf_renderer.py:  470: printSegment: Backend: Node.js + Express + PostgreSQL
+   DEBUG: 2026-02-02 10:23:00,740:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,740:      pdf_renderer.py:  470: printSegment: Job Queue: Redis + BullMQ
+   DEBUG: 2026-02-02 10:23:00,741:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,741:      pdf_renderer.py:  470: printSegment: Multi-tenancy: Schema-per-tenant isolation
+   DEBUG: 2026-02-02 10:23:00,742:      pdf_renderer.py:  470: printSegment: Deployment Options:
+   DEBUG: 2026-02-02 10:23:00,742:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,743:      pdf_renderer.py:  470: printSegment: Docker containers
+   DEBUG: 2026-02-02 10:23:00,743:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,744:      pdf_renderer.py:  470: printSegment: Kubernetes orchestration
+   DEBUG: 2026-02-02 10:23:00,744:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,744:      pdf_renderer.py:  470: printSegment: On-premise installation
+   DEBUG: 2026-02-02 10:23:00,745:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,745:      pdf_renderer.py:  470: printSegment: Private cloud hosting
+   DEBUG: 2026-02-02 10:23:00,746:      pdf_renderer.py:  470: printSegment: Supported Frameworks:
+   DEBUG: 2026-02-02 10:23:00,746:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,746:      pdf_renderer.py:  470: printSegment: EU AI Act (13 control categories)
+   DEBUG: 2026-02-02 10:23:00,747:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,747:      pdf_renderer.py:  470: printSegment: ISO 42001 (Clauses 4-10 + Annexes)
+   DEBUG: 2026-02-02 10:23:00,747:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,748:      pdf_renderer.py:  470: printSegment: ISO 27001 (Information Security)
+   DEBUG: 2026-02-02 10:23:00,748:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,748:      pdf_renderer.py:  470: printSegment: NIST AI RMF (GOVERN, MAP, MEASURE, MANAGE)
+   DEBUG: 2026-02-02 10:23:00,749:      pdf_renderer.py:  470: printSegment: 2.2 OneTrust AI Governance
+   DEBUG: 2026-02-02 10:23:00,750:      pdf_renderer.py:  470: printSegment: OneTrust AI Governance is a module within the broader OneTrust Trust Intelligence Platform, offering
+   DEBUG: 2026-02-02 10:23:00,751:      pdf_renderer.py:  470: printSegment: enterprise-grade GRC capabilities.
+   DEBUG: 2026-02-02 10:23:00,752:      pdf_renderer.py:  470: printSegment: Architecture:
+   DEBUG: 2026-02-02 10:23:00,752:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,753:      pdf_renderer.py:  470: printSegment: Cloud-native SaaS platform
+   DEBUG: 2026-02-02 10:23:00,753:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,753:      pdf_renderer.py:  470: printSegment: Multi-tenant architecture
+   DEBUG: 2026-02-02 10:23:00,754:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,754:      pdf_renderer.py:  470: printSegment: Integration with OneTrust ecosystem (Privacy, TPRM, Ethics)
+   DEBUG: 2026-02-02 10:23:00,755:      pdf_renderer.py:  470: printSegment: Key Differentiators:
+   DEBUG: 2026-02-02 10:23:00,755:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,756:      pdf_renderer.py:  470: printSegment: Regulatory intelligence (DataGuidance)
+   DEBUG: 2026-02-02 10:23:00,756:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,756:      pdf_renderer.py:  470: printSegment: Cross-module integration
+   DEBUG: 2026-02-02 10:23:00,757:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,757:      pdf_renderer.py:  470: printSegment: Enterprise scalability
+   DEBUG: 2026-02-02 10:23:00,757:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,758:      pdf_renderer.py:  470: printSegment: Managed compliance updates
+   DEBUG: 2026-02-02 10:23:00,759:      pdf_renderer.py:  470: printSegment: 3. Inventory Management
+   DEBUG: 2026-02-02 10:23:00,759:      pdf_renderer.py:  470: printSegment: 3.1 Feature Comparison Matrix
+   DEBUG: 2026-02-02 10:23:00,760:      pdf_renderer.py:  470: printSegment: | Feature | VerifyWise | OneTrust | Gap Analysis |
+   DEBUG: 2026-02-02 10:23:00,760:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,761:      pdf_renderer.py:  470: printSegment: |---------|:----------:|:--------:|--------------|
+   DEBUG: 2026-02-02 10:23:00,761:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,761:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,762:      pdf_renderer.py:  470: printSegment: Projects/Use Cases
+   DEBUG: 2026-02-02 10:23:00,762:      pdf_renderer.py:  470: printSegment:  | ✅ Full
+   DEBUG: 2026-02-02 10:23:00,771:      pdf_renderer.py:  470: printSegment: | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,771:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,771:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,772:      pdf_renderer.py:  470: printSegment: Model Inventory
+   DEBUG: 2026-02-02 10:23:00,772:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,772:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,773:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,773:      pdf_renderer.py:  470: printSegment: Model Versions
+   DEBUG: 2026-02-02 10:23:00,773:      pdf_renderer.py:  470: printSegment:  | ✅ | ✅ | Parity |
+   DEBUG: 2026-02-02 10:23:00,774:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,774:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,774:      pdf_renderer.py:  470: printSegment: Model Status Tracking
+   DEBUG: 2026-02-02 10:23:00,775:      pdf_renderer.py:  470: printSegment:  | ✅ | ✅ |
+   DEBUG: 2026-02-02 10:23:00,775:      pdf_renderer.py:  470: printSegment: Parity |
+   DEBUG: 2026-02-02 10:23:00,775:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,775:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,776:      pdf_renderer.py:  470: printSegment: Datasets
+   DEBUG: 2026-02-02 10:23:00,776:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:00,791:      pdf_renderer.py:  470: printSegment: Critical Gap
+   DEBUG: 2026-02-02 10:23:00,792:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,792:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,792:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,793:      pdf_renderer.py:  470: printSegment: AI Systems
+   DEBUG: 2026-02-02 10:23:00,793:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:00,794:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,794:      pdf_renderer.py:  470: printSegment:  - VW uses Projects |
+   DEBUG: 2026-02-02 10:23:00,794:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,794:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,795:      pdf_renderer.py:  470: printSegment: Vendors
+   DEBUG: 2026-02-02 10:23:00,796:      pdf_renderer.py:  470: printSegment:  | ✅
+   DEBUG: 2026-02-02 10:23:00,796:      pdf_renderer.py:  470: printSegment: Dedicated | ⚠️ TPRM Integration | VW Advantage |
+   DEBUG: 2026-02-02 10:23:00,845:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,845:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,846:      pdf_renderer.py:  470: printSegment: Bulk Import/Export
+   DEBUG: 2026-02-02 10:23:00,846:      pdf_renderer.py:  470: printSegment:  | ✅ CSV | ✅ CSV | Parity |
+   DEBUG: 2026-02-02 10:23:00,846:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,847:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,847:      pdf_renderer.py:  470: printSegment: Hugging Face
+   DEBUG: 2026-02-02 10:23:00,847:      pdf_renderer.py:  470: printSegment: Gallery
+   DEBUG: 2026-02-02 10:23:00,848:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Built-in | 
+   DEBUG: 2026-02-02 10:23:00,848:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,848:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,849:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,849:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,849:      pdf_renderer.py:  470: printSegment: Project → System Promotion
+   DEBUG: 2026-02-02 10:23:00,857:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:00,857:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,857:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,858:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,858:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,858:      pdf_renderer.py:  470: printSegment: Custom Attributes
+   DEBUG: 2026-02-02 10:23:00,859:      pdf_renderer.py:  470: printSegment:  | ❌ Fixed fields | ✅
+   DEBUG: 2026-02-02 10:23:00,859:      pdf_renderer.py:  470: printSegment: Dynamic | 
+   DEBUG: 2026-02-02 10:23:00,859:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,860:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,860:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,860:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,861:      pdf_renderer.py:  470: printSegment: Saved Views
+   DEBUG: 2026-02-02 10:23:00,861:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:00,861:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,862:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,862:      pdf_renderer.py:  470: printSegment: 3.2 VerifyWise Model Inventory
+   DEBUG: 2026-02-02 10:23:00,863:      pdf_renderer.py:  470: printSegment: VerifyWise provides comprehensive model tracking with:
+   DEBUG: 2026-02-02 10:23:00,863:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,864:      pdf_renderer.py:  470: printSegment: Provider 
+   DEBUG: 2026-02-02 10:23:00,864:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:00,865:      pdf_renderer.py:  470: printSegment:  Model Name
+   DEBUG: 2026-02-02 10:23:00,865:      pdf_renderer.py:  470: printSegment: : Track OpenAI, Anthropic, Google, etc.
+   DEBUG: 2026-02-02 10:23:00,866:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,866:      pdf_renderer.py:  470: printSegment: Version Control
+   DEBUG: 2026-02-02 10:23:00,867:      pdf_renderer.py:  470: printSegment: : Model versioning with history
+   DEBUG: 2026-02-02 10:23:00,867:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,867:      pdf_renderer.py:  470: printSegment: Approval Status
+   DEBUG: 2026-02-02 10:23:00,868:      pdf_renderer.py:  470: printSegment: : Approved, Restricted, Pending, Blocked
+   DEBUG: 2026-02-02 10:23:00,869:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,869:      pdf_renderer.py:  470: printSegment: Security Assessment
+   DEBUG: 2026-02-02 10:23:00,870:      pdf_renderer.py:  470: printSegment: : Boolean flag with document uploads
+   DEBUG: 2026-02-02 10:23:00,870:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,870:      pdf_renderer.py:  470: printSegment: Risk Categories
+   DEBUG: 2026-02-02 10:23:00,871:      pdf_renderer.py:  470: printSegment: : Performance, Bias, Security, Data Quality, Compliance
+   DEBUG: 2026-02-02 10:23:00,871:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,872:      pdf_renderer.py:  470: printSegment: MLFlow Integration
+   DEBUG: 2026-02-02 10:23:00,873:      pdf_renderer.py:  470: printSegment: : Automatic sync from ML tracking servers
+   DEBUG: 2026-02-02 10:23:00,873:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,874:      pdf_renderer.py:  470: printSegment: Change History
+   DEBUG: 2026-02-02 10:23:00,874:      pdf_renderer.py:  470: printSegment: : Field-level audit trail
+   DEBUG: 2026-02-02 10:23:00,875:      pdf_renderer.py:  470: printSegment: 3.3 OneTrust Model Inventory
+   DEBUG: 2026-02-02 10:23:00,875:      pdf_renderer.py:  470: printSegment: OneTrust extends model tracking with:
+   DEBUG: 2026-02-02 10:23:00,876:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,876:      pdf_renderer.py:  470: printSegment: Hugging Face Integration
+   DEBUG: 2026-02-02 10:23:00,877:      pdf_renderer.py:  470: printSegment: : Browse and import from model gallery
+   DEBUG: 2026-02-02 10:23:00,877:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,878:      pdf_renderer.py:  470: printSegment: Fairness Metrics
+   DEBUG: 2026-02-02 10:23:00,878:      pdf_renderer.py:  470: printSegment: : Demographic Parity Difference/Ratio, Equalized Odds
+   DEBUG: 2026-02-02 10:23:00,879:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,879:      pdf_renderer.py:  470: printSegment: Autonomy Levels
+   DEBUG: 2026-02-02 10:23:00,880:      pdf_renderer.py:  470: printSegment: : Human-in-loop, Human-on-loop, Human-out-of-loop
+   DEBUG: 2026-02-02 10:23:00,880:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,881:      pdf_renderer.py:  470: printSegment: Framework Selection
+   DEBUG: 2026-02-02 10:23:00,881:      pdf_renderer.py:  470: printSegment: : TensorFlow, PyTorch, Keras, JAX, etc.
+   DEBUG: 2026-02-02 10:23:00,881:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,882:      pdf_renderer.py:  470: printSegment: Model Cards
+   DEBUG: 2026-02-02 10:23:00,882:      pdf_renderer.py:  470: printSegment: : PDF export with standardized documentation
+   DEBUG: 2026-02-02 10:23:00,883:      pdf_renderer.py:  470: printSegment: 3.4 Dataset Management Gap
+   DEBUG: 2026-02-02 10:23:00,884:      pdf_renderer.py:  470: printSegment: Critical Gap:
+   DEBUG: 2026-02-02 10:23:00,884:      pdf_renderer.py:  470: printSegment:  VerifyWise lacks a formal Dataset inventory, which is required for:
+   DEBUG: 2026-02-02 10:23:00,885:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,886:      pdf_renderer.py:  470: printSegment: EU AI Act Article 10 (Data Governance)
+   DEBUG: 2026-02-02 10:23:00,887:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,887:      pdf_renderer.py:  470: printSegment: ISO 42001 data lineage requirements
+   DEBUG: 2026-02-02 10:23:00,888:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,889:      pdf_renderer.py:  470: printSegment: Training/Validation/Testing dataset tracking
+   DEBUG: 2026-02-02 10:23:00,889:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,890:      pdf_renderer.py:  470: printSegment: Data quality metrics
+   DEBUG: 2026-02-02 10:23:00,890:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,891:      pdf_renderer.py:  470: printSegment: Bias source identification
+   DEBUG: 2026-02-02 10:23:00,891:      pdf_renderer.py:  470: printSegment: Recommendation:
+   DEBUG: 2026-02-02 10:23:00,892:      pdf_renderer.py:  470: printSegment:  Implement a Dataset inventory with:
+   DEBUG: 2026-02-02 10:23:00,892:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,893:      pdf_renderer.py:  470: printSegment: Dataset metadata (name, source, size, format)
+   DEBUG: 2026-02-02 10:23:00,893:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,894:      pdf_renderer.py:  470: printSegment: Data classification (PII, sensitive, public)
+   DEBUG: 2026-02-02 10:23:00,894:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,895:      pdf_renderer.py:  470: printSegment: Usage tracking (which models use this dataset)
+   DEBUG: 2026-02-02 10:23:00,895:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,896:      pdf_renderer.py:  470: printSegment: Quality metrics integration
+   DEBUG: 2026-02-02 10:23:00,896:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,897:      pdf_renderer.py:  470: printSegment: Lineage visualization
+   DEBUG: 2026-02-02 10:23:00,898:      pdf_renderer.py:  470: printSegment: 4. Risk Management
+   DEBUG: 2026-02-02 10:23:00,899:      pdf_renderer.py:  470: printSegment: 4.1 Feature Comparison Matrix
+   DEBUG: 2026-02-02 10:23:00,899:      pdf_renderer.py:  470: printSegment: | Feature | VerifyWise | OneTrust | Gap Analysis |
+   DEBUG: 2026-02-02 10:23:00,900:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,900:      pdf_renderer.py:  470: printSegment: |---------|:----------:|:--------:|--------------|
+   DEBUG: 2026-02-02 10:23:00,900:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,901:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,901:      pdf_renderer.py:  470: printSegment: Project Risks
+   DEBUG: 2026-02-02 10:23:00,901:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full |
+   DEBUG: 2026-02-02 10:23:00,902:      pdf_renderer.py:  470: printSegment: Parity |
+   DEBUG: 2026-02-02 10:23:00,902:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,902:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,903:      pdf_renderer.py:  470: printSegment: Vendor Risks
+   DEBUG: 2026-02-02 10:23:00,903:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,903:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,903:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,904:      pdf_renderer.py:  470: printSegment: Model Risks
+   DEBUG: 2026-02-02 10:23:00,904:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,904:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,904:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,905:      pdf_renderer.py:  470: printSegment: Risk Calculation
+   DEBUG: 2026-02-02 10:23:00,905:      pdf_renderer.py:  470: printSegment:  | ✅ Formula | ✅ Formula |
+   DEBUG: 2026-02-02 10:23:00,905:      pdf_renderer.py:  470: printSegment: Parity |
+   DEBUG: 2026-02-02 10:23:00,906:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,906:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,906:      pdf_renderer.py:  470: printSegment: Risk Categories
+   DEBUG: 2026-02-02 10:23:00,907:      pdf_renderer.py:  470: printSegment:  | ✅ 5 types | ✅ 5 types | Parity |
+   DEBUG: 2026-02-02 10:23:00,907:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,907:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,908:      pdf_renderer.py:  470: printSegment: Mitigation Workflow
+   DEBUG: 2026-02-02 10:23:00,908:      pdf_renderer.py:  470: printSegment:  | ✅ 7 statuses | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,908:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,908:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,909:      pdf_renderer.py:  470: printSegment: Risk-Control
+   DEBUG: 2026-02-02 10:23:00,909:      pdf_renderer.py:  470: printSegment: Linking
+   DEBUG: 2026-02-02 10:23:00,909:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,910:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,910:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,910:      pdf_renderer.py:  470: printSegment: Risk History Tracking
+   DEBUG: 2026-02-02 10:23:00,911:      pdf_renderer.py:  470: printSegment:  | ✅ Snapshots | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,911:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,911:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,912:      pdf_renderer.py:  470: printSegment: Fairness Metrics
+   DEBUG: 2026-02-02 10:23:00,912:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ 4 metrics | 
+   DEBUG: 2026-02-02 10:23:00,912:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,913:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,913:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,913:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,913:      pdf_renderer.py:  470: printSegment: Risk Aggregation
+   DEBUG: 2026-02-02 10:23:00,914:      pdf_renderer.py:  470: printSegment:  | ❌ Fixed | ✅ Configurable | 
+   DEBUG: 2026-02-02 10:23:00,914:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,914:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,915:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,915:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,915:      pdf_renderer.py:  470: printSegment: AI Lifecycle Phase
+   DEBUG: 2026-02-02 10:23:00,915:      pdf_renderer.py:  470: printSegment:  | ✅ 7 phases | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,916:      pdf_renderer.py:  470: printSegment: 4.2 Risk Calculation Methodology
+   DEBUG: 2026-02-02 10:23:00,917:      pdf_renderer.py:  470: printSegment: VerifyWise Formula:
+   DEBUG: 2026-02-02 10:23:00,918:      pdf_renderer.py:  470: printSegment: Risk Score = (Likelihood Value × 1) + (Severity Value × 3)
+   DEBUG: 2026-02-02 10:23:00,919:      pdf_renderer.py:  470: printSegment: Where:
+   DEBUG: 2026-02-02 10:23:00,920:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,920:      pdf_renderer.py:  470: printSegment: Likelihood: Rare (1) to Almost Certain (5)
+   DEBUG: 2026-02-02 10:23:00,920:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,921:      pdf_renderer.py:  470: printSegment: Severity: Negligible (1) to Catastrophic (5)
+   DEBUG: 2026-02-02 10:23:00,921:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,922:      pdf_renderer.py:  470: printSegment: Severity weighted 3x heavier than likelihood
+   DEBUG: 2026-02-02 10:23:00,922:      pdf_renderer.py:  470: printSegment: Risk Level Thresholds:
+   DEBUG: 2026-02-02 10:23:00,923:      pdf_renderer.py:  470: printSegment: | Score Range | Risk Level |
+   DEBUG: 2026-02-02 10:23:00,923:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,923:      pdf_renderer.py:  470: printSegment: |-------------|------------|
+   DEBUG: 2026-02-02 10:23:00,924:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,924:      pdf_renderer.py:  470: printSegment: | ≤4 | Very Low Risk |
+   DEBUG: 2026-02-02 10:23:00,925:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,925:      pdf_renderer.py:  470: printSegment: | 5-8 | Low Risk |
+   DEBUG: 2026-02-02 10:23:00,925:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,926:      pdf_renderer.py:  470: printSegment: | 9-12 | Medium Risk |
+   DEBUG: 2026-02-02 10:23:00,926:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,927:      pdf_renderer.py:  470: printSegment: |
+   DEBUG: 2026-02-02 10:23:00,928:      pdf_renderer.py:  470: printSegment: 13-16 | High Risk |
+   DEBUG: 2026-02-02 10:23:00,928:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,929:      pdf_renderer.py:  470: printSegment: | ≥17 | Very High Risk |
+   DEBUG: 2026-02-02 10:23:00,929:      pdf_renderer.py:  470: printSegment: 4.3 Fairness Metrics Gap
+   DEBUG: 2026-02-02 10:23:00,930:      pdf_renderer.py:  470: printSegment: Gap:
+   DEBUG: 2026-02-02 10:23:00,930:      pdf_renderer.py:  470: printSegment:  VerifyWise lacks model fairness/bias metrics that OneTrust provides:
+   DEBUG: 2026-02-02 10:23:00,931:      pdf_renderer.py:  470: printSegment: | Metric | Purpose | OneTrust |
+   DEBUG: 2026-02-02 10:23:00,931:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,932:      pdf_renderer.py:  470: printSegment: |--------|---------|:--------:|
+   DEBUG: 2026-02-02 10:23:00,932:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,933:      pdf_renderer.py:  470: printSegment: | Demographic Parity Difference | Outcome disparity
+   DEBUG: 2026-02-02 10:23:00,934:      pdf_renderer.py:  470: printSegment: between groups | ✅ |
+   DEBUG: 2026-02-02 10:23:00,934:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,935:      pdf_renderer.py:  470: printSegment: | Demographic Parity Ratio | Ratio of outcomes between groups | ✅ |
+   DEBUG: 2026-02-02 10:23:00,935:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,936:      pdf_renderer.py:  470: printSegment: | Equalized Odds Difference |
+   DEBUG: 2026-02-02 10:23:00,937:      pdf_renderer.py:  470: printSegment: Error rate equality | ✅ |
+   DEBUG: 2026-02-02 10:23:00,937:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,938:      pdf_renderer.py:  470: printSegment: | Equalized Odds Ratio | Error rate ratio | ✅ |
+   DEBUG: 2026-02-02 10:23:00,938:      pdf_renderer.py:  470: printSegment: Recommendation:
+   DEBUG: 2026-02-02 10:23:00,939:      pdf_renderer.py:  470: printSegment:  Add fairness metrics to Model Inventory:
+   DEBUG: 2026-02-02 10:23:00,939:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,940:      pdf_renderer.py:  470: printSegment: Integration with fairness libraries (Fairlearn, AIF360)
+   DEBUG: 2026-02-02 10:23:00,940:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,940:      pdf_renderer.py:  470: printSegment: Automated metric calculation from evaluation datasets
+   DEBUG: 2026-02-02 10:23:00,941:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,941:      pdf_renderer.py:  470: printSegment: Threshold alerts for bias detection
+   DEBUG: 2026-02-02 10:23:00,942:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,942:      pdf_renderer.py:  470: printSegment: Historical tracking for model drift
+   DEBUG: 2026-02-02 10:23:00,943:      pdf_renderer.py:  470: printSegment: 5. Compliance Frameworks
+   DEBUG: 2026-02-02 10:23:00,944:      pdf_renderer.py:  470: printSegment: 5.1 Framework Support Matrix
+   DEBUG: 2026-02-02 10:23:00,944:      pdf_renderer.py:  470: printSegment: | Framework | VerifyWise | OneTrust | Gap Analysis |
+   DEBUG: 2026-02-02 10:23:00,945:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,945:      pdf_renderer.py:  470: printSegment: |-----------|:----------:|:--------:|--------------|
+   DEBUG: 2026-02-02 10:23:00,946:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,946:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,947:      pdf_renderer.py:  470: printSegment: EU AI Act
+   DEBUG: 2026-02-02 10:23:00,948:      pdf_renderer.py:  470: printSegment:  | ✅ 13
+   DEBUG: 2026-02-02 10:23:00,948:      pdf_renderer.py:  470: printSegment: Categories | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,949:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,949:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,950:      pdf_renderer.py:  470: printSegment: ISO 42001
+   DEBUG: 2026-02-02 10:23:00,950:      pdf_renderer.py:  470: printSegment:  | ✅ Clauses + Annexes | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,951:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,951:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,952:      pdf_renderer.py:  470: printSegment: ISO 27001
+   DEBUG: 2026-02-02 10:23:00,952:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,953:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,953:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,954:      pdf_renderer.py:  470: printSegment: NIST AI
+   DEBUG: 2026-02-02 10:23:00,954:      pdf_renderer.py:  470: printSegment: RMF
+   DEBUG: 2026-02-02 10:23:00,955:      pdf_renderer.py:  470: printSegment:  | ✅ 4 Functions | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:00,955:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,956:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,957:      pdf_renderer.py:  470: printSegment: OECD AI Principles
+   DEBUG: 2026-02-02 10:23:00,958:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:00,958:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,959:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,959:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,959:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,960:      pdf_renderer.py:  470: printSegment: UK ICO AI Toolkit
+   DEBUG: 2026-02-02 10:23:00,960:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:00,961:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,961:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,962:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,962:      pdf_renderer.py:  470: printSegment: |
+   DEBUG: 2026-02-02 10:23:00,963:      pdf_renderer.py:  470: printSegment: 
+   DEBUG: 2026-02-02 10:23:00,963:      pdf_renderer.py:  470: printSegment: ALTAI (EU Commission)
+   DEBUG: 2026-02-02 10:23:00,963:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:00,964:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,964:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,965:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,965:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,966:      pdf_renderer.py:  470: printSegment: US FTC AI Guidelines
+   DEBUG: 2026-02-02 10:23:00,967:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:00,967:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,968:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,968:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:00,969:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:00,969:      pdf_renderer.py:  470: printSegment: Singapore PDPC
+   DEBUG: 2026-02-02 10:23:00,970:      pdf_renderer.py:  470: printSegment:  | ❌ None
+   DEBUG: 2026-02-02 10:23:00,971:      pdf_renderer.py:  470: printSegment: | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:00,971:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:00,972:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:00,972:      pdf_renderer.py:  470: printSegment: 5.2 VerifyWise Framework Implementation
+   DEBUG: 2026-02-02 10:23:00,973:      pdf_renderer.py:  470: printSegment: EU AI Act (13 Control Categories):
+   DEBUG: 2026-02-02 10:23:00,973:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-02 10:23:00,974:      pdf_renderer.py:  470: printSegment: AI Literacy
+   DEBUG: 2026-02-02 10:23:00,975:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-02 10:23:00,975:      pdf_renderer.py:  470: printSegment: Transparency and Provision of Information
+   DEBUG: 2026-02-02 10:23:00,976:      pdf_renderer.py:  470: printSegment:  3 
+   DEBUG: 2026-02-02 10:23:00,977:      pdf_renderer.py:  470: printSegment: Human Oversight
+   DEBUG: 2026-02-02 10:23:00,977:      pdf_renderer.py:  470: printSegment:  4 
+   DEBUG: 2026-02-02 10:23:00,978:      pdf_renderer.py:  470: printSegment: Corrective Actions and Duty of Information
+   DEBUG: 2026-02-02 10:23:00,978:      pdf_renderer.py:  470: printSegment:  5 
+   DEBUG: 2026-02-02 10:23:00,979:      pdf_renderer.py:  470: printSegment: Responsibilities Along the AI Value Chain
+   DEBUG: 2026-02-02 10:23:00,979:      pdf_renderer.py:  470: printSegment:  6 
+   DEBUG: 2026-02-02 10:23:00,979:      pdf_renderer.py:  470: printSegment: Obligations of Deployers of High-Risk AI Systems
+   DEBUG: 2026-02-02 10:23:00,979:      pdf_renderer.py:  470: printSegment:  7 
+   DEBUG: 2026-02-02 10:23:00,980:      pdf_renderer.py:  470: printSegment: Fundamental Rights Impact Assessments
+   DEBUG: 2026-02-02 10:23:00,980:      pdf_renderer.py:  470: printSegment:  8 
+   DEBUG: 2026-02-02 10:23:00,980:      pdf_renderer.py:  470: printSegment: Transparency Obligations for Providers
+   DEBUG: 2026-02-02 10:23:00,981:      pdf_renderer.py:  470: printSegment:  9 
+   DEBUG: 2026-02-02 10:23:00,981:      pdf_renderer.py:  470: printSegment: Registration
+   DEBUG: 2026-02-02 10:23:00,981:      pdf_renderer.py:  470: printSegment:  10 
+   DEBUG: 2026-02-02 10:23:00,981:      pdf_renderer.py:  470: printSegment: EU Database for High-Risk AI
+   DEBUG: 2026-02-02 10:23:00,982:      pdf_renderer.py:  470: printSegment:  11 
+   DEBUG: 2026-02-02 10:23:00,982:      pdf_renderer.py:  470: printSegment: Post-Market Monitoring by Providers
+   DEBUG: 2026-02-02 10:23:00,982:      pdf_renderer.py:  470: printSegment:  12 
+   DEBUG: 2026-02-02 10:23:00,983:      pdf_renderer.py:  470: printSegment: Reporting Serious Incidents
+   DEBUG: 2026-02-02 10:23:00,983:      pdf_renderer.py:  470: printSegment:  13 
+   DEBUG: 2026-02-02 10:23:00,983:      pdf_renderer.py:  470: printSegment: General-Purpose AI Models
+   DEBUG: 2026-02-02 10:23:00,983:      pdf_renderer.py:  470: printSegment: ISO 42001 Structure:
+   DEBUG: 2026-02-02 10:23:00,984:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,984:      pdf_renderer.py:  470: printSegment: Clauses 4-10 with subclauses
+   DEBUG: 2026-02-02 10:23:00,985:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,985:      pdf_renderer.py:  470: printSegment: Annex categories with implementation details
+   DEBUG: 2026-02-02 10:23:00,985:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,986:      pdf_renderer.py:  470: printSegment: Evidence linking
+   DEBUG: 2026-02-02 10:23:00,986:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,986:      pdf_renderer.py:  470: printSegment: Risk mapping
+   DEBUG: 2026-02-02 10:23:00,987:      pdf_renderer.py:  470: printSegment: NIST AI RMF Functions:
+   DEBUG: 2026-02-02 10:23:00,987:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,988:      pdf_renderer.py:  470: printSegment: GOVERN: Policies, processes, accountability
+   DEBUG: 2026-02-02 10:23:00,988:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,989:      pdf_renderer.py:  470: printSegment: MAP: Identify AI systems and risk context
+   DEBUG: 2026-02-02 10:23:00,989:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,990:      pdf_renderer.py:  470: printSegment: MEASURE: Assess, analyze, track risks
+   DEBUG: 2026-02-02 10:23:00,990:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,990:      pdf_renderer.py:  470: printSegment: MANAGE: Prioritize, respond, monitor
+   DEBUG: 2026-02-02 10:23:00,991:      pdf_renderer.py:  470: printSegment: 5.3 Framework Gap Recommendations
+   DEBUG: 2026-02-02 10:23:00,992:      pdf_renderer.py:  470: printSegment: Priority 1: OECD AI Principles
+   DEBUG: 2026-02-02 10:23:00,992:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,993:      pdf_renderer.py:  470: printSegment: Widely referenced in EU AI Act
+   DEBUG: 2026-02-02 10:23:00,993:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,994:      pdf_renderer.py:  470: printSegment: 5 principles with sub-requirements
+   DEBUG: 2026-02-02 10:23:00,994:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,995:      pdf_renderer.py:  470: printSegment: Foundation for many national frameworks
+   DEBUG: 2026-02-02 10:23:00,995:      pdf_renderer.py:  470: printSegment: Priority 2: UK ICO AI Toolkit
+   DEBUG: 2026-02-02 10:23:00,996:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,996:      pdf_renderer.py:  470: printSegment: Important for UK market access
+   DEBUG: 2026-02-02 10:23:00,996:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,997:      pdf_renderer.py:  470: printSegment: Data protection focused
+   DEBUG: 2026-02-02 10:23:00,997:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,998:      pdf_renderer.py:  470: printSegment: GDPR-AI intersection
+   DEBUG: 2026-02-02 10:23:00,998:      pdf_renderer.py:  470: printSegment: Priority 3: Additional US Frameworks
+   DEBUG: 2026-02-02 10:23:00,999:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:00,999:      pdf_renderer.py:  470: printSegment: NIST AI 100-1 (Trustworthy AI)
+   DEBUG: 2026-02-02 10:23:01,000:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,000:      pdf_renderer.py:  470: printSegment: FTC AI Guidelines
+   DEBUG: 2026-02-02 10:23:01,000:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,001:      pdf_renderer.py:  470: printSegment: State-level AI laws (Colorado, California)
+   DEBUG: 2026-02-02 10:23:01,001:      pdf_renderer.py:  470: printSegment: 6. Assessments 
+   DEBUG: 2026-02-02 10:23:01,002:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:01,002:      pdf_renderer.py:  470: printSegment:  Questionnaires
+   DEBUG: 2026-02-02 10:23:01,003:      pdf_renderer.py:  470: printSegment: 6.1 Feature Comparison Matrix
+   DEBUG: 2026-02-02 10:23:01,003:      pdf_renderer.py:  470: printSegment: | Feature | VerifyWise | OneTrust | Gap Analysis |
+   DEBUG: 2026-02-02 10:23:01,004:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,004:      pdf_renderer.py:  470: printSegment: |---------|:----------:|:--------:|--------------|
+   DEBUG: 2026-02-02 10:23:01,005:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,005:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,005:      pdf_renderer.py:  470: printSegment: Framework
+   DEBUG: 2026-02-02 10:23:01,006:      pdf_renderer.py:  470: printSegment: Assessments
+   DEBUG: 2026-02-02 10:23:01,006:      pdf_renderer.py:  470: printSegment:  | ✅ Built-in | ✅ Built-in | Parity |
+   DEBUG: 2026-02-02 10:23:01,007:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,007:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,008:      pdf_renderer.py:  470: printSegment: Assessment Templates
+   DEBUG: 2026-02-02 10:23:01,008:      pdf_renderer.py:  470: printSegment:  | ⚠️ Fixed | ✅ Gallery | 
+   DEBUG: 2026-02-02 10:23:01,009:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,009:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,010:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,010:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,011:      pdf_renderer.py:  470: printSegment: Custom Template
+   DEBUG: 2026-02-02 10:23:01,011:      pdf_renderer.py:  470: printSegment: Builder
+   DEBUG: 2026-02-02 10:23:01,011:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:01,012:      pdf_renderer.py:  470: printSegment: Critical Gap
+   DEBUG: 2026-02-02 10:23:01,012:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,013:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,013:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,013:      pdf_renderer.py:  470: printSegment: Question Types
+   DEBUG: 2026-02-02 10:23:01,014:      pdf_renderer.py:  470: printSegment:  | ⚠️ Text only | ✅ 10+ types | 
+   DEBUG: 2026-02-02 10:23:01,014:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,015:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,015:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,015:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,016:      pdf_renderer.py:  470: printSegment: Conditional Logic
+   DEBUG: 2026-02-02 10:23:01,016:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full
+   DEBUG: 2026-02-02 10:23:01,017:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,017:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,018:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,018:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,019:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,019:      pdf_renderer.py:  470: printSegment: Scoring Rules
+   DEBUG: 2026-02-02 10:23:01,020:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:01,020:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,021:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,021:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,022:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,022:      pdf_renderer.py:  470: printSegment: FRIA Assessment
+   DEBUG: 2026-02-02 10:23:01,022:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:01,023:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,023:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,024:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,024:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,025:      pdf_renderer.py:  470: printSegment: PIA/DPIA Integration
+   DEBUG: 2026-02-02 10:23:01,025:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅
+   DEBUG: 2026-02-02 10:23:01,026:      pdf_renderer.py:  470: printSegment: Full | 
+   DEBUG: 2026-02-02 10:23:01,026:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,026:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,027:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,027:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,027:      pdf_renderer.py:  470: printSegment: Self-Service Portal
+   DEBUG: 2026-02-02 10:23:01,028:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:01,028:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,028:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,029:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,029:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,029:      pdf_renderer.py:  470: printSegment: Assessment Linking
+   DEBUG: 2026-02-02 10:23:01,030:      pdf_renderer.py:  470: printSegment:  | ✅ Frameworks | ✅ Any entity | Partial |
+   DEBUG: 2026-02-02 10:23:01,030:      pdf_renderer.py:  470: printSegment: 6.2 OneTrust Assessment Capabilities
+   DEBUG: 2026-02-02 10:23:01,031:      pdf_renderer.py:  470: printSegment: OneTrust provides comprehensive assessment functionality:
+   DEBUG: 2026-02-02 10:23:01,031:      pdf_renderer.py:  470: printSegment: Template Gallery:
+   DEBUG: 2026-02-02 10:23:01,032:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,032:      pdf_renderer.py:  470: printSegment: EU AI Act Conformity Assessment
+   DEBUG: 2026-02-02 10:23:01,032:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,033:      pdf_renderer.py:  470: printSegment: EU AI Act FRIA (Fundamental Rights Impact Assessment)
+   DEBUG: 2026-02-02 10:23:01,033:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,034:      pdf_renderer.py:  470: printSegment: NIST AI RMF Playbook
+   DEBUG: 2026-02-02 10:23:01,034:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,034:      pdf_renderer.py:  470: printSegment: OECD Framework Classification
+   DEBUG: 2026-02-02 10:23:01,035:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,035:      pdf_renderer.py:  470: printSegment: UK ICO AI 
+   DEBUG: 2026-02-02 10:23:01,035:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:01,036:      pdf_renderer.py:  470: printSegment:  Data Protection Toolkit
+   DEBUG: 2026-02-02 10:23:01,036:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,036:      pdf_renderer.py:  470: printSegment: ALTAI Framework (European Commission)
+   DEBUG: 2026-02-02 10:23:01,037:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,037:      pdf_renderer.py:  470: printSegment: US FTC AI/Algorithms Guidelines
+   DEBUG: 2026-02-02 10:23:01,037:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,038:      pdf_renderer.py:  470: printSegment: AI Intake Assessment
+   DEBUG: 2026-02-02 10:23:01,038:      pdf_renderer.py:  470: printSegment: Template Builder Features:
+   DEBUG: 2026-02-02 10:23:01,038:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,039:      pdf_renderer.py:  470: printSegment: Multiple question types (text, single-select, multi-select, date, numeric, score)
+   DEBUG: 2026-02-02 10:23:01,039:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,040:      pdf_renderer.py:  470: printSegment: Conditional question logic
+   DEBUG: 2026-02-02 10:23:01,040:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,040:      pdf_renderer.py:  470: printSegment: Scoring formulas
+   DEBUG: 2026-02-02 10:23:01,041:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,041:      pdf_renderer.py:  470: printSegment: Section grouping
+   DEBUG: 2026-02-02 10:23:01,041:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,042:      pdf_renderer.py:  470: printSegment: Multi-language support
+   DEBUG: 2026-02-02 10:23:01,042:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,043:      pdf_renderer.py:  470: printSegment: Workflow integration
+   DEBUG: 2026-02-02 10:23:01,043:      pdf_renderer.py:  470: printSegment: 6.3 Assessment Gap Recommendations
+   DEBUG: 2026-02-02 10:23:01,044:      pdf_renderer.py:  470: printSegment: Critical: Fundamental Rights Impact Assessment (FRIA)
+   DEBUG: 2026-02-02 10:23:01,044:      pdf_renderer.py:  470: printSegment: EU AI Act Article 27 requires deployers of high-risk AI systems to conduct FRIA. VerifyWise should implement:
+   DEBUG: 2026-02-02 10:23:01,045:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,045:      pdf_renderer.py:  470: printSegment: FRIA template aligned with EU requirements
+   DEBUG: 2026-02-02 10:23:01,046:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,046:      pdf_renderer.py:  470: printSegment: Rights categories (dignity, non-discrimination, privacy, etc.)
+   DEBUG: 2026-02-02 10:23:01,047:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,047:      pdf_renderer.py:  470: printSegment: Impact severity assessment
+   DEBUG: 2026-02-02 10:23:01,047:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,048:      pdf_renderer.py:  470: printSegment: Mitigation measures
+   DEBUG: 2026-02-02 10:23:01,049:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,049:      pdf_renderer.py:  470: printSegment: Stakeholder consultation tracking
+   DEBUG: 2026-02-02 10:23:01,050:      pdf_renderer.py:  470: printSegment: Priority: Custom Assessment Builder
+   DEBUG: 2026-02-02 10:23:01,050:      pdf_renderer.py:  470: printSegment: Enable organizations to create custom assessments:
+   DEBUG: 2026-02-02 10:23:01,051:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,051:      pdf_renderer.py:  470: printSegment: Drag-drop question builder
+   DEBUG: 2026-02-02 10:23:01,051:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,052:      pdf_renderer.py:  470: printSegment: Multiple response types
+   DEBUG: 2026-02-02 10:23:01,052:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,053:      pdf_renderer.py:  470: printSegment: Scoring configuration
+   DEBUG: 2026-02-02 10:23:01,053:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,054:      pdf_renderer.py:  470: printSegment: Conditional logic rules
+   DEBUG: 2026-02-02 10:23:01,054:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,055:      pdf_renderer.py:  470: printSegment: Template versioning
+   DEBUG: 2026-02-02 10:23:01,055:      pdf_renderer.py:  470: printSegment: 7. Workflow 
+   DEBUG: 2026-02-02 10:23:01,056:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:01,056:      pdf_renderer.py:  470: printSegment:  Automation
+   DEBUG: 2026-02-02 10:23:01,057:      pdf_renderer.py:  470: printSegment: 7.1 Feature Comparison Matrix
+   DEBUG: 2026-02-02 10:23:01,057:      pdf_renderer.py:  470: printSegment: | Feature | VerifyWise | OneTrust | Gap Analysis |
+   DEBUG: 2026-02-02 10:23:01,057:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,058:      pdf_renderer.py:  470: printSegment: |---------|:----------:|:--------:|--------------|
+   DEBUG: 2026-02-02 10:23:01,059:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,060:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,060:      pdf_renderer.py:  470: printSegment: Workflow Stages
+   DEBUG: 2026-02-02 10:23:01,061:      pdf_renderer.py:  470: printSegment:  | ⚠️
+   DEBUG: 2026-02-02 10:23:01,061:      pdf_renderer.py:  470: printSegment: Fixed | ✅ Custom | 
+   DEBUG: 2026-02-02 10:23:01,061:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,062:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,062:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,063:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,063:      pdf_renderer.py:  470: printSegment: Approval Workflows
+   DEBUG: 2026-02-02 10:23:01,063:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:01,064:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,064:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,065:      pdf_renderer.py:  470: printSegment: Automation Rules
+   DEBUG: 2026-02-02 10:23:01,065:      pdf_renderer.py:  470: printSegment:  | ✅ Triggers | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:01,066:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,066:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,067:      pdf_renderer.py:  470: printSegment: Scheduled Jobs
+   DEBUG: 2026-02-02 10:23:01,067:      pdf_renderer.py:  470: printSegment:  | ✅ BullMQ | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:01,068:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,068:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,069:      pdf_renderer.py:  470: printSegment: Webhook Notifications
+   DEBUG: 2026-02-02 10:23:01,070:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ⚠️ Platform | VW Advantage |
+   DEBUG: 2026-02-02 10:23:01,070:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,070:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,071:      pdf_renderer.py:  470: printSegment: Email
+   DEBUG: 2026-02-02 10:23:01,071:      pdf_renderer.py:  470: printSegment: Notifications
+   DEBUG: 2026-02-02 10:23:01,072:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:01,074:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,075:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,075:      pdf_renderer.py:  470: printSegment: Slack Integration
+   DEBUG: 2026-02-02 10:23:01,076:      pdf_renderer.py:  470: printSegment:  | ✅ Native | ⚠️ Integration | VW Advantage |
+   DEBUG: 2026-02-02 10:23:01,076:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,076:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,077:      pdf_renderer.py:  470: printSegment: Visual Workflow
+   DEBUG: 2026-02-02 10:23:01,079:      pdf_renderer.py:  470: printSegment: Builder
+   DEBUG: 2026-02-02 10:23:01,081:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:01,083:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,084:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,084:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,088:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,089:      pdf_renderer.py:  470: printSegment: Routing Rules
+   DEBUG: 2026-02-02 10:23:01,089:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:01,091:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,092:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,092:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,092:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,093:      pdf_renderer.py:  470: printSegment: Task Assignment
+   DEBUG: 2026-02-02 10:23:01,093:      pdf_renderer.py:  470: printSegment:  | ✅ Manual | ✅ Auto-routing | Partial |
+   DEBUG: 2026-02-02 10:23:01,094:      pdf_renderer.py:  470: printSegment: 7.2 VerifyWise Automation Capabilities
+   DEBUG: 2026-02-02 10:23:01,094:      pdf_renderer.py:  470: printSegment: Trigger Types:
+   DEBUG: 2026-02-02 10:23:01,094:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,095:      pdf_renderer.py:  470: printSegment: Entity created (vendor, model, incident, etc.)
+   DEBUG: 2026-02-02 10:23:01,095:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,096:      pdf_renderer.py:  470: printSegment: Entity updated
+   DEBUG: 2026-02-02 10:23:01,096:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,096:      pdf_renderer.py:  470: printSegment: Entity deleted
+   DEBUG: 2026-02-02 10:23:01,097:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,097:      pdf_renderer.py:  470: printSegment: Scheduled (cron patterns)
+   DEBUG: 2026-02-02 10:23:01,097:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,098:      pdf_renderer.py:  470: printSegment: Threshold exceeded
+   DEBUG: 2026-02-02 10:23:01,098:      pdf_renderer.py:  470: printSegment: Action Types:
+   DEBUG: 2026-02-02 10:23:01,098:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,099:      pdf_renderer.py:  470: printSegment: Send email notification
+   DEBUG: 2026-02-02 10:23:01,099:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,099:      pdf_renderer.py:  470: printSegment: Send Slack message
+   DEBUG: 2026-02-02 10:23:01,099:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,100:      pdf_renderer.py:  470: printSegment: Trigger webhook
+   DEBUG: 2026-02-02 10:23:01,100:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,100:      pdf_renderer.py:  470: printSegment: Create task
+   DEBUG: 2026-02-02 10:23:01,101:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,101:      pdf_renderer.py:  470: printSegment: Update entity field
+   DEBUG: 2026-02-02 10:23:01,102:      pdf_renderer.py:  470: printSegment: Example Automation:
+   DEBUG: 2026-02-02 10:23:01,102:      pdf_renderer.py:  470: printSegment: WHEN: Model status changes to "Pending"
+   DEBUG: 2026-02-02 10:23:01,103:      pdf_renderer.py:  470: printSegment: DO:
+   DEBUG: 2026-02-02 10:23:01,103:      pdf_renderer.py:  470: printSegment:   - Send email to approver
+   DEBUG: 2026-02-02 10:23:01,104:      pdf_renderer.py:  470: printSegment:   - Create review task
+   DEBUG: 2026-02-02 10:23:01,104:      pdf_renderer.py:  470: printSegment:   - Send Slack notification to #ai-governance
+   DEBUG: 2026-02-02 10:23:01,105:      pdf_renderer.py:  470: printSegment: 7.3 Workflow Gap Recommendations
+   DEBUG: 2026-02-02 10:23:01,105:      pdf_renderer.py:  470: printSegment: Custom Workflow Stages:
+   DEBUG: 2026-02-02 10:23:01,106:      pdf_renderer.py:  470: printSegment: Allow organizations to define custom workflow stages:
+   DEBUG: 2026-02-02 10:23:01,106:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,106:      pdf_renderer.py:  470: printSegment: Configurable stage names
+   DEBUG: 2026-02-02 10:23:01,107:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,107:      pdf_renderer.py:  470: printSegment: Transition rules (who can advance)
+   DEBUG: 2026-02-02 10:23:01,108:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,108:      pdf_renderer.py:  470: printSegment: Required fields per stage
+   DEBUG: 2026-02-02 10:23:01,108:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,109:      pdf_renderer.py:  470: printSegment: Automatic actions on stage change
+   DEBUG: 2026-02-02 10:23:01,109:      pdf_renderer.py:  470: printSegment: Visual Workflow Designer:
+   DEBUG: 2026-02-02 10:23:01,110:      pdf_renderer.py:  470: printSegment: Enable drag-drop workflow creation:
+   DEBUG: 2026-02-02 10:23:01,110:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,111:      pdf_renderer.py:  470: printSegment: Stage sequence definition
+   DEBUG: 2026-02-02 10:23:01,111:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,112:      pdf_renderer.py:  470: printSegment: Conditional branching
+   DEBUG: 2026-02-02 10:23:01,112:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,113:      pdf_renderer.py:  470: printSegment: Parallel approval paths
+   DEBUG: 2026-02-02 10:23:01,113:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,114:      pdf_renderer.py:  470: printSegment: SLA tracking
+   DEBUG: 2026-02-02 10:23:01,114:      pdf_renderer.py:  470: printSegment: 8. Reporting 
+   DEBUG: 2026-02-02 10:23:01,115:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:01,115:      pdf_renderer.py:  470: printSegment:  Analytics
+   DEBUG: 2026-02-02 10:23:01,116:      pdf_renderer.py:  470: printSegment: 8.1 Feature Comparison Matrix
+   DEBUG: 2026-02-02 10:23:01,116:      pdf_renderer.py:  470: printSegment: | Feature | VerifyWise | OneTrust | Gap Analysis |
+   DEBUG: 2026-02-02 10:23:01,116:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,117:      pdf_renderer.py:  470: printSegment: |---------|:----------:|:--------:|--------------|
+   DEBUG: 2026-02-02 10:23:01,117:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,118:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,118:      pdf_renderer.py:  470: printSegment: Dashboard
+   DEBUG: 2026-02-02 10:23:01,119:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full |
+   DEBUG: 2026-02-02 10:23:01,119:      pdf_renderer.py:  470: printSegment: Parity |
+   DEBUG: 2026-02-02 10:23:01,119:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,120:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,120:      pdf_renderer.py:  470: printSegment: PDF Reports
+   DEBUG: 2026-02-02 10:23:01,121:      pdf_renderer.py:  470: printSegment:  | ✅ Playwright | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:01,121:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,122:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,122:      pdf_renderer.py:  470: printSegment: DOCX Reports
+   DEBUG: 2026-02-02 10:23:01,123:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ❌ None | VW Advantage |
+   DEBUG: 2026-02-02 10:23:01,123:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,123:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,124:      pdf_renderer.py:  470: printSegment: Model Cards
+   DEBUG: 2026-02-02 10:23:01,124:      pdf_renderer.py:  470: printSegment: (PDF)
+   DEBUG: 2026-02-02 10:23:01,125:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ AI Cards | 
+   DEBUG: 2026-02-02 10:23:01,125:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,125:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,126:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,126:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,126:      pdf_renderer.py:  470: printSegment: Progress Charts
+   DEBUG: 2026-02-02 10:23:01,127:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:01,127:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,127:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,127:      pdf_renderer.py:  470: printSegment: Risk Distribution
+   DEBUG: 2026-02-02 10:23:01,128:      pdf_renderer.py:  470: printSegment:  | ✅ Full | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:01,128:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,128:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,128:      pdf_renderer.py:  470: printSegment: Trend
+   DEBUG: 2026-02-02 10:23:01,129:      pdf_renderer.py:  470: printSegment: Analysis
+   DEBUG: 2026-02-02 10:23:01,129:      pdf_renderer.py:  470: printSegment:  | ✅ Timeseries | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:01,129:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,129:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,130:      pdf_renderer.py:  470: printSegment: Saved Views
+   DEBUG: 2026-02-02 10:23:01,130:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:01,130:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,131:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,131:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,131:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,131:      pdf_renderer.py:  470: printSegment: Scheduled Reports
+   DEBUG: 2026-02-02 10:23:01,132:      pdf_renderer.py:  470: printSegment:  | ✅ Automations | ✅ Full | Parity
+   DEBUG: 2026-02-02 10:23:01,132:      pdf_renderer.py:  470: printSegment: |
+   DEBUG: 2026-02-02 10:23:01,132:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,133:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,133:      pdf_renderer.py:  470: printSegment: Export Formats
+   DEBUG: 2026-02-02 10:23:01,133:      pdf_renderer.py:  470: printSegment:  | ✅ CSV/PDF/DOCX | ✅ CSV/PDF | VW Advantage |
+   DEBUG: 2026-02-02 10:23:01,134:      pdf_renderer.py:  470: printSegment: 8.2 VerifyWise Reporting Capabilities
+   DEBUG: 2026-02-02 10:23:01,134:      pdf_renderer.py:  470: printSegment: Dashboard Components:
+   DEBUG: 2026-02-02 10:23:01,135:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,135:      pdf_renderer.py:  470: printSegment: Executive overview with KPIs
+   DEBUG: 2026-02-02 10:23:01,136:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,136:      pdf_renderer.py:  470: printSegment: Framework completion progress
+   DEBUG: 2026-02-02 10:23:01,136:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,137:      pdf_renderer.py:  470: printSegment: Risk distribution charts
+   DEBUG: 2026-02-02 10:23:01,137:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,137:      pdf_renderer.py:  470: printSegment: Model status breakdown
+   DEBUG: 2026-02-02 10:23:01,138:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,138:      pdf_renderer.py:  470: printSegment: Recent activity feed
+   DEBUG: 2026-02-02 10:23:01,138:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,139:      pdf_renderer.py:  470: printSegment: Task summary
+   DEBUG: 2026-02-02 10:23:01,139:      pdf_renderer.py:  470: printSegment: Report Types:
+   DEBUG: 2026-02-02 10:23:01,139:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,140:      pdf_renderer.py:  470: printSegment: Framework compliance reports
+   DEBUG: 2026-02-02 10:23:01,140:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,140:      pdf_renderer.py:  470: printSegment: Risk assessment reports
+   DEBUG: 2026-02-02 10:23:01,141:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,141:      pdf_renderer.py:  470: printSegment: Model inventory reports
+   DEBUG: 2026-02-02 10:23:01,142:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,142:      pdf_renderer.py:  470: printSegment: Vendor assessment reports
+   DEBUG: 2026-02-02 10:23:01,143:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,143:      pdf_renderer.py:  470: printSegment: Incident reports
+   DEBUG: 2026-02-02 10:23:01,144:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,144:      pdf_renderer.py:  470: printSegment: Audit trail exports
+   DEBUG: 2026-02-02 10:23:01,144:      pdf_renderer.py:  470: printSegment: Export Formats:
+   DEBUG: 2026-02-02 10:23:01,145:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,145:      pdf_renderer.py:  470: printSegment: PDF (Playwright-based generation)
+   DEBUG: 2026-02-02 10:23:01,146:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,146:      pdf_renderer.py:  470: printSegment: DOCX (Word document)
+   DEBUG: 2026-02-02 10:23:01,146:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,147:      pdf_renderer.py:  470: printSegment: CSV (data export)
+   DEBUG: 2026-02-02 10:23:01,147:      pdf_renderer.py:  470: printSegment: 8.3 Model Cards Gap
+   DEBUG: 2026-02-02 10:23:01,147:      pdf_renderer.py:  470: printSegment: Gap:
+   DEBUG: 2026-02-02 10:23:01,148:      pdf_renderer.py:  470: printSegment:  VerifyWise lacks standardized Model Card PDF generation.
+   DEBUG: 2026-02-02 10:23:01,148:      pdf_renderer.py:  470: printSegment: Model Cards should include:
+   DEBUG: 2026-02-02 10:23:01,149:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,149:      pdf_renderer.py:  470: printSegment: Model identification and version
+   DEBUG: 2026-02-02 10:23:01,150:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,150:      pdf_renderer.py:  470: printSegment: Intended use and limitations
+   DEBUG: 2026-02-02 10:23:01,150:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,151:      pdf_renderer.py:  470: printSegment: Training data description
+   DEBUG: 2026-02-02 10:23:01,151:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,152:      pdf_renderer.py:  470: printSegment: Performance metrics
+   DEBUG: 2026-02-02 10:23:01,152:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,153:      pdf_renderer.py:  470: printSegment: Fairness considerations
+   DEBUG: 2026-02-02 10:23:01,153:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,154:      pdf_renderer.py:  470: printSegment: Ethical considerations
+   DEBUG: 2026-02-02 10:23:01,154:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,154:      pdf_renderer.py:  470: printSegment: Carbon footprint (optional)
+   DEBUG: 2026-02-02 10:23:01,155:      pdf_renderer.py:  470: printSegment: Recommendation:
+   DEBUG: 2026-02-02 10:23:01,155:      pdf_renderer.py:  470: printSegment:  Implement Model Card generator following:
+   DEBUG: 2026-02-02 10:23:01,156:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,156:      pdf_renderer.py:  470: printSegment: Google Model Cards format
+   DEBUG: 2026-02-02 10:23:01,157:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,157:      pdf_renderer.py:  470: printSegment: Hugging Face Model Card template
+   DEBUG: 2026-02-02 10:23:01,157:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,158:      pdf_renderer.py:  470: printSegment: EU AI Act documentation requirements
+   DEBUG: 2026-02-02 10:23:01,159:      pdf_renderer.py:  470: printSegment: 9. Integrations
+   DEBUG: 2026-02-02 10:23:01,159:      pdf_renderer.py:  470: printSegment: 9.1 Feature Comparison Matrix
+   DEBUG: 2026-02-02 10:23:01,160:      pdf_renderer.py:  470: printSegment: | Integration | VerifyWise | OneTrust | Gap Analysis |
+   DEBUG: 2026-02-02 10:23:01,160:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,161:      pdf_renderer.py:  470: printSegment: |-------------|:----------:|:--------:|--------------|
+   DEBUG: 2026-02-02 10:23:01,161:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,161:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,161:      pdf_renderer.py:  470: printSegment: MLFlow
+   DEBUG: 2026-02-02 10:23:01,162:      pdf_renderer.py:  470: printSegment:  | ✅ Native |
+   DEBUG: 2026-02-02 10:23:01,162:      pdf_renderer.py:  470: printSegment: ❌ None | 
+   DEBUG: 2026-02-02 10:23:01,162:      pdf_renderer.py:  470: printSegment: VW Advantage
+   DEBUG: 2026-02-02 10:23:01,163:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,163:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,163:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,163:      pdf_renderer.py:  470: printSegment: Azure ML Studio
+   DEBUG: 2026-02-02 10:23:01,164:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:01,164:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,164:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,164:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,165:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,165:      pdf_renderer.py:  470: printSegment: Google Vertex AI
+   DEBUG: 2026-02-02 10:23:01,165:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:01,165:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,166:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,166:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,166:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,167:      pdf_renderer.py:  470: printSegment: Amazon
+   DEBUG: 2026-02-02 10:23:01,167:      pdf_renderer.py:  470: printSegment: SageMaker
+   DEBUG: 2026-02-02 10:23:01,167:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Full | 
+   DEBUG: 2026-02-02 10:23:01,168:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,168:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,168:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,168:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,169:      pdf_renderer.py:  470: printSegment: Databricks
+   DEBUG: 2026-02-02 10:23:01,169:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Unity Catalog | 
+   DEBUG: 2026-02-02 10:23:01,169:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,170:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,170:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,170:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,170:      pdf_renderer.py:  470: printSegment: Hugging Face
+   DEBUG: 2026-02-02 10:23:01,171:      pdf_renderer.py:  470: printSegment:  | ❌ None | ✅ Gallery | 
+   DEBUG: 2026-02-02 10:23:01,171:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-02 10:23:01,171:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,172:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,172:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,172:      pdf_renderer.py:  470: printSegment: Slack
+   DEBUG: 2026-02-02 10:23:01,173:      pdf_renderer.py:  470: printSegment:  | ✅ Native | ⚠️ Integration | VW Advantage |
+   DEBUG: 2026-02-02 10:23:01,173:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,174:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,174:      pdf_renderer.py:  470: printSegment: GitHub
+   DEBUG: 2026-02-02 10:23:01,174:      pdf_renderer.py:  470: printSegment:  | ✅ AI Detection | ❌ None | 
+   DEBUG: 2026-02-02 10:23:01,175:      pdf_renderer.py:  470: printSegment: VW Advantage
+   DEBUG: 2026-02-02 10:23:01,175:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,175:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,176:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,176:      pdf_renderer.py:  470: printSegment: OpenAI/Anthropic
+   DEBUG: 2026-02-02 10:23:01,177:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,177:      pdf_renderer.py:  470: printSegment: ✅ AI Advisor | ⚠️ Limited | VW Advantage |
+   DEBUG: 2026-02-02 10:23:01,177:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,178:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,178:      pdf_renderer.py:  470: printSegment: Email Providers
+   DEBUG: 2026-02-02 10:23:01,178:      pdf_renderer.py:  470: printSegment:  | ✅ 5 providers | ✅ Full | Parity |
+   DEBUG: 2026-02-02 10:23:01,179:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,179:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,179:      pdf_renderer.py:  470: printSegment: SSO (OAuth/OIDC)
+   DEBUG: 2026-02-02 10:23:01,180:      pdf_renderer.py:  470: printSegment:  | ✅
+   DEBUG: 2026-02-02 10:23:01,180:      pdf_renderer.py:  470: printSegment: Google/Entra | ✅ Enterprise | Parity |
+   DEBUG: 2026-02-02 10:23:01,181:      pdf_renderer.py:  470: printSegment: 9.2 VerifyWise Integration Strengths
+   DEBUG: 2026-02-02 10:23:01,181:      pdf_renderer.py:  470: printSegment: MLFlow Integration:
+   DEBUG: 2026-02-02 10:23:01,182:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,183:      pdf_renderer.py:  470: printSegment: Hourly automatic sync
+   DEBUG: 2026-02-02 10:23:01,183:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,183:      pdf_renderer.py:  470: printSegment: Model metadata import
+   DEBUG: 2026-02-02 10:23:01,184:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,184:      pdf_renderer.py:  470: printSegment: Lifecycle stage tracking
+   DEBUG: 2026-02-02 10:23:01,185:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,185:      pdf_renderer.py:  470: printSegment: Experiment tracking
+   DEBUG: 2026-02-02 10:23:01,186:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,186:      pdf_renderer.py:  470: printSegment: Metrics and parameters
+   DEBUG: 2026-02-02 10:23:01,187:      pdf_renderer.py:  470: printSegment: GitHub Integration (AI Detection):
+   DEBUG: 2026-02-02 10:23:01,187:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,188:      pdf_renderer.py:  470: printSegment: Public and private repository scanning
+   DEBUG: 2026-02-02 10:23:01,188:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,188:      pdf_renderer.py:  470: printSegment: 100+ AI/ML library detection
+   DEBUG: 2026-02-02 10:23:01,189:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,189:      pdf_renderer.py:  470: printSegment: Secret detection
+   DEBUG: 2026-02-02 10:23:01,189:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,190:      pdf_renderer.py:  470: printSegment: Model security scanning
+   DEBUG: 2026-02-02 10:23:01,190:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,191:      pdf_renderer.py:  470: printSegment: Dependency analysis
+   DEBUG: 2026-02-02 10:23:01,191:      pdf_renderer.py:  470: printSegment: AI Advisor:
+   DEBUG: 2026-02-02 10:23:01,192:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,192:      pdf_renderer.py:  470: printSegment: OpenAI and Anthropic support
+   DEBUG: 2026-02-02 10:23:01,193:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,193:      pdf_renderer.py:  470: printSegment: Governance recommendations
+   DEBUG: 2026-02-02 10:23:01,194:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,194:      pdf_renderer.py:  470: printSegment: Natural language queries
+   DEBUG: 2026-02-02 10:23:01,195:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,195:      pdf_renderer.py:  470: printSegment: Analytics generation
+   DEBUG: 2026-02-02 10:23:01,196:      pdf_renderer.py:  470: printSegment: 9.3 Cloud AI Platform Gap
+   DEBUG: 2026-02-02 10:23:01,196:      pdf_renderer.py:  470: printSegment: Critical Gap:
+   DEBUG: 2026-02-02 10:23:01,197:      pdf_renderer.py:  470: printSegment:  VerifyWise lacks integration with major cloud AI platforms.
+   DEBUG: 2026-02-02 10:23:01,197:      pdf_renderer.py:  470: printSegment: Recommendation:
+   DEBUG: 2026-02-02 10:23:01,197:      pdf_renderer.py:  470: printSegment:  Implement integrations with:
+   DEBUG: 2026-02-02 10:23:01,198:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-02 10:23:01,198:      pdf_renderer.py:  470: printSegment: Azure ML Studio
+   DEBUG: 2026-02-02 10:23:01,199:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,199:      pdf_renderer.py:  470: printSegment: Model registry sync
+   DEBUG: 2026-02-02 10:23:01,200:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,200:      pdf_renderer.py:  470: printSegment: Endpoint monitoring
+   DEBUG: 2026-02-02 10:23:01,200:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,201:      pdf_renderer.py:  470: printSegment: Experiment tracking
+   DEBUG: 2026-02-02 10:23:01,201:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-02 10:23:01,202:      pdf_renderer.py:  470: printSegment: Amazon SageMaker
+   DEBUG: 2026-02-02 10:23:01,202:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,203:      pdf_renderer.py:  470: printSegment: Model registry integration
+   DEBUG: 2026-02-02 10:23:01,203:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,204:      pdf_renderer.py:  470: printSegment: Training job tracking
+   DEBUG: 2026-02-02 10:23:01,204:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,204:      pdf_renderer.py:  470: printSegment: Endpoint management
+   DEBUG: 2026-02-02 10:23:01,205:      pdf_renderer.py:  470: printSegment:  3 
+   DEBUG: 2026-02-02 10:23:01,205:      pdf_renderer.py:  470: printSegment: Google Vertex AI
+   DEBUG: 2026-02-02 10:23:01,206:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,206:      pdf_renderer.py:  470: printSegment: Model registry sync
+   DEBUG: 2026-02-02 10:23:01,206:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,207:      pdf_renderer.py:  470: printSegment: Pipeline monitoring
+   DEBUG: 2026-02-02 10:23:01,207:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,208:      pdf_renderer.py:  470: printSegment: Feature store integration
+   DEBUG: 2026-02-02 10:23:01,208:      pdf_renderer.py:  470: printSegment:  4 
+   DEBUG: 2026-02-02 10:23:01,209:      pdf_renderer.py:  470: printSegment: Databricks Unity Catalog
+   DEBUG: 2026-02-02 10:23:01,209:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,210:      pdf_renderer.py:  470: printSegment: Model discovery
+   DEBUG: 2026-02-02 10:23:01,210:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,210:      pdf_renderer.py:  470: printSegment: Data lineage
+   DEBUG: 2026-02-02 10:23:01,211:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,211:      pdf_renderer.py:  470: printSegment: Access control sync
+   DEBUG: 2026-02-02 10:23:01,212:      pdf_renderer.py:  470: printSegment: 10. Unique VerifyWise Features
+   DEBUG: 2026-02-02 10:23:01,212:      pdf_renderer.py:  470: printSegment: VerifyWise offers several capabilities not found in OneTrust:
+   DEBUG: 2026-02-02 10:23:01,213:      pdf_renderer.py:  470: printSegment: 10.1 AI Detection System
+   DEBUG: 2026-02-02 10:23:01,213:      pdf_renderer.py:  470: printSegment: Capabilities:
+   DEBUG: 2026-02-02 10:23:01,213:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,214:      pdf_renderer.py:  470: printSegment: GitHub repository scanning (public and private)
+   DEBUG: 2026-02-02 10:23:01,214:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,215:      pdf_renderer.py:  470: printSegment: 100+ AI/ML library pattern detection
+   DEBUG: 2026-02-02 10:23:01,215:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,215:      pdf_renderer.py:  470: printSegment: Model security scanning (.pt, .onnx, .h5 files)
+   DEBUG: 2026-02-02 10:23:01,216:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,216:      pdf_renderer.py:  470: printSegment: Secret detection (API keys, tokens)
+   DEBUG: 2026-02-02 10:23:01,216:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,217:      pdf_renderer.py:  470: printSegment: RAG component identification
+   DEBUG: 2026-02-02 10:23:01,217:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,217:      pdf_renderer.py:  470: printSegment: AI agent framework detection
+   DEBUG: 2026-02-02 10:23:01,217:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,218:      pdf_renderer.py:  470: printSegment: AI Bill of Materials (AI-BOM) export
+   DEBUG: 2026-02-02 10:23:01,218:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,219:      pdf_renderer.py:  470: printSegment: EU AI Act compliance mapping
+   DEBUG: 2026-02-02 10:23:01,219:      pdf_renderer.py:  470: printSegment: Use Cases:
+   DEBUG: 2026-02-02 10:23:01,219:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,220:      pdf_renderer.py:  470: printSegment: Shadow AI discovery
+   DEBUG: 2026-02-02 10:23:01,220:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,221:      pdf_renderer.py:  470: printSegment: Security vulnerability assessment
+   DEBUG: 2026-02-02 10:23:01,221:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,222:      pdf_renderer.py:  470: printSegment: Compliance gap identification
+   DEBUG: 2026-02-02 10:23:01,222:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,223:      pdf_renderer.py:  470: printSegment: Third-party code audit
+   DEBUG: 2026-02-02 10:23:01,223:      pdf_renderer.py:  470: printSegment: 10.2 Content Authenticity (C2PA)
+   DEBUG: 2026-02-02 10:23:01,223:      pdf_renderer.py:  470: printSegment: EU AI Act Article 50 Compliance:
+   DEBUG: 2026-02-02 10:23:01,224:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,224:      pdf_renderer.py:  470: printSegment: C2PA manifest creation and verification
+   DEBUG: 2026-02-02 10:23:01,225:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,225:      pdf_renderer.py:  470: printSegment: X.509 certificate-based signing
+   DEBUG: 2026-02-02 10:23:01,225:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,226:      pdf_renderer.py:  470: printSegment: AI provenance tracking
+   DEBUG: 2026-02-02 10:23:01,226:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,226:      pdf_renderer.py:  470: printSegment: Invisible watermark embedding
+   DEBUG: 2026-02-02 10:23:01,227:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,227:      pdf_renderer.py:  470: printSegment: Robustness testing (9 transformation types)
+   DEBUG: 2026-02-02 10:23:01,228:      pdf_renderer.py:  470: printSegment: Capabilities:
+   DEBUG: 2026-02-02 10:23:01,228:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,228:      pdf_renderer.py:  470: printSegment: Real c2pa-python library integration
+   DEBUG: 2026-02-02 10:23:01,229:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,229:      pdf_renderer.py:  470: printSegment: Certificate management
+   DEBUG: 2026-02-02 10:23:01,230:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,230:      pdf_renderer.py:  470: printSegment: Manifest verification
+   DEBUG: 2026-02-02 10:23:01,231:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,231:      pdf_renderer.py:  470: printSegment: AI-generated content detection
+   DEBUG: 2026-02-02 10:23:01,232:      pdf_renderer.py:  470: printSegment: 10.3 LLM Evaluation System
+   DEBUG: 2026-02-02 10:23:01,232:      pdf_renderer.py:  470: printSegment: Features:
+   DEBUG: 2026-02-02 10:23:01,232:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,233:      pdf_renderer.py:  470: printSegment: Custom evaluation datasets
+   DEBUG: 2026-02-02 10:23:01,233:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,234:      pdf_renderer.py:  470: printSegment: Multi-model comparison (LLM Arena)
+   DEBUG: 2026-02-02 10:23:01,234:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,234:      pdf_renderer.py:  470: printSegment: Automated scoring
+   DEBUG: 2026-02-02 10:23:01,235:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,235:      pdf_renderer.py:  470: printSegment: Quality metrics tracking
+   DEBUG: 2026-02-02 10:23:01,236:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,236:      pdf_renderer.py:  470: printSegment: Response analysis
+   DEBUG: 2026-02-02 10:23:01,237:      pdf_renderer.py:  470: printSegment: 10.4 AI Trust Center
+   DEBUG: 2026-02-02 10:23:01,237:      pdf_renderer.py:  470: printSegment: Public Transparency Portal:
+   DEBUG: 2026-02-02 10:23:01,238:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,238:      pdf_renderer.py:  470: printSegment: Organization AI policies
+   DEBUG: 2026-02-02 10:23:01,239:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,239:      pdf_renderer.py:  470: printSegment: Model inventory summary
+   DEBUG: 2026-02-02 10:23:01,239:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,240:      pdf_renderer.py:  470: printSegment: Compliance status
+   DEBUG: 2026-02-02 10:23:01,240:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,240:      pdf_renderer.py:  470: printSegment: Contact information
+   DEBUG: 2026-02-02 10:23:01,240:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,241:      pdf_renderer.py:  470: printSegment: Shareable public URL
+   DEBUG: 2026-02-02 10:23:01,241:      pdf_renderer.py:  470: printSegment: 10.5 Additional Unique Features
+   DEBUG: 2026-02-02 10:23:01,242:      pdf_renderer.py:  470: printSegment: | Feature | Description |
+   DEBUG: 2026-02-02 10:23:01,242:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,242:      pdf_renderer.py:  470: printSegment: |---------|-------------|
+   DEBUG: 2026-02-02 10:23:01,243:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,243:      pdf_renderer.py:  470: printSegment: | CE Marking Registry | Track EU conformity marking status |
+   DEBUG: 2026-02-02 10:23:01,244:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,245:      pdf_renderer.py:  470: printSegment: | AI
+   DEBUG: 2026-02-02 10:23:01,245:      pdf_renderer.py:  470: printSegment: Literacy Training | Training registry for Article 4 compliance |
+   DEBUG: 2026-02-02 10:23:01,245:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,246:      pdf_renderer.py:  470: printSegment: | Event Tracker (WatchTower) | Real-time activity
+   DEBUG: 2026-02-02 10:23:01,246:      pdf_renderer.py:  470: printSegment: monitoring |
+   DEBUG: 2026-02-02 10:23:01,247:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,247:      pdf_renderer.py:  470: printSegment: | Post-Market Monitoring | Article 72 compliance tracking |
+   DEBUG: 2026-02-02 10:23:01,247:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,248:      pdf_renderer.py:  470: printSegment: | Self-Hosted Deployment | Full data
+   DEBUG: 2026-02-02 10:23:01,248:      pdf_renderer.py:  470: printSegment: sovereignty |
+   DEBUG: 2026-02-02 10:23:01,249:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,249:      pdf_renderer.py:  470: printSegment: | Source Available | Code transparency and customization |
+   DEBUG: 2026-02-02 10:23:01,249:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,250:      pdf_renderer.py:  470: printSegment: | DOCX Export | Word document report
+   DEBUG: 2026-02-02 10:23:01,250:      pdf_renderer.py:  470: printSegment: generation |
+   DEBUG: 2026-02-02 10:23:01,251:      pdf_renderer.py:  470: printSegment: 11. Unique OneTrust Features
+   DEBUG: 2026-02-02 10:23:01,252:      pdf_renderer.py:  470: printSegment: OneTrust offers capabilities not currently in VerifyWise:
+   DEBUG: 2026-02-02 10:23:01,252:      pdf_renderer.py:  470: printSegment: 11.1 DataGuidance Regulatory Intelligence
+   DEBUG: 2026-02-02 10:23:01,253:      pdf_renderer.py:  470: printSegment: Components:
+   DEBUG: 2026-02-02 10:23:01,253:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,253:      pdf_renderer.py:  470: printSegment: EU AI Act Guidance Notes
+   DEBUG: 2026-02-02 10:23:01,254:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,254:      pdf_renderer.py:  470: printSegment: AI Law Tracker (global jurisdiction coverage)
+   DEBUG: 2026-02-02 10:23:01,255:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,255:      pdf_renderer.py:  470: printSegment: AI Frameworks database
+   DEBUG: 2026-02-02 10:23:01,255:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,256:      pdf_renderer.py:  470: printSegment: AI Guidelines 
+   DEBUG: 2026-02-02 10:23:01,256:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:01,256:      pdf_renderer.py:  470: printSegment:  Tools repository
+   DEBUG: 2026-02-02 10:23:01,257:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,257:      pdf_renderer.py:  470: printSegment: Real-time regulatory updates
+   DEBUG: 2026-02-02 10:23:01,258:      pdf_renderer.py:  470: printSegment: 11.2 Assessment Infrastructure
+   DEBUG: 2026-02-02 10:23:01,258:      pdf_renderer.py:  470: printSegment: Template Gallery:
+   DEBUG: 2026-02-02 10:23:01,258:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,259:      pdf_renderer.py:  470: printSegment: Pre-built compliance assessments
+   DEBUG: 2026-02-02 10:23:01,259:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,260:      pdf_renderer.py:  470: printSegment: Industry-specific templates
+   DEBUG: 2026-02-02 10:23:01,260:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,260:      pdf_renderer.py:  470: printSegment: Regulatory-aligned questionnaires
+   DEBUG: 2026-02-02 10:23:01,261:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,262:      pdf_renderer.py:  470: printSegment: Best practice frameworks
+   DEBUG: 2026-02-02 10:23:01,262:      pdf_renderer.py:  470: printSegment: Custom Builder:
+   DEBUG: 2026-02-02 10:23:01,262:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,263:      pdf_renderer.py:  470: printSegment: Visual question designer
+   DEBUG: 2026-02-02 10:23:01,263:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,264:      pdf_renderer.py:  470: printSegment: Conditional logic rules
+   DEBUG: 2026-02-02 10:23:01,265:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,267:      pdf_renderer.py:  470: printSegment: Scoring formulas
+   DEBUG: 2026-02-02 10:23:01,268:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,268:      pdf_renderer.py:  470: printSegment: Multi-language support
+   DEBUG: 2026-02-02 10:23:01,270:      pdf_renderer.py:  470: printSegment: 11.3 AI Systems Lifecycle
+   DEBUG: 2026-02-02 10:23:01,270:      pdf_renderer.py:  470: printSegment: Project → AI System Promotion:
+   DEBUG: 2026-02-02 10:23:01,271:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,271:      pdf_renderer.py:  470: printSegment: Formal lifecycle transition
+   DEBUG: 2026-02-02 10:23:01,273:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,275:      pdf_renderer.py:  470: printSegment: Attribute mapping
+   DEBUG: 2026-02-02 10:23:01,276:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,277:      pdf_renderer.py:  470: printSegment: Relationship preservation
+   DEBUG: 2026-02-02 10:23:01,279:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,283:      pdf_renderer.py:  470: printSegment: Documentation transfer
+   DEBUG: 2026-02-02 10:23:01,286:      pdf_renderer.py:  470: printSegment: 11.4 Multi-Cloud AI Discovery
+   DEBUG: 2026-02-02 10:23:01,287:      pdf_renderer.py:  470: printSegment: Automated Discovery:
+   DEBUG: 2026-02-02 10:23:01,287:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,288:      pdf_renderer.py:  470: printSegment: Databricks Unity Catalog
+   DEBUG: 2026-02-02 10:23:01,288:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,288:      pdf_renderer.py:  470: printSegment: Amazon SageMaker
+   DEBUG: 2026-02-02 10:23:01,289:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,289:      pdf_renderer.py:  470: printSegment: Google Vertex AI
+   DEBUG: 2026-02-02 10:23:01,292:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,293:      pdf_renderer.py:  470: printSegment: Azure ML Studio
+   DEBUG: 2026-02-02 10:23:01,296:      pdf_renderer.py:  470: printSegment: 11.5 Additional Unique Features
+   DEBUG: 2026-02-02 10:23:01,299:      pdf_renderer.py:  470: printSegment: | Feature | Description |
+   DEBUG: 2026-02-02 10:23:01,299:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,303:      pdf_renderer.py:  470: printSegment: |---------|-------------|
+   DEBUG: 2026-02-02 10:23:01,305:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,306:      pdf_renderer.py:  470: printSegment: | Dataset Inventory | Formal dataset tracking with lineage |
+   DEBUG: 2026-02-02 10:23:01,308:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,309:      pdf_renderer.py:  470: printSegment: | Fairness
+   DEBUG: 2026-02-02 10:23:01,310:      pdf_renderer.py:  470: printSegment: Metrics | Demographic Parity, Equalized Odds |
+   DEBUG: 2026-02-02 10:23:01,310:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,311:      pdf_renderer.py:  470: printSegment: | FRIA Assessment | Fundamental Rights Impact Assessment |
+   DEBUG: 2026-02-02 10:23:01,311:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,312:      pdf_renderer.py:  470: printSegment: |
+   DEBUG: 2026-02-02 10:23:01,312:      pdf_renderer.py:  470: printSegment: Custom Attributes | Dynamic field creation |
+   DEBUG: 2026-02-02 10:23:01,312:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,313:      pdf_renderer.py:  470: printSegment: | Saved Views | Persistent filtered views |
+   DEBUG: 2026-02-02 10:23:01,313:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,314:      pdf_renderer.py:  470: printSegment: | Model Cards (AI Cards) |
+   DEBUG: 2026-02-02 10:23:01,314:      pdf_renderer.py:  470: printSegment: Standardized PDF documentation |
+   DEBUG: 2026-02-02 10:23:01,315:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,317:      pdf_renderer.py:  470: printSegment: | Cross-Module Integration | TPRM, Privacy, Data Mapping |
+   DEBUG: 2026-02-02 10:23:01,320:      pdf_renderer.py:  470: printSegment: 12. EU AI Act Compliance Coverage
+   DEBUG: 2026-02-02 10:23:01,321:      pdf_renderer.py:  470: printSegment: 12.1 Article-by-Article Comparison
+   DEBUG: 2026-02-02 10:23:01,321:      pdf_renderer.py:  470: printSegment: | Article | Requirement | VerifyWise | OneTrust |
+   DEBUG: 2026-02-02 10:23:01,322:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,322:      pdf_renderer.py:  470: printSegment: |---------|-------------|:----------:|:--------:|
+   DEBUG: 2026-02-02 10:23:01,323:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,323:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,323:      pdf_renderer.py:  470: printSegment: Art. 4
+   DEBUG: 2026-02-02 10:23:01,324:      pdf_renderer.py:  470: printSegment:  | AI Literacy | ✅
+   DEBUG: 2026-02-02 10:23:01,325:      pdf_renderer.py:  470: printSegment: Training Registry | ⚠️ Manual |
+   DEBUG: 2026-02-02 10:23:01,325:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,326:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,326:      pdf_renderer.py:  470: printSegment: Art. 9
+   DEBUG: 2026-02-02 10:23:01,327:      pdf_renderer.py:  470: printSegment:  | Risk Management System | ✅ Full | ✅ Full |
+   DEBUG: 2026-02-02 10:23:01,328:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,328:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,329:      pdf_renderer.py:  470: printSegment: Art. 10
+   DEBUG: 2026-02-02 10:23:01,329:      pdf_renderer.py:  470: printSegment:  | Data Governance | ⚠️ Partial | ✅
+   DEBUG: 2026-02-02 10:23:01,330:      pdf_renderer.py:  470: printSegment: Dataset Inventory |
+   DEBUG: 2026-02-02 10:23:01,331:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,331:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,332:      pdf_renderer.py:  470: printSegment: Art. 11
+   DEBUG: 2026-02-02 10:23:01,332:      pdf_renderer.py:  470: printSegment:  | Technical Documentation | ✅ Full | ✅ Full |
+   DEBUG: 2026-02-02 10:23:01,332:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,333:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,333:      pdf_renderer.py:  470: printSegment: Art. 12
+   DEBUG: 2026-02-02 10:23:01,334:      pdf_renderer.py:  470: printSegment:  | Record-Keeping | ✅ Audit Trail | ✅ Full |
+   DEBUG: 2026-02-02 10:23:01,334:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,335:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,335:      pdf_renderer.py:  470: printSegment: Art. 13
+   DEBUG: 2026-02-02 10:23:01,336:      pdf_renderer.py:  470: printSegment:  | Transparency | ✅ AI Trust Center | ✅ Full |
+   DEBUG: 2026-02-02 10:23:01,336:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,336:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,337:      pdf_renderer.py:  470: printSegment: Art. 14
+   DEBUG: 2026-02-02 10:23:01,337:      pdf_renderer.py:  470: printSegment:  | Human Oversight | ✅ Workflows | ✅ Assessments |
+   DEBUG: 2026-02-02 10:23:01,338:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,338:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,338:      pdf_renderer.py:  470: printSegment: Art. 15
+   DEBUG: 2026-02-02 10:23:01,339:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,340:      pdf_renderer.py:  470: printSegment: Accuracy, Robustness | ✅ Model Risks | ✅ Full |
+   DEBUG: 2026-02-02 10:23:01,341:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,341:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,342:      pdf_renderer.py:  470: printSegment: Art. 26
+   DEBUG: 2026-02-02 10:23:01,342:      pdf_renderer.py:  470: printSegment:  | Deployer Obligations | ✅ Framework Controls | ✅ Full |
+   DEBUG: 2026-02-02 10:23:01,343:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,343:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,343:      pdf_renderer.py:  470: printSegment: Art. 27
+   DEBUG: 2026-02-02 10:23:01,344:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-02 10:23:01,345:      pdf_renderer.py:  470: printSegment: FRIA | ❌ None | ✅ Full |
+   DEBUG: 2026-02-02 10:23:01,345:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,346:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,346:      pdf_renderer.py:  470: printSegment: Art. 50
+   DEBUG: 2026-02-02 10:23:01,347:      pdf_renderer.py:  470: printSegment:  | AI-Generated Content | ✅ C2PA Watermarking | ❌ None |
+   DEBUG: 2026-02-02 10:23:01,347:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,348:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,348:      pdf_renderer.py:  470: printSegment: Art. 71
+   DEBUG: 2026-02-02 10:23:01,349:      pdf_renderer.py:  470: printSegment:  | Codes of Conduct | ⚠️
+   DEBUG: 2026-02-02 10:23:01,349:      pdf_renderer.py:  470: printSegment: Policy Manager | ✅ Full |
+   DEBUG: 2026-02-02 10:23:01,350:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,351:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,351:      pdf_renderer.py:  470: printSegment: Art. 72
+   DEBUG: 2026-02-02 10:23:01,352:      pdf_renderer.py:  470: printSegment:  | Post-Market Monitoring | ✅ PMM Module | ⚠️ Manual |
+   DEBUG: 2026-02-02 10:23:01,353:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,353:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-02 10:23:01,353:      pdf_renderer.py:  470: printSegment: Art. 73
+   DEBUG: 2026-02-02 10:23:01,354:      pdf_renderer.py:  470: printSegment:  | Incident Reporting | ✅
+   DEBUG: 2026-02-02 10:23:01,355:      pdf_renderer.py:  470: printSegment: Full Module | ✅ Full |
+   DEBUG: 2026-02-02 10:23:01,355:      pdf_renderer.py:  470: printSegment: 12.2 Compliance Strengths
+   DEBUG: 2026-02-02 10:23:01,356:      pdf_renderer.py:  470: printSegment: VerifyWise Advantages:
+   DEBUG: 2026-02-02 10:23:01,356:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,357:      pdf_renderer.py:  470: printSegment: Article 50 (AI-Generated Content): Only platform with C2PA watermarking
+   DEBUG: 2026-02-02 10:23:01,357:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,358:      pdf_renderer.py:  470: printSegment: Article 4 (AI Literacy): Dedicated training registry
+   DEBUG: 2026-02-02 10:23:01,359:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,359:      pdf_renderer.py:  470: printSegment: Article 72 (Post-Market Monitoring): Dedicated PMM module
+   DEBUG: 2026-02-02 10:23:01,360:      pdf_renderer.py:  470: printSegment: OneTrust Advantages:
+   DEBUG: 2026-02-02 10:23:01,361:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,361:      pdf_renderer.py:  470: printSegment: Article 10 (Data Governance): Full dataset inventory
+   DEBUG: 2026-02-02 10:23:01,362:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,362:      pdf_renderer.py:  470: printSegment: Article 27 (FRIA): Pre-built assessment template
+   DEBUG: 2026-02-02 10:23:01,363:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,363:      pdf_renderer.py:  470: printSegment: Broader framework coverage
+   DEBUG: 2026-02-02 10:23:01,364:      pdf_renderer.py:  470: printSegment: 12.3 Critical Compliance Gaps
+   DEBUG: 2026-02-02 10:23:01,364:      pdf_renderer.py:  470: printSegment: VerifyWise Must Address:
+   DEBUG: 2026-02-02 10:23:01,365:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-02 10:23:01,365:      pdf_renderer.py:  470: printSegment: Article 10 - Data Governance
+   DEBUG: 2026-02-02 10:23:01,366:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,366:      pdf_renderer.py:  470: printSegment: Implement Dataset Inventory
+   DEBUG: 2026-02-02 10:23:01,367:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,367:      pdf_renderer.py:  470: printSegment: Add data lineage tracking
+   DEBUG: 2026-02-02 10:23:01,367:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,368:      pdf_renderer.py:  470: printSegment: Include data quality metrics
+   DEBUG: 2026-02-02 10:23:01,368:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-02 10:23:01,368:      pdf_renderer.py:  470: printSegment: Article 27 - FRIA
+   DEBUG: 2026-02-02 10:23:01,369:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,369:      pdf_renderer.py:  470: printSegment: Create FRIA assessment template
+   DEBUG: 2026-02-02 10:23:01,369:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,370:      pdf_renderer.py:  470: printSegment: Include rights categories
+   DEBUG: 2026-02-02 10:23:01,370:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,371:      pdf_renderer.py:  470: printSegment: Add stakeholder consultation tracking
+   DEBUG: 2026-02-02 10:23:01,371:      pdf_renderer.py:  470: printSegment:  3 
+   DEBUG: 2026-02-02 10:23:01,372:      pdf_renderer.py:  470: printSegment: Fairness/Bias Metrics
+   DEBUG: 2026-02-02 10:23:01,372:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,372:      pdf_renderer.py:  470: printSegment: Required for non-discrimination compliance
+   DEBUG: 2026-02-02 10:23:01,373:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,373:      pdf_renderer.py:  470: printSegment: Needed for high-risk AI systems
+   DEBUG: 2026-02-02 10:23:01,374:      pdf_renderer.py:  470: printSegment: 13. Gap Analysis 
+   DEBUG: 2026-02-02 10:23:01,374:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-02 10:23:01,374:      pdf_renderer.py:  470: printSegment:  Recommendations
+   DEBUG: 2026-02-02 10:23:01,375:      pdf_renderer.py:  470: printSegment: 13.1 Critical Priority (Must Have)
+   DEBUG: 2026-02-02 10:23:01,375:      pdf_renderer.py:  470: printSegment: | Gap | Impact | Recommendation | Effort |
+   DEBUG: 2026-02-02 10:23:01,376:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,376:      pdf_renderer.py:  470: printSegment: |-----|--------|----------------|--------|
+   DEBUG: 2026-02-02 10:23:01,376:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,378:      pdf_renderer.py:  470: printSegment: | Dataset Inventory | EU AI Act Art. 10
+   DEBUG: 2026-02-02 10:23:01,379:      pdf_renderer.py:  470: printSegment: compliance | Create dataset tracking module with lineage | High |
+   DEBUG: 2026-02-02 10:23:01,379:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,381:      pdf_renderer.py:  470: printSegment: | FRIA Assessment | EU AI Act Art. 27
+   DEBUG: 2026-02-02 10:23:01,382:      pdf_renderer.py:  470: printSegment: compliance | Build FRIA template with rights mapping | Medium |
+   DEBUG: 2026-02-02 10:23:01,382:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,383:      pdf_renderer.py:  470: printSegment: | Fairness Metrics | Bias detection compliance |
+   DEBUG: 2026-02-02 10:23:01,384:      pdf_renderer.py:  470: printSegment: Integrate Fairlearn/AIF360 metrics | Medium |
+   DEBUG: 2026-02-02 10:23:01,384:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,385:      pdf_renderer.py:  470: printSegment: | Assessment Builder | Customer flexibility | Build visual template
+   DEBUG: 2026-02-02 10:23:01,386:      pdf_renderer.py:  470: printSegment: creator | High |
+   DEBUG: 2026-02-02 10:23:01,387:      pdf_renderer.py:  470: printSegment: 13.2 High Priority (Competitive Parity)
+   DEBUG: 2026-02-02 10:23:01,388:      pdf_renderer.py:  470: printSegment: | Gap | Impact | Recommendation | Effort |
+   DEBUG: 2026-02-02 10:23:01,388:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,388:      pdf_renderer.py:  470: printSegment: |-----|--------|----------------|--------|
+   DEBUG: 2026-02-02 10:23:01,389:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,390:      pdf_renderer.py:  470: printSegment: | Cloud AI Discovery | Enterprise
+   DEBUG: 2026-02-02 10:23:01,391:      pdf_renderer.py:  470: printSegment: adoption | Build Azure/AWS/GCP integrations | High |
+   DEBUG: 2026-02-02 10:23:01,391:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,392:      pdf_renderer.py:  470: printSegment: | Custom Attributes | Flexibility | Add dynamic field
+   DEBUG: 2026-02-02 10:23:01,393:      pdf_renderer.py:  470: printSegment: configuration | Medium |
+   DEBUG: 2026-02-02 10:23:01,393:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,393:      pdf_renderer.py:  470: printSegment: | Model Cards | Documentation standard | Implement PDF model card generator | Low |
+   DEBUG: 2026-02-02 10:23:01,394:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,396:      pdf_renderer.py:  470: printSegment: |
+   DEBUG: 2026-02-02 10:23:01,396:      pdf_renderer.py:  470: printSegment: Saved Views | User productivity | Add view persistence feature | Low |
+   DEBUG: 2026-02-02 10:23:01,397:      pdf_renderer.py:  470: printSegment: 13.3 Medium Priority (Market Expansion)
+   DEBUG: 2026-02-02 10:23:01,398:      pdf_renderer.py:  470: printSegment: | Gap | Impact | Recommendation | Effort |
+   DEBUG: 2026-02-02 10:23:01,398:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,399:      pdf_renderer.py:  470: printSegment: |-----|--------|----------------|--------|
+   DEBUG: 2026-02-02 10:23:01,399:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,401:      pdf_renderer.py:  470: printSegment: | OECD Framework | International
+   DEBUG: 2026-02-02 10:23:01,401:      pdf_renderer.py:  470: printSegment: compliance | Add OECD principles mapping | Medium |
+   DEBUG: 2026-02-02 10:23:01,401:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,402:      pdf_renderer.py:  470: printSegment: | UK ICO Toolkit | UK market access | Add UK framework
+   DEBUG: 2026-02-02 10:23:01,403:      pdf_renderer.py:  470: printSegment: support | Medium |
+   DEBUG: 2026-02-02 10:23:01,403:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,404:      pdf_renderer.py:  470: printSegment: | Visual Workflow | Enterprise adoption | Build drag-drop workflow designer | High |
+   DEBUG: 2026-02-02 10:23:01,404:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,406:      pdf_renderer.py:  470: printSegment: | Hugging
+   DEBUG: 2026-02-02 10:23:01,406:      pdf_renderer.py:  470: printSegment: Face Gallery | Model discovery | Add HF integration | Medium |
+   DEBUG: 2026-02-02 10:23:01,407:      pdf_renderer.py:  470: printSegment: 13.4 Roadmap Recommendation
+   DEBUG: 2026-02-02 10:23:01,407:      pdf_renderer.py:  470: printSegment: Phase 1 (Q1 2026): Compliance Critical
+   DEBUG: 2026-02-02 10:23:01,408:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,408:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,408:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,409:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,409:      pdf_renderer.py:  470: printSegment:  Dataset Inventory implementation
+   DEBUG: 2026-02-02 10:23:01,410:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,411:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,411:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,411:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,412:      pdf_renderer.py:  470: printSegment:  FRIA Assessment template
+   DEBUG: 2026-02-02 10:23:01,412:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,413:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,413:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,413:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,414:      pdf_renderer.py:  470: printSegment:  Fairness metrics integration
+   DEBUG: 2026-02-02 10:23:01,414:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,415:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,415:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,416:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,416:      pdf_renderer.py:  470: printSegment:  Model Cards PDF export
+   DEBUG: 2026-02-02 10:23:01,417:      pdf_renderer.py:  470: printSegment: Phase 2 (Q2 2026): Enterprise Features
+   DEBUG: 2026-02-02 10:23:01,417:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,417:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,418:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,418:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,419:      pdf_renderer.py:  470: printSegment:  Custom Assessment Builder
+   DEBUG: 2026-02-02 10:23:01,419:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,420:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,421:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,421:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,422:      pdf_renderer.py:  470: printSegment:  Custom Attributes system
+   DEBUG: 2026-02-02 10:23:01,422:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,423:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,423:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,423:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,424:      pdf_renderer.py:  470: printSegment:  Saved Views
+   DEBUG: 2026-02-02 10:23:01,424:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,425:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,425:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,426:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,426:      pdf_renderer.py:  470: printSegment:  OECD Framework support
+   DEBUG: 2026-02-02 10:23:01,427:      pdf_renderer.py:  470: printSegment: Phase 3 (Q3 2026): Integrations
+   DEBUG: 2026-02-02 10:23:01,427:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,428:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,428:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,428:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,429:      pdf_renderer.py:  470: printSegment:  Azure ML Studio integration
+   DEBUG: 2026-02-02 10:23:01,429:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,429:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,429:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,430:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,431:      pdf_renderer.py:  470: printSegment:  Amazon SageMaker integration
+   DEBUG: 2026-02-02 10:23:01,431:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,431:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,432:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,432:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,432:      pdf_renderer.py:  470: printSegment:  Google Vertex AI integration
+   DEBUG: 2026-02-02 10:23:01,433:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,433:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,433:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,434:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,434:      pdf_renderer.py:  470: printSegment:  Databricks Unity Catalog
+   DEBUG: 2026-02-02 10:23:01,434:      pdf_renderer.py:  470: printSegment: Phase 4 (Q4 2026): Advanced Capabilities
+   DEBUG: 2026-02-02 10:23:01,435:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,435:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,435:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,435:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,436:      pdf_renderer.py:  470: printSegment:  Visual Workflow Designer
+   DEBUG: 2026-02-02 10:23:01,436:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,436:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,437:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,437:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,437:      pdf_renderer.py:  470: printSegment:  Hugging Face Gallery
+   DEBUG: 2026-02-02 10:23:01,438:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,438:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,438:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,438:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,439:      pdf_renderer.py:  470: printSegment:  UK ICO Framework
+   DEBUG: 2026-02-02 10:23:01,439:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,439:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-02 10:23:01,440:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,440:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-02 10:23:01,441:      pdf_renderer.py:  470: printSegment:  AI Law Tracker
+   DEBUG: 2026-02-02 10:23:01,441:      pdf_renderer.py:  470: printSegment: 14. Conclusion
+   DEBUG: 2026-02-02 10:23:01,442:      pdf_renderer.py:  470: printSegment: 14.1 Competitive Position
+   DEBUG: 2026-02-02 10:23:01,444:      pdf_renderer.py:  470: printSegment: VerifyWise has established a strong position in the AI governance market with unique technical capabilities that
+   DEBUG: 2026-02-02 10:23:01,444:      pdf_renderer.py:  470: printSegment: differentiate it from OneTrust:
+   DEBUG: 2026-02-02 10:23:01,445:      pdf_renderer.py:  470: printSegment: VerifyWise Competitive Moat:
+   DEBUG: 2026-02-02 10:23:01,445:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-02 10:23:01,446:      pdf_renderer.py:  470: printSegment: Self-hosted deployment
+   DEBUG: 2026-02-02 10:23:01,446:      pdf_renderer.py:  470: printSegment:  for data sovereignty
+   DEBUG: 2026-02-02 10:23:01,446:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-02 10:23:01,447:      pdf_renderer.py:  470: printSegment: AI Detection
+   DEBUG: 2026-02-02 10:23:01,447:      pdf_renderer.py:  470: printSegment:  for shadow AI discovery
+   DEBUG: 2026-02-02 10:23:01,448:      pdf_renderer.py:  470: printSegment:  3 
+   DEBUG: 2026-02-02 10:23:01,448:      pdf_renderer.py:  470: printSegment: Content Authenticity (C2PA)
+   DEBUG: 2026-02-02 10:23:01,448:      pdf_renderer.py:  470: printSegment:  for Article 50 compliance
+   DEBUG: 2026-02-02 10:23:01,449:      pdf_renderer.py:  470: printSegment:  4 
+   DEBUG: 2026-02-02 10:23:01,449:      pdf_renderer.py:  470: printSegment: LLM Evals
+   DEBUG: 2026-02-02 10:23:01,449:      pdf_renderer.py:  470: printSegment:  for technical AI evaluation
+   DEBUG: 2026-02-02 10:23:01,450:      pdf_renderer.py:  470: printSegment:  5 
+   DEBUG: 2026-02-02 10:23:01,451:      pdf_renderer.py:  470: printSegment: Source-available code
+   DEBUG: 2026-02-02 10:23:01,451:      pdf_renderer.py:  470: printSegment:  for transparency
+   DEBUG: 2026-02-02 10:23:01,451:      pdf_renderer.py:  470: printSegment:  6 
+   DEBUG: 2026-02-02 10:23:01,452:      pdf_renderer.py:  470: printSegment: MLFlow integration
+   DEBUG: 2026-02-02 10:23:01,452:      pdf_renderer.py:  470: printSegment:  for MLOps workflows
+   DEBUG: 2026-02-02 10:23:01,453:      pdf_renderer.py:  470: printSegment: Areas Where OneTrust Leads:
+   DEBUG: 2026-02-02 10:23:01,453:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-02 10:23:01,454:      pdf_renderer.py:  470: printSegment: Breadth of regulatory frameworks
+   DEBUG: 2026-02-02 10:23:01,454:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-02 10:23:01,454:      pdf_renderer.py:  470: printSegment: Enterprise GRC integration
+   DEBUG: 2026-02-02 10:23:01,455:      pdf_renderer.py:  470: printSegment:  3 
+   DEBUG: 2026-02-02 10:23:01,455:      pdf_renderer.py:  470: printSegment: Assessment template ecosystem
+   DEBUG: 2026-02-02 10:23:01,455:      pdf_renderer.py:  470: printSegment:  4 
+   DEBUG: 2026-02-02 10:23:01,456:      pdf_renderer.py:  470: printSegment: Multi-cloud AI discovery
+   DEBUG: 2026-02-02 10:23:01,456:      pdf_renderer.py:  470: printSegment:  5 
+   DEBUG: 2026-02-02 10:23:01,457:      pdf_renderer.py:  470: printSegment: Regulatory intelligence (DataGuidance)
+   DEBUG: 2026-02-02 10:23:01,457:      pdf_renderer.py:  470: printSegment: 14.2 Strategic Recommendations
+   DEBUG: 2026-02-02 10:23:01,458:      pdf_renderer.py:  470: printSegment: Short-term (6 months):
+   DEBUG: 2026-02-02 10:23:01,458:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,459:      pdf_renderer.py:  470: printSegment: Address critical EU AI Act compliance gaps (Dataset, FRIA)
+   DEBUG: 2026-02-02 10:23:01,459:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,460:      pdf_renderer.py:  470: printSegment: Add fairness metrics for bias detection
+   DEBUG: 2026-02-02 10:23:01,460:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,461:      pdf_renderer.py:  470: printSegment: Implement Model Cards for standardized documentation
+   DEBUG: 2026-02-02 10:23:01,461:      pdf_renderer.py:  470: printSegment: Medium-term (12 months):
+   DEBUG: 2026-02-02 10:23:01,461:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,462:      pdf_renderer.py:  470: printSegment: Build Assessment Template Builder for customer flexibility
+   DEBUG: 2026-02-02 10:23:01,462:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,463:      pdf_renderer.py:  470: printSegment: Add cloud AI platform integrations
+   DEBUG: 2026-02-02 10:23:01,463:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,464:      pdf_renderer.py:  470: printSegment: Expand framework coverage (OECD, UK ICO)
+   DEBUG: 2026-02-02 10:23:01,464:      pdf_renderer.py:  470: printSegment: Long-term (18+ months):
+   DEBUG: 2026-02-02 10:23:01,465:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,465:      pdf_renderer.py:  470: printSegment: Develop regulatory intelligence capabilities
+   DEBUG: 2026-02-02 10:23:01,466:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,466:      pdf_renderer.py:  470: printSegment: Build visual workflow designer
+   DEBUG: 2026-02-02 10:23:01,466:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-02 10:23:01,467:      pdf_renderer.py:  470: printSegment: Create ecosystem integrations (TPRM, Privacy)
+   DEBUG: 2026-02-02 10:23:01,467:      pdf_renderer.py:  470: printSegment: 14.3 Final Assessment
+   DEBUG: 2026-02-02 10:23:01,468:      pdf_renderer.py:  470: printSegment: VerifyWise is well-positioned as the leading 
+   DEBUG: 2026-02-02 10:23:01,468:      pdf_renderer.py:  470: printSegment: open-source AI governance platform
+   DEBUG: 2026-02-02 10:23:01,480:      pdf_renderer.py:  470: printSegment:  with unique technical
+   DEBUG: 2026-02-02 10:23:01,489:      pdf_renderer.py:  470: printSegment: capabilities. By addressing the identified gaps, particularly in dataset management, FRIA assessments, and cloud
+   DEBUG: 2026-02-02 10:23:01,492:      pdf_renderer.py:  470: printSegment: integrations, VerifyWise can achieve feature parity with enterprise solutions while maintaining its competitive
+   DEBUG: 2026-02-02 10:23:01,493:      pdf_renderer.py:  470: printSegment: advantages in technical AI governance, transparency, and deployment flexibility.
+   DEBUG: 2026-02-02 10:23:01,494:      pdf_renderer.py:  470: printSegment: The platform
+   DEBUG: 2026-02-02 10:23:01,494:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-02 10:23:01,498:      pdf_renderer.py:  470: printSegment: s focus on EU AI Act compliance, combined with unique features like AI Detection and C2PA
+   DEBUG: 2026-02-02 10:23:01,500:      pdf_renderer.py:  470: printSegment: watermarking, provides a compelling value proposition for organizations seeking comprehensive AI governance
+   DEBUG: 2026-02-02 10:23:01,500:      pdf_renderer.py:  470: printSegment: without vendor lock-in.
+   DEBUG: 2026-02-02 10:23:01,502:      pdf_renderer.py:  470: printSegment: Document prepared for internal strategic planning purposes.
+   DEBUG: 2026-02-02 10:23:01,503:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:  470: printSegment: Last updated: February 2026
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 0, [1, 'VerifyWise vs OneTrust AI Governance', 1, 68.0]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 1, [2, 'Comprehensive Feature Comparison Report', 1, 106.0]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 2, [2, 'Table of Contents', 1, 169.60000000000002]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 3, [2, '1. Executive Summary', 1, 395.20000000000005]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 4, [3, 'Key Findings', 1, 470.40000000000003]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 5, [3, 'Strategic Assessment', 1, 565.1999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 6, [2, '2. Platform Overview', 2, 140.8]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 7, [3, '2.1 VerifyWise Platform', 2, 174.00000000000003]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 8, [3, '2.2 OneTrust AI Governance', 2, 466.8]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 9, [2, '3. Inventory Management', 2, 682.0]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 10, [3, '3.1 Feature Comparison Matrix', 3, 72.0]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 11, [3, '3.2 VerifyWise Model Inventory', 3, 178.8]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 12, [3, '3.3 OneTrust Model Inventory', 3, 321.6]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 13, [3, '3.4 Dataset Management Gap', 3, 440.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 14, [2, '4. Risk Management', 3, 661.5999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 15, [3, '4.1 Feature Comparison Matrix', 3, 694.7999999999998]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 16, [3, '4.2 Risk Calculation Methodology', 4, 152.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 17, [3, '4.3 Fairness Metrics Gap', 4, 337.2]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 18, [2, '5. Compliance Frameworks', 4, 516.3999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 19, [3, '5.1 Framework Support Matrix', 4, 549.5999999999998]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 20, [3, '5.2 VerifyWise Framework Implementation', 4, 644.3999999999997]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 21, [3, '5.3 Framework Gap Recommendations', 5, 368.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 22, [2, '6. Assessments ', 5, 607.5999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 23, [3, '6.1 Feature Comparison Matrix', 5, 640.7999999999998]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 24, [3, '6.2 OneTrust Assessment Capabilities', 6, 98.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 25, [3, '6.3 Assessment Gap Recommendations', 6, 373.2]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 26, [2, '7. Workflow ', 6, 630.3999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 27, [3, '7.1 Feature Comparison Matrix', 6, 663.5999999999998]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 28, [3, '7.2 VerifyWise Automation Capabilities', 7, 110.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 29, [3, '7.3 Workflow Gap Recommendations', 7, 409.2]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 30, [2, '8. Reporting ', 7, 642.3999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 31, [3, '8.1 Feature Comparison Matrix', 7, 675.5999999999998]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 32, [3, '8.2 VerifyWise Reporting Capabilities', 8, 122.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 33, [3, '8.3 Model Cards Gap', 8, 421.2]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 34, [2, '9. Integrations', 8, 660.3999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 35, [3, '9.1 Feature Comparison Matrix', 8, 693.5999999999998]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 36, [3, '9.2 VerifyWise Integration Strengths', 9, 158.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 37, [3, '9.3 Cloud AI Platform Gap', 9, 445.2]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 38, [2, '10. Unique VerifyWise Features', 10, 134.8]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 39, [3, '10.1 AI Detection System', 10, 186.00000000000003]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 40, [3, '10.2 Content Authenticity (C2PA)', 10, 418.8]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 41, [3, '10.3 LLM Evaluation System', 10, 615.6]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 42, [3, '10.4 AI Trust Center', 11, 92.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 43, [3, '10.5 Additional Unique Features', 11, 211.20000000000002]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 44, [2, '11. Unique OneTrust Features', 11, 318.40000000000003]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 45, [3, '11.1 DataGuidance Regulatory Intelligence', 11, 369.6]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 46, [3, '11.2 Assessment Infrastructure', 11, 488.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 47, [3, '11.3 AI Systems Lifecycle', 11, 673.1999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 48, [3, '11.4 Multi-Cloud AI Discovery', 12, 140.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 49, [3, '11.5 Additional Unique Features', 12, 247.2]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 50, [2, '12. EU AI Act Compliance Coverage', 12, 342.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 51, [3, '12.1 Article-by-Article Comparison', 12, 375.59999999999997]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 52, [3, '12.2 Compliance Strengths', 12, 506.4]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 53, [3, '12.3 Critical Compliance Gaps', 12, 667.1999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 54, [2, '13. Gap Analysis ', 13, 260.8]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 55, [3, '13.1 Critical Priority (Must Have)', 13, 294.0]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 56, [3, '13.2 High Priority (Competitive Parity)', 13, 388.79999999999995]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 57, [3, '13.3 Medium Priority (Market Expansion)', 13, 471.5999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 58, [3, '13.4 Roadmap Recommendation', 13, 554.3999999999999]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 59, [2, '14. Conclusion', 14, 260.8]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 60, [3, '14.1 Competitive Position', 14, 294.0]
+   DEBUG: 2026-02-02 10:23:01,504:      pdf_renderer.py:   53: 61, [3, '14.2 Strategic Recommendations', 14, 544.8]
+   DEBUG: 2026-02-02 10:23:01,505:      pdf_renderer.py:   53: 62, [3, '14.3 Final Assessment', 15, 134.4]

@@ -171,7 +171,7 @@ export async function insertMockData(
           true // is demo
         );
 
-        // create vendor risks (only when vendor is newly created)
+        // create vendor risks (one high, one medium, one low)
         await createNewVendorRiskQuery(
           {
             vendor_id: vendor.id,
@@ -188,17 +188,32 @@ export async function insertMockData(
           transaction
         );
 
-        // Create second vendor risk
         await createNewVendorRiskQuery(
           {
             vendor_id: vendor.id,
             risk_description: "Data Security and Processing Location",
             impact_description: "Vendor processes candidate data in multiple jurisdictions. Risk of data being processed outside EU without adequate safeguards, potentially violating GDPR requirements for international data transfers.",
-            likelihood: "Likely",
-            risk_severity: "Major",
+            likelihood: "Unlikely",
+            risk_severity: "Moderate",
             action_plan: "Verify vendor's data processing locations and ensure Standard Contractual Clauses are in place. Request SOC 2 Type II certification and evidence of EU data residency options.",
             action_owner: userId,
-            risk_level: "High risk",
+            risk_level: "Medium risk",
+            is_demo: true,
+          },
+          tenant,
+          transaction
+        );
+
+        await createNewVendorRiskQuery(
+          {
+            vendor_id: vendor.id,
+            risk_description: "Service Level Agreement Compliance",
+            impact_description: "Vendor may not meet agreed upon uptime and response time requirements during peak recruitment periods.",
+            likelihood: "Rare",
+            risk_severity: "Minor",
+            action_plan: "Monitor vendor SLA performance monthly. Establish backup provider for critical recruitment periods.",
+            action_owner: userId,
+            risk_level: "Low risk",
             is_demo: true,
           },
           tenant,

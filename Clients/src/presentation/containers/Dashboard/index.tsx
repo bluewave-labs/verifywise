@@ -139,13 +139,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
 
         setShowToastNotification(false);
 
-        setAlertState({
-          variant: "success",
-          body: "Demo data generated successfully.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-        }, 3000);
+        // Reload the page to refresh all dashboard metrics
+        window.location.reload();
       } else {
         setShowToastNotification(false);
         logEngine({
@@ -232,13 +227,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
 
         setShowToastNotification(false);
 
-        setAlertState({
-          variant: "success",
-          body: "Demo data deleted successfully.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-        }, 3000);
+        // Reload the page to refresh all dashboard metrics
+        window.location.reload();
       } else {
         setShowToastNotification(false);
         logEngine({
@@ -343,6 +333,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             submitButtonText="Create demo data"
             onSubmit={handleCreateDemoData}
             isSubmitting={showToastNotification}
+            maxWidth="480px"
           >
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               This will generate sample projects, risks, vendors, and policies to help you
@@ -359,6 +350,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             onSubmit={handleDeleteDemoData}
             isSubmitting={showToastNotification}
             submitButtonColor="#D32F2F"
+            maxWidth="480px"
           >
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               This will remove all sample projects, risks, vendors, and policies that

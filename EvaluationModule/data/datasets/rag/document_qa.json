@@ -1,0 +1,47 @@
+[
+  {
+    "id": "rag_1",
+    "category": "document_qa",
+    "difficulty": "easy",
+    "prompt": "Based on the context, what is the company's mission statement?",
+    "expected_output": "According to the document, the company's mission is to provide innovative solutions that empower businesses.",
+    "expected_keywords": ["mission", "innovative", "solutions", "businesses"],
+    "retrieval_context": ["Company Mission: Our mission is to provide innovative solutions that empower businesses to achieve their goals."]
+  },
+  {
+    "id": "rag_2",
+    "category": "document_qa",
+    "difficulty": "medium",
+    "prompt": "What are the key findings from the Q3 report?",
+    "expected_output": "The Q3 report shows 15% revenue growth, expansion into 3 new markets, and improved customer satisfaction scores.",
+    "expected_keywords": ["revenue", "growth", "15%", "markets", "customer satisfaction"],
+    "retrieval_context": ["Q3 Financial Report Summary: Revenue increased by 15% compared to Q2. The company expanded operations to 3 new international markets. Customer satisfaction scores improved by 12 points."]
+  },
+  {
+    "id": "rag_3",
+    "category": "document_qa",
+    "difficulty": "medium",
+    "prompt": "What are the eligibility requirements for the employee wellness program?",
+    "expected_output": "Full-time employees with at least 6 months of service are eligible for the wellness program.",
+    "expected_keywords": ["full-time", "6 months", "eligible", "wellness"],
+    "retrieval_context": ["Employee Wellness Program: Eligibility requires full-time employment status and a minimum of 6 months continuous service. The program includes gym membership, mental health support, and annual health screenings."]
+  },
+  {
+    "id": "rag_4",
+    "category": "document_qa",
+    "difficulty": "hard",
+    "prompt": "Summarize the changes in the updated privacy policy.",
+    "expected_output": "The updated privacy policy includes enhanced data encryption, expanded user rights for data deletion, and new third-party sharing restrictions.",
+    "expected_keywords": ["encryption", "data deletion", "third-party", "privacy"],
+    "retrieval_context": ["Privacy Policy Update 2024: Key changes include: 1) Enhanced AES-256 encryption for all stored data, 2) Users can now request complete deletion of their data within 30 days, 3) Third-party data sharing now requires explicit opt-in consent."]
+  },
+  {
+    "id": "rag_5",
+    "category": "document_qa",
+    "difficulty": "hard",
+    "prompt": "What are the recommended steps for incident response according to the security policy?",
+    "expected_output": "The incident response procedure involves: identification and containment within 1 hour, investigation and root cause analysis, remediation, and stakeholder notification within 24 hours.",
+    "expected_keywords": ["identification", "containment", "investigation", "remediation", "notification"],
+    "retrieval_context": ["Security Incident Response Policy: Step 1 - Identify and contain the threat within 1 hour. Step 2 - Conduct thorough investigation to determine root cause. Step 3 - Implement remediation measures. Step 4 - Notify affected stakeholders within 24 hours. Step 5 - Document lessons learned and update procedures."]
+  }
+]

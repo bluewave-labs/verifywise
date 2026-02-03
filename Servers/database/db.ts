@@ -91,6 +91,7 @@ import { ApprovalRequestStepApprovalModel } from "../domain.layer/models/approva
 import { ApprovalStepApproversModel } from "../domain.layer/models/approvalWorkflow/approvalStepApprovers.model";
 import { ApprovalWorkflowModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflow.model";
 import { ApprovalWorkflowStepModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflowStep.model";
+import { DatasetModel } from "../domain.layer/models/dataset/dataset.model";
 
 dotenv.config();
 
@@ -190,7 +191,8 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     ApprovalRequestStepApprovalModel,
     ApprovalStepApproversModel,
     ApprovalWorkflowModel,
-    ApprovalWorkflowStepModel
+    ApprovalWorkflowStepModel,
+    DatasetModel,
   ],
 }) as Sequelize;
 

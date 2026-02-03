@@ -48,24 +48,30 @@ export const categoryHeaderDescription: SxProps<Theme> = {
 };
 
 export const pluginCardsGrid: SxProps<Theme> = {
-  display: "flex",
-  flexWrap: "wrap",
+  display: "grid",
+  gridTemplateColumns: {
+    xs: "1fr",
+    md: "repeat(2, 1fr)",
+  },
+  gap: "16px",
+};
+
+export const pluginCardsGridThreeColumn: SxProps<Theme> = {
+  display: "grid",
+  gridTemplateColumns: {
+    xs: "1fr",
+    md: "repeat(2, 1fr)",
+    lg: "repeat(3, 1fr)",
+  },
   gap: "16px",
 };
 
 export const pluginCardWrapper: SxProps<Theme> = {
-  width: {
-    xs: "100%",
-    md: "calc(50% - 8px)",
-  },
+  height: "100%",
 };
 
 export const pluginCardWrapperThreeColumn: SxProps<Theme> = {
-  width: {
-    xs: "100%",
-    md: "calc(50% - 8px)",
-    lg: "calc(33.333% - 11px)",
-  },
+  height: "100%",
 };
 
 export const emptyStateContainer: SxProps<Theme> = {
@@ -130,7 +136,13 @@ export const regionCountStyle = (theme: Theme): SxProps<Theme> => ({
 });
 
 export const regionContent = (theme: Theme): SxProps<Theme> => ({
-  ...pluginCardsGrid,
+  display: "grid",
+  gridTemplateColumns: {
+    xs: "1fr",
+    md: "repeat(2, 1fr)",
+    lg: "repeat(3, 1fr)",
+  },
+  gap: "16px",
   mt: theme.spacing(4),
   mb: theme.spacing(2),
 });

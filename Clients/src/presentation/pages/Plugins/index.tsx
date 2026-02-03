@@ -24,6 +24,7 @@ import {
   categoryHeaderTitle,
   categoryHeaderDescription,
   pluginCardsGrid,
+  pluginCardsGridThreeColumn,
   pluginCardWrapper,
   pluginCardWrapperThreeColumn,
   emptyStateContainer,
@@ -402,7 +403,7 @@ const Plugins: React.FC = () => {
                 </Typography>
               </Box>
             ) : (
-              <Box sx={pluginCardsGrid}>
+              <Box sx={pluginCardsGridThreeColumn}>
                 {installedPlugins.map((plugin) => (
                   <Box key={plugin.key} sx={pluginCardWrapperThreeColumn}>
                     <PluginCard

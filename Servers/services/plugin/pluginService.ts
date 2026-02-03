@@ -449,6 +449,10 @@ export class PluginService {
       const response = await axios.get(packageJsonUrl, {
         timeout: 10000,
         responseType: 'json',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
       });
 
       // Save package.json to temp directory
@@ -531,6 +535,10 @@ export class PluginService {
       const response = await axios.get(bundleUrl, {
         timeout: 30000,
         responseType: 'text',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
       });
 
       // Create the ui/dist directory
@@ -558,6 +566,8 @@ export class PluginService {
         timeout: 10000,
         headers: {
           "Accept": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
         },
       });
 
@@ -639,6 +649,10 @@ export class PluginService {
         const response = await axios.get(pluginUrl, {
           timeout: 10000,
           responseType: 'text',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
         });
 
         // Ensure parent directory exists for entry point (handles nested paths like dist/index.js)

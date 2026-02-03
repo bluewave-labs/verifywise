@@ -35,7 +35,8 @@ export async function deleteDemoVendorsData(tenant: string, transaction: Transac
       transaction,
     }
   );
-  // this might not be needed, but keeping just in case
+
+  // Delete vendors_projects relationships for demo vendors
   await Promise.all(
     result.map(async (r) => {
       await sequelize.query(
@@ -47,16 +48,13 @@ export async function deleteDemoVendorsData(tenant: string, transaction: Transac
       );
     })
   );
-  await Promise.all(
-    result.map(async (r) => {
-      await sequelize.query(
-        `DELETE FROM "${tenant}".vendorrisks WHERE vendor_id = :vendor_id`,
-        {
-          replacements: { vendor_id: r.id },
-          transaction,
-        }
-      );
-    })
+
+  // Delete demo vendor risks directly by is_demo flag (more robust than by vendor_id)
+  await sequelize.query(
+    `DELETE FROM "${tenant}".vendorrisks WHERE is_demo = true`,
+    { transaction }
   );
+
+  // Delete demo vendors
   await sequelize.query(`DELETE FROM "${tenant}".vendors WHERE is_demo;`, { transaction });
 }

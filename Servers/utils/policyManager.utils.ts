@@ -96,9 +96,9 @@ export const createPolicyQuery = async (
   // Insert policy without assigned_reviewer_ids
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".policy_manager (
-      title, content_html, status, tags, next_review_date, author_id, last_updated_by, last_updated_at
+      title, content_html, status, tags, next_review_date, author_id, last_updated_by, last_updated_at, is_demo
     ) VALUES (
-      :title, :content_html, :status, ARRAY[:tags], :next_review_date, :author_id, :last_updated_by, :last_updated_at
+      :title, :content_html, :status, ARRAY[:tags], :next_review_date, :author_id, :last_updated_by, :last_updated_at, :is_demo
     ) RETURNING *`,
     {
       replacements: {
@@ -110,6 +110,7 @@ export const createPolicyQuery = async (
         author_id: userId,
         last_updated_by: userId,
         last_updated_at: new Date(),
+        is_demo: policy.is_demo || false,
       },
       transaction,
       type: QueryTypes.INSERT,

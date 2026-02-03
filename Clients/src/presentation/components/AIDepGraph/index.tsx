@@ -38,6 +38,7 @@ import type {
   DependencyGraphResponse,
   DependencyNodeType,
   FilePath,
+  RiskLevel,
 } from "../../../domain/ai-detection/types";
 import type { AIDepNodeData } from "./types";
 import { NODE_TYPE_COLORS, NODE_TYPE_LABELS, CONFIDENCE_COLORS, RISK_LEVEL_COLORS } from "./types";
@@ -87,7 +88,7 @@ interface SelectedNodeDetails {
   nodeType: DependencyNodeType;
   provider: string;
   confidence: string;
-  riskLevel: string;
+  riskLevel: RiskLevel;
   fileCount: number;
   filePaths: FilePath[];
   governanceStatus?: string | null;

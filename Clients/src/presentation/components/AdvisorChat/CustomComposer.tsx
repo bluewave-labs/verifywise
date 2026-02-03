@@ -24,7 +24,7 @@ const CustomTextField = forwardRef<
         minHeight: '40px',
         resize: 'none',
         border: `1px solid ${theme.palette.border?.light ?? theme.palette.divider}`,
-        borderRadius: theme.shape.borderRadius * 1.25,
+        borderRadius: Number(theme.shape.borderRadius) * 1.25,
         padding: `${theme.spacing(1)} ${theme.spacing(1.5)}`,
         fontFamily: theme.typography.fontFamily,
         fontSize: theme.typography.body2.fontSize as string,

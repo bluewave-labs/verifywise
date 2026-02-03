@@ -58,12 +58,7 @@ interface SidebarFooterProps {
   isAdmin?: boolean;
 }
 
-const getManagementItems = (
-  hasDemoData?: boolean,
-  onOpenCreateDemoData?: () => void,
-  onOpenDeleteDemoData?: () => void,
-  isAdmin?: boolean
-): IManagementItem[] => [
+const getManagementItems = (): IManagementItem[] => [
   {
     name: "Event Tracker",
     icon: <Telescope size={16} strokeWidth={1.5} />,
@@ -74,24 +69,6 @@ const getManagementItems = (
     icon: <Settings size={16} strokeWidth={1.5} />,
     path: "/settings",
   },
-  // Only show demo data options to admins
-  ...(isAdmin
-    ? hasDemoData
-      ? [
-          {
-            name: "Delete demo data",
-            icon: <Database size={16} strokeWidth={1.5} />,
-            action: onOpenDeleteDemoData,
-          },
-        ]
-      : [
-          {
-            name: "Create demo data",
-            icon: <Database size={16} strokeWidth={1.5} />,
-            action: onOpenCreateDemoData,
-          },
-        ]
-    : []),
 ];
 
 interface User_Avatar {
@@ -186,13 +163,120 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
     };
   }, [slideoverOpen]);
 
-  const isManagementActive = getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData, isAdmin).some(
+  const isManagementActive = getManagementItems().some(
     (item) => item.path && (location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
   );
 
   return (
     <>
       <Divider sx={{ mt: "auto", mb: theme.spacing(4) }} />
+
+      {/* Demo Data Section - Only visible to admins */}
+      {isAdmin && (
+        <Box
+          sx={{
+            px: theme.spacing(8),
+            mb: theme.spacing(4),
+            flexShrink: 0,
+          }}
+        >
+          <Tooltip
+            sx={{ fontSize: 13 }}
+            placement="right"
+            title={delayedCollapsed ? (hasDemoData ? "Delete demo data" : "Create demo data") : ""}
+            slotProps={{
+              popper: {
+                modifiers: [{ name: "offset", options: { offset: [0, -16] } }],
+              },
+            }}
+            disableInteractive
+          >
+            <ListItemButton
+              disableRipple={theme.components?.MuiListItemButton?.defaultProps?.disableRipple}
+              onClick={() => {
+                if (hasDemoData) {
+                  onOpenDeleteDemoData?.();
+                } else {
+                  onOpenCreateDemoData?.();
+                }
+              }}
+              sx={{
+                height: "auto",
+                minHeight: "32px",
+                gap: theme.spacing(4),
+                borderRadius: theme.shape.borderRadius,
+                px: theme.spacing(4),
+                py: theme.spacing(3),
+                background: hasDemoData
+                  ? "linear-gradient(135deg, #FEF3F2 0%, #FEE4E2 100%)"
+                  : "linear-gradient(135deg, #ECFDF3 0%, #D1FADF 100%)",
+                border: hasDemoData
+                  ? "1px solid #FECDCA"
+                  : "1px solid #A6F4C5",
+                "&:hover": {
+                  background: hasDemoData
+                    ? "linear-gradient(135deg, #FEE4E2 0%, #FECDCA 100%)"
+                    : "linear-gradient(135deg, #D1FADF 0%, #A6F4C5 100%)",
+                },
+                "&:hover svg": {
+                  color: hasDemoData ? "#B42318 !important" : "#027A48 !important",
+                  stroke: hasDemoData ? "#B42318 !important" : "#027A48 !important",
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  width: "16px",
+                  mr: 0,
+                  "& svg": {
+                    color: hasDemoData ? "#D92D20" : "#039855",
+                    stroke: hasDemoData ? "#D92D20" : "#039855",
+                    transition: "color 0.2s ease, stroke 0.2s ease",
+                  },
+                }}
+              >
+                {hasDemoData ? (
+                  <Trash2 size={16} strokeWidth={1.5} />
+                ) : (
+                  <Database size={16} strokeWidth={1.5} />
+                )}
+              </ListItemIcon>
+              {!delayedCollapsed && (
+                <Box sx={{ flex: 1 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "13px",
+                      fontWeight: 500,
+                      color: hasDemoData ? "#B42318" : "#027A48",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {hasDemoData ? "Delete demo data" : "Create demo data"}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "11px",
+                      color: hasDemoData ? "#D92D20" : "#039855",
+                      opacity: 0.8,
+                      lineHeight: 1.3,
+                      mt: 0.5,
+                    }}
+                  >
+                    {hasDemoData
+                      ? "Remove all sample data to start fresh"
+                      : "Add sample projects, risks, and policies to explore"}
+                  </Typography>
+                </Box>
+              )}
+            </ListItemButton>
+          </Tooltip>
+        </Box>
+      )}
+
       {/* Management Section */}
       <List
         component="nav"
@@ -321,7 +405,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
             },
           }}
         >
-          {getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData, isAdmin).map((item) => (
+          {getManagementItems().map((item) => (
             <MenuItem
               key={item.path || item.name}
               onClick={() => {

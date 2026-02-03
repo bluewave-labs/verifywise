@@ -95,31 +95,3 @@ export const getFileErrorMessage = (
 
     return defaultMessages[context];
 };
-
-/**
- * Checks if an error indicates a missing/deleted file
- *
- * @param {any} error - The error object
- * @returns {boolean} True if file is missing/deleted
- */
-export const isFileMissingError = (error: any): boolean => {
-    return (
-        error?.statusCode === 404 ||
-        error?.message?.includes("not found") ||
-        error?.message?.includes("deleted")
-    );
-};
-
-/**
- * Checks if an error indicates a permission issue
- *
- * @param {any} error - The error object
- * @returns {boolean} True if permission denied
- */
-export const isPermissionError = (error: any): boolean => {
-    return (
-        error?.statusCode === 403 ||
-        error?.message?.includes("permission") ||
-        error?.message?.includes("denied")
-    );
-};

@@ -30,6 +30,7 @@ import {
   LogOut,
   MessageCircle,
   Telescope,
+  X,
 } from "lucide-react";
 import Avatar from "../Avatar/VWAvatar";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -52,6 +53,8 @@ interface SidebarFooterProps {
   hasDemoData?: boolean;
   onOpenCreateDemoData?: () => void;
   onOpenDeleteDemoData?: () => void;
+  onDismissDemoDataButton?: () => void;
+  showDemoDataButton?: boolean;
   showReadyToSubscribe?: boolean;
   openUserGuide?: () => void;
   /** Only show demo data options to admins */
@@ -92,6 +95,8 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
   hasDemoData,
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
+  onDismissDemoDataButton,
+  showDemoDataButton = true,
   showReadyToSubscribe = false,
   openUserGuide,
   isAdmin = false,
@@ -104,6 +109,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
 
   const [managementAnchorEl, setManagementAnchorEl] = useState<null | HTMLElement>(null);
   const [slideoverOpen, setSlideoverOpen] = useState(false);
+  const [demoButtonHovered, setDemoButtonHovered] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
   const user: User = users
@@ -171,8 +177,8 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
     <>
       <Divider sx={{ mt: "auto", mb: theme.spacing(4) }} />
 
-      {/* Demo Data Section - Only visible to admins */}
-      {isAdmin && (
+      {/* Demo Data Section - Only visible to admins and when showDemoDataButton is true */}
+      {isAdmin && showDemoDataButton && (
         <Box
           sx={{
             px: theme.spacing(8),
@@ -193,6 +199,8 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
           >
             <ListItemButton
               disableRipple={theme.components?.MuiListItemButton?.defaultProps?.disableRipple}
+              onMouseEnter={() => setDemoButtonHovered(true)}
+              onMouseLeave={() => setDemoButtonHovered(false)}
               onClick={() => {
                 if (hasDemoData) {
                   onOpenDeleteDemoData?.();
@@ -216,7 +224,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                     ? "linear-gradient(135deg, #FEE4E2 0%, #FECDCA 100%)"
                     : "linear-gradient(135deg, #D1FADF 0%, #A6F4C5 100%)",
                 },
-                "&:hover svg": {
+                "&:hover svg.demo-icon": {
                   color: hasDemoData ? "#B42318 !important" : "#027A48 !important",
                   stroke: hasDemoData ? "#B42318 !important" : "#027A48 !important",
                 },
@@ -238,23 +246,61 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                 }}
               >
                 {hasDemoData ? (
-                  <Trash2 size={16} strokeWidth={1.5} />
+                  <Trash2 size={16} strokeWidth={1.5} className="demo-icon" />
                 ) : (
-                  <Database size={16} strokeWidth={1.5} />
+                  <Database size={16} strokeWidth={1.5} className="demo-icon" />
                 )}
               </ListItemIcon>
               {!delayedCollapsed && (
-                <ListItemText
-                  sx={{
-                    "& .MuiListItemText-primary": {
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      color: hasDemoData ? "#B42318" : "#027A48",
-                    },
-                  }}
-                >
-                  {hasDemoData ? "Delete demo data" : "Create demo data"}
-                </ListItemText>
+                <>
+                  <ListItemText
+                    sx={{
+                      "& .MuiListItemText-primary": {
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        color: hasDemoData ? "#B42318" : "#027A48",
+                      },
+                    }}
+                  >
+                    {hasDemoData ? "Delete demo data" : "Create demo data"}
+                  </ListItemText>
+                  {/* Show X icon on hover only for "Create demo data" button */}
+                  {!hasDemoData && demoButtonHovered && (
+                    <Tooltip
+                      title="Hide this button permanently"
+                      placement="top"
+                      arrow
+                    >
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDismissDemoDataButton?.();
+                        }}
+                        sx={{
+                          p: 0,
+                          ml: "auto",
+                          width: 20,
+                          height: 20,
+                          minWidth: 20,
+                          "&:hover": {
+                            backgroundColor: "rgba(0, 0, 0, 0.04)",
+                          },
+                          "& svg": {
+                            color: "#667085 !important",
+                            stroke: "#667085 !important",
+                          },
+                          "&:hover svg": {
+                            color: "#344054 !important",
+                            stroke: "#344054 !important",
+                          },
+                        }}
+                      >
+                        <X size={14} strokeWidth={2} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </>
               )}
             </ListItemButton>
           </Tooltip>

@@ -43,6 +43,10 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const [openDeleteDemoDataModal, setOpenDeleteDemoDataModal] =
     useState<boolean>(false);
   const [hasDemoData, setHasDemoData] = useState<boolean>(false);
+  const [showDemoDataButton, setShowDemoDataButton] = useState<boolean>(() => {
+    // Check localStorage on initial load
+    return localStorage.getItem("hideDemoDataButton") !== "true";
+  });
   const [alertState, setAlertState] = useState<AlertState>();
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
@@ -285,6 +289,11 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             activeModule={activeModule}
             onOpenCreateDemoData={() => setOpenDemoDataModal(true)}
             onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
+            onDismissDemoDataButton={() => {
+              localStorage.setItem("hideDemoDataButton", "true");
+              setShowDemoDataButton(false);
+            }}
+            showDemoDataButton={showDemoDataButton}
             hasDemoData={hasDemoData}
             isAdmin={isAdmin}
           />

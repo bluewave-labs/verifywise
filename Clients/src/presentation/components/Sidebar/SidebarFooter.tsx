@@ -201,12 +201,10 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                 }
               }}
               sx={{
-                height: "auto",
-                minHeight: "32px",
+                height: "32px",
                 gap: theme.spacing(4),
                 borderRadius: theme.shape.borderRadius,
                 px: theme.spacing(4),
-                py: theme.spacing(3),
                 background: hasDemoData
                   ? "linear-gradient(135deg, #FEF3F2 0%, #FEE4E2 100%)"
                   : "linear-gradient(135deg, #ECFDF3 0%, #D1FADF 100%)",
@@ -229,7 +227,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                   minWidth: 0,
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "flex-start",
+                  justifyContent: "center",
                   width: "16px",
                   mr: 0,
                   "& svg": {
@@ -246,31 +244,17 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                 )}
               </ListItemIcon>
               {!delayedCollapsed && (
-                <Box sx={{ flex: 1 }}>
-                  <Typography
-                    sx={{
+                <ListItemText
+                  sx={{
+                    "& .MuiListItemText-primary": {
                       fontSize: "13px",
                       fontWeight: 500,
                       color: hasDemoData ? "#B42318" : "#027A48",
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {hasDemoData ? "Delete demo data" : "Create demo data"}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "11px",
-                      color: hasDemoData ? "#D92D20" : "#039855",
-                      opacity: 0.8,
-                      lineHeight: 1.3,
-                      mt: 0.5,
-                    }}
-                  >
-                    {hasDemoData
-                      ? "Remove all sample data to start fresh"
-                      : "Add sample projects, risks, and policies to explore"}
-                  </Typography>
-                </Box>
+                    },
+                  }}
+                >
+                  {hasDemoData ? "Delete demo data" : "Create demo data"}
+                </ListItemText>
               )}
             </ListItemButton>
           </Tooltip>

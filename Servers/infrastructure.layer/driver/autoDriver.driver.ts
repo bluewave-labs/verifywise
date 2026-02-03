@@ -217,18 +217,14 @@ export async function insertMockData(
           version: "2.3.1",
           approver: userId,
           capabilities: ["Resume parsing", "Skills extraction", "Candidate scoring", "Job matching"],
-          security_assessment: "Completed",
-          status: "In Use",
+          security_assessment: true,
+          status: "Approved",
           status_date: new Date(Date.now()),
           reference_link: "https://docs.talentai-solutions.com/models/candidate-ranking",
           biases: "Known underrepresentation of non-English language resumes. Lower accuracy for candidates with non-traditional career paths.",
           limitations: "Cannot process handwritten documents. Maximum 10MB file size for resume uploads. Requires structured job descriptions for optimal matching.",
           hosting_provider: "AWS EU (Frankfurt)",
-          security_assessment_data: [
-            { category: "Data Encryption", status: "Compliant", notes: "AES-256 encryption at rest and in transit" },
-            { category: "Access Control", status: "Compliant", notes: "Role-based access with MFA required" },
-            { category: "Audit Logging", status: "Compliant", notes: "Full audit trail maintained for 7 years" },
-          ],
+          security_assessment_data: [],
           is_demo: true,
         } as unknown as ModelInventoryModel,
         tenant,
@@ -256,7 +252,8 @@ export async function insertMockData(
           model_id: modelInventory.id,
           is_demo: true,
         },
-        tenant
+        tenant,
+        transaction
       );
 
       await createNewModelRiskQuery(
@@ -277,7 +274,8 @@ export async function insertMockData(
           model_id: modelInventory.id,
           is_demo: true,
         },
-        tenant
+        tenant,
+        transaction
       );
 
       // Create Dataset

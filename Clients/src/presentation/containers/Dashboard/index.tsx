@@ -111,7 +111,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         await new Promise((resolve) => setTimeout(resolve, remainingTime));
       }
 
-      if (response.status === 201) {
+      if (response.status === 200 || response.status === 201) {
         logEngine({
           type: "info",
           message: "Demo data generated successfully.",
@@ -135,6 +135,9 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         // Force refresh projects flag to trigger updates in child components
         setRefreshProjectsFlag((prev) => !prev);
 
+        // Update hasDemoData state immediately
+        setHasDemoData(true);
+
         setShowToastNotification(false);
 
         setAlertState({
@@ -143,9 +146,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         });
         setTimeout(() => {
           setAlertState(undefined);
-          // Refresh the page to ensure all components reflect the changes
-          window.location.reload();
-        }, 500);
+        }, 3000);
       } else {
         setShowToastNotification(false);
         logEngine({
@@ -227,6 +228,9 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         // Force refresh projects flag to trigger updates in child components
         setRefreshProjectsFlag((prev) => !prev);
 
+        // Update hasDemoData state immediately
+        setHasDemoData(false);
+
         setShowToastNotification(false);
 
         setAlertState({
@@ -235,9 +239,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         });
         setTimeout(() => {
           setAlertState(undefined);
-          // Refresh the page to ensure all components reflect the changes
-          window.location.reload();
-        }, 500);
+        }, 3000);
       } else {
         setShowToastNotification(false);
         logEngine({
@@ -343,54 +345,10 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             onSubmit={handleCreateDemoData}
             isSubmitting={showToastNotification}
           >
-            <Stack gap="16px">
-              <Box
-                sx={{
-                  padding: "12px 16px",
-                  backgroundColor: "#F5F7F6",
-                  borderRadius: "4px",
-                  border: "1px solid #D9E0DD",
-                }}
-              >
-                <Typography variant="body2" sx={{ color: "rgba(0, 0, 0, 0.87)" }}>
-                  This will generate demo (mock) data for you, allowing you to
-                  explore and get a hands-on understanding of how VerifyWise works.
-                  We highly recommend this option.
-                </Typography>
-              </Box>
-
-              <Stack gap="8px">
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  What will be created:
-                </Typography>
-                <Stack gap="4px" sx={{ pl: 2 }}>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    • A sample use case:
-                  </Typography>
-                  <Stack gap="2px" sx={{ pl: 2 }}>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "text.secondary", fontSize: "13px" }}
-                    >
-                      - "AI Recruitment Screening Platform" with EU AI Act framework
-                    </Typography>
-                  </Stack>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "text.secondary", mt: 1 }}
-                  >
-                    • Sample risks and vendors with realistic compliance scenarios
-                  </Typography>
-                </Stack>
-              </Stack>
-
-              <Typography
-                variant="body2"
-                sx={{ color: "text.secondary", fontStyle: "italic" }}
-              >
-                Note: You can remove this demo data at any time.
-              </Typography>
-            </Stack>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              This will generate sample projects, risks, vendors, and policies to help you
+              explore VerifyWise. You can remove this demo data at any time.
+            </Typography>
           </StandardModal>
 
           <StandardModal

@@ -63,7 +63,8 @@ export async function getModelRiskByIdQuery(
  */
 export async function createNewModelRiskQuery(
   data: Partial<IModelRisk>,
-  tenant: string
+  tenant: string,
+  transaction?: import("sequelize").Transaction
 ): Promise<ModelRiskModel> {
   const created_at = new Date();
   const result = await sequelize.query(
@@ -91,6 +92,7 @@ export async function createNewModelRiskQuery(
       },
       mapToModel: true,
       model: ModelRiskModel,
+      transaction,
     }
   );
 

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   getPaginationRowCount,
   setPaginationRowCount,
-  clearPaginationRowCount,
   clearAllPaginationSettings,
 } from "../paginationStorage";
 
@@ -114,29 +113,6 @@ describe("paginationStorage", () => {
 
       expect(console.warn).toHaveBeenCalledWith(
         "Failed to save pagination setting to localStorage:",
-        expect.any(Error)
-      );
-    });
-  });
-
-  describe("clearPaginationRowCount", () => {
-    it("removes the key for a table", () => {
-      localStorage.setItem("pagination_rows_users", "25");
-
-      clearPaginationRowCount("users");
-
-      expect(localStorage.getItem("pagination_rows_users")).toBeNull();
-    });
-
-    it("warns when localStorage.removeItem throws", () => {
-      mockLocalStorage.removeItem = vi.fn(() => {
-        throw new Error("boom");
-      });
-
-      clearPaginationRowCount("users");
-
-      expect(console.warn).toHaveBeenCalledWith(
-        "Failed to clear pagination setting from localStorage:",
         expect.any(Error)
       );
     });

@@ -27,14 +27,6 @@ export const setPaginationRowCount = (tableKey: string, rowCount: number): void 
   }
 };
 
-export const clearPaginationRowCount = (tableKey: string): void => {
-  try {
-    localStorage.removeItem(`${PAGINATION_STORAGE_KEY_PREFIX}${tableKey}`);
-  } catch (error) {
-    console.warn('Failed to clear pagination setting from localStorage:', error);
-  }
-};
-
 export const clearAllPaginationSettings = (): void => {
   try {
     const keys = Object.keys(localStorage);

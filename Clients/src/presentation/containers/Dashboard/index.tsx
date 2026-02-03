@@ -14,7 +14,6 @@ import {
 import { logEngine } from "../../../application/tools/log.engine";
 import StandardModal from "../../components/Modals/StandardModal";
 import CustomizableToast from "../../components/Toast";
-import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
 import { AlertState } from "../../../application/interfaces/appStates";
 import { useDashboard } from "../../../application/hooks/useDashboard";
@@ -356,82 +355,15 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             onClose={() => setOpenDeleteDemoDataModal(false)}
             title="Delete demo data"
             description="Remove all demo data from your workspace"
-            customFooter={
-              <>
-                <CustomizableButton
-                  variant="outlined"
-                  text="Cancel"
-                  onClick={() => setOpenDeleteDemoDataModal(false)}
-                  sx={{
-                    minWidth: "80px",
-                    height: "34px",
-                    border: "1px solid #D0D5DD",
-                    color: "#344054",
-                    "&:hover": {
-                      backgroundColor: "#F9FAFB",
-                      border: "1px solid #D0D5DD",
-                    },
-                  }}
-                />
-                <CustomizableButton
-                  variant="contained"
-                  text="Delete demo data"
-                  onClick={handleDeleteDemoData}
-                  isDisabled={showToastNotification}
-                  sx={{
-                    minWidth: "80px",
-                    height: "34px",
-                    backgroundColor: "#D32F2F",
-                    "&:hover:not(.Mui-disabled)": {
-                      backgroundColor: "#B71C1C",
-                    },
-                    "&.Mui-disabled": {
-                      backgroundColor: "#E5E7EB",
-                      color: "#9CA3AF",
-                      cursor: "not-allowed",
-                    },
-                  }}
-                />
-              </>
-            }
+            submitButtonText="Delete demo data"
+            onSubmit={handleDeleteDemoData}
+            isSubmitting={showToastNotification}
+            submitButtonColor="#D32F2F"
           >
-            <Stack gap="16px">
-              <Box
-                sx={{
-                  padding: "12px 16px",
-                  backgroundColor: "#FEEDED",
-                  borderRadius: "4px",
-                  border: "1px solid #F5C2C2",
-                }}
-              >
-                <Typography variant="body2" sx={{ color: "rgba(0, 0, 0, 0.87)" }}>
-                  This action will permanently delete all demo data from your
-                  workspace. This cannot be undone.
-                </Typography>
-              </Box>
-
-              <Stack gap="8px">
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  What will be deleted:
-                </Typography>
-                <Stack gap="4px" sx={{ pl: 2 }}>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    • All demo use cases and frameworks
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    • All associated demo risks and vendors
-                  </Typography>
-                </Stack>
-              </Stack>
-
-              <Typography
-                variant="body2"
-                sx={{ color: "text.secondary", fontStyle: "italic" }}
-              >
-                Note: Only demo data will be removed. Your real data will remain
-                untouched.
-              </Typography>
-            </Stack>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              This will remove all sample projects, risks, vendors, and policies that
+              were generated as demo data. Your real data will remain untouched.
+            </Typography>
           </StandardModal>
         </Stack>
       </AIDetectionSidebarProvider>

@@ -292,6 +292,7 @@ const RiskManagement = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   // Apply FilterBy and search filters

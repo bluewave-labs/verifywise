@@ -51,10 +51,9 @@ export default defineConfig({
     setupFiles: "./src/test/setup.ts",
     globals: true,
     coverage: {
-      all: false,
       provider: "v8",
       reporter: ["text", "html"],
-      extension: [".ts", ".tsx"],
+      include: ["src/**/*.ts", "src/**/*.tsx"],
       exclude: [
         "src/test/**",
         "src/mocks/**",
@@ -63,7 +62,6 @@ export default defineConfig({
         "**/node_modules/**",
         "src/**/**/tests/**",
       ],
-      // all: false,
       thresholds: {
         global: {
           statements: 80,

@@ -17,18 +17,19 @@ const CustomTextField = forwardRef<
       ref={ref}
       {...props}
       data-composer-input
+      aria-label="Type your message"
       rows={2}
       style={{
         width: '100%',
         minHeight: '40px',
         resize: 'none',
-        border: `1px solid ${theme.palette.border?.light}`,
-        borderRadius: '10px',
-        padding: '8px 12px',
-        fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        fontSize: '13px',
+        border: `1px solid ${theme.palette.border?.light ?? theme.palette.divider}`,
+        borderRadius: Number(theme.shape.borderRadius) * 1.25,
+        padding: `${theme.spacing(1)} ${theme.spacing(1.5)}`,
+        fontFamily: theme.typography.fontFamily,
+        fontSize: theme.typography.body2.fontSize as string,
         lineHeight: 1.5,
-        backgroundColor: theme.palette.background.main,
+        backgroundColor: theme.palette.background.main ?? theme.palette.background.default,
         color: theme.palette.text.primary,
         outline: 'none',
         boxSizing: 'border-box',
@@ -48,9 +49,9 @@ export const CustomComposer: FC<CustomComposerProps> = ({ pageContext }) => {
   return (
     <ComposerPrimitive.Root
       style={{
-        borderTop: `1px solid ${theme.palette.border?.light}`,
-        backgroundColor: theme.palette.background.main,
-        padding: '12px',
+        borderTop: `1px solid ${theme.palette.border?.light ?? theme.palette.divider}`,
+        backgroundColor: theme.palette.background.main ?? theme.palette.background.default,
+        padding: theme.spacing(1.5),
       }}
     >
       <Stack direction="row" gap="8px" alignItems="flex-end">
@@ -75,17 +76,18 @@ export const CustomComposer: FC<CustomComposerProps> = ({ pageContext }) => {
           <IconButton
             data-composer-submit
             type="submit"
+            aria-label="Send message"
             sx={{
               width: 40,
               height: 40,
               backgroundColor: theme.palette.primary.main,
-              color: '#fff',
+              color: theme.palette.primary.contrastText,
               '&:hover': {
-                backgroundColor: '#0f604d',
+                backgroundColor: theme.palette.primary.dark,
               },
               '&.Mui-disabled': {
-                backgroundColor: theme.palette.background.fill,
-                color: theme.palette.text.accent,
+                backgroundColor: theme.palette.background.fill ?? theme.palette.action.disabledBackground,
+                color: theme.palette.text.accent ?? theme.palette.action.disabled,
               },
             }}
           >
@@ -98,9 +100,9 @@ export const CustomComposer: FC<CustomComposerProps> = ({ pageContext }) => {
         direction="row"
         justifyContent="center"
         sx={{
-          marginTop: '6px',
-          fontSize: '10px',
-          color: theme.palette.text.accent,
+          marginTop: theme.spacing(0.75),
+          fontSize: theme.typography.caption.fontSize,
+          color: theme.palette.text.accent ?? theme.palette.text.secondary,
           textAlign: 'center',
         }}
       >

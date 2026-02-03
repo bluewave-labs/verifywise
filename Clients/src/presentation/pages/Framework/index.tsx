@@ -20,6 +20,7 @@ import {
   ChevronDown as WhiteDownArrowIcon,
 } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import useFrameworks from "../../../application/hooks/useFrameworks";
 import useUsers from "../../../application/hooks/useUsers";
@@ -53,6 +54,8 @@ import FrameworkLinkedModels from "./FrameworkLinkedModels";
 import PageTour from "../../components/PageTour";
 import FrameworkSteps from "./FrameworkSteps";
 import TabBar from "../../components/TabBar";
+import { PluginSlot } from "../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import NISTAIRMFGovern from "./NIST-AI-RMF/Govern";
 import NISTAIRMFMap from "./NIST-AI-RMF/Map";
 import NISTAIRMFMeasure from "./NIST-AI-RMF/Measure";
@@ -115,6 +118,7 @@ const Framework = () => {
 
   const { changeComponentVisibility, projects, userRoleName, setProjects } =
     useContext(VerifyWiseContext);
+  const { getComponentsForSlot } = usePluginRegistry();
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
@@ -131,8 +135,8 @@ const Framework = () => {
   const [isFrameworkModalOpen, setIsFrameworkModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [rotated, setRotated] = useState(false);
-  const submitFormRef = useRef<(() => void) | undefined>();
-  const createFormRef = useRef<(() => void) | undefined>();
+  const submitFormRef = useRef<(() => void) | undefined>(undefined);
+  const createFormRef = useRef<(() => void) | undefined>(undefined);
 
   // State for dropdown menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -1102,24 +1106,39 @@ const Framework = () => {
 
             <TabPanel value="controls" sx={tabPanelStyle}>
               <Stack className="frameworks-switch" spacing={3}>
-                {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
-                {organizationalProject && filteredFrameworks.length > 0 && (
-                  <Box data-joyride-id="framework-toggle">
-                    <ButtonToggle
-                      options={filteredFrameworks.map((framework, index) => ({
-                        value: index.toString(),
-                        label: framework.name,
-                      }))}
-                      value={selectedFramework.toString()}
-                      onChange={(value) =>
-                        handleFrameworkSelect(parseInt(value))
-                      }
-                      height={34}
-                    />
-                  </Box>
+                {/* Plugin slot for custom frameworks - renders toggle + content */}
+                <PluginSlot
+                  id={PLUGIN_SLOTS.CONTROLS_CUSTOM_FRAMEWORK}
+                  slotProps={{
+                    project: organizationalProject,
+                    builtInFrameworks: filteredFrameworks,
+                    selectedBuiltInFramework: selectedFramework,
+                    onBuiltInFrameworkSelect: handleFrameworkSelect,
+                    renderBuiltInContent: renderFrameworkContent,
+                    onRefresh: refreshProjectData,
+                  }}
+                />
+                {/* Default content when no plugin is loaded */}
+                {!getComponentsForSlot(PLUGIN_SLOTS.CONTROLS_CUSTOM_FRAMEWORK).length && (
+                  <>
+                    {organizationalProject && filteredFrameworks.length > 0 && (
+                      <Box data-joyride-id="framework-toggle">
+                        <ButtonToggle
+                          options={filteredFrameworks.map((framework, index) => ({
+                            value: index.toString(),
+                            label: framework.name,
+                          }))}
+                          value={selectedFramework.toString()}
+                          onChange={(value) =>
+                            handleFrameworkSelect(parseInt(value))
+                          }
+                          height={34}
+                        />
+                      </Box>
+                    )}
+                    {renderFrameworkContent()}
+                  </>
                 )}
-                {/* Content that changes based on selected framework */}
-                {renderFrameworkContent()}
               </Stack>
             </TabPanel>
 

@@ -44,6 +44,7 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
                 e.stopPropagation();
                 handleCopy();
               }}
+              aria-label={copied ? "Link copied to clipboard" : "Copy link to clipboard"}
               sx={{ paddingLeft: 3 }}
             >
               <Box
@@ -56,13 +57,14 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
                 }}
               >
                 {copied ? (
-                  <Typography variant="caption" sx={{ color: textColor }}>
+                  <Typography variant="caption" sx={{ color: textColor }} aria-live="polite">
                     Copied!
                   </Typography>
                 ) : (
                   <ContentCopyIcon
                      size={13}
                      style={{ color: textColor }}
+                     aria-hidden="true"
                   />
                 )}
               </Box>

@@ -16,7 +16,7 @@ export const RISK_LABELS = {
     color: "#B71C1C", // stronger red
   },
   noRisk: {
-    text: "Very low risk",
+    text: "Very Low risk",
     color: "#33691E", // deep green
   },
   negligible: {

@@ -1428,7 +1428,7 @@ const VWISO27001ClauseDrawerDialog = ({
             onError={(error) => {
               handleAlert({
                 variant: "error",
-                body: error?.message || "Failed to update risk",
+                body: error || "Failed to update risk",
               });
             }}
             users={users}

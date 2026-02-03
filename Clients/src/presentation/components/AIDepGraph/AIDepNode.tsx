@@ -4,9 +4,9 @@
  * Custom node component for the AI Dependency Graph visualization.
  */
 
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useTheme } from "@mui/material";
 import {
   Package,
   Bot,
@@ -36,7 +36,9 @@ const AIDepNode: React.FC<NodeProps> = ({
   data,
   sourcePosition,
   targetPosition,
+  selected,
 }) => {
+  const theme = useTheme();
   const nodeData = data as unknown as AIDepNodeData;
   const IconComponent = nodeTypeIcons[nodeData.nodeType] || Package;
   const color = NODE_TYPE_COLORS[nodeData.nodeType] || "#667085";
@@ -85,28 +87,47 @@ const AIDepNode: React.FC<NodeProps> = ({
     </Box>
   );
 
+  // Handle keyboard interaction for accessibility
+  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      // ReactFlow handles the click through its own mechanisms
+      // This keydown handler makes the node keyboard accessible
+      const target = event.currentTarget as HTMLElement;
+      target.click();
+    }
+  }, []);
+
   return (
     <VWTooltip header={nodeData.label} content={tooltipContent} placement="top" maxWidth={300}>
       <Box
+        tabIndex={0}
+        role="button"
+        aria-label={`${typeLabel}: ${nodeData.label}. Risk level: ${nodeData.riskLevel}. ${nodeData.fileCount} files. Press Enter to view details.`}
+        onKeyDown={handleKeyDown}
         sx={{
-          backgroundColor: nodeData.isHighlighted ? "#fffbeb" : "white",
+          bgcolor: nodeData.isHighlighted ? "warning.light" : "common.white",
           border: nodeData.isHighlighted
-            ? "3px solid #f59e0b"
+            ? `3px solid ${theme.palette.warning.main}`
             : `2px solid ${color}`,
-          borderRadius: "4px",
+          borderRadius: 1,
           padding: "8px 12px",
           minWidth: minWidth,
           maxWidth: maxWidth,
           boxShadow: nodeData.isHighlighted
-            ? "0 0 0 4px rgba(245, 158, 11, 0.3), 0 4px 12px rgba(0,0,0,0.15)"
-            : "0 2px 4px rgba(0,0,0,0.1)",
+            ? `0 0 0 4px ${theme.palette.warning.light}, 0 4px 12px rgba(0,0,0,0.15)`
+            : 1,
           cursor: "pointer",
           transition: "all 0.3s ease-in-out",
           transform: nodeData.isHighlighted ? "scale(1.05)" : "scale(1)",
           position: "relative",
           "&:hover": {
-            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+            boxShadow: 3,
             transform: "translateY(-1px)",
+          },
+          "&:focus-visible": {
+            outline: `2px solid ${theme.palette.primary.main}`,
+            outlineOffset: 2,
           },
         }}
       >
@@ -125,22 +146,23 @@ const AIDepNode: React.FC<NodeProps> = ({
           <Box
             sx={{
               backgroundColor: color,
-              borderRadius: "4px",
+              borderRadius: 1,
               p: 0.5,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
+            aria-hidden="true"
           >
-            <IconComponent size={14} color="white" />
+            <IconComponent size={14} color={theme.palette.common.white} />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
               variant="body2"
               sx={{
                 fontWeight: 600,
-                fontSize: 11,
-                color: "#344054",
+                fontSize: theme.typography.caption.fontSize,
+                color: "text.primary",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -153,7 +175,7 @@ const AIDepNode: React.FC<NodeProps> = ({
                 variant="caption"
                 sx={{
                   fontSize: 9,
-                  color: "#667085",
+                  color: "text.secondary",
                   display: "block",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
@@ -174,6 +196,7 @@ const AIDepNode: React.FC<NodeProps> = ({
             alignItems: "center",
             gap: 0.5,
           }}
+          aria-hidden="true"
         >
           <Box
             sx={{
@@ -198,7 +221,7 @@ const AIDepNode: React.FC<NodeProps> = ({
             variant="caption"
             sx={{
               fontSize: 9,
-              color: "#667085",
+              color: "text.secondary",
               ml: "auto",
             }}
           >

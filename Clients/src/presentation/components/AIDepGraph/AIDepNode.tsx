@@ -36,7 +36,6 @@ const AIDepNode: React.FC<NodeProps> = ({
   data,
   sourcePosition,
   targetPosition,
-  selected,
 }) => {
   const theme = useTheme();
   const nodeData = data as unknown as AIDepNodeData;

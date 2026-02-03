@@ -121,14 +121,15 @@ export interface IFileBasicTableProps {
   table: string;
   onFileDeleted?: () => void | Promise<void>;
   hidePagination?: boolean;
+  onAssignToFolder?: (fileId: number) => void;
 }
 
 export interface IFileTableProps {
   cols: any[];
-
   files: FileModel[];
   onFileDeleted?: () => void | Promise<void>;
   hidePagination?: boolean;
+  onAssignToFolder?: (fileId: number) => void;
 }
 
 export interface IProjectRiskTableBodyProps {

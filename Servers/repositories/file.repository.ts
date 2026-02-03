@@ -208,6 +208,15 @@ export async function deleteProjectFileById(
 ): Promise<boolean> {
   validateTenant(tenant);
 
+  // Clean up any virtual folder mappings for this file
+  await sequelize.query(
+    `DELETE FROM ${escapePgIdentifier(tenant)}.file_folder_mappings WHERE file_id = :id`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  );
+
   const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :id RETURNING id`;
   const result = await sequelize.query(query, {
     replacements: { id },
@@ -346,6 +355,15 @@ export async function deleteFileById(
   transaction?: Transaction
 ): Promise<boolean> {
   validateTenant(tenant);
+
+  // Clean up any virtual folder mappings for this file
+  await sequelize.query(
+    `DELETE FROM ${escapePgIdentifier(tenant)}.file_folder_mappings WHERE file_id = :fileId`,
+    {
+      replacements: { fileId },
+      ...(transaction && { transaction }),
+    }
+  );
 
   const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :fileId RETURNING id`;
 

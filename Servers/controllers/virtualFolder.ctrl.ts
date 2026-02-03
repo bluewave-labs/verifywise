@@ -45,6 +45,15 @@ const hasManagePermission = (userRole: string | undefined): boolean => {
   return userRole ? ALLOWED_ROLES.includes(userRole) : false;
 };
 
+/**
+ * Safely parse a route parameter to integer
+ * Express params can be string | string[], this ensures we handle both cases
+ */
+const parseParamId = (param: string | string[] | undefined): number => {
+  const value = Array.isArray(param) ? param[0] : param;
+  return parseInt(value || "", 10);
+};
+
 // ============================================================================
 // FOLDER ENDPOINTS
 // ============================================================================
@@ -92,7 +101,7 @@ export const getFolderById = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const folderId = parseInt(req.params.id, 10);
+    const folderId = parseParamId(req.params.id);
     if (isNaN(folderId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid folder ID"));
     }
@@ -118,7 +127,7 @@ export const getFolderPath = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const folderId = parseInt(req.params.id, 10);
+    const folderId = parseParamId(req.params.id);
     if (isNaN(folderId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid folder ID"));
     }
@@ -216,7 +225,7 @@ export const updateFolder = async (
       return res.status(403).json(STATUS_CODE[403]("Insufficient permissions"));
     }
 
-    const folderId = parseInt(req.params.id, 10);
+    const folderId = parseParamId(req.params.id);
     if (isNaN(folderId)) {
       await transaction.rollback();
       return res.status(400).json(STATUS_CODE[400]("Invalid folder ID"));
@@ -323,7 +332,7 @@ export const deleteFolder = async (
       return res.status(403).json(STATUS_CODE[403]("Insufficient permissions"));
     }
 
-    const folderId = parseInt(req.params.id, 10);
+    const folderId = parseParamId(req.params.id);
     if (isNaN(folderId)) {
       await transaction.rollback();
       return res.status(400).json(STATUS_CODE[400]("Invalid folder ID"));
@@ -370,7 +379,7 @@ export const getFilesInFolder = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const folderId = parseInt(req.params.id, 10);
+    const folderId = parseParamId(req.params.id);
     if (isNaN(folderId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid folder ID"));
     }
@@ -422,7 +431,7 @@ export const assignFilesToFolder = async (
       return res.status(403).json(STATUS_CODE[403]("Insufficient permissions"));
     }
 
-    const folderId = parseInt(req.params.id, 10);
+    const folderId = parseParamId(req.params.id);
     if (isNaN(folderId)) {
       await transaction.rollback();
       return res.status(400).json(STATUS_CODE[400]("Invalid folder ID"));
@@ -474,8 +483,8 @@ export const removeFileFromFolder = async (
       return res.status(403).json(STATUS_CODE[403]("Insufficient permissions"));
     }
 
-    const folderId = parseInt(req.params.id, 10);
-    const fileId = parseInt(req.params.fileId, 10);
+    const folderId = parseParamId(req.params.id);
+    const fileId = parseParamId(req.params.fileId);
     if (isNaN(folderId) || isNaN(fileId)) {
       await transaction.rollback();
       return res.status(400).json(STATUS_CODE[400]("Invalid folder or file ID"));
@@ -506,7 +515,7 @@ export const getFileFolders = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const fileId = parseInt(req.params.id, 10);
+    const fileId = parseParamId(req.params.id);
     if (isNaN(fileId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
     }
@@ -535,7 +544,7 @@ export const updateFileFolders = async (
       return res.status(403).json(STATUS_CODE[403]("Insufficient permissions"));
     }
 
-    const fileId = parseInt(req.params.id, 10);
+    const fileId = parseParamId(req.params.id);
     if (isNaN(fileId)) {
       await transaction.rollback();
       return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));

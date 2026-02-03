@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "./index.css";
-import { Box, SelectChangeEvent, Stack, useTheme } from "@mui/material";
+import { Box, SelectChangeEvent, Stack, useTheme, Fade } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
@@ -468,10 +468,10 @@ const Vendors = () => {
         title: `Filtering by ${riskLevel} risks`,
         body: "The table now shows only vendor risks with this risk level. Click the card again to see all risks.",
       });
-      setTimeout(() => setAlert(null), 5000);
     } else {
       setSelectedRiskLevel(null);
       setAlert(null);
+      setShowAlert(false);
     }
   }, []);
 
@@ -484,6 +484,19 @@ const Vendors = () => {
     title?: string;
     body: string;
   } | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
+
+  // Auto-dismiss info alert after 3 seconds with fade animation
+  useEffect(() => {
+    if (alert && alert.variant === 'info') {
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   const [runVendorTour, setRunVendorTour] = useState(false);
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
@@ -1014,13 +1027,20 @@ const Vendors = () => {
       <Stack gap={"16px"}>
         {alert && (
           <Suspense fallback={<div>Loading...</div>}>
-            <Alert
-              variant={alert.variant}
-              title={alert.title}
-              body={alert.body}
-              isToast={true}
-              onClick={() => setAlert(null)}
-            />
+            <Fade in={showAlert} timeout={300}>
+              <Box sx={{ position: 'fixed' }}>
+                <Alert
+                  variant={alert.variant}
+                  title={alert.title}
+                  body={alert.body}
+                  isToast={true}
+                  onClick={() => {
+                    setShowAlert(false);
+                    setTimeout(() => setAlert(null), 300);
+                  }}
+                />
+              </Box>
+            </Fade>
           </Suspense>
         )}
 

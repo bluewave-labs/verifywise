@@ -170,7 +170,20 @@ export async function insertMockData(
           transaction,
           true // is demo
         );
+      } else {
+        await addVendorProjects(vendor.id!, [project.id!], tenant, transaction);
+      }
 
+      // Always create vendor risks if they don't exist
+      // Check for existing demo vendor risks
+      const existingVendorRisks = await sequelize.query(
+        `SELECT COUNT(*) as count FROM "${tenant}".vendorrisks WHERE is_demo = true`,
+        { transaction }
+      ) as [{ count: string }[], number];
+
+      const vendorRiskCount = parseInt(existingVendorRisks[0][0].count) || 0;
+
+      if (vendorRiskCount === 0) {
         // create vendor risks (one high, one medium, one low)
         await createNewVendorRiskQuery(
           {
@@ -219,8 +232,6 @@ export async function insertMockData(
           tenant,
           transaction
         );
-      } else {
-        await addVendorProjects(vendor.id!, [project.id!], tenant, transaction);
       }
 
       // Create Model Inventory

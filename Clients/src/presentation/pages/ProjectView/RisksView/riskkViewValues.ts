@@ -1,4 +1,5 @@
 export type RiskData = {
+    total: number;
     veryHighRisks: number;
     highRisks: number;
     mediumRisks: number;
@@ -37,6 +38,7 @@ export type RiskData = {
       completedAssessments: 10,
     },
     projectRisks: {
+      total: 23,
       veryHighRisks: 13,
       highRisks: 4,
       mediumRisks: 4,
@@ -44,6 +46,7 @@ export type RiskData = {
       veryLowRisks: 1,
     },
     vendorRisks: {
+      total: 23,
       veryHighRisks: 13,
       highRisks: 4,
       mediumRisks: 4,

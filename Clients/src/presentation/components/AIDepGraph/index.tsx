@@ -29,6 +29,7 @@ import {
   IconButton,
   ToggleButtonGroup,
   ToggleButton,
+  useTheme,
 } from "@mui/material";
 import { Network, X, AlertTriangle } from "lucide-react";
 import AIDepNode from "./AIDepNode";
@@ -39,7 +40,7 @@ import type {
   FilePath,
 } from "../../../domain/ai-detection/types";
 import type { AIDepNodeData } from "./types";
-import { NODE_TYPE_COLORS, NODE_TYPE_LABELS, CONFIDENCE_COLORS } from "./types";
+import { NODE_TYPE_COLORS, NODE_TYPE_LABELS, CONFIDENCE_COLORS, RISK_LEVEL_COLORS } from "./types";
 import {
   graphContainerStyle,
   loadingContainerSx,
@@ -187,7 +188,9 @@ function applyForceLayout(
  */
 function transformToReactFlow(
   data: DependencyGraphResponse,
-  visibleTypes: DependencyNodeType[]
+  visibleTypes: DependencyNodeType[],
+  edgeLabelColor: string,
+  edgeLabelBgColor: string
 ): { nodes: Node[]; edges: Edge[] } {
   // Filter nodes by visible types
   const filteredNodes = data.nodes.filter((n) => visibleTypes.includes(n.type));
@@ -228,8 +231,8 @@ function transformToReactFlow(
         strokeWidth: edge.confidence === "high" ? 2 : 1,
       },
       label: edge.relationship,
-      labelStyle: { fontSize: 9, fill: "#667085" },
-      labelBgStyle: { fill: "white", fillOpacity: 0.9 },
+      labelStyle: { fontSize: 9, fill: edgeLabelColor },
+      labelBgStyle: { fill: edgeLabelBgColor, fillOpacity: 0.9 },
     }));
 
   // Calculate connection counts
@@ -247,6 +250,7 @@ function transformToReactFlow(
 }
 
 const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) => {
+  const theme = useTheme();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [loading, setLoading] = useState(true);
@@ -294,7 +298,9 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
 
     const { nodes: rawNodes, edges: rawEdges } = transformToReactFlow(
       graphData,
-      visibleTypes
+      visibleTypes,
+      theme.palette.text.secondary,
+      theme.palette.common.white
     );
 
     if (rawNodes.length === 0) {
@@ -310,7 +316,7 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
 
     // Fit view after layout
     setTimeout(() => fitView({ padding: 0.2 }), 100);
-  }, [graphData, visibleTypes, setNodes, setEdges, fitView]);
+  }, [graphData, visibleTypes, setNodes, setEdges, fitView, theme.palette.text.secondary, theme.palette.common.white]);
 
   // Handle node click
   const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
@@ -361,7 +367,7 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
   if (loading) {
     return (
       <Box sx={loadingContainerSx}>
-        <CircularProgress size={32} sx={{ color: "#13715B" }} />
+        <CircularProgress size={32} sx={{ color: theme.palette.primary.main }} />
         <Typography sx={loadingTextSx}>Loading dependency graph...</Typography>
       </Box>
     );
@@ -370,7 +376,7 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
   if (error) {
     return (
       <Box sx={errorContainerSx}>
-        <AlertTriangle size={32} color="#ef4444" />
+        <AlertTriangle size={32} color={theme.palette.error.main} />
         <Typography sx={errorTextSx}>{error}</Typography>
       </Box>
     );
@@ -379,7 +385,7 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
   if (!graphData || graphData.nodes.length === 0) {
     return (
       <Box sx={emptyStateContainerSx}>
-        <Network size={48} color="#9ca3af" />
+        <Network size={48} color={theme.palette.text.disabled} />
         <Typography sx={emptyStateTitleSx}>No dependencies found</Typography>
         <Typography sx={emptyStateDescriptionSx}>
           This scan did not detect any AI/ML dependencies to visualize.
@@ -405,10 +411,10 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
       >
         <Controls showInteractive={false} />
         <MiniMap
-          nodeColor={(n) => (n.data as AIDepNodeData)?.color || "#667085"}
+          nodeColor={(n) => (n.data as AIDepNodeData)?.color || theme.palette.text.secondary}
           maskColor="rgba(0,0,0,0.1)"
         />
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e5e7eb" />
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={theme.palette.divider} />
 
         {/* Control Panel */}
         <Panel position="top-left">
@@ -419,32 +425,33 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
               onChange={handleTypeChange}
               orientation="vertical"
               size="small"
+              aria-label="Filter component types"
               sx={{
                 display: "flex",
                 flexDirection: "column",
                 gap: "8px",
                 alignItems: "flex-start",
                 "& .MuiToggleButton-root": {
-                  border: "1px solid #d0d5dd",
+                  border: `1px solid ${theme.palette.divider}`,
                   borderRadius: "4px !important",
                   textTransform: "none",
-                  fontSize: 10,
+                  fontSize: theme.typography.caption.fontSize,
                   py: 0.25,
                   px: 1,
                   width: "auto",
                   minWidth: 0,
                   "&.Mui-selected": {
-                    backgroundColor: "#f0fdf4",
-                    borderColor: "#13715B",
-                    color: "#13715B",
+                    backgroundColor: theme.palette.primary.light,
+                    borderColor: theme.palette.primary.main,
+                    color: theme.palette.primary.main,
                   },
                 },
               }}
             >
               {availableTypes.map((type) => (
-                <ToggleButton key={type} value={type}>
+                <ToggleButton key={type} value={type} aria-label={NODE_TYPE_LABELS[type]}>
                   <Box sx={colorDotSx(NODE_TYPE_COLORS[type])} />
-                  <Typography sx={{ fontSize: 10, ml: 0.5 }}>
+                  <Typography sx={{ fontSize: theme.typography.caption.fontSize, ml: 0.5 }}>
                     {NODE_TYPE_LABELS[type]}
                   </Typography>
                 </ToggleButton>
@@ -465,7 +472,7 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
         <Box sx={sidebarContainerSx}>
           <Box sx={sidebarHeaderSx}>
             <Typography sx={sidebarTitleSx}>{selectedNode.label}</Typography>
-            <IconButton size="small" onClick={() => setSelectedNode(null)}>
+            <IconButton size="small" onClick={() => setSelectedNode(null)} aria-label="Close details panel">
               <X size={16} />
             </IconButton>
           </Box>
@@ -505,12 +512,7 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
                 <Typography
                   sx={{
                     ...sidebarTableValueSx,
-                    color:
-                      selectedNode.riskLevel === "high"
-                        ? "#ef4444"
-                        : selectedNode.riskLevel === "medium"
-                        ? "#f59e0b"
-                        : "#10b981",
+                    color: RISK_LEVEL_COLORS[selectedNode.riskLevel],
                     textTransform: "capitalize",
                   }}
                 >
@@ -546,7 +548,7 @@ const AIDepGraphInner: React.FC<AIDepGraphProps> = ({ scanId, repositoryUrl }) =
                   </Typography>
                 ))}
                 {selectedNode.fileCount > 10 && (
-                  <Typography sx={{ fontSize: 11, color: "#667085", mt: 0.5 }}>
+                  <Typography sx={{ fontSize: theme.typography.caption.fontSize, color: theme.palette.text.secondary, mt: 0.5 }}>
                     +{selectedNode.fileCount - 10} more files
                   </Typography>
                 )}

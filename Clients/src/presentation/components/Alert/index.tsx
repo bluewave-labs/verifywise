@@ -8,7 +8,7 @@
  */
 
 import "./index.css";
-import React from "react";
+import React, { type JSX } from "react";
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";

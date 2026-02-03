@@ -59,6 +59,12 @@ export class TrainingRegistarModel
   description!: string;
 
   @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  is_demo?: boolean;
+
+  @Column({
     type: DataType.DATE,
     allowNull: false,
   })

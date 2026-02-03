@@ -10,11 +10,10 @@ import type { CSSProperties } from "react";
 export const iconButtonStyles = (hasIcon: boolean): SxProps<Theme> => ({
   alignSelf: "flex-start",
   ml: "auto",
-  mr: -0.625, // -5px
-  mt: hasIcon ? -0.625 : 0, // -5px
-  "&:focus-visible": {
-    outline: "2px solid currentColor",
-    outlineOffset: 2,
+  mr: "-5px",
+  mt: hasIcon ? "-5px" : 0,
+  "&:focus": {
+    outline: "none",
   },
   "&:hover": {
     backgroundColor: "transparent",

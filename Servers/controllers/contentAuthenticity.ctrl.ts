@@ -278,7 +278,7 @@ export async function getWatermarkJobController(
   });
 
   try {
-    const jobId = parseInt(req.params.jobId, 10);
+    const jobId = parseInt(req.params.jobId as string, 10);
 
     if (isNaN(jobId) || jobId <= 0) {
       return res.status(400).json(STATUS_CODE[400]("Invalid job ID"));

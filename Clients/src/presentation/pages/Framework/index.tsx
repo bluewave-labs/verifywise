@@ -131,8 +131,8 @@ const Framework = () => {
   const [isFrameworkModalOpen, setIsFrameworkModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [rotated, setRotated] = useState(false);
-  const submitFormRef = useRef<(() => void) | undefined>();
-  const createFormRef = useRef<(() => void) | undefined>();
+  const submitFormRef = useRef<(() => void) | undefined>(undefined);
+  const createFormRef = useRef<(() => void) | undefined>(undefined);
 
   // State for dropdown menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);

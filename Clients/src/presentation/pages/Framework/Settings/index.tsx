@@ -43,7 +43,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
   const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const submitFormRef = useRef<(() => void) | undefined>();
+  const submitFormRef = useRef<(() => void) | undefined>(undefined);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;

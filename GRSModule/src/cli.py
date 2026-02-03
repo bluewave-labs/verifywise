@@ -26,6 +26,10 @@ from perturb.perturbator import apply_mutations
 from validate.validator import validate_candidates, ValidateConfig
 from reports.validate_report import build_validate_report
 
+from seeds.index import ObligationIndex
+from validate.enrich import enrich_with_obligations
+
+
 import json
 
 
@@ -223,6 +227,9 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         return 0
     
     if args.stage == "validate":
+        obligations_version, obligations = load_obligations_yaml(Path(args.obligations))
+        ob_index = ObligationIndex.from_list(obligations)
+
         cand_in = intermediate_dir / "mutated_candidates.jsonl"
         if not cand_in.exists():
             console.print(f"[red]Missing input:[/red] {cand_in} (run --stage perturb first)")
@@ -232,6 +239,12 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         accepted, rejections = validate_candidates(
             candidates=candidates,
             cfg=ValidateConfig(),
+        )
+
+        accepted = enrich_with_obligations(
+            scenarios=accepted,
+            ob_index=ob_index,
+            inject_constraints_into_prompt=bool(args.inject_constraints_into_prompt),
         )
 
         rej_out = intermediate_dir / "rejections.jsonl"
@@ -252,6 +265,10 @@ def _cmd_generate(args: argparse.Namespace) -> int:
             "inputs": {
                 "mutated_candidates_jsonl": str(cand_in),
                 "mutated_candidates_jsonl_sha256": sha256_file(cand_in),
+                "obligations_yaml": str(Path(args.obligations)),
+                "obligations_yaml_sha256": sha256_file(Path(args.obligations)),
+                "obligations_version": obligations_version,
+                "inject_constraints_into_prompt": bool(args.inject_constraints_into_prompt),
             },
             "outputs": {
                 "rejections_jsonl": str(rej_out),
@@ -296,6 +313,7 @@ def main() -> None:
     gen.add_argument("--mutations", default="configs/mutations.yaml")
     gen.add_argument("--k-per-base", default="3")
     gen.add_argument("--coverage", choices=["random", "per_family"], default="random")
+    gen.add_argument("--inject-constraints-into-prompt", action="store_true")
     gen.add_argument("--dataset-version", default="grs_scenarios_v0.1")
     gen.add_argument("--obligations", default="configs/obligations.yaml")
     gen.add_argument("--out-dir", default="datasets")

@@ -596,6 +596,351 @@ function ConfirmDialog({
 }
 ```
 
+## JavaScript Popups & Notifications
+
+### Alert Alternatives
+
+Never use native `window.alert()`, `window.confirm()`, or `window.prompt()`. These block the UI thread, cannot be styled, and provide poor user experience. Use MUI components instead.
+
+```tsx
+// Bad: Native alerts
+window.alert('Operation completed');
+const confirmed = window.confirm('Are you sure?');
+
+// Good: MUI Snackbar for notifications
+import { Snackbar, Alert } from '@mui/material';
+
+function NotificationExample() {
+  const [open, setOpen] = useState(false);
+
+  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setOpen(false);
+  };
+
+  return (
+    <Snackbar
+      open={open}
+      autoHideDuration={5000}
+      onClose={handleClose}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    >
+      <Alert onClose={handleClose} severity="success" variant="filled">
+        Operation completed successfully
+      </Alert>
+    </Snackbar>
+  );
+}
+
+// Good: Dialog for confirmations (see Confirmation Dialogs section above)
+```
+
+### Modal Best Practices
+
+Modals must follow these accessibility and usability requirements:
+
+```tsx
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { useRef, useEffect } from 'react';
+
+interface ModalProps {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}
+
+function AccessibleModal({ open, onClose, title, children }: ModalProps) {
+  const titleId = useId();
+  const contentId = useId();
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      aria-labelledby={titleId}
+      aria-describedby={contentId}
+      // MUI handles these automatically, but documenting for clarity:
+      // - Focus trapping within the modal
+      // - Escape key closes the modal
+      // - Backdrop click closes the modal (can be disabled with disableBackdropClick)
+      // - Focus returns to trigger element on close
+    >
+      <DialogTitle id={titleId}>{title}</DialogTitle>
+      <DialogContent id={contentId}>
+        {children}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+```
+
+**Modal Requirements Checklist:**
+- [ ] Has `aria-labelledby` pointing to the title
+- [ ] Has `aria-describedby` pointing to the content (optional but recommended)
+- [ ] Closes on Escape key press (MUI default)
+- [ ] Traps focus within the modal (MUI default)
+- [ ] Returns focus to trigger element on close (MUI default)
+- [ ] Has a visible close mechanism (button or X icon)
+
+### Notification Patterns (Snackbar/Toast)
+
+Use Snackbars for brief, non-critical messages that don't require user action.
+
+```tsx
+import { Snackbar, Alert, AlertTitle, Button } from '@mui/material';
+
+// Notification severity levels
+type NotificationSeverity = 'success' | 'info' | 'warning' | 'error';
+
+interface NotificationProps {
+  open: boolean;
+  message: string;
+  severity: NotificationSeverity;
+  onClose: () => void;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+  autoHideDuration?: number;
+}
+
+function Notification({
+  open,
+  message,
+  severity,
+  onClose,
+  action,
+  autoHideDuration = 5000,
+}: NotificationProps) {
+  return (
+    <Snackbar
+      open={open}
+      autoHideDuration={autoHideDuration}
+      onClose={(_, reason) => {
+        if (reason !== 'clickaway') onClose();
+      }}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    >
+      <Alert
+        onClose={onClose}
+        severity={severity}
+        variant="filled"
+        action={
+          action && (
+            <Button color="inherit" size="small" onClick={action.onClick}>
+              {action.label}
+            </Button>
+          )
+        }
+      >
+        {message}
+      </Alert>
+    </Snackbar>
+  );
+}
+
+// Usage with different severities
+<Notification
+  open={showSuccess}
+  message="Changes saved successfully"
+  severity="success"
+  onClose={() => setShowSuccess(false)}
+/>
+
+<Notification
+  open={showError}
+  message="Failed to save changes"
+  severity="error"
+  onClose={() => setShowError(false)}
+  action={{ label: 'Retry', onClick: handleRetry }}
+  autoHideDuration={null} // Don't auto-hide errors that need action
+/>
+```
+
+**Notification Guidelines:**
+| Severity | Auto-Hide | Use Case |
+|----------|-----------|----------|
+| `success` | 3-5 seconds | Confirmations, completed actions |
+| `info` | 5-7 seconds | Informational messages |
+| `warning` | No auto-hide | Warnings requiring attention |
+| `error` | No auto-hide | Errors requiring acknowledgment or action |
+
+### Notification Context (Global State)
+
+For app-wide notifications, use a context provider:
+
+```tsx
+// contexts/NotificationContext.tsx
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { Snackbar, Alert } from '@mui/material';
+
+interface Notification {
+  id: string;
+  message: string;
+  severity: 'success' | 'info' | 'warning' | 'error';
+  autoHideDuration?: number | null;
+}
+
+interface NotificationContextType {
+  showNotification: (notification: Omit<Notification, 'id'>) => void;
+  showSuccess: (message: string) => void;
+  showError: (message: string) => void;
+  showWarning: (message: string) => void;
+  showInfo: (message: string) => void;
+}
+
+const NotificationContext = createContext<NotificationContextType | null>(null);
+
+export function NotificationProvider({ children }: { children: ReactNode }) {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const showNotification = useCallback((notification: Omit<Notification, 'id'>) => {
+    const id = crypto.randomUUID();
+    setNotifications((prev) => [...prev, { ...notification, id }]);
+  }, []);
+
+  const removeNotification = useCallback((id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
+  const showSuccess = useCallback((message: string) => {
+    showNotification({ message, severity: 'success', autoHideDuration: 4000 });
+  }, [showNotification]);
+
+  const showError = useCallback((message: string) => {
+    showNotification({ message, severity: 'error', autoHideDuration: null });
+  }, [showNotification]);
+
+  const showWarning = useCallback((message: string) => {
+    showNotification({ message, severity: 'warning', autoHideDuration: null });
+  }, [showNotification]);
+
+  const showInfo = useCallback((message: string) => {
+    showNotification({ message, severity: 'info', autoHideDuration: 5000 });
+  }, [showNotification]);
+
+  return (
+    <NotificationContext.Provider
+      value={{ showNotification, showSuccess, showError, showWarning, showInfo }}
+    >
+      {children}
+      {notifications.map((notification) => (
+        <Snackbar
+          key={notification.id}
+          open
+          autoHideDuration={notification.autoHideDuration}
+          onClose={(_, reason) => {
+            if (reason !== 'clickaway') removeNotification(notification.id);
+          }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={() => removeNotification(notification.id)}
+            severity={notification.severity}
+            variant="filled"
+          >
+            {notification.message}
+          </Alert>
+        </Snackbar>
+      ))}
+    </NotificationContext.Provider>
+  );
+}
+
+export function useNotification() {
+  const context = useContext(NotificationContext);
+  if (!context) {
+    throw new Error('useNotification must be used within NotificationProvider');
+  }
+  return context;
+}
+
+// Usage in components
+function SaveButton() {
+  const { showSuccess, showError } = useNotification();
+
+  const handleSave = async () => {
+    try {
+      await saveData();
+      showSuccess('Data saved successfully');
+    } catch (error) {
+      showError('Failed to save data');
+    }
+  };
+
+  return <Button onClick={handleSave}>Save</Button>;
+}
+```
+
+### Popup Accessibility Requirements
+
+All popups, modals, and notifications must meet these accessibility standards:
+
+```tsx
+// 1. Screen Reader Announcements
+// Use aria-live regions for dynamic content
+<Alert
+  severity="success"
+  role="alert"              // Assertive announcement
+  aria-live="polite"        // For non-urgent updates
+>
+  Your changes have been saved
+</Alert>
+
+// 2. Focus Management for Modals
+// MUI Dialog handles this automatically, but for custom implementations:
+function CustomModal({ open, onClose, children }) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      previousActiveElement.current = document.activeElement as HTMLElement;
+      modalRef.current?.focus();
+    } else {
+      previousActiveElement.current?.focus();
+    }
+  }, [open]);
+
+  // Focus trap implementation...
+}
+
+// 3. Keyboard Interaction
+// - Escape closes the popup
+// - Tab cycles through focusable elements (trapped in modals)
+// - Enter/Space activates buttons
+
+// 4. ARIA Roles
+<div
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="dialog-title"
+  aria-describedby="dialog-description"
+>
+  <h2 id="dialog-title">Dialog Title</h2>
+  <p id="dialog-description">Dialog content description</p>
+</div>
+
+// For non-modal popups (dropdowns, tooltips)
+<div role="menu" aria-label="Options menu">
+  <button role="menuitem">Option 1</button>
+  <button role="menuitem">Option 2</button>
+</div>
+```
+
+**Accessibility Checklist for Popups:**
+- [ ] Modal dialogs have `role="dialog"` and `aria-modal="true"`
+- [ ] All popups have accessible names (`aria-label` or `aria-labelledby`)
+- [ ] Focus is trapped within modals
+- [ ] Focus returns to trigger element on close
+- [ ] Escape key closes the popup
+- [ ] Screen readers announce the popup opening
+- [ ] Status messages use `role="alert"` or `role="status"`
+
 ## Component Testing
 
 See [Frontend Testing](../07-testing/frontend-testing.md) for detailed testing guidelines.

@@ -9,4 +9,7 @@ render:
 perturb:
 	uv run grs-scenarios generate --stage perturb --seed 42 --k-per-base 3 --coverage per_family
 
+validate:
+	uv run grs-scenarios generate --stage validate
+
 all: seeds render perturb

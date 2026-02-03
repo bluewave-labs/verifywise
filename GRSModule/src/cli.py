@@ -23,6 +23,9 @@ from render.dedup import prompt_hash
 from perturb.load_catalog import load_mutation_catalog
 from perturb.perturbator import apply_mutations
 
+from validate.validator import validate_candidates, ValidateConfig
+from reports.validate_report import build_validate_report
+
 import json
 
 
@@ -218,6 +221,64 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         console.print(f"- wrote: {manifest_path}")
 
         return 0
+    
+    if args.stage == "validate":
+        cand_in = intermediate_dir / "mutated_candidates.jsonl"
+        if not cand_in.exists():
+            console.print(f"[red]Missing input:[/red] {cand_in} (run --stage perturb first)")
+            return 2
+
+        candidates = list(read_jsonl(cand_in))
+        accepted, rejections = validate_candidates(
+            candidates=candidates,
+            cfg=ValidateConfig(),
+        )
+
+        rej_out = intermediate_dir / "rejections.jsonl"
+        scenarios_out = final_dir / "scenarios.jsonl"
+        write_jsonl(rej_out, rejections)
+        write_jsonl(scenarios_out, accepted)
+
+        report = build_validate_report(accepted=accepted, rejections=rejections)
+        report["generated_at"] = datetime.now(timezone.utc).isoformat()
+        report["dataset_version"] = args.dataset_version
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+        manifest = {
+            "dataset_version": args.dataset_version,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "stage": "validate",
+            "inputs": {
+                "mutated_candidates_jsonl": str(cand_in),
+                "mutated_candidates_jsonl_sha256": sha256_file(cand_in),
+            },
+            "outputs": {
+                "rejections_jsonl": str(rej_out),
+                "rejections_jsonl_sha256": sha256_file(rej_out),
+                "scenarios_jsonl": str(scenarios_out),
+                "scenarios_jsonl_sha256": sha256_file(scenarios_out),
+                "sampling_report_json": str(report_path),
+                "sampling_report_json_sha256": sha256_file(report_path),
+            },
+            "counts": {
+                "candidates_in": len(candidates),
+                "accepted": len(accepted),
+                "rejected": len(rejections),
+            },
+        }
+        write_manifest(manifest_path, manifest)
+
+        console.print("[bold green]Validation gate complete.[/bold green]")
+        console.print(f"- candidates_in: {len(candidates)}")
+        console.print(f"- accepted: {len(accepted)}")
+        console.print(f"- rejected: {len(rejections)}")
+        console.print(f"- wrote: {scenarios_out}")
+        console.print(f"- wrote: {rej_out}")
+        console.print(f"- wrote: {report_path}")
+        console.print(f"- wrote: {manifest_path}")
+        return 0
+
 
 
     console.print(f"[red]Unsupported stage:[/red] {args.stage}")
@@ -229,7 +290,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     gen = sub.add_parser("generate", help="Generate artifacts for the scenario pipeline")
-    gen.add_argument("--stage", choices=["seeds", "render", "perturb"], required=True)
+    gen.add_argument("--stage", choices=["seeds", "render", "perturb", "validate"], required=True)
     gen.add_argument("--seed", default="42")
     gen.add_argument("--per-obligation", default="2")
     gen.add_argument("--mutations", default="configs/mutations.yaml")

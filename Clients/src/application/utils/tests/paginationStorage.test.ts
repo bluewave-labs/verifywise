@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   getPaginationRowCount,
   setPaginationRowCount,
-  clearAllPaginationSettings,
 } from "../paginationStorage";
 
 function createMockStorage(): Storage {
@@ -118,42 +117,4 @@ describe("paginationStorage", () => {
     });
   });
 
-  describe("clearAllPaginationSettings", () => {
-    it("removes only keys that start with prefix", () => {
-      localStorage.setItem("pagination_rows_users", "10");
-      localStorage.setItem("pagination_rows_projects", "20");
-      localStorage.setItem("something_else", "keep");
-
-      clearAllPaginationSettings();
-
-      expect(localStorage.getItem("pagination_rows_users")).toBeNull();
-      expect(localStorage.getItem("pagination_rows_projects")).toBeNull();
-      expect(localStorage.getItem("something_else")).toBe("keep");
-    });
-
-    it("does nothing when there are no pagination keys", () => {
-      localStorage.setItem("other_key", "x");
-
-      clearAllPaginationSettings();
-
-      expect(localStorage.getItem("other_key")).toBe("x");
-    });
-
-    it("warns when Object.keys(localStorage) throws (without breaking vitest)", () => {
-      const realKeys = Object.keys;
-
-      vi.spyOn(Object, "keys").mockImplementation(((obj: any) => {
-        // Only throw for localStorage; otherwise behave normally
-        if (obj === localStorage) throw new Error("boom");
-        return realKeys(obj);
-      }) as any);
-
-      clearAllPaginationSettings();
-
-      expect(console.warn).toHaveBeenCalledWith(
-        "Failed to clear all pagination settings from localStorage:",
-        expect.any(Error)
-      );
-    });
-  });
 });

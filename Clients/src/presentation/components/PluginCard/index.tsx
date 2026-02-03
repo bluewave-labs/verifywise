@@ -21,9 +21,8 @@ import {
   MoreVertical as MoreVerticalIcon,
   Settings as SettingsIcon,
   Trash2 as TrashIcon,
-  Package as PackageIcon,
-  FileSpreadsheet as FileSpreadsheetIcon,
-  Database as DatabaseIcon,
+  Building2 as OrgIcon,
+  FolderKanban as ProjectIcon,
 } from 'lucide-react';
 import { cardStyles } from '../../themes/components';
 import { Plugin, PluginInstallationStatus } from '../../../domain/types/plugins';
@@ -80,18 +79,6 @@ const PluginCard: React.FC<PluginCardProps> = ({
       console.error(`Failed to uninstall ${plugin.displayName}:`, error);
       setIsDeleteModalOpen(false);
     }
-  };
-
-  const getFallbackIcon = () => {
-    // Return different icons based on plugin key or category
-    if (plugin.key === 'risk-import') {
-      return { icon: FileSpreadsheetIcon, color: '#10b981', bgColor: 'rgba(16, 185, 129, 0.1)' };
-    }
-    if (plugin.category === 'data_management') {
-      return { icon: DatabaseIcon, color: '#8b5cf6', bgColor: 'rgba(139, 92, 246, 0.1)' };
-    }
-    // Default fallback
-    return { icon: PackageIcon, color: '#6366f1', bgColor: 'rgba(99, 102, 241, 0.1)' };
   };
 
   const getStatusColor = (status?: PluginInstallationStatus) => {
@@ -181,7 +168,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
         {/* Header Section */}
         <Box sx={{ p: 2, m: 3, backgroundColor: 'transparent' }}>
           {/* Plugin Icon */}
-          {plugin.iconUrl ? (
+          {plugin.iconUrl && (
             <Box
               component="img"
               src={plugin.iconUrl}
@@ -193,26 +180,6 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 objectFit: 'contain',
               }}
             />
-          ) : (
-            (() => {
-              const { icon: FallbackIcon, color, bgColor } = getFallbackIcon();
-              return (
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    mb: 3,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: bgColor,
-                    borderRadius: '8px',
-                  }}
-                >
-                  <FallbackIcon size={28} color={color} />
-                </Box>
-              );
-            })()
           )}
 
           {/* Plugin Name and Status */}
@@ -285,8 +252,46 @@ const PluginCard: React.FC<PluginCardProps> = ({
             {plugin.description}
           </Typography>
 
+          {/* Framework Type Badge */}
+          {plugin.frameworkType && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 2 }}>
+              <Chip
+                size="small"
+                icon={
+                  plugin.frameworkType === 'organizational' ? (
+                    <OrgIcon size={11} />
+                  ) : (
+                    <ProjectIcon size={11} />
+                  )
+                }
+                label={plugin.frameworkType === 'organizational' ? 'Organizational' : 'Project'}
+                variant="outlined"
+                sx={{
+                  fontSize: '10px',
+                  height: 20,
+                  borderRadius: '10px',
+                  backgroundColor: 'transparent',
+                  color:
+                    plugin.frameworkType === 'organizational'
+                      ? '#13715B'
+                      : '#6366f1',
+                  borderColor:
+                    plugin.frameworkType === 'organizational'
+                      ? '#13715B'
+                      : '#6366f1',
+                  fontWeight: 500,
+                  '& .MuiChip-icon': {
+                    color: 'inherit',
+                    marginLeft: '4px',
+                    marginRight: '-2px',
+                  },
+                }}
+              />
+            </Box>
+          )}
+
           {/* Plugin Features */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 3 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 2 }}>
             {plugin.features.slice(0, 2).map((feature, index) => (
               <Chip
                 key={index}

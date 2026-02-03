@@ -28,6 +28,10 @@ import {
   FileSpreadsheet as FileSpreadsheetIcon,
   Package as PackageIcon,
   Database as DatabaseIcon,
+  Globe as GlobeIcon,
+  Building2 as BuildingIcon,
+  Layers as LayersIcon,
+  BookOpen as BookOpenIcon,
 } from "lucide-react";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../../components/Layout/PageHeader";
@@ -56,6 +60,12 @@ import {
   configTextField,
   configSelect,
   configCheckbox,
+  frameworkDetailsGrid,
+  frameworkDetailItem,
+  frameworkDetailLabel,
+  frameworkDetailValue,
+  frameworkTypeChip,
+  frameworkTypeDescription,
 } from "./style";
 
 const PluginManagement: React.FC = () => {
@@ -82,6 +92,29 @@ const PluginManagement: React.FC = () => {
   const [connectingOAuth, setConnectingOAuth] = useState(false);
 
   const isAdmin = userRoleName === "Admin";
+
+  // Helper function to get flag emoji from region
+  const getRegionFlag = (region?: string): string => {
+    if (!region) return "🌐";
+    const regionFlags: Record<string, string> = {
+      "European Union": "🇪🇺",
+      "United States": "🇺🇸",
+      "United Kingdom": "🇬🇧",
+      "Canada": "🇨🇦",
+      "Australia": "🇦🇺",
+      "Brazil": "🇧🇷",
+      "Singapore": "🇸🇬",
+      "Japan": "🇯🇵",
+      "South Korea": "🇰🇷",
+      "China": "🇨🇳",
+      "India": "🇮🇳",
+      "Global": "🌐",
+    };
+    return regionFlags[region] || "🌐";
+  };
+
+  // Check if plugin is a compliance/framework plugin
+  const isFrameworkPlugin = plugin?.category === "compliance";
 
   // Custom breadcrumb items
   const breadcrumbItems: IBreadcrumbItem[] = useMemo(() => {
@@ -425,6 +458,58 @@ const PluginManagement: React.FC = () => {
                     {plugin.longDescription || plugin.description}
                   </Typography>
                 </Box>
+
+                {/* Framework Details - Only for compliance/framework plugins */}
+                {isFrameworkPlugin && (
+                  <>
+                    <Divider />
+                    <Box>
+                      <Typography variant="subtitle2" fontWeight={600} fontSize={14} mb={2}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <BookOpenIcon size={16} color="#13715B" />
+                          Framework Details
+                        </Box>
+                      </Typography>
+                      <Box sx={frameworkDetailsGrid}>
+                        {/* Region */}
+                        <Box sx={frameworkDetailItem}>
+                          <Typography sx={frameworkDetailLabel}>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                              <GlobeIcon size={12} />
+                              Region
+                            </Box>
+                          </Typography>
+                          <Typography sx={frameworkDetailValue}>
+                            <span style={{ fontSize: "18px" }}>{getRegionFlag(plugin.region)}</span>
+                            {plugin.region || "Global"}
+                          </Typography>
+                        </Box>
+
+                        {/* Framework Type */}
+                        <Box sx={frameworkDetailItem}>
+                          <Typography sx={frameworkDetailLabel}>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                              {plugin.frameworkType === "organizational" ? <BuildingIcon size={12} /> : <LayersIcon size={12} />}
+                              Framework Type
+                            </Box>
+                          </Typography>
+                          <Box>
+                            <MuiChip
+                              size="small"
+                              label={plugin.frameworkType === "organizational" ? "Organizational" : "Project-Based"}
+                              sx={frameworkTypeChip(plugin.frameworkType === "organizational")}
+                            />
+                            <Typography sx={frameworkTypeDescription}>
+                              {plugin.frameworkType === "organizational"
+                                ? "Organization-wide framework that applies globally across all projects"
+                                : "Project-specific framework that can be applied to individual projects"}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Box>
+                  </>
+                )}
 
                 {/* Features */}
                 {plugin.features && plugin.features.length > 0 && (

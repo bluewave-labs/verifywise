@@ -5,6 +5,7 @@ import {
   PluginSlotId,
   PluginRenderType,
 } from "../../../domain/constants/pluginSlots";
+import { apiServices } from "../../../infrastructure/api/networkServices";
 
 interface PluginSlotProps {
   id: PluginSlotId;
@@ -61,6 +62,10 @@ export function PluginSlot({
     });
   };
 
+  // Track rendered values to prevent duplicate rendering
+  const renderedTabValues = new Set<string>();
+  const renderedRawComponents = new Set<string>();
+
   return (
     <>
       {filtered.map((loaded, index) => {
@@ -70,8 +75,26 @@ export function PluginSlot({
         }
 
         // For tab render type, only render if this is the active tab
-        if (loaded.renderType === "tab" && activeTab !== loaded.pluginKey) {
-          return null;
+        // Use props.value if available (for shared tabs across plugins), otherwise fall back to pluginKey
+        const tabValue = loaded.props?.value || loaded.pluginKey;
+        if (loaded.renderType === "tab") {
+          if (activeTab !== tabValue) {
+            return null;
+          }
+          // De-duplicate: only render one component per unique tab value
+          if (renderedTabValues.has(tabValue)) {
+            return null;
+          }
+          renderedTabValues.add(tabValue);
+        }
+
+        // For raw render type, de-duplicate by component name
+        // This prevents multiple plugins from rendering the same shared component multiple times
+        if (loaded.renderType === "raw") {
+          if (renderedRawComponents.has(loaded.componentName)) {
+            return null;
+          }
+          renderedRawComponents.add(loaded.componentName);
         }
 
         const element = (
@@ -82,6 +105,7 @@ export function PluginSlot({
             <loaded.Component
               {...loaded.props}
               {...slotProps}
+              apiServices={apiServices}
               onTriggerModal={slotProps.onTriggerModal || handleTriggerModal}
             />
           </Suspense>
@@ -117,6 +141,7 @@ export function PluginSlot({
               <loaded.Component
                 {...loaded.props}
                 {...slotProps}
+                apiServices={apiServices}
                 open={isOpen}
                 onClose={handleClose}
               />

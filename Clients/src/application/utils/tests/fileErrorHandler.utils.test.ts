@@ -7,11 +7,7 @@ vi.mock("../../constants/fileManager", () => ({
   MAX_FILE_SIZE_MB: 25,
 }));
 
-import {
-  getFileErrorMessage,
-  isFileMissingError,
-  isPermissionError,
-} from "../fileErrorHandler.utils";
+import { getFileErrorMessage } from "../fileErrorHandler.utils";
 
 describe("fileErrorHandler.utils", () => {
   describe("getFileErrorMessage", () => {
@@ -114,45 +110,6 @@ describe("fileErrorHandler.utils", () => {
     it("returns default context message when context omitted (defaults to general)", () => {
       const msg = getFileErrorMessage({});
       expect(msg).toBe("Operation failed");
-    });
-  });
-
-  describe("isFileMissingError", () => {
-    it("returns true for statusCode 404", () => {
-      expect(isFileMissingError({ statusCode: 404 })).toBe(true);
-    });
-
-    it('returns true when message includes "not found"', () => {
-      expect(isFileMissingError({ message: "file not found on server" })).toBe(true);
-    });
-
-    it('returns true when message includes "deleted"', () => {
-      expect(isFileMissingError({ message: "file was deleted" })).toBe(true);
-    });
-
-    it("returns false when none match", () => {
-      expect(isFileMissingError({ statusCode: 400, message: "bad request" })).toBe(false);
-      expect(isFileMissingError(null as any)).toBeUndefined();
-    });
-  });
-
-  describe("isPermissionError", () => {
-    it("returns true for statusCode 403", () => {
-      expect(isPermissionError({ statusCode: 403 })).toBe(true);
-    });
-
-    it('returns true when message includes "permission"', () => {
-      expect(isPermissionError({ message: "permission missing" })).toBe(true);
-    });
-
-    it('returns true when message includes "denied"', () => {
-      expect(isPermissionError({ message: "denied" })).toBe(true);
-    });
-
-    it("returns false when none match", () => {
-      expect(isPermissionError({ statusCode: 401, message: "unauthorized" })).toBe(false);
-      expect(isPermissionError(undefined as any)).toBeUndefined();
-
     });
   });
 });

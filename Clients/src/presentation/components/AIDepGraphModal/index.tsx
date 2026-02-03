@@ -5,7 +5,7 @@
  * allowing users to explore AI/ML component relationships.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import {
   Modal,
   Box,
@@ -13,6 +13,7 @@ import {
   Typography,
   Stack,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 import { X, Network } from "lucide-react";
 // Import ReactFlow CSS at modal level to ensure it's available in the portal
@@ -34,6 +35,7 @@ const AIDepGraphModal: React.FC<AIDepGraphModalProps> = ({
   repositoryName,
   repositoryUrl,
 }) => {
+  const theme = useTheme();
   const [isMounted, setIsMounted] = useState(false);
 
   // Delay rendering until modal is fully open to prevent NaN viewport issues
@@ -65,9 +67,9 @@ const AIDepGraphModal: React.FC<AIDepGraphModalProps> = ({
         sx={{
           width: "95vw",
           height: "90vh",
-          backgroundColor: "#fff",
-          borderRadius: "4px",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+          bgcolor: "common.white",
+          borderRadius: 1,
+          boxShadow: 24,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -82,32 +84,34 @@ const AIDepGraphModal: React.FC<AIDepGraphModalProps> = ({
           sx={{
             px: 3,
             py: 2,
-            borderBottom: "1px solid #e5e7eb",
-            backgroundColor: "#f9fafb",
+            borderBottom: 1,
+            borderColor: "divider",
+            bgcolor: "grey.50",
             flexShrink: 0,
           }}
         >
           <Stack direction="row" alignItems="center" gap={1.5}>
-            <Network size={20} color="#13715B" />
+            <Network size={20} color={theme.palette.primary.main} />
             <Typography
               variant="h6"
+              id="ai-dep-graph-modal-title"
               sx={{
-                fontSize: 16,
+                fontSize: theme.typography.body1.fontSize,
                 fontWeight: 600,
-                color: "#101828",
+                color: "text.primary",
               }}
             >
               AI dependency graph
             </Typography>
             {repositoryName && (
               <>
-                <Typography sx={{ color: "#667085", fontSize: 14 }}>
+                <Typography sx={{ color: "text.secondary", fontSize: theme.typography.body2.fontSize }}>
                   •
                 </Typography>
                 <Typography
                   sx={{
-                    fontSize: 14,
-                    color: "#344054",
+                    fontSize: theme.typography.body2.fontSize,
+                    color: "text.primary",
                     fontWeight: 500,
                   }}
                 >
@@ -121,10 +125,11 @@ const AIDepGraphModal: React.FC<AIDepGraphModalProps> = ({
             <IconButton
               onClick={onClose}
               size="small"
+              aria-label="Close AI dependency graph modal"
               sx={{
-                color: "#667085",
+                color: "text.secondary",
                 "&:hover": {
-                  backgroundColor: "#f3f4f6",
+                  bgcolor: "action.hover",
                 },
               }}
             >
@@ -154,8 +159,8 @@ const AIDepGraphModal: React.FC<AIDepGraphModalProps> = ({
                 gap: 2,
               }}
             >
-              <CircularProgress size={24} sx={{ color: "#13715B" }} />
-              <Typography sx={{ color: "#667085" }}>Loading graph...</Typography>
+              <CircularProgress size={24} sx={{ color: "primary.main" }} />
+              <Typography sx={{ color: "text.secondary" }}>Loading graph...</Typography>
             </Box>
           )}
         </Box>
@@ -164,4 +169,4 @@ const AIDepGraphModal: React.FC<AIDepGraphModalProps> = ({
   );
 };
 
-export default AIDepGraphModal;
+export default memo(AIDepGraphModal);

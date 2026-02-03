@@ -496,6 +496,7 @@ const Vendors = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   const [runVendorTour, setRunVendorTour] = useState(false);

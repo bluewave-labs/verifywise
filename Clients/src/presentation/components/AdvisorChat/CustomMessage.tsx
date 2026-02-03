@@ -1,5 +1,5 @@
-import { FC, useContext, useEffect, useState } from 'react';
-import { Stack, Box, useTheme, Avatar, Typography } from '@mui/material';
+import { FC, useContext, useEffect, useState, memo } from 'react';
+import { Stack, Box, useTheme, Avatar, Typography, Theme } from '@mui/material';
 import { MessagePrimitive, useMessagePartText, useAssistantState } from '@assistant-ui/react';
 import Markdown from 'react-markdown';
 
@@ -21,8 +21,17 @@ const formatTimestamp = (date: Date): string => {
   });
 };
 
+// Create markdown heading styles with theme
+const createMarkdownHeadingStyles = (theme: Theme) => ({
+  h1: { marginTop: 0, fontSize: theme.typography.body1.fontSize, fontWeight: 600 },
+  h2: { marginTop: 0, fontSize: theme.typography.body1.fontSize, fontWeight: 700 },
+  h3: { marginTop: 0, fontSize: theme.typography.body2.fontSize, fontWeight: 600 },
+});
+
 const MessageText: FC = () => {
+  const theme = useTheme();
   const data = useMessagePartText();
+  const headingStyles = createMarkdownHeadingStyles(theme);
 
   // Safety check
   if (data.status.type === 'running' || data.text === null || data.text === undefined || data.text === "") {
@@ -32,12 +41,9 @@ const MessageText: FC = () => {
   return (
     <Markdown components={{
       p: 'div',
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      h1: ({ node, ...rest }) => <h1 style={{marginTop: 0, fontSize: '15px', fontWeight: 600}} {...rest} />,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      h2: ({ node, ...rest }) => <h2 style={{marginTop: 0, fontSize: '15px', fontWeight: 700}} {...rest} />,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      h3: ({ node, ...rest }) => <h3 style={{marginTop: 0, fontSize: '13px', fontWeight: 600}} {...rest} />,
+      h1: ({ node: _node, ...rest }) => <h1 style={headingStyles.h1} {...rest} />,
+      h2: ({ node: _node, ...rest }) => <h2 style={headingStyles.h2} {...rest} />,
+      h3: ({ node: _node, ...rest }) => <h3 style={headingStyles.h3} {...rest} />,
     }}>{data.text}</Markdown>
   );
 };
@@ -96,10 +102,10 @@ const MessageTimestamp: FC = () => {
     <Typography
       variant="caption"
       sx={{
-        color: theme.palette.text.tertiary,
-        fontSize: '11px',
-        mt: '4px',
-        ml: '4px',
+        color: theme.palette.text.tertiary ?? theme.palette.text.disabled,
+        fontSize: theme.typography.caption.fontSize,
+        mt: 0.5,
+        ml: 0.5,
       }}
     >
       Answered: {formatTimestamp(new Date(message.createdAt))}
@@ -115,7 +121,7 @@ const DEFAULT_USER: User = {
   roleId: 1,
 };
 
-export const CustomMessage: FC = () => {
+const CustomMessageComponent: FC = () => {
   const theme = useTheme();
   const { userId, users, photoRefreshFlag } = useContext(VerifyWiseContext);
   const { fetchProfilePhotoAsBlobUrl } = useProfilePhotoFetch();
@@ -158,7 +164,7 @@ export const CustomMessage: FC = () => {
       <MessagePrimitive.If user>
         <Stack
           direction="row"
-          gap="12px"
+          gap={1.5}
           sx={{
             alignSelf: 'flex-end',
             maxWidth: {
@@ -170,11 +176,11 @@ export const CustomMessage: FC = () => {
           <Box
             sx={{
               backgroundColor: theme.palette.primary.main,
-              color: '#fff',
+              color: theme.palette.primary.contrastText,
               padding: '10px 14px',
-              borderRadius: '12px',
-              borderTopRightRadius: '4px',
-              fontSize: '13px',
+              borderRadius: 3,
+              borderTopRightRadius: 1,
+              fontSize: theme.typography.body2.fontSize,
               lineHeight: 1.5,
               wordBreak: 'break-word',
               whiteSpace: 'pre-wrap',
@@ -194,7 +200,7 @@ export const CustomMessage: FC = () => {
       <MessagePrimitive.If assistant>
         <Stack
           direction="row"
-          gap="12px"
+          gap={1.5}
           sx={{
             alignSelf: 'flex-start',
             width: '100%',
@@ -205,7 +211,7 @@ export const CustomMessage: FC = () => {
               width: 28,
               height: 28,
               backgroundColor: theme.palette.primary.main,
-              fontSize: '12px',
+              fontSize: theme.typography.caption.fontSize,
             }}
           >
             <Bot size={14} />
@@ -214,7 +220,7 @@ export const CustomMessage: FC = () => {
           <MessagePrimitive.If hasContent={false}>
             <Stack
                 direction="row"
-                gap="12px"
+                gap={1.5}
                 sx={{
                   alignSelf: 'flex-start',
                   maxWidth: '75%',
@@ -222,21 +228,21 @@ export const CustomMessage: FC = () => {
               >
                 <Box
                   sx={{
-                    backgroundColor: theme.palette.background.fill,
+                    backgroundColor: theme.palette.background.fill ?? theme.palette.grey[100],
                     padding: '12px 16px',
-                    borderRadius: '12px',
-                    borderTopLeftRadius: '4px',
+                    borderRadius: 3,
+                    borderTopLeftRadius: 1,
                   }}
                 >
-                  <Stack direction="row" gap="6px">
+                  <Stack direction="row" gap={0.75}>
                     {[0, 0.2, 0.4].map((delay, index) => (
                       <Box
                         key={index}
                         sx={{
-                          width: '8px',
-                          height: '8px',
+                          width: 8,
+                          height: 8,
                           borderRadius: '50%',
-                          backgroundColor: theme.palette.text.accent,
+                          backgroundColor: theme.palette.text.accent ?? theme.palette.text.secondary,
                           animation: 'pulse 1.4s infinite',
                           animationDelay: `${delay}s`,
                           '@keyframes pulse': {
@@ -250,17 +256,17 @@ export const CustomMessage: FC = () => {
                 </Box>
               </Stack>
           </MessagePrimitive.If>
-          
+
           <MessagePrimitive.If hasContent>
-            <Stack gap="6px" sx={{ flex: 1, minWidth: 0 }}>
+            <Stack gap={0.75} sx={{ flex: 1, minWidth: 0 }}>
               <Box
                 sx={{
-                  backgroundColor: theme.palette.background.fill,
+                  backgroundColor: theme.palette.background.fill ?? theme.palette.grey[100],
                   color: theme.palette.text.primary,
                   padding: '10px 14px',
-                  borderRadius: '12px',
-                  borderTopLeftRadius: '4px',
-                  fontSize: '13px',
+                  borderRadius: 3,
+                  borderTopLeftRadius: 1,
+                  fontSize: theme.typography.body2.fontSize,
                   lineHeight: 1.5,
                   wordBreak: 'break-word',
                 }}
@@ -276,3 +282,5 @@ export const CustomMessage: FC = () => {
     </MessagePrimitive.Root>
   );
 };
+
+export const CustomMessage = memo(CustomMessageComponent);

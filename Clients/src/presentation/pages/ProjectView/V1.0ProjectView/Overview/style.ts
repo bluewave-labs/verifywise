@@ -10,5 +10,4 @@ export const columnStyle = {
   flexDirection: "column",
   gap: 10,
   width: "100%",
-  mb: 10,
 };

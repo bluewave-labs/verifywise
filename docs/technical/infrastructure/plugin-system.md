@@ -126,6 +126,22 @@ Manifest URL: https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace
 | Security | `security` | Security scanning |
 | Data Management | `data_management` | Risk import, data tools |
 | Analytics | `analytics` | Reporting, dashboards |
+| Compliance | `compliance` | Compliance frameworks (GDPR, SOC2, etc.) |
+
+### Framework Plugin Fields
+
+Framework plugins (category: `compliance`) have additional fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `region` | string | Geographic region (e.g., "United States", "European Union") |
+| `frameworkType` | string | `"organizational"` or `"project"` |
+
+**Framework Types:**
+
+- **`organizational`**: Applies to entire organization. One org-level project contains all organizational frameworks. Used for legal requirements (GDPR, CCPA), certifications (SOC 2, ISO 27001), and org-wide standards.
+
+- **`project`**: Applies to specific projects based on their needs. Different projects can have different frameworks. Used for PCI-DSS (payment projects), HIPAA (healthcare projects), AI Ethics (AI/ML projects).
 
 ---
 
@@ -4887,6 +4903,212 @@ For plugin development documentation, see the plugin-marketplace repository:
 | [Plugin UI Guide](https://github.com/bluewave-labs/plugin-marketplace/blob/main/docs/PLUGIN_UI_GUIDE.md) | Building plugin UIs |
 | [Architecture](https://github.com/bluewave-labs/plugin-marketplace/blob/main/docs/ARCHITECTURE.md) | System architecture |
 | [API Reference](https://github.com/bluewave-labs/plugin-marketplace/blob/main/docs/API_REFERENCE.md) | Complete API docs |
+
+---
+
+## Event-Based Plugin Communication
+
+Plugins can communicate with the main app using custom DOM events. This provides decoupled communication without direct imports.
+
+### Why Use Events?
+
+- **Decoupling**: Main app doesn't import plugin code
+- **Optional Integration**: App works without plugin installed
+- **Real-time Updates**: Plugins can notify app of changes
+
+### Event Pattern
+
+```typescript
+// Plugin emits event
+window.dispatchEvent(
+  new CustomEvent("eventName", {
+    detail: { /* payload */ }
+  })
+);
+
+// App listens for event
+useEffect(() => {
+  const handler = (event: CustomEvent) => {
+    // Handle event.detail
+  };
+  window.addEventListener("eventName", handler);
+  return () => window.removeEventListener("eventName", handler);
+}, []);
+```
+
+### Real Example: Custom Framework Plugin
+
+The Custom Framework Import plugin uses events to communicate framework counts:
+
+**Plugin Side (CustomFrameworkCards.tsx):**
+```typescript
+// Emit count when frameworks change
+useEffect(() => {
+  window.dispatchEvent(
+    new CustomEvent("customFrameworkCountChanged", {
+      detail: { projectId: project.id, count: addedFrameworkIds.size }
+    })
+  );
+}, [addedFrameworkIds.size, project.id]);
+```
+
+**App Side (AddNewFramework/index.tsx):**
+```typescript
+const [customFrameworkCount, setCustomFrameworkCount] = useState(0);
+
+useEffect(() => {
+  const handleCustomFrameworkCount = (event: CustomEvent) => {
+    if (event.detail?.projectId === project.id) {
+      setCustomFrameworkCount(event.detail.count || 0);
+    }
+  };
+
+  window.addEventListener(
+    "customFrameworkCountChanged",
+    handleCustomFrameworkCount as EventListener
+  );
+
+  return () => {
+    window.removeEventListener(
+      "customFrameworkCountChanged",
+      handleCustomFrameworkCount as EventListener
+    );
+  };
+}, [project.id]);
+
+// Use customFrameworkCount in logic
+const totalFrameworkCount = (project.framework?.length || 0) + customFrameworkCount;
+```
+
+### Event Naming Convention
+
+Use descriptive names with camelCase:
+- `customFrameworkCountChanged` - Count updated
+- `customFrameworkChanged` - Framework added/removed
+- `pluginDataRefresh` - Request data reload
+
+### Best Practices
+
+1. **Include identifiers**: Always include `projectId` or other identifiers in payload
+2. **Validate payload**: Check `event.detail?.projectId === project.id`
+3. **Clean up listeners**: Always remove listeners in useEffect cleanup
+4. **Type safety**: Cast handler as `EventListener` for TypeScript
+
+---
+
+## Framework Plugin Types
+
+Framework plugins can be either **Organizational** or **Project** level, determined by the `frameworkType` field in plugins.json and `is_organizational` in template.json.
+
+### Organizational Frameworks (🏢)
+
+**Scope**: Apply to the entire organization
+
+**Behavior**:
+- Managed at org level with a single org-level project
+- All organizational frameworks enabled in this project
+- Compliance tracked at organization level
+
+**Examples**: GDPR, SOC 2, ISO 27001, CCPA, DORA, NIST CSF, CIS Controls, Data Governance, UAE/Saudi/Qatar/Bahrain PDPL
+
+**Configuration**:
+```json
+// plugins.json
+{
+  "key": "gdpr",
+  "frameworkType": "organizational"
+}
+
+// template.json
+{
+  "framework": {
+    "is_organizational": true
+  }
+}
+```
+
+### Project Frameworks (📁)
+
+**Scope**: Apply only to specific projects
+
+**Behavior**:
+- Can be enabled per individual project
+- Different projects may have different frameworks
+- Compliance tracked at project level
+
+**Examples**: PCI-DSS (payment projects), HIPAA (healthcare projects), AI Ethics (AI/ML projects)
+
+**Configuration**:
+```json
+// plugins.json
+{
+  "key": "pci-dss",
+  "frameworkType": "project"
+}
+
+// template.json
+{
+  "framework": {
+    "is_organizational": false
+  }
+}
+```
+
+### UI Display
+
+The framework type is displayed as a badge on plugin cards in **Plugins > Frameworks**:
+- 🏢 **Organizational** - Purple badge
+- 📁 **Project** - Orange badge
+
+**Frontend Type Definition** (`Clients/src/domain/types/plugins.ts`):
+```typescript
+export type FrameworkType = "organizational" | "project";
+
+export interface Plugin {
+  // ... other fields
+  frameworkType?: FrameworkType;
+}
+```
+
+---
+
+## Safe Database Queries for Plugin Tables
+
+When the main app needs to query plugin-created tables, use safe queries that handle missing tables:
+
+### Problem
+
+If a plugin is not installed, its tables don't exist. Querying them causes errors.
+
+### Solution
+
+Check if the table exists before querying:
+
+```typescript
+// Servers/utils/framework.utils.ts
+const [[{ can_remove }]] = await sequelize.query(
+  `SELECT (
+    (SELECT COUNT(*) FROM "${tenant}".projects_frameworks WHERE project_id = :projectId) +
+    CASE
+      WHEN EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = :tenant
+        AND table_name = 'custom_framework_projects'
+      )
+      THEN (SELECT COUNT(*) FROM "${tenant}".custom_framework_projects WHERE project_id = :projectId)
+      ELSE 0
+    END
+  ) > 1 AS can_remove;`,
+  { replacements: { projectId, tenant }, transaction }
+);
+```
+
+### Key Points
+
+- Use `information_schema.tables` to check table existence
+- Use `CASE WHEN EXISTS ... THEN ... ELSE 0 END` pattern
+- Return sensible defaults (0, null, false) when table doesn't exist
+- This keeps the app working whether plugin is installed or not
 
 ---
 

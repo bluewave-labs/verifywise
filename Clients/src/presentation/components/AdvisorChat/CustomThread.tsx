@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo, useCallback } from 'react';
 import { Stack, Box, useTheme, Chip } from '@mui/material';
 import { ThreadPrimitive } from '@assistant-ui/react';
 import { CustomMessage } from './CustomMessage';
@@ -10,11 +10,10 @@ interface CustomThreadProps {
 }
 
 interface SuggestionChipsProps {
-  pageContext?: AdvisorDomain;
   suggestions: AdvisorSuggestion[];
 }
 
-const SuggestionChips = ({ suggestions }: SuggestionChipsProps) => {
+const SuggestionChipsComponent = ({ suggestions }: SuggestionChipsProps) => {
   const theme = useTheme();
 
   if (!suggestions || suggestions.length === 0) {
@@ -23,23 +22,25 @@ const SuggestionChips = ({ suggestions }: SuggestionChipsProps) => {
 
   return (
     <Box
+      role="navigation"
+      aria-label="Suggested prompts"
       sx={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        padding: '16px',
-        marginTop: '8px',
+        padding: theme.spacing(2),
+        marginTop: theme.spacing(1),
       }}
     >
       <Box
         sx={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: '8px',
+          gap: theme.spacing(1),
           justifyContent: 'center',
-          maxWidth: '400px',
+          maxWidth: 400,
         }}
       >
         {suggestions.map((suggestion) => (
@@ -54,14 +55,15 @@ const SuggestionChips = ({ suggestions }: SuggestionChipsProps) => {
               label={suggestion.label}
               variant="outlined"
               clickable
+              aria-label={`Ask: ${suggestion.label}`}
               sx={{
-                fontSize: '11px',
-                height: '28px',
-                borderColor: theme.palette.border?.light,
-                color: theme.palette.text.primary,
+                fontSize: theme.typography.caption.fontSize,
+                height: 28,
+                borderColor: theme.palette.border?.light ?? theme.palette.divider,
+                color: 'text.primary',
                 '&:hover': {
-                  backgroundColor: theme.palette.background.fill,
-                  borderColor: theme.palette.primary.main,
+                  bgcolor: theme.palette.background.fill ?? theme.palette.action.hover,
+                  borderColor: 'primary.main',
                 },
               }}
             />
@@ -72,20 +74,22 @@ const SuggestionChips = ({ suggestions }: SuggestionChipsProps) => {
   );
 };
 
-export const CustomThread = ({ pageContext }: CustomThreadProps) => {
+const SuggestionChips = memo(SuggestionChipsComponent);
+
+const CustomThreadComponent = ({ pageContext }: CustomThreadProps) => {
   const theme = useTheme();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestions = getSuggestions(pageContext);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(scrollToBottom, 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [scrollToBottom]);
 
   return (
     <ThreadPrimitive.Root
@@ -101,28 +105,28 @@ export const CustomThread = ({ pageContext }: CustomThreadProps) => {
         sx={{
           flex: 1,
           overflowY: 'auto',
-          backgroundColor: theme.palette.background.alt,
+          bgcolor: theme.palette.background.alt ?? theme.palette.background.paper,
           '&::-webkit-scrollbar': {
-            width: '8px',
+            width: 8,
           },
           '&::-webkit-scrollbar-track': {
-            backgroundColor: theme.palette.background.fill,
+            bgcolor: theme.palette.background.fill ?? theme.palette.grey[100],
           },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: theme.palette.border?.dark,
-            borderRadius: '4px',
+            bgcolor: theme.palette.border?.dark ?? theme.palette.grey[400],
+            borderRadius: 1,
             '&:hover': {
-              backgroundColor: theme.palette.text.accent,
+              bgcolor: theme.palette.text.accent ?? theme.palette.grey[500],
             },
           },
         }}
       >
         <ThreadPrimitive.Viewport
           style={{
-            padding: '16px',
+            padding: theme.spacing(2),
           }}
         >
-          <Stack gap="12px">
+          <Stack gap={1.5}>
             <ThreadPrimitive.Messages
               components={{
                 UserMessage: CustomMessage,
@@ -131,9 +135,9 @@ export const CustomThread = ({ pageContext }: CustomThreadProps) => {
             />
 
             {/* Show suggestion chips after welcome message */}
-            <SuggestionChips pageContext={pageContext} suggestions={suggestions} />
+            <SuggestionChips suggestions={suggestions} />
 
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} aria-hidden="true" />
           </Stack>
         </ThreadPrimitive.Viewport>
       </Box>
@@ -143,3 +147,5 @@ export const CustomThread = ({ pageContext }: CustomThreadProps) => {
     </ThreadPrimitive.Root>
   );
 };
+
+export const CustomThread = memo(CustomThreadComponent);

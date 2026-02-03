@@ -1,5 +1,5 @@
-import { FC } from 'react';
-import { Box, Typography, Paper, useTheme } from '@mui/material';
+import { FC, memo, useMemo } from 'react';
+import { Box, Typography, Paper, useTheme, Theme } from '@mui/material';
 import { BarChart, PieChart, LineChart } from '@mui/x-charts';
 
 interface ChartData {
@@ -18,32 +18,33 @@ interface ChartRendererProps {
   chartData: ChartData;
 }
 
-// Common tooltip styles for all charts - targets the tooltip container
-const tooltipSlotProps = {
+// Create tooltip styles with theme
+const createTooltipSlotProps = (theme: Theme) => ({
   tooltip: {
     sx: {
       '& .MuiChartsTooltip-table': {
-        fontSize: '13px',
+        fontSize: theme.typography.body2.fontSize,
       },
       '& .MuiChartsTooltip-cell': {
-        fontSize: '13px',
+        fontSize: theme.typography.body2.fontSize,
       },
       '& .MuiChartsTooltip-labelCell': {
-        fontSize: '13px',
+        fontSize: theme.typography.body2.fontSize,
       },
       '& .MuiChartsTooltip-valueCell': {
-        fontSize: '13px',
+        fontSize: theme.typography.body2.fontSize,
       },
       '& .MuiChartsTooltip-mark': {
-        width: '10px',
-        height: '10px',
+        width: 10,
+        height: 10,
       },
     },
   },
-};
+});
 
-export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
+const ChartRendererComponent: FC<ChartRendererProps> = ({ chartData }) => {
   const theme = useTheme();
+  const tooltipSlotProps = useMemo(() => createTooltipSlotProps(theme), [theme]);
   const size = 200;
 
   // Return null if no chart data at all
@@ -177,22 +178,23 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
                   alignItems: 'center',
                   gap: 3,
                   padding: '5px 0',
-                  borderBottom: index < data.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                  borderBottom: index < data.length - 1 ? 1 : 'none',
+                  borderColor: 'divider',
                 }}
               >
                 <Typography
                   sx={{
-                    fontSize: '12px',
-                    color: theme.palette.text.secondary,
+                    fontSize: theme.typography.caption.fontSize,
+                    color: 'text.secondary',
                   }}
                 >
                   {item.label}
                 </Typography>
                 <Typography
                   sx={{
-                    fontSize: '12px',
+                    fontSize: theme.typography.caption.fontSize,
                     fontWeight: 600,
-                    color: theme.palette.text.primary,
+                    color: 'text.primary',
                   }}
                 >
                   {item.value}
@@ -217,14 +219,15 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
       sx={{
         padding: 2,
         marginTop: 1,
-        backgroundColor: theme.palette.background.paper,
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: '8px',
+        bgcolor: 'background.paper',
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: 2,
         width: '100%',
       }}
     >
       {title && (
-        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, marginBottom: type === 'table' ? 1 : 2, fontSize: '13px' }}>
+        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, marginBottom: type === 'table' ? 1 : 2, fontSize: theme.typography.body2.fontSize }}>
           {title}
         </Typography>
       )}
@@ -241,3 +244,5 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
     </Paper>
   );
 };
+
+export const ChartRenderer = memo(ChartRendererComponent);

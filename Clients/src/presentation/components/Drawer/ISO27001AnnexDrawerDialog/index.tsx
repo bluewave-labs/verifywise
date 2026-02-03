@@ -1294,7 +1294,7 @@ const VWISO27001AnnexDrawerDialog = ({
                     onError={(error) => {
                       handleAlert({
                         variant: "error",
-                        body: error?.message || "Failed to update risk",
+                        body: error || "Failed to update risk",
                         setAlert,
                       });
                     }}

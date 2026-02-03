@@ -70,7 +70,7 @@ const Home = () => {
     fetchProgressData();
   }, [setDashboardValues, fetchDashboard, refreshProjectsFlag]);
 
-  const submitFormRef = useRef<(() => void) | undefined>();
+  const submitFormRef = useRef<(() => void) | undefined>(undefined);
 
   // Auto-open create modal when navigating from "Add new..." dropdown
   useEffect(() => {

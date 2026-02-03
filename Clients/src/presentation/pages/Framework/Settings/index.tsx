@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -21,6 +21,8 @@ import {
 } from "../../../../application/repository/entity.repository";
 import Alert from "../../../components/Alert";
 import CustomizableToast from "../../../components/Toast";
+import { PluginSlot } from "../../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
 
 interface FrameworkSettingsProps {
   organizationalProject: Project;
@@ -43,7 +45,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
   const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const submitFormRef = useRef<(() => void) | undefined>();
+  const submitFormRef = useRef<(() => void) | undefined>(undefined);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -53,6 +55,28 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
   } | null>(null);
   const [frameworkToRemove, setFrameworkToRemove] = useState<Framework | null>(null);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+  const [customFrameworkCount, setCustomFrameworkCount] = useState(0);
+
+  // Listen for custom framework count changes from plugins (event-based communication)
+  useEffect(() => {
+    const handleCustomFrameworkCount = (event: CustomEvent) => {
+      if (event.detail?.projectId === organizationalProject.id) {
+        setCustomFrameworkCount(event.detail.count || 0);
+      }
+    };
+
+    window.addEventListener(
+      "customFrameworkCountChanged" as any,
+      handleCustomFrameworkCount as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "customFrameworkCountChanged" as any,
+        handleCustomFrameworkCount as EventListener
+      );
+    };
+  }, [organizationalProject.id]);
 
   // Get available frameworks for organizational projects (ISO 27001, ISO 42001, and NIST AI RMF)
   const availableFrameworks = allFrameworks.filter((framework) => {
@@ -297,7 +321,9 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
         >
           {availableFrameworks.map((fw) => {
             const isAdded = isFrameworkAdded(fw);
-            const onlyOneFramework = organizationalProject.framework?.length === 1 && isAdded;
+            // Total frameworks = system frameworks + custom frameworks (from plugin events)
+            const totalFrameworkCount = (organizationalProject.framework?.length || 0) + customFrameworkCount;
+            const onlyOneFramework = totalFrameworkCount === 1 && isAdded;
 
             return (
               <Box
@@ -387,6 +413,25 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
             );
           })}
         </Box>
+
+        {/* Custom Frameworks from Plugins */}
+        <PluginSlot
+          id={PLUGIN_SLOTS.ORG_FRAMEWORK_MANAGEMENT}
+          slotProps={{
+            project: organizationalProject,
+            isLoading,
+            onFrameworkAdded: async () => {
+              await onProjectDataChanged();
+              onFrameworksChanged();
+            },
+            onFrameworkRemoved: async () => {
+              await onProjectDataChanged();
+              onFrameworksChanged();
+            },
+            setAlert,
+            setIsLoading,
+          }}
+        />
       </Box>
 
       {/* Modals */}

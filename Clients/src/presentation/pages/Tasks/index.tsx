@@ -572,6 +572,7 @@ const Tasks: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   // Define how to get the group key for each task

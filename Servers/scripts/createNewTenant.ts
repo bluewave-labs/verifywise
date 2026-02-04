@@ -429,6 +429,66 @@ export const createNewTenant = async (
       { transaction }
     );
 
+    // Virtual folders table for hierarchical folder structure
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".virtual_folders (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT NULL,
+        parent_id INTEGER NULL REFERENCES "${tenantHash}".virtual_folders(id) ON DELETE CASCADE,
+        color VARCHAR(7) NULL,
+        icon VARCHAR(50) NULL,
+        is_system BOOLEAN DEFAULT FALSE,
+        created_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        CONSTRAINT unique_folder_name_per_parent UNIQUE (parent_id, name),
+        CONSTRAINT no_circular_reference CHECK (id != parent_id)
+      );`,
+      { transaction }
+    );
+
+    // File folder mappings junction table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".file_folder_mappings (
+        id SERIAL PRIMARY KEY,
+        file_id INTEGER NOT NULL,
+        folder_id INTEGER NOT NULL REFERENCES "${tenantHash}".virtual_folders(id) ON DELETE CASCADE,
+        assigned_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        assigned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        CONSTRAINT unique_file_folder UNIQUE (file_id, folder_id)
+      );`,
+      { transaction }
+    );
+
+    // Indexes for virtual_folders table
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_virtual_folders_parent_id ON "${tenantHash}".virtual_folders(parent_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_virtual_folders_created_by ON "${tenantHash}".virtual_folders(created_by);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_virtual_folders_name ON "${tenantHash}".virtual_folders(name);`,
+      { transaction }
+    );
+
+    // Indexes for file_folder_mappings table
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_folder_mappings_file_id ON "${tenantHash}".file_folder_mappings(file_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_folder_mappings_folder_id ON "${tenantHash}".file_folder_mappings(folder_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_folder_mappings_assigned_by ON "${tenantHash}".file_folder_mappings(assigned_by);`,
+      { transaction }
+    );
+
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".projects_frameworks
     (

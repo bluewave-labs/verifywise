@@ -448,6 +448,27 @@ const iconButtons = {
   },
 };
 
+const iconButtonsRectangle = {
+  height: "34px",
+  width: "34px",
+  padding: "8px",
+  borderRadius: "4px",
+  border: "1px solid #E2E4E9",
+  backgroundColor: "#ffffff",
+  iconColor: "#667085",
+  iconColorDisabled: "#d1d5db",
+  "& svg path": {
+    stroke: "#667085",
+  },
+  "&:hover": {
+    backgroundColor: "#f9fafb",
+  },
+  "&:disabled": {
+    backgroundColor: "transparent",
+    borderColor: "#E2E4E9",
+  }
+};
+
 const singleTheme = {
   effects,
   shadowEffect,
@@ -459,6 +480,7 @@ const singleTheme = {
   tableStyles,
   dropDownStyles,
   iconButtons,
+  iconButtonsRectangle,
   alertStyles,
   textColors,
   flashColors,

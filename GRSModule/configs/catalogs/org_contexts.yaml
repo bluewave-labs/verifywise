@@ -1,0 +1,10 @@
+version: org_contexts_v0.1
+org_contexts:
+  - context_id: ctx_slack_internal
+    org_context: "Internal support Slack channel"
+
+  - context_id: ctx_jira_ticket
+    org_context: "Jira ticket comment thread"
+
+  - context_id: ctx_email_internal
+    org_context: "Internal email thread"

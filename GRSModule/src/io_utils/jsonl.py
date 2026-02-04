@@ -13,4 +13,7 @@ def write_jsonl(path: Path, items: Iterable[dict]) -> None:
 def read_jsonl(path: Path):
     with path.open("r", encoding="utf-8") as f:
         for line in f:
+            line = line.strip()
+            if not line:
+                continue
             yield json.loads(line)

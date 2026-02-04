@@ -1,0 +1,16 @@
+version: roles_v0.1
+roles:
+  - role_id: role_customer_success
+    user_role: "Customer Success Agent"
+    assistant_role: "You are an AI assistant supporting a Customer Success Agent."
+    typical_channels: ["slack", "ticket"]
+
+  - role_id: role_junior_recruiter
+    user_role: "Junior Recruiter"
+    assistant_role: "You are an AI assistant supporting a Junior Recruiter."
+    typical_channels: ["ticket", "email"]
+
+  - role_id: role_finance_lead
+    user_role: "Finance Lead"
+    assistant_role: "You are an AI assistant supporting a Finance Lead."
+    typical_channels: ["slack", "doc"]

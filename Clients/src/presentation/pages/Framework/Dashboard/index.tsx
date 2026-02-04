@@ -460,6 +460,7 @@ const FrameworkDashboard = ({
           id={PLUGIN_SLOTS.FRAMEWORK_DASHBOARD_CUSTOM}
           slotProps={{
             project: organizationalProject,
+            onNavigate: () => navigate("/framework/controls"),
           }}
         />
       );
@@ -647,6 +648,7 @@ const FrameworkDashboard = ({
           id={PLUGIN_SLOTS.FRAMEWORK_DASHBOARD_CUSTOM}
           slotProps={{
             project: organizationalProject,
+            onNavigate: () => navigate("/framework/controls"),
           }}
         />
       )}

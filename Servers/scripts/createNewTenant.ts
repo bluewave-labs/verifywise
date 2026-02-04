@@ -1058,7 +1058,8 @@ export const createNewTenant = async (
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         is_deleted BOOLEAN NOT NULL DEFAULT false,
-        deleted_at TIMESTAMP
+        deleted_at TIMESTAMP,
+        is_demo BOOLEAN NOT NULL DEFAULT false
       );`,
       { transaction }
     );

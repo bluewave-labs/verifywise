@@ -113,7 +113,13 @@ export class ModelRiskModel
   })
   model_id?: number;
 
-
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    field: "is_demo",
+  })
+  is_demo?: boolean;
 
   @Column({
     type: DataType.DATE,

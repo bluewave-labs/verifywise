@@ -246,6 +246,7 @@ export const createNewTenant = async (
         "createdAt" timestamp with time zone NOT NULL DEFAULT now(),
         "updatedAt" timestamp with time zone NOT NULL DEFAULT now(),
         description character varying(255),
+        is_demo boolean NOT NULL DEFAULT false,
         CONSTRAINT trainingregistar_pkey PRIMARY KEY (id)
       );`,
       ].map((query) => sequelize.query(query, { transaction }))
@@ -924,6 +925,7 @@ export const createNewTenant = async (
         "last_updated_by" INTEGER NOT NULL,
         "last_updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_demo boolean NOT NULL DEFAULT false,
         FOREIGN KEY ("author_id") REFERENCES public.users(id) ON DELETE SET NULL,
         FOREIGN KEY ("last_updated_by") REFERENCES public.users(id) ON DELETE SET NULL
       );`,
@@ -1287,6 +1289,7 @@ export const createNewTenant = async (
       categories jsonb DEFAULT '[]',
       created_at timestamp with time zone NOT NULL DEFAULT now(),
       updated_at timestamp with time zone NOT NULL DEFAULT now(),
+      is_demo boolean NOT NULL DEFAULT false,
       CONSTRAINT tasks_pkey PRIMARY KEY (id),
       CONSTRAINT tasks_creator_id_fkey FOREIGN KEY (creator_id)
         REFERENCES public.users (id) MATCH SIMPLE

@@ -6,7 +6,7 @@ import StandardModal from "../Modals/StandardModal";
 import TabBar from "../TabBar";
 import { deleteEntityById, getAllEntities } from "../../../application/repository/entity.repository";
 import { addNewModelButtonStyle, toastFadeStyle } from "../../../presentation/pages/ModelInventory/style";
-import CustomizableButton from "../Button/CustomizableButton";
+import { CustomizableButton } from "../Button/CustomizableButton";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import LinkedObjectsTable from "./LinkedPoliciesTable";
 import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";

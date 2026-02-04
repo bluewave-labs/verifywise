@@ -1,12 +1,12 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import PageBreadcrumbs from '../Breadcrumbs/PageBreadcrumbs';
+import { PageBreadcrumbs } from '../Breadcrumbs/PageBreadcrumbs';
 import DashboardActionButtons from './DashboardActionButtons';
-import { IBreadcrumbItem } from '../../types/interfaces/i.breadcrumbs';
+import { BreadcrumbItem } from '../../types/interfaces/i.breadcrumbs';
 
 interface PageLayoutWithActionsProps {
   children: React.ReactNode;
-  breadcrumbItems?: IBreadcrumbItem[];
+  breadcrumbItems?: BreadcrumbItem[];
   showBreadcrumbs?: boolean;
   showActionButtons?: boolean;
   title?: string;

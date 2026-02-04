@@ -11,7 +11,7 @@ import {
 import { Pencil, Trash2, MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ScorerRow } from "./index";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../Button/CustomizableButton";
 
 interface ScorersTableBodyProps {
   rows: ScorerRow[];

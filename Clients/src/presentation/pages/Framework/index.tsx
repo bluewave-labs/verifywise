@@ -43,9 +43,9 @@ import { deleteProject } from "../../../application/repository/project.repositor
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
-import ButtonToggle from "../../components/ButtonToggle";
+import { ButtonToggle } from "../../components/ButtonToggle";
 import TipBox from "../../components/TipBox";
 import FrameworkDashboard from "./Dashboard";
 import FrameworkSettings from "./Settings";

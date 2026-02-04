@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Box, Typography, Stack, Paper, Container } from '@mui/material';
 import { Plus, Eye, Filter, Edit3, Lock, Unlock, Save, Trash2, Download, Upload } from 'lucide-react';
-import CustomizableButton from '../Button/CustomizableButton';
+import { CustomizableButton } from '../Button/CustomizableButton';
 import VerifyWiseMultiSelect from '../VerifyWiseMultiSelect';
 import ViewToggle from '../ViewToggle';
 
-const ButtonShowcase: React.FC = () => {
+function ButtonShowcase() {
   const [multiSelectValues, setMultiSelectValues] = useState<string[]>(['option1', 'option3']);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
 
@@ -399,6 +399,6 @@ const ButtonShowcase: React.FC = () => {
       </Paper>
     </Container>
   );
-};
+}
 
-export default ButtonShowcase;
+export { ButtonShowcase };

@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { Upload, Download, X, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check, MessageSquare, GitBranch } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import ButtonToggle from "../../components/ButtonToggle";
+import { ButtonToggle } from "../../components/ButtonToggle";
 import {
   listMyDatasets,
   listDatasets,

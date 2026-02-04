@@ -3,7 +3,7 @@ import { Typography, Stack, Box } from "@mui/material";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { getModelInventoryTimeseries } from "../../../application/repository/modelInventoryHistory.repository";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
-import ButtonToggle from "../ButtonToggle";
+import { ButtonToggle } from "../ButtonToggle";
 import CustomizableSkeleton from "../Skeletons";
 import EmptyState from "../EmptyState";
 

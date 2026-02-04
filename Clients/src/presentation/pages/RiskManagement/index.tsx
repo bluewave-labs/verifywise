@@ -2,7 +2,7 @@ import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "rea
 import { Box, Stack, Popover, Typography, IconButton, Tooltip, Fade } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/Button/CustomizableButton";
 import { BarChart3, ChevronDown, History as HistoryIcon } from "lucide-react"
 import ibmLogo from "../../assets/ibm_logo.svg";
 import mitLogo from "../../assets/mit_logo.svg";
@@ -21,7 +21,7 @@ import AddNewRiskIBMModal from "../../components/AddNewRiskIBMForm";
 import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 import useUsers from "../../../application/hooks/useUsers";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
 import HelperIcon from "../../components/HelperIcon";

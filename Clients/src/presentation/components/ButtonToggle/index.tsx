@@ -1,11 +1,11 @@
-import React, { useRef, useEffect, useState } from "react";
-import { Box } from "@mui/material";
-import { IButtonToggleProps } from "../../types/interfaces/i.button";
+import React, { memo, useRef, useEffect, useState } from "react";
+import { Box, Theme } from "@mui/material";
+import { ButtonToggleProps } from "../../types/interfaces/i.button";
 
 const frameworkTabsContainerStyle = (height: number) => ({
   position: "relative",
   display: "flex",
-  border: (theme: any) => `1px solid ${theme.palette.divider}`,
+  border: (theme: Theme) => `1px solid ${theme.palette.divider}`,
   borderRadius: "4px",
   overflow: "hidden",
   height,
@@ -23,9 +23,9 @@ const getFrameworkTabStyle = () => ({
   justifyContent: "center",
   height: "100%",
   color: "text.primary",
-  fontFamily: (theme: any) => theme.typography.fontFamily,
+  fontFamily: (theme: Theme) => theme.typography.fontFamily,
   fontSize: "13px",
-  fontWeight: (theme: any) => theme.typography.body2.fontWeight,
+  fontWeight: (theme: Theme) => theme.typography.body2.fontWeight,
   userSelect: "none",
   width: "fit-content",
   minWidth: "120px",
@@ -52,12 +52,12 @@ const getSliderStyle = (position: SliderPosition) => ({
   zIndex: 0,
 });
 
-const ButtonToggle: React.FC<IButtonToggleProps> = ({
+const ButtonToggle = memo(function ButtonToggle({
   options,
   value,
   onChange,
   height = 34,
-}) => {
+}: ButtonToggleProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [sliderPosition, setSliderPosition] = useState<SliderPosition>({ left: 2, width: 120 });
@@ -121,6 +121,8 @@ const ButtonToggle: React.FC<IButtonToggleProps> = ({
       ))}
     </Box>
   );
-};
+});
 
-export default ButtonToggle;
+ButtonToggle.displayName = "ButtonToggle";
+
+export { ButtonToggle };

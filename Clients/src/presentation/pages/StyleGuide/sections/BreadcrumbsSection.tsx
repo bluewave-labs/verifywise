@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Stack, Typography, useTheme, Divider, Snackbar } from "@mui/material";
 import { Copy, Home, Settings } from "lucide-react";
-import Breadcrumbs from "../../../components/Breadcrumbs";
+import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import CodeBlock from "../components/CodeBlock";
 
 const breadcrumbSnippets = {

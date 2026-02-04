@@ -5,7 +5,7 @@
  * Note: Icon type uses 'unknown' to avoid React dependencies.
  * Presentation layer will handle React-specific type casting.
  */
-export interface IBreadcrumbItem {
+export interface BreadcrumbItem {
   /** Display label for the breadcrumb */
   label: string;
   /** Navigation path for the breadcrumb */
@@ -29,9 +29,9 @@ export interface IBreadcrumbItem {
  * Note: Separator type uses 'unknown' to avoid React dependencies.
  * Presentation layer will handle React-specific type casting.
  */
-export interface IBreadcrumbsCoreProps {
+export interface BreadcrumbsCoreProps {
   /** Array of breadcrumb items */
-  items?: IBreadcrumbItem[];
+  items?: BreadcrumbItem[];
   /** Custom separator icon */
   separator?: unknown;
   /** Maximum number of items to show (collapses middle items) */
@@ -49,16 +49,16 @@ export interface IBreadcrumbsCoreProps {
   /** Maximum length for truncated labels */
   maxLabelLength?: number;
   /** Custom click handler for breadcrumb items */
-  onItemClick?: (item: IBreadcrumbItem, index: number) => void;
+  onItemClick?: (item: BreadcrumbItem, index: number) => void;
 }
 
 /**
  * Props for the PageBreadcrumbs component
  * Pure domain type with no framework dependencies
  */
-export interface IPageBreadcrumbsCoreProps {
+export interface PageBreadcrumbsCoreProps {
   /** Custom breadcrumb items (overrides auto-generation) */
-  items?: IBreadcrumbItem[];
+  items?: BreadcrumbItem[];
   /** Whether to auto-generate breadcrumbs from current route */
   autoGenerate?: boolean;
   /** Custom route mapping (extends the default mapping) */
@@ -74,7 +74,7 @@ export interface IPageBreadcrumbsCoreProps {
   /** Maximum length for truncated labels */
   maxLabelLength?: number;
   /** Custom click handler for breadcrumb items */
-  onItemClick?: (item: IBreadcrumbItem, index: number) => void;
+  onItemClick?: (item: BreadcrumbItem, index: number) => void;
   /** Additional className for custom styling */
   className?: string;
   /** Test identifier for automated testing */

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Typography, Stack, Box } from "@mui/material";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { getRiskTimeseries } from "../../../application/repository/riskHistory.repository";
-import ButtonToggle from "../ButtonToggle";
+import { ButtonToggle } from "../ButtonToggle";
 import CustomizableSkeleton from "../Skeletons";
 import EmptyState from "../EmptyState";
 

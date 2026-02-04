@@ -27,7 +27,7 @@ import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense, lazy, useRef } from "react";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../Button/CustomizableButton";
 import TabBar from "../../TabBar";
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));

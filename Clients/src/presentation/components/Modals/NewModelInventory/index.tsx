@@ -42,7 +42,7 @@ import { useProjects } from "../../../../application/hooks/useProjects";
 import { Project } from "../../../../domain/types/Project";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
 import FileManagerUploadModal from "../FileManagerUpload";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../Button/CustomizableButton";
 import {
   FileResponse,
   IModelInventory,

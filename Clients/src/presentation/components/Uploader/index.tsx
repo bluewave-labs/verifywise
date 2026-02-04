@@ -27,7 +27,7 @@ import {
   AlertCircle as ErrorIcon,
   Clock as PendingIcon,
 } from "lucide-react";
-import CustomizableButton from "../Button/CustomizableButton";
+import { CustomizableButton } from "../Button/CustomizableButton";
 import singleTheme from "../../themes/v1SingleTheme";
 
 // Types

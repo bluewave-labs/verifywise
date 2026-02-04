@@ -4,7 +4,7 @@ import { getAllEntities } from "../../../../application/repository/entity.reposi
 import { IModelInventory } from "../../../../domain/interfaces/i.modelInventory";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
-import ButtonToggle from "../../../components/ButtonToggle";
+import { ButtonToggle } from "../../../components/ButtonToggle";
 import LinkedModelsView from "../../../components/LinkedModelsView";
 
 interface FrameworkLinkedModelsProps {

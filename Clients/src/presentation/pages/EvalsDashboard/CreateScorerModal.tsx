@@ -20,7 +20,7 @@ import {
 import { Plus, Trash2, Settings, Search, Check, ChevronRight, ChevronDown, Key } from "lucide-react";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/Button/CustomizableButton";
 import { PROVIDERS, getModelsForProvider } from "../../utils/providers";
 import { getAllLlmApiKeys, type LLMApiKey } from "../../../application/repository/deepEval.repository";
 

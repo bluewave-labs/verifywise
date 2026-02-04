@@ -16,7 +16,7 @@ import {
 import Toggle from "../../Inputs/Toggle";
 import Checkbox from "../../Inputs/Checkbox";
 import dayjs, { Dayjs } from "dayjs";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { History as HistoryIcon } from "lucide-react";

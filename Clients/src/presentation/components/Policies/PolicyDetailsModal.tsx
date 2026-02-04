@@ -62,7 +62,7 @@ import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import Select from "../Inputs/Select";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
-import CustomizableButton from "../Button/CustomizableButton";
+import { CustomizableButton } from "../Button/CustomizableButton";
 import HistorySidebar from "../Common/HistorySidebar";
 import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChangeHistory";
 import {

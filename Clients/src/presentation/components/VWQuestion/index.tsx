@@ -20,7 +20,7 @@ import Alert from "../Alert";
 import { AlertProps } from "../../types/alert.types";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { FileData } from "../../../domain/types/File";
-import Button from "../Button";
+import { Button } from "../Button";
 import Select from "../Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
 import LinkedRisksPopup from "../LinkedRisks";

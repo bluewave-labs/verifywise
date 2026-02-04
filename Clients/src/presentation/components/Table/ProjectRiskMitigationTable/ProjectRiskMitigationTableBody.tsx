@@ -24,7 +24,7 @@ import {
   paginationSelect,
   paginationStyle,
 } from "../styles";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../Button/CustomizableButton";
 
 interface ProjectRiskMitigationTableBodyProps {
   rows: ProjectRiskMitigation[];

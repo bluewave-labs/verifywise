@@ -1,19 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/**
- * Developer Note:
- * ESLint rules disabled intentionally to allow use of flexible types and unused variables during
- * theme-based dynamic prop handling and ref forwarding.
- */
-/**
- * This file is currently in use
- */
-
 import React, { memo, useCallback } from "react";
 import { Button, CircularProgress, Box } from "@mui/material";
 import { ButtonProps, SxProps, Theme } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ICustomizableButtonProps } from "../../../types/button.types";
+import { CustomizableButtonProps } from "../../../types/button.types";
 
 /**
  * CustomizableButton component
@@ -47,61 +36,10 @@ import { ICustomizableButtonProps } from "../../../types/button.types";
  */
 
 /**
- * Props interface for the CustomizableButton component
- */
-export interface CustomizableButtonProps {
-  /** The variant of the button */
-  variant?: "contained" | "outlined" | "text";
-  /** The size of the button */
-  size?: "small" | "medium" | "large";
-  /** If true, the button will be disabled */
-  isDisabled?: boolean;
-  /** If true, the button will be styled as a link */
-  isLink?: boolean;
-  /** The color theme of the button */
-  color?: "primary" | "secondary" | "success" | "warning" | "error" | "info";
-  /** Click event handler */
-  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  /** Custom styles using MUI's sx prop */
-  sx?: SxProps<Theme>;
-  /** Button text content (deprecated: use children instead) */
-  text?: string;
-  /** Icon element (deprecated: use startIcon or endIcon instead) */
-  icon?: React.ReactNode;
-  /** Icon to display at the start of the button */
-  startIcon?: React.ReactNode;
-  /** Icon to display at the end of the button */
-  endIcon?: React.ReactNode;
-  /** Button content */
-  children?: React.ReactNode;
-  /** Loading state - shows spinner and disables button */
-  loading?: boolean;
-  /** Custom loading indicator */
-  loadingIndicator?: React.ReactNode;
-  /** ARIA label for accessibility */
-  ariaLabel?: string;
-  /** ARIA described by for accessibility */
-  ariaDescribedBy?: string;
-  /** Test identifier for automated testing */
-  testId?: string;
-  /** Button type attribute */
-  type?: "button" | "submit" | "reset";
-  /** Full width button */
-  fullWidth?: boolean;
-  /** Custom class name */
-  className?: string;
-  /** Tooltip text */
-  title?: string;
-  indicator?: boolean; //`indicator` prop: used to optionally show a custom visual indicator on the button.
-  textColor?: string; // Added textColor prop to allow custom inline text color customization when needed.
-}
-
-/**
  * CustomizableButton component implementation
  */
 const CustomizableButton = memo(
-  React.forwardRef<HTMLButtonElement, ICustomizableButtonProps>(
-    (
+  React.forwardRef<HTMLButtonElement, CustomizableButtonProps>(function CustomizableButton(
       {
         variant = "contained",
         size = "medium",
@@ -125,11 +63,11 @@ const CustomizableButton = memo(
         className,
         title,
         indicator,
-        textColor, // 🧩 Add this line
+        textColor,
         ...rest
       },
       ref
-    ) => {
+    ) {
       // Handle click events with error boundary
       const handleClick = useCallback(
         (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -138,11 +76,7 @@ const CustomizableButton = memo(
             return;
           }
 
-          try {
-            onClick?.(event);
-          } catch (error) {
-            console.error("CustomizableButton onClick error:", error);
-          }
+          onClick?.(event);
         },
         [onClick, loading, isDisabled]
       );
@@ -181,9 +115,7 @@ const CustomizableButton = memo(
         />
       );
 
-      // FIX: Filtered out `selectionFollowsFocus` — not a valid DOM attribute.
-// This avoids React warnings about invalid props being passed to DOM elements.
-      const { selectionFollowsFocus, ...filteredRest } = rest as any;
+      const { selectionFollowsFocus, ...filteredRest } = rest as Record<string, unknown>;
 
       return (
         <Button
@@ -261,7 +193,6 @@ const CustomizableButton = memo(
   )
 );
 
-// Set display name for better debugging and dev tools
 CustomizableButton.displayName = "CustomizableButton";
 
-export default CustomizableButton;
+export { CustomizableButton };

@@ -3,7 +3,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Box, Stack, Typography, Collapse, useTheme } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
 import { Home, Puzzle, ChevronDown } from "lucide-react";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PluginCard from "../../components/PluginCard";
@@ -13,7 +13,7 @@ import { usePluginInstallation } from "../../../application/hooks/usePluginInsta
 import { Plugin, PluginInstallationStatus } from "../../../domain/types/plugins";
 import Alert from "../../components/Alert";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { IBreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
+import { BreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
 import Chip from "../../components/Chip";
 import EmptyState from "../../components/EmptyState";
 import { CATEGORIES } from "./categories";
@@ -71,7 +71,7 @@ const Plugins: React.FC = () => {
   }, [location.pathname, refetch]);
 
   // Custom breadcrumb items
-  const breadcrumbItems: IBreadcrumbItem[] = useMemo(() => [
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => [
     {
       label: "Dashboard",
       path: "/",

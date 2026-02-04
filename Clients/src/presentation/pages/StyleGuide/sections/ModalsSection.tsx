@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Stack, Typography, useTheme, Divider, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, Drawer } from "@mui/material";
 import { Copy, X } from "lucide-react";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/Button/CustomizableButton";
 import CodeBlock from "../components/CodeBlock";
 
 const modalCodeSnippet = `// Using StandardModal pattern

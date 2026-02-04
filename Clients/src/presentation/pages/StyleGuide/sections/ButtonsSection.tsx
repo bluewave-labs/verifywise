@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Box, Stack, Typography, useTheme, Divider, Snackbar } from "@mui/material";
 import { Copy, Plus, Trash2 } from "lucide-react";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
-import ButtonToggle from "../../../components/ButtonToggle";
+import { CustomizableButton } from "../../../components/Button/CustomizableButton";
+import { ButtonToggle } from "../../../components/ButtonToggle";
 import CodeBlock from "../components/CodeBlock";
 
 // Code snippets

@@ -37,7 +37,7 @@ import {
 import RichTextEditor from "../../RichTextEditor";
 import Select from "../../Inputs/Select";
 import TabBar from "../../TabBar";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../Button/CustomizableButton";
 import Alert from "../../Alert";
 import StandardModal from "../../Modals/StandardModal";
 

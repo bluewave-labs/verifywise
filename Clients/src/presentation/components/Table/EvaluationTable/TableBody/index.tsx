@@ -15,7 +15,7 @@ const spin = keyframes`
 `;
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
-import CustomizableButton from "../../../Button/CustomizableButton";
+import { CustomizableButton } from "../../../Button/CustomizableButton";
 import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../types/interfaces/i.table";
 
 const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({

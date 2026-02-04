@@ -12,7 +12,7 @@ import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/Button/CustomizableButton";
 import { Save as SaveIcon } from "lucide-react";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../components/Toast"; // Import CustomizableToast

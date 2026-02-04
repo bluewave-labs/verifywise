@@ -17,7 +17,7 @@ import {
   useState,
   useEffect,
 } from "react";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/Button/CustomizableButton";
 import { PlusCircle as AddCircleOutlineIcon } from "lucide-react";
 import Field from "../../../components/Inputs/Field";
 import {

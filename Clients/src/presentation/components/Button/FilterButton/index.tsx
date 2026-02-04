@@ -5,10 +5,10 @@
  * and provides consistent styling across the application.
  */
 
-import React from "react";
+import React, { memo } from "react";
 import { Box } from "@mui/material";
-import CustomizableButton from "../CustomizableButton";
-import { IFilterButtonProps } from "../../../types/button.types";
+import { CustomizableButton } from "../CustomizableButton";
+import { FilterButtonProps } from "../../../types/button.types";
 
 const FilterIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
   <svg
@@ -28,14 +28,14 @@ const FilterIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
   </svg>
 );
 
-const FilterButton: React.FC<IFilterButtonProps> = ({
+const FilterButton = memo(function FilterButton({
   isOpen,
   hasActiveFilters,
   activeFilterCount,
   onClick,
   disabled = false,
   sx = {},
-}) => {
+}: FilterButtonProps) {
   return (
     <Box
       sx={{
@@ -81,6 +81,8 @@ const FilterButton: React.FC<IFilterButtonProps> = ({
       )}
     </Box>
   );
-};
+});
 
-export default FilterButton;
+FilterButton.displayName = "FilterButton";
+
+export { FilterButton };

@@ -30,7 +30,7 @@ import {
   CheckSquare,
   BarChart3,
 } from 'lucide-react';
-import Button from '../../../../components/Button';
+import { Button } from '../../../../components/Button';
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
 import { Automation, Action, TriggerTemplate, ActionTemplate } from '../../../../../domain/types/Automation';
 

@@ -26,7 +26,7 @@ import {
 import TablePaginationActions from "../../TablePagination";
 import Chip from "../../Chip";
 import { useSearchParams } from "react-router-dom";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../Button/CustomizableButton";
 import {
   IAuditRiskTableBodyProps,
   ITypeRisk,

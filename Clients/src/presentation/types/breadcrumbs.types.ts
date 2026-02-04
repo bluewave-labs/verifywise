@@ -1,8 +1,8 @@
 import React from "react";
 import { SxProps, Theme } from "@mui/material";
 import {
-  IBreadcrumbsCoreProps,
-  IPageBreadcrumbsCoreProps,
+  BreadcrumbsCoreProps,
+  PageBreadcrumbsCoreProps,
 } from "../../domain/types/breadcrumbs.types";
 
 /**
@@ -10,7 +10,7 @@ import {
  * Extends domain props with MUI-specific styling
  * Overrides unknown types from domain with React.ReactNode
  */
-export interface IBreadcrumbsProps extends Omit<IBreadcrumbsCoreProps, 'separator'> {
+export interface BreadcrumbsProps extends Omit<BreadcrumbsCoreProps, 'separator'> {
   /** Custom separator icon (overrides domain unknown type) */
   separator?: React.ReactNode;
   /** Custom styles using MUI's sx prop */
@@ -21,16 +21,16 @@ export interface IBreadcrumbsProps extends Omit<IBreadcrumbsCoreProps, 'separato
  * Presentation adapter for PageBreadcrumbs component
  * Extends domain props with MUI-specific styling
  */
-export interface IPageBreadcrumbsProps extends IPageBreadcrumbsCoreProps {
+export interface PageBreadcrumbsProps extends PageBreadcrumbsCoreProps {
   /** Additional styling with proper MUI typing */
   sx?: SxProps<Theme>;
 }
 
 /**
- * Presentation adapter for IBreadcrumbItem
+ * Presentation adapter for BreadcrumbItem
  * Overrides unknown types from domain with React.ReactNode
  */
-export interface IBreadcrumbItemPresentation extends Omit<import("../../domain/types/breadcrumbs.types").IBreadcrumbItem, 'icon'> {
+export interface BreadcrumbItemPresentation extends Omit<import("../../domain/types/breadcrumbs.types").BreadcrumbItem, 'icon'> {
   /** Icon to display (overrides domain unknown type) */
   icon?: React.ReactNode;
 }

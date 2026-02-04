@@ -36,8 +36,8 @@ import { ReactComponent as SelectorVertical } from "../../../assets/icons/select
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
-import ButtonToggle from "../../../components/ButtonToggle";
+import { CustomizableButton } from "../../../components/Button/CustomizableButton";
+import { ButtonToggle } from "../../../components/ButtonToggle";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import {

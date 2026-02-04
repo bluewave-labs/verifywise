@@ -30,7 +30,7 @@ import {
   Scale,
   FileText,
 } from "lucide-react";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/Button/CustomizableButton";
 import Chip from "../../components/Chip";
 import TabBar from "../../components/TabBar";
 import { VWLink } from "../../components/Link";

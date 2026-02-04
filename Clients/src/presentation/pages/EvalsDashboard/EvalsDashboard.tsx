@@ -3,14 +3,14 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid } from "@mui/material";
 import { Check } from "lucide-react";
 import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound, Swords } from "lucide-react";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useEvalsSidebarContext } from "../../../application/contexts/EvalsSidebar.context";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/Button/CustomizableButton";
 import {
   getAllProjects,
   getProject,

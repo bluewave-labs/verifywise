@@ -12,7 +12,7 @@ import { useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Stack } from "@mui/material";
 import { Search, History, FileSearch, Settings } from "lucide-react";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { scanToRecentScan } from "./AIDetectionSidebar";
 import ScanPage from "./ScanPage";
 import HistoryPage from "./HistoryPage";

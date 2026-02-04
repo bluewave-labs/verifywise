@@ -24,7 +24,7 @@ import { cardStyles } from "../../../themes";
 import { CEMarkingData, ConformityStepStatus, ConformityStep } from "../../../../domain/types/ceMarking";
 import VWLink from "../../../components/Link/VWLink";
 import Select from "../../../components/Inputs/Select";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/Button/CustomizableButton";
 import StandardModal from "../../../components/Modals/StandardModal";
 import Field from "../../../components/Inputs/Field";
 import DatePicker from "../../../components/Inputs/Datepicker";

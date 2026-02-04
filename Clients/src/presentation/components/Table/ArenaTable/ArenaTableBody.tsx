@@ -28,7 +28,7 @@ const spin = keyframes`
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ArenaRow } from "./index";
 import ConfirmationModal from "../../Dialogs/ConfirmationModal";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../Button/CustomizableButton";
 
 interface ArenaTableBodyProps {
   rows: ArenaRow[];

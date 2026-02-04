@@ -20,9 +20,9 @@ import CEMarking from "../CEMarking";
 import Activity from "../Activity";
 import PostMarketMonitoring from "../PostMarketMonitoring";
 import allowedRoles from "../../../../application/constants/permissions";
-import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { IBreadcrumbItem } from "../../../types/interfaces/i.breadcrumbs";
+import { BreadcrumbItem } from "../../../types/interfaces/i.breadcrumbs";
 import { getRouteIcon } from "../../../components/Breadcrumbs/routeMapping";
 import { FileText as FileTextIcon } from "lucide-react";
 import TabBar from "../../../components/TabBar";
@@ -52,8 +52,8 @@ const VWProjectView = () => {
   const [isLoadingModels, setIsLoadingModels] = useState(false);
 
   // Create custom breadcrumb items
-  const breadcrumbItems: IBreadcrumbItem[] = useMemo(() => {
-    const items: IBreadcrumbItem[] = [
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    const items: BreadcrumbItem[] = [
       {
         label: "Dashboard",
         path: "/",

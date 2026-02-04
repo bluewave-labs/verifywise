@@ -14,7 +14,7 @@ import {
   ChevronDown as ExpandMoreIcon,
 } from "lucide-react";
 import { getAllUsers } from "../../../application/repository/user.repository";
-import ButtonToggle from "../ButtonToggle";
+import { ButtonToggle } from "../ButtonToggle";
 import { IRiskCategoriesProps } from "../../types/interfaces/i.risk";
 import { ICategoryGroup } from "../../../domain/interfaces/i.categoryGroup";
 import { User } from "../../../domain/types/User";

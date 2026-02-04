@@ -287,6 +287,7 @@ export const getFilesInFolderQuery = async (
       f.uploaded_time as upload_date,
       f.uploaded_by,
       f.project_id,
+      f.source,
       p.project_title,
       u.name as uploader_name,
       u.surname as uploader_surname
@@ -390,6 +391,7 @@ export const getUncategorizedFilesQuery = async (
       f.uploaded_time as upload_date,
       f.uploaded_by,
       f.project_id,
+      f.source,
       p.project_title,
       u.name as uploader_name,
       u.surname as uploader_surname

@@ -406,17 +406,22 @@ const FileManager: React.FC = (): JSX.Element => {
     }
 
     // Convert folder files to FileModel instances for compatibility with existing table
-    return folderFiles.map((file) => FileModel.createNewFile({
-      id: file.id.toString(),
-      fileName: file.filename,
-      size: file.size,
-      uploadDate: new Date(file.upload_date),
-      uploaderName: file.uploader_name,
-      uploader: file.uploader_name || '',
-      projectId: file.project_id?.toString(),
-      projectTitle: file.project_title,
-      source: undefined,
-    }));
+    return folderFiles.map((file) => {
+      const uploaderName = file.uploader_name && file.uploader_surname
+        ? `${file.uploader_name} ${file.uploader_surname}`
+        : file.uploader_name || file.uploader_surname || "Unknown";
+      return FileModel.createNewFile({
+        id: file.id.toString(),
+        fileName: file.filename,
+        size: file.size,
+        uploadDate: new Date(file.upload_date),
+        uploaderName,
+        uploader: uploaderName,
+        projectId: file.project_id?.toString(),
+        projectTitle: file.project_title,
+        source: file.source || "File Manager",
+      });
+    });
   }, [selectedFolder, filesData, folderFiles]);
 
   // Assign to folder modal handlers

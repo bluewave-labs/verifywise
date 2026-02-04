@@ -107,6 +107,7 @@ export interface IFileWithFolders {
   uploader_surname?: string;
   project_id?: number;
   project_title?: string;
+  source?: string;
   folders: IVirtualFolder[];
 }
 

@@ -3,6 +3,7 @@ resources:
   - service.yaml
   - configmap.yaml
   - postgres-pvc.yaml
+  - eval-server-pvc.yaml
   - frontend-nginx-config.yaml
 
 patchesStrategicMerge:

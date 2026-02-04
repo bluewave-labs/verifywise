@@ -25,7 +25,9 @@ const toJSON = (notification: INotification): INotificationJSON => ({
   action_url: notification.action_url,
   is_read: notification.is_read,
   read_at: notification.read_at ? notification.read_at.toISOString() : null,
-  created_at: notification.created_at!.toISOString(),
+  created_at: notification.created_at
+    ? notification.created_at.toISOString()
+    : new Date().toISOString(),
   created_by: notification.created_by,
   metadata: notification.metadata,
 });
@@ -185,40 +187,52 @@ export const getNotificationsQuery = async (
 
 /**
  * Get notification summary for bell icon
+ * Uses a single query to avoid race conditions between count and recent list
  */
 export const getNotificationSummaryQuery = async (
   userId: number,
   tenant: string
 ): Promise<INotificationSummary> => {
-  // Get unread count
-  const countResult = await sequelize.query<{ unread_count: string; total_count: string }>(
-    `SELECT
-      COUNT(*) FILTER (WHERE is_read = FALSE) AS unread_count,
-      COUNT(*) AS total_count
-     FROM "${tenant}".notifications
-     WHERE user_id = :userId`,
+  // Single query with CTE to get both counts and recent notifications atomically
+  const result = await sequelize.query<
+    INotification & { unread_count: string; total_count: string }
+  >(
+    `WITH counts AS (
+      SELECT
+        COUNT(*) FILTER (WHERE is_read = FALSE) AS unread_count,
+        COUNT(*) AS total_count
+      FROM "${tenant}".notifications
+      WHERE user_id = :userId
+    ),
+    recent AS (
+      SELECT * FROM "${tenant}".notifications
+      WHERE user_id = :userId
+      ORDER BY created_at DESC
+      LIMIT 10
+    )
+    SELECT r.*, c.unread_count, c.total_count
+    FROM recent r
+    CROSS JOIN counts c`,
     {
       replacements: { userId },
       type: QueryTypes.SELECT,
     }
   );
 
-  // Get recent notifications (last 10)
-  const recentResult = await sequelize.query<INotification>(
-    `SELECT * FROM "${tenant}".notifications
-     WHERE user_id = :userId
-     ORDER BY created_at DESC
-     LIMIT 10`,
-    {
-      replacements: { userId },
-      type: QueryTypes.SELECT,
-    }
-  );
+  // Extract counts from first row (all rows have same counts due to CROSS JOIN)
+  const unreadCount = parseInt(result[0]?.unread_count || "0", 10);
+  const totalCount = parseInt(result[0]?.total_count || "0", 10);
+
+  // Map notifications (exclude the count fields from the notification objects)
+  const recentNotifications = result.map((row) => {
+    const { unread_count, total_count, ...notification } = row;
+    return toJSON(notification as INotification);
+  });
 
   return {
-    unread_count: parseInt(countResult[0]?.unread_count || "0", 10),
-    total_count: parseInt(countResult[0]?.total_count || "0", 10),
-    recent_notifications: recentResult.map(toJSON),
+    unread_count: unreadCount,
+    total_count: totalCount,
+    recent_notifications: recentNotifications,
   };
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   IconButton,
   Badge,
@@ -9,7 +9,7 @@ import {
   Divider,
   CircularProgress,
 } from '@mui/material';
-import { Bell, Check, CheckCheck, X, ExternalLink } from 'lucide-react';
+import { Bell, CheckCheck, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications, Notification } from '../../../application/hooks/useNotifications';
 import VWTooltip from '../VWTooltip';
@@ -170,7 +170,6 @@ interface NotificationBellProps {
 
 const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
   const navigate = useNavigate();
-  const anchorRef = useRef<HTMLButtonElement>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
   const {
@@ -242,7 +241,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
         maxWidth={200}
       >
         <IconButton
-          ref={anchorRef}
           size="small"
           onClick={handleOpen}
           sx={{ ...baseStyles, ...sx }}

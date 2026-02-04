@@ -383,7 +383,7 @@ export const notifyApprovalComplete = async (
     tenantId,
     {
       user_id: requesterId,
-      type: NotificationType.APPROVAL_APPROVED,
+      type: NotificationType.APPROVAL_COMPLETE,
       title: "Use case fully approved",
       message: `Your use case "${useCase.name}" has been fully approved`,
       entity_type: NotificationEntityType.USE_CASE,

@@ -36,6 +36,7 @@ import {
   sendInAppNotification,
 } from "../services/inAppNotification.service";
 import { NotificationType, NotificationEntityType } from "../domain.layer/interfaces/i.notification";
+import { EMAIL_TEMPLATES } from "../constants/emailTemplates";
 
 /**
  * Create new approval request
@@ -555,7 +556,7 @@ export async function rejectRequest(
             },
             true,
             {
-              template: "approval-rejected",
+              template: EMAIL_TEMPLATES.APPROVAL_REJECTED,
               subject: `Rejected: ${notificationInfo.requestName}`,
               variables: {
                 requester_name: "User",

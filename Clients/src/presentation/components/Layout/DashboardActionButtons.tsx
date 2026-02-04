@@ -116,18 +116,6 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     }
   }, []);
 
-  // SSE notifications disabled for now - can be re-enabled later if needed
-  // useNotifications({
-  //   enabled: true,
-  //   onNotification: useCallback((notification: any) => {
-  //     // Refresh count when approval-related notifications are received
-  //     const approvalTypes = ['approval_request', 'approval_approved', 'approval_rejected', 'approval_complete'];
-  //     if (approvalTypes.includes(notification?.type)) {
-  //       fetchApprovalCounts();
-  //     }
-  //   }, [fetchApprovalCounts]),
-  // });
-
   // Initial fetch on mount
   useEffect(() => {
     fetchApprovalCounts();

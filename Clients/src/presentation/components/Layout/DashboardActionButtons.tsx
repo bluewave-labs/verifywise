@@ -7,13 +7,12 @@ import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
 import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
 import ApprovalButton from './ApprovalButton';
+import NotificationBell from '../NotificationBell';
 import {
   getPendingApprovals,
   getMyApprovalRequests,
 } from '../../../application/repository/approvalRequest.repository';
 import { actionButtonsStyles } from './style';
-// SSE notifications disabled for now - can be re-enabled later if needed
-// import { useNotifications } from '../../../application/hooks/useNotifications';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -153,6 +152,9 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
           <Search size={16} />
         </IconButton>
       </VWTooltip>
+
+      {/* Notifications Bell */}
+      <NotificationBell />
 
       <ApprovalButton
         label="Approval requests"

@@ -45,6 +45,7 @@ export interface OrganizationFileMetadata {
   upload_date?: string;
   uploaded_by?: number;
   org_id?: number;
+  project_id?: number | null;
   model_id?: number;
   source?: string;
   uploader_name?: string;
@@ -376,24 +377,43 @@ export async function deleteFileById(
 ): Promise<boolean> {
   validateTenant(tenant);
 
-  // Clean up any virtual folder mappings for this file
-  await sequelize.query(
-    `DELETE FROM ${escapePgIdentifier(tenant)}.file_folder_mappings WHERE file_id = :fileId`,
-    {
+  // If no transaction provided, create one to ensure atomicity of both operations
+  const useProvidedTransaction = !!transaction;
+  const txn = transaction || (await sequelize.transaction());
+
+  try {
+    // Clean up any virtual folder mappings for this file
+    await sequelize.query(
+      `DELETE FROM ${escapePgIdentifier(tenant)}.file_folder_mappings WHERE file_id = :fileId`,
+      {
+        replacements: { fileId },
+        transaction: txn,
+      }
+    );
+
+    const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :fileId RETURNING id`;
+
+    const result = await sequelize.query(query, {
       replacements: { fileId },
-      ...(transaction && { transaction }),
+      type: QueryTypes.SELECT,
+      transaction: txn,
+    });
+
+    const deleted = Array.isArray(result) && result.length > 0;
+
+    // Only commit if we created the transaction ourselves
+    if (!useProvidedTransaction) {
+      await txn.commit();
     }
-  );
 
-  const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :fileId RETURNING id`;
-
-  const result = await sequelize.query(query, {
-    replacements: { fileId },
-    type: QueryTypes.SELECT,
-    ...(transaction && { transaction }),
-  });
-
-  return Array.isArray(result) && result.length > 0;
+    return deleted;
+  } catch (error) {
+    // Only rollback if we created the transaction ourselves
+    if (!useProvidedTransaction) {
+      await txn.rollback();
+    }
+    throw error;
+  }
 }
 
 /**
@@ -672,6 +692,7 @@ export async function getFileWithMetadata(
       f.uploaded_time AS upload_date,
       f.uploaded_by,
       f.org_id,
+      f.project_id,
       f.model_id,
       f.source,
       f.tags,
@@ -790,17 +811,22 @@ export async function getHighlightedFiles(
 }> {
   validateTenant(tenant);
 
+  // Validate numeric inputs to prevent SQL injection - must be positive integers within reasonable bounds
+  const safeDaysUntilExpiry = Math.max(1, Math.min(365, Math.floor(Number(daysUntilExpiry) || 30)));
+  const safeRecentDays = Math.max(1, Math.min(365, Math.floor(Number(recentDays) || 7)));
+
   // Files due for update (expiry_date within X days or passed)
+  // Using INTERVAL with integer cast for safe parameterization
   const dueQuery = `
     SELECT id FROM ${escapePgIdentifier(tenant)}.files
     WHERE org_id = :orgId
       AND project_id IS NULL
       AND expiry_date IS NOT NULL
-      AND expiry_date <= CURRENT_DATE + INTERVAL '${daysUntilExpiry} days'
+      AND expiry_date <= CURRENT_DATE + (:daysUntilExpiry || ' days')::INTERVAL
     ORDER BY expiry_date ASC`;
 
   const dueResult = await sequelize.query(dueQuery, {
-    replacements: { orgId },
+    replacements: { orgId, daysUntilExpiry: safeDaysUntilExpiry },
     type: QueryTypes.SELECT,
   });
 
@@ -822,11 +848,11 @@ export async function getHighlightedFiles(
     SELECT id FROM ${escapePgIdentifier(tenant)}.files
     WHERE org_id = :orgId
       AND project_id IS NULL
-      AND updated_at >= CURRENT_DATE - INTERVAL '${recentDays} days'
+      AND updated_at >= CURRENT_DATE - (:recentDays || ' days')::INTERVAL
     ORDER BY updated_at DESC`;
 
   const recentResult = await sequelize.query(recentQuery, {
-    replacements: { orgId },
+    replacements: { orgId, recentDays: safeRecentDays },
     type: QueryTypes.SELECT,
   });
 
@@ -882,15 +908,29 @@ export async function getFilePreview(
     id: number;
     filename: string;
     mimetype: string;
-    size: number;
-    content: Buffer;
+    size: number | null;
+    content: Buffer | null;
   };
 
+  // Check if file has content stored
+  if (!file.content) {
+    return {
+      id: file.id,
+      filename: file.filename,
+      mimetype: file.mimetype,
+      size: file.size || 0,
+      content: Buffer.alloc(0),
+      canPreview: false,
+    };
+  }
+
   // Check if file is too large for preview
-  const canPreview = file.size <= maxSize;
+  const fileSize = file.size || file.content.length;
+  const canPreview = fileSize <= maxSize;
 
   return {
     ...file,
+    size: fileSize,
     canPreview,
     content: canPreview ? file.content : Buffer.alloc(0),
   };

@@ -9,10 +9,8 @@
  * @module presentation/pages/FileManager/components/FileHighlight
  */
 
-import { Box, Tooltip, useTheme } from "@mui/material";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import PendingActionsIcon from "@mui/icons-material/PendingActions";
-import EditNoteIcon from "@mui/icons-material/EditNote";
+import { Box, Tooltip } from "@mui/material";
+import { AlertTriangle, Clock, FilePen } from "lucide-react";
 import { HighlightType } from "../../../../../application/hooks/useHighlightedFiles";
 
 interface FileHighlightProps {
@@ -32,19 +30,19 @@ const getHighlightConfig = (type: HighlightType, size: "small" | "medium"): High
 
   const configs: Record<HighlightType, HighlightConfig> = {
     dueForUpdate: {
-      icon: <WarningAmberIcon sx={{ fontSize: iconSize }} />,
+      icon: <AlertTriangle size={iconSize} />,
       tooltip: "Due for update",
       color: "#B54708",
       backgroundColor: "#FFFAEB",
     },
     pendingApproval: {
-      icon: <PendingActionsIcon sx={{ fontSize: iconSize }} />,
+      icon: <Clock size={iconSize} />,
       tooltip: "Pending approval",
       color: "#B42318",
       backgroundColor: "#FEF3F2",
     },
     recentlyModified: {
-      icon: <EditNoteIcon sx={{ fontSize: iconSize }} />,
+      icon: <FilePen size={iconSize} />,
       tooltip: "Recently modified",
       color: "#026AA2",
       backgroundColor: "#F0F9FF",

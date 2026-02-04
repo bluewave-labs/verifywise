@@ -68,6 +68,9 @@ export interface IconButtonProps {
   onDownloadDOCX?: () => void | Promise<void>;
   // Virtual folder props
   onAssignToFolder?: () => void;
+  // File metadata props
+  onPreview?: () => void;
+  onEditMetadata?: () => void;
 }
 
 /**

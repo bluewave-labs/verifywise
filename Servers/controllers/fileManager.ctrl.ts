@@ -111,6 +111,89 @@ const hasPermission = (
 };
 
 /**
+ * Pagination limits to prevent unbounded queries
+ */
+const PAGINATION_LIMITS = {
+  maxPageSize: 100,
+  maxPage: 10000,
+  defaultPageSize: 20,
+};
+
+/**
+ * Validates and normalizes pagination parameters
+ * @param page - Page number from query
+ * @param pageSize - Page size from query
+ * @returns Validated pagination parameters or null if invalid
+ */
+const validatePagination = (
+  page: number | undefined,
+  pageSize: number | undefined
+): { page: number | undefined; pageSize: number | undefined; offset: number | undefined } | { error: string } => {
+  // Validate page if provided
+  if (page !== undefined) {
+    if (!Number.isSafeInteger(page) || page < 1 || page > PAGINATION_LIMITS.maxPage) {
+      return { error: `Page must be a positive integer between 1 and ${PAGINATION_LIMITS.maxPage}` };
+    }
+  }
+
+  // Validate pageSize if provided
+  if (pageSize !== undefined) {
+    if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > PAGINATION_LIMITS.maxPageSize) {
+      return { error: `Page size must be a positive integer between 1 and ${PAGINATION_LIMITS.maxPageSize}` };
+    }
+  }
+
+  const validPage = page && page > 0 ? page : undefined;
+  const validPageSize = pageSize && pageSize > 0 ? Math.min(pageSize, PAGINATION_LIMITS.maxPageSize) : undefined;
+  const offset =
+    validPage !== undefined && validPageSize !== undefined
+      ? (validPage - 1) * validPageSize
+      : undefined;
+
+  return { page: validPage, pageSize: validPageSize, offset };
+};
+
+/**
+ * Validates tags array
+ * @param tags - Tags array to validate
+ * @returns Validated tags array or error
+ */
+const validateTags = (
+  tags: unknown
+): { tags: string[] } | { error: string } => {
+  if (!Array.isArray(tags)) {
+    return { error: "Tags must be an array" };
+  }
+
+  // Limit number of tags
+  if (tags.length > 50) {
+    return { error: "Maximum 50 tags allowed" };
+  }
+
+  // Validate each tag
+  const validatedTags: string[] = [];
+  for (const tag of tags) {
+    if (typeof tag !== 'string') {
+      return { error: "Each tag must be a string" };
+    }
+    const trimmedTag = tag.trim();
+    if (trimmedTag.length === 0) {
+      continue; // Skip empty tags
+    }
+    if (trimmedTag.length > 100) {
+      return { error: "Tag length must not exceed 100 characters" };
+    }
+    // Only allow alphanumeric, spaces, hyphens, and underscores
+    if (!/^[\w\s-]+$/u.test(trimmedTag)) {
+      return { error: "Tags can only contain letters, numbers, spaces, hyphens, and underscores" };
+    }
+    validatedTags.push(trimmedTag);
+  }
+
+  return { tags: validatedTags };
+};
+
+/**
  * Upload file to file manager
  *
  * POST /file-manager
@@ -244,6 +327,13 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
   const page = req.query.page ? Number(Array.isArray(req.query.page) ? req.query.page[0] : req.query.page) : undefined;
   const pageSize = req.query.pageSize ? Number(Array.isArray(req.query.pageSize) ? req.query.pageSize[0] : req.query.pageSize) : undefined;
 
+  // Validate pagination
+  const paginationResult = validatePagination(page, pageSize);
+  if ('error' in paginationResult) {
+    return res.status(400).json(STATUS_CODE[400](paginationResult.error));
+  }
+  const { page: validPage, pageSize: validPageSize, offset } = paginationResult;
+
   logProcessing({
     description: `Retrieving file list for organization ${orgId}`,
     functionName: "listFiles",
@@ -253,13 +343,6 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
   });
 
   try {
-    const validPage = page && page > 0 ? page : undefined;
-    const validPageSize = pageSize && pageSize > 0 ? pageSize : undefined;
-    const offset =
-      validPage !== undefined && validPageSize !== undefined
-        ? (validPage - 1) * validPageSize
-        : undefined;
-
     const { files, total } = await getOrganizationFiles(orgId, tenant, {
       limit: validPageSize,
       offset,
@@ -436,7 +519,7 @@ export const downloadFile = async (
         userId: req.userId!,
         tenantId: req.tenantId!,
       });
-      return res.status(404).json(STATUS_CODE[404]("File content not found"));
+      return res.status(404).json(STATUS_CODE[404]("File content not available. This file may need to be re-uploaded."));
     }
 
     // Set headers for file download (unified files table uses 'type' for mimetype)
@@ -667,7 +750,7 @@ export const getFileMetadata = async (
   const auth = validateAndParseAuth(req, res);
   if (!auth) return;
 
-  const { orgId, tenant } = auth;
+  const { userId, orgId, tenant } = auth;
 
   logProcessing({
     description: `Getting metadata for file ID ${fileId}`,
@@ -684,9 +767,28 @@ export const getFileMetadata = async (
       return res.status(404).json(STATUS_CODE[404]("File not found"));
     }
 
-    // Verify organization access
-    if (Number(file.org_id) !== orgId) {
-      return res.status(403).json(STATUS_CODE[403]("Access denied"));
+    // Authorization check based on file type
+    const isOrganizationFile = file.project_id == null;
+
+    if (isOrganizationFile) {
+      // Organization-level file: verify user belongs to the same org
+      if (Number(file.org_id) !== orgId) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
+    } else {
+      // Project-level file: verify user has access to the project
+      const userProjects = await getUserProjects(userId, tenant);
+      const userProjectIds = userProjects.map((p) => p.id);
+      const projectId = file.project_id!;
+      const project = await getProjectByIdQuery(projectId, tenant);
+
+      const isProjectMember = userProjectIds.includes(projectId);
+      const isProjectOwner = project && Number(project.owner) === userId;
+      const isFileOwner = Number(file.uploaded_by) === userId;
+
+      if (!isProjectMember && !isProjectOwner && !isFileOwner) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
     }
 
     await logSuccess({
@@ -765,9 +867,28 @@ export const updateMetadata = async (
       return res.status(404).json(STATUS_CODE[404]("File not found"));
     }
 
-    // Verify organization access
-    if (Number(currentFile.org_id) !== orgId) {
-      return res.status(403).json(STATUS_CODE[403]("Access denied"));
+    // Authorization check based on file type
+    const isOrganizationFile = currentFile.project_id == null;
+
+    if (isOrganizationFile) {
+      // Organization-level file: verify user belongs to the same org
+      if (Number(currentFile.org_id) !== orgId) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
+    } else {
+      // Project-level file: verify user has access to the project
+      const userProjects = await getUserProjects(userId, tenant);
+      const userProjectIds = userProjects.map((p) => p.id);
+      const projectId = currentFile.project_id!;
+      const project = await getProjectByIdQuery(projectId, tenant);
+
+      const isProjectMember = userProjectIds.includes(projectId);
+      const isProjectOwner = project && Number(project.owner) === userId;
+      const isFileOwner = Number(currentFile.uploaded_by) === userId;
+
+      if (!isProjectMember && !isProjectOwner && !isFileOwner) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
     }
 
     // Validate input
@@ -784,21 +905,43 @@ export const updateMetadata = async (
       return res.status(400).json(STATUS_CODE[400]("Invalid version format. Use X.Y or X.Y.Z"));
     }
 
-    // Validate tags is an array if provided
-    if (tags && !Array.isArray(tags)) {
-      return res.status(400).json(STATUS_CODE[400]("Tags must be an array"));
+    // Validate tags using helper function if provided
+    let validatedTags: string[] | undefined;
+    if (tags !== undefined) {
+      const tagsResult = validateTags(tags);
+      if ('error' in tagsResult) {
+        return res.status(400).json(STATUS_CODE[400](tagsResult.error));
+      }
+      validatedTags = tagsResult.tags;
     }
 
-    // Validate expiry_date format if provided
-    if (expiry_date && !/^\d{4}-\d{2}-\d{2}$/.test(expiry_date)) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid date format. Use YYYY-MM-DD"));
+    // Validate expiry_date format and value if provided
+    if (expiry_date && expiry_date !== null) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(expiry_date)) {
+        return res.status(400).json(STATUS_CODE[400]("Invalid date format. Use YYYY-MM-DD"));
+      }
+      // Validate it's a real date
+      const parsedDate = new Date(expiry_date);
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json(STATUS_CODE[400]("Invalid date value"));
+      }
+    }
+
+    // Validate description length if provided
+    if (description !== undefined && description !== null) {
+      if (typeof description !== 'string') {
+        return res.status(400).json(STATUS_CODE[400]("Description must be a string"));
+      }
+      if (description.length > 2000) {
+        return res.status(400).json(STATUS_CODE[400]("Description must not exceed 2000 characters"));
+      }
     }
 
     const updates: UpdateFileMetadataInput = {
       last_modified_by: userId,
     };
 
-    if (tags !== undefined) updates.tags = tags;
+    if (validatedTags !== undefined) updates.tags = validatedTags;
     if (review_status !== undefined) updates.review_status = review_status;
     if (version !== undefined) updates.version = version;
     if (expiry_date !== undefined) updates.expiry_date = expiry_date;
@@ -859,6 +1002,13 @@ export const listFilesWithMetadata = async (
   const page = req.query.page ? Number(Array.isArray(req.query.page) ? req.query.page[0] : req.query.page) : undefined;
   const pageSize = req.query.pageSize ? Number(Array.isArray(req.query.pageSize) ? req.query.pageSize[0] : req.query.pageSize) : undefined;
 
+  // Validate pagination
+  const paginationResult = validatePagination(page, pageSize);
+  if ('error' in paginationResult) {
+    return res.status(400).json(STATUS_CODE[400](paginationResult.error));
+  }
+  const { page: validPage, pageSize: validPageSize, offset } = paginationResult;
+
   logProcessing({
     description: `Retrieving files with metadata for organization ${orgId}`,
     functionName: "listFilesWithMetadata",
@@ -868,13 +1018,6 @@ export const listFilesWithMetadata = async (
   });
 
   try {
-    const validPage = page && page > 0 ? page : undefined;
-    const validPageSize = pageSize && pageSize > 0 ? pageSize : undefined;
-    const offset =
-      validPage !== undefined && validPageSize !== undefined
-        ? (validPage - 1) * validPageSize
-        : undefined;
-
     const { files, total } = await getOrganizationFilesWithMetadata(orgId, tenant, {
       limit: validPageSize,
       offset,
@@ -1023,9 +1166,28 @@ export const previewFile = async (
       return res.status(404).json(STATUS_CODE[404]("File not found"));
     }
 
-    // Verify organization access
-    if (Number(fileMeta.org_id) !== orgId) {
-      return res.status(403).json(STATUS_CODE[403]("Access denied"));
+    // Authorization check based on file type
+    const isOrganizationFile = fileMeta.project_id == null;
+
+    if (isOrganizationFile) {
+      // Organization-level file: verify user belongs to the same org
+      if (Number(fileMeta.org_id) !== orgId) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
+    } else {
+      // Project-level file: verify user has access to the project
+      const userProjects = await getUserProjects(userId, tenant);
+      const userProjectIds = userProjects.map((p) => p.id);
+      const projectId = fileMeta.project_id!;
+      const project = await getProjectByIdQuery(projectId, tenant);
+
+      const isProjectMember = userProjectIds.includes(projectId);
+      const isProjectOwner = project && Number(project.owner) === userId;
+      const isFileOwner = Number(fileMeta.uploaded_by) === userId;
+
+      if (!isProjectMember && !isProjectOwner && !isFileOwner) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
     }
 
     // Get preview content
@@ -1036,6 +1198,10 @@ export const previewFile = async (
     }
 
     if (!preview.canPreview) {
+      // Check if file has no content vs too large
+      if (preview.content.length === 0) {
+        return res.status(404).json(STATUS_CODE[404]("File content not available. This file may need to be re-uploaded."));
+      }
       return res.status(413).json(STATUS_CODE[400]("File too large for preview"));
     }
 
@@ -1046,12 +1212,40 @@ export const previewFile = async (
       console.error("Failed to log file access:", error);
     }
 
-    // Set headers for inline display
-    res.setHeader("Content-Type", preview.mimetype || "application/octet-stream");
+    // Allowlist of safe MIME types for preview to prevent XSS
+    const SAFE_PREVIEW_MIMETYPES = new Set([
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml', // Note: SVG can contain scripts but browser should respect nosniff
+      'text/plain',
+      'text/csv',
+      'text/html', // Will be treated as plain text due to CSP
+      'application/json',
+      'application/xml',
+      'text/xml',
+    ]);
+
+    // Sanitize MIME type - only allow known safe types, default to octet-stream
+    const requestedMimetype = preview.mimetype?.toLowerCase()?.trim() || '';
+    const safeMimetype = SAFE_PREVIEW_MIMETYPES.has(requestedMimetype)
+      ? requestedMimetype
+      : 'application/octet-stream';
+
+    // Sanitize filename to prevent header injection
+    const safeFilename = preview.filename
+      .replace(/["\r\n]/g, '') // Remove quotes and newlines
+      .replace(/[^\x20-\x7E]/g, '_'); // Replace non-ASCII with underscore
+
+    // Set headers for inline display with XSS protection
+    res.setHeader("Content-Type", safeMimetype);
     res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Content-Security-Policy", "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'");
     res.setHeader(
       "Content-Disposition",
-      `inline; filename="${preview.filename}"`
+      `inline; filename="${safeFilename}"`
     );
     res.setHeader("Content-Length", preview.content.length);
 

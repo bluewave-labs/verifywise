@@ -16,7 +16,7 @@ import {
   Stack,
   Divider,
 } from "@mui/material";
-import ViewColumnIcon from "@mui/icons-material/ViewColumn";
+import { Columns } from "lucide-react";
 import {
   ColumnConfig,
   FileColumn,
@@ -54,7 +54,7 @@ export const ColumnSelector: React.FC<ColumnSelectorProps> = ({
     <>
       <Button
         onClick={handleClick}
-        startIcon={<ViewColumnIcon sx={{ fontSize: 18 }} />}
+        startIcon={<Columns size={16} />}
         sx={{
           height: 34,
           minWidth: 100,
@@ -146,6 +146,12 @@ export const ColumnSelector: React.FC<ColumnSelectorProps> = ({
               <Checkbox
                 checked={visibleColumns.has(column.key)}
                 disabled={column.alwaysVisible}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  if (!column.alwaysVisible) {
+                    onToggleColumn(column.key);
+                  }
+                }}
                 size="small"
                 sx={{
                   padding: 0,

@@ -9,7 +9,13 @@ import CustomizableSkeleton from "../../components/Skeletons";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
 import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
-import { getUserFilesMetaData } from "../../../application/repository/file.repository";
+import {
+  getUserFilesMetaData,
+  getFilesWithMetadata,
+  updateFileMetadata,
+  FileMetadata,
+  UpdateFileMetadataInput,
+} from "../../../application/repository/file.repository";
 import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import HelperIcon from "../../components/HelperIcon";
@@ -47,6 +53,13 @@ import AssignToFolderModal from "./components/AssignToFolderModal";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import Alert from "../../components/Alert";
 import { AlertProps } from "../../types/alert.types";
+
+// File metadata enhancement imports
+import { useFileColumnVisibility, FileColumn } from "../../../application/hooks/useFileColumnVisibility";
+import { useHighlightedFiles } from "../../../application/hooks/useHighlightedFiles";
+import { ColumnSelector } from "./components/ColumnSelector";
+import { FilePreviewPanel } from "./components/FilePreviewPanel";
+import { FileMetadataEditor } from "./components/FileMetadataEditor";
 
 // Constants
 const FILE_MANAGER_CONTEXT = "FileManager";
@@ -142,6 +155,29 @@ const FileManager: React.FC = (): JSX.Element => {
   // Toast alert state
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
+  // File metadata enhancement hooks
+  const {
+    visibleColumns,
+    availableColumns,
+    toggleColumn,
+    resetToDefaults: resetColumnsToDefaults,
+  } = useFileColumnVisibility();
+
+  const { getHighlightTypes } = useHighlightedFiles();
+
+  // Files with metadata for enhanced view
+  const [filesWithMetadata, setFilesWithMetadata] = useState<FileMetadata[]>([]);
+  const [loadingMetadata, setLoadingMetadata] = useState(false);
+
+  // Preview panel state
+  const [previewFile, setPreviewFile] = useState<FileMetadata | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  // Metadata editor state
+  const [editingFile, setEditingFile] = useState<FileMetadata | null>(null);
+  const [isMetadataEditorOpen, setIsMetadataEditorOpen] = useState(false);
+  const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
+
   // Auto-dismiss alerts
   useEffect(() => {
     if (alert) {
@@ -180,6 +216,25 @@ const FileManager: React.FC = (): JSX.Element => {
     }
   }, []);
 
+  // Fetch files with enhanced metadata
+  const fetchFilesWithMetadata = useCallback(async () => {
+    try {
+      setLoadingMetadata(true);
+      const response = await getFilesWithMetadata();
+      setFilesWithMetadata(response.files);
+    } catch (error) {
+      secureLogError("Error fetching files with metadata", FILE_MANAGER_CONTEXT);
+      setFilesWithMetadata([]);
+    } finally {
+      setLoadingMetadata(false);
+    }
+  }, []);
+
+  // Load files with metadata on mount
+  useEffect(() => {
+    fetchFilesWithMetadata();
+  }, [fetchFilesWithMetadata]);
+
   // Handle upload button click
   const handleUploadClick = useCallback(() => {
     if (!isUploadAllowed) {
@@ -192,16 +247,66 @@ const FileManager: React.FC = (): JSX.Element => {
   // Handle upload success
   const handleUploadSuccess = useCallback(() => {
     refetch();
+    fetchFilesWithMetadata();
     refreshFolders();
     refreshFiles(selectedFolder);
-  }, [refetch, refreshFolders, refreshFiles, selectedFolder]);
+  }, [refetch, fetchFilesWithMetadata, refreshFolders, refreshFiles, selectedFolder]);
 
   // Handle file deleted
   const handleFileDeleted = useCallback(() => {
     refetch();
+    fetchFilesWithMetadata();
     refreshFolders();
     refreshFiles(selectedFolder);
-  }, [refetch, refreshFolders, refreshFiles, selectedFolder]);
+  }, [refetch, fetchFilesWithMetadata, refreshFolders, refreshFiles, selectedFolder]);
+
+  // Preview panel handlers
+  const handleOpenPreview = useCallback((fileId: number | string) => {
+    const idStr = String(fileId);
+    const file = filesWithMetadata.find((f) => String(f.id) === idStr);
+    if (file) {
+      setPreviewFile(file);
+      setIsPreviewOpen(true);
+    }
+  }, [filesWithMetadata]);
+
+  const handleClosePreview = useCallback(() => {
+    setIsPreviewOpen(false);
+    setPreviewFile(null);
+  }, []);
+
+  // Metadata editor handlers
+  const handleOpenMetadataEditor = useCallback((fileId: number | string) => {
+    const idStr = String(fileId);
+    const file = filesWithMetadata.find((f) => String(f.id) === idStr);
+    if (file) {
+      setEditingFile(file);
+      setIsMetadataEditorOpen(true);
+    }
+  }, [filesWithMetadata]);
+
+  const handleCloseMetadataEditor = useCallback(() => {
+    setIsMetadataEditorOpen(false);
+    setEditingFile(null);
+  }, []);
+
+  const handleSubmitMetadata = useCallback(async (updates: UpdateFileMetadataInput) => {
+    if (!editingFile) return;
+
+    setIsSubmittingMetadata(true);
+    try {
+      await updateFileMetadata({ id: editingFile.id, ...updates });
+      await fetchFilesWithMetadata();
+      handleCloseMetadataEditor();
+      setAlert({ variant: "success", body: "File metadata updated successfully", isToast: true });
+    } catch (error) {
+      console.error("Error updating file metadata:", error);
+      const message = error instanceof Error ? error.message : "Failed to update file metadata";
+      setAlert({ variant: "error", body: message, isToast: true });
+    } finally {
+      setIsSubmittingMetadata(false);
+    }
+  }, [editingFile, fetchFilesWithMetadata, handleCloseMetadataEditor]);
 
   // Folder management handlers
   const handleOpenCreateFolder = useCallback((parentId: number | null) => {
@@ -567,6 +672,13 @@ const FileManager: React.FC = (): JSX.Element => {
               ]}
               onGroupChange={handleGroupChange}
             />
+            <ColumnSelector
+              columns={availableColumns}
+              visibleColumns={visibleColumns}
+              onToggleColumn={toggleColumn}
+              onResetToDefaults={resetColumnsToDefaults}
+            />
+            <Box sx={{ flex: 1 }} />
             <SearchBox
               placeholder="Search files..."
               value={searchTerm}
@@ -595,6 +707,8 @@ const FileManager: React.FC = (): JSX.Element => {
                       onFileDeleted={handleFileDeleted}
                       hidePagination={options?.hidePagination}
                       onAssignToFolder={canManageFolders ? handleOpenAssignFolder : undefined}
+                      onPreview={handleOpenPreview}
+                      onEditMetadata={canManageFolders ? handleOpenMetadataEditor : undefined}
                     />
                   )}
                 />
@@ -655,6 +769,26 @@ const FileManager: React.FC = (): JSX.Element => {
           isLoading={isDeletingFolder}
         />
       )}
+
+      {/* File Preview Panel */}
+      <FilePreviewPanel
+        isOpen={isPreviewOpen}
+        onClose={handleClosePreview}
+        file={previewFile}
+        onEdit={(file) => {
+          handleClosePreview();
+          handleOpenMetadataEditor(file.id);
+        }}
+      />
+
+      {/* File Metadata Editor */}
+      <FileMetadataEditor
+        isOpen={isMetadataEditorOpen}
+        onClose={handleCloseMetadataEditor}
+        onSubmit={handleSubmitMetadata}
+        file={editingFile}
+        isSubmitting={isSubmittingMetadata}
+      />
 
       {/* Toast Alert */}
       {alert && (

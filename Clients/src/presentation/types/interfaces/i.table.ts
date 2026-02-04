@@ -122,6 +122,8 @@ export interface IFileBasicTableProps {
   onFileDeleted?: () => void | Promise<void>;
   hidePagination?: boolean;
   onAssignToFolder?: (fileId: number) => void;
+  onPreview?: (fileId: number | string) => void;
+  onEditMetadata?: (fileId: number | string) => void;
 }
 
 export interface IFileTableProps {
@@ -130,6 +132,8 @@ export interface IFileTableProps {
   onFileDeleted?: () => void | Promise<void>;
   hidePagination?: boolean;
   onAssignToFolder?: (fileId: number) => void;
+  onPreview?: (fileId: number | string) => void;
+  onEditMetadata?: (fileId: number | string) => void;
 }
 
 export interface IProjectRiskTableBodyProps {

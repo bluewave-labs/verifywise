@@ -6,6 +6,20 @@
  *
  * Uses VARCHAR with CHECK constraint instead of ENUM for multi-tenant compatibility.
  */
+
+// Validates tenant hash format (alphanumeric with underscore prefix pattern from getTenantHash)
+function validateTenantHash(hash) {
+  // getTenantHash produces hashes like "_abc123def456" (underscore + hex chars)
+  if (!hash || typeof hash !== 'string') {
+    throw new Error('Invalid tenant hash: must be a non-empty string');
+  }
+  // Strict validation: must match the exact pattern from getTenantHash
+  if (!/^_[a-f0-9]+$/i.test(hash)) {
+    throw new Error(`Invalid tenant hash format: ${hash}`);
+  }
+  return hash;
+}
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
@@ -18,16 +32,19 @@ module.exports = {
       const { getTenantHash } = require("../../dist/tools/getTenantHash");
 
       for (const organization of organizations) {
-        const tenantHash = getTenantHash(organization.id);
+        const tenantHash = validateTenantHash(getTenantHash(organization.id));
 
-        // Check if files table exists
+        // Check if files table exists using parameterized query
         const [tableExists] = await queryInterface.sequelize.query(
           `SELECT EXISTS (
             SELECT FROM information_schema.tables
-            WHERE table_schema = '${tenantHash}'
+            WHERE table_schema = :schema
             AND table_name = 'files'
           );`,
-          { transaction }
+          {
+            transaction,
+            replacements: { schema: tenantHash }
+          }
         );
 
         if (!tableExists[0].exists) {
@@ -39,11 +56,14 @@ module.exports = {
         const [tagsExists] = await queryInterface.sequelize.query(
           `SELECT EXISTS (
             SELECT FROM information_schema.columns
-            WHERE table_schema = '${tenantHash}'
+            WHERE table_schema = :schema
             AND table_name = 'files'
             AND column_name = 'tags'
           );`,
-          { transaction }
+          {
+            transaction,
+            replacements: { schema: tenantHash }
+          }
         );
 
         if (!tagsExists[0].exists) {
@@ -58,11 +78,14 @@ module.exports = {
         const [reviewStatusExists] = await queryInterface.sequelize.query(
           `SELECT EXISTS (
             SELECT FROM information_schema.columns
-            WHERE table_schema = '${tenantHash}'
+            WHERE table_schema = :schema
             AND table_name = 'files'
             AND column_name = 'review_status'
           );`,
-          { transaction }
+          {
+            transaction,
+            replacements: { schema: tenantHash }
+          }
         );
 
         if (!reviewStatusExists[0].exists) {
@@ -82,11 +105,14 @@ module.exports = {
         const [versionExists] = await queryInterface.sequelize.query(
           `SELECT EXISTS (
             SELECT FROM information_schema.columns
-            WHERE table_schema = '${tenantHash}'
+            WHERE table_schema = :schema
             AND table_name = 'files'
             AND column_name = 'version'
           );`,
-          { transaction }
+          {
+            transaction,
+            replacements: { schema: tenantHash }
+          }
         );
 
         if (!versionExists[0].exists) {
@@ -106,11 +132,14 @@ module.exports = {
         const [expiryDateExists] = await queryInterface.sequelize.query(
           `SELECT EXISTS (
             SELECT FROM information_schema.columns
-            WHERE table_schema = '${tenantHash}'
+            WHERE table_schema = :schema
             AND table_name = 'files'
             AND column_name = 'expiry_date'
           );`,
-          { transaction }
+          {
+            transaction,
+            replacements: { schema: tenantHash }
+          }
         );
 
         if (!expiryDateExists[0].exists) {
@@ -125,11 +154,14 @@ module.exports = {
         const [lastModifiedByExists] = await queryInterface.sequelize.query(
           `SELECT EXISTS (
             SELECT FROM information_schema.columns
-            WHERE table_schema = '${tenantHash}'
+            WHERE table_schema = :schema
             AND table_name = 'files'
             AND column_name = 'last_modified_by'
           );`,
-          { transaction }
+          {
+            transaction,
+            replacements: { schema: tenantHash }
+          }
         );
 
         if (!lastModifiedByExists[0].exists) {
@@ -140,15 +172,40 @@ module.exports = {
           console.log(`Added last_modified_by column to ${tenantHash}.files`);
         }
 
+        // Add updated_at column for tracking modifications
+        const [updatedAtExists] = await queryInterface.sequelize.query(
+          `SELECT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_schema = :schema
+            AND table_name = 'files'
+            AND column_name = 'updated_at'
+          );`,
+          {
+            transaction,
+            replacements: { schema: tenantHash }
+          }
+        );
+
+        if (!updatedAtExists[0].exists) {
+          await queryInterface.sequelize.query(
+            `ALTER TABLE "${tenantHash}".files ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`,
+            { transaction }
+          );
+          console.log(`Added updated_at column to ${tenantHash}.files`);
+        }
+
         // Add description column for file metadata
         const [descriptionExists] = await queryInterface.sequelize.query(
           `SELECT EXISTS (
             SELECT FROM information_schema.columns
-            WHERE table_schema = '${tenantHash}'
+            WHERE table_schema = :schema
             AND table_name = 'files'
             AND column_name = 'description'
           );`,
-          { transaction }
+          {
+            transaction,
+            replacements: { schema: tenantHash }
+          }
         );
 
         if (!descriptionExists[0].exists) {
@@ -175,6 +232,11 @@ module.exports = {
           { transaction }
         );
 
+        await queryInterface.sequelize.query(
+          `CREATE INDEX IF NOT EXISTS idx_files_updated_at ON "${tenantHash}".files(updated_at DESC);`,
+          { transaction }
+        );
+
         console.log(`Created indexes for ${tenantHash}.files`);
       }
 
@@ -198,7 +260,7 @@ module.exports = {
       const { getTenantHash } = require("../../dist/tools/getTenantHash");
 
       for (const organization of organizations) {
-        const tenantHash = getTenantHash(organization.id);
+        const tenantHash = validateTenantHash(getTenantHash(organization.id));
 
         // Drop indexes first
         await queryInterface.sequelize.query(
@@ -211,6 +273,10 @@ module.exports = {
         );
         await queryInterface.sequelize.query(
           `DROP INDEX IF EXISTS "${tenantHash}".idx_files_tags;`,
+          { transaction }
+        );
+        await queryInterface.sequelize.query(
+          `DROP INDEX IF EXISTS "${tenantHash}".idx_files_updated_at;`,
           { transaction }
         );
 
@@ -232,6 +298,7 @@ module.exports = {
            DROP COLUMN IF EXISTS version,
            DROP COLUMN IF EXISTS expiry_date,
            DROP COLUMN IF EXISTS last_modified_by,
+           DROP COLUMN IF EXISTS updated_at,
            DROP COLUMN IF EXISTS description;`,
           { transaction }
         );

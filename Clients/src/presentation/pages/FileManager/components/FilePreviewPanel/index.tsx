@@ -18,14 +18,8 @@ import {
   Chip,
   Divider,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import DownloadIcon from "@mui/icons-material/Download";
-import EditIcon from "@mui/icons-material/Edit";
-import DescriptionIcon from "@mui/icons-material/Description";
-import ImageIcon from "@mui/icons-material/Image";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import { FileMetadata } from "../../../../../application/repository/file.repository";
-import { getFilePreview, downloadFileFromManager } from "../../../../../application/repository/file.repository";
+import { X, Download, Pencil, FileText, Image, FileType } from "lucide-react";
+import { FileMetadata, downloadFileFromManager } from "../../../../../application/repository/file.repository";
 import StatusBadge from "../StatusBadge";
 
 interface FilePreviewPanelProps {
@@ -58,11 +52,11 @@ const getFileIcon = (mimetype?: string) => {
   const type = getPreviewType(mimetype);
   switch (type) {
     case "pdf":
-      return <PictureAsPdfIcon sx={{ fontSize: 48, color: "#EF4444" }} />;
+      return <FileType size={48} color="#EF4444" />;
     case "image":
-      return <ImageIcon sx={{ fontSize: 48, color: "#3B82F6" }} />;
+      return <Image size={48} color="#3B82F6" />;
     default:
-      return <DescriptionIcon sx={{ fontSize: 48, color: "#6B7280" }} />;
+      return <FileText size={48} color="#6B7280" />;
   }
 };
 
@@ -100,7 +94,20 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
 
   const previewType = file ? getPreviewType(file.mimetype) : "unsupported";
 
-  // Load preview when file changes
+  // Debug logging
+  useEffect(() => {
+    if (file) {
+      console.log("[FilePreviewPanel] File data:", {
+        id: file.id,
+        filename: file.filename,
+        mimetype: file.mimetype,
+        previewType,
+      });
+    }
+  }, [file, previewType]);
+
+  // Load preview when file changes - uses the download endpoint directly
+  // This avoids needing a separate preview endpoint and works with all files
   useEffect(() => {
     if (!isOpen || !file || previewType === "unsupported") {
       setPreviewUrl(null);
@@ -116,9 +123,17 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
         setLoading(true);
         setError(null);
 
-        const blob = await getFilePreview({ id: file.id });
+        // Use the download endpoint to get file content for preview
+        // This works for all files that can be downloaded
+        const blob = await downloadFileFromManager({ id: file.id });
 
         if (cancelled) return;
+
+        // Check if the blob is too large for preview (>10MB)
+        if (blob.size > 10 * 1024 * 1024) {
+          setError("File is too large for preview. Use download instead.");
+          return;
+        }
 
         if (previewType === "text") {
           const text = await blob.text();
@@ -132,8 +147,11 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
       } catch (err: any) {
         if (cancelled) return;
 
-        if (err?.response?.status === 413) {
-          setError("File is too large for preview");
+        const status = err?.response?.status;
+        if (status === 404) {
+          setError("File not found or content not available");
+        } else if (status === 403) {
+          setError("You don't have permission to view this file");
         } else {
           setError("Failed to load preview");
         }
@@ -344,7 +362,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               size="small"
               sx={{ color: "#667085" }}
             >
-              <EditIcon fontSize="small" />
+              <Pencil size={18} />
             </IconButton>
           )}
           <IconButton
@@ -352,10 +370,10 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
             size="small"
             sx={{ color: "#667085" }}
           >
-            <DownloadIcon fontSize="small" />
+            <Download size={18} />
           </IconButton>
           <IconButton onClick={onClose} size="small" sx={{ color: "#667085" }}>
-            <CloseIcon fontSize="small" />
+            <X size={18} />
           </IconButton>
         </Box>
       </Box>

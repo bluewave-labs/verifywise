@@ -23,14 +23,14 @@ export const setupNotificationSubscriber = async (): Promise<void> => {
       console.error("❌ Redis subscriber error:", error);
     });
 
-    // Subscribe to the approval-notifications channel
+    // Subscribe to notification channels
     // This will auto-connect if not already connected
-    await subscriber.subscribe("approval-notifications");
+    await subscriber.subscribe("approval-notifications", "in-app-notifications");
 
-    // Listen for messages on the subscribed channel
+    // Listen for messages on the subscribed channels
     subscriber.on("message", (channel: string, message: string) => {
-      // Only process messages from our channel
-      if (channel !== "approval-notifications") {
+      // Only process messages from our channels
+      if (channel !== "approval-notifications" && channel !== "in-app-notifications") {
         return;
       }
 
@@ -91,7 +91,7 @@ export const setupNotificationSubscriber = async (): Promise<void> => {
       }
     });
 
-    console.log("📬 Notification subscriber subscribed to approval-notifications channel");
+    console.log("📬 Notification subscriber subscribed to approval-notifications and in-app-notifications channels");
   } catch (error) {
     console.error("❌ Failed to setup notification subscriber:", error);
     throw error;

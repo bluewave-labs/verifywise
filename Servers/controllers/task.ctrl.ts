@@ -10,6 +10,7 @@ import {
   hardDeleteTaskByIdQuery,
 } from "../utils/task.utils";
 import { sequelize } from "../database/db";
+import { QueryTypes } from "sequelize";
 import { ITask } from "../domain.layer/interfaces/i.task";
 import { TaskPriority } from "../domain.layer/enums/task-priority.enum";
 import { TaskStatus } from "../domain.layer/enums/task-status.enum";
@@ -23,6 +24,7 @@ import {
   BusinessLogicException,
   ForbiddenException,
 } from "../domain.layer/exceptions/custom.exception";
+import { notifyTaskAssigned } from "../services/inAppNotification.service";
 
 export async function createTask(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -72,9 +74,10 @@ export async function createTask(req: Request, res: Response): Promise<any> {
     await transaction.commit();
 
     // Add assignees to response (manually from dataValues)
+    const taskAssignees = (task.dataValues as any)["assignees"] || [];
     const taskResponse = {
       ...task.toJSON(),
-      assignees: (task.dataValues as any)["assignees"] || [],
+      assignees: taskAssignees,
     };
 
     await logSuccess({
@@ -85,6 +88,45 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
     });
+
+    // Send notifications to assigned users (async, don't block response)
+    if (taskAssignees.length > 0) {
+      (async () => {
+        try {
+          // Get creator name
+          const creatorResult = await sequelize.query<{ name: string; surname: string }>(
+            `SELECT name, surname FROM public.users WHERE id = :userId`,
+            { replacements: { userId }, type: QueryTypes.SELECT }
+          );
+          const creator = creatorResult[0];
+          const creatorName = creator ? `${creator.name} ${creator.surname}`.trim() : "Someone";
+
+          // Get base URL from env or default
+          const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+
+          // Notify each assignee (except the creator)
+          for (const assigneeId of taskAssignees) {
+            if (assigneeId !== userId) {
+              await notifyTaskAssigned(
+                req.tenantId!,
+                assigneeId,
+                {
+                  id: task.id!,
+                  title: task.title,
+                  description: task.description || undefined,
+                  priority: task.priority || TaskPriority.MEDIUM,
+                  due_date: task.due_date?.toISOString(),
+                },
+                creatorName,
+                baseUrl
+              );
+            }
+          }
+        } catch (notifyError) {
+          console.error("Failed to send task assignment notifications:", notifyError);
+        }
+      })();
+    }
 
     return res.status(201).json(STATUS_CODE[201](taskResponse));
   } catch (error) {
@@ -314,14 +356,19 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
 
 export async function updateTask(req: Request, res: Response): Promise<any> {
   const taskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
-  // Get existing task for business rule validation
+
+  // Get existing task and assignees for comparison after update
+  let existingAssignees: number[] = [];
   try {
-    await getTaskByIdQuery(
+    const existingTask = await getTaskByIdQuery(
       taskId,
       { userId: req.userId!, role: req.role! },
       req.tenantId!,
       req.organizationId!
     );
+    if (existingTask) {
+      existingAssignees = (existingTask.dataValues as any)["assignees"] || [];
+    }
   } catch (error) {
     // Continue without existing data if query fails
   }
@@ -386,10 +433,56 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
     });
 
     // Add assignees to response (manually from dataValues)
+    const newAssignees = (updatedTask.dataValues as any)["assignees"] || [];
     const taskResponse = {
       ...updatedTask.toJSON(),
-      assignees: (updatedTask.dataValues as any)["assignees"] || [],
+      assignees: newAssignees,
     };
+
+    // Send notifications to newly assigned users (async, don't block response)
+    if (assignees && assignees.length > 0) {
+      const newlyAssigned = newAssignees.filter(
+        (id: number) => !existingAssignees.includes(id)
+      );
+
+      if (newlyAssigned.length > 0) {
+        (async () => {
+          try {
+            // Get updater name
+            const updaterResult = await sequelize.query<{ name: string; surname: string }>(
+              `SELECT name, surname FROM public.users WHERE id = :userId`,
+              { replacements: { userId }, type: QueryTypes.SELECT }
+            );
+            const updater = updaterResult[0];
+            const updaterName = updater ? `${updater.name} ${updater.surname}`.trim() : "Someone";
+
+            // Get base URL from env or default
+            const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+
+            // Notify each newly assigned user (except the updater)
+            for (const assigneeId of newlyAssigned) {
+              if (assigneeId !== userId) {
+                await notifyTaskAssigned(
+                  req.tenantId!,
+                  assigneeId,
+                  {
+                    id: updatedTask.id!,
+                    title: updatedTask.title,
+                    description: updatedTask.description || undefined,
+                    priority: updatedTask.priority || TaskPriority.MEDIUM,
+                    due_date: updatedTask.due_date?.toISOString(),
+                  },
+                  updaterName,
+                  baseUrl
+                );
+              }
+            }
+          } catch (notifyError) {
+            console.error("Failed to send task assignment notifications:", notifyError);
+          }
+        })();
+      }
+    }
 
     return res.status(200).json(STATUS_CODE[200](taskResponse));
   } catch (error) {

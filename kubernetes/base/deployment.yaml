@@ -190,6 +190,9 @@ spec:
               value: http://localhost:3000
             - name: REDIS_URL
               value: redis://redis:6379/0
+          volumeMounts:
+            - name: eval-uploads
+              mountPath: /app/data/uploads
 
         - name: verifywise-postgres-temp
           image: postgres:16.8
@@ -219,3 +222,7 @@ spec:
                   key: DB_PASSWORD
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+      volumes:
+        - name: eval-uploads
+          persistentVolumeClaim:
+            claimName: eval-server-uploads

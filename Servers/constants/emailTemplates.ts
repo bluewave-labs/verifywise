@@ -30,6 +30,25 @@ export const EMAIL_TEMPLATES = {
 
   // Policy templates
   POLICY_DUE_SOON: "policy-due-soon.mjml",
+
+  // Task templates
+  TASK_ASSIGNED: "task-assigned.mjml",
+
+  // Review templates
+  REVIEW_REQUESTED: "review-requested.mjml",
+  REVIEW_APPROVED: "review-approved.mjml",
+  REVIEW_REJECTED: "review-rejected.mjml",
+
+  // Approval workflow templates
+  APPROVAL_REQUESTED: "approval-requested.mjml",
+  APPROVAL_COMPLETE: "approval-complete.mjml",
+  APPROVAL_REJECTED: "approval-rejected.mjml",
+
+  // Training templates
+  TRAINING_ASSIGNED: "training-assigned.mjml",
+
+  // Vendor templates
+  VENDOR_REVIEW_DUE: "vendor-review-due.mjml",
 } as const;
 
 // Type-safe template keys

@@ -1,7 +1,13 @@
 /**
  * @fileoverview Real-time notification hook using Server-Sent Events (SSE)
  *
- * Establishes a persistent SSE connection to receive real-time approval workflow notifications.
+ * Establishes a persistent SSE connection to receive real-time notifications including:
+ * - Approval workflow notifications
+ * - Task assignments
+ * - Review requests
+ * - Policy due reminders
+ * - And more...
+ *
  * Integrates with the existing Alert system to display notifications to users.
  *
  * Features:
@@ -11,27 +17,69 @@
  * - Multi-tenant safe
  * - Integrates with existing alert system
  * - Proper cleanup on unmount
+ * - Fetches stored notifications on mount
+ * - Tracks unread count for bell icon
  *
  * How it works:
  * 1. Uses fetch() instead of EventSource to send Authorization header
  * 2. Manually parses SSE data from ReadableStream
- * 3. Receives real-time notifications
+ * 3. Receives real-time notifications and fetches stored ones
  *
  * @module hooks/useNotifications
  */
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { ENV_VARs } from "../../../env.vars";
 import { showAlert } from "../../infrastructure/api/customAxios";
+import { apiServices } from "../../infrastructure/api/networkServices";
 
-interface Notification {
-  type: "approval_request" | "approval_approved" | "approval_rejected" | "approval_complete" | "connected";
+/**
+ * Notification types - matches backend enum
+ */
+export type NotificationType =
+  | "task_assigned"
+  | "task_completed"
+  | "review_requested"
+  | "review_approved"
+  | "review_rejected"
+  | "approval_requested"
+  | "approval_approved"
+  | "approval_rejected"
+  | "approval_complete"
+  | "policy_due_soon"
+  | "policy_overdue"
+  | "training_assigned"
+  | "training_completed"
+  | "vendor_review_due"
+  | "file_uploaded"
+  | "comment_added"
+  | "mention"
+  | "system"
+  | "connected"; // Internal type for SSE handshake
+
+export interface Notification {
+  id?: number;
+  type: NotificationType;
   title?: string;
   message?: string;
+  entity_type?: string | null;
+  entity_id?: number | null;
+  entity_name?: string | null;
+  action_url?: string | null;
+  is_read?: boolean;
+  read_at?: string | null;
+  created_at?: string;
+  // Legacy fields for backwards compatibility
   entityId?: number;
   entityType?: string;
+}
+
+export interface NotificationSummary {
+  unread_count: number;
+  total_count: number;
+  recent_notifications: Notification[];
 }
 
 interface UseNotificationsOptions {
@@ -43,6 +91,29 @@ interface UseNotificationsOptions {
   reconnectDelay?: number;
   /** Callback function to be called when a notification is received */
   onNotification?: (notification: Notification) => void;
+  /** Fetch stored notifications on mount (default: true) */
+  fetchOnMount?: boolean;
+}
+
+interface UseNotificationsReturn {
+  /** Real-time connection status */
+  isConnected: boolean;
+  /** Manually reconnect to SSE */
+  reconnect: () => void;
+  /** Disconnect from SSE */
+  disconnect: () => void;
+  /** List of recent notifications */
+  notifications: Notification[];
+  /** Number of unread notifications */
+  unreadCount: number;
+  /** Loading state for initial fetch */
+  isLoading: boolean;
+  /** Mark a notification as read */
+  markAsRead: (notificationId: number) => Promise<void>;
+  /** Mark all notifications as read */
+  markAllAsRead: () => Promise<void>;
+  /** Refresh notifications from server */
+  refresh: () => Promise<void>;
 }
 
 /**
@@ -53,31 +124,108 @@ interface UseNotificationsOptions {
  *
  * @example
  * ```tsx
- * function MyComponent() {
- *   const { isConnected, reconnect } = useNotifications({ enabled: true });
+ * function NotificationBell() {
+ *   const { notifications, unreadCount, markAsRead, markAllAsRead, isConnected } = useNotifications();
  *
  *   return (
  *     <div>
- *       {isConnected ? "Connected" : "Disconnected"}
- *       <button onClick={reconnect}>Reconnect</button>
+ *       <Bell />
+ *       {unreadCount > 0 && <Badge>{unreadCount}</Badge>}
+ *       {notifications.map(n => (
+ *         <div key={n.id} onClick={() => markAsRead(n.id!)}>
+ *           {n.title}
+ *         </div>
+ *       ))}
  *     </div>
  *   );
  * }
  * ```
  */
-export const useNotifications = (options: UseNotificationsOptions = {}) => {
+export const useNotifications = (options: UseNotificationsOptions = {}): UseNotificationsReturn => {
   const {
     enabled = true,
     autoReconnect = true,
     reconnectDelay = 3000,
     onNotification,
+    fetchOnMount = true,
   } = options;
+
+  // State for stored notifications
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   const authToken = useSelector((state: RootState) => state.auth.authToken);
   const abortControllerRef = useRef<AbortController | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isManuallyDisconnectedRef = useRef(false);
-  const isConnectedRef = useRef(false);
+
+  /**
+   * Fetch notification summary from server
+   */
+  const fetchNotifications = useCallback(async () => {
+    if (!authToken) return;
+
+    setIsLoading(true);
+    try {
+      const response = await apiServices.get("/notifications/summary");
+      const summary: NotificationSummary = response.data.data;
+      setNotifications(summary.recent_notifications);
+      setUnreadCount(summary.unread_count);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authToken]);
+
+  /**
+   * Mark a notification as read
+   */
+  const markAsRead = useCallback(async (notificationId: number) => {
+    try {
+      await apiServices.patch(`/notifications/${notificationId}/read`);
+      setNotifications(prev =>
+        prev.map(n =>
+          n.id === notificationId
+            ? { ...n, is_read: true, read_at: new Date().toISOString() }
+            : n
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+      throw error;
+    }
+  }, []);
+
+  /**
+   * Mark all notifications as read
+   */
+  const markAllAsRead = useCallback(async () => {
+    try {
+      await apiServices.patch("/notifications/read-all");
+      setNotifications(prev =>
+        prev.map(n => ({
+          ...n,
+          is_read: true,
+          read_at: n.read_at || new Date().toISOString(),
+        }))
+      );
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+      throw error;
+    }
+  }, []);
+
+  /**
+   * Refresh notifications from server
+   */
+  const refresh = useCallback(async () => {
+    await fetchNotifications();
+  }, [fetchNotifications]);
 
   /**
    * Display notification using existing alert system
@@ -93,12 +241,39 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       onNotification(notification);
     }
 
+    // Add to local state if it has an ID (stored notification)
+    if (notification.id) {
+      setNotifications(prev => {
+        // Prevent duplicates
+        if (prev.some(n => n.id === notification.id)) return prev;
+        // Add to beginning and keep only last 10
+        return [notification, ...prev].slice(0, 10);
+      });
+      if (!notification.is_read) {
+        setUnreadCount(prev => prev + 1);
+      }
+    }
+
     // Map notification types to alert variants
     const alertVariants: Record<string, "success" | "info" | "warning" | "error"> = {
-      approval_request: "info",
+      task_assigned: "info",
+      task_completed: "success",
+      review_requested: "info",
+      review_approved: "success",
+      review_rejected: "warning",
+      approval_requested: "info",
       approval_approved: "success",
       approval_rejected: "error",
       approval_complete: "success",
+      policy_due_soon: "warning",
+      policy_overdue: "error",
+      training_assigned: "info",
+      training_completed: "success",
+      vendor_review_due: "warning",
+      file_uploaded: "info",
+      comment_added: "info",
+      mention: "info",
+      system: "info",
     };
 
     const variant = alertVariants[notification.type] || "info";
@@ -155,7 +330,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
         throw new Error('Response body is null');
       }
 
-      isConnectedRef.current = true;
+      setIsConnected(true);
 
       // Read the stream
       const reader = response.body.getReader();
@@ -205,14 +380,14 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       }
 
       // Stream ended, reconnect if not manually disconnected
-      isConnectedRef.current = false;
+      setIsConnected(false);
       if (autoReconnect && !isManuallyDisconnectedRef.current) {
         reconnectTimeoutRef.current = setTimeout(() => {
           connect();
         }, reconnectDelay);
       }
     } catch (error: any) {
-      isConnectedRef.current = false;
+      setIsConnected(false);
 
       // Don't reconnect if manually aborted
       if (error.name === 'AbortError') {
@@ -233,7 +408,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
    */
   const disconnect = useCallback(() => {
     isManuallyDisconnectedRef.current = true;
-    isConnectedRef.current = false;
+    setIsConnected(false);
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -267,9 +442,22 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
     };
   }, [connect, disconnect]);
 
+  // Fetch stored notifications on mount
+  useEffect(() => {
+    if (fetchOnMount && authToken) {
+      fetchNotifications();
+    }
+  }, [fetchOnMount, authToken, fetchNotifications]);
+
   return {
-    isConnected: isConnectedRef.current,
+    isConnected,
     reconnect,
     disconnect,
+    notifications,
+    unreadCount,
+    isLoading,
+    markAsRead,
+    markAllAsRead,
+    refresh,
   };
 };

@@ -460,7 +460,7 @@ const ProjectSettings = React.memo(
                     });
                     return;
                   }
-                } catch (error) {
+                } catch (_error) {
                   logEngine({
                     type: "error",
                     message: "An error occurred while adding the framework.",
@@ -552,7 +552,7 @@ const ProjectSettings = React.memo(
             visible: true,
           });
         }
-      } catch (error) {
+      } catch (_error) {
         logEngine({
           type: "error",
           message: "An error occurred while removing the framework.",
@@ -793,7 +793,7 @@ const ProjectSettings = React.memo(
             setAlert(null);
           }, 3000);
         }
-      } catch (error) {
+      } catch (_error) {
         logEngine({
           type: "error",
           message: "An error occured while deleting the project.",

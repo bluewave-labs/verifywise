@@ -81,7 +81,7 @@ export async function getControlById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const controlId = parseInt(req.params.id);
+  const controlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching control by ID: ${controlId}`,
@@ -249,7 +249,7 @@ export async function updateControlById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const controlId = parseInt(req.params.id);
+  const controlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const updateData = req.body;
 
   logStructured(
@@ -406,7 +406,7 @@ export async function deleteControlById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const controlId = parseInt(req.params.id);
+  const controlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",
@@ -571,7 +571,7 @@ export async function saveControls(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const controlId = parseInt(req.params.id);
+    const controlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
     const Control = req.body as ControlModel & {
       subControls: string;
       user_id: number;
@@ -849,7 +849,7 @@ export async function getComplianceById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const control_id = req.params.id;
+  const control_id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   logStructured(
     "processing",
     `fetching compliance for control ID: ${control_id}`,
@@ -913,7 +913,7 @@ export async function getControlsByControlCategoryId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const controlCategoryId = parseInt(req.params.id);
+  const controlCategoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching controls for category ID: ${controlCategoryId}`,

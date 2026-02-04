@@ -133,7 +133,8 @@ export const createShareLink = async (req: Request, res: Response) => {
  * GET /api/shares/:resourceType/:resourceId
  */
 export const getShareLinksForResource = async (req: Request, res: Response) => {
-  const { resourceType, resourceId } = req.params;
+  const resourceType = Array.isArray(req.params.resourceType) ? req.params.resourceType[0] : req.params.resourceType;
+  const resourceId = Array.isArray(req.params.resourceId) ? req.params.resourceId[0] : req.params.resourceId;
   const tenantId = req.tenantId!;
 
   logStructured('processing', `fetching share links`, 'getShareLinksForResource', 'shareLink.ctrl.ts');
@@ -208,7 +209,7 @@ export const getShareLinksForResource = async (req: Request, res: Response) => {
  * GET /api/shares/token/:token
  */
 export const getShareLinkByToken = async (req: Request, res: Response) => {
-  const { token } = req.params;
+  const token = Array.isArray(req.params.token) ? req.params.token[0] : req.params.token;
 
   logStructured('processing', `fetching share link by token`, 'getShareLinkByToken', 'shareLink.ctrl.ts');
   logger.debug(`🛠️ Fetching share link by token`);
@@ -299,7 +300,7 @@ export const getShareLinkByToken = async (req: Request, res: Response) => {
  */
 export const updateShareLink = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
-  const { id } = req.params;
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const { settings, is_enabled, expires_at }: IShareLinkUpdate = req.body;
   const tenantId = req.tenantId!;
 
@@ -449,7 +450,7 @@ export const updateShareLink = async (req: Request, res: Response) => {
  */
 export const deleteShareLink = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
-  const { id } = req.params;
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const tenantId = req.tenantId!;
 
   logStructured('processing', `deleting share link ${id}`, 'deleteShareLink', 'shareLink.ctrl.ts');
@@ -525,7 +526,7 @@ export const deleteShareLink = async (req: Request, res: Response) => {
  * GET /api/shares/view/:token
  */
 export const getSharedDataByToken = async (req: Request, res: Response) => {
-  const { token } = req.params;
+  const token = Array.isArray(req.params.token) ? req.params.token[0] : req.params.token;
 
   logStructured('processing', `fetching shared data by token`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
   logger.debug(`🛠️ Fetching shared data by token`);

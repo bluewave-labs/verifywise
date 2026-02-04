@@ -79,7 +79,7 @@ export async function getAllClausesStructForProject(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getAllClausesStructForProject for project framework ID ${projectFrameworkId}`,
@@ -126,7 +126,7 @@ export async function getAllAnnexesStructForProject(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getAllAnnexesStructForProject for project framework ID ${projectFrameworkId}`,
@@ -210,7 +210,7 @@ export async function getSubClausesByClauseId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const clauseId = parseInt(req.params.id);
+  const clauseId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getSubClausesByClauseId for clause ID ${clauseId}`,
@@ -265,7 +265,7 @@ export async function getAnnexControlsByAnnexId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const annexId = parseInt(req.params.id);
+  const annexId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getAnnexControlsByAnnexId for annex ID ${annexId}`,
@@ -320,7 +320,7 @@ export async function getSubClauseById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const subClauseId = parseInt(req.params.id);
+  const subClauseId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
 
   logProcessing({
@@ -379,7 +379,7 @@ export async function getAnnexControlById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const annexControlId = parseInt(req.params.id);
+  const annexControlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
 
   logProcessing({
@@ -438,7 +438,7 @@ export async function getClausesByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getClausesByProjectId for project framework ID ${projectFrameworkId}`,
@@ -495,7 +495,7 @@ export async function getAnnexesByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getAnnexesByProjectId for project framework ID ${projectFrameworkId}`,
@@ -601,7 +601,7 @@ export async function saveClauses(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const subClauseId = parseInt(req.params.id);
+  const subClauseId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting saveClauses for sub-clause ID ${subClauseId}`,
@@ -699,7 +699,7 @@ export async function saveAnnexes(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const annexControlId = parseInt(req.params.id);
+  const annexControlId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting saveAnnexes for annex control ID ${annexControlId}`,
@@ -813,7 +813,7 @@ export async function deleteManagementSystemClauses(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting deleteManagementSystemClauses for project framework ID ${projectFrameworkId}`,
@@ -877,7 +877,7 @@ export async function deleteReferenceControls(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting deleteReferenceControls for project framework ID ${projectFrameworkId}`,
@@ -940,7 +940,7 @@ export async function getProjectClausesProgress(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getProjectClausesProgress for project framework ID ${projectFrameworkId}`,
@@ -990,7 +990,7 @@ export async function getProjectAnnxesProgress(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getProjectAnnxesProgress for project framework ID ${projectFrameworkId}`,
@@ -1231,7 +1231,7 @@ export async function getProjectClausesAssignments(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getProjectClausesAssignments for project framework ID ${projectFrameworkId}`,
@@ -1293,7 +1293,7 @@ export async function getProjectAnnexesAssignments(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectFrameworkId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getProjectAnnexesAssignments for project framework ID ${projectFrameworkId}`,

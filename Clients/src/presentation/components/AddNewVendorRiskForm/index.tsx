@@ -1,3 +1,8 @@
+// React imports
+import { FC, useState, useContext, useEffect, lazy, Suspense, useCallback, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+
+// MUI imports
 import {
   Button,
   SelectChangeEvent,
@@ -7,18 +12,24 @@ import {
   CircularProgress,
   Box,
 } from "@mui/material";
+
+// Third-party imports
 import dayjs, { Dayjs } from "dayjs";
-import { FC, useState, useContext, useEffect, lazy, Suspense, useCallback, useMemo } from "react";
+
+// Internal imports - components
 import Field from "../Inputs/Field";
 import DatePicker from "../Inputs/Datepicker";
+import Select from "../Inputs/Select";
+
+// Internal imports - application layer
 import selectValidation from "../../../application/validations/selectValidation";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
-import Select from "../Inputs/Select";
 import { createVendorRisk, updateVendorRisk } from "../../../application/repository/vendorRisk.repository";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { useSearchParams } from "react-router-dom";
 import useUsers from "../../../application/hooks/useUsers";
 import { handleAlert } from "../../../application/tools/alertUtils";
+
+// Internal imports - types
 import { AlertProps } from "../../types/alert.types";
 import { RiskSectionProps } from "../../../domain/interfaces/i.riskForm";
 import { FormValues } from "../../../domain/interfaces/i.form";
@@ -474,12 +485,13 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
             handleDateChange={handleDateChange}
             sx={{
               width: { xs: "100%", md: FORM_CONFIG.DATE_PICKER_WIDTH },
-              "& input": { 
-                width: { xs: "100%", md: FORM_CONFIG.DATE_INPUT_WIDTH } 
+              "& input": {
+                width: { xs: "100%", md: FORM_CONFIG.DATE_INPUT_WIDTH }
               },
             }}
             isRequired
             error={errors.reviewDate}
+            aria-label="Select review date"
           />
         </Stack>
         <Stack sx={{ marginTop: FORM_CONFIG.DESCRIPTION_MARGIN_TOP }}>

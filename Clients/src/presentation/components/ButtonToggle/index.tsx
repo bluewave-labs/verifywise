@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import { IButtonToggleProps } from "../../types/interfaces/i.button";
 
@@ -34,17 +34,21 @@ const getFrameworkTabStyle = () => ({
   transition: "color 0.3s ease",
 });
 
-const getSliderStyle = (activeIndex: number, optionsCount: number) => ({
+interface SliderPosition {
+  left: number;
+  width: number;
+}
+
+const getSliderStyle = (position: SliderPosition) => ({
   position: "absolute",
   top: "2px",
-  left: "2px",
   height: "calc(100% - 4px)",
-  width: `calc((100% - ${(optionsCount + 1) * 2}px) / ${optionsCount})`,
   bgcolor: "background.paper",
   border: "1px solid rgba(0, 0, 0, 0.08)",
   borderRadius: "4px",
-  transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  transform: `translateX(calc(${activeIndex} * (100% + 2px)))`,
+  transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  left: `${position.left}px`,
+  width: `${position.width}px`,
   zIndex: 0,
 });
 
@@ -54,17 +58,42 @@ const ButtonToggle: React.FC<IButtonToggleProps> = ({
   onChange,
   height = 34,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [sliderPosition, setSliderPosition] = useState<SliderPosition>({ left: 2, width: 120 });
+
   const activeIndex = options.findIndex((option) => option.value === value);
 
+  // Update slider position when active tab changes
+  useEffect(() => {
+    const updateSliderPosition = () => {
+      const activeTab = tabRefs.current[activeIndex];
+      const container = containerRef.current;
+      if (activeTab && container) {
+        const containerRect = container.getBoundingClientRect();
+        const tabRect = activeTab.getBoundingClientRect();
+        setSliderPosition({
+          left: tabRect.left - containerRect.left,
+          width: tabRect.width,
+        });
+      }
+    };
+
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(updateSliderPosition, 10);
+    return () => clearTimeout(timer);
+  }, [activeIndex, options.length]);
+
   return (
-    <Box sx={frameworkTabsContainerStyle(height)}>
+    <Box ref={containerRef} sx={frameworkTabsContainerStyle(height)}>
       {/* Sliding background */}
-      <Box sx={getSliderStyle(activeIndex, options.length)} />
+      <Box sx={getSliderStyle(sliderPosition)} />
 
       {/* Button options */}
-      {options.map((option) => (
+      {options.map((option, index) => (
         <Box
           key={option.value}
+          ref={(el: HTMLDivElement | null) => { tabRefs.current[index] = el; }}
           onClick={() => onChange(option.value)}
           sx={getFrameworkTabStyle()}
         >

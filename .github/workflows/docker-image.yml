@@ -6,33 +6,24 @@ on:
 
 jobs:
   build-and-push:
-    # if: ${{ !endsWith(github.event.release.tag_name, '-saas') }} 
     runs-on: ubuntu-latest
     environment: Build
 
     permissions:
       contents: read
       packages: write
+      security-events: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Extract Tag Name
         id: get_tag
         run: echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
-
-      - name: Debug GitHub Token Access
-        run: |
-          if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then
-            echo "GITHUB_TOKEN is NOT available"
-            exit 1
-          else
-            echo "GITHUB_TOKEN is available"
-          fi
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -41,8 +32,37 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Build Frontend image
+      - name: Build Clients image (for scanning)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Clients/Dockerfile
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: verifywise-frontend:scan
+          build-args: |
+            VITE_SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
+            VITE_APP_VERSION=${{ env.TAG }}
+
+      - name: Scan Frontend image with Trivy
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: 'verifywise-frontend:scan'
+          format: 'sarif'
+          output: 'frontend-trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Upload Frontend Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'frontend-trivy-results.sarif'
+          category: 'container-frontend'
+
       - name: Build and push Clients image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Clients/Dockerfile
@@ -55,8 +75,33 @@ jobs:
             VITE_SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
             VITE_APP_VERSION=${{ env.TAG }}
 
+      # Build Backend image
+      - name: Build Servers image (for scanning)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./Servers
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: verifywise-backend:scan
+
+      - name: Scan Backend image with Trivy
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: 'verifywise-backend:scan'
+          format: 'sarif'
+          output: 'backend-trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Upload Backend Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'backend-trivy-results.sarif'
+          category: 'container-backend'
+
       - name: Build and push Servers image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: ./Servers
           platforms: linux/amd64,linux/arm64
@@ -78,8 +123,34 @@ jobs:
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
+      # Build EvalServer image
+      - name: Build EvalServer image (for scanning)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./EvalServer/Dockerfile
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: verifywise-eval-server:scan
+
+      - name: Scan EvalServer image with Trivy
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: 'verifywise-eval-server:scan'
+          format: 'sarif'
+          output: 'evalserver-trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Upload EvalServer Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'evalserver-trivy-results.sarif'
+          category: 'container-evalserver'
+
       - name: Build and push EvalServer image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./EvalServer/Dockerfile

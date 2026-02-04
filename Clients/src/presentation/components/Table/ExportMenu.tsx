@@ -129,7 +129,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: Boolean(exportAnchorEl) ? '#f9fafb' : 'transparent',
+            backgroundColor: exportAnchorEl ? '#f9fafb' : 'transparent',
             '&:hover': {
               backgroundColor: '#f9fafb !important',
             }

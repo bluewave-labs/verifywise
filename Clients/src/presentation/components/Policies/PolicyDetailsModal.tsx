@@ -612,7 +612,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
     // Remove orphaned closing </span> tags (from the spans we opened above)
     // Count and remove only the extra ones
-    let spanOpenCount = (normalized.match(/<span[^>]*>/gi) || []).length;
+    const spanOpenCount = (normalized.match(/<span[^>]*>/gi) || []).length;
     let spanCloseCount = (normalized.match(/<\/span>/gi) || []).length;
     while (spanCloseCount > spanOpenCount) {
       normalized = normalized.replace(/<\/span>/, '');
@@ -763,7 +763,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                     "rowspan",
                   ],
                   ALLOWED_URI_REGEXP:
-                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+-]+(?:[^a-z.+-:]|$))/i,
+                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+\-]+(?:[^a-z.+\-:]|$))/i,
                   ADD_ATTR: ["target"],
                   FORBID_TAGS: [
                     "script",

@@ -84,7 +84,7 @@ export async function getSlackWebhookById(
   req: Request,
   res: Response,
 ): Promise<any> {
-  const requestId = parseInt(req.params.id);
+  const requestId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const functionName = "getSlackWebhookById";
   logStructured(
     "processing",
@@ -310,7 +310,7 @@ export async function updateSlackWebhookById(
 ): Promise<any> {
   const functionName = "updateSlackWebhookById";
   const transaction = await sequelize.transaction();
-  const slackWebhookId = parseInt(req.params.id);
+  const slackWebhookId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const updateData = req.body;
 
   logStructured(
@@ -454,7 +454,7 @@ export async function sendSlackMessage(
   res: Response,
 ): Promise<any> {
   const functionName = "sendSlackMessage";
-  const requestId = parseInt(req.params.id);
+  const requestId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const requestBody = req.body;
 
   logStructured(
@@ -541,7 +541,7 @@ export async function deleteSlackWebhookById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const id = req.params.id;
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const userId = req.userId!;
   const functionName = "deleteSlackWebhookById";
   const transaction = await sequelize.transaction();

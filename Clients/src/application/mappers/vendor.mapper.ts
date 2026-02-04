@@ -22,7 +22,7 @@ import {
 /**
  * Converts string review status to ReviewStatus enum
  */
-function mapReviewStatus(status: string): ReviewStatus {
+export function mapReviewStatus(status: string): ReviewStatus {
   const mapping: Record<string, ReviewStatus> = {
     "not started": ReviewStatus.NotStarted,
     "in review": ReviewStatus.InReview,
@@ -35,7 +35,7 @@ function mapReviewStatus(status: string): ReviewStatus {
 /**
  * Converts string data sensitivity to DataSensitivity enum
  */
-function mapDataSensitivity(value?: string): DataSensitivity | undefined {
+export function mapDataSensitivity(value?: string): DataSensitivity | undefined {
   if (!value) return undefined;
   const mapping: Record<string, DataSensitivity> = {
     "none": DataSensitivity.None,
@@ -52,7 +52,7 @@ function mapDataSensitivity(value?: string): DataSensitivity | undefined {
 /**
  * Converts string business criticality to BusinessCriticality enum
  */
-function mapBusinessCriticality(value?: string): BusinessCriticality | undefined {
+export function mapBusinessCriticality(value?: string): BusinessCriticality | undefined {
   if (!value) return undefined;
   const mapping: Record<string, BusinessCriticality> = {
     "low (vendor supports non-core functions)": BusinessCriticality.Low,
@@ -65,7 +65,7 @@ function mapBusinessCriticality(value?: string): BusinessCriticality | undefined
 /**
  * Converts string past issues to PastIssues enum
  */
-function mapPastIssues(value?: string): PastIssues | undefined {
+export function mapPastIssues(value?: string): PastIssues | undefined {
   if (!value) return undefined;
   const mapping: Record<string, PastIssues> = {
     "none": PastIssues.None,
@@ -78,7 +78,7 @@ function mapPastIssues(value?: string): PastIssues | undefined {
 /**
  * Converts string regulatory exposure to RegulatoryExposure enum
  */
-function mapRegulatoryExposure(value?: string): RegulatoryExposure | undefined {
+export function mapRegulatoryExposure(value?: string): RegulatoryExposure | undefined {
   if (!value) return undefined;
   const mapping: Record<string, RegulatoryExposure> = {
     "none": RegulatoryExposure.None,

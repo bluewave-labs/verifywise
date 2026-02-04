@@ -35,7 +35,7 @@ export class PolicyController {
   // Get policy by ID
   static async getPolicyById(req: Request, res: Response) {
     try {
-      const policyId = parseInt(req.params.id);
+      const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
       const policy = await getPolicyByIdQuery(req.tenantId!, policyId);
 
       if (policy) {
@@ -93,7 +93,7 @@ export class PolicyController {
   static async updatePolicy(req: Request, res: Response) {
     const transaction = await sequelize.transaction();
     try {
-      const policyId = parseInt(req.params.id);
+      const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
       const userId = req.userId!;
       // Get existing policy for change tracking
       const existingPolicyResult = await getPolicyByIdQuery(
@@ -162,7 +162,7 @@ export class PolicyController {
   static async deletePolicyById(req: Request, res: Response) {
     const transaction = await sequelize.transaction();
     try {
-      const policyId = parseInt(req.params.id);
+      const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
       const deleted = await deletePolicyByIdQuery(
         req.tenantId!,
@@ -186,7 +186,7 @@ export class PolicyController {
   // Export policy as PDF
   static async exportPolicyPDF(req: Request, res: Response) {
     try {
-      const policyId = parseInt(req.params.id);
+      const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
       if (isNaN(policyId)) {
         return res.status(400).json(STATUS_CODE[400]("Invalid policy ID"));
       }
@@ -223,7 +223,7 @@ export class PolicyController {
   // Export policy as DOCX
   static async exportPolicyDOCX(req: Request, res: Response) {
     try {
-      const policyId = parseInt(req.params.id);
+      const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
       if (isNaN(policyId)) {
         return res.status(400).json(STATUS_CODE[400]("Invalid policy ID"));
       }

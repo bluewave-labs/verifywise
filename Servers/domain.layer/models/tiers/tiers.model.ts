@@ -3,6 +3,8 @@ import { ITiers, TierFeatures } from "../../interfaces/i.tiers";
 
 @Table({
   tableName: "tiers",
+  timestamps: true,
+  underscored: true,
 })
 export class TiersModel extends Model<TiersModel> implements ITiers {
   @Column({
@@ -30,12 +32,14 @@ export class TiersModel extends Model<TiersModel> implements ITiers {
   @Column({
     type: DataType.DATE,
     defaultValue: DataType.NOW,
+    allowNull: false,
   })
   created_at!: Date;
 
   @Column({
     type: DataType.DATE,
     defaultValue: DataType.NOW,
+    allowNull: false,
   })
   updated_at!: Date;
 

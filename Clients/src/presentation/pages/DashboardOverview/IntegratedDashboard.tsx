@@ -42,6 +42,7 @@ import {
   EvidenceCoverageCard,
   ModelLifecycleCard,
 } from "../../components/Charts/NewMetricsCards";
+import GovernanceScoreCard from "../../components/Charts/GovernanceScoreCard";
 import UseCasesTable from "../../components/Table/UseCasesTable";
 import EmptyStateMessage from "../../components/EmptyStateMessage";
 import ActivityItem from "../../components/ActivityItem";
@@ -125,6 +126,7 @@ const IntegratedDashboard: React.FC = () => {
     organizationalFrameworks,
     taskMetrics,
     useCaseMetrics,
+    governanceScoreMetrics,
   } = useDashboardMetrics();
 
   const { userToken, userId } = useAuth();
@@ -519,10 +521,20 @@ const IntegratedDashboard: React.FC = () => {
             </Box>
           )}
 
-          {/* Executive Row 3: Risks */}
+          {/* Executive Row 3: Governance Score + Risks (top row) */}
           <Box
             sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", mb: "16px" }}
           >
+            <DashboardCard title="AI governance score">
+              {governanceScoreMetrics && governanceScoreMetrics?.score > 0 ? (
+                <GovernanceScoreCard
+                  score={governanceScoreMetrics?.score}
+                  modules={governanceScoreMetrics?.modules}
+                />
+              ) : (
+                <EmptyStateMessage message="Add data to see your governance score" />
+              )}
+            </DashboardCard>
             <DashboardCard title="Use case & framework risks" navigateTo="/risk-management">
               {useCaseRiskData.total === 0 ? (
                 <EmptyStateMessage message="No risks identified" />
@@ -537,6 +549,12 @@ const IntegratedDashboard: React.FC = () => {
                 <RiskDonutWithLegend data={vendorRiskData.data} total={vendorRiskData.total} />
               )}
             </DashboardCard>
+          </Box>
+
+          {/* Executive Row 4: Model risks */}
+          <Box
+            sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", mb: "16px" }}
+          >
             <DashboardCard title="Model risks" navigateTo="/model-inventory/model-risks">
               {modelRiskData.total === 0 ? (
                 <EmptyStateMessage message="No model risks" />
@@ -801,10 +819,20 @@ const IntegratedDashboard: React.FC = () => {
             </DashboardCard>
           </Box>
 
-          {/* Operations Row 3: Risks */}
+          {/* Operations Row 3: Governance Score + Risks */}
           <Box
             sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", mb: "16px" }}
           >
+            <DashboardCard title="AI governance score">
+              {governanceScoreMetrics && governanceScoreMetrics?.score > 0  ? (
+                <GovernanceScoreCard
+                  score={governanceScoreMetrics.score}
+                  modules={governanceScoreMetrics.modules}
+                />
+              ) : (
+                <EmptyStateMessage message="Add data to see your governance score" />
+              )}
+            </DashboardCard>
             <DashboardCard title="Use case & framework risks" navigateTo="/risk-management">
               {useCaseRiskData.total === 0 ? (
                 <EmptyStateMessage message="No risks identified" />
@@ -819,6 +847,12 @@ const IntegratedDashboard: React.FC = () => {
                 <RiskDonutWithLegend data={vendorRiskData.data} total={vendorRiskData.total} />
               )}
             </DashboardCard>
+          </Box>
+
+          {/* Operations Row 4: Model risks */}
+          <Box
+            sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", mb: "16px" }}
+          >
             <DashboardCard title="Model risks" navigateTo="/model-inventory/model-risks">
               {modelRiskData.total === 0 ? (
                 <EmptyStateMessage message="No model risks" />

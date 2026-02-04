@@ -1,5 +1,5 @@
-import { FC } from "react";
-import { Stack, Tooltip, Box, Typography } from "@mui/material";
+import { FC, memo } from "react";
+import { Stack, Tooltip, Box, Typography, useTheme } from "@mui/material";
 import { Shield, FlaskConical, Network, ScanSearch } from "lucide-react";
 import { AppModule } from "../../../application/redux/ui/uiSlice";
 import "./index.css";
@@ -50,6 +50,8 @@ const AppSwitcher: FC<AppSwitcherProps> = ({
   activeModule,
   onModuleChange,
 }) => {
+  const theme = useTheme();
+
   return (
     <Stack className="app-switcher">
       <Stack className="app-switcher-modules">
@@ -58,11 +60,11 @@ const AppSwitcher: FC<AppSwitcherProps> = ({
             key={module.id}
             title={
               <Box sx={{ p: 0.5 }}>
-                <Typography sx={{ fontSize: "12px", fontWeight: 600, mb: 0.5 }}>
+                <Typography sx={{ fontSize: theme.typography.caption.fontSize, fontWeight: 600, mb: 0.5 }}>
                   {module.label}
                   {module.disabled && " (Coming soon)"}
                 </Typography>
-                <Typography sx={{ fontSize: "11px", opacity: 0.9 }}>
+                <Typography sx={{ fontSize: theme.typography.caption.fontSize, opacity: 0.9 }}>
                   {module.description}
                 </Typography>
               </Box>
@@ -75,10 +77,10 @@ const AppSwitcher: FC<AppSwitcherProps> = ({
             slotProps={{
               tooltip: {
                 sx: {
-                  backgroundColor: "#232340",
+                  bgcolor: "grey.900",
                   maxWidth: 220,
                   "& .MuiTooltip-arrow": {
-                    color: "#232340",
+                    color: theme.palette.grey[900],
                   },
                 },
               },
@@ -116,4 +118,4 @@ const AppSwitcher: FC<AppSwitcherProps> = ({
   );
 };
 
-export default AppSwitcher;
+export default memo(AppSwitcher);

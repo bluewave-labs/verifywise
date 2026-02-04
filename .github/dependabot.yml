@@ -1,0 +1,98 @@
+version: 2
+updates:
+  # Frontend (Clients) - npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/Clients"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "bluewave-labs/verifywise-maintainers"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "deps(frontend):"
+    groups:
+      # Group minor and patch updates together
+      frontend-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Backend (Servers) - npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/Servers"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "bluewave-labs/verifywise-maintainers"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "deps(backend):"
+    groups:
+      backend-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # EvaluationModule - Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/EvaluationModule"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "bluewave-labs/verifywise-maintainers"
+    labels:
+      - "dependencies"
+      - "security"
+      - "python"
+    commit-message:
+      prefix: "deps(eval):"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "bluewave-labs/verifywise-maintainers"
+    labels:
+      - "dependencies"
+      - "ci/cd"
+    commit-message:
+      prefix: "ci:"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/Clients"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "docker(frontend):"
+
+  - package-ecosystem: "docker"
+    directory: "/Servers"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "docker(backend):"

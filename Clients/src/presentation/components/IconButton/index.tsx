@@ -14,7 +14,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { Settings } from "lucide-react";
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import ConfirmationModal from "../Dialogs/ConfirmationModal";
 import { Typography } from "@mui/material";
 import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";

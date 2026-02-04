@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, {
   FC,
   useState,
@@ -42,7 +41,7 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import allowedRoles from "../../../application/constants/permissions";
 import CustomizableButton from "../Button/CustomizableButton";
 import { RiskCalculator } from "../../tools/riskCalculator";
-import { tabStyle } from "./style";
+import { getTabStyle } from "./style";
 import "./styles.module.css";
 
 const RiskSection = lazy(() => import("./RisksSection"));
@@ -54,7 +53,6 @@ const COMPONENT_CONSTANTS = {
   BUTTON_HEIGHT: 34,
   TAB_MARGIN_TOP: "30px",
   TAB_PADDING: "12px 0 0",
-  PRIMARY_COLOR: "#13715B",
   TAB_GAP: "34px",
   MIN_TAB_HEIGHT: "20px",
   BORDER_RADIUS: 2,
@@ -104,6 +102,21 @@ const mitigationInitialState: MitigationFormValues = {
   approvalStatus: 0,
   dateOfAssessment: new Date().toISOString(),
   recommendations: "",
+};
+
+/**
+ * Safely parses a date value to ISO string format.
+ * Handles string, Date objects, and falsy values.
+ *
+ * @param value - The value to parse (string, Date, or falsy)
+ * @returns ISO string representation or empty string if invalid
+ */
+const parseDateValue = (value: unknown): string => {
+  if (!value) return "";
+  if (typeof value === 'string' || value instanceof Date) {
+    return dayjs(value).toISOString();
+  }
+  return "";
 };
 
 /**
@@ -232,9 +245,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             (item) => item.name === inputValues.current_risk_level
           )?._id ?? 1,
         implementationStrategy: inputValues.implementation_strategy ?? "",
-        deadline: inputValues.deadline && (typeof inputValues.deadline === 'string' || inputValues.deadline instanceof Date)
-          ? dayjs(inputValues.deadline).toISOString()
-          : "",
+        deadline: parseDateValue(inputValues.deadline),
         doc: inputValues.mitigation_evidence_document ?? "",
         likelihood:
           likelihoodItems.find(
@@ -249,9 +260,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           approvalStatusItems.find(
             (item) => item.name === inputValues.approval_status
           )?._id ?? 1,
-        dateOfAssessment: inputValues.date_of_assessment && (typeof inputValues.date_of_assessment === 'string' || inputValues.date_of_assessment instanceof Date)
-          ? dayjs(inputValues.date_of_assessment).toISOString()
-          : "",
+        dateOfAssessment: parseDateValue(inputValues.date_of_assessment),
       };
       setRiskValues(currentRiskData);
       setMitigationValues(currentMitigationData);
@@ -441,25 +450,25 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   ]);
 
   // Helper function to get only changed fields for UPDATE requests
-  const getChangedFields = useCallback(<T extends Record<string, any>>(original: Partial<T>, current: Partial<T>) => {
-    const changedFields: Record<string, any> = {};
+  const getChangedFields = useCallback(<T extends object>(original: T, current: T): Record<string, unknown> => {
+    const changedFields: Record<string, unknown> = {};
 
     // Check each field for changes
-    Object.keys(current).forEach((key) => {
-      const originalValue = original[key as keyof T];
-      const currentValue = current[key as keyof T];
+    (Object.keys(current) as Array<keyof T>).forEach((key) => {
+      const originalValue = original[key];
+      const currentValue = current[key];
 
       // For arrays, do deep comparison (use copies to avoid mutating originals)
       if (Array.isArray(originalValue) && Array.isArray(currentValue)) {
-        const originalArr = [...(originalValue as any[])].sort();
-        const currentArr = [...(currentValue as any[])].sort();
+        const originalArr = [...originalValue].sort();
+        const currentArr = [...currentValue].sort();
         if (JSON.stringify(originalArr) !== JSON.stringify(currentArr)) {
-          changedFields[key] = currentValue;
+          changedFields[key as string] = currentValue;
         }
       }
       // For other values, do simple comparison
       else if (originalValue !== currentValue) {
-        changedFields[key] = currentValue;
+        changedFields[key as string] = currentValue;
       }
     });
 
@@ -468,7 +477,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
   // Helper function to build form data for API submission
   const buildFormData = useCallback(
-    (riskLevel: string, mitigationRiskLevel: string, changedFields?: any) => {
+    (riskLevel: string, mitigationRiskLevel: string, changedFields?: Record<string, unknown>) => {
       const fullData = {
         project_id: projectId,
         risk_name: riskValues.riskName,
@@ -530,7 +539,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
       // If changedFields is provided (for updates), only return the changed fields
       if (changedFields) {
-        const updateData: any = {};
+        const updateData: Record<string, unknown> = {};
 
         // Map frontend field names to backend field names and include only changed fields
         // Note: Fields are now prefixed with 'risk_' or 'mitigation_' to distinguish their source
@@ -640,7 +649,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           : "Creating the risk. Please wait..."
       );
 
-      let formData;
+      let formData: Record<string, unknown>;
 
       if (popupStatus !== "new") {
         // For updates, get only changed fields separately for risk and mitigation
@@ -648,7 +657,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         const changedMitigationFields = getChangedFields(originalMitigationValues, mitigationValues);
 
         // Combine with prefixes to distinguish risk vs mitigation fields
-        const changedFields: any = {};
+        const changedFields: Record<string, unknown> = {};
         Object.keys(changedRiskFields).forEach(key => {
           changedFields[`risk_${key}`] = changedRiskFields[key];
         });
@@ -660,7 +669,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           risk_risklevel.level,
           mitigation_risklevel.level,
           changedFields
-        );
+        ) as Record<string, unknown>;
 
         // Add boolean flags for deleted/emptied linked projects and frameworks
         if (Object.prototype.hasOwnProperty.call(changedFields, 'risk_applicableProjects')) {
@@ -680,7 +689,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         formData = buildFormData(
           risk_risklevel.level,
           mitigation_risklevel.level
-        );
+        ) as Record<string, unknown>;
       }
 
       try {
@@ -703,8 +712,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           
           // Handle validation errors with detailed field information
           if (responseData?.errors && Array.isArray(responseData.errors)) {
-            const fieldErrors = responseData.errors.map((err: any) => 
-              `• ${err.message}`
+            const fieldErrors = responseData.errors.map((err: { message?: string }) =>
+              `• ${err.message ?? 'Unknown error'}`
             ).join('\n');
             errorMessage = `${errorMessage}:\n${fieldErrors}`;
           }
@@ -712,27 +721,31 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           console.error(responseData?.error);
           onError(errorMessage);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error sending request", error);
-        
+
         // Handle CustomException from networkServices
         if (error instanceof Error && error.name === "CustomException") {
-          const customError = error as any; // Cast to access custom properties
-          
+          // CustomException has a response property with errors array
+          const customError = error as Error & { response?: { errors?: Array<{ message?: string }> } };
+
           let errorMessage = error.message || "Unknown error occurred";
-          
+
           // Handle validation errors from CustomException response
-          if (customError.response && customError.response.errors && Array.isArray(customError.response.errors)) {
-            const fieldErrors = customError.response.errors.map((err: any) => 
-              `• ${err.message}`
+          if (customError.response?.errors && Array.isArray(customError.response.errors)) {
+            const fieldErrors = customError.response.errors.map((err: { message?: string }) =>
+              `• ${err.message ?? 'Unknown error'}`
             ).join('\n');
             errorMessage = `${errorMessage}:\n${fieldErrors}`;
           }
-          
+
           onError(errorMessage);
+        } else if (error instanceof Error) {
+          // Standard Error object
+          onError(error.message || "Network error occurred");
         } else {
           // Fallback for other types of errors
-          onError(error?.message || "Network error occurred");
+          onError("Network error occurred");
         }
       }
     } else {
@@ -747,7 +760,13 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   // Show loading state while users are being fetched
   if (usersLoading) {
     return (
-      <Stack className="AddNewRiskForm" sx={{ p: 3, textAlign: "center" }}>
+      <Stack
+        className="AddNewRiskForm"
+        sx={{ p: 3, textAlign: "center" }}
+        role="status"
+        aria-busy="true"
+        aria-label="Loading form data"
+      >
         <Typography>Loading form data...</Typography>
       </Stack>
     );
@@ -758,15 +777,18 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     ? COMPONENT_CONSTANTS.COMPACT_CONTENT_WIDTH
     : COMPONENT_CONSTANTS.CONTENT_WIDTH;
 
+  // Get theme-aware tab style
+  const tabStyle = getTabStyle(theme);
+
   return (
-    <Stack className="AddNewRiskForm">
+    <Stack className="AddNewRiskForm" aria-label="Risk form">
       <TabContext value={value}>
         <Box sx={{ borderBottom: 1, borderColor: "divider", width: `${tabBarWidth}px` }}>
           <TabList
             onChange={handleChange}
             aria-label="Add new risk tabs"
             TabIndicatorProps={{
-              style: { backgroundColor: COMPONENT_CONSTANTS.PRIMARY_COLOR },
+              style: { backgroundColor: theme.palette.primary.main },
             }}
             sx={{
               minHeight: COMPONENT_CONSTANTS.MIN_TAB_HEIGHT,
@@ -832,8 +854,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               sx={{
                 alignSelf: "flex-end",
                 width: "fit-content",
-                backgroundColor: COMPONENT_CONSTANTS.PRIMARY_COLOR,
-                border: `1px solid ${COMPONENT_CONSTANTS.PRIMARY_COLOR}`,
+                backgroundColor: theme.palette.primary.main,
+                border: `1px solid ${theme.palette.primary.main}`,
                 gap: 2,
                 borderRadius: COMPONENT_CONSTANTS.BORDER_RADIUS,
                 maxHeight: COMPONENT_CONSTANTS.BUTTON_HEIGHT,
@@ -857,6 +879,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               isDisabled={
                 popupStatus === "new" ? isCreatingDisabled : isEditingDisabled
               }
+              aria-label={popupStatus === "new" ? "Save new risk" : "Update risk"}
             />
           </Box>
         )}

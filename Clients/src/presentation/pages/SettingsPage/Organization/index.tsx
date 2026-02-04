@@ -126,13 +126,13 @@ const Organization = () => {
               setLogoLoadError(true);
             }
           }
-        } catch (error) {
+        } catch (_error) {
           setLogoLoadError(true);
         } finally {
           setLogoLoading(false);
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setOrganizationExists(false);
       setOrganizationName("");
       setHasChanges(false);
@@ -316,7 +316,7 @@ const Organization = () => {
         setHasChanges(false);
       }
       await fetchOrganization();
-    } catch (error) {
+    } catch (_error) {
       showAlert("error", "Error", "Failed to create organization.");
     } finally {
       setTimeout(() => setIsLoading(false), 1500);
@@ -355,7 +355,7 @@ const Organization = () => {
         setHasChanges(false);
       }
       await fetchOrganization();
-    } catch (error) {
+    } catch (_error) {
       showAlert("error", "Error", "Failed to update organization.");
     } finally {
       setTimeout(() => setIsLoading(false), 1500);

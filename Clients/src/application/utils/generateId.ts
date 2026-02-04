@@ -1,3 +1,5 @@
 export const generateId = (): string => {
-  return Math.random().toString(36).substr(2, 9);
+  const array = new Uint8Array(7);
+  crypto.getRandomValues(array);
+  return Array.from(array, (byte) => byte.toString(36).padStart(2, '0')).join('').slice(0, 9);
 };

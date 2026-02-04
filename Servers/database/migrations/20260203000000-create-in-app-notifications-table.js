@@ -39,6 +39,7 @@ module.exports = {
               'approval_requested',
               'approval_approved',
               'approval_rejected',
+              'approval_complete',
               'policy_due_soon',
               'policy_overdue',
               'training_assigned',

@@ -282,18 +282,20 @@ export const markAllNotificationsAsReadQuery = async (
   tenant: string,
   transaction?: Transaction
 ): Promise<number> => {
-  const result = await sequelize.query(
+  // Use RETURNING to count affected rows reliably across PostgreSQL
+  const result = await sequelize.query<{ id: number }>(
     `UPDATE "${tenant}".notifications
      SET is_read = TRUE, read_at = NOW()
-     WHERE user_id = :userId AND is_read = FALSE`,
+     WHERE user_id = :userId AND is_read = FALSE
+     RETURNING id`,
     {
       replacements: { userId },
-      type: QueryTypes.UPDATE,
+      type: QueryTypes.SELECT,
       transaction,
     }
   );
 
-  return result[1] as number;
+  return result.length;
 };
 
 /**
@@ -305,17 +307,19 @@ export const deleteNotificationQuery = async (
   tenant: string,
   transaction?: Transaction
 ): Promise<boolean> => {
-  // Use RAW query to get affected row count
-  const [, metadata] = await sequelize.query(
+  // Use RETURNING to check if row was deleted
+  const result = await sequelize.query<{ id: number }>(
     `DELETE FROM "${tenant}".notifications
-     WHERE id = :notificationId AND user_id = :userId`,
+     WHERE id = :notificationId AND user_id = :userId
+     RETURNING id`,
     {
       replacements: { notificationId, userId },
+      type: QueryTypes.SELECT,
       transaction,
     }
   );
 
-  return (metadata as number) > 0;
+  return result.length > 0;
 };
 
 /**
@@ -328,19 +332,21 @@ export const deleteOldNotificationsQuery = async (
   tenant: string,
   transaction?: Transaction
 ): Promise<number> => {
-  // Use RAW query to get affected row count
-  const [, metadata] = await sequelize.query(
+  // Use RETURNING to count deleted rows
+  const result = await sequelize.query<{ id: number }>(
     `DELETE FROM "${tenant}".notifications
      WHERE user_id = :userId
      AND is_read = TRUE
-     AND created_at < :olderThan`,
+     AND created_at < :olderThan
+     RETURNING id`,
     {
       replacements: { userId, olderThan },
+      type: QueryTypes.SELECT,
       transaction,
     }
   );
 
-  return metadata as number;
+  return result.length;
 };
 
 /**
@@ -371,16 +377,19 @@ export const deleteNotificationsByEntityQuery = async (
   tenant: string,
   transaction?: Transaction
 ): Promise<number> => {
-  const [, metadata] = await sequelize.query(
+  // Use RETURNING to count deleted rows
+  const result = await sequelize.query<{ id: number }>(
     `DELETE FROM "${tenant}".notifications
-     WHERE entity_type = :entityType AND entity_id = :entityId`,
+     WHERE entity_type = :entityType AND entity_id = :entityId
+     RETURNING id`,
     {
       replacements: { entityType, entityId },
+      type: QueryTypes.SELECT,
       transaction,
     }
   );
 
-  return metadata as number;
+  return result.length;
 };
 
 /**

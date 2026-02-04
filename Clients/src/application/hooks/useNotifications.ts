@@ -154,12 +154,12 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   const authToken = useSelector((state: RootState) => state.auth.authToken);
   const abortControllerRef = useRef<AbortController | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isManuallyDisconnectedRef = useRef(false);
-  const isConnectedRef = useRef(false);
 
   /**
    * Fetch notification summary from server
@@ -330,7 +330,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
         throw new Error('Response body is null');
       }
 
-      isConnectedRef.current = true;
+      setIsConnected(true);
 
       // Read the stream
       const reader = response.body.getReader();
@@ -380,14 +380,14 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
       }
 
       // Stream ended, reconnect if not manually disconnected
-      isConnectedRef.current = false;
+      setIsConnected(false);
       if (autoReconnect && !isManuallyDisconnectedRef.current) {
         reconnectTimeoutRef.current = setTimeout(() => {
           connect();
         }, reconnectDelay);
       }
     } catch (error: any) {
-      isConnectedRef.current = false;
+      setIsConnected(false);
 
       // Don't reconnect if manually aborted
       if (error.name === 'AbortError') {
@@ -408,7 +408,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
    */
   const disconnect = useCallback(() => {
     isManuallyDisconnectedRef.current = true;
-    isConnectedRef.current = false;
+    setIsConnected(false);
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -450,7 +450,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
   }, [fetchOnMount, authToken, fetchNotifications]);
 
   return {
-    isConnected: isConnectedRef.current,
+    isConnected,
     reconnect,
     disconnect,
     notifications,

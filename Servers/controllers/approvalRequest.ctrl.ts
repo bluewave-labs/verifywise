@@ -16,6 +16,7 @@
 
 import { Request, Response } from "express";
 import { sequelize } from "../database/db";
+import { QueryTypes } from "sequelize";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { logStructured } from "../utils/logger/fileLogger";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
@@ -27,10 +28,15 @@ import {
   processApprovalQuery,
   withdrawApprovalRequestQuery,
 } from "../utils/approvalRequest.utils";
-// SSE notifications disabled for now - can be re-enabled later if needed
-// import { notifyRequesterRejected, notifyStepApprovers, notifyRequesterApproved } from "../services/notification.service";
 import { getApprovalWorkflowByIdQuery, getWorkflowStepsQuery } from "../utils/approvalWorkflow.utils";
 import { ApprovalResult } from "../domain.layer/enums/approval-workflow.enum";
+import {
+  notifyApprovalRequested,
+  notifyApprovalComplete,
+  sendInAppNotification,
+} from "../services/inAppNotification.service";
+import { NotificationType, NotificationEntityType } from "../domain.layer/interfaces/i.notification";
+import { EMAIL_TEMPLATES } from "../constants/emailTemplates";
 
 /**
  * Create new approval request
@@ -120,6 +126,47 @@ export async function createApprovalRequest(
       "createApprovalRequest",
       "approvalRequest.ctrl.ts"
     );
+
+    // Send notifications to first step approvers (async, don't block response)
+    (async () => {
+      try {
+        // Get requester name
+        const requesterResult = await sequelize.query<{ name: string; surname: string }>(
+          `SELECT name, surname FROM public.users WHERE id = :userId`,
+          { replacements: { userId }, type: QueryTypes.SELECT }
+        );
+        const requester = requesterResult[0];
+        const requesterName = requester ? `${requester.name} ${requester.surname}`.trim() : "Someone";
+
+        // Get base URL from env or default
+        const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+
+        // Get first step approvers
+        const firstStep = workflowSteps.find((s: any) => s.step_order === 1) as any;
+        if (firstStep && firstStep.approvers && firstStep.approvers.length > 0) {
+          for (const approver of firstStep.approvers) {
+            const approverId = typeof approver === 'object' ? (approver as any).user_id : approver;
+            if (approverId !== userId) {
+              await notifyApprovalRequested(
+                tenantId,
+                approverId,
+                {
+                  id: request.id!,
+                  name: request_name,
+                  workflowName: (workflow as any).name,
+                  stepNumber: 1,
+                  totalSteps: workflowSteps.length,
+                },
+                requesterName,
+                baseUrl
+              );
+            }
+          }
+        }
+      } catch (notifyError) {
+        console.error("Failed to send approval request notifications:", notifyError);
+      }
+    })();
 
     return res.status(201).json(STATUS_CODE[201](request.toJSON()));
   } catch (error) {
@@ -314,8 +361,8 @@ export async function approveRequest(
       return res.status(400).json(STATUS_CODE[400]("Invalid request ID"));
     }
 
-    // Process the approval (SSE notifications disabled, so we ignore the return value)
-    await processApprovalQuery(
+    // Process the approval
+    const notificationInfo = await processApprovalQuery(
       requestId,
       userId,
       ApprovalResult.APPROVED,
@@ -333,28 +380,84 @@ export async function approveRequest(
       "approvalRequest.ctrl.ts"
     );
 
-    // SSE notifications disabled for now - can be re-enabled later if needed
-    // if (notificationInfo) {
-    //   if (notificationInfo.type === 'step_approvers') {
-    //     notifyStepApprovers(
-    //       notificationInfo.tenantId,
-    //       notificationInfo.requestId,
-    //       notificationInfo.stepNumber!,
-    //       notificationInfo.requestName
-    //     ).catch(error => {
-    //       console.error("Error sending step approvers notification:", error);
-    //     });
-    //   } else if (notificationInfo.type === 'requester_approved') {
-    //     notifyRequesterApproved(
-    //       notificationInfo.tenantId,
-    //       notificationInfo.requesterId!,
-    //       notificationInfo.requestId,
-    //       notificationInfo.requestName
-    //     ).catch(error => {
-    //       console.error("Error sending requester approved notification:", error);
-    //     });
-    //   }
-    // }
+    // Send notifications based on approval result (async, don't block response)
+    if (notificationInfo) {
+      (async () => {
+        try {
+          const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+
+          // Get approver name
+          const approverResult = await sequelize.query<{ name: string; surname: string }>(
+            `SELECT name, surname FROM public.users WHERE id = :userId`,
+            { replacements: { userId }, type: QueryTypes.SELECT }
+          );
+          const approver = approverResult[0];
+          const approverName = approver ? `${approver.name} ${approver.surname}`.trim() : "Someone";
+
+          if (notificationInfo.type === 'step_approvers') {
+            // Notify next step approvers
+            const nextStepApprovers = await sequelize.query<{ user_id: number }>(
+              `SELECT DISTINCT arsa.approver_id as user_id
+               FROM "${tenantId}".approval_request_step_approvals arsa
+               JOIN "${tenantId}".approval_request_steps ars ON arsa.request_step_id = ars.id
+               WHERE ars.request_id = :requestId AND ars.step_number = :stepNumber`,
+              { replacements: { requestId, stepNumber: notificationInfo.stepNumber }, type: QueryTypes.SELECT }
+            );
+
+            // Get workflow info
+            const [request] = await sequelize.query<{ workflow_id: number }>(
+              `SELECT workflow_id FROM "${tenantId}".approval_requests WHERE id = :requestId`,
+              { replacements: { requestId }, type: QueryTypes.SELECT }
+            );
+
+            const [workflow] = await sequelize.query<{ name: string }>(
+              `SELECT name FROM "${tenantId}".approval_workflows WHERE id = :workflowId`,
+              { replacements: { workflowId: request?.workflow_id }, type: QueryTypes.SELECT }
+            );
+
+            const [totalSteps] = await sequelize.query<{ count: string }>(
+              `SELECT COUNT(*) as count FROM "${tenantId}".approval_request_steps WHERE request_id = :requestId`,
+              { replacements: { requestId }, type: QueryTypes.SELECT }
+            );
+
+            for (const approverRow of nextStepApprovers) {
+              await notifyApprovalRequested(
+                tenantId,
+                approverRow.user_id,
+                {
+                  id: requestId,
+                  name: notificationInfo.requestName,
+                  workflowName: workflow?.name || "Approval workflow",
+                  stepNumber: notificationInfo.stepNumber!,
+                  totalSteps: parseInt(totalSteps?.count || "1", 10),
+                },
+                approverName,
+                baseUrl
+              );
+            }
+          } else if (notificationInfo.type === 'requester_approved') {
+            // Notify requester that request is fully approved
+            const [totalSteps] = await sequelize.query<{ count: string }>(
+              `SELECT COUNT(*) as count FROM "${tenantId}".approval_request_steps WHERE request_id = :requestId`,
+              { replacements: { requestId }, type: QueryTypes.SELECT }
+            );
+
+            await notifyApprovalComplete(
+              tenantId,
+              notificationInfo.requesterId!,
+              {
+                id: requestId,
+                name: notificationInfo.requestName,
+                totalSteps: parseInt(totalSteps?.count || "1", 10),
+              },
+              baseUrl
+            );
+          }
+        } catch (notifyError) {
+          console.error("Error sending approval notification:", notifyError);
+        }
+      })();
+    }
 
     return res
       .status(200)
@@ -405,8 +508,8 @@ export async function rejectRequest(
       return res.status(400).json(STATUS_CODE[400]("Invalid request ID"));
     }
 
-    // Process the rejection (SSE notifications disabled, so we ignore the return value)
-    await processApprovalQuery(
+    // Process the rejection
+    const notificationInfo = await processApprovalQuery(
       requestId,
       userId,
       ApprovalResult.REJECTED,
@@ -424,17 +527,51 @@ export async function rejectRequest(
       "approvalRequest.ctrl.ts"
     );
 
-    // SSE notifications disabled for now - can be re-enabled later if needed
-    // if (notificationInfo && notificationInfo.type === 'requester_rejected') {
-    //   notifyRequesterRejected(
-    //     notificationInfo.tenantId,
-    //     notificationInfo.requesterId!,
-    //     notificationInfo.requestId,
-    //     notificationInfo.requestName
-    //   ).catch(error => {
-    //     console.error("Error sending requester rejected notification:", error);
-    //   });
-    // }
+    // Send rejection notification to requester (async, don't block response)
+    if (notificationInfo && notificationInfo.type === 'requester_rejected') {
+      (async () => {
+        try {
+          const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+
+          // Get rejector name
+          const rejectorResult = await sequelize.query<{ name: string; surname: string }>(
+            `SELECT name, surname FROM public.users WHERE id = :userId`,
+            { replacements: { userId }, type: QueryTypes.SELECT }
+          );
+          const rejector = rejectorResult[0];
+          const rejectorName = rejector ? `${rejector.name} ${rejector.surname}`.trim() : "Someone";
+
+          // Send rejection notification
+          await sendInAppNotification(
+            tenantId,
+            {
+              user_id: notificationInfo.requesterId!,
+              type: NotificationType.APPROVAL_REJECTED,
+              title: "Approval request rejected",
+              message: `${rejectorName} rejected your approval request: ${notificationInfo.requestName}`,
+              entity_type: NotificationEntityType.USE_CASE,
+              entity_id: requestId,
+              entity_name: notificationInfo.requestName,
+              action_url: `${baseUrl}/approval-requests`,
+            },
+            true,
+            {
+              template: EMAIL_TEMPLATES.APPROVAL_REJECTED,
+              subject: `Rejected: ${notificationInfo.requestName}`,
+              variables: {
+                requester_name: "User",
+                rejector_name: rejectorName,
+                request_name: notificationInfo.requestName,
+                rejection_reason: comments || "No reason provided",
+                request_url: `${baseUrl}/approval-requests`,
+              },
+            }
+          );
+        } catch (notifyError) {
+          console.error("Error sending rejection notification:", notifyError);
+        }
+      })();
+    }
 
     return res
       .status(200)

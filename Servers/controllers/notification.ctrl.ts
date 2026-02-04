@@ -1,4 +1,14 @@
 import { Request, Response } from "express";
+import { STATUS_CODE } from "../utils/statusCode.utils";
+import {
+  getNotificationsQuery,
+  getNotificationSummaryQuery,
+  markNotificationAsReadQuery,
+  markAllNotificationsAsReadQuery,
+  deleteNotificationQuery,
+  getUnreadCountQuery,
+} from "../utils/notification.utils";
+import { INotificationFilters, NotificationType } from "../domain.layer/interfaces/i.notification";
 
 // Store active SSE connections
 // Key: `${tenantId}:${userId}`
@@ -104,3 +114,170 @@ setInterval(() => {
     }
   }
 }, 60000); // Check every minute
+
+/**
+ * Get notifications for the current user
+ * GET /api/notifications
+ */
+export const getNotifications = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { userId, tenantId } = req;
+
+  if (!userId || !tenantId) {
+    return res.status(401).json(STATUS_CODE[401]("Unauthorized"));
+  }
+
+  try {
+    const filters: INotificationFilters = {
+      is_read: req.query.is_read === "true" ? true : req.query.is_read === "false" ? false : undefined,
+      type: req.query.type as NotificationType | undefined,
+      limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 50,
+      offset: req.query.offset ? parseInt(req.query.offset as string, 10) : 0,
+    };
+
+    const notifications = await getNotificationsQuery(userId, tenantId, filters);
+    return res.status(200).json(STATUS_CODE[200](notifications));
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    return res.status(500).json(STATUS_CODE[500]("Failed to fetch notifications"));
+  }
+};
+
+/**
+ * Get notification summary (for bell icon)
+ * GET /api/notifications/summary
+ */
+export const getNotificationSummary = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { userId, tenantId } = req;
+
+  if (!userId || !tenantId) {
+    return res.status(401).json(STATUS_CODE[401]("Unauthorized"));
+  }
+
+  try {
+    const summary = await getNotificationSummaryQuery(userId, tenantId);
+    return res.status(200).json(STATUS_CODE[200](summary));
+  } catch (error) {
+    console.error("Error fetching notification summary:", error);
+    return res.status(500).json(STATUS_CODE[500]("Failed to fetch notification summary"));
+  }
+};
+
+/**
+ * Get unread count
+ * GET /api/notifications/unread-count
+ */
+export const getUnreadCount = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { userId, tenantId } = req;
+
+  if (!userId || !tenantId) {
+    return res.status(401).json(STATUS_CODE[401]("Unauthorized"));
+  }
+
+  try {
+    const count = await getUnreadCountQuery(userId, tenantId);
+    return res.status(200).json(STATUS_CODE[200]({ unread_count: count }));
+  } catch (error) {
+    console.error("Error fetching unread count:", error);
+    return res.status(500).json(STATUS_CODE[500]("Failed to fetch unread count"));
+  }
+};
+
+/**
+ * Mark a notification as read
+ * PATCH /api/notifications/:id/read
+ */
+export const markAsRead = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { userId, tenantId } = req;
+  const idParam = req.params.id;
+  const notificationId = parseInt(Array.isArray(idParam) ? idParam[0] : idParam, 10);
+
+  if (!userId || !tenantId) {
+    return res.status(401).json(STATUS_CODE[401]("Unauthorized"));
+  }
+
+  if (isNaN(notificationId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid notification ID"));
+  }
+
+  try {
+    const notification = await markNotificationAsReadQuery(notificationId, userId, tenantId);
+
+    if (!notification) {
+      return res.status(404).json(STATUS_CODE[404]("Notification not found"));
+    }
+
+    return res.status(200).json(STATUS_CODE[200](notification));
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    return res.status(500).json(STATUS_CODE[500]("Failed to mark notification as read"));
+  }
+};
+
+/**
+ * Mark all notifications as read
+ * PATCH /api/notifications/read-all
+ */
+export const markAllAsRead = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { userId, tenantId } = req;
+
+  if (!userId || !tenantId) {
+    return res.status(401).json(STATUS_CODE[401]("Unauthorized"));
+  }
+
+  try {
+    const count = await markAllNotificationsAsReadQuery(userId, tenantId);
+    return res.status(200).json(STATUS_CODE[200]({ marked_count: count }));
+  } catch (error) {
+    console.error("Error marking all notifications as read:", error);
+    return res.status(500).json(STATUS_CODE[500]("Failed to mark notifications as read"));
+  }
+};
+
+/**
+ * Delete a notification
+ * DELETE /api/notifications/:id
+ */
+export const deleteNotification = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { userId, tenantId } = req;
+  const idParam = req.params.id;
+  const notificationId = parseInt(Array.isArray(idParam) ? idParam[0] : idParam, 10);
+
+  if (!userId || !tenantId) {
+    return res.status(401).json(STATUS_CODE[401]("Unauthorized"));
+  }
+
+  if (isNaN(notificationId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid notification ID"));
+  }
+
+  try {
+    const deleted = await deleteNotificationQuery(notificationId, userId, tenantId);
+
+    if (!deleted) {
+      return res.status(404).json(STATUS_CODE[404]("Notification not found"));
+    }
+
+    return res.status(200).json(STATUS_CODE[200]({ deleted: true }));
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    return res.status(500).json(STATUS_CODE[500]("Failed to delete notification"));
+  }
+};

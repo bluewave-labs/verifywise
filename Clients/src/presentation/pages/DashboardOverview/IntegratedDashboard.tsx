@@ -182,11 +182,11 @@ const IntegratedDashboard: React.FC = () => {
     localStorage.setItem("has_seen_org_name_modal", "true");
     localStorage.removeItem("initial_org_name");
     localStorage.removeItem("initial_org_id");
-    setShowOrgNameModal(false);
   };
 
   const handleOrgModalClose = () => {
-    // No-op: users must name their organization before proceeding
+    setShowOrgNameModal(false);
+    handleOrgNameSuccess();
   };
 
   // Get use cases (projects) for table

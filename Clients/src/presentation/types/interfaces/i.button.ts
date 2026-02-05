@@ -3,8 +3,8 @@
  * Domain layer has zero external dependencies
  */
 export type {
-  ICustomizableButtonCoreProps,
-  IFilterButtonCoreProps,
-  IButtonToggleOption,
-  IButtonToggleProps,
+  CustomizableButtonCoreProps,
+  FilterButtonCoreProps,
+  ButtonToggleOption,
+  ButtonToggleProps,
 } from "../../../domain/types/button.types";

@@ -30,7 +30,7 @@ import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import CustomizableToast from "../../Toast";
 import TabBar from "../../TabBar";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import RichTextEditor from "../../RichTextEditor";
 import StandardModal from "../../Modals/StandardModal";
 

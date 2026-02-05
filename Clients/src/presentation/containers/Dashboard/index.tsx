@@ -14,7 +14,7 @@ import {
 import { logEngine } from "../../../application/tools/log.engine";
 import StandardModal from "../../components/Modals/StandardModal";
 import CustomizableToast from "../../components/Toast";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
 import { AlertState } from "../../../application/interfaces/appStates";
 import { useDashboard } from "../../../application/hooks/useDashboard";

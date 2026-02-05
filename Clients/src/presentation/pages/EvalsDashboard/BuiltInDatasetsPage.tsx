@@ -13,7 +13,7 @@ import {
 import { isSingleTurnPrompt, type SingleTurnPrompt } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import { ArrowLeft, X, Settings, ChevronDown, Upload } from "lucide-react";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import TabBar from "../../components/TabBar";
 import { TabContext } from "@mui/lab";
 import { getSelectStyles } from "../../utils/inputStyles";

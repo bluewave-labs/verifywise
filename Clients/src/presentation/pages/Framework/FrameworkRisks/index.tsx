@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { Box, Stack } from "@mui/material";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
-import ButtonToggle from "../../../components/ButtonToggle";
+import { ButtonToggle } from "../../../components/button-toggle";
 import RisksView from "../../../components/RisksView";
 import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 import { IFrameworkRisksProps } from "../../../../domain/interfaces/i.risk";

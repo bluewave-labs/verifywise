@@ -1,7 +1,7 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { Stack, useTheme, Divider } from "@mui/material";
-import Breadcrumbs from "./index";
-import { IPageBreadcrumbsProps } from "../../types/breadcrumbs.types";
+import { Breadcrumbs } from "./index";
+import { PageBreadcrumbsProps } from "../../types/breadcrumbs.types";
 import DashboardActionButtons from "../Layout/DashboardActionButtons";
 
 /**
@@ -19,8 +19,7 @@ import DashboardActionButtons from "../Layout/DashboardActionButtons";
  * @param {PageBreadcrumbsProps} props - The props for the PageBreadcrumbs component
  * @returns {JSX.Element} A styled breadcrumbs component
  */
-const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
-  ({
+const PageBreadcrumbs = memo(function PageBreadcrumbs({
     items,
     autoGenerate = true,
     showCurrentPage = true,
@@ -33,7 +32,7 @@ const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
     className,
     testId,
     showDivider = true,
-  }) => {
+  }: PageBreadcrumbsProps) {
     const theme = useTheme();
 
     // Note: Custom route mapping is now handled centrally in the main Breadcrumbs component
@@ -91,10 +90,8 @@ const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
         {showDivider && <Divider sx={{ mb: 2 }} />}
       </Stack>
     );
-  }
-);
+  });
 
-// Set display name for better debugging
 PageBreadcrumbs.displayName = "PageBreadcrumbs";
 
-export default PageBreadcrumbs;
+export { PageBreadcrumbs };

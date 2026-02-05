@@ -12,7 +12,7 @@ import {
 import { Trash2, MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ModelRow } from "./index";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 
 interface ModelsTableBodyProps {
   rows: ModelRow[];

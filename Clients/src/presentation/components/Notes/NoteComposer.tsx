@@ -26,7 +26,7 @@ import {
   Send as SendIcon,
   Save as SaveIcon,
 } from "lucide-react";
-import CustomizableButton from "../Button/CustomizableButton";
+import { CustomizableButton } from "../button/customizable-button";
 
 interface NoteComposerProps {
   onSubmit: (content: string) => void;

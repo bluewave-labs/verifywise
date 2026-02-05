@@ -182,12 +182,9 @@ const IntegratedDashboard: React.FC = () => {
     localStorage.setItem("has_seen_org_name_modal", "true");
     localStorage.removeItem("initial_org_name");
     localStorage.removeItem("initial_org_id");
+    setShowOrgNameModal(false);
   };
 
-  const handleOrgModalClose = () => {
-    setShowOrgNameModal(false);
-    handleOrgNameSuccess();
-  };
 
   // Get use cases (projects) for table
   const useCases = useMemo(() => {
@@ -349,7 +346,6 @@ const IntegratedDashboard: React.FC = () => {
       {showOrgNameModal && (
         <ChangeOrganizationNameModal
           isOpen={showOrgNameModal}
-          onClose={handleOrgModalClose}
           currentOrgName={currentOrgName}
           organizationId={organizationId}
           onSuccess={handleOrgNameSuccess}

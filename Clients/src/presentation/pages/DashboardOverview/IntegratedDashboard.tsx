@@ -185,9 +185,6 @@ const IntegratedDashboard: React.FC = () => {
     setShowOrgNameModal(false);
   };
 
-  const handleOrgModalClose = () => {
-    // No-op: users must name their organization before proceeding
-  };
 
   // Get use cases (projects) for table
   const useCases = useMemo(() => {
@@ -349,7 +346,6 @@ const IntegratedDashboard: React.FC = () => {
       {showOrgNameModal && (
         <ChangeOrganizationNameModal
           isOpen={showOrgNameModal}
-          onClose={handleOrgModalClose}
           currentOrgName={currentOrgName}
           organizationId={organizationId}
           onSuccess={handleOrgNameSuccess}

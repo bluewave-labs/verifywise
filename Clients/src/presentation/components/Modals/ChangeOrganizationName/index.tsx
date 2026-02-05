@@ -28,7 +28,7 @@ interface ChangeOrganizationNameModalProps {
   isOpen: boolean;
 
   /** Callback function called when modal should close */
-  onClose: () => void;
+  onClose?: () => void;
 
   /** Current organization name (auto-generated) */
   currentOrgName: string;
@@ -42,7 +42,6 @@ interface ChangeOrganizationNameModalProps {
 
 const ChangeOrganizationNameModal: React.FC<ChangeOrganizationNameModalProps> = ({
   isOpen,
-  onClose,
   currentOrgName: _currentOrgName, // Kept for API compatibility but not used - field starts empty
   organizationId,
   onSuccess,

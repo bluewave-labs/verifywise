@@ -246,14 +246,11 @@ export const validateIncidentCreationBusinessRules = (
  * Business rule validation for incident updates
  */
 export const validateIncidentUpdateBusinessRules = (
-    data: any,
-    existingData?: any
+    _data: any,
+    _existingData?: any
 ): ValidationError[] => {
-    const errors: ValidationError[] = [];
-
-    // Allow reopening closed incidents - removed restriction
-
-    return errors;
+    // All business rules removed - incidents can now be freely updated
+    return [];
 };
 
 /**

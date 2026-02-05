@@ -27,8 +27,8 @@ module.exports = {
         ].map(async (query) => {
           await queryInterface.sequelize.query(query, { transaction });
         }));
-        await transaction.commit();
       }
+      await transaction.commit();
     } catch (error) {
       await transaction.rollback();
       throw error;

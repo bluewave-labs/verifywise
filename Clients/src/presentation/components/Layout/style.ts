@@ -1,3 +1,12 @@
+// PageHeaderExtended styles
+export const pageHeaderTitleSectionStyle = {
+  mt: "2px",
+};
+
+export const pageHeaderSummaryCardsStyle = {
+  mb: "24px",
+};
+
 // ApprovalButton styles
 export const approvalButtonStyle = {
   background: '#F4F4F4',
@@ -38,7 +47,7 @@ export const actionButtonsStyles = {
     border: '1px solid #e5e5e5',
     '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: '#d0d5dd' },
   },
-    approval_workflows: {
+  approval_workflows: {
     backgroundColor: 'transparent',
     color: '#13715B',
     border: '1px solid #e5e5e5',

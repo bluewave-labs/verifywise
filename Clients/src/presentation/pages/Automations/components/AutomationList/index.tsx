@@ -19,7 +19,7 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 
-import CustomizableButton from '../../../../components/Button/CustomizableButton';
+import { CustomizableButton } from '../../../../components/button/customizable-button';
 import { SearchBox } from '../../../../components/Search';
 import Toggle from '../../../../components/Inputs/Toggle';
 import { Automation } from '../../../../../domain/types/Automation';

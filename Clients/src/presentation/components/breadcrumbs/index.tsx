@@ -10,18 +10,18 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getRouteMapping, getRouteIcon } from "./routeMapping";
 
 import { ChevronRight as ChevronRightGreyIcon } from "lucide-react";
-import { IBreadcrumbItemPresentation } from "../../types/breadcrumbs.types";
-import { IBreadcrumbsProps } from "../../types/breadcrumbs.types";
+import { BreadcrumbItemPresentation } from "../../types/breadcrumbs.types";
+import { BreadcrumbsProps } from "../../types/breadcrumbs.types";
 
 /**
  * A customizable Breadcrumbs component that wraps Material-UI Breadcrumbs.
  * Supports both manual and auto-generated breadcrumbs from routing.
  *
  * @component
- * @param {IBreadcrumbsProps} props - The props for the Breadcrumbs component
+ * @param {BreadcrumbsProps} props - The props for the Breadcrumbs component
  * @returns {JSX.Element} A styled Material-UI Breadcrumbs component
  */
-const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
+function Breadcrumbs({
   items,
   separator = <ChevronRightGreyIcon size={16} style={{ width: "80%", height: "auto" }} />,
   maxItems = 8,
@@ -33,7 +33,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
   truncateLabels = true,
   maxLabelLength = 20,
   onItemClick,
-}) => {
+}: BreadcrumbsProps) {
   const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
@@ -64,12 +64,12 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
   /**
    * Auto-generate breadcrumbs from current route
    */
-  const generateBreadcrumbs = useMemo((): IBreadcrumbItemPresentation[] => {
+  const generateBreadcrumbs = useMemo((): BreadcrumbItemPresentation[] => {
     if (!autoGenerate) return [];
 
     const pathSegments = location.pathname.split("/").filter(Boolean);
 
-    const breadcrumbs: IBreadcrumbItemPresentation[] = [];
+    const breadcrumbs: BreadcrumbItemPresentation[] = [];
 
     // Add home item
     breadcrumbs.push({
@@ -110,24 +110,20 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
    * Enhanced with error handling
    */
   const handleItemClick = useCallback(
-    (item: IBreadcrumbItemPresentation, index: number) => {
+    (item: BreadcrumbItemPresentation, index: number) => {
       if (item.disabled) return;
 
-      try {
-        // Call custom click handler if provided
-        if (onItemClick) {
-          onItemClick(item, index);
-          return;
-        }
+      // Call custom click handler if provided
+      if (onItemClick) {
+        onItemClick(item, index);
+        return;
+      }
 
-        // Default navigation behavior
-        if (item.onClick) {
-          item.onClick();
-        } else if (item.path) {
-          navigate(item.path);
-        }
-      } catch (error) {
-        console.error("Navigation error:", error);
+      // Default navigation behavior
+      if (item.onClick) {
+        item.onClick();
+      } else if (item.path) {
+        navigate(item.path);
       }
     },
     [navigate, onItemClick]
@@ -138,7 +134,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
    * Memoized for better performance
    */
   const renderBreadcrumbItem = useCallback(
-    (item: IBreadcrumbItemPresentation, index: number, totalItems: number) => {
+    (item: BreadcrumbItemPresentation, index: number, totalItems: number) => {
       const isLast = index === totalItems - 1;
       const isDisabled = item.disabled || isLast;
       const truncatedLabel = truncateText(item.label);
@@ -278,14 +274,13 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
         }}
       >
         {breadcrumbItems.map((item, index) =>
-          renderBreadcrumbItem(item as IBreadcrumbItemPresentation, index, breadcrumbItems.length)
+          renderBreadcrumbItem(item as BreadcrumbItemPresentation, index, breadcrumbItems.length)
         )}
       </MUIBreadcrumbs>
     </Stack>
   );
-};
+}
 
-// Set display name for better debugging
 Breadcrumbs.displayName = "Breadcrumbs";
 
-export default Breadcrumbs;
+export { Breadcrumbs };

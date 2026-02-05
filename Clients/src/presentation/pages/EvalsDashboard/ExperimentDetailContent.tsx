@@ -9,7 +9,7 @@ import {
   IconButton,
   TextField,
 } from "@mui/material";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import StandardModal from "../../components/Modals/StandardModal";

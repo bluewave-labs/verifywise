@@ -5,7 +5,7 @@
  * Note: Icon and content types use 'unknown' to avoid React dependencies.
  * Presentation layer will handle React-specific type casting.
  */
-export interface ICustomizableButtonCoreProps {
+export interface CustomizableButtonCoreProps {
   /** The variant of the button */
   variant?: "contained" | "outlined" | "text";
   /** The size of the button */
@@ -56,7 +56,7 @@ export interface ICustomizableButtonCoreProps {
  * Props interface for the FilterButton component
  * Pure domain type with no framework dependencies
  */
-export interface IFilterButtonCoreProps {
+export interface FilterButtonCoreProps {
   /** Whether the filters panel is currently open */
   isOpen: boolean;
   /** Whether there are any active filters */
@@ -73,7 +73,7 @@ export interface IFilterButtonCoreProps {
  * Option for ButtonToggle component
  * Pure domain type with no framework dependencies
  */
-export interface IButtonToggleOption {
+export interface ButtonToggleOption {
   value: string;
   label: string;
   count?: number;
@@ -83,8 +83,8 @@ export interface IButtonToggleOption {
  * Props interface for ButtonToggle component
  * Pure domain type with no framework dependencies
  */
-export interface IButtonToggleProps {
-  options: IButtonToggleOption[];
+export interface ButtonToggleProps {
+  options: ButtonToggleOption[];
   value: string;
   onChange: (value: string) => void;
   height?: number;

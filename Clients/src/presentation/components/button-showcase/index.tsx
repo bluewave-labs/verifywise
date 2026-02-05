@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Box, Typography, Stack, Paper, Container } from '@mui/material';
+import { useState } from 'react';
+import { Box, Typography, Stack, Paper, Container, useTheme } from '@mui/material';
 import { Plus, Eye, Filter, Edit3, Lock, Unlock, Save, Trash2, Download, Upload } from 'lucide-react';
-import CustomizableButton from '../Button/CustomizableButton';
+import { CustomizableButton } from '../button/customizable-button';
 import VerifyWiseMultiSelect from '../VerifyWiseMultiSelect';
 import ViewToggle from '../ViewToggle';
 
-const ButtonShowcase: React.FC = () => {
+function ButtonShowcase() {
+  const theme = useTheme();
   const [multiSelectValues, setMultiSelectValues] = useState<string[]>(['option1', 'option3']);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
 
@@ -48,15 +49,15 @@ const ButtonShowcase: React.FC = () => {
               minWidth: 140,
               height: 28,
               fontSize: 13,
-              backgroundColor: "#13715B",
-              color: "#fff",
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
               borderRadius: "4px",
               display: "flex",
               alignItems: "center",
               padding: "6px 12px",
               cursor: "pointer",
               "&:hover": {
-                backgroundColor: "#0f604d",
+                backgroundColor: theme.palette.primary.dark,
               },
             }}
           >
@@ -99,6 +100,7 @@ const ButtonShowcase: React.FC = () => {
         <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
           <Box
             component="button"
+            aria-label="Integrations"
             sx={{
               background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
               color: 'white',
@@ -124,6 +126,7 @@ const ButtonShowcase: React.FC = () => {
           </Box>
           <Box
             component="button"
+            aria-label="Automations"
             sx={{
               background: 'linear-gradient(135deg, #FB923C 0%, #F97316 100%)',
               color: 'white',
@@ -169,18 +172,19 @@ const ButtonShowcase: React.FC = () => {
         <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
           <Box
             component="button"
+            aria-label="Lock"
             sx={{
               width: 32,
               height: 32,
               borderRadius: '50%',
-              border: '1px solid #e0e0e0',
+              border: `1px solid ${theme.palette.divider}`,
               backgroundColor: 'transparent',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               '&:hover': {
-                backgroundColor: '#f5f5f5',
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
@@ -188,18 +192,19 @@ const ButtonShowcase: React.FC = () => {
           </Box>
           <Box
             component="button"
+            aria-label="Unlock"
             sx={{
               width: 32,
               height: 32,
               borderRadius: '50%',
-              border: '1px solid #e0e0e0',
+              border: `1px solid ${theme.palette.divider}`,
               backgroundColor: 'transparent',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               '&:hover': {
-                backgroundColor: '#f5f5f5',
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
@@ -207,18 +212,19 @@ const ButtonShowcase: React.FC = () => {
           </Box>
           <Box
             component="button"
+            aria-label="Edit"
             sx={{
               width: 32,
               height: 32,
               borderRadius: '50%',
-              border: '1px solid #e0e0e0',
+              border: `1px solid ${theme.palette.divider}`,
               backgroundColor: 'transparent',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               '&:hover': {
-                backgroundColor: '#f5f5f5',
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
@@ -399,6 +405,6 @@ const ButtonShowcase: React.FC = () => {
       </Paper>
     </Container>
   );
-};
+}
 
-export default ButtonShowcase;
+export { ButtonShowcase };

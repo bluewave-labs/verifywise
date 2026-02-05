@@ -11,8 +11,8 @@ import {
 } from "@mui/material";
 import { useStyles } from "./styles";
 import Field from "../../../components/Inputs/Field";
-import ButtonToggle from "../../../components/ButtonToggle";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { ButtonToggle } from "../../../components/button-toggle";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import { Save as SaveIcon } from "lucide-react";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import {

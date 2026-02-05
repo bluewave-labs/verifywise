@@ -1,6 +1,6 @@
 import { Suspense, lazy, useState, useCallback } from "react";
 import { Stack } from "@mui/material";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 const GenerateReport = lazy(() => import("./GenerateReport"));
 const ReportLists = lazy(() => import("./Reports"));
 const ReportingHeader = lazy(

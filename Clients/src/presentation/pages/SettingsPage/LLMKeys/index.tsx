@@ -9,7 +9,7 @@ import {
   Link,
 } from "@mui/material";
 import { useState, useCallback, useEffect, useMemo } from "react";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import {
   Plus as PlusIcon,
   Trash2 as DeleteIcon,

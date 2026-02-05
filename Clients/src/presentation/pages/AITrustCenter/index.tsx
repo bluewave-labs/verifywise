@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Stack } from "@mui/material";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
 import { Eye as VisibilityIcon } from "lucide-react"
@@ -14,7 +14,7 @@ import {
   aiTrustCenterTabPanelStyle,
   aiTrustCenterPreviewButtonStyle,
 } from "./styles";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import HelperIcon from "../../components/HelperIcon";

@@ -88,7 +88,7 @@ const ChangeOrganizationNameModal: React.FC<ChangeOrganizationNameModalProps> = 
       setTimeout(() => {
         setAlert(null);
         onSuccess?.();
-        onClose();
+        // onClose();
       }, 1500);
     } catch (err) {
       logEngine({

@@ -953,7 +953,7 @@ const Tasks: React.FC = () => {
       )}
 
       {/* Page Tour */}
-      <PageTour steps={TasksSteps} run={true} tourKey="tasks-tour" />
+      <PageTour steps={TasksSteps} run={activeTab === "list"} tourKey="tasks-tour" />
     </Stack>
   );
 };

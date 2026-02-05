@@ -5,34 +5,42 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      // Check if column already exists
-      const columnExists = await queryInterface.sequelize.query(
-        `SELECT EXISTS (
+      // Get all existing organizations
+      const organizations = await queryInterface.sequelize.query(
+        `SELECT id FROM organizations;`,
+        { transaction }
+      );
+      for (let organization of organizations[0]) {
+        const tenantHash = getTenantHash(organization.id);
+        // Check if column already exists
+        const columnExists = await queryInterface.sequelize.query(
+          `SELECT EXISTS (
           SELECT FROM information_schema.columns
-          WHERE table_schema = 'public'
+          WHERE table_schema = ${tenantHash}
           AND table_name = 'vendors'
           AND column_name = 'updated_at'
         )`,
-        {
-          type: queryInterface.sequelize.QueryTypes.SELECT,
-          transaction,
-        }
-      );
-
-      if (!columnExists[0].exists) {
-        await queryInterface.addColumn('vendors', 'updated_at', {
-          type: Sequelize.DATE,
-          allowNull: false,
-          defaultValue: Sequelize.fn('NOW'),
-        }, { transaction });
-
-        // Set updated_at to created_at for existing records (overwrite default NOW() value)
-        await queryInterface.sequelize.query(
-          `UPDATE vendors SET updated_at = COALESCE(created_at, NOW());`,
-          { transaction }
+          {
+            type: queryInterface.sequelize.QueryTypes.SELECT,
+            transaction,
+          }
         );
-      } else {
-        console.log('Column updated_at already exists in vendors table, skipping');
+
+        if (!columnExists[0].exists) {
+          await queryInterface.addColumn('vendors', 'updated_at', {
+            type: Sequelize.DATE,
+            allowNull: false,
+            defaultValue: Sequelize.fn('NOW'),
+          }, { transaction });
+
+          // Set updated_at to created_at for existing records (overwrite default NOW() value)
+          await queryInterface.sequelize.query(
+            `UPDATE vendors SET updated_at = COALESCE(created_at, NOW());`,
+            { transaction }
+          );
+        } else {
+          console.log('Column updated_at already exists in vendors table, skipping');
+        }
       }
 
       await transaction.commit();

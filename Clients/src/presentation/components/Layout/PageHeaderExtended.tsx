@@ -1,7 +1,7 @@
 
 import React, { ReactNode } from "react";
 import { Stack, Box } from "@mui/material";
-import PageBreadcrumbs from "../Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../breadcrumbs/PageBreadcrumbs";
 import HelperIcon from "../HelperIcon";
 import PageHeader from "./PageHeader";
 import TipBox from "../TipBox";

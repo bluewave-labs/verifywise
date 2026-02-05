@@ -14,7 +14,6 @@ import {
 import { logEngine } from "../../../application/tools/log.engine";
 import StandardModal from "../../components/Modals/StandardModal";
 import CustomizableToast from "../../components/Toast";
-import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
 import { AlertState } from "../../../application/interfaces/appStates";
 import { useDashboard } from "../../../application/hooks/useDashboard";
@@ -44,6 +43,10 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const [openDeleteDemoDataModal, setOpenDeleteDemoDataModal] =
     useState<boolean>(false);
   const [hasDemoData, setHasDemoData] = useState<boolean>(false);
+  const [showDemoDataButton, setShowDemoDataButton] = useState<boolean>(() => {
+    // Check localStorage on initial load
+    return localStorage.getItem("hideDemoDataButton") !== "true";
+  });
   const [alertState, setAlertState] = useState<AlertState>();
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
@@ -111,7 +114,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         await new Promise((resolve) => setTimeout(resolve, remainingTime));
       }
 
-      if (response.status === 201) {
+      if (response.status === 200 || response.status === 201) {
         logEngine({
           type: "info",
           message: "Demo data generated successfully.",
@@ -135,17 +138,13 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         // Force refresh projects flag to trigger updates in child components
         setRefreshProjectsFlag((prev) => !prev);
 
+        // Update hasDemoData state immediately
+        setHasDemoData(true);
+
         setShowToastNotification(false);
 
-        setAlertState({
-          variant: "success",
-          body: "Demo data generated successfully.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-          // Refresh the page to ensure all components reflect the changes
-          window.location.reload();
-        }, 500);
+        // Reload the page to refresh all dashboard metrics
+        window.location.reload();
       } else {
         setShowToastNotification(false);
         logEngine({
@@ -227,17 +226,13 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         // Force refresh projects flag to trigger updates in child components
         setRefreshProjectsFlag((prev) => !prev);
 
+        // Update hasDemoData state immediately
+        setHasDemoData(false);
+
         setShowToastNotification(false);
 
-        setAlertState({
-          variant: "success",
-          body: "Demo data deleted successfully.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-          // Refresh the page to ensure all components reflect the changes
-          window.location.reload();
-        }, 500);
+        // Reload the page to refresh all dashboard metrics
+        window.location.reload();
       } else {
         setShowToastNotification(false);
         logEngine({
@@ -294,6 +289,11 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             activeModule={activeModule}
             onOpenCreateDemoData={() => setOpenDemoDataModal(true)}
             onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
+            onDismissDemoDataButton={() => {
+              localStorage.setItem("hideDemoDataButton", "true");
+              setShowDemoDataButton(false);
+            }}
+            showDemoDataButton={showDemoDataButton}
             hasDemoData={hasDemoData}
             isAdmin={isAdmin}
           />
@@ -342,55 +342,12 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             submitButtonText="Create demo data"
             onSubmit={handleCreateDemoData}
             isSubmitting={showToastNotification}
+            maxWidth="480px"
           >
-            <Stack gap="16px">
-              <Box
-                sx={{
-                  padding: "12px 16px",
-                  backgroundColor: "#F5F7F6",
-                  borderRadius: "4px",
-                  border: "1px solid #D9E0DD",
-                }}
-              >
-                <Typography variant="body2" sx={{ color: "rgba(0, 0, 0, 0.87)" }}>
-                  This will generate demo (mock) data for you, allowing you to
-                  explore and get a hands-on understanding of how VerifyWise works.
-                  We highly recommend this option.
-                </Typography>
-              </Box>
-
-              <Stack gap="8px">
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  What will be created:
-                </Typography>
-                <Stack gap="4px" sx={{ pl: 2 }}>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    • A sample use case:
-                  </Typography>
-                  <Stack gap="2px" sx={{ pl: 2 }}>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "text.secondary", fontSize: "13px" }}
-                    >
-                      - "AI Recruitment Screening Platform" with EU AI Act framework
-                    </Typography>
-                  </Stack>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "text.secondary", mt: 1 }}
-                  >
-                    • Sample risks and vendors with realistic compliance scenarios
-                  </Typography>
-                </Stack>
-              </Stack>
-
-              <Typography
-                variant="body2"
-                sx={{ color: "text.secondary", fontStyle: "italic" }}
-              >
-                Note: You can remove this demo data at any time.
-              </Typography>
-            </Stack>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              This will generate sample projects, risks, vendors, and policies to help you
+              explore VerifyWise. You can remove this demo data at any time.
+            </Typography>
           </StandardModal>
 
           <StandardModal
@@ -398,82 +355,16 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             onClose={() => setOpenDeleteDemoDataModal(false)}
             title="Delete demo data"
             description="Remove all demo data from your workspace"
-            customFooter={
-              <>
-                <CustomizableButton
-                  variant="outlined"
-                  text="Cancel"
-                  onClick={() => setOpenDeleteDemoDataModal(false)}
-                  sx={{
-                    minWidth: "80px",
-                    height: "34px",
-                    border: "1px solid #D0D5DD",
-                    color: "#344054",
-                    "&:hover": {
-                      backgroundColor: "#F9FAFB",
-                      border: "1px solid #D0D5DD",
-                    },
-                  }}
-                />
-                <CustomizableButton
-                  variant="contained"
-                  text="Delete demo data"
-                  onClick={handleDeleteDemoData}
-                  isDisabled={showToastNotification}
-                  sx={{
-                    minWidth: "80px",
-                    height: "34px",
-                    backgroundColor: "#D32F2F",
-                    "&:hover:not(.Mui-disabled)": {
-                      backgroundColor: "#B71C1C",
-                    },
-                    "&.Mui-disabled": {
-                      backgroundColor: "#E5E7EB",
-                      color: "#9CA3AF",
-                      cursor: "not-allowed",
-                    },
-                  }}
-                />
-              </>
-            }
+            submitButtonText="Delete demo data"
+            onSubmit={handleDeleteDemoData}
+            isSubmitting={showToastNotification}
+            submitButtonColor="#D32F2F"
+            maxWidth="480px"
           >
-            <Stack gap="16px">
-              <Box
-                sx={{
-                  padding: "12px 16px",
-                  backgroundColor: "#FEEDED",
-                  borderRadius: "4px",
-                  border: "1px solid #F5C2C2",
-                }}
-              >
-                <Typography variant="body2" sx={{ color: "rgba(0, 0, 0, 0.87)" }}>
-                  This action will permanently delete all demo data from your
-                  workspace. This cannot be undone.
-                </Typography>
-              </Box>
-
-              <Stack gap="8px">
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  What will be deleted:
-                </Typography>
-                <Stack gap="4px" sx={{ pl: 2 }}>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    • All demo use cases and frameworks
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    • All associated demo risks and vendors
-                  </Typography>
-                </Stack>
-              </Stack>
-
-              <Typography
-                variant="body2"
-                sx={{ color: "text.secondary", fontStyle: "italic" }}
-              >
-                Note: Only demo data will be removed. Your real data will remain
-                untouched.
-              </Typography>
-            </Stack>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              This will remove all sample projects, risks, vendors, and policies that
+              were generated as demo data. Your real data will remain untouched.
+            </Typography>
           </StandardModal>
         </Stack>
       </AIDetectionSidebarProvider>

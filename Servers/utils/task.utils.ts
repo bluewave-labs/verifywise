@@ -80,9 +80,9 @@ export const createNewTaskQuery = async (
 ): Promise<TasksModel> => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".tasks (
-        title, description, creator_id, organization_id, due_date, priority, status, categories
+        title, description, creator_id, organization_id, due_date, priority, status, categories, is_demo
       ) VALUES (
-        :title, :description, :creator_id, :organization_id, :due_date, :priority, :status, :categories
+        :title, :description, :creator_id, :organization_id, :due_date, :priority, :status, :categories, :is_demo
       ) RETURNING *`,
     {
       replacements: {
@@ -94,6 +94,7 @@ export const createNewTaskQuery = async (
         priority: task.priority || TaskPriority.MEDIUM,
         status: task.status || TaskStatus.OPEN,
         categories: JSON.stringify(task.categories || []),
+        is_demo: task.is_demo || false,
       },
       model: TasksModel,
       mapToModel: true,

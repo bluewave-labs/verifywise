@@ -580,14 +580,14 @@ export const createRiskQuery = async (
       severity, risk_level_autocalculated, review_notes, mitigation_status,
       current_risk_level, deadline, mitigation_plan, implementation_strategy,
       mitigation_evidence_document, likelihood_mitigation, risk_severity,
-      final_risk_level, risk_approval, approval_status, date_of_assessment
+      final_risk_level, risk_approval, approval_status, date_of_assessment, is_demo
     ) VALUES (
       :risk_name, :risk_owner, :ai_lifecycle_phase, :risk_description,
       :risk_category::enum_projectrisks_risk_category[], :impact, :assessment_mapping, :controls_mapping, :likelihood,
       :severity, :risk_level_autocalculated, :review_notes, :mitigation_status,
       :current_risk_level, :deadline, :mitigation_plan, :implementation_strategy,
       :mitigation_evidence_document, :likelihood_mitigation, :risk_severity,
-      :final_risk_level, :risk_approval, :approval_status, :date_of_assessment
+      :final_risk_level, :risk_approval, :approval_status, :date_of_assessment, :is_demo
     ) RETURNING *`,
     {
       replacements: {
@@ -615,6 +615,7 @@ export const createRiskQuery = async (
         risk_approval: projectRisk.risk_approval,
         approval_status: projectRisk.approval_status,
         date_of_assessment: projectRisk.date_of_assessment,
+        is_demo: projectRisk.is_demo || false,
       },
       mapToModel: true,
       model: RiskModel,

@@ -9,5 +9,6 @@ export interface IVendorRisk {
   action_plan: string;
   action_owner: number;
   risk_level: string;
+  is_demo?: boolean;
   created_at?: Date;
 }

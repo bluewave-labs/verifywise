@@ -26,6 +26,8 @@ import "./index.css";
 interface SidebarProps {
   onOpenCreateDemoData?: () => void;
   onOpenDeleteDemoData?: () => void;
+  onDismissDemoDataButton?: () => void;
+  showDemoDataButton?: boolean;
   hasDemoData?: boolean;
   /** Only show demo data options to admins */
   isAdmin?: boolean;
@@ -34,6 +36,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
+  onDismissDemoDataButton,
+  showDemoDataButton = true,
   hasDemoData = false,
   isAdmin = false,
 }) => {
@@ -219,6 +223,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       hasDemoData={hasDemoData}
       onOpenCreateDemoData={onOpenCreateDemoData}
       onOpenDeleteDemoData={onOpenDeleteDemoData}
+      onDismissDemoDataButton={onDismissDemoDataButton}
+      showDemoDataButton={showDemoDataButton}
       showReadyToSubscribe={true}
       openUserGuide={openUserGuide}
       isAdmin={isAdmin}

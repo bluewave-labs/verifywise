@@ -11,6 +11,7 @@ export interface ITask {
   priority: TaskPriority;
   status: TaskStatus;
   categories?: string[];
+  is_demo?: boolean;
   created_at?: Date;
   updated_at?: Date;
 }

@@ -88,6 +88,15 @@ export const deleteFileById = async (
   tenant: string,
   transaction: Transaction
 ) => {
+  // Clean up any virtual folder mappings for this file
+  await sequelize.query(
+    `DELETE FROM ${escapePgIdentifier(tenant)}.file_folder_mappings WHERE file_id = :id`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  );
+
   const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :id returning id`;
   console.log(`Executing query: ${query} with id: ${id}`);
   const result = await sequelize.query(query, {

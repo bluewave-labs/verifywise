@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiServices } from "../../infrastructure/api/networkServices";
 
+// Review status type
+export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired';
+
 // Type definitions for API responses
 export interface FileMetadata {
   id: string;
@@ -18,6 +21,31 @@ export interface FileMetadata {
   sub_id?: number;
   meta_id?: number;
   is_evidence?: boolean;
+  // New metadata fields
+  tags?: string[];
+  review_status?: ReviewStatus;
+  version?: string;
+  expiry_date?: string;
+  last_modified_by?: number;
+  last_modifier_name?: string;
+  last_modifier_surname?: string;
+  description?: string;
+}
+
+// Input for updating file metadata
+export interface UpdateFileMetadataInput {
+  tags?: string[];
+  review_status?: ReviewStatus;
+  version?: string;
+  expiry_date?: string | null;
+  description?: string | null;
+}
+
+// Highlighted files response
+export interface HighlightedFilesResponse {
+  dueForUpdate: number[];
+  pendingApproval: number[];
+  recentlyModified: number[];
 }
 
 export interface FileManagerResponse {
@@ -222,4 +250,188 @@ export async function deleteQuestionEvidenceFiles({
     },
   });
   return response;
+}
+
+/**
+ * Get all files with full metadata (tags, status, version, etc.)
+ *
+ * @param {object} options - Options for the request
+ * @param {number} options.page - Page number
+ * @param {number} options.pageSize - Items per page
+ * @param {AbortSignal} options.signal - Optional abort signal for cancellation
+ * @returns {Promise<{ files: FileMetadata[], pagination: any }>} Files with full metadata
+ */
+export async function getFilesWithMetadata({
+  page,
+  pageSize,
+  signal,
+}: {
+  page?: number;
+  pageSize?: number;
+  signal?: AbortSignal;
+} = {}): Promise<{ files: FileMetadata[]; pagination: any }> {
+  const params = new URLSearchParams();
+  if (page) params.append("page", String(page));
+  if (pageSize) params.append("pageSize", String(pageSize));
+
+  const queryString = params.toString();
+  const url = `/file-manager/with-metadata${queryString ? `?${queryString}` : ""}`;
+
+  const response = await apiServices.get<any>(url, { signal });
+  const data = response.data?.data || response.data;
+
+  return {
+    files: (data?.files || []).map((f: any) => ({
+      id: String(f.id),
+      filename: f.filename,
+      size: f?.size,
+      mimetype: f?.mimetype,
+      upload_date: f?.upload_date,
+      uploaded_by: String(f?.uploaded_by),
+      uploader_name: f?.uploader_name,
+      uploader_surname: f?.uploader_surname,
+      source: f?.source,
+      tags: f?.tags || [],
+      review_status: f?.review_status,
+      version: f?.version,
+      expiry_date: f?.expiry_date,
+      last_modified_by: f?.last_modified_by,
+      last_modifier_name: f?.last_modifier_name,
+      last_modifier_surname: f?.last_modifier_surname,
+      description: f?.description,
+    })),
+    pagination: data?.pagination,
+  };
+}
+
+/**
+ * Get file metadata by ID
+ *
+ * @param {string} id - File ID
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<FileMetadata>} File metadata
+ */
+export async function getFileMetadata({
+  id,
+  signal,
+}: {
+  id: string;
+  signal?: AbortSignal;
+}): Promise<FileMetadata> {
+  const response = await apiServices.get<any>(`/file-manager/${id}/metadata`, { signal });
+  const f = response.data?.data || response.data;
+
+  return {
+    id: String(f.id),
+    filename: f.filename,
+    size: f?.size,
+    mimetype: f?.mimetype,
+    upload_date: f?.upload_date,
+    uploaded_by: String(f?.uploaded_by),
+    uploader_name: f?.uploader_name,
+    uploader_surname: f?.uploader_surname,
+    source: f?.source,
+    tags: f?.tags || [],
+    review_status: f?.review_status,
+    version: f?.version,
+    expiry_date: f?.expiry_date,
+    last_modified_by: f?.last_modified_by,
+    last_modifier_name: f?.last_modifier_name,
+    last_modifier_surname: f?.last_modifier_surname,
+    description: f?.description,
+  };
+}
+
+/**
+ * Update file metadata
+ *
+ * @param {string} id - File ID
+ * @param {UpdateFileMetadataInput} updates - Metadata updates
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<FileMetadata>} Updated file metadata
+ */
+export async function updateFileMetadata({
+  id,
+  updates,
+  signal,
+}: {
+  id: string;
+  updates: UpdateFileMetadataInput;
+  signal?: AbortSignal;
+}): Promise<FileMetadata> {
+  const response = await apiServices.patch<any>(`/file-manager/${id}/metadata`, updates, { signal });
+  const f = response.data?.data || response.data;
+
+  return {
+    id: String(f.id),
+    filename: f.filename,
+    size: f?.size,
+    mimetype: f?.mimetype,
+    upload_date: f?.upload_date,
+    uploaded_by: String(f?.uploaded_by),
+    uploader_name: f?.uploader_name,
+    uploader_surname: f?.uploader_surname,
+    source: f?.source,
+    tags: f?.tags || [],
+    review_status: f?.review_status,
+    version: f?.version,
+    expiry_date: f?.expiry_date,
+    last_modified_by: f?.last_modified_by,
+    last_modifier_name: f?.last_modifier_name,
+    last_modifier_surname: f?.last_modifier_surname,
+    description: f?.description,
+  };
+}
+
+/**
+ * Get highlighted files (due for update, pending approval, recently modified)
+ *
+ * @param {object} options - Options for the request
+ * @param {number} options.daysUntilExpiry - Days before expiry to flag (default 30)
+ * @param {number} options.recentDays - Days to consider as recent (default 7)
+ * @param {AbortSignal} options.signal - Optional abort signal for cancellation
+ * @returns {Promise<HighlightedFilesResponse>} Categorized file IDs
+ */
+export async function getHighlightedFiles({
+  daysUntilExpiry = 30,
+  recentDays = 7,
+  signal,
+}: {
+  daysUntilExpiry?: number;
+  recentDays?: number;
+  signal?: AbortSignal;
+} = {}): Promise<HighlightedFilesResponse> {
+  const params = new URLSearchParams();
+  params.append("daysUntilExpiry", String(daysUntilExpiry));
+  params.append("recentDays", String(recentDays));
+
+  const response = await apiServices.get<any>(`/file-manager/highlighted?${params.toString()}`, { signal });
+  const data = response.data?.data || response.data;
+
+  return {
+    dueForUpdate: data?.dueForUpdate || [],
+    pendingApproval: data?.pendingApproval || [],
+    recentlyModified: data?.recentlyModified || [],
+  };
+}
+
+/**
+ * Get file preview content
+ *
+ * @param {string} id - File ID
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<Blob>} File content blob
+ */
+export async function getFilePreview({
+  id,
+  signal,
+}: {
+  id: string;
+  signal?: AbortSignal;
+}): Promise<Blob> {
+  const response = await apiServices.get<Blob>(`/file-manager/${id}/preview`, {
+    signal,
+    responseType: "blob",
+  });
+  return response.data;
 }

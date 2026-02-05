@@ -51,6 +51,11 @@ const IconButton: React.FC<IconButtonProps> = ({
   // Policy export props
   onDownloadPDF,
   onDownloadDOCX,
+  // Virtual folder props
+  onAssignToFolder,
+  // File metadata props
+  onPreview,
+  onEditMetadata,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -271,7 +276,13 @@ const IconButton: React.FC<IconButtonProps> = ({
   | "risk";
 
   const BUTTONS_BY_TYPE: Record<ButtonType, string[]> = {
-    report: ["download", "linked_policies", "remove"],
+    report: (() => {
+      const items = ["preview", "download"];
+      if (onEditMetadata) items.push("edit_metadata");
+      if (onAssignToFolder) items.push("assign_folder");
+      items.push("linked_policies", "remove");
+      return items;
+    })(),
     evidence: ["download", "remove"],
     resource: ["edit", "make visible", "download", "remove"],
     incident: ["edit", "view", "archive"],
@@ -333,6 +344,9 @@ const IconButton: React.FC<IconButtonProps> = ({
       linked_policies: "Linked policies",
       download_pdf: "Download PDF",
       download_docx: "Download Word",
+      assign_folder: "Assign to folder",
+      preview: "Preview",
+      edit_metadata: "Edit metadata",
     };
   
     // Type-specific
@@ -416,6 +430,21 @@ const IconButton: React.FC<IconButtonProps> = ({
                 await handleDownloadPDF(e);
               } else if (item === "download_docx") {
                 await handleDownloadDOCX(e);
+              } else if (item === "assign_folder") {
+                if (onAssignToFolder) {
+                  onAssignToFolder();
+                }
+                if (e) closeDropDownMenu(e);
+              } else if (item === "preview") {
+                if (onPreview) {
+                  onPreview();
+                }
+                if (e) closeDropDownMenu(e);
+              } else if (item === "edit_metadata") {
+                if (onEditMetadata) {
+                  onEditMetadata();
+                }
+                if (e) closeDropDownMenu(e);
               } else if (item === "delete" && (type === "Task" || type === "task")) {
                 // Task hard delete action
                 if (hardDeleteWarningTitle && hardDeleteWarningMessage) {

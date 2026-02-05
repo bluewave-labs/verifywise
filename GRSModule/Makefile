@@ -12,4 +12,7 @@ perturb:
 validate:
 	uv run grs-scenarios generate --stage validate
 
+infer-mock-client:
+	uv run grs-scenarios generate --stage infer --model-id mock-v0
+
 all: seeds render perturb

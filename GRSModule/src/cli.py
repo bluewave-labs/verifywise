@@ -29,6 +29,10 @@ from reports.validate_report import build_validate_report
 from seeds.index import ObligationIndex
 from validate.enrich import enrich_with_obligations
 
+from infer.runner import run_inference, InferConfig
+from llm.mock import MockChatClient
+
+
 
 import json
 
@@ -296,7 +300,33 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         console.print(f"- wrote: {manifest_path}")
         return 0
 
+    if args.stage == "infer":
+        scenarios_in = final_dir / "scenarios.jsonl"
+        if not scenarios_in.exists():
+            console.print(f"[red]Missing input:[/red] {scenarios_in} (run --stage validate first)")
+            return 2
 
+        scenarios = list(read_jsonl(scenarios_in))
+
+        client = MockChatClient(model_id=args.model_id, provider=args.provider)
+
+        cfg = InferConfig(
+            model_id=args.model_id,
+            provider=args.provider,
+            temperature=float(args.temperature),
+            max_tokens=int(args.max_tokens),
+        )
+
+        responses = run_inference(scenarios=scenarios, client=client, cfg=cfg)
+
+        out_path = final_dir / "candidate_responses.jsonl"
+        write_jsonl(out_path, responses)
+
+        console.print("[bold green]Inference complete.[/bold green]")
+        console.print(f"- scenarios_in: {len(scenarios)}")
+        console.print(f"- responses_out: {len(responses)}")
+        console.print(f"- wrote: {out_path}")
+        return 0
 
     console.print(f"[red]Unsupported stage:[/red] {args.stage}")
     return 2
@@ -307,13 +337,17 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     gen = sub.add_parser("generate", help="Generate artifacts for the scenario pipeline")
-    gen.add_argument("--stage", choices=["seeds", "render", "perturb", "validate"], required=True)
+    gen.add_argument("--stage", choices=["seeds", "render", "perturb", "validate", "infer"], required=True)
     gen.add_argument("--seed", default="42")
     gen.add_argument("--per-obligation", default="2")
     gen.add_argument("--mutations", default="configs/mutations.yaml")
     gen.add_argument("--k-per-base", default="3")
     gen.add_argument("--coverage", choices=["random", "per_family"], default="random")
     gen.add_argument("--inject-constraints-into-prompt", action="store_true")
+    gen.add_argument("--model-id", default="mock-model")
+    gen.add_argument("--provider", default="mock")
+    gen.add_argument("--temperature", default="0.2")
+    gen.add_argument("--max-tokens", default="500")
     gen.add_argument("--dataset-version", default="grs_scenarios_v0.1")
     gen.add_argument("--obligations", default="configs/obligations.yaml")
     gen.add_argument("--out-dir", default="datasets")

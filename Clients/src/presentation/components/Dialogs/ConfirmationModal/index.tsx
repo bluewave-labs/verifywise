@@ -22,6 +22,7 @@ interface ConfirmationModalProps {
   TitleFontSize?: number;
   confirmBtnSx?: SxProps<Theme> | undefined;
   isOpen?: boolean;
+  isLoading?: boolean;
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -36,6 +37,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   TitleFontSize,
   confirmBtnSx,
   isOpen = true,
+  isLoading = false,
 }) => {
   useModalKeyHandling({
     isOpen,
@@ -94,14 +96,16 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               variant="text"
               sx={{ color: "#344054", px: "32px", width: 120 }}
               onClick={onCancel}
+              isDisabled={isLoading}
             />
           )}
           <CustomizableButton
-            text={proceedText}
+            text={isLoading ? "Processing..." : proceedText}
             color={proceedButtonColor}
             variant={proceedButtonVariant}
             onClick={onProceed}
             sx={confirmBtnSx}
+            isDisabled={isLoading}
           />
         </Stack>
       </Stack>

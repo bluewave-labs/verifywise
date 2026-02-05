@@ -125,6 +125,15 @@ export const deleteReportByIdQuery = async (
   tenant: string,
   transaction: Transaction
 ) => {
+  // Clean up any virtual folder mappings for this file
+  await sequelize.query(
+    `DELETE FROM "${tenant}".file_folder_mappings WHERE file_id = :id`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  );
+
   const result = await sequelize.query(
     `DELETE FROM "${tenant}".files WHERE id = :id RETURNING *`,
     {

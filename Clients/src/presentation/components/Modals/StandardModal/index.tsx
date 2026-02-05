@@ -222,34 +222,36 @@ const StandardModal: React.FC<StandardModalProps> = ({
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
               {headerActions}
-              <Box
-              component="span"
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onClose();
-                }
-              }}
-              sx={{
-                cursor: "pointer",
-                color: "#98A2B3",
-                display: "flex",
-                alignItems: "center",
-                padding: "4px",
-                borderRadius: "4px",
-                "&:hover": {
-                  backgroundColor: "#F2F4F7",
-                },
-              }}
-            >
-                <CloseIcon size={20} />
-              </Box>
+              {showCancelButton && (
+                <Box
+                  component="span"
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClose();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onClose();
+                    }
+                  }}
+                  sx={{
+                    cursor: "pointer",
+                    color: "#98A2B3",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "4px",
+                    borderRadius: "4px",
+                    "&:hover": {
+                      backgroundColor: "#F2F4F7",
+                    },
+                  }}
+                >
+                  <CloseIcon size={20} />
+                </Box>
+              )}
             </Stack>
           </Stack>
         </Stack>

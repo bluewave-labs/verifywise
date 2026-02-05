@@ -2,7 +2,7 @@ import React, { CSSProperties, useEffect, useState, useCallback, useRef } from "
 import DOMPurify from "dompurify";
 import PolicyForm from "./PolicyForm";
 import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../types/interfaces/i.policy";
-import { Plate, PlateContent, createPlateEditor } from "platejs/react";
+import { Plate, PlateContent, createPlateEditor, ParagraphPlugin } from "platejs/react";
 import { serializeHtml } from "platejs/static";
 import { AutoformatPlugin } from "@platejs/autoformat";
 import { Range, Editor, BaseRange, Transforms, Path } from "slate";
@@ -266,6 +266,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     () =>
       createPlateEditor({
         plugins: [
+          ParagraphPlugin,
           BoldPlugin,
           ItalicPlugin,
           UnderlinePlugin,
@@ -633,8 +634,16 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     // List items: data-block-id starting with "li-"
     normalized = normalized.replace(/<div[^>]*data-block-id="li-[^"]*"[^>]*>/gi, '<li>');
 
+    // Preserve heading tags that Plate's serializeHtml generates
+    // serializeHtml outputs <h1>, <h2>, <h3> for heading nodes - don't convert these to <p>
+    // First, temporarily mark existing heading tags so they don't get processed
+    normalized = normalized.replace(/<(h[1-3])([^>]*)>/gi, '<__HEADING_$1__$2>');
+
     // Any remaining element divs become paragraphs (generic content blocks)
     normalized = normalized.replace(/<div[^>]*data-slate-node="element"[^>]*>/gi, '<p>');
+
+    // Restore the heading tags
+    normalized = normalized.replace(/<__HEADING_(h[1-3])__([^>]*)>/gi, '<$1$2>');
 
     // Now convert closing </div> tags to match the opening tags we converted
     // Parse through and match them properly
@@ -754,6 +763,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                     "alt",
                     "src",
                     "data-src",
+                    "data-slate-type",
+                    "data-slate-node",
+                    "data-slate-id",
+                    "data-block-id",
                     "class",
                     "id",
                     "style",

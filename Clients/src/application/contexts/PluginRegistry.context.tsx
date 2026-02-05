@@ -254,6 +254,14 @@ export function PluginRegistryProvider({
               trigger: slotConfig.trigger,
             };
 
+            console.log(`[PluginRegistry] Debug - Registering component:`, {
+              pluginKey,
+              slotId: slotConfig.slotId,
+              componentName: slotConfig.componentName,
+              renderType: slotConfig.renderType,
+              props: slotConfig.props,
+            });
+
             const existing = newComponents.get(slotConfig.slotId) || [];
             newComponents.set(slotConfig.slotId, [...existing, loadedComponent]);
           }
@@ -298,17 +306,26 @@ export function PluginRegistryProvider({
   }, []);
 
   // Get tab configurations for plugins registered in a slot
+  // De-duplicates tabs by value (so multiple plugins can share the same tab)
   const getPluginTabs = useCallback(
     (slotId: string): PluginTabConfig[] => {
       const components = loadedComponents.get(slotId) || [];
-      return components
+      const tabs = components
         .filter((c) => c.renderType === "tab")
         .map((c) => ({
           pluginKey: c.pluginKey,
           label: c.props?.label || c.pluginKey,
-          value: c.pluginKey,
+          value: c.props?.value || c.pluginKey,
           icon: c.props?.icon,
         }));
+
+      // De-duplicate by value (first one wins)
+      const seen = new Set<string>();
+      return tabs.filter((tab) => {
+        if (seen.has(tab.value)) return false;
+        seen.add(tab.value);
+        return true;
+      });
     },
     [loadedComponents]
   );

@@ -24,7 +24,7 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { getUserById } from "../../../application/repository/user.repository";
 import { getTimeBasedGreeting } from "../../../application/utils/greetings";
 import { formatRelativeDate } from "../../../application/utils/dateFormatter";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import DashboardSteps from "./DashboardSteps";
 import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown";
@@ -46,7 +46,7 @@ import GovernanceScoreCard from "../../components/Charts/GovernanceScoreCard";
 import UseCasesTable from "../../components/Table/UseCasesTable";
 import EmptyStateMessage from "../../components/EmptyStateMessage";
 import ActivityItem from "../../components/ActivityItem";
-import ButtonToggle from "../../components/ButtonToggle";
+import { ButtonToggle } from "../../components/button-toggle";
 import { OrganizationalFrameworkData } from "../../../application/hooks/useDashboardMetrics";
 import {
   COLORS,
@@ -526,13 +526,13 @@ const IntegratedDashboard: React.FC = () => {
             sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", mb: "16px" }}
           >
             <DashboardCard title="AI governance score">
-              {governanceScoreMetrics ? (
+              {governanceScoreMetrics && governanceScoreMetrics?.score > 0 ? (
                 <GovernanceScoreCard
-                  score={governanceScoreMetrics.score}
-                  modules={governanceScoreMetrics.modules}
+                  score={governanceScoreMetrics?.score}
+                  modules={governanceScoreMetrics?.modules}
                 />
               ) : (
-                <EmptyStateMessage message="Score not available" />
+                <EmptyStateMessage message="Add data to see your governance score" />
               )}
             </DashboardCard>
             <DashboardCard title="Use case & framework risks" navigateTo="/risk-management">
@@ -824,13 +824,13 @@ const IntegratedDashboard: React.FC = () => {
             sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", mb: "16px" }}
           >
             <DashboardCard title="AI governance score">
-              {governanceScoreMetrics ? (
+              {governanceScoreMetrics && governanceScoreMetrics?.score > 0  ? (
                 <GovernanceScoreCard
                   score={governanceScoreMetrics.score}
                   modules={governanceScoreMetrics.modules}
                 />
               ) : (
-                <EmptyStateMessage message="Score not available" />
+                <EmptyStateMessage message="Add data to see your governance score" />
               )}
             </DashboardCard>
             <DashboardCard title="Use case & framework risks" navigateTo="/risk-management">

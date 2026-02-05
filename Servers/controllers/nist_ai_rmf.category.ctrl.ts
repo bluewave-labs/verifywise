@@ -17,7 +17,7 @@ export async function getAllNISTAIRMFCategoriesByfunctionId(
   logger.debug("🔍 Fetching all NIST AI RMF categories by function ID");
   try {
     const categories = await getAllNISTAIRMFCategoriesBytitleQuery(
-      req.params.title,
+      Array.isArray(req.params.title) ? req.params.title[0] : req.params.title,
       req.tenantId!
     );
     if (categories && categories.length > 0) {

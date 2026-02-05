@@ -4,8 +4,8 @@ const { getTenantHash } = require("../../dist/tools/getTenantHash");
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
+    const transaction = await queryInterface.sequelize.transaction();
     try {
-      const transaction = await queryInterface.sequelize.transaction();
       const organizations = await queryInterface.sequelize.query(`SELECT id FROM public.organizations;`, { transaction })
       if (organizations[0].length !== 0) {
         const tenantHash = getTenantHash(organizations[0][0].id);
@@ -35,8 +35,8 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
+    const transaction = await queryInterface.sequelize.transaction();
     try {
-      const transaction = await queryInterface.sequelize.transaction();
       const organizations = await queryInterface.sequelize.query(`SELECT id FROM public.organizations;`, { transaction })
       if (organizations[0].length !== 0) {
         const tenantHash = getTenantHash(organizations[0][0].id);

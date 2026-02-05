@@ -66,7 +66,7 @@ export async function getSubtopicById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const subtopicId = parseInt(req.params.id);
+  const subtopicId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logStructured(
     "processing",
     `fetching subtopic by ID: ${subtopicId}`,
@@ -246,7 +246,7 @@ export async function updateSubtopicById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const subtopicId = parseInt(req.params.id);
+  const subtopicId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const updateData = req.body;
 
   logStructured(
@@ -398,7 +398,7 @@ export async function deleteSubtopicById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const subtopicId = parseInt(req.params.id);
+    const subtopicId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
     const subtopic = await deleteSubtopicByIdQuery(
       subtopicId,
@@ -422,7 +422,7 @@ export async function getSubtopicByTopicId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const topicId = parseInt(req.params.id);
+  const topicId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   try {
     if (isNaN(topicId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid topic ID"));

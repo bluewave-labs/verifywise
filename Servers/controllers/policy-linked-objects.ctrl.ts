@@ -75,7 +75,7 @@ export async function getAllLinkedObjects(req: Request, res: Response) {
 
 
 export async function getLinkedObjects(req: Request, res: Response) {
-  const policyId = parseInt(req.params.policyId);
+  const policyId = parseInt(Array.isArray(req.params.policyId) ? req.params.policyId[0] : req.params.policyId);
 
   logStructured(
     "processing",
@@ -140,7 +140,7 @@ export async function getLinkedObjects(req: Request, res: Response) {
  * POST /policies/:policyId/linked-objects
  */
 export async function createLinkedObject(req: Request, res: Response) {
-  const policyId = parseInt(req.params.policyId);
+  const policyId = parseInt(Array.isArray(req.params.policyId) ? req.params.policyId[0] : req.params.policyId);
   const { object_type, object_id, object_ids } = req.body;
 
   logger.debug(`🔗 Linking ${object_type} to policy ${policyId}`);
@@ -189,7 +189,7 @@ export async function createLinkedObject(req: Request, res: Response) {
 
 
 export async function deleteRiskFromAllPolicies(req: Request, res: Response) {
-  const riskId = parseInt(req.params.riskId);
+  const riskId = parseInt(Array.isArray(req.params.riskId) ? req.params.riskId[0] : req.params.riskId);
 
   logStructured(
     "processing",
@@ -238,7 +238,7 @@ export async function deleteRiskFromAllPolicies(req: Request, res: Response) {
 
 
 export async function deleteEvidenceFromAllPolicies(req: Request, res: Response) {
-  const evidenceId = parseInt(req.params.evidenceId);
+  const evidenceId = parseInt(Array.isArray(req.params.evidenceId) ? req.params.evidenceId[0] : req.params.evidenceId);
 
   let transaction: Transaction | null = null;
 
@@ -271,7 +271,7 @@ export async function deleteEvidenceFromAllPolicies(req: Request, res: Response)
  * DELETE /policies/:policyId/linked-objects
  */
 export async function deleteLinkedObject(req: Request, res: Response) {
-    const id = parseInt(req.params.policyId);
+    const id = parseInt(Array.isArray(req.params.policyId) ? req.params.policyId[0] : req.params.policyId);
   
     logStructured(
       "processing",

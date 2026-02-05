@@ -26,7 +26,7 @@ import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 
 export async function getCompanyLogo(req: Request, res: Response) {
-  const { hash } = req.params;
+  const hash = Array.isArray(req.params.hash) ? req.params.hash[0] : req.params.hash;
   logStructured(
     "processing",
     `fetching company logo for hash: ${hash}`,
@@ -77,7 +77,7 @@ export async function getCompanyLogo(req: Request, res: Response) {
 }
 
 export async function getAITrustCentrePublicPage(req: Request, res: Response) {
-  const { hash } = req.params;
+  const hash = Array.isArray(req.params.hash) ? req.params.hash[0] : req.params.hash;
   logStructured(
     "processing",
     `fetching AI Trust Centre public page for hash: ${hash}`,
@@ -117,7 +117,8 @@ export async function getAITrustCentrePublicResource(
   req: Request,
   res: Response
 ) {
-  const { hash, id } = req.params;
+  const hash = Array.isArray(req.params.hash) ? req.params.hash[0] : req.params.hash;
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
   logStructured(
     "processing",
@@ -650,7 +651,7 @@ export async function updateAITrustResource(
   req: RequestWithFile,
   res: Response
 ) {
-  const resourceId = parseInt(req.params.id);
+  const resourceId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const transaction = await sequelize.transaction();
   const body = req.body as Partial<{
     name: string;
@@ -773,7 +774,7 @@ export async function updateAITrustResource(
 }
 
 export async function updateAITrustSubprocessor(req: Request, res: Response) {
-  const subprocessorId = parseInt(req.params.id);
+  const subprocessorId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const transaction = await sequelize.transaction();
   const body = req.body as Partial<{
     name: string;
@@ -860,7 +861,7 @@ export async function updateAITrustSubprocessor(req: Request, res: Response) {
 }
 
 export async function deleteAITrustResource(req: Request, res: Response) {
-  const resourceId = parseInt(req.params.id);
+  const resourceId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const transaction = await sequelize.transaction();
 
   logStructured(
@@ -936,7 +937,7 @@ export async function deleteAITrustResource(req: Request, res: Response) {
 }
 
 export async function deleteAITrustSubprocessor(req: Request, res: Response) {
-  const subprocessorId = parseInt(req.params.id);
+  const subprocessorId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const transaction = await sequelize.transaction();
 
   logStructured(

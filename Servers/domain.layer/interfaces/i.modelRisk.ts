@@ -18,6 +18,7 @@ export interface IModelRisk {
   current_values?: string;
   threshold?: string;
   model_id?: number;
+  is_demo?: boolean;
   created_at?: Date;
   updated_at?: Date;
 }

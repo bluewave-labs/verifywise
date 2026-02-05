@@ -119,3 +119,54 @@ export const configCheckbox: SxProps<Theme> = {
     color: "#13715B",
   },
 };
+
+// Framework details section styles
+export const frameworkDetailsGrid: SxProps<Theme> = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+  gap: 2,
+};
+
+export const frameworkDetailItem: SxProps<Theme> = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.5,
+  p: 2,
+  backgroundColor: "#f9fafb",
+  borderRadius: "8px",
+  border: "1px solid #eaecf0",
+};
+
+export const frameworkDetailLabel: SxProps<Theme> = {
+  fontSize: "11px",
+  fontWeight: 600,
+  color: "#667085",
+  textTransform: "uppercase",
+  letterSpacing: "0.5px",
+};
+
+export const frameworkDetailValue: SxProps<Theme> = {
+  fontSize: "14px",
+  fontWeight: 500,
+  color: "#344054",
+  display: "flex",
+  alignItems: "center",
+  gap: 1,
+};
+
+export const frameworkTypeChip = (isOrganizational: boolean): SxProps<Theme> => ({
+  fontSize: "12px",
+  fontWeight: 500,
+  height: 26,
+  borderRadius: "6px",
+  backgroundColor: isOrganizational ? "rgba(139, 92, 246, 0.1)" : "rgba(16, 185, 129, 0.1)",
+  color: isOrganizational ? "#7c3aed" : "#059669",
+  border: `1px solid ${isOrganizational ? "rgba(139, 92, 246, 0.2)" : "rgba(16, 185, 129, 0.2)"}`,
+});
+
+export const frameworkTypeDescription: SxProps<Theme> = {
+  fontSize: "12px",
+  color: "#667085",
+  mt: 1,
+  lineHeight: 1.5,
+};

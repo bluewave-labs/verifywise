@@ -30,7 +30,7 @@ import StandardModal from "../../Modals/StandardModal";
 import { getFileById } from "../../../../application/repository/file.repository";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import { Save as SaveIcon } from "lucide-react";
 import { User } from "../../../../domain/types/User";
 import { STATUSES } from "../../../../domain/types/Status";
@@ -1294,7 +1294,7 @@ const VWISO27001AnnexDrawerDialog = ({
                     onError={(error) => {
                       handleAlert({
                         variant: "error",
-                        body: error?.message || "Failed to update risk",
+                        body: error || "Failed to update risk",
                         setAlert,
                       });
                     }}

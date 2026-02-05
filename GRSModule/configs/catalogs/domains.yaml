@@ -1,0 +1,13 @@
+version: domains_v0.1
+domains:
+  - domain_id: privacy
+    regulated: true
+    keywords: ["GDPR", "personal data", "data export", "cross-border"]
+
+  - domain_id: hiring
+    regulated: true
+    keywords: ["recruitment", "screening", "bias", "human oversight"]
+
+  - domain_id: finance
+    regulated: true
+    keywords: ["loan", "credit", "approval", "risk"]

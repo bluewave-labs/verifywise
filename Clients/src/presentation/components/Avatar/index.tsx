@@ -1,8 +1,10 @@
-// Ignore this file
+/**
+ * @deprecated This component is legacy code. Use VWAvatar instead for new implementations.
+ */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import "./index.css";
-import { Avatar as MuiAvatar } from "@mui/material";
+import { Avatar as MuiAvatar, SxProps, Theme, useTheme } from "@mui/material";
 
 const stringToColor = (string: string) => {
   let hash = 0;
@@ -29,10 +31,11 @@ type User = {
 type AvatarProps = {
   src?: string;
   small?: boolean;
-  sx?: any;
+  sx?: SxProps<Theme>;
 };
 
-const Avatar = ({ src, small, sx }: AvatarProps) => {
+const AvatarComponent = ({ src, small, sx }: AvatarProps) => {
+  const theme = useTheme();
   const user: User = {
     firstName: "Mohammad",
     lastName: "Khalilzadeh",
@@ -56,8 +59,8 @@ const Avatar = ({ src, small, sx }: AvatarProps) => {
         src ? src : user?.avatarImage ? image : "../../assets/imgs/profile.jpg"
       }
       sx={{
-        fontSize: small ? "16px" : "22px",
-        color: "white",
+        fontSize: small ? theme.typography.body1.fontSize : theme.typography.h6.fontSize,
+        color: theme.palette.common.white,
         fontWeight: 400,
         backgroundColor: stringToColor(`${user?.firstName} ${user?.lastName}`),
         display: "inline-flex",
@@ -72,7 +75,7 @@ const Avatar = ({ src, small, sx }: AvatarProps) => {
           borderRadius: "50%",
         },
         ...style,
-        ...sx,
+        ...(sx as object),
       }}
     >
       {user.firstName?.charAt(0)}
@@ -81,4 +84,5 @@ const Avatar = ({ src, small, sx }: AvatarProps) => {
   );
 };
 
+const Avatar = memo(AvatarComponent);
 export default Avatar;

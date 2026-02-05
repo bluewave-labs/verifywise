@@ -55,7 +55,7 @@ export async function getAllNISTAIRMFSubcategoriesBycategoryIdAndtitle(
     const subcategories =
       await getAllNISTAIRMFSubcategoriesBycategoryIdAndtitleQuery(
         Number(req.params.categoryId),
-        req.params.title,
+        Array.isArray(req.params.title) ? req.params.title[0] : req.params.title,
         req.tenantId!
       );
     if (subcategories && subcategories.length > 0) {
@@ -138,7 +138,7 @@ export async function getNISTAIRMFSubcategoryRisks(
   req: Request,
   res: Response
 ): Promise<any> {
-  const subcategoryId = parseInt(req.params.id);
+  const subcategoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getNISTAIRMFSubcategoryRisks for subcategory ID ${subcategoryId}`,
@@ -195,7 +195,7 @@ export async function updateNISTAIRMFSubcategoryById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const subcategoryId = parseInt(req.params.id);
+  const subcategoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting updateNISTAIRMFSubcategoryById for subcategory ID ${subcategoryId}`,
@@ -352,7 +352,7 @@ export async function updateNISTAIRMFSubcategoryStatus(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const subcategoryId = parseInt(req.params.id);
+  const subcategoryId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const { status } = req.body;
 
   logProcessing({

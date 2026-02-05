@@ -23,6 +23,8 @@ interface Plugin {
   version: string;
   author?: string;
   category: string;
+  region?: string;
+  frameworkType?: "organizational" | "project";
   iconUrl?: string;
   documentationUrl?: string;
   supportUrl?: string;
@@ -148,7 +150,8 @@ export class PluginService {
       return plugin || null;
     } catch (error: any) {
       console.error(
-        `[PluginService] Error fetching plugin ${pluginKey}:`,
+        "[PluginService] Error fetching plugin %s:",
+        pluginKey,
         error
       );
       throw new Error(`Failed to fetch plugin: ${error.message}`);
@@ -409,7 +412,8 @@ export class PluginService {
         const pluginContext = context ? { sequelize, ...context } : undefined;
         const result = await pluginCode.testConnection(configuration, pluginContext);
         console.log(
-          `[PluginService] Plugin ${pluginKey} connection test:`,
+          "[PluginService] Plugin %s connection test:",
+          pluginKey,
           result
         );
         return result;
@@ -433,8 +437,9 @@ export class PluginService {
 
   /**
    * Download plugin's package.json from repository
+   * Returns null if package.json doesn't exist (e.g., for pre-bundled framework plugins)
    */
-  private static async downloadPluginPackageJson(plugin: Plugin, tempPath: string): Promise<any> {
+  private static async downloadPluginPackageJson(plugin: Plugin, tempPath: string): Promise<any | null> {
     try {
       const baseUrl = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
       const packageJsonUrl = `${baseUrl}/${plugin.pluginPath}/package.json`;
@@ -444,6 +449,10 @@ export class PluginService {
       const response = await axios.get(packageJsonUrl, {
         timeout: 10000,
         responseType: 'json',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
       });
 
       // Save package.json to temp directory
@@ -452,6 +461,12 @@ export class PluginService {
 
       return response.data;
     } catch (error: any) {
+      // If package.json doesn't exist (404), return null instead of throwing
+      // This is expected for pre-bundled framework plugins that don't have dependencies
+      if (error.response?.status === 404) {
+        console.log(`[PluginService] No package.json found for plugin ${plugin.key} (pre-bundled plugin)`);
+        return null;
+      }
       console.error(`[PluginService] Error downloading package.json for ${plugin.key}:`, error);
       throw new Error(`Failed to download package.json: ${error.message}`);
     }
@@ -510,15 +525,20 @@ export class PluginService {
 
     try {
       const baseUrl = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
-      // bundleUrl is like "/plugins/mlflow/ui/dist/index.esm.js"
-      // We need to construct the full URL
-      const bundleUrl = `${baseUrl}${plugin.ui.bundleUrl}`;
+      // bundleUrl is like "/api/plugins/mlflow/ui/dist/index.esm.js" for frontend
+      // Strip /api prefix for GitHub download path
+      const repoPath = plugin.ui.bundleUrl.replace(/^\/api/, "");
+      const bundleUrl = `${baseUrl}${repoPath}`;
 
       console.log(`[PluginService] Downloading UI bundle for ${plugin.key} from ${bundleUrl}`);
 
       const response = await axios.get(bundleUrl, {
         timeout: 30000,
         responseType: 'text',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
       });
 
       // Create the ui/dist directory
@@ -546,10 +566,22 @@ export class PluginService {
         timeout: 10000,
         headers: {
           "Accept": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
         },
       });
 
-      return response.data;
+      const data = response.data as PluginMarketplace;
+
+      // Transform relative iconUrl paths to full URLs
+      data.plugins = data.plugins.map((plugin) => {
+        if (plugin.iconUrl && !plugin.iconUrl.startsWith("http")) {
+          plugin.iconUrl = `${PLUGIN_MARKETPLACE_BASE_URL}/${plugin.iconUrl}`;
+        }
+        return plugin;
+      });
+
+      return data;
     } catch (error: any) {
       console.error("[PluginService] Error fetching remote marketplace:", error);
       throw new Error(`Failed to fetch remote marketplace: ${error.message}`);
@@ -582,13 +614,13 @@ export class PluginService {
       // 1. Setup paths
       const tempPath = path.join(__dirname, "../../../temp/plugins", plugin.key);
       const entryPointPath = path.join(tempPath, plugin.entryPoint);
-      const packageJsonPath = path.join(tempPath, "package.json");
 
       // 2. Check if cached version exists and is less than 5 days old
+      // Note: package.json is optional (pre-bundled plugins don't have it)
       const CACHE_DURATION_MS = 5 * 24 * 60 * 60 * 1000; // 5 days in milliseconds
       let shouldDownload = true;
 
-      if (fs.existsSync(entryPointPath) && fs.existsSync(packageJsonPath)) {
+      if (fs.existsSync(entryPointPath)) {
         const stats = fs.statSync(entryPointPath);
         const fileAge = Date.now() - stats.mtimeMs;
 
@@ -605,7 +637,7 @@ export class PluginService {
         // Create temp directory
         fs.mkdirSync(tempPath, { recursive: true });
 
-        // 3a. Download package.json
+        // 3a. Download package.json (optional - may not exist for pre-bundled plugins)
         const packageJson = await this.downloadPluginPackageJson(plugin, tempPath);
 
         // 3b. Download plugin entry point
@@ -617,14 +649,24 @@ export class PluginService {
         const response = await axios.get(pluginUrl, {
           timeout: 10000,
           responseType: 'text',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
         });
+
+        // Ensure parent directory exists for entry point (handles nested paths like dist/index.js)
+        const entryPointDir = path.dirname(entryPointPath);
+        fs.mkdirSync(entryPointDir, { recursive: true });
 
         fs.writeFileSync(entryPointPath, response.data);
 
         console.log(`[PluginService] Plugin ${plugin.key} downloaded and cached`);
 
-        // 3c. Install dependencies
-        await this.installPluginDependencies(plugin, tempPath, packageJson);
+        // 3c. Install dependencies (only if package.json exists)
+        if (packageJson) {
+          await this.installPluginDependencies(plugin, tempPath, packageJson);
+        }
 
         // 3d. Download UI bundle if plugin has UI configuration
         if (plugin.ui?.bundleUrl) {

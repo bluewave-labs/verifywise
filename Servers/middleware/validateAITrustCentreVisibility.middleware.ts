@@ -6,7 +6,7 @@ export const validateVisibility = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { hash } = req.params;
+  const hash = Array.isArray(req.params.hash) ? req.params.hash[0] : req.params.hash;
 
   if (!hash || hash.replace(/\s+/g, " ").trim().length !== 10) {
     return res.status(400).json({ error: "Invalid hash" });

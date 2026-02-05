@@ -98,6 +98,7 @@ router.get("/:key/ui/dist/:filename", async (req, res) => {
 // NOTE: This catch-all MUST be last to allow specific routes above to match first.
 // Plugins define their own routes - no hardcoded plugin-specific routes needed here!
 // ============================================================================
-router.all("/:key/*", authenticateJWT, forwardToPlugin);
+// Use router.use() with a parameter to match everything after :key
+router.use("/:key", authenticateJWT, forwardToPlugin);
 
 export default router;

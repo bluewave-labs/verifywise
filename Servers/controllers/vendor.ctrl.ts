@@ -74,7 +74,7 @@ export async function getAllVendors(req: Request, res: Response): Promise<any> {
 }
 
 export async function getVendorById(req: Request, res: Response): Promise<any> {
-  const vendorId = parseInt(req.params.id);
+  const vendorId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getVendorById for ID ${vendorId}`,
@@ -126,7 +126,7 @@ export async function getVendorByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectId = parseInt(req.params.id);
+  const projectId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getVendorByProjectId for ID ${projectId}`,
@@ -300,7 +300,7 @@ export async function updateVendorById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const vendorId = parseInt(req.params.id);
+  const vendorId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const updateData = req.body;
 
   logProcessing({
@@ -461,7 +461,7 @@ export async function deleteVendorById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const vendorId = parseInt(req.params.id);
+  const vendorId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting deleteVendorById for ID ${vendorId}`,

@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import "./index.css";
 import { Stack, SxProps, Theme, Typography } from "@mui/material";
 import {useModalKeyHandling} from "../../../../application/hooks/useModalKeyHandling";

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useContext } from "react";
+import { useState, useEffect, useMemo, useContext, useCallback } from "react";
 import { Box, Button, Tab, Alert } from "@mui/material";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -13,12 +13,14 @@ import useFrameworks from "../../../../application/hooks/useFrameworks";
 import AddFrameworkModal from "../AddNewFramework";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { ButtonToggle } from "../../../components/button-toggle";
+import { PluginSlot } from "../../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
+import { usePluginRegistry } from "../../../../application/contexts/PluginRegistry.context";
 
 import {
   containerStyle,
   headerContainerStyle,
-  frameworkTabsContainerStyle,
-  getFrameworkTabStyle,
   addButtonStyle,
   tabListStyle,
 } from "./styles";
@@ -59,6 +61,7 @@ const ProjectFrameworks = ({
   });
   const [selectedFrameworkId, setSelectedFrameworkId] =
     useState<number>(initialFrameworkId);
+  const [selectedFramework, setSelectedFramework] = useState<number>(0);
   const [tracker, setTracker] = useState<TrackerTab>("compliance");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -67,6 +70,7 @@ const ProjectFrameworks = ({
 
   const { changeComponentVisibility } = useContext(VerifyWiseContext);
   const { userRoleName } = useAuth();
+  const { getComponentsForSlot } = usePluginRegistry();
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
@@ -108,6 +112,8 @@ const ProjectFrameworks = ({
       // If initialFrameworkId is provided and valid, use it
       if (initialFrameworkId && validIds.includes(initialFrameworkId)) {
         setSelectedFrameworkId(initialFrameworkId);
+        const index = projectFrameworks.findIndex((fw: Framework) => Number(fw.id) === initialFrameworkId);
+        setSelectedFramework(index >= 0 ? index : 0);
         // Check for subtab parameter first, then controlId, default to assessment
         if (subtabParam === "compliance" || subtabParam === "assessment") {
           setTracker(subtabParam as TrackerTab);
@@ -122,6 +128,7 @@ const ProjectFrameworks = ({
       ) {
         const initialFramework = projectFrameworks[0];
         setSelectedFrameworkId(Number(initialFramework.id));
+        setSelectedFramework(0);
         setTracker("compliance");
       }
 
@@ -136,12 +143,13 @@ const ProjectFrameworks = ({
     searchParams
   ]);
 
-  const handleFrameworkChange = (frameworkId: number) => {
+  const handleFrameworkSelect = (index: number) => {
     searchParams.delete("framework");
     searchParams.delete("topicId");
     searchParams.delete("questionId");
     setSearchParams(searchParams);
-    setSelectedFrameworkId(frameworkId);
+    setSelectedFramework(index);
+    setSelectedFrameworkId(Number(projectFrameworks[index]?.id));
     setTracker("compliance");
   };
 
@@ -185,53 +193,9 @@ const ProjectFrameworks = ({
     setApplicabilityFilter("");
   }, [tracker]);
 
-  if (error) {
-    return (
-      <Box sx={containerStyle}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-        <Button onClick={refreshFilteredFrameworks} variant="contained">
-          Retry
-        </Button>
-      </Box>
-    );
-  }
-
-  return (
-    <Box sx={containerStyle}>
-      <Box sx={headerContainerStyle}>
-        <Box sx={frameworkTabsContainerStyle}>
-          {loading ? (
-            <CustomizableSkeleton
-              variant="rectangular"
-              width={200}
-              height={40}
-            />
-          ) : (
-            projectFrameworks.map((fw: Framework, idx: number) => (
-              <Box
-                key={fw.id}
-                onClick={() => handleFrameworkChange(Number(fw.id))}
-                sx={getFrameworkTabStyle(
-                  selectedFrameworkId === Number(fw.id),
-                  idx === projectFrameworks.length - 1
-                )}
-              >
-                {fw.name}
-              </Box>
-            ))
-          )}
-        </Box>
-        <Button
-          variant="contained"
-          sx={addButtonStyle}
-          onClick={() => setIsModalOpen(true)}
-          disabled={isManagingFrameworksDisabled}
-        >
-          Manage frameworks/regulations
-        </Button>
-      </Box>
+  // Render built-in framework content
+  const renderBuiltInContent = useCallback(() => (
+    <>
       <TabFilterBar
         statusFilter={statusFilter}
         onStatusChange={setStatusFilter}
@@ -254,31 +218,6 @@ const ProjectFrameworks = ({
         ownerOptions={userOptions}
         approverOptions={userOptions}
       />
-
-      <AddFrameworkModal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        frameworks={nonOrganizationalFrameworks}
-        project={project}
-        onFrameworksChanged={(action, frameworkId?: number) => {
-          if (triggerRefresh) {
-            if (action === "add")
-              triggerRefresh(true, "Framework added successfully");
-            else if (action === "remove") {
-              triggerRefresh(true, "Framework removed successfully");
-              // Find a framework whose id is not the removed one, and set its id as selected
-              const nextFramework = project.framework?.find(
-                (f) => Number(f.framework_id) !== frameworkId
-              );
-              if (nextFramework?.framework_id) {
-                handleFrameworkChange(nextFramework.framework_id);
-              }
-            } else triggerRefresh(true);
-          }
-          refreshFilteredFrameworks();
-        }}
-      />
-
       <TabContext value={tracker}>
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
           <TabList
@@ -331,6 +270,112 @@ const ProjectFrameworks = ({
           </TabPanel>
         )}
       </TabContext>
+    </>
+  ), [
+    statusFilter, applicabilityFilter, ownerFilter, approverFilter, dueDateFilter,
+    isEUAIAct, tracker, statusOptions, userOptions, tabs, refs, project, tabListStyle
+  ]);
+
+  if (error) {
+    return (
+      <Box sx={containerStyle}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        <Button onClick={refreshFilteredFrameworks} variant="contained">
+          Retry
+        </Button>
+      </Box>
+    );
+  }
+
+  // Check if plugin is providing custom framework controls
+  const hasCustomFrameworkPlugin = getComponentsForSlot(PLUGIN_SLOTS.PROJECT_CONTROLS_CUSTOM_FRAMEWORK).length > 0;
+
+  // Render the "Manage frameworks" button
+  const renderManageButton = () => (
+    <Button
+      variant="contained"
+      sx={addButtonStyle}
+      onClick={() => setIsModalOpen(true)}
+      disabled={isManagingFrameworksDisabled}
+    >
+      Manage frameworks/regulations
+    </Button>
+  );
+
+  return (
+    <Box sx={containerStyle}>
+      {/* Header with toggle and button - only shown when NO plugin */}
+      {!hasCustomFrameworkPlugin && (
+        <Box sx={headerContainerStyle}>
+          {loading ? (
+            <CustomizableSkeleton
+              variant="rectangular"
+              width={200}
+              height={40}
+            />
+          ) : projectFrameworks.length > 0 ? (
+            <ButtonToggle
+              options={projectFrameworks.map((fw: Framework, index: number) => ({
+                value: index.toString(),
+                label: fw.name,
+              }))}
+              value={selectedFramework.toString()}
+              onChange={(value) => handleFrameworkSelect(parseInt(value))}
+              height={34}
+            />
+          ) : null}
+          {renderManageButton()}
+        </Box>
+      )}
+
+      {/* Plugin slot - renders header (toggle + button) + content when plugin is loaded */}
+      <PluginSlot
+        id={PLUGIN_SLOTS.PROJECT_CONTROLS_CUSTOM_FRAMEWORK}
+        slotProps={{
+          project: project,
+          builtInFrameworks: projectFrameworks,
+          selectedBuiltInFramework: selectedFramework,
+          onBuiltInFrameworkSelect: handleFrameworkSelect,
+          renderBuiltInContent: renderBuiltInContent,
+          renderHeaderActions: renderManageButton,
+          onRefresh: () => {
+            if (triggerRefresh) triggerRefresh(true);
+            refreshFilteredFrameworks();
+          },
+        }}
+      />
+
+      <AddFrameworkModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        frameworks={nonOrganizationalFrameworks}
+        project={project}
+        onFrameworksChanged={(action, frameworkId?: number) => {
+          if (triggerRefresh) {
+            if (action === "add")
+              triggerRefresh(true, "Framework added successfully");
+            else if (action === "remove") {
+              triggerRefresh(true, "Framework removed successfully");
+              // Find a framework whose id is not the removed one, and set its id as selected
+              const nextFramework = project.framework?.find(
+                (f) => Number(f.framework_id) !== frameworkId
+              );
+              if (nextFramework) {
+                const index = projectFrameworks.findIndex(
+                  (fw: Framework) => Number(fw.id) === nextFramework.framework_id
+                );
+                handleFrameworkSelect(index >= 0 ? index : 0);
+              }
+            } else triggerRefresh(true);
+          }
+          refreshFilteredFrameworks();
+        }}
+      />
+
+      {/* Default content when no plugin is loaded */}
+      {!hasCustomFrameworkPlugin && renderBuiltInContent()}
     </Box>
   );
 };

@@ -74,7 +74,7 @@ export async function getQuestionById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const questionId = parseInt(req.params.id);
+  const questionId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",
@@ -262,7 +262,7 @@ export async function updateQuestionById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const questionId = parseInt(req.params.id);
+  const questionId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",
@@ -407,7 +407,7 @@ export async function deleteQuestionById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const questionId = parseInt(req.params.id);
+  const questionId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",
@@ -464,7 +464,7 @@ export async function deleteQuestionById(
 }
 
 export async function getQuestionsBySubtopicId(req: Request, res: Response) {
-  const subtopicId = parseInt(req.params.id);
+  const subtopicId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",
@@ -520,7 +520,7 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
 }
 
 export async function getQuestionsByTopicId(req: Request, res: Response) {
-  const topicId = parseInt(req.params.id);
+  const topicId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logStructured(
     "processing",

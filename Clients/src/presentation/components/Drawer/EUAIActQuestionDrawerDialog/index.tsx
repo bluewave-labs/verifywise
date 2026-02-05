@@ -37,7 +37,7 @@ import {
 import RichTextEditor from "../../RichTextEditor";
 import Select from "../../Inputs/Select";
 import TabBar from "../../TabBar";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import Alert from "../../Alert";
 import StandardModal from "../../Modals/StandardModal";
 
@@ -1593,7 +1593,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
             onError={(error) => {
               handleAlertCall({
                 variant: "error",
-                body: error?.message || "Failed to update risk",
+                body: error || "Failed to update risk",
               });
             }}
             users={users}

@@ -5,7 +5,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ChevronDown, FileText, Building2 } from "lucide-react";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 const GenerateReportPopup = lazy(
   () => import("../../../components/Reporting/GenerateReport")
 );

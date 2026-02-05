@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Stack } from "@mui/material";
 import TabPanel from "@mui/lab/TabPanel";
 import TabContext from "@mui/lab/TabContext";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
@@ -15,7 +15,20 @@ import ApiKeys from "./ApiKeys";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
-import TabBar from "../../components/TabBar";
+import TabBar, { TabItem } from "../../components/TabBar";
+import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
+import { PluginSlot } from "../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
+
+// Built-in tabs (defined outside component to avoid recreation on each render)
+const BUILT_IN_TABS = [
+  "profile",
+  "password",
+  "preferences",
+  "team",
+  "organization",
+  "apikeys",
+];
 
 export default function ProfilePage() {
   const { userRoleName } = useAuth();
@@ -25,31 +38,49 @@ export default function ProfilePage() {
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
 
+  // Get plugin tabs dynamically from the plugin registry
+  const { getPluginTabs, installedPlugins, isLoading: pluginsLoading } = usePluginRegistry();
+  const pluginTabs = useMemo(
+    () => getPluginTabs(PLUGIN_SLOTS.SETTINGS_TABS),
+    [getPluginTabs]
+  );
+
   const { tab } = useParams<{ tab?: string }>();
 
   const [activeTab, setActiveTab] = useState(tab || "profile");
 
   const validTabs = useMemo(() => {
-    const tabs = [
-      "profile",
-      "password",
-      "preferences",
-      "team",
-      "organization",
-      "apikeys",
-    ];
-    return tabs;
-  }, []);
+    // Include plugin tabs in valid tabs
+    return [...BUILT_IN_TABS, ...pluginTabs.map((t) => t.value)];
+  }, [pluginTabs]);
 
   // keep state synced with URL
   useEffect(() => {
     if (tab && validTabs.includes(tab)) {
       setActiveTab(tab);
+    } else if (tab && !BUILT_IN_TABS.includes(tab)) {
+      // Tab is not a built-in tab - it might be a plugin tab
+      // Don't redirect if plugins are still loading or if plugin tabs haven't loaded yet
+      if (!pluginsLoading && installedPlugins.length > 0 && pluginTabs.length === 0) {
+        // Plugins are installed but tabs haven't loaded yet - wait
+        return;
+      }
+      if (pluginsLoading) {
+        // Plugins still loading - wait
+        return;
+      }
+      // Plugins finished loading and tab is not valid - redirect
+      navigate("/settings", { replace: true });
+      setActiveTab("profile");
+    } else if (!tab) {
+      // No tab specified - stay on profile
+      setActiveTab("profile");
     } else {
+      // Invalid built-in tab - redirect
       navigate("/settings", { replace: true });
       setActiveTab("profile");
     }
-  }, [tab, validTabs, navigate]);
+  }, [tab, validTabs, navigate, pluginsLoading, installedPlugins.length, pluginTabs.length]);
 
   // Handle navigation state from command palette
   useEffect(() => {
@@ -134,6 +165,12 @@ export default function ProfilePage() {
               icon: "Key",
               disabled: isApiKeysDisabled,
             },
+            // Dynamically add plugin tabs
+            ...pluginTabs.map((tab) => ({
+              label: tab.label,
+              value: tab.value,
+              icon: (tab.icon || "Settings") as TabItem["icon"],
+            })),
           ]}
           activeTab={activeTab}
           onChange={handleTabChange}
@@ -162,6 +199,15 @@ export default function ProfilePage() {
         <TabPanel value="apikeys">
           <ApiKeys />
         </TabPanel>
+
+        {/* Render plugin tab content dynamically */}
+        {pluginTabs.some((tab) => tab.value === activeTab) && (
+          <PluginSlot
+            id={PLUGIN_SLOTS.SETTINGS_TABS}
+            renderType="tab"
+            activeTab={activeTab}
+          />
+        )}
       </TabContext>
     </Stack>
   );

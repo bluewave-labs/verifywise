@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useMemo, Suspense } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography, Collapse, useTheme } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { Home, Puzzle } from "lucide-react";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { Home, Puzzle, ChevronDown } from "lucide-react";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PluginCard from "../../components/PluginCard";
@@ -13,8 +13,9 @@ import { usePluginInstallation } from "../../../application/hooks/usePluginInsta
 import { Plugin, PluginInstallationStatus } from "../../../domain/types/plugins";
 import Alert from "../../components/Alert";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { IBreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
+import { BreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
 import Chip from "../../components/Chip";
+import EmptyState from "../../components/EmptyState";
 import { CATEGORIES } from "./categories";
 import {
   categorySidebar,
@@ -24,16 +25,24 @@ import {
   categoryHeaderTitle,
   categoryHeaderDescription,
   pluginCardsGrid,
+  pluginCardsGridThreeColumn,
   pluginCardWrapper,
   pluginCardWrapperThreeColumn,
   emptyStateContainer,
   emptyStateText,
   tabPanelStyle,
+  regionHeader,
+  regionChevron,
+  regionFlagStyle,
+  regionNameStyle,
+  regionCountStyle,
+  regionContent,
 } from "./style";
 
 const Plugins: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const theme = useTheme();
   const { userRoleName } = useAuth();
 
   // Determine initial tab from URL
@@ -49,6 +58,8 @@ const Plugins: React.FC = () => {
     body: string;
     visible: boolean;
   } | null>(null);
+  // Track collapsed regions instead (empty = all expanded)
+  const [collapsedRegions, setCollapsedRegions] = useState<Set<string>>(new Set());
 
   const isAdmin = userRoleName === "Admin";
 
@@ -60,7 +71,7 @@ const Plugins: React.FC = () => {
   }, [location.pathname, refetch]);
 
   // Custom breadcrumb items
-  const breadcrumbItems: IBreadcrumbItem[] = useMemo(() => [
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => [
     {
       label: "Dashboard",
       path: "/",
@@ -87,23 +98,90 @@ const Plugins: React.FC = () => {
     [selectedCategory]
   );
 
-  // Filter plugins by search query
+  // Helper to check if a plugin is a framework plugin (based on category or tags)
+  const isFrameworkPlugin = useCallback((plugin: Plugin) => {
+    return (
+      (plugin.category as string) === "compliance" ||
+      plugin.tags.some(
+        (tag) =>
+          tag.toLowerCase().includes("compliance") ||
+          tag.toLowerCase().includes("framework")
+      )
+    );
+  }, []);
+
+  // Filter plugins by search query (excluding framework plugins from marketplace)
   const filteredPlugins = useMemo(() => {
-    if (!searchQuery) return plugins;
+    const nonFrameworkPlugins = plugins.filter((p) => !isFrameworkPlugin(p));
+    if (!searchQuery) return nonFrameworkPlugins;
     const lowerQuery = searchQuery.toLowerCase();
-    return plugins.filter(
+    return nonFrameworkPlugins.filter(
       (p) =>
         p.name.toLowerCase().includes(lowerQuery) ||
         p.description.toLowerCase().includes(lowerQuery) ||
         p.tags.some((tag) => tag.toLowerCase().includes(lowerQuery))
     );
-  }, [plugins, searchQuery]);
+  }, [plugins, searchQuery, isFrameworkPlugin]);
 
   // Filter to show only installed plugins
   const installedPlugins = useMemo(
     () => plugins.filter((p) => p.installationStatus === PluginInstallationStatus.INSTALLED),
     [plugins]
   );
+
+  const frameworkPlugins = useMemo(
+    () => plugins.filter((p) => isFrameworkPlugin(p)),
+    [plugins, isFrameworkPlugin]
+  );
+
+  // Region flags mapping
+  const regionFlags: Record<string, string> = {
+    "International": "🌐",
+    "United States": "🇺🇸",
+    "European Union": "🇪🇺",
+    "Canada": "🇨🇦",
+    "United Kingdom": "🇬🇧",
+    "Australia": "🇦🇺",
+    "Singapore": "🇸🇬",
+    "India": "🇮🇳",
+    "Japan": "🇯🇵",
+    "Brazil": "🇧🇷",
+    "United Arab Emirates": "🇦🇪",
+    "Saudi Arabia": "🇸🇦",
+    "Qatar": "🇶🇦",
+    "Bahrain": "🇧🇭",
+    "Other": "📋",
+  };
+
+  // Group frameworks by region (from plugin metadata)
+  const frameworksByRegion = useMemo(() => {
+    const regionMap = new Map<string, Plugin[]>();
+
+    frameworkPlugins.forEach((plugin) => {
+      const region = plugin.region || "Other";
+      if (!regionMap.has(region)) {
+        regionMap.set(region, []);
+      }
+      regionMap.get(region)!.push(plugin);
+    });
+
+    // Convert to array and sort by region name
+    return Array.from(regionMap.entries())
+      .map(([regionName, plugins]) => ({
+        region: regionName.toLowerCase().replace(/\s+/g, "-"),
+        regionName,
+        regionFlag: regionFlags[regionName] || "📋",
+        plugins,
+      }))
+      .sort((a, b) => {
+        // Put "Other" at the end, International first
+        if (a.regionName === "Other") return 1;
+        if (b.regionName === "Other") return -1;
+        if (a.regionName === "International") return -1;
+        if (b.regionName === "International") return 1;
+        return a.regionName.localeCompare(b.regionName);
+      });
+  }, [frameworkPlugins]);
 
   // Handle plugin uninstallation
   const handleUninstall = useCallback(
@@ -142,6 +220,19 @@ const Plugins: React.FC = () => {
     },
     [navigate]
   );
+
+  // Toggle region expansion (tracks collapsed regions - empty means all expanded)
+  const toggleRegion = useCallback((regionKey: string) => {
+    setCollapsedRegions((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(regionKey)) {
+        newSet.delete(regionKey);
+      } else {
+        newSet.add(regionKey);
+      }
+      return newSet;
+    });
+  }, []);
 
   // Close toast
   const handleCloseToast = () => {
@@ -183,6 +274,12 @@ const Plugins: React.FC = () => {
                 icon: "Package",
                 count: installedPlugins.length,
               },
+              {
+                label: "Frameworks",
+                value: "frameworks",
+                icon: "FileCode",
+                count: frameworkPlugins.length,
+              },
             ]}
             activeTab={activeTab}
             onChange={handleTabChange}
@@ -204,11 +301,24 @@ const Plugins: React.FC = () => {
                       onClick={() => setSelectedCategory(category.id)}
                       sx={categoryMenuItem(isSelected)}
                     >
-                      <Icon
-                        size={16}
-                        color={isSelected ? "#13715B" : "#667085"}
-                        strokeWidth={1.5}
-                      />
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "16px",
+                          "& svg": {
+                            color: isSelected ? "#13715B !important" : "#667085 !important",
+                            stroke: isSelected ? "#13715B !important" : "#667085 !important",
+                            transition: "color 0.2s ease, stroke 0.2s ease",
+                          },
+                          "& svg path": {
+                            stroke: isSelected ? "#13715B !important" : "#667085 !important",
+                          },
+                        }}
+                      >
+                        <Icon size={16} strokeWidth={1.5} />
+                      </Box>
                       <Typography sx={categoryMenuText(isSelected)}>
                         {category.name}
                       </Typography>
@@ -284,14 +394,16 @@ const Plugins: React.FC = () => {
         {/* My Plugins Tab */}
         <TabPanel value="my-plugins" sx={tabPanelStyle}>
           <Stack gap={2} sx={{ px: 2 }}>
-            {/* Summary Chip */}
-            <Box>
-              <Chip
-                label={`${installedPlugins.length} plugin${installedPlugins.length !== 1 ? "s" : ""} installed`}
-                backgroundColor="rgba(19, 113, 91, 0.1)"
-                textColor="#13715B"
-              />
-            </Box>
+            {/* Summary Chip - only show when there are installed plugins */}
+            {installedPlugins.length > 0 && (
+              <Box>
+                <Chip
+                  label={`${installedPlugins.length} plugin${installedPlugins.length !== 1 ? "s" : ""} installed`}
+                  backgroundColor="rgba(19, 113, 91, 0.1)"
+                  textColor="#13715B"
+                />
+              </Box>
+            )}
 
             {/* Plugin Cards Grid */}
             {loading ? (
@@ -301,13 +413,12 @@ const Plugins: React.FC = () => {
                 </Typography>
               </Box>
             ) : installedPlugins.length === 0 ? (
-              <Box sx={emptyStateContainer}>
-                <Typography sx={emptyStateText}>
-                  No plugins installed yet. Visit the marketplace to install plugins.
-                </Typography>
-              </Box>
+              <EmptyState
+                message="No plugins installed yet. Visit the marketplace to install plugins."
+                showBorder={true}
+              />
             ) : (
-              <Box sx={pluginCardsGrid}>
+              <Box sx={pluginCardsGridThreeColumn}>
                 {installedPlugins.map((plugin) => (
                   <Box key={plugin.key} sx={pluginCardWrapperThreeColumn}>
                     <PluginCard
@@ -324,6 +435,70 @@ const Plugins: React.FC = () => {
                   </Box>
                 ))}
               </Box>
+            )}
+          </Stack>
+        </TabPanel>
+
+        {/* Frameworks Tab */}
+        <TabPanel value="frameworks" sx={tabPanelStyle}>
+          <Stack gap={3}>
+            {/* Framework Plugins by Region */}
+            {loading ? (
+              <Box sx={emptyStateContainer}>
+                <Typography sx={emptyStateText}>
+                  Loading framework plugins...
+                </Typography>
+              </Box>
+            ) : frameworksByRegion.length === 0 ? (
+              <Box sx={emptyStateContainer}>
+                <Typography sx={emptyStateText}>
+                  No framework plugins available.
+                </Typography>
+              </Box>
+            ) : (
+              frameworksByRegion.map(({ region, regionName, regionFlag, plugins: regionPlugins }) => {
+                const isExpanded = !collapsedRegions.has(region);
+                return (
+                  <Stack key={region} gap={0}>
+                    {/* Region Header - Clickable */}
+                    <Box onClick={() => toggleRegion(region)} sx={regionHeader(theme)}>
+                      <Box sx={regionChevron(theme, isExpanded)}>
+                        <ChevronDown size={18} strokeWidth={2} />
+                      </Box>
+                      <Typography sx={regionFlagStyle}>
+                        {regionFlag}
+                      </Typography>
+                      <Typography sx={regionNameStyle(theme)}>
+                        {regionName}
+                      </Typography>
+                      <Typography sx={regionCountStyle(theme)}>
+                        ({regionPlugins.length})
+                      </Typography>
+                    </Box>
+
+                    {/* Region Plugins Grid - Collapsible */}
+                    <Collapse in={isExpanded} timeout={250} unmountOnExit>
+                      <Box sx={regionContent(theme)}>
+                        {regionPlugins.map((plugin) => (
+                          <Box key={plugin.key} sx={pluginCardWrapperThreeColumn}>
+                            <PluginCard
+                              plugin={plugin}
+                              onUninstall={handleUninstall}
+                              onManage={handleManage}
+                              loading={
+                                !!(
+                                  plugin.installationId &&
+                                  uninstalling === plugin.installationId
+                                )
+                              }
+                            />
+                          </Box>
+                        ))}
+                      </Box>
+                    </Collapse>
+                  </Stack>
+                );
+              })
             )}
           </Stack>
         </TabPanel>

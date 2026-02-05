@@ -42,7 +42,8 @@ export interface FileAccessLog {
 
 @Table({
   tableName: "file_access_logs",
-  timestamps: false,
+  timestamps: true,
+  underscored: true,
 })
 export class FileAccessLogModel extends Model<FileAccessLog> {
   @Column({
@@ -85,4 +86,16 @@ export class FileAccessLogModel extends Model<FileAccessLog> {
     allowNull: false,
   })
   org_id!: number;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 }

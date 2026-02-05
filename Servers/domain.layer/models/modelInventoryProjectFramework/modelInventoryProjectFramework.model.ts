@@ -8,6 +8,7 @@ import { FrameworkModel } from "../frameworks/frameworks.model";
 @Table({
   tableName: "model_inventories_projects_frameworks",
   timestamps: true,
+  underscored: true,
 })
 export class ModelInventoryProjectFrameworkModel
   extends Model<ModelInventoryProjectFrameworkModel>
@@ -70,6 +71,18 @@ export class ModelInventoryProjectFrameworkModel
   hasBoth(): boolean {
     return this.hasProject() && this.hasFramework();
   }
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Get relation type

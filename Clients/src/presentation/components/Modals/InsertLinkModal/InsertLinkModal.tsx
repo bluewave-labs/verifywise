@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Box } from "@mui/material";
 import Field from "../../Inputs/Field";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 
 interface InsertLinkModalProps {
   open: boolean;

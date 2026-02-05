@@ -172,7 +172,6 @@ const RiskSection: FC<RiskSectionProps> = ({
         />
       )}
       <Stack
-        component="form"
         className={disableInternalScroll ? "AddNewRiskForm" : `AddNewRiskForm ${styles.popupBody}`}
         sx={{
           width: "100%",

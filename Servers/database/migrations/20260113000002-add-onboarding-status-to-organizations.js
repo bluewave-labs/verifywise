@@ -13,60 +13,49 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const transaction = await queryInterface.sequelize.transaction();
+    // Check if column already exists (idempotent)
+    const [columns] = await queryInterface.sequelize.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+      AND table_name = 'organizations'
+      AND column_name = 'onboarding_status';
+    `, { type: Sequelize.QueryTypes.SELECT });
 
-    try {
-      // Step 1: Add column as nullable first
-      await queryInterface.addColumn(
-        'organizations',
-        'onboarding_status',
-        {
-          type: Sequelize.STRING(20),
-          allowNull: true,
-        },
-        { transaction }
-      );
-
-      // Step 2: Set all existing organizations to 'completed' (grandfathered)
-      // This ensures existing orgs don't see the modal after upgrade
-      await queryInterface.sequelize.query(
-        `UPDATE organizations SET onboarding_status = 'completed' WHERE onboarding_status IS NULL;`,
-        { transaction }
-      );
-
-      // Step 3: Make column NOT NULL with default 'pending' for new orgs
-      await queryInterface.changeColumn(
-        'organizations',
-        'onboarding_status',
-        {
-          type: Sequelize.STRING(20),
-          allowNull: false,
-          defaultValue: 'pending',
-        },
-        { transaction }
-      );
-
-      await transaction.commit();
-      console.log('Successfully added onboarding_status column to organizations table');
-    } catch (error) {
-      await transaction.rollback();
-      throw error;
+    if (columns) {
+      console.log('onboarding_status column already exists in organizations table, skipping');
+      return;
     }
+
+    // Step 1: Add column as nullable using raw SQL
+    await queryInterface.sequelize.query(`
+      ALTER TABLE public.organizations
+      ADD COLUMN onboarding_status VARCHAR(20);
+    `);
+
+    // Step 2: Set all existing organizations to 'completed' (grandfathered)
+    await queryInterface.sequelize.query(`
+      UPDATE public.organizations
+      SET onboarding_status = 'completed'
+      WHERE onboarding_status IS NULL;
+    `);
+
+    // Step 3: Make column NOT NULL with default
+    await queryInterface.sequelize.query(`
+      ALTER TABLE public.organizations
+      ALTER COLUMN onboarding_status SET NOT NULL,
+      ALTER COLUMN onboarding_status SET DEFAULT 'pending';
+    `);
+
+    console.log('Successfully added onboarding_status column to organizations table');
   },
 
-  async down(queryInterface, Sequelize) {
-    const transaction = await queryInterface.sequelize.transaction();
+  async down(queryInterface) {
+    await queryInterface.sequelize.query(`
+      ALTER TABLE public.organizations
+      DROP COLUMN IF EXISTS onboarding_status;
+    `);
 
-    try {
-      await queryInterface.removeColumn('organizations', 'onboarding_status', {
-        transaction,
-      });
-
-      await transaction.commit();
-      console.log('Successfully removed onboarding_status column from organizations table');
-    } catch (error) {
-      await transaction.rollback();
-      throw error;
-    }
+    console.log('Successfully removed onboarding_status column from organizations table');
   },
 };

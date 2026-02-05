@@ -329,7 +329,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
 
           <Stack direction="row" spacing={0.5}>
             {unreadCount > 0 && (
-              <VWTooltip header="Mark all as read" placement="bottom">
+              <VWTooltip header="Mark all as read" content="Mark all notifications as read" placement="bottom">
                 <IconButton
                   size="small"
                   onClick={handleMarkAllAsRead}

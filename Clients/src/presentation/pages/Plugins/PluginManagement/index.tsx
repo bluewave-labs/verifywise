@@ -33,7 +33,7 @@ import {
   Layers as LayersIcon,
   BookOpen as BookOpenIcon,
 } from "lucide-react";
-import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../../components/Layout/PageHeader";
 import PluginSlot from "../../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
@@ -45,7 +45,7 @@ import Alert from "../../../components/Alert";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { cardStyles } from "../../../themes/components";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
-import { IBreadcrumbItem } from "../../../../domain/types/breadcrumbs.types";
+import { BreadcrumbItem } from "../../../../domain/types/breadcrumbs.types";
 import { ENV_VARs } from "../../../../../env.vars";
 import { getConfigFields, ConfigField, MLFLOW_DEFAULT_CONFIG } from "./config-fields";
 import {
@@ -117,8 +117,8 @@ const PluginManagement: React.FC = () => {
   const isFrameworkPlugin = plugin?.category === "compliance";
 
   // Custom breadcrumb items
-  const breadcrumbItems: IBreadcrumbItem[] = useMemo(() => {
-    const items: IBreadcrumbItem[] = [
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    const items: BreadcrumbItem[] = [
       {
         label: "Dashboard",
         path: "/",

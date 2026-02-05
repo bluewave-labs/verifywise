@@ -54,13 +54,13 @@ export interface ButtonProps extends Omit<MUIButtonProps, 'sx'> {
 /**
  * Button component implementation
  */
-const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(({
+const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   children,
   sx,
   testId,
   className,
   ...rest
-}, ref) => {
+}, ref) {
   const theme = useTheme();
   
   // Define default styles using theme values
@@ -138,4 +138,4 @@ const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(({
 // Set display name for better debugging and dev tools
 Button.displayName = 'Button';
 
-export default Button;
+export { Button };

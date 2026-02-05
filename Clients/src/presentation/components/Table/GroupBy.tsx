@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button, Stack, Popover, Box, Typography } from '@mui/material';
 import { X, Rows3 } from 'lucide-react';
 import Select from '../Inputs/Select';
-import ButtonToggle from '../ButtonToggle';
+import { ButtonToggle } from '../button-toggle';
 
 export interface GroupByOption {
   id: string;

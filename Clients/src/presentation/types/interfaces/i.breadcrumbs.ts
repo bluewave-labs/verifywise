@@ -3,7 +3,7 @@
  * Domain layer has zero external dependencies
  */
 export type {
-  IBreadcrumbItem,
-  IBreadcrumbsCoreProps,
-  IPageBreadcrumbsCoreProps,
+  BreadcrumbItem,
+  BreadcrumbsCoreProps,
+  PageBreadcrumbsCoreProps,
 } from "../../../domain/types/breadcrumbs.types";

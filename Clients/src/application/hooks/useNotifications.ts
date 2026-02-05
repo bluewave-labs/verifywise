@@ -169,7 +169,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
 
     setIsLoading(true);
     try {
-      const response = await apiServices.get("/notifications/summary");
+      const response = await apiServices.get<{ data: NotificationSummary }>("/notifications/summary");
       const summary: NotificationSummary = response.data.data;
       setNotifications(summary.recent_notifications);
       setUnreadCount(summary.unread_count);

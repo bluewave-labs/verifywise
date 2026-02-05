@@ -12,7 +12,7 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import ChipInput from "../../Inputs/ChipInput";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import Alert from "../../Alert";
 import TabBar from "../../TabBar";
 import LinkedRisksPopup from "../../LinkedRisks";

@@ -31,8 +31,7 @@ from validate.enrich import enrich_with_obligations
 
 from infer.runner import run_inference, InferConfig
 from llm.mock import MockChatClient
-
-
+from llm.openrouter import OpenRouterChatClient
 
 import json
 
@@ -303,12 +302,15 @@ def _cmd_generate(args: argparse.Namespace) -> int:
     if args.stage == "infer":
         scenarios_in = final_dir / "scenarios.jsonl"
         if not scenarios_in.exists():
-            console.print(f"[red]Missing input:[/red] {scenarios_in} (run --stage validate first)")
+            console.print(f"[red]Missing input:[/red] {scenarios_in}")
             return 2
 
         scenarios = list(read_jsonl(scenarios_in))
 
-        client = MockChatClient(model_id=args.model_id, provider=args.provider)
+        if args.provider == "openrouter":
+            client = OpenRouterChatClient(model_id=args.model_id)
+        else:
+            client = MockChatClient(model_id=args.model_id, provider=args.provider)
 
         cfg = InferConfig(
             model_id=args.model_id,
@@ -317,16 +319,23 @@ def _cmd_generate(args: argparse.Namespace) -> int:
             max_tokens=int(args.max_tokens),
         )
 
-        responses = run_inference(scenarios=scenarios, client=client, cfg=cfg)
+        responses = run_inference(
+            scenarios=scenarios,
+            client=client,
+            cfg=cfg,
+        )
 
         out_path = final_dir / "candidate_responses.jsonl"
         write_jsonl(out_path, responses)
 
         console.print("[bold green]Inference complete.[/bold green]")
+        console.print(f"- provider: {args.provider}")
+        console.print(f"- model_id: {args.model_id}")
         console.print(f"- scenarios_in: {len(scenarios)}")
         console.print(f"- responses_out: {len(responses)}")
         console.print(f"- wrote: {out_path}")
         return 0
+
 
     console.print(f"[red]Unsupported stage:[/red] {args.stage}")
     return 2

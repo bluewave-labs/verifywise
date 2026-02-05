@@ -15,4 +15,7 @@ validate:
 infer-mock-client:
 	uv run grs-scenarios generate --stage infer --model-id mock-v0
 
-all: seeds render perturb
+infer-openrouter-gpt4:
+	uv run grs-scenarios generate --stage infer --provider openrouter --model-id openai/gpt-4o-mini 
+
+all: seeds render perturb validate

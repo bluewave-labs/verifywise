@@ -68,7 +68,7 @@ export async function getAssessmentById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const assessmentId = parseInt(req.params.id);
+  const assessmentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getAssessmentById for ID ${assessmentId}`,
@@ -202,7 +202,7 @@ export async function updateAssessmentById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const assessmentId = parseInt(req.params.id);
+  const assessmentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logProcessing({
     description: `starting updateAssessmentById for ID ${assessmentId}`,
     functionName: "updateAssessmentById",
@@ -289,7 +289,7 @@ export async function deleteAssessmentById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  const assessmentId = parseInt(req.params.id);
+  const assessmentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   logProcessing({
     description: `starting deleteAssessmentById for ID ${assessmentId}`,
     functionName: "deleteAssessmentById",
@@ -348,7 +348,7 @@ export async function deleteAssessmentById(
 }
 
 export async function getAnswers(req: Request, res: Response): Promise<any> {
-  const assessmentId = parseInt(req.params.id);
+  const assessmentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getAnswers for assessment ID ${assessmentId}`,
@@ -414,7 +414,7 @@ export async function getAssessmentByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectId = parseInt(req.params.id);
+  const projectId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   logProcessing({
     description: `starting getAssessmentByProjectId for project ID ${projectId}`,

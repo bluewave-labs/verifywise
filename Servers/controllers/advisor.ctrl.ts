@@ -60,7 +60,7 @@ export async function runAdvisor(req: Request, res: Response) {
     const prompt = req.body.prompt;
     const tenantId = req.tenantId!;
     const userId = req.userId ? Number(req.userId) : undefined;
-    const llmKeyId = req.query.llmKeyId ? Number(req.query.llmKeyId) : undefined;
+    const llmKeyId = req.query.llmKeyId ? Number(Array.isArray(req.query.llmKeyId) ? req.query.llmKeyId[0] : req.query.llmKeyId) : undefined;
 
     // Validate required parameters
     if (!prompt) {
@@ -195,7 +195,7 @@ export async function getConversation(req: Request, res: Response) {
   try {
     const tenantId = req.tenantId!;
     const userId = req.userId ? Number(req.userId) : undefined;
-    const domain = req.params.domain;
+    const domain = Array.isArray(req.params.domain) ? req.params.domain[0] : req.params.domain;
 
     if (!userId) {
       return res.status(400).json({ error: "User context is required" });
@@ -249,7 +249,7 @@ export async function saveConversation(req: Request, res: Response) {
   try {
     const tenantId = req.tenantId!;
     const userId = req.userId ? Number(req.userId) : undefined;
-    const domain = req.params.domain;
+    const domain = Array.isArray(req.params.domain) ? req.params.domain[0] : req.params.domain;
     const messages: IAdvisorMessage[] = req.body.messages;
 
     if (!userId) {

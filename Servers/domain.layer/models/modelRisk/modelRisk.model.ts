@@ -7,7 +7,8 @@ import { ValidationException } from "../../exceptions/custom.exception";
 
 @Table({
   tableName: "model_risks",
-  timestamps: false,
+  timestamps: true,
+  underscored: true,
 })
 export class ModelRiskModel
   extends Model<ModelRiskModel>
@@ -112,15 +113,23 @@ export class ModelRiskModel
   })
   model_id?: number;
 
-
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    field: "is_demo",
+  })
+  is_demo?: boolean;
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   updated_at?: Date;
 

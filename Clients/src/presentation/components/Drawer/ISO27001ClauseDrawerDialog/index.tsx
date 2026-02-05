@@ -27,7 +27,7 @@ import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense, lazy, useRef } from "react";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import TabBar from "../../TabBar";
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
@@ -1428,7 +1428,7 @@ const VWISO27001ClauseDrawerDialog = ({
             onError={(error) => {
               handleAlert({
                 variant: "error",
-                body: error?.message || "Failed to update risk",
+                body: error || "Failed to update risk",
               });
             }}
             users={users}

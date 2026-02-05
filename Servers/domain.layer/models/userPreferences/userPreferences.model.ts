@@ -12,6 +12,8 @@ import { ValidationException } from "../../exceptions/custom.exception";
 
 @Table({
   tableName: "user_preferences",
+  timestamps: true,
+  underscored: true,
 })
 export class UserPreferencesModel
   extends Model<UserPreferencesModel>
@@ -38,6 +40,18 @@ export class UserPreferencesModel
     allowNull: false,
   })
   date_format!: UserDateFormat;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create new user preferences

@@ -37,7 +37,7 @@ import { useSearchParams } from "react-router-dom";
 import Field from "../../../components/Inputs/Field";
 import Select from "../../../components/Inputs/Select";
 import DatePicker from "../../../components/Inputs/Datepicker";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import Alert from "../../../components/Alert";
 import useUsers from "../../../../application/hooks/useUsers";
 import useProjectData from "../../../../application/hooks/useProjectData";

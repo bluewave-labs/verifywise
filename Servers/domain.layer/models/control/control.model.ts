@@ -15,6 +15,8 @@ import {
 
 @Table({
   tableName: "controls",
+  timestamps: true,
+  underscored: true,
 })
 export class ControlModel extends Model<ControlModel> implements IControl {
   @Column({
@@ -94,8 +96,15 @@ export class ControlModel extends Model<ControlModel> implements IControl {
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create a new control with comprehensive validation

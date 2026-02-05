@@ -11,6 +11,8 @@ import { IVendorRisk } from "../../interfaces/i.vendorRisk";
 
 @Table({
   tableName: "vendor_risks",
+  timestamps: true,
+  underscored: true,
 })
 export class VendorRiskModel
   extends Model<VendorRiskModel>
@@ -101,11 +103,13 @@ export class VendorRiskModel
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   updated_at?: Date;
 

@@ -60,8 +60,8 @@ export async function getAllModelRisks(req: Request, res: Response) {
 }
 
 export async function getModelRiskById(req: Request, res: Response) {
-  const { id } = req.params;
-  const modelRiskId = parseInt(id, 10);
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const modelRiskId = parseInt(id, 10);
 
   logStructured(
     "processing",
@@ -139,8 +139,8 @@ export async function createNewModelRisk(req: Request, res: Response) {
 }
 
 export async function updateModelRiskById(req: Request, res: Response) {
-  const { id } = req.params;
-  const modelRiskId = parseInt(id, 10);
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const modelRiskId = parseInt(id, 10);
 
   // Get existing model risk for business rule validation
   try {
@@ -214,7 +214,7 @@ export async function deleteModelRiskById(req: Request, res: Response) {
 
   try {
     const success = await deleteModelRiskByIdQuery(
-      parseInt(id, 10),
+      parseInt(Array.isArray(id) ? id[0] : id, 10),
       req.tenantId!
     );
 

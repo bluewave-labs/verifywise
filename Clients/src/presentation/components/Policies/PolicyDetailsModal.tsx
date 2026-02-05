@@ -62,7 +62,7 @@ import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import Select from "../Inputs/Select";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
-import CustomizableButton from "../Button/CustomizableButton";
+import { CustomizableButton } from "../button/customizable-button";
 import HistorySidebar from "../Common/HistorySidebar";
 import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChangeHistory";
 import {
@@ -763,7 +763,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                     "rowspan",
                   ],
                   ALLOWED_URI_REGEXP:
-                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+-]+(?:[^a-z.+-:]|$))/i,
+                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+\-]+(?:[^a-z.+\-:]|$))/i,
                   ADD_ATTR: ["target"],
                   FORBID_TAGS: [
                     "script",

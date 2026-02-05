@@ -153,7 +153,7 @@ export async function getScanStatusController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
 
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
@@ -186,7 +186,7 @@ export async function getScanController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
 
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
@@ -220,16 +220,16 @@ export async function getScanFindingsController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
 
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
     }
 
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string, 10) || 50, 100);
-    const confidence = req.query.confidence as string | undefined;
-    const findingType = req.query.finding_type as string | undefined;
+    const page = parseInt(Array.isArray(req.query.page) ? String(req.query.page[0]) : String(req.query.page || '1'), 10) || 1;
+    const limit = Math.min(parseInt(Array.isArray(req.query.limit) ? String(req.query.limit[0]) : String(req.query.limit || '50'), 10) || 50, 100);
+    const confidence = Array.isArray(req.query.confidence) ? String(req.query.confidence[0]) : (req.query.confidence ? String(req.query.confidence) : undefined);
+    const findingType = Array.isArray(req.query.finding_type) ? String(req.query.finding_type[0]) : (req.query.finding_type ? String(req.query.finding_type) : undefined);
 
     // Validate confidence if provided
     if (confidence && !["high", "medium", "low"].includes(confidence)) {
@@ -274,9 +274,9 @@ export async function getScansController(
   });
 
   try {
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string, 10) || 20, 100);
-    const status = req.query.status as ScanStatus | undefined;
+    const page = parseInt(Array.isArray(req.query.page) ? String(req.query.page[0]) : String(req.query.page || '1'), 10) || 1;
+    const limit = Math.min(parseInt(Array.isArray(req.query.limit) ? String(req.query.limit[0]) : String(req.query.limit || '20'), 10) || 20, 100);
+    const status = Array.isArray(req.query.status) ? String(req.query.status[0]) as ScanStatus : (req.query.status ? String(req.query.status) as ScanStatus : undefined);
 
     // Validate status if provided
     if (
@@ -339,7 +339,7 @@ export async function cancelScanController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
 
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
@@ -390,7 +390,7 @@ export async function deleteScanController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
 
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
@@ -442,15 +442,15 @@ export async function getSecurityFindingsController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
 
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
     }
 
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string, 10) || 50, 100);
-    const severity = req.query.severity as string | undefined;
+    const page = parseInt(Array.isArray(req.query.page) ? String(req.query.page[0]) : String(req.query.page || '1'), 10) || 1;
+    const limit = Math.min(parseInt(Array.isArray(req.query.limit) ? String(req.query.limit[0]) : String(req.query.limit || '50'), 10) || 50, 100);
+    const severity = Array.isArray(req.query.severity) ? String(req.query.severity[0]) : (req.query.severity ? String(req.query.severity) : undefined);
 
     // Validate severity if provided
     if (severity && !["critical", "high", "medium", "low"].includes(severity)) {
@@ -486,7 +486,7 @@ export async function getSecuritySummaryController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
 
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
@@ -520,8 +520,8 @@ export async function updateGovernanceStatusController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
-    const findingId = parseInt(req.params.findingId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
+    const findingId = parseInt(Array.isArray(req.params.findingId) ? req.params.findingId[0] : req.params.findingId, 10);
 
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
@@ -591,7 +591,7 @@ export async function getGovernanceSummaryController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
 
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
@@ -654,7 +654,7 @@ export async function exportAIBOMController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
     }
@@ -711,7 +711,7 @@ export async function getDependencyGraphController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
     }
@@ -746,7 +746,7 @@ export async function getComplianceMappingController(
   });
 
   try {
-    const scanId = parseInt(req.params.scanId, 10);
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
     if (isNaN(scanId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
     }

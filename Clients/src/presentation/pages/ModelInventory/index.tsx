@@ -18,11 +18,11 @@ import {
   useTheme,
   IconButton,
 } from "@mui/material";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import { logEngine } from "../../../application/tools/log.engine";
 import {
   getAllEntities,
@@ -43,9 +43,17 @@ import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import NewModelInventory from "../../components/Modals/NewModelInventory";
 import ModelRisksTable from "./ModelRisksTable";
+// Dataset imports
+import DatasetTable from "./DatasetTable";
+import { IDataset, DatasetSummary as DatasetSummaryType } from "../../../domain/interfaces/i.dataset";
+import { DatasetStatus } from "../../../domain/enums/dataset.enum";
+import NewDataset from "../../components/Modals/NewDataset";
+import DatasetSummary from "./DatasetSummary";
+import { createDataset } from "../../../application/repository/dataset.repository";
 import {
   IModelRisk,
   IModelRiskFormData,
+  ModelRiskLevel,
 } from "../../../domain/interfaces/i.modelRisk";
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
@@ -127,8 +135,18 @@ const ModelInventory: React.FC = () => {
   const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
     null
   );
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState<string | null>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [showAlert, setShowAlert] = useState(false);
+
+  // Dataset state
+  const [datasetData, setDatasetData] = useState<IDataset[]>([]);
+  const [isDatasetLoading, setIsDatasetLoading] = useState(false);
+  const [isNewDatasetModalOpen, setIsNewDatasetModalOpen] = useState(false);
+  const [selectedDataset, setSelectedDataset] = useState<IDataset | null>(null);
+  const [deletingDatasetId, setDeletingDatasetId] = useState<string | null>(null);
+  const [selectedDatasetStatus, setSelectedDatasetStatus] = useState<string | null>(null);
+  const [flashDatasetRowId, setFlashDatasetRowId] = useState<number | string | null>(null);
 
   const { userRoleName } = useAuth();
   const isCreatingDisabled =
@@ -158,6 +176,7 @@ const ModelInventory: React.FC = () => {
   const [flashRowId, setFlashRowId] = useState<number | string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   // GroupBy state - models tab
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -600,6 +619,7 @@ const ModelInventory: React.FC = () => {
   // Determine the active tab based on the URL
   const getTabFromPath = useCallback((pathname: string, tabs: typeof pluginTabs) => {
     if (pathname.includes("model-risks")) return "model-risks";
+    if (pathname.includes("datasets")) return "datasets";
     if (pathname.includes("evidence-hub")) return "evidence-hub";
     // Check for plugin tabs dynamically
     for (const tab of tabs) {
@@ -618,7 +638,7 @@ const ModelInventory: React.FC = () => {
 
     // If trying to access a plugin tab but plugin is not installed, redirect to models
     const isPluginTab = pluginTabs.some((t) => t.value === newTab);
-    const isBuiltInTab = ["models", "model-risks", "evidence-hub"].includes(newTab);
+    const isBuiltInTab = ["models", "model-risks", "datasets", "evidence-hub"].includes(newTab);
 
     if (!isBuiltInTab && !isPluginTab) {
       setActiveTab("models");
@@ -644,12 +664,55 @@ const ModelInventory: React.FC = () => {
     total: modelInventoryData.length,
   };
 
-  // Filter data using FilterBy and search
+  // Calculate dataset summary from data
+  const datasetSummary: DatasetSummaryType = {
+    draft: datasetData.filter((item) => item.status === DatasetStatus.DRAFT).length,
+    active: datasetData.filter((item) => item.status === DatasetStatus.ACTIVE).length,
+    deprecated: datasetData.filter((item) => item.status === DatasetStatus.DEPRECATED).length,
+    archived: datasetData.filter((item) => item.status === DatasetStatus.ARCHIVED).length,
+    total: datasetData.length,
+  };
+
+  // Filter datasets
+  const filteredDatasets = useMemo(() => {
+    let data = datasetData;
+
+    if (selectedDatasetStatus) {
+      const statusMap: Record<string, string> = {
+        draft: DatasetStatus.DRAFT,
+        active: DatasetStatus.ACTIVE,
+        deprecated: DatasetStatus.DEPRECATED,
+        archived: DatasetStatus.ARCHIVED,
+      };
+      const targetStatus = statusMap[selectedDatasetStatus];
+      if (targetStatus) {
+        data = data.filter((item) => item.status === targetStatus);
+      }
+    }
+
+    return data;
+  }, [datasetData, selectedDatasetStatus]);
+
+  // Filter data using FilterBy, card filter, and search
   const filteredData = useMemo(() => {
-    // First apply FilterBy conditions
+    // Stage 1: Apply FilterBy conditions
     let data = filterModelData(modelInventoryData);
 
-    // Then apply search filter
+    // Stage 2: Apply card filter for status
+    if (selectedStatus) {
+      const statusMap: Record<string, string> = {
+        approved: ModelInventoryStatus.APPROVED,
+        restricted: ModelInventoryStatus.RESTRICTED,
+        pending: ModelInventoryStatus.PENDING,
+        blocked: ModelInventoryStatus.BLOCKED,
+      };
+      const targetStatus = statusMap[selectedStatus];
+      if (targetStatus) {
+        data = data.filter((item) => item.status === targetStatus);
+      }
+    }
+
+    // Stage 3: Apply search filter
     if (searchTerm) {
       data = data.filter(
         (item) =>
@@ -660,7 +723,7 @@ const ModelInventory: React.FC = () => {
     }
 
     return data;
-  }, [filterModelData, modelInventoryData, searchTerm]);
+  }, [filterModelData, modelInventoryData, selectedStatus, searchTerm]);
 
   // Define how to get the group key for each model
   const getModelInventoryGroupKey = (
@@ -858,11 +921,49 @@ const ModelInventory: React.FC = () => {
     }
   };
 
+  // Function to fetch dataset data
+  const fetchDatasetData = async (showLoading = true) => {
+    if (showLoading) {
+      setIsDatasetLoading(true);
+    }
+    try {
+      const response = await getAllEntities({ routeUrl: "/datasets" });
+      let datasetsData = [];
+      if (Array.isArray(response)) {
+        datasetsData = response;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        datasetsData = response.data;
+      } else if (response?.data) {
+        datasetsData = response.data;
+      } else {
+        console.warn("Unexpected datasets data format:", response);
+        datasetsData = [];
+      }
+      setDatasetData(datasetsData);
+    } catch (error) {
+      console.error("Error fetching datasets data:", error);
+      logEngine({
+        type: "error",
+        message: `Failed to fetch datasets data: ${error}`,
+      });
+      setAlert({
+        variant: "error",
+        body: "Failed to load datasets data. Please try again later.",
+      });
+      setShowAlert(true);
+    } finally {
+      if (showLoading) {
+        setIsDatasetLoading(false);
+      }
+    }
+  };
+
   useEffect(() => {
     fetchModelInventoryData();
     fetchModelRisksData();
     fetchUsersData();
     fetchEvidenceData();
+    fetchDatasetData();
   }, []);
 
   // Refetch model risks when filter changes
@@ -973,6 +1074,11 @@ const ModelInventory: React.FC = () => {
     setIsNewModelInventoryModalOpen(true);
   };
 
+  const handleNewDatasetClick = () => {
+    setSelectedDataset(null);
+    setIsNewDatasetModalOpen(true);
+  };
+
   const handleNewUploadEvidenceClick = () => {
     setIsEvidenceHubModalOpen(true);
     setSelectedEvidenceHub(null);
@@ -1057,6 +1163,160 @@ const ModelInventory: React.FC = () => {
     setIsEvidenceHubModalOpen(false);
     setPreselectedModelId(undefined);
   };
+
+  const handleCloseDatasetModal = () => {
+    setIsNewDatasetModalOpen(false);
+    setSelectedDataset(null);
+  };
+
+  const handleEditDataset = async (id: string) => {
+    try {
+      const response = await getEntityById({
+        routeUrl: `/datasets/${id}`,
+      });
+      if (response?.data) {
+        setSelectedDataset(response.data);
+        setIsNewDatasetModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching dataset details:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to load dataset details. Please try again.",
+      });
+    }
+  };
+
+  const handleDeleteDataset = async (id: string) => {
+    try {
+      setDeletingDatasetId(id);
+
+      // Optimistically remove the item from the local state
+      setDatasetData((prevData) =>
+        prevData.filter((item) => item.id?.toString() !== id)
+      );
+
+      await deleteEntityById({
+        routeUrl: `/datasets/${id}`,
+      });
+
+      // Fetch fresh data to ensure consistency
+      await fetchDatasetData(false);
+
+      setAlert({
+        variant: "success",
+        body: "Dataset deleted successfully!",
+      });
+    } catch (error) {
+      console.error("Error deleting dataset:", error);
+
+      // If delete failed, revert the optimistic update
+      await fetchDatasetData(false);
+
+      setAlert({
+        variant: "error",
+        body: "Failed to delete dataset. Please try again.",
+      });
+    } finally {
+      setDeletingDatasetId(null);
+    }
+  };
+
+  const handleDatasetSuccess = async (formData: any) => {
+    let datasetId: number | null = null;
+
+    if (selectedDataset) {
+      // Update existing dataset
+      await updateEntityById({
+        routeUrl: `/datasets/${selectedDataset.id}`,
+        body: formData,
+      });
+      datasetId = selectedDataset.id || null;
+      setAlert({
+        variant: "success",
+        body: "Dataset updated successfully!",
+      });
+    } else {
+      // Create new dataset
+      const response = await createDataset("/datasets", formData);
+      datasetId = response?.data?.id || null;
+      setAlert({
+        variant: "success",
+        body: "New dataset added successfully!",
+      });
+    }
+    await fetchDatasetData();
+
+    // Flash the updated/created row
+    if (datasetId) {
+      setFlashDatasetRowId(datasetId);
+      setTimeout(() => setFlashDatasetRowId(null), 3000);
+    }
+  };
+
+  const handleDatasetError = (error: any) => {
+    console.error("Dataset operation error:", error);
+
+    let errorMessage = selectedDataset
+      ? "Failed to update dataset. Please try again."
+      : "Failed to add dataset. Please try again.";
+
+    let errorData = null;
+
+    if (error?.response?.data) {
+      errorData = error.response.data;
+    } else if (error?.response) {
+      errorData = error.response;
+    } else if (error?.status && error?.errors) {
+      errorData = error;
+    }
+
+    if (errorData) {
+      if (
+        errorData.status === "error" &&
+        errorData.errors &&
+        Array.isArray(errorData.errors)
+      ) {
+        const validationMessages = errorData.errors
+          .map((err: any) => err.message || "Validation error")
+          .join(", ");
+        errorMessage = validationMessages;
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    }
+
+    setAlert({
+      variant: "error",
+      body: errorMessage,
+    });
+  };
+
+  const handleDatasetStatusCardClick = useCallback((statusKey: string) => {
+    if (statusKey === "total" || selectedDatasetStatus === statusKey) {
+      setSelectedDatasetStatus(null);
+      setAlert(null);
+      setShowAlert(false);
+    } else {
+      setSelectedDatasetStatus(statusKey);
+      const labelMap: Record<string, string> = {
+        draft: "Draft",
+        active: "Active",
+        deprecated: "Deprecated",
+        archived: "Archived",
+      };
+      setAlert({
+        variant: "info",
+        title: `Filtering by ${labelMap[statusKey]} datasets`,
+        body: "Click the card again or click Total to see all datasets.",
+      });
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 5000);
+    }
+  }, [selectedDatasetStatus]);
 
   // Share view handlers
   const handleShareClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -1501,10 +1761,18 @@ const ModelInventory: React.FC = () => {
     }
   };
 
-  // Filter model risks using FilterBy
+  // Filter model risks using FilterBy and card filter
   const filteredModelRisks = useMemo(() => {
-    return filterModelRiskData(modelRisksData);
-  }, [filterModelRiskData, modelRisksData]);
+    // Stage 1: Apply FilterBy conditions
+    let data = filterModelRiskData(modelRisksData);
+
+    // Stage 2: Apply card filter for risk level
+    if (selectedRiskLevel) {
+      data = data.filter((risk) => risk.risk_level === selectedRiskLevel);
+    }
+
+    return data;
+  }, [filterModelRiskData, modelRisksData, selectedRiskLevel]);
 
   // Define how to get the group key for each model risk
   const getModelRiskGroupKey = (
@@ -1828,6 +2096,8 @@ const ModelInventory: React.FC = () => {
       navigate("/model-inventory");
     } else if (newValue === "model-risks") {
       navigate("/model-inventory/model-risks");
+    } else if (newValue === "datasets") {
+      navigate("/model-inventory/datasets");
     } else if (newValue === "evidence-hub") {
       navigate("/model-inventory/evidence-hub");
     } else {
@@ -1835,6 +2105,58 @@ const ModelInventory: React.FC = () => {
       navigate(`/model-inventory/${newValue}`);
     }
   };
+
+  const handleStatusCardClick = useCallback((statusKey: string) => {
+    if (statusKey === 'total' || selectedStatus === statusKey) {
+      setSelectedStatus(null);
+      setAlert(null);
+      setShowAlert(false);
+    } else {
+      setSelectedStatus(statusKey);
+      const labelMap: Record<string, string> = {
+        approved: 'Approved',
+        restricted: 'Restricted',
+        pending: 'Pending',
+        blocked: 'Blocked',
+      };
+      setAlert({
+        variant: 'info',
+        title: `Filtering by ${labelMap[statusKey]} models`,
+        body: 'Click the card again or click Total to see all models.',
+      });
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 5000);
+    }
+  }, [selectedStatus]);
+
+  const handleRiskLevelCardClick = useCallback((riskLevelKey: string) => {
+    if (riskLevelKey === 'total' || selectedRiskLevel === riskLevelKey) {
+      setSelectedRiskLevel(null);
+      setAlert(null);
+      setShowAlert(false);
+    } else {
+      setSelectedRiskLevel(riskLevelKey);
+      const labelMap: Record<string, string> = {
+        [ModelRiskLevel.LOW]: 'Low',
+        [ModelRiskLevel.MEDIUM]: 'Medium',
+        [ModelRiskLevel.HIGH]: 'High',
+        [ModelRiskLevel.CRITICAL]: 'Critical',
+      };
+      setAlert({
+        variant: 'info',
+        title: `Filtering by ${labelMap[riskLevelKey]} risk level`,
+        body: 'Click the card again or click Total to see all risks.',
+      });
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 5000);
+    }
+  }, [selectedRiskLevel]);
 
   return (
     <Stack className="vwhome" sx={mainStackStyle}>
@@ -1972,11 +2294,26 @@ const ModelInventory: React.FC = () => {
         {/* Summary Cards */}
         {activeTab === "models" && (
           <div data-joyride-id="model-summary-cards">
-            <ModelInventorySummary summary={summary} />
+            <ModelInventorySummary
+              summary={summary}
+              onCardClick={handleStatusCardClick}
+              selectedStatus={selectedStatus}
+            />
           </div>
         )}
         {activeTab === "model-risks" && (
-          <ModelRiskSummary modelRisks={modelRisksData} />
+          <ModelRiskSummary
+            modelRisks={modelRisksData}
+            onCardClick={handleRiskLevelCardClick}
+            selectedRiskLevel={selectedRiskLevel}
+          />
+        )}
+        {activeTab === "datasets" && (
+          <DatasetSummary
+            summary={datasetSummary}
+            onCardClick={handleDatasetStatusCardClick}
+            selectedStatus={selectedDatasetStatus}
+          />
         )}
 
         {/* Tab Bar */}
@@ -1997,6 +2334,13 @@ const ModelInventory: React.FC = () => {
                   icon: "AlertTriangle",
                   count: modelRisksData.length,
                   isLoading: isModelRisksLoading,
+                },
+                {
+                  label: "Datasets",
+                  value: "datasets",
+                  icon: "Database" as const,
+                  count: datasetData.length,
+                  isLoading: isDatasetLoading,
                 },
                 // Dynamically add plugin tabs
                 ...pluginTabs.map((tab) => ({
@@ -2217,6 +2561,45 @@ const ModelInventory: React.FC = () => {
           />
         )}
 
+        {activeTab === "datasets" && (
+          <>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={filterButtonRowStyle}
+            >
+              {/* Left side placeholder for future filters */}
+              <Stack direction="row" spacing={2} alignItems="center">
+                {/* FilterBy and GroupBy can be added here later */}
+              </Stack>
+
+              {/* Right side: Add Dataset button */}
+              <Stack direction="row" gap="8px" alignItems="center">
+                <div data-joyride-id="add-dataset-button">
+                  <CustomizableButton
+                    variant="contained"
+                    sx={addNewModelButtonStyle}
+                    text="Add new dataset"
+                    icon={<AddCircleOutlineIcon size={16} />}
+                    onClick={handleNewDatasetClick}
+                    isDisabled={isCreatingDisabled}
+                  />
+                </div>
+              </Stack>
+            </Stack>
+
+            <DatasetTable
+              data={filteredDatasets}
+              isLoading={isDatasetLoading}
+              onEdit={handleEditDataset}
+              onDelete={handleDeleteDataset}
+              deletingId={deletingDatasetId}
+              flashRowId={flashDatasetRowId}
+            />
+          </>
+        )}
+
         {activeTab === "evidence-hub" && (
           <>
             <Stack
@@ -2376,6 +2759,45 @@ const ModelInventory: React.FC = () => {
             : undefined
         }
         isEdit={!!selectedModelRisk}
+      />
+
+      <NewDataset
+        isOpen={isNewDatasetModalOpen}
+        setIsOpen={handleCloseDatasetModal}
+        onSuccess={handleDatasetSuccess}
+        onError={handleDatasetError}
+        modelInventoryData={modelInventoryData}
+        initialData={
+          selectedDataset
+            ? {
+                name: selectedDataset.name || "",
+                description: selectedDataset.description || "",
+                version: selectedDataset.version || "",
+                owner: selectedDataset.owner || "",
+                type: selectedDataset.type,
+                function: selectedDataset.function || "",
+                source: selectedDataset.source || "",
+                license: selectedDataset.license || "",
+                format: selectedDataset.format || "",
+                classification: selectedDataset.classification,
+                contains_pii: selectedDataset.contains_pii || false,
+                pii_types: selectedDataset.pii_types || "",
+                status: selectedDataset.status,
+                status_date: selectedDataset.status_date
+                  ? new Date(selectedDataset.status_date as string)
+                      .toISOString()
+                      .split("T")[0]
+                  : new Date().toISOString().split("T")[0],
+                known_biases: selectedDataset.known_biases || "",
+                bias_mitigation: selectedDataset.bias_mitigation || "",
+                collection_method: selectedDataset.collection_method || "",
+                preprocessing_steps: selectedDataset.preprocessing_steps || "",
+                models: selectedDataset.models || [],
+                projects: selectedDataset.projects || [],
+              }
+            : undefined
+        }
+        isEdit={!!selectedDataset}
       />
 
       <NewEvidenceHub

@@ -88,10 +88,10 @@ export const createNewVendorRiskQuery = async (
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".vendorRisks (
       vendor_id, order_no, risk_description, impact_description,
-      likelihood, risk_severity, action_plan, action_owner, risk_level
+      likelihood, risk_severity, action_plan, action_owner, risk_level, is_demo
     ) VALUES (
       :vendor_id, :order_no, :risk_description, :impact_description,
-      :likelihood, :risk_severity, :action_plan, :action_owner, :risk_level
+      :likelihood, :risk_severity, :action_plan, :action_owner, :risk_level, :is_demo
     ) RETURNING *`,
     {
       replacements: {
@@ -104,6 +104,7 @@ export const createNewVendorRiskQuery = async (
         action_plan: vendorRisk.action_plan,
         action_owner: vendorRisk.action_owner,
         risk_level: vendorRisk.risk_level,
+        is_demo: vendorRisk.is_demo || false,
       },
       mapToModel: true,
       model: VendorRiskModel,

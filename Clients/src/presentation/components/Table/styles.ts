@@ -1,14 +1,14 @@
-export const tableWrapper = ( theme:any) => ({
+export const tableWrapper = (theme: any) => ({
   '& .MuiTableCell-root.MuiTableCell-footer': {
     paddingX: theme.spacing(8),
     paddingY: theme.spacing(4),
   }
 })
 
-export const paginationStyle = ( theme:any ) => ({ 
+export const paginationStyle = (theme: any) => ({
   mt: theme.spacing(6),
   color: theme.palette.text.secondary,
-    "& .MuiSelect-icon": {
+  "& .MuiSelect-icon": {
     width: "24px",
     height: "fit-content",
   },
@@ -20,7 +20,7 @@ export const paginationStyle = ( theme:any ) => ({
   },
 });
 
-export const paginationSelect = ( theme:any ) => ({ 
+export const paginationSelect = (theme: any) => ({
   ml: theme.spacing(4),
   mr: theme.spacing(12),
   minWidth: theme.spacing(20),
@@ -30,12 +30,12 @@ export const paginationSelect = ( theme:any ) => ({
   },
 });
 
-export const paginationDropdown = ( theme:any ) => ({
+export const paginationDropdown = (theme: any) => ({
   mt: 0,
   mb: theme.spacing(2)
 })
 
-export const paginationWrapper = ( theme:any ) => ({
+export const paginationWrapper = (theme: any) => ({
   display: "flex",
   flexDirection: "row",
   justifyContent: "space-between",
@@ -46,14 +46,17 @@ export const paginationWrapper = ( theme:any ) => ({
   },
 })
 
-export const emptyData = ( theme:any ) => ({
+export const emptyData = (theme: any) => ({
   padding: theme.spacing(15, 5),
   paddingBottom: theme.spacing(20),
 })
 
 export const styles = {
-  textBase : {
-    fontSize: "13px", 
+  textBase: {
+    fontSize: "13px",
     color: "#475467"
   }
 }
+
+
+

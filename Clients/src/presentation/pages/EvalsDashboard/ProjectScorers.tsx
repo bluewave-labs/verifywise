@@ -4,7 +4,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import { Plus } from "lucide-react";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";

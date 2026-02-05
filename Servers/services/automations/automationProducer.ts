@@ -13,7 +13,7 @@ export async function enqueueAutomationAction(
 }
 
 export async function scheduleVendorReviewDateNotification() {
-  await automationQueue.obliterate();
+  await automationQueue.obliterate({ force: true });
   logger.info("Adding Vendor Review Date Notification jobs to the queue...");
   // Vendor Review Date Notification Every day at 12 am
   await automationQueue.add(
@@ -30,7 +30,7 @@ export async function scheduleVendorReviewDateNotification() {
 }
 
 export async function scheduleReportNotification() {
-  await automationQueue.obliterate();
+  await automationQueue.obliterate({ force: true });
   logger.info("Adding Report Notification jobs to the queue...");
   // Report Notification Every day at 12 am
   await automationQueue.add(

@@ -54,6 +54,7 @@ export interface IRisk {
   risk_approval: number;
   approval_status: string;
   date_of_assessment: Date;
+  is_demo?: boolean;
   created_at?: Date;
   recommendations?: string;
   deletedLinkedProject?: boolean;

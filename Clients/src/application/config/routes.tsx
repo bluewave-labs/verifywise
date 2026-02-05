@@ -94,6 +94,7 @@ export const createRoutes = (
     <Route path="/event-tracker/logs" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
+    <Route path="/model-inventory/datasets" element={<ModelInventory />} />
     <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
     {/* Dynamic route for plugin tabs (e.g., mlflow, other future plugins) */}
     <Route path="/model-inventory/:pluginTab" element={<ModelInventory />} />

@@ -27,7 +27,7 @@ import {
   Search,
   Info,
 } from "lucide-react";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";

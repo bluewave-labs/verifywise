@@ -33,7 +33,7 @@ export const getAllAutomationActionsByTriggerId = async (
   req: Request,
   res: Response
 ) => {
-  const triggerId = parseInt(req.params.triggerId, 10);
+  const triggerId = parseInt(Array.isArray(req.params.triggerId) ? req.params.triggerId[0] : req.params.triggerId, 10);
   if (isNaN(triggerId)) {
     return res.status(400).json({ message: "Invalid trigger ID" });
   }
@@ -58,7 +58,7 @@ export const getAllAutomations = async (req: Request, res: Response) => {
 };
 
 export const getAutomationById = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
 
   if (isNaN(id)) {
     return res.status(400).json({ message: "Invalid automation ID" });
@@ -139,7 +139,7 @@ export const createAutomation = async (req: Request, res: Response) => {
 };
 
 export const updateAutomation = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   if (isNaN(id)) {
     return res
       .status(400)
@@ -195,7 +195,7 @@ export const updateAutomation = async (req: Request, res: Response) => {
 };
 
 export const deleteAutomationById = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
 
   if (isNaN(id)) {
     return res
@@ -228,7 +228,7 @@ export const deleteAutomationById = async (req: Request, res: Response) => {
 };
 
 export const getAutomationHistory = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
 
   if (isNaN(id)) {
     return res
@@ -237,8 +237,8 @@ export const getAutomationHistory = async (req: Request, res: Response) => {
   }
 
   try {
-    const limit = parseInt(req.query.limit as string) || 50;
-    const offset = parseInt(req.query.offset as string) || 0;
+    const limit = parseInt(Array.isArray(req.query.limit) ? String(req.query.limit[0]) : String(req.query.limit || '50'), 10) || 50;
+    const offset = parseInt(Array.isArray(req.query.offset) ? String(req.query.offset[0]) : String(req.query.offset || '0'), 10) || 0;
 
     const { logs, total } = await getAutomationExecutionLogs(
       id,
@@ -268,7 +268,7 @@ export const getAutomationHistory = async (req: Request, res: Response) => {
 };
 
 export const getAutomationStats = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
 
   if (isNaN(id)) {
     return res

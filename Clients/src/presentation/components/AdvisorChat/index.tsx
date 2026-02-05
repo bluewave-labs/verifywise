@@ -1,13 +1,33 @@
-import { Box, useTheme, Typography, Paper, CircularProgress } from '@mui/material';
+import { Box, useTheme, Typography, Paper, CircularProgress, SxProps, Theme } from '@mui/material';
 import { AssistantRuntimeProvider } from '@assistant-ui/react';
 import { useAdvisorRuntime } from './useAdvisorRuntime';
 import { CustomThread } from './CustomThread';
 import { AdvisorDomain } from './advisorConfig';
 import { useAdvisorConversationSafe } from '../../../application/contexts/AdvisorConversation.context';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo, memo } from 'react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import { Settings } from 'lucide-react';
 import { useNavigate } from 'react-router';
+
+// Extracted style functions for performance (created once per theme)
+const createPaperStyles = (theme: Theme): SxProps<Theme> => ({
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  border: 1,
+  borderColor: theme.palette.border?.light ?? theme.palette.divider,
+  borderRadius: 3,
+  bgcolor: theme.palette.background.main ?? theme.palette.background.default,
+});
+
+const createCenteredBoxStyles = (theme: Theme): SxProps<Theme> => ({
+  flex: 1,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  bgcolor: theme.palette.background.alt ?? theme.palette.background.paper,
+});
 
 interface AdvisorChatProps {
   selectedLLMKeyId?: number;
@@ -32,7 +52,7 @@ const AdvisorChatInner = ({
       sx={{
         flex: 1,
         overflow: 'hidden',
-        backgroundColor: theme.palette.background.alt,
+        bgcolor: theme.palette.background.alt ?? theme.palette.background.paper,
       }}
     >
       {runtime ? (
@@ -42,12 +62,12 @@ const AdvisorChatInner = ({
       ) : (
         <Box
           sx={{
-            padding: '24px',
+            padding: theme.spacing(3),
             textAlign: 'center',
-            color: theme.palette.text.secondary,
+            color: 'text.secondary',
           }}
         >
-          <Typography variant="body2" sx={{ fontSize: '13px' }}>
+          <Typography variant="body2" sx={{ fontSize: theme.typography.body2.fontSize }}>
             Initializing chat...
           </Typography>
         </Box>
@@ -70,6 +90,10 @@ const AdvisorChat = ({
   const loadAttemptedRef = useRef<string | null>(null);
 
   const isAdmin = userRoleName?.toLowerCase() === 'admin';
+
+  // Memoize styles to prevent recreation on each render
+  const paperStyles = useMemo(() => createPaperStyles(theme), [theme]);
+  const centeredBoxStyles = useMemo(() => createCenteredBoxStyles(theme), [theme]);
 
   useEffect(() => {
     // Skip if no context or page
@@ -104,24 +128,6 @@ const AdvisorChat = ({
     load();
   }, [conversationContext, pageContext]);
 
-  const paperStyles = {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    border: `1px solid ${theme.palette.border?.light}`,
-    borderRadius: '12px',
-    backgroundColor: theme.palette.background.main,
-  } as const;
-
-  const centeredBoxStyles = {
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.palette.background.alt,
-  };
-
   // Show message when no LLM keys are configured (only after loading completes)
   if (!isLoadingLLMKeys && hasLLMKeys === false) {
     return (
@@ -133,7 +139,7 @@ const AdvisorChat = ({
                 width: 48,
                 height: 48,
                 borderRadius: '50%',
-                backgroundColor: theme.palette.background.fill,
+                bgcolor: theme.palette.background.fill ?? theme.palette.grey[100],
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -146,7 +152,7 @@ const AdvisorChat = ({
               variant="subtitle1"
               sx={{
                 fontWeight: 600,
-                color: theme.palette.text.primary,
+                color: 'text.primary',
                 mb: 1,
               }}
             >
@@ -155,8 +161,8 @@ const AdvisorChat = ({
             <Typography
               variant="body2"
               sx={{
-                fontSize: '13px',
-                color: theme.palette.text.secondary,
+                fontSize: theme.typography.body2.fontSize,
+                color: 'text.secondary',
                 lineHeight: 1.5,
               }}
             >
@@ -167,7 +173,7 @@ const AdvisorChat = ({
                     component="span"
                     onClick={() => navigate('/settings/llm-keys')}
                     sx={{
-                      color: theme.palette.primary.main,
+                      color: 'primary.main',
                       cursor: 'pointer',
                       textDecoration: 'underline',
                       '&:hover': {
@@ -196,8 +202,8 @@ const AdvisorChat = ({
       <Paper elevation={0} sx={paperStyles}>
         <Box sx={centeredBoxStyles}>
           <Box sx={{ textAlign: 'center' }}>
-            <CircularProgress size={24} sx={{ color: theme.palette.primary.main, mb: 1 }} />
-            <Typography variant="body2" sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
+            <CircularProgress size={24} sx={{ color: 'primary.main', mb: 1 }} />
+            <Typography variant="body2" sx={{ fontSize: theme.typography.body2.fontSize, color: 'text.secondary' }}>
               Loading conversation...
             </Typography>
           </Box>
@@ -219,4 +225,4 @@ const AdvisorChat = ({
   );
 };
 
-export default AdvisorChat;
+export default memo(AdvisorChat);

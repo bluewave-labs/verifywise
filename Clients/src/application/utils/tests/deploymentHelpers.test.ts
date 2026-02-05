@@ -252,16 +252,20 @@ describe("deploymentHelpers", () => {
     });
 
     it("logs error if something throws", () => {
-      const getItemSpy = vi.spyOn(localStorage, "getItem").mockImplementation(() => {
+      // clearAllCache uses Object.keys(localStorage) and removeItem, not getItem
+      const removeItemSpy = vi.spyOn(localStorage, "removeItem").mockImplementation(() => {
         throw new Error("boom");
       });
+
+      // Add a key that will trigger removeItem (not containing 'version' or 'check')
+      localStorage.setItem("someKey", "value");
 
       DeploymentManager.clearAllCache();
 
       expect(console.error).toHaveBeenCalled();
 
       // restore
-      getItemSpy.mockRestore();
+      removeItemSpy.mockRestore();
     });
 
   });

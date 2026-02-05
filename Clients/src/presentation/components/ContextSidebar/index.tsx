@@ -13,6 +13,8 @@ interface ContextSidebarProps {
   // Props for main Sidebar
   onOpenCreateDemoData?: () => void;
   onOpenDeleteDemoData?: () => void;
+  onDismissDemoDataButton?: () => void;
+  showDemoDataButton?: boolean;
   hasDemoData?: boolean;
   /** Only show demo data options to admins */
   isAdmin?: boolean;
@@ -29,6 +31,8 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
   activeModule,
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
+  onDismissDemoDataButton,
+  showDemoDataButton = true,
   hasDemoData,
   isAdmin = false,
 }) => {
@@ -60,6 +64,8 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
         <Sidebar
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
+          onDismissDemoDataButton={onDismissDemoDataButton}
+          showDemoDataButton={showDemoDataButton}
           hasDemoData={hasDemoData}
           isAdmin={isAdmin}
         />
@@ -122,6 +128,8 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
         <Sidebar
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
+          onDismissDemoDataButton={onDismissDemoDataButton}
+          showDemoDataButton={showDemoDataButton}
           hasDemoData={hasDemoData}
           isAdmin={isAdmin}
         />

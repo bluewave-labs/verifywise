@@ -39,13 +39,23 @@ export function PluginLoader() {
         const marketplacePlugins: MarketplacePlugin[] =
           (response.data as any)?.data || [];
 
+        console.log("[PluginLoader] Debug - Installed plugins:", installedPlugins.map(p => p.pluginKey));
+        console.log("[PluginLoader] Debug - Marketplace plugins with UI:", marketplacePlugins.filter(p => p.ui).map(p => ({ key: p.key, slots: p.ui?.slots })));
+
         for (const installed of installedPlugins) {
           const marketplacePlugin = marketplacePlugins.find(
             (p) => p.key === installed.pluginKey
           );
 
+          console.log(`[PluginLoader] Debug - Processing ${installed.pluginKey}:`, {
+            found: !!marketplacePlugin,
+            hasUI: !!marketplacePlugin?.ui,
+            slots: marketplacePlugin?.ui?.slots,
+          });
+
           if (marketplacePlugin?.ui) {
             await loadPluginUI(installed.pluginKey, marketplacePlugin.ui);
+            console.log(`[PluginLoader] Debug - Loaded UI for ${installed.pluginKey}`);
           }
         }
       } catch (error) {

@@ -12,8 +12,18 @@ module.exports = {
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
 
-        // Check if columns already exist
-        const [columns] = await queryInterface.sequelize.query(`
+        // Check if table exists in this tenant schema
+        const [results] = await queryInterface.sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = '${tenantHash}'
+            AND table_name = 'deepeval_projects'
+          );
+        `);
+
+        if (results[0].exists) {
+          // Check if columns already exist
+          const [columns] = await queryInterface.sequelize.query(`
           SELECT column_name
           FROM information_schema.columns
           WHERE table_schema = '${tenantHash}'
@@ -21,14 +31,15 @@ module.exports = {
           AND column_name = 'use_case';
         `, { transaction });
 
-        if (columns.length > 0) {
-          console.log(`use_case column already exists for tenant ${tenantHash}, skipping`);
-          continue;
-        }
+          if (columns.length > 0) {
+            console.log(`use_case column already exists for tenant ${tenantHash}, skipping`);
+            continue;
+          }
 
-        await queryInterface.sequelize.query(
-          `ALTER TABLE "${tenantHash}".deepeval_projects ADD COLUMN use_case VARCHAR(50) DEFAULT 'chatbot';`, { transaction }
-        )
+          await queryInterface.sequelize.query(
+            `ALTER TABLE "${tenantHash}".deepeval_projects ADD COLUMN use_case VARCHAR(50) DEFAULT 'chatbot';`, { transaction }
+          )
+        }
       }
       await transaction.commit();
     } catch (error) {

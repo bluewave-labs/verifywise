@@ -17,7 +17,7 @@ module.exports = {
         const columnExists = await queryInterface.sequelize.query(
           `SELECT EXISTS (
           SELECT FROM information_schema.columns
-          WHERE table_schema = ${tenantHash}
+          WHERE table_schema = '${tenantHash}'
           AND table_name = 'vendors'
           AND column_name = 'updated_at'
         )`,
@@ -28,15 +28,14 @@ module.exports = {
         );
 
         if (!columnExists[0].exists) {
-          await queryInterface.addColumn('vendors', 'updated_at', {
-            type: Sequelize.DATE,
-            allowNull: false,
-            defaultValue: Sequelize.fn('NOW'),
-          }, { transaction });
+          await queryInterface.sequelize.query(
+            `ALTER TABLE "${tenantHash}".vendors ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT NOW();`,
+            { transaction }
+          )
 
           // Set updated_at to created_at for existing records (overwrite default NOW() value)
           await queryInterface.sequelize.query(
-            `UPDATE vendors SET updated_at = COALESCE(created_at, NOW());`,
+            `UPDATE "${tenantHash}".vendors SET updated_at = COALESCE(created_at, NOW());`,
             { transaction }
           );
         } else {

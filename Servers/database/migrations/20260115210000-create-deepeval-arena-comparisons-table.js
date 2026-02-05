@@ -12,21 +12,31 @@ module.exports = {
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
 
-        // Check if table already exists
-        const [tables] = await queryInterface.sequelize.query(`
+        const [results] = await queryInterface.sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = '${tenantHash}'
+            AND table_name = 'deepeval_organizations'
+          );
+        `);
+
+        if (results[0].exists) {
+
+          // Check if table already exists
+          const [tables] = await queryInterface.sequelize.query(`
           SELECT table_name
           FROM information_schema.tables
           WHERE table_schema = '${tenantHash}'
           AND table_name = 'deepeval_arena_comparisons';
         `, { transaction });
 
-        if (tables.length > 0) {
-          console.log(`deepeval_arena_comparisons table already exists for tenant ${tenantHash}, skipping`);
-          continue;
-        }
+          if (tables.length > 0) {
+            console.log(`deepeval_arena_comparisons table already exists for tenant ${tenantHash}, skipping`);
+            continue;
+          }
 
-        // Create deepeval_arena_comparisons table
-        await queryInterface.sequelize.query(`
+          // Create deepeval_arena_comparisons table
+          await queryInterface.sequelize.query(`
           CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_arena_comparisons (
             id VARCHAR(255) PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
@@ -49,23 +59,24 @@ module.exports = {
           );
         `, { transaction });
 
-        // Create indexes
-        await queryInterface.sequelize.query(`
+          // Create indexes
+          await queryInterface.sequelize.query(`
           CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_org_id
           ON "${tenantHash}".deepeval_arena_comparisons(org_id);
         `, { transaction });
 
-        await queryInterface.sequelize.query(`
+          await queryInterface.sequelize.query(`
           CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_status
           ON "${tenantHash}".deepeval_arena_comparisons(status);
         `, { transaction });
 
-        await queryInterface.sequelize.query(`
+          await queryInterface.sequelize.query(`
           CREATE INDEX IF NOT EXISTS idx_deepeval_arena_comparisons_created_at
           ON "${tenantHash}".deepeval_arena_comparisons(created_at DESC);
         `, { transaction });
 
-        console.log(`Created deepeval_arena_comparisons table for tenant ${tenantHash}`);
+          console.log(`Created deepeval_arena_comparisons table for tenant ${tenantHash}`);
+        }
       }
       await transaction.commit();
     } catch (error) {

@@ -1,8 +1,8 @@
 import React from "react";
 import { SxProps, Theme } from "@mui/material";
 import {
-  ICustomizableButtonCoreProps,
-  IFilterButtonCoreProps,
+  CustomizableButtonCoreProps,
+  FilterButtonCoreProps,
 } from "../../domain/types/button.types";
 
 /**
@@ -10,7 +10,7 @@ import {
  * Extends domain props with MUI-specific styling
  * Overrides unknown types from domain with React.ReactNode
  */
-export interface ICustomizableButtonProps extends Omit<ICustomizableButtonCoreProps, 'icon' | 'startIcon' | 'endIcon' | 'children' | 'loadingIndicator' | 'onClick'> {
+export interface CustomizableButtonProps extends Omit<CustomizableButtonCoreProps, 'icon' | 'startIcon' | 'endIcon' | 'children' | 'loadingIndicator' | 'onClick'> {
   /** Icon element (overrides domain unknown type) */
   icon?: React.ReactNode;
   /** Icon to display at the start of the button */
@@ -31,7 +31,7 @@ export interface ICustomizableButtonProps extends Omit<ICustomizableButtonCorePr
  * Presentation adapter for FilterButton component
  * Extends domain props with MUI-specific styling
  */
-export interface IFilterButtonProps extends IFilterButtonCoreProps {
+export interface FilterButtonProps extends FilterButtonCoreProps {
   /** Additional MUI styles */
   sx?: SxProps<Theme>;
 }

@@ -246,6 +246,7 @@ export const createNewTenant = async (
         "createdAt" timestamp with time zone NOT NULL DEFAULT now(),
         "updatedAt" timestamp with time zone NOT NULL DEFAULT now(),
         description character varying(255),
+        is_demo boolean NOT NULL DEFAULT false,
         CONSTRAINT trainingregistar_pkey PRIMARY KEY (id)
       );`,
       ].map((query) => sequelize.query(query, { transaction }))
@@ -984,6 +985,7 @@ export const createNewTenant = async (
         "last_updated_by" INTEGER NOT NULL,
         "last_updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_demo boolean NOT NULL DEFAULT false,
         FOREIGN KEY ("author_id") REFERENCES public.users(id) ON DELETE SET NULL,
         FOREIGN KEY ("last_updated_by") REFERENCES public.users(id) ON DELETE SET NULL
       );`,
@@ -1118,8 +1120,192 @@ export const createNewTenant = async (
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         is_deleted BOOLEAN NOT NULL DEFAULT false,
-        deleted_at TIMESTAMP
+        deleted_at TIMESTAMP,
+        is_demo BOOLEAN NOT NULL DEFAULT false
       );`,
+      { transaction }
+    );
+
+    // Create dataset ENUM types if they don't exist
+    await sequelize.query(
+      `
+      DO $$
+        BEGIN
+          CREATE TYPE enum_dataset_status AS ENUM ('Draft', 'Active', 'Deprecated', 'Archived');
+        EXCEPTION
+          WHEN duplicate_object THEN null;
+        END $$;
+    `,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `
+      DO $$
+        BEGIN
+          CREATE TYPE enum_dataset_type AS ENUM ('Training', 'Validation', 'Testing', 'Production', 'Reference');
+        EXCEPTION
+          WHEN duplicate_object THEN null;
+        END $$;
+    `,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `
+      DO $$
+        BEGIN
+          CREATE TYPE enum_data_classification AS ENUM ('Public', 'Internal', 'Confidential', 'Restricted');
+        EXCEPTION
+          WHEN duplicate_object THEN null;
+        END $$;
+    `,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `
+      DO $$
+        BEGIN
+          CREATE TYPE enum_dataset_change_action AS ENUM ('created', 'updated', 'deleted');
+        EXCEPTION
+          WHEN duplicate_object THEN null;
+        END $$;
+    `,
+      { transaction }
+    );
+
+    // Create datasets table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".datasets (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        version VARCHAR(50) NOT NULL,
+        owner VARCHAR(255) NOT NULL,
+        type enum_dataset_type NOT NULL,
+        function TEXT NOT NULL,
+        source VARCHAR(255) NOT NULL,
+        license VARCHAR(255) NULL,
+        format VARCHAR(100) NULL,
+        classification enum_data_classification NOT NULL,
+        contains_pii BOOLEAN NOT NULL DEFAULT false,
+        pii_types TEXT NULL,
+        status enum_dataset_status NOT NULL DEFAULT 'Draft',
+        status_date TIMESTAMP NOT NULL,
+        known_biases TEXT NULL,
+        bias_mitigation TEXT NULL,
+        collection_method TEXT NULL,
+        preprocessing_steps TEXT NULL,
+        documentation_data JSONB NOT NULL DEFAULT '[]',
+        is_demo BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );`,
+      { transaction }
+    );
+
+    // Indexes for datasets table
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_datasets_name ON "${tenantHash}".datasets(name);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_datasets_status ON "${tenantHash}".datasets(status);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_datasets_type ON "${tenantHash}".datasets(type);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_datasets_classification ON "${tenantHash}".datasets(classification);`,
+      { transaction }
+    );
+
+    // Create dataset_model_inventories junction table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".dataset_model_inventories (
+        id SERIAL PRIMARY KEY,
+        dataset_id INTEGER NOT NULL,
+        model_inventory_id INTEGER NOT NULL,
+        relationship_type VARCHAR(50) NOT NULL DEFAULT 'trained_on',
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        CONSTRAINT fk_dataset_model_inv_dataset FOREIGN KEY (dataset_id)
+          REFERENCES "${tenantHash}".datasets(id) ON DELETE CASCADE,
+        CONSTRAINT fk_dataset_model_inv_model FOREIGN KEY (model_inventory_id)
+          REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
+        CONSTRAINT uq_dataset_model_inventory UNIQUE (dataset_id, model_inventory_id)
+      );`,
+      { transaction }
+    );
+
+    // Indexes for dataset_model_inventories
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_dataset_model_inv_dataset ON "${tenantHash}".dataset_model_inventories(dataset_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_dataset_model_inv_model ON "${tenantHash}".dataset_model_inventories(model_inventory_id);`,
+      { transaction }
+    );
+
+    // Create dataset_projects junction table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".dataset_projects (
+        id SERIAL PRIMARY KEY,
+        dataset_id INTEGER NOT NULL,
+        project_id INTEGER NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        CONSTRAINT fk_dataset_project_dataset FOREIGN KEY (dataset_id)
+          REFERENCES "${tenantHash}".datasets(id) ON DELETE CASCADE,
+        CONSTRAINT fk_dataset_project_project FOREIGN KEY (project_id)
+          REFERENCES "${tenantHash}".projects(id) ON DELETE CASCADE,
+        CONSTRAINT uq_dataset_project UNIQUE (dataset_id, project_id)
+      );`,
+      { transaction }
+    );
+
+    // Indexes for dataset_projects
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_dataset_project_dataset ON "${tenantHash}".dataset_projects(dataset_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_dataset_project_project ON "${tenantHash}".dataset_projects(project_id);`,
+      { transaction }
+    );
+
+    // Create dataset_change_histories table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".dataset_change_histories (
+        id SERIAL PRIMARY KEY,
+        dataset_id INTEGER NOT NULL,
+        action enum_dataset_change_action NOT NULL,
+        field_name VARCHAR(100) NULL,
+        old_value TEXT NULL,
+        new_value TEXT NULL,
+        changed_by_user_id INTEGER NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        CONSTRAINT fk_dataset_change_history_dataset FOREIGN KEY (dataset_id)
+          REFERENCES "${tenantHash}".datasets(id) ON DELETE CASCADE,
+        CONSTRAINT fk_dataset_change_history_user FOREIGN KEY (changed_by_user_id)
+          REFERENCES public.users(id) ON DELETE SET NULL
+      );`,
+      { transaction }
+    );
+
+    // Indexes for dataset_change_histories
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_dataset_change_history_dataset_id ON "${tenantHash}".dataset_change_histories(dataset_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_dataset_change_history_changed_at ON "${tenantHash}".dataset_change_histories(changed_at);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_dataset_change_history_composite ON "${tenantHash}".dataset_change_histories(dataset_id, changed_at DESC);`,
       { transaction }
     );
 
@@ -1163,6 +1349,7 @@ export const createNewTenant = async (
       categories jsonb DEFAULT '[]',
       created_at timestamp with time zone NOT NULL DEFAULT now(),
       updated_at timestamp with time zone NOT NULL DEFAULT now(),
+      is_demo boolean NOT NULL DEFAULT false,
       CONSTRAINT tasks_pkey PRIMARY KEY (id),
       CONSTRAINT tasks_creator_id_fkey FOREIGN KEY (creator_id)
         REFERENCES public.users (id) MATCH SIMPLE

@@ -73,8 +73,8 @@ const FileStructureSection: React.FC = () => {
             children: [
               { name: "Alert", type: "folder", description: "Toast notifications" },
               { name: "Avatar", type: "folder", description: "User avatars" },
-              { name: "Breadcrumbs", type: "folder", description: "Navigation breadcrumbs" },
-              { name: "Button", type: "folder", description: "Button variants" },
+              { name: "breadcrumbs", type: "folder", description: "Navigation breadcrumbs" },
+              { name: "button", type: "folder", description: "Button variants" },
               { name: "Cards", type: "folder", description: "Card components" },
               { name: "Drawer", type: "folder", description: "Side drawers" },
               { name: "EmptyState", type: "folder", description: "No data states" },
@@ -127,14 +127,14 @@ const FileStructureSection: React.FC = () => {
     { component: "Select dropdown", path: "components/Inputs/Select" },
     { component: "Text field", path: "components/Inputs/Field" },
     { component: "Search box", path: "components/Inputs/SearchBox" },
-    { component: "Primary button", path: "components/Button" },
+    { component: "Primary button", path: "components/button" },
     { component: "Data table", path: "components/Table" },
     { component: "Standard modal", path: "components/Modals/StandardModal" },
     { component: "Side drawer", path: "components/Drawer" },
     { component: "Tab bar", path: "components/TabBar" },
     { component: "Toast alert", path: "components/Alert" },
     { component: "Empty state", path: "components/EmptyState" },
-    { component: "Breadcrumbs", path: "components/Breadcrumbs" },
+    { component: "Breadcrumbs", path: "components/breadcrumbs" },
     { component: "Tag chip", path: "components/Tags/TagChip" },
   ];
 

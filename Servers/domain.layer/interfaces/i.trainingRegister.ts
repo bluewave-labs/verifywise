@@ -7,4 +7,5 @@ export interface ITrainingRegister {
   status: "Planned" | "In Progress" | "Completed";
   numberOfPeople: number;
   description: string;
+  is_demo?: boolean;
 }

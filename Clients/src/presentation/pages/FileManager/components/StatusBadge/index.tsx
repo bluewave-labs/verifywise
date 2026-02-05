@@ -6,7 +6,7 @@
  * @module presentation/pages/FileManager/components/StatusBadge
  */
 
-import { Box, Typography, useTheme } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { ReviewStatus } from "../../../../../application/repository/file.repository";
 
 interface StatusBadgeProps {
@@ -58,8 +58,6 @@ const STATUS_CONFIGS: Record<ReviewStatus, StatusConfig> = {
  * StatusBadge component for displaying file review status
  */
 export function StatusBadge({ status, size = "small" }: StatusBadgeProps) {
-  const theme = useTheme();
-
   if (!status) {
     return null;
   }

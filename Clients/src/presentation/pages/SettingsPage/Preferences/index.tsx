@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import Alert from "../../../components/Alert";
 import CustomizableToast from "../../../components/Toast";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import { SaveIcon } from "lucide-react";
 import { UserDateFormat } from "../../../../domain/enums/userDateFormat.enum";
 import {

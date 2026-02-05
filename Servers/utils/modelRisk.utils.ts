@@ -63,12 +63,13 @@ export async function getModelRiskByIdQuery(
  */
 export async function createNewModelRiskQuery(
   data: Partial<IModelRisk>,
-  tenant: string
+  tenant: string,
+  transaction?: import("sequelize").Transaction
 ): Promise<ModelRiskModel> {
   const created_at = new Date();
   const result = await sequelize.query(
-    `INSERT INTO "${tenant}".model_risks (risk_name, risk_category, risk_level, status, owner, target_date, description, mitigation_plan, impact, likelihood, key_metrics, current_values, threshold, model_id, created_at, updated_at)
-        VALUES (:risk_name, :risk_category, :risk_level, :status, :owner, :target_date, :description, :mitigation_plan, :impact, :likelihood, :key_metrics, :current_values, :threshold, :model_id, :created_at, :updated_at) RETURNING *`,
+    `INSERT INTO "${tenant}".model_risks (risk_name, risk_category, risk_level, status, owner, target_date, description, mitigation_plan, impact, likelihood, key_metrics, current_values, threshold, model_id, created_at, updated_at, is_demo)
+        VALUES (:risk_name, :risk_category, :risk_level, :status, :owner, :target_date, :description, :mitigation_plan, :impact, :likelihood, :key_metrics, :current_values, :threshold, :model_id, :created_at, :updated_at, :is_demo) RETURNING *`,
     {
       replacements: {
         risk_name: data.risk_name || "",
@@ -87,9 +88,11 @@ export async function createNewModelRiskQuery(
         model_id: data.model_id || null,
         created_at: created_at,
         updated_at: created_at,
+        is_demo: data.is_demo || false,
       },
       mapToModel: true,
       model: ModelRiskModel,
+      transaction,
     }
   );
 

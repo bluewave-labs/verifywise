@@ -11,6 +11,7 @@ export interface IPolicy {
   assigned_reviewer_ids?: number[];
   last_updated_by: number;
   last_updated_at?: Date;
+  is_demo?: boolean;
 }
 
 export const POLICY_TAGS = [

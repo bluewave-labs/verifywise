@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, type JSX } from "react";
 import { Stack, Box, Typography } from "@mui/material";
 import { Upload as UploadIcon, FolderPlus as FolderPlusIcon } from "lucide-react";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
@@ -22,7 +22,7 @@ import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
 import { FileModel } from "../../../domain/models/Common/file/file.model";
 import PageHeader from "../../components/Layout/PageHeader";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
 import { secureLogError } from "../../../application/utils/secureLogger.utils";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -55,8 +55,7 @@ import Alert from "../../components/Alert";
 import { AlertProps } from "../../types/alert.types";
 
 // File metadata enhancement imports
-import { useFileColumnVisibility, FileColumn } from "../../../application/hooks/useFileColumnVisibility";
-import { useHighlightedFiles } from "../../../application/hooks/useHighlightedFiles";
+import { useFileColumnVisibility } from "../../../application/hooks/useFileColumnVisibility";
 import { ColumnSelector } from "./components/ColumnSelector";
 import { FilePreviewPanel } from "./components/FilePreviewPanel";
 import { FileMetadataEditor } from "./components/FileMetadataEditor";
@@ -163,11 +162,9 @@ const FileManager: React.FC = (): JSX.Element => {
     resetToDefaults: resetColumnsToDefaults,
   } = useFileColumnVisibility();
 
-  const { getHighlightTypes } = useHighlightedFiles();
-
   // Files with metadata for enhanced view
   const [filesWithMetadata, setFilesWithMetadata] = useState<FileMetadata[]>([]);
-  const [loadingMetadata, setLoadingMetadata] = useState(false);
+  const [, setLoadingMetadata] = useState(false);
 
   // Preview panel state
   const [previewFile, setPreviewFile] = useState<FileMetadata | null>(null);
@@ -184,6 +181,7 @@ const FileManager: React.FC = (): JSX.Element => {
       const timer = setTimeout(() => setAlert(null), 4000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   // Sync initial data from hook to local state
@@ -295,7 +293,7 @@ const FileManager: React.FC = (): JSX.Element => {
 
     setIsSubmittingMetadata(true);
     try {
-      await updateFileMetadata({ id: editingFile.id, ...updates });
+      await updateFileMetadata({ id: editingFile.id, updates });
       await fetchFilesWithMetadata();
       handleCloseMetadataEditor();
       setAlert({ variant: "success", body: "File metadata updated successfully", isToast: true });
@@ -427,7 +425,7 @@ const FileManager: React.FC = (): JSX.Element => {
   // Assign to folder modal handlers
   const handleOpenAssignFolder = useCallback(async (fileId: number) => {
     // Find the file name from active files
-    const file = activeFilesData.find((f) => f.id === fileId);
+    const file = activeFilesData.find((f) => Number(f.id) === fileId);
     if (!file) return;
 
     setSelectedFileForAssign({ id: fileId, name: file.fileName || "" });

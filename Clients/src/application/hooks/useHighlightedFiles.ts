@@ -97,6 +97,7 @@ export function useHighlightedFiles(
       const intervalId = setInterval(refresh, refreshInterval);
       return () => clearInterval(intervalId);
     }
+    return undefined;
   }, [refresh, refreshInterval]);
 
   // Convert arrays to Sets for O(1) lookup

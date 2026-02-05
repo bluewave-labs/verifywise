@@ -16,7 +16,6 @@ import {
   Files as FilesIcon,
   FileQuestion as UncategorizedIcon,
   Plus as PlusIcon,
-  MoreVertical as MoreIcon,
   Pencil as EditIcon,
   Trash2 as DeleteIcon,
 } from "lucide-react";
@@ -24,7 +23,7 @@ import {
   IFolderTreeNode,
   SelectedFolder,
 } from "../../../../../domain/interfaces/i.virtualFolder";
-import CustomizableButton from "../../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../../components/button/customizable-button";
 
 interface FolderTreeProps {
   folders: IFolderTreeNode[];

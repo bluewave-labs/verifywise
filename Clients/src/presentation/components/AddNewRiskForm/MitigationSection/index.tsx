@@ -183,7 +183,6 @@ const MitigationSection: FC<MitigationSectionProps> = ({
       )}
       <Suspense fallback={<div>Loading form components...</div>}>
         <Stack
-          component="form"
           className={disableInternalScroll ? undefined : styles.popupBody}
           sx={{
             width: "100%",

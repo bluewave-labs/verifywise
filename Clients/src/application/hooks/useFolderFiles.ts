@@ -60,12 +60,12 @@ export function useFolderFiles(
    */
   const transformToFileWithFolders = useCallback((fileData: ReturnType<typeof transformFilesData>): IFileWithFolders[] => {
     return fileData.map(file => ({
-      id: file.id || 0,
+      id: Number(file.id) || 0,
       filename: file.fileName || '',
       size: file.size || 0,
-      mimetype: file.mimetype || 'application/octet-stream',
+      mimetype: file.type || 'application/octet-stream',
       upload_date: file.uploadDate?.toISOString() || new Date().toISOString(),
-      uploaded_by: file.uploadedBy || 0,
+      uploaded_by: Number(file.uploader) || 0,
       uploader_name: file.uploaderName,
       uploader_surname: undefined,
       folders: [],

@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import "./index.css";
 import { Stack, SxProps, Theme, Typography } from "@mui/material";
 import {useModalKeyHandling} from "../../../../application/hooks/useModalKeyHandling";
@@ -96,7 +96,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               variant="text"
               sx={{ color: "#344054", px: "32px", width: 120 }}
               onClick={onCancel}
-              disabled={isLoading}
+              isDisabled={isLoading}
             />
           )}
           <CustomizableButton
@@ -105,7 +105,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             variant={proceedButtonVariant}
             onClick={onProceed}
             sx={confirmBtnSx}
-            disabled={isLoading}
+            isDisabled={isLoading}
           />
         </Stack>
       </Stack>

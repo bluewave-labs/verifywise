@@ -46,6 +46,7 @@ import {
   IVirtualFolderUpdate,
   IVirtualFolder,
 } from "../../../domain/interfaces/i.virtualFolder";
+import { assignFilesToFolder } from "../../../application/repository/virtualFolder.repository";
 import FolderTree from "./components/FolderTree";
 import FolderBreadcrumb from "./components/FolderBreadcrumb";
 import CreateFolderModal from "./components/CreateFolderModal";
@@ -242,8 +243,20 @@ const FileManager: React.FC = (): JSX.Element => {
     setIsUploadModalOpen(true);
   }, [isUploadAllowed, userRoleName]);
 
-  // Handle upload success
-  const handleUploadSuccess = useCallback(() => {
+  // Handle upload success - auto-assign to current folder if viewing one
+  const handleUploadSuccess = useCallback(async (uploadedFiles?: Array<{ id: number }>) => {
+    // If viewing a specific folder, auto-assign uploaded files to it
+    if (typeof selectedFolder === "number" && uploadedFiles?.length) {
+      try {
+        const fileIds = uploadedFiles.map((f) => f.id).filter(Boolean);
+        if (fileIds.length > 0) {
+          await assignFilesToFolder(selectedFolder, fileIds);
+        }
+      } catch (err) {
+        console.error("Failed to assign uploaded files to folder:", err);
+      }
+    }
+
     refetch();
     fetchFilesWithMetadata();
     refreshFolders();

@@ -7,13 +7,12 @@ import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
 import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
 import ApprovalButton from './ApprovalButton';
+import NotificationBell from '../NotificationBell';
 import {
   getPendingApprovals,
   getMyApprovalRequests,
 } from '../../../application/repository/approvalRequest.repository';
 import { actionButtonsStyles } from './style';
-// SSE notifications disabled for now - can be re-enabled later if needed
-// import { useNotifications } from '../../../application/hooks/useNotifications';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -117,18 +116,6 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     }
   }, []);
 
-  // SSE notifications disabled for now - can be re-enabled later if needed
-  // useNotifications({
-  //   enabled: true,
-  //   onNotification: useCallback((notification: any) => {
-  //     // Refresh count when approval-related notifications are received
-  //     const approvalTypes = ['approval_request', 'approval_approved', 'approval_rejected', 'approval_complete'];
-  //     if (approvalTypes.includes(notification?.type)) {
-  //       fetchApprovalCounts();
-  //     }
-  //   }, [fetchApprovalCounts]),
-  // });
-
   // Initial fetch on mount
   useEffect(() => {
     fetchApprovalCounts();
@@ -153,6 +140,9 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
           <Search size={16} />
         </IconButton>
       </VWTooltip>
+
+      {/* Notifications Bell */}
+      <NotificationBell />
 
       <ApprovalButton
         label="Approval requests"

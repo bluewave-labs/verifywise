@@ -471,33 +471,33 @@ const PluginManagement: React.FC = () => {
                       <Box sx={frameworkDetailsGrid}>
                         {/* Region */}
                         <Box sx={frameworkDetailItem}>
-                          <Typography sx={frameworkDetailLabel}>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <Box component="span" sx={frameworkDetailLabel}>
+                            <Box component="span" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                               <GlobeIcon size={12} />
                               Region
                             </Box>
-                          </Typography>
-                          <Typography sx={frameworkDetailValue}>
+                          </Box>
+                          <Box component="span" sx={frameworkDetailValue}>
                             <span style={{ fontSize: "18px" }}>{getRegionFlag(plugin.region)}</span>
                             {plugin.region || "Global"}
-                          </Typography>
+                          </Box>
                         </Box>
 
                         {/* Framework Type */}
                         <Box sx={frameworkDetailItem}>
-                          <Typography sx={frameworkDetailLabel}>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <Box component="span" sx={frameworkDetailLabel}>
+                            <Box component="span" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                               {plugin.frameworkType === "organizational" ? <BuildingIcon size={12} /> : <LayersIcon size={12} />}
                               Framework Type
                             </Box>
-                          </Typography>
+                          </Box>
                           <Box>
                             <MuiChip
                               size="small"
                               label={plugin.frameworkType === "organizational" ? "Organizational" : "Project-Based"}
                               sx={frameworkTypeChip(plugin.frameworkType === "organizational")}
                             />
-                            <Typography sx={frameworkTypeDescription}>
+                            <Typography component="span" sx={{ ...frameworkTypeDescription, display: "block" }}>
                               {plugin.frameworkType === "organizational"
                                 ? "Organization-wide framework that applies globally across all projects"
                                 : "Project-specific framework that can be applied to individual projects"}

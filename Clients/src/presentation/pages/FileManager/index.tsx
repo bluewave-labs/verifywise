@@ -631,7 +631,7 @@ const FileManager: React.FC = (): JSX.Element => {
         />
 
         {/* File content area */}
-        <Box sx={{ flex: 1, display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF" }}>
+        <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF" }}>
           {/* Breadcrumb and actions */}
           <Box
             sx={{
@@ -642,13 +642,15 @@ const FileManager: React.FC = (): JSX.Element => {
               alignItems: "center",
             }}
           >
-            <FolderBreadcrumb
-              selectedFolder={selectedFolder}
-              breadcrumb={breadcrumb}
-              onSelectFolder={setSelectedFolder}
-              loading={loadingBreadcrumb}
-            />
-            <Stack direction="row" gap="8px">
+            <Box sx={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
+              <FolderBreadcrumb
+                selectedFolder={selectedFolder}
+                breadcrumb={breadcrumb}
+                onSelectFolder={setSelectedFolder}
+                loading={loadingBreadcrumb}
+              />
+            </Box>
+            <Stack direction="row" gap="8px" sx={{ flexShrink: 0 }}>
               {canManageFolders && (
                 <CustomizableButton
                   variant="outlined"

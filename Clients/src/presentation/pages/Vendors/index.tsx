@@ -3,7 +3,7 @@
 import "./index.css";
 import { Box, SelectChangeEvent, Stack, useTheme, Fade } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
 import {
@@ -29,7 +29,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import AddNewRisk from "../../components/Modals/NewRisk";
-import { CustomizableButton } from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import CustomizableSkeleton from "../../components/Skeletons";
 import CustomizableToast from "../../components/Toast";
 import RisksCard from "../../components/Cards/RisksCard";

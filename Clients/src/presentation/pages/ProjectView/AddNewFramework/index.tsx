@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { Check as CheckGreenIcon } from "lucide-react";
 import StandardModal from "../../../components/Modals/StandardModal";
-import { CustomizableButton } from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import {

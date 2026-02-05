@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { Stack, useTheme, Divider } from "@mui/material";
 import { Breadcrumbs } from "./index";
 import { PageBreadcrumbsProps } from "../../types/breadcrumbs.types";

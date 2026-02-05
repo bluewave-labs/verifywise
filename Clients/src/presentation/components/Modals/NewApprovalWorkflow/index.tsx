@@ -4,7 +4,7 @@ import StandardModal from "../StandardModal";
 import Field from "../../Inputs/Field";
 import { fieldStyle } from "../../Reporting/GenerateReport/GenerateReportFrom/styles";
 import SelectComponent from "../../Inputs/Select";
-import { CustomizableButton } from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-dark_grey.svg";
 import { ChevronDown } from "lucide-react";
 import {

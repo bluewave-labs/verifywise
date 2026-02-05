@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Box, Stack } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
 import HelperIcon from "../../components/HelperIcon";
-import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PageTour from "../../components/PageTour";

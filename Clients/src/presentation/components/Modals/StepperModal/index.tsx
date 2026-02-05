@@ -29,7 +29,7 @@
 import React from "react";
 import { Modal, Stack, Box, Typography, Step, Stepper, StepLabel } from "@mui/material";
 import { X as CloseIcon } from "lucide-react";
-import { CustomizableButton } from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 
 interface StepperModalProps {
   /** Controls whether the modal is visible */

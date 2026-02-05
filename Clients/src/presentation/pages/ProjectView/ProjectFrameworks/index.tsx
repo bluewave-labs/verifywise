@@ -13,7 +13,7 @@ import useFrameworks from "../../../../application/hooks/useFrameworks";
 import AddFrameworkModal from "../AddNewFramework";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { ButtonToggle } from "../../../components/ButtonToggle";
+import { ButtonToggle } from "../../../components/button-toggle";
 import { PluginSlot } from "../../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
 import { usePluginRegistry } from "../../../../application/contexts/PluginRegistry.context";

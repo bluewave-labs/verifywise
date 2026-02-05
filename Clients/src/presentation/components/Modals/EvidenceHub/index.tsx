@@ -3,7 +3,7 @@ import React, { FC, useState, useEffect, useCallback, Suspense } from "react";
 import { Stack, Box, Typography, IconButton, Tooltip } from "@mui/material";
 import StandardModal from "../StandardModal";
 import { UploadIcon } from "lucide-react";
-import { CustomizableButton } from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import FileManagerUploadModal from "../FileManagerUpload";
 import { Trash2 as DeleteIconGrey } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";

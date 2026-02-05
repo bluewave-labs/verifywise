@@ -33,7 +33,7 @@ import {
   Layers as LayersIcon,
   BookOpen as BookOpenIcon,
 } from "lucide-react";
-import { PageBreadcrumbs } from "../../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../../components/Layout/PageHeader";
 import PluginSlot from "../../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";

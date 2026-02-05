@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { Box, Stack } from "@mui/material";
 import StandardModal from "../../Modals/StandardModal";
-import { CustomizableButton } from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 const GenerateReportFrom = lazy(() => import("./GenerateReportFrom"));
 const SectionSelector = lazy(() => import("./SectionSelector"));
 const DownloadReportForm = lazy(() => import("./DownloadReportFrom"));

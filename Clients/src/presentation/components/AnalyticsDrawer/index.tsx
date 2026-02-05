@@ -3,7 +3,7 @@ import { Drawer, Box, Typography, Stack, IconButton, useTheme } from "@mui/mater
 import { X as CloseIcon } from "lucide-react";
 import ModelInventoryHistoryChart from "../Charts/ModelInventoryHistoryChart";
 import RiskHistoryChart from "../Charts/RiskHistoryChart";
-import { ButtonToggle } from "../ButtonToggle";
+import { ButtonToggle } from "../button-toggle";
 
 interface ParameterOption {
   value: string;

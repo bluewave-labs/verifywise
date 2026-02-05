@@ -30,8 +30,8 @@ import {
   CheckSquare,
   BarChart3,
 } from 'lucide-react';
-import { Button } from '../../../../components/Button';
-import CustomizableButton from '../../../../components/Button/CustomizableButton';
+import { Button } from '../../../../components/button';
+import { CustomizableButton } from '../../../../components/button/customizable-button';
 import { Automation, Action, TriggerTemplate, ActionTemplate } from '../../../../../domain/types/Automation';
 
 // Icon mapping for trigger types

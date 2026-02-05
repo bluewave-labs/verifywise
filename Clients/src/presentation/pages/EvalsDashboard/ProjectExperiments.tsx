@@ -12,7 +12,7 @@ import {
 import Alert from "../../components/Alert";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import NewExperimentModal from "./NewExperimentModal";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import { useNavigate } from "react-router-dom";
 import EvaluationTable from "../../components/Table/EvaluationTable";
 import PerformanceChart from "./components/PerformanceChart";

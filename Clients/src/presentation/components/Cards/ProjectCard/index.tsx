@@ -1,5 +1,5 @@
 import { Stack, Typography, Tooltip, Link } from "@mui/material";
-import { CustomizableButton } from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import { ArrowUpRight as WhiteUpRightArrowIcon, Eye as EyeIcon, ExternalLink } from "lucide-react";
 import ProgressBar from "../../ProjectCard/ProgressBar";

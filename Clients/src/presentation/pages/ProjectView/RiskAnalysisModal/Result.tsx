@@ -9,7 +9,7 @@ import {
   Save,
 } from "lucide-react";
 import { ResultsDisplayProps } from "./iQuestion";
-import { CustomizableButton } from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 
 const Results: React.FC<ResultsDisplayProps> = ({
   classification,

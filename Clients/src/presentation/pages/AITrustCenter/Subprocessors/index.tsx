@@ -12,7 +12,7 @@ import Toggle from "../../../components/Inputs/Toggle";
 import IconButtonComponent from "../../../components/IconButton";
 import { useStyles } from "./styles";
 import Field from "../../../components/Inputs/Field";
-import { CustomizableButton } from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import StandardModal from "../../../components/Modals/StandardModal";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { useTheme } from "@mui/material/styles";

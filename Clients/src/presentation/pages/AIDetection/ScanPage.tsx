@@ -32,7 +32,7 @@ import {
   Info,
 } from "lucide-react";
 import Field from "../../components/Inputs/Field";
-import { CustomizableButton } from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import {

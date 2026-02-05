@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { PageBreadcrumbs } from '../Breadcrumbs/PageBreadcrumbs';
+import { PageBreadcrumbs } from '../breadcrumbs/PageBreadcrumbs';
 import DashboardActionButtons from './DashboardActionButtons';
 import { BreadcrumbItem } from '../../types/interfaces/i.breadcrumbs';
 

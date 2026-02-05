@@ -1,5 +1,5 @@
 import { Stack, Typography } from "@mui/material";
-import { CustomizableButton } from "../Button/CustomizableButton";
+import { CustomizableButton } from "../button/customizable-button";
 import { AuditRiskTable } from "../Table/AuditRiskTable/AuditRiskTable";
 import { useState } from "react";
 import { IAuditRiskModalProps } from "../../../domain/interfaces/i.riskForm";

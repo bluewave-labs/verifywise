@@ -7,7 +7,7 @@ import {
   Button as MUIButton,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import { CustomizableButton } from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import { Save as SaveIcon } from "lucide-react";
 import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
 import {

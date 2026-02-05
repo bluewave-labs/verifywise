@@ -25,7 +25,7 @@ import {
 } from "../../../application/repository/automations.repository";
 import { getAllUsers } from "../../../application/repository/user.repository";
 import Alert from "../../components/Alert";
-import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import { useProjects } from "../../../application/hooks/useProjects";
 
 const AutomationsPage: React.FC = () => {

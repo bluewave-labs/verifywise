@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Box, Typography, Stack, SelectChangeEvent } from "@mui/material";
 import { OnboardingStepProps } from "../../../types/interfaces/i.onboarding";
 import { UserPlus } from "lucide-react";
-import { CustomizableButton } from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import Select from "../../Inputs/Select";
 import Field from "../../Inputs/Field";
 import { sendInviteEmail } from "../../../../application/repository/mail.repository";

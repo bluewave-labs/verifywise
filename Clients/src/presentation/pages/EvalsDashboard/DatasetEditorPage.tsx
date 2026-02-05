@@ -23,7 +23,7 @@ import {
 import { isSingleTurnPrompt, type SingleTurnPrompt } from "../../../application/repository/deepEval.repository";
 import Alert from "../../components/Alert";
 import { ArrowLeft, ChevronDown, Save as SaveIcon, Plus, Trash2, Download, Copy, Check } from "lucide-react";
-import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 
 export default function DatasetEditorPage() {
   const { projectId } = useParams();

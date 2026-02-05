@@ -6,8 +6,8 @@
  */
 
 import React, { memo } from "react";
-import { Box } from "@mui/material";
-import { CustomizableButton } from "../CustomizableButton";
+import { Box, useTheme } from "@mui/material";
+import { CustomizableButton } from "../customizable-button";
 import { FilterButtonProps } from "../../../types/button.types";
 
 const FilterIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
@@ -36,6 +36,7 @@ const FilterButton = memo(function FilterButton({
   disabled = false,
   sx = {},
 }: FilterButtonProps) {
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -52,7 +53,7 @@ const FilterButton = memo(function FilterButton({
         onClick={onClick}
         isDisabled={disabled}
         sx={{
-          backgroundColor: isOpen ? "#f5f5f5" : "transparent",
+          backgroundColor: isOpen ? theme.palette.action.hover : "transparent",
           height: "34px",
           minHeight: "34px",
           ...sx,
@@ -61,8 +62,8 @@ const FilterButton = memo(function FilterButton({
       {hasActiveFilters && (
         <Box
           sx={{
-            backgroundColor: "#13715B",
-            color: "white",
+            backgroundColor: theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
             px: 1,
             py: 0.2,
             borderRadius: "10px",

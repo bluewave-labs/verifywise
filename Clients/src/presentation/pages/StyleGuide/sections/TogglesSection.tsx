@@ -4,7 +4,7 @@ import { Copy } from "lucide-react";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Toggle from "../../../components/Inputs/Toggle";
 import ViewToggle from "../../../components/ViewToggle";
-import { ButtonToggle } from "../../../components/ButtonToggle";
+import { ButtonToggle } from "../../../components/button-toggle";
 import CodeBlock from "../components/CodeBlock";
 
 // Code snippets

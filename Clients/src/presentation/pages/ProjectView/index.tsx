@@ -1,6 +1,6 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
 import { LayoutDashboard, AlertTriangle, Settings, History, ClipboardCheck } from "lucide-react";
-import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import React, { useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";

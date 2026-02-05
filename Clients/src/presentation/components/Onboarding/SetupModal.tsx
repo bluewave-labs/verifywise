@@ -15,7 +15,7 @@ import React, { useState } from "react";
 import { Box, Stack, Typography, CircularProgress } from "@mui/material";
 import { Database, LayoutDashboard } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { CustomizableButton } from "../Button/CustomizableButton";
+import { CustomizableButton } from "../button/customizable-button";
 import { postAutoDrivers } from "../../../application/repository/entity.repository";
 import { updateOnboardingStatus } from "../../../application/repository/organization.repository";
 import { useAuth } from "../../../application/hooks/useAuth";

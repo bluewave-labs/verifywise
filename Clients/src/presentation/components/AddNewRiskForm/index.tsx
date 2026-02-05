@@ -39,7 +39,7 @@ import useUsers from "../../../application/hooks/useUsers";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../application/constants/permissions";
-import { CustomizableButton } from "../Button/CustomizableButton";
+import { CustomizableButton } from "../button/customizable-button";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { getTabStyle } from "./style";
 import "./styles.module.css";

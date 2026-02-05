@@ -5,7 +5,7 @@ import {
   Stack,
 } from "@mui/material";
 import { Trash2 as DeleteIconRed, Pencil as EditIconGrey, Check as CheckGreenIcon } from "lucide-react";
-import { CustomizableButton } from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import ProjectForm from "../../../components/Forms/ProjectForm";

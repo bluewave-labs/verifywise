@@ -14,7 +14,7 @@ import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import Toggle from "../../../components/Inputs/Toggle";
 import { useStyles } from "./styles";
-import { CustomizableButton } from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import IconButtonComponent from "../../../components/IconButton";
 import Field from "../../../components/Inputs/Field";
 import StandardModal from "../../../components/Modals/StandardModal";

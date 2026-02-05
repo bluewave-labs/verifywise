@@ -31,7 +31,7 @@ import StandardModal from "../../Modals/StandardModal";
 import { useState, useEffect, lazy, Suspense, useRef } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import { CustomizableButton } from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import { User } from "../../../../domain/types/User";
 import {
   GetAnnexCategoriesById,

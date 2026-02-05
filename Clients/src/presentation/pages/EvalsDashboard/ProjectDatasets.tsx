@@ -19,8 +19,8 @@ import {
   MenuItem,
 } from "@mui/material";
 import { Upload, Download, X, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check, MessageSquare, GitBranch } from "lucide-react";
-import CustomizableButton from "../../components/Button/CustomizableButton";
-import { ButtonToggle } from "../../components/ButtonToggle";
+import { CustomizableButton } from "../../components/button/customizable-button";
+import { ButtonToggle } from "../../components/button-toggle";
 import {
   listMyDatasets,
   listDatasets,

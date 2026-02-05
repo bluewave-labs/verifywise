@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, type JSX } from "react";
 import { Stack, Box, Typography } from "@mui/material";
 import { Upload as UploadIcon } from "lucide-react";
-import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
@@ -16,7 +16,7 @@ import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
 import { FileModel } from "../../../domain/models/Common/file/file.model";
 import PageHeader from "../../components/Layout/PageHeader";
-import { CustomizableButton } from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
 import { secureLogError } from "../../../application/utils/secureLogger.utils"; // SECURITY: No PII
 import { useAuth } from "../../../application/hooks/useAuth"; // RBAC

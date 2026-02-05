@@ -18,11 +18,11 @@ import {
   useTheme,
   IconButton,
 } from "@mui/material";
-import { PageBreadcrumbs } from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { CustomizableButton } from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import { logEngine } from "../../../application/tools/log.engine";
 import {
   getAllEntities,

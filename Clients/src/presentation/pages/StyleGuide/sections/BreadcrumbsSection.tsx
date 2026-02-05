@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Stack, Typography, useTheme, Divider, Snackbar } from "@mui/material";
 import { Copy, Home, Settings } from "lucide-react";
-import { Breadcrumbs } from "../../../components/Breadcrumbs";
+import { Breadcrumbs } from "../../../components/breadcrumbs";
 import CodeBlock from "../components/CodeBlock";
 
 const breadcrumbSnippets = {
@@ -257,7 +257,7 @@ const BreadcrumbsSection: React.FC = () => {
         </Typography>
         <Stack spacing="8px">
           {[
-            "Use Breadcrumbs component from components/Breadcrumbs",
+            "Use Breadcrumbs component from components/breadcrumbs",
             "Provide icon for home/root items for better visual hierarchy",
             "Last item is automatically non-clickable (current page)",
             "Use autoGenerate for consistent breadcrumbs across the app",

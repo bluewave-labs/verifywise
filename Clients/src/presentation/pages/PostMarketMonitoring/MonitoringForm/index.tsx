@@ -19,8 +19,8 @@ import {
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { AlertTriangle, CheckCircle, Clock, Flag } from "lucide-react";
-import { PageBreadcrumbs } from "../../../components/Breadcrumbs/PageBreadcrumbs";
-import { CustomizableButton } from "../../../components/Button/CustomizableButton";
+import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import Field from "../../../components/Inputs/Field";
 import Alert from "../../../components/Alert";
 import { pmmService } from "../../../../infrastructure/api/postMarketMonitoringService";

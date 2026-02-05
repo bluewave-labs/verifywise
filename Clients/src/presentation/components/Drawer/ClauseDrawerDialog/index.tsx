@@ -39,7 +39,7 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import TabBar from "../../TabBar";
-import { CustomizableButton } from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import Alert from "../../Alert";
 import StandardModal from "../../Modals/StandardModal";
 

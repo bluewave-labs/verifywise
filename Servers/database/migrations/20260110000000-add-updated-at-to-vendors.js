@@ -1,4 +1,5 @@
 'use strict';
+const { getTenantHash } = require("../../dist/tools/getTenantHash");
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {

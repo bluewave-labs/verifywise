@@ -406,6 +406,13 @@ export const createNewTenant = async (
       file_path character varying(500),
       org_id integer,
       model_id integer,
+      tags jsonb DEFAULT '[]'::jsonb,
+      review_status character varying(20) DEFAULT 'draft',
+      version character varying(20) DEFAULT '1.0',
+      expiry_date date,
+      last_modified_by integer,
+      updated_at timestamp with time zone DEFAULT now(),
+      description text,
       CONSTRAINT files_pkey PRIMARY KEY (id),
       CONSTRAINT files_project_id_fkey FOREIGN KEY (project_id)
         REFERENCES "${tenantHash}".projects (id) MATCH SIMPLE
@@ -415,7 +422,12 @@ export const createNewTenant = async (
         ON UPDATE NO ACTION ON DELETE SET NULL,
       CONSTRAINT files_org_id_fkey FOREIGN KEY (org_id)
         REFERENCES public.organizations (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
+        ON UPDATE NO ACTION ON DELETE CASCADE,
+      CONSTRAINT files_last_modified_by_fkey FOREIGN KEY (last_modified_by)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE SET NULL,
+      CONSTRAINT chk_review_status CHECK (review_status IN ('draft', 'pending_review', 'approved', 'rejected', 'expired')),
+      CONSTRAINT chk_version_format CHECK (version ~ '^[0-9]+\\.[0-9]+(\\.[0-9]+)?$')
     );`,
       { transaction }
     );
@@ -427,6 +439,22 @@ export const createNewTenant = async (
     );
     await sequelize.query(
       `CREATE INDEX IF NOT EXISTS idx_files_uploaded_time ON "${tenantHash}".files(uploaded_time DESC);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_review_status ON "${tenantHash}".files(review_status);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_expiry_date ON "${tenantHash}".files(expiry_date);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_tags ON "${tenantHash}".files USING GIN(tags);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_updated_at ON "${tenantHash}".files(updated_at DESC);`,
       { transaction }
     );
 

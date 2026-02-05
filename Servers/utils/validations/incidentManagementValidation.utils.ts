@@ -251,13 +251,7 @@ export const validateIncidentUpdateBusinessRules = (
 ): ValidationError[] => {
     const errors: ValidationError[] = [];
 
-    if (existingData?.status === "Closed" && data.status !== "Closed") {
-        errors.push({
-            field: "status",
-            message: "Closed incidents cannot be reopened",
-            code: "INVALID_STATUS_TRANSITION",
-        });
-    }
+    // Allow reopening closed incidents - removed restriction
 
     return errors;
 };

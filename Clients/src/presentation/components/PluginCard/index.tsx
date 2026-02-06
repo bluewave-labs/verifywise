@@ -246,7 +246,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
             sx={(theme) => ({
               color: theme.palette.text.secondary,
               fontSize: '13px',
-              mb: 0.5,
+              mb: "8px",
             })}
           >
             {plugin.description}
@@ -254,7 +254,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
 
           {/* Framework Type Badge */}
           {plugin.frameworkType && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: "8px", mb: "8px" }}>
               <Chip
                 size="small"
                 icon={
@@ -291,7 +291,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
           )}
 
           {/* Plugin Features */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 2 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: "8px" }}>
             {plugin.features.slice(0, 2).map((feature, index) => (
               <Chip
                 key={index}

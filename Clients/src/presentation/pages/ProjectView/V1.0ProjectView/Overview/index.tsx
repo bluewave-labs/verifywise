@@ -3,7 +3,7 @@ import { columnStyle, rowStyle } from "./style";
 import { GroupStatsCard } from "../../../../components/Cards/GroupStatsCard";
 import { projectRiskSection } from "../style";
 import RisksCard from "../../../../components/Cards/RisksCard";
-import InfoCard from "../../../../components/Cards/InfoCard";
+import { InfoCard } from "../../../../components/Cards/InfoCard";
 import { DescriptionCard } from "../../../../components/Cards/DescriptionCard";
 import TeamCard from "../../../../components/Cards/TeamCard";
 import { Project } from "../../../../../domain/types/Project";

@@ -104,11 +104,12 @@ export function useVirtualFolders(): UseVirtualFoldersReturn {
    */
   const handleSetSelectedFolder = useCallback((folder: SelectedFolder) => {
     setSelectedFolder(folder);
+    // Clear breadcrumb immediately to prevent flash of old content
+    setBreadcrumb([]);
 
     if (typeof folder === "number") {
+      setLoadingBreadcrumb(true);
       loadBreadcrumb(folder);
-    } else {
-      setBreadcrumb([]);
     }
   }, [loadBreadcrumb]);
 

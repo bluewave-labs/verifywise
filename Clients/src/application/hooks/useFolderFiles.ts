@@ -198,9 +198,12 @@ export function useFolderFiles(
   }, []);
 
   // Load files when selected folder changes
+  // Set loading immediately when folder changes to prevent flash
   useEffect(() => {
+    setLoading(true);
+    setFiles([]);
     refreshFiles(selectedFolder);
-  }, [selectedFolder, refreshFiles]);
+  }, [selectedFolder]); // Don't include refreshFiles to avoid double-calls
 
   // Load all files for reference
   useEffect(() => {

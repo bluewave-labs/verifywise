@@ -101,18 +101,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         },
       }}
     >
-      {/* Unread indicator */}
-      <Box
-        sx={{
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
-          backgroundColor: isRead ? 'transparent' : color,
-          mt: 0.75,
-          flexShrink: 0,
-        }}
-      />
-
       {/* Content */}
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getEntityById } from '../repository/entity.repository';
 
 interface Role {
@@ -7,42 +7,26 @@ interface Role {
   description: string;
 }
 
+const ROLES_QUERY_KEY = ['roles'] as const;
+
 export const useRoles = () => {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        setLoading(true);
-        const response = await getEntityById({
-          routeUrl: '/roles',
-        });
-        setRoles(response.data);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRoles();
-  }, []);
-
-  const refreshRoles = async () => {
-    try {
-      setLoading(true);
+  const { data: roles = [], isLoading: loading, error } = useQuery({
+    queryKey: ROLES_QUERY_KEY,
+    queryFn: async () => {
       const response = await getEntityById({
         routeUrl: '/roles',
       });
-      setRoles(response.data);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
+      return response.data as Role[];
+    },
+    staleTime: 10 * 60 * 1000, // Roles rarely change, cache for 10 minutes
+    gcTime: 15 * 60 * 1000, // Keep in cache for 15 minutes
+  });
+
+  const refreshRoles = async () => {
+    await queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEY });
   };
 
-  return { roles, loading, error, refreshRoles };
-}; 
+  return { roles, loading, error: error as Error | null, refreshRoles };
+};

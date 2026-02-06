@@ -1,5 +1,5 @@
 import React from "react";
-import StatusTileCards, { StatusTileItem } from "../../components/Cards/StatusTileCards";
+import { StatusTileCards, StatusTileItem } from "../../components/Cards/StatusTileCards";
 import { DatasetSummary as Summary } from "../../../domain/interfaces/i.dataset";
 
 interface DatasetSummaryProps {

@@ -370,8 +370,6 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 key={`${row.id}-${row.fileName}`}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  height: "36px",
-                  "&:hover": { backgroundColor: "#f5f5f5" },
                 }}
               >
                 <TableCell

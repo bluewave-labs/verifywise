@@ -684,7 +684,7 @@ const FileManager: React.FC = (): JSX.Element => {
           </Box>
 
           {/* File table */}
-          <Box sx={{ flex: 1, overflow: "auto", padding: "16px" }}>
+          <Box sx={{ flex: 1, overflow: "auto", padding: "16px", scrollbarGutter: "stable" }}>
             {isLoading ? (
               <Box sx={{ padding: "24px", textAlign: "center" }}>
                 <Typography sx={{ color: "#667085" }}>Loading files...</Typography>

@@ -34,7 +34,7 @@ import ChangeOrganizationNameModal from "../../components/Modals/ChangeOrganizat
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import { DashboardCard } from "../../components/Cards/DashboardCard";
 import { TaskRadarCard } from "../../components/Cards/TaskRadarCard";
-import RiskDonutWithLegend from "../../components/Charts/RiskDonutWithLegend";
+import { RiskDonutWithLegend } from "../../components/Charts/RiskDonutWithLegend";
 import {
   TrainingCompletionCard,
   PolicyStatusCard,

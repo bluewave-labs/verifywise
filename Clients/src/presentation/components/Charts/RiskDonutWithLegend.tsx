@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { StatusDonutChart } from "./StatusDonutChart";
 
@@ -14,11 +13,11 @@ interface RiskDonutWithLegendProps {
   size?: number;
 }
 
-const RiskDonutWithLegend: React.FC<RiskDonutWithLegendProps> = ({
+export function RiskDonutWithLegend({
   data,
   total,
   size = 100,
-}) => {
+}: RiskDonutWithLegendProps) {
   return (
     <Stack direction="row" alignItems="flex-start" justifyContent="space-around">
       <Box sx={{ pt: "8px" }}>
@@ -44,6 +43,4 @@ const RiskDonutWithLegend: React.FC<RiskDonutWithLegendProps> = ({
       </Stack>
     </Stack>
   );
-};
-
-export default RiskDonutWithLegend;
+}

@@ -1,6 +1,6 @@
 import { Divider, Stack, Typography } from "@mui/material";
 import { columnStyle, rowStyle } from "./style";
-import GroupStatsCard from "../../../../components/Cards/GroupStatsCard";
+import { GroupStatsCard } from "../../../../components/Cards/GroupStatsCard";
 import { projectRiskSection } from "../style";
 import RisksCard from "../../../../components/Cards/RisksCard";
 import InfoCard from "../../../../components/Cards/InfoCard";

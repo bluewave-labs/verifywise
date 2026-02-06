@@ -21,10 +21,7 @@ import AddNewRiskIBMModal from "../../components/AddNewRiskIBMForm";
 import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 import useUsers from "../../../application/hooks/useUsers";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
-import TipBox from "../../components/TipBox";
-import HelperIcon from "../../components/HelperIcon";
+import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
 import PageTour from "../../components/PageTour";
 import RiskManagementSteps from "./RiskManagementSteps";
 import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
@@ -666,48 +663,36 @@ const RiskManagement = () => {
   });
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
-
-      <Stack gap={"16px"} key={refreshKey}>
-        <PageHeader
-          title="Risk Management"
-          description="Manage and monitor risks across all your projects"
-          rightContent={
-            <HelperIcon
-              articlePath="risk-management/risk-assessment"
-              size="small"
-            />
-          }
-        />
-        <TipBox entityName="risk-management" />
-
-      {alert && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Fade in={showAlert} timeout={300}>
-            <Box sx={{ position: 'fixed' }}>
-              <Alert
-                variant={alert.variant}
-                title={alert.title}
-                body={alert.body}
-                isToast={true}
-                onClick={() => {
-                  setShowAlert(false);
-                  setTimeout(() => setAlert(null), 300);
-                }}
-              />
-            </Box>
-          </Fade>
-        </Suspense>
-      )}
-      {isLoading.loading && <CustomizableToast title={isLoading.message} />}
-      <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }} data-joyride-id="risk-summary-cards">
+    <PageHeaderExtended
+      title="Risk Management"
+      description="Manage and monitor risks across all your projects"
+      helpArticlePath="risk-management/risk-assessment"
+      tipBoxEntity="risk-management"
+      summaryCards={
         <RisksCard
           risksSummary={risksSummary}
           onCardClick={handleRiskCardClick}
           selectedLevel={selectedRiskLevel}
         />
-      </Stack>
+      }
+      summaryCardsJoyrideId="risk-summary-cards"
+      alert={
+        alert && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Box>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body}
+                isToast={true}
+                onClick={() => setAlert(null)}
+              />
+            </Box>
+          </Suspense>
+        )
+      }
+      loadingToast={isLoading.loading && <CustomizableToast title={isLoading.message} />}
+    >
 
       <Stack
         className="risk-management-row"
@@ -1212,8 +1197,7 @@ const RiskManagement = () => {
       />
 
       <PageTour steps={RiskManagementSteps} run={true} tourKey="risk-management-tour" />
-      </Stack>
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

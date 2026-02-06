@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Typography, Stack, Box } from "@mui/material";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { getRiskTimeseries } from "../../../application/repository/riskHistory.repository";
@@ -73,10 +73,10 @@ const getColorMap = (parameter: string): Record<string, string> => {
   }
 };
 
-const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
+export function RiskHistoryChart({
   parameter = "risk_level",
   height = 400,
-}) => {
+}: RiskHistoryChartProps) {
   const storageKey = "analytics_timeframe_risk";
 
   // Initialize timeframe from localStorage or default
@@ -90,18 +90,14 @@ const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeseriesData, setTimeseriesData] = useState<any[]>([]);
+  const [timeseriesData, setTimeseriesData] = useState<{ timestamp: string; data: Record<string, number> }[]>([]);
 
   // Persist timeframe to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(storageKey, timeframe);
   }, [timeframe]);
 
-  useEffect(() => {
-    fetchTimeseriesData();
-  }, [timeframe, parameter]);
-
-  const fetchTimeseriesData = async () => {
+  const fetchTimeseriesData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -109,13 +105,18 @@ const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
       if (response?.data?.data) {
         setTimeseriesData(response.data.data.data);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching timeseries data:", err);
-      setError(err?.response?.data?.message || "Failed to load chart data");
+      const message = err instanceof Error ? err.message : "Failed to load chart data";
+      setError(message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [parameter, timeframe]);
+
+  useEffect(() => {
+    fetchTimeseriesData();
+  }, [fetchTimeseriesData]);
 
   const handleTimeframeChange = (newTimeframe: string) => {
     setTimeframe(newTimeframe);
@@ -294,6 +295,4 @@ const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
       </Stack>
     </Stack>
   );
-};
-
-export default RiskHistoryChart;
+}

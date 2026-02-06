@@ -362,17 +362,17 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                                 }}
                             >
                                 
-                                <TableCell>
+                                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                                     <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
                                         {row.fileName && <FileIcon fileName={row.fileName} />}
                                         <TooltipCell value={row.name} />
                                     </Box>
                                 </TableCell>
-                                
-                                <TableCell>{row.type}</TableCell>
-                                <TableCell>{row.created_by}</TableCell>
+
+                                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{row.type}</TableCell>
+                                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{row.created_by}</TableCell>
                                 {type === "risk" && (
-                                        <TableCell>
+                                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                                             {row.due_date !== "-"
                                                 ? new Date(row.due_date).toLocaleDateString("en-GB")
                                                 : "-"}
@@ -381,6 +381,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
 
                                 <TableCell
                                     sx={{
+                                        ...singleTheme.tableStyles.primary.body.cell,
                                         position: "sticky",
                                         right: 0,
                                         background:

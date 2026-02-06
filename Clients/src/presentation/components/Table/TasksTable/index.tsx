@@ -26,7 +26,7 @@ import DaysChip from "../../Chip/DaysChip";
 import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../types/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
-import CategoryChip from "../../Chip/CategoryChip/CategoryChip";
+import { CategoryChip } from "../../Chip/CategoryChip/CategoryChip";
 import { DISPLAY_TO_PRIORITY_MAP, PRIORITY_DISPLAY_MAP } from "../../../constants/priorityOptions";
 import { taskTableStyles } from "./styles";
 

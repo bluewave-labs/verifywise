@@ -551,7 +551,8 @@ const FileManager: React.FC = (): JSX.Element => {
     getGroupKey: getFileGroupKey,
   });
 
-  const isLoading = loadingProjects || loadingFiles || (selectedFolder !== "all" && loadingFolderFiles);
+  // Always show loading when folder files are loading (covers both folder and uncategorized views)
+  const isLoading = loadingProjects || loadingFiles || loadingFolderFiles;
 
   const boxStyles = useMemo(
     () => ({

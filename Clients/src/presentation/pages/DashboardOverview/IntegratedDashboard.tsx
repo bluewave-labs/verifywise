@@ -42,7 +42,7 @@ import {
   EvidenceCoverageCard,
   ModelLifecycleCard,
 } from "../../components/Charts/NewMetricsCards";
-import GovernanceScoreCard from "../../components/Charts/GovernanceScoreCard";
+import { GovernanceScoreCard } from "../../components/Charts/GovernanceScoreCard";
 import UseCasesTable from "../../components/Table/UseCasesTable";
 import EmptyStateMessage from "../../components/EmptyStateMessage";
 import ActivityItem from "../../components/ActivityItem";

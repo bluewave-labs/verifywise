@@ -91,7 +91,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         alignItems: 'flex-start',
         gap: 1.5,
         px: 2,
-        py: 1.5,
+        py: '8px',
         cursor: notification.action_url ? 'pointer' : 'default',
         backgroundColor: isRead ? 'transparent' : 'rgba(19, 113, 91, 0.04)',
         borderLeft: isRead ? '3px solid transparent' : `3px solid ${color}`,
@@ -425,7 +425,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
                   sx={{
                     display: 'flex',
                     justifyContent: 'center',
-                    py: 1.5,
+                    py: '8px',
                     borderTop: '1px solid #f3f4f6',
                   }}
                 >

@@ -39,6 +39,9 @@ export const tableStyles = {
         borderBottom: "1px solid #eaecf0",
         backgroundColor: "white",
         transition: "background-color 0.2s ease-in-out",
+        "&:nth-of-type(even)": {
+          backgroundColor: "#fafbfc",
+        },
         "&:last-child": {
           borderBottom: "none", // Prevent double border with table frame
         },

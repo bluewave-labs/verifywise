@@ -31,7 +31,7 @@ import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown
 import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
 import DashboardErrorBoundary from "../../components/Dashboard/DashboardErrorBoundary";
 import ChangeOrganizationNameModal from "../../components/Modals/ChangeOrganizationName";
-import DashboardHeaderCard from "../../components/Cards/DashboardHeaderCard";
+import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import { DashboardCard } from "../../components/Cards/DashboardCard";
 import TaskRadarCard from "../../components/Cards/TaskRadarCard";
 import RiskDonutWithLegend from "../../components/Charts/RiskDonutWithLegend";

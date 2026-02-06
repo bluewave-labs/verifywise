@@ -8,6 +8,7 @@ import { ITask } from "../../../domain/interfaces/i.task";
 import { IUser } from "../../../domain/interfaces/i.user";
 import { EventModel } from "../../../domain/models/Common/evenTracker/eventTracker.model";
 import { CustomSelectOptionWithIcon } from "../../../domain/types/widget.types";
+import { FileColumn } from "../../../application/hooks/useFileColumnVisibility";
 
 export interface IAITrustCenterTableColumn {
   id: string;
@@ -124,6 +125,8 @@ export interface IFileBasicTableProps {
   onAssignToFolder?: (fileId: number) => void;
   onPreview?: (fileId: number | string) => void;
   onEditMetadata?: (fileId: number | string) => void;
+  /** Column keys that are visible (for conditional cell rendering) */
+  visibleColumnKeys?: FileColumn[];
 }
 
 export interface IFileTableProps {
@@ -134,6 +137,8 @@ export interface IFileTableProps {
   onAssignToFolder?: (fileId: number) => void;
   onPreview?: (fileId: number | string) => void;
   onEditMetadata?: (fileId: number | string) => void;
+  /** Column keys that are visible (for conditional cell rendering) */
+  visibleColumnKeys?: FileColumn[];
 }
 
 export interface IProjectRiskTableBodyProps {

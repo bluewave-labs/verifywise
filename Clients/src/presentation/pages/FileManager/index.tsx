@@ -66,31 +66,6 @@ const FILE_MANAGER_CONTEXT = "FileManager";
 const AUDITOR_ROLE = "Auditor";
 const MANAGE_ROLES = ["Admin", "Editor"];
 
-const COLUMN_NAMES = [
-  "File",
-  "Project Name",
-  "Upload Date",
-  "Uploader",
-  "Source",
-  "Action",
-];
-
-interface Column {
-  id: number;
-  name: string;
-  sx: { width: string };
-}
-
-const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
-  id: index + 1,
-  name,
-  sx: {
-    minWidth: "fit-content",
-    width: "fit-content",
-    maxWidth: "50%",
-  },
-}));
-
 /**
  * Main component for managing files with virtual folder support.
  */
@@ -161,6 +136,8 @@ const FileManager: React.FC = (): JSX.Element => {
     availableColumns,
     toggleColumn,
     resetToDefaults: resetColumnsToDefaults,
+    getTableColumns,
+    visibleColumnKeys,
   } = useFileColumnVisibility();
 
   // Files with metadata for enhanced view
@@ -720,13 +697,14 @@ const FileManager: React.FC = (): JSX.Element => {
                   ungroupedData={filteredFiles}
                   renderTable={(data, options) => (
                     <FileTable
-                      cols={COLUMNS}
+                      cols={getTableColumns()}
                       files={data}
                       onFileDeleted={handleFileDeleted}
                       hidePagination={options?.hidePagination}
                       onAssignToFolder={canManageFolders ? handleOpenAssignFolder : undefined}
                       onPreview={handleOpenPreview}
                       onEditMetadata={canManageFolders ? handleOpenMetadataEditor : undefined}
+                      visibleColumnKeys={visibleColumnKeys}
                     />
                   )}
                 />

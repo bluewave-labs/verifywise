@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Stack, Typography, LinearProgress } from "@mui/material";
-import StatusDonutChart from "./StatusDonutChart";
+import { StatusDonutChart } from "./StatusDonutChart";
 import { DASHBOARD_COLORS, TEXT_STYLES } from "../../styles/colors";
 
 const C = DASHBOARD_COLORS;

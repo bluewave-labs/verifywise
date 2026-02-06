@@ -1,13 +1,12 @@
-import React from "react";
 import { PieChart } from "@mui/x-charts";
 import { Box, Typography } from "@mui/material";
-import { IStatusDonutChartProps } from "../../types/interfaces/i.chart";
+import { StatusDonutChartProps } from "../../types/interfaces/i.chart";
 
-const StatusDonutChart: React.FC<IStatusDonutChartProps> = ({
+export function StatusDonutChart({
   data,
   total,
   size = 100,
-}) => {
+}: StatusDonutChartProps) {
   // Filter out zero values for cleaner visualization
   const filteredData = data.filter((item) => item.value > 0);
 
@@ -148,6 +147,4 @@ const StatusDonutChart: React.FC<IStatusDonutChartProps> = ({
       </Box>
     </Box>
   );
-};
-
-export default StatusDonutChart;
+}

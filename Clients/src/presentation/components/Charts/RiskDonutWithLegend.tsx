@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Stack, Typography } from "@mui/material";
-import StatusDonutChart from "./StatusDonutChart";
+import { StatusDonutChart } from "./StatusDonutChart";
 
 export interface RiskDataItem {
   label: string;

@@ -2,7 +2,7 @@
  * @fileoverview FilePreviewPanel Component
  *
  * A slide-out panel for quick preview of files.
- * Supports preview for PDFs, images, and text files.
+ * Supports preview for PDFs, images, text files, and Office documents (DOCX/XLSX).
  *
  * @module presentation/pages/FileManager/components/FilePreviewPanel
  */
@@ -14,13 +14,17 @@ import {
   IconButton,
   Typography,
   CircularProgress,
-  Stack,
   Chip,
   Divider,
 } from "@mui/material";
-import { X, Download, Pencil, FileText, Image, FileType } from "lucide-react";
+import { X, Download, Pencil, FileText, Image, FileType, FileSpreadsheet } from "lucide-react";
 import { FileMetadata, downloadFileFromManager } from "../../../../../application/repository/file.repository";
 import StatusBadge from "../StatusBadge";
+import {
+  getOfficeFilePreview,
+  isOfficeFile,
+  getOfficeFileLabel,
+} from "../../../../../application/utils/officePreview.utils";
 
 interface FilePreviewPanelProps {
   isOpen: boolean;
@@ -30,7 +34,7 @@ interface FilePreviewPanelProps {
   onDownload?: (file: FileMetadata) => void;
 }
 
-type PreviewType = "pdf" | "image" | "text" | "unsupported";
+type PreviewType = "pdf" | "image" | "text" | "office" | "unsupported";
 
 const getPreviewType = (mimetype?: string): PreviewType => {
   if (!mimetype) return "unsupported";
@@ -44,6 +48,7 @@ const getPreviewType = (mimetype?: string): PreviewType => {
   ) {
     return "text";
   }
+  if (isOfficeFile(mimetype)) return "office";
 
   return "unsupported";
 };
@@ -55,6 +60,12 @@ const getFileIcon = (mimetype?: string) => {
       return <FileType size={48} color="#EF4444" />;
     case "image":
       return <Image size={48} color="#3B82F6" />;
+    case "office":
+      // Check if it's Excel or Word
+      if (mimetype?.includes("spreadsheetml")) {
+        return <FileSpreadsheet size={48} color="#217346" />;
+      }
+      return <FileText size={48} color="#2B579A" />;
     default:
       return <FileText size={48} color="#6B7280" />;
   }
@@ -91,6 +102,8 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
   const [previewText, setPreviewText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const previewType = file ? getPreviewType(file.mimetype) : "unsupported";
 
@@ -139,6 +152,15 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
           const text = await blob.text();
           setPreviewText(text);
           setPreviewUrl(null);
+        } else if (previewType === "office") {
+          // Extract text preview from Office files (DOCX/XLSX)
+          const result = await getOfficeFilePreview(blob);
+          if (result.success && result.text) {
+            setPreviewText(result.text);
+            setPreviewUrl(null);
+          } else {
+            setError(result.error || "Could not extract preview from file");
+          }
         } else {
           const url = URL.createObjectURL(blob);
           setPreviewUrl(url);
@@ -182,6 +204,8 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
     }
 
     // Default download behavior
+    setDownloading(true);
+    setDownloadError(null);
     try {
       const blob = await downloadFileFromManager({ id: file.id });
       const url = URL.createObjectURL(blob);
@@ -192,8 +216,20 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error downloading file:", err);
+      // Check for 404 status from CustomException or axios error
+      const status = err?.status || err?.response?.status;
+      const message = err?.message || "";
+      if (status === 404 || message.includes("404")) {
+        setDownloadError("File content not available. This file may need to be re-uploaded.");
+      } else {
+        setDownloadError("Failed to download file. Please try again.");
+      }
+      // Auto-clear error after 5 seconds
+      setTimeout(() => setDownloadError(null), 5000);
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -317,6 +353,66 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
       );
     }
 
+    if (previewType === "office" && previewText) {
+      const isSpreadsheet = file?.mimetype?.includes("spreadsheetml");
+      return (
+        <Box>
+          {/* File type label */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              mb: 1.5,
+              color: "#667085",
+            }}
+          >
+            {isSpreadsheet ? (
+              <FileSpreadsheet size={18} color="#217346" />
+            ) : (
+              <FileText size={18} color="#2B579A" />
+            )}
+            <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
+              {getOfficeFileLabel(file?.mimetype)} - Text preview
+            </Typography>
+          </Box>
+
+          {/* Preview content */}
+          <Box
+            component="pre"
+            sx={{
+              width: "100%",
+              maxHeight: 350,
+              overflow: "auto",
+              padding: 2,
+              backgroundColor: isSpreadsheet ? "#F0FDF4" : "#EFF6FF",
+              border: `1px solid ${isSpreadsheet ? "#BBF7D0" : "#BFDBFE"}`,
+              borderRadius: "4px",
+              fontSize: 12,
+              fontFamily: isSpreadsheet ? "monospace" : "inherit",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              lineHeight: 1.6,
+            }}
+          >
+            {previewText}
+          </Box>
+
+          {/* Note about preview */}
+          <Typography
+            sx={{
+              mt: 1.5,
+              fontSize: 11,
+              color: "#98A2B3",
+              fontStyle: "italic",
+            }}
+          >
+            This is a text preview. Download the file for full formatting.
+          </Typography>
+        </Box>
+      );
+    }
+
     return null;
   };
 
@@ -327,7 +423,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
       onClose={onClose}
       PaperProps={{
         sx: {
-          width: { xs: "100%", sm: 450 },
+          width: { xs: "100%", sm: 520 },
           maxWidth: "100%",
         },
       }}
@@ -355,7 +451,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
         >
           {file?.filename || "File preview"}
         </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           {onEdit && file && (
             <IconButton
               onClick={() => onEdit(file)}
@@ -368,15 +464,35 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
           <IconButton
             onClick={handleDownload}
             size="small"
+            disabled={downloading}
             sx={{ color: "#667085" }}
           >
-            <Download size={18} />
+            {downloading ? (
+              <CircularProgress size={18} sx={{ color: "#667085" }} />
+            ) : (
+              <Download size={18} />
+            )}
           </IconButton>
           <IconButton onClick={onClose} size="small" sx={{ color: "#667085" }}>
             <X size={18} />
           </IconButton>
         </Box>
       </Box>
+
+      {/* Download error message */}
+      {downloadError && (
+        <Box
+          sx={{
+            padding: "8px 20px",
+            backgroundColor: "#FEF3F2",
+            borderBottom: "1px solid #FECDCA",
+          }}
+        >
+          <Typography sx={{ fontSize: 13, color: "#B42318" }}>
+            {downloadError}
+          </Typography>
+        </Box>
+      )}
 
       {/* Content */}
       {file && (
@@ -387,115 +503,123 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
           <Divider sx={{ my: 3 }} />
 
           {/* File details */}
-          <Stack spacing={2}>
+          <Box>
             <Typography
-              sx={{ fontSize: 14, fontWeight: 600, color: "#344054" }}
+              sx={{ fontSize: 14, fontWeight: 600, color: "#344054", mb: 2 }}
             >
               File details
             </Typography>
 
-            {/* Size & Date */}
-            <Box sx={{ display: "flex", gap: 4 }}>
-              <Box>
-                <Typography sx={{ fontSize: 12, color: "#667085" }}>
-                  Size
-                </Typography>
-                <Typography sx={{ fontSize: 13, color: "#344054" }}>
-                  {formatFileSize(file.size)}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography sx={{ fontSize: 12, color: "#667085" }}>
-                  Uploaded
-                </Typography>
-                <Typography sx={{ fontSize: 13, color: "#344054" }}>
-                  {formatDate(file.upload_date)}
-                </Typography>
-              </Box>
+            {/* Two-column grid layout for details */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "120px 1fr",
+                gap: "12px 16px",
+                alignItems: "center",
+              }}
+            >
+              {/* Size */}
+              <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                Size
+              </Typography>
+              <Typography sx={{ fontSize: 13, color: "#344054" }}>
+                {formatFileSize(file.size)}
+              </Typography>
+
+              {/* Upload date */}
+              <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                Uploaded
+              </Typography>
+              <Typography sx={{ fontSize: 13, color: "#344054" }}>
+                {formatDate(file.upload_date)}
+              </Typography>
+
+              {/* Uploader */}
+              {file.uploader_name && (
+                <>
+                  <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                    Uploaded by
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: "#344054" }}>
+                    {file.uploader_name} {file.uploader_surname}
+                  </Typography>
+                </>
+              )}
+
+              {/* Status */}
+              {file.review_status && (
+                <>
+                  <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                    Status
+                  </Typography>
+                  <Box>
+                    <StatusBadge status={file.review_status} />
+                  </Box>
+                </>
+              )}
+
+              {/* Version */}
+              {file.version && (
+                <>
+                  <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                    Version
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: "#344054" }}>
+                    v{file.version}
+                  </Typography>
+                </>
+              )}
+
+              {/* Expiry Date */}
+              {file.expiry_date && (
+                <>
+                  <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                    Expiry date
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: "#344054" }}>
+                    {formatDate(file.expiry_date)}
+                  </Typography>
+                </>
+              )}
+
+              {/* Tags - spans full width if present */}
+              {file.tags && file.tags.length > 0 && (
+                <>
+                  <Typography sx={{ fontSize: 13, color: "#667085", alignSelf: "start", pt: 0.5 }}>
+                    Tags
+                  </Typography>
+                  <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+                    {file.tags.map((tag) => (
+                      <Chip
+                        key={tag}
+                        label={tag}
+                        size="small"
+                        sx={{
+                          backgroundColor: "#F2F4F7",
+                          color: "#344054",
+                          fontSize: "11px",
+                          height: 22,
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </>
+              )}
+
+              {/* Description - spans full width if present */}
+              {file.description && (
+                <>
+                  <Typography sx={{ fontSize: 13, color: "#667085", alignSelf: "start" }}>
+                    Description
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: "#344054" }}>
+                    {file.description}
+                  </Typography>
+                </>
+              )}
             </Box>
-
-            {/* Uploader */}
-            {file.uploader_name && (
-              <Box>
-                <Typography sx={{ fontSize: 12, color: "#667085" }}>
-                  Uploaded by
-                </Typography>
-                <Typography sx={{ fontSize: 13, color: "#344054" }}>
-                  {file.uploader_name} {file.uploader_surname}
-                </Typography>
-              </Box>
-            )}
-
-            {/* Status */}
-            {file.review_status && (
-              <Box>
-                <Typography sx={{ fontSize: 12, color: "#667085", mb: 0.5 }}>
-                  Status
-                </Typography>
-                <StatusBadge status={file.review_status} />
-              </Box>
-            )}
-
-            {/* Version */}
-            {file.version && (
-              <Box>
-                <Typography sx={{ fontSize: 12, color: "#667085" }}>
-                  Version
-                </Typography>
-                <Typography sx={{ fontSize: 13, color: "#344054" }}>
-                  v{file.version}
-                </Typography>
-              </Box>
-            )}
-
-            {/* Expiry Date */}
-            {file.expiry_date && (
-              <Box>
-                <Typography sx={{ fontSize: 12, color: "#667085" }}>
-                  Expiry date
-                </Typography>
-                <Typography sx={{ fontSize: 13, color: "#344054" }}>
-                  {formatDate(file.expiry_date)}
-                </Typography>
-              </Box>
-            )}
-
-            {/* Tags */}
-            {file.tags && file.tags.length > 0 && (
-              <Box>
-                <Typography sx={{ fontSize: 12, color: "#667085", mb: 1 }}>
-                  Tags
-                </Typography>
-                <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                  {file.tags.map((tag) => (
-                    <Chip
-                      key={tag}
-                      label={tag}
-                      size="small"
-                      sx={{
-                        backgroundColor: "#F2F4F7",
-                        color: "#344054",
-                        fontSize: "11px",
-                        height: 22,
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            )}
-
-            {/* Description */}
-            {file.description && (
-              <Box>
-                <Typography sx={{ fontSize: 12, color: "#667085" }}>
-                  Description
-                </Typography>
-                <Typography sx={{ fontSize: 13, color: "#344054" }}>
-                  {file.description}
-                </Typography>
-              </Box>
-            )}
-          </Stack>
+          </Box>
         </Box>
       )}
     </Drawer>

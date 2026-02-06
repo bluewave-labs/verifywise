@@ -81,17 +81,39 @@ interface UseFileColumnVisibilityReturn {
  *
  * Persists column visibility preferences to localStorage
  */
+// Valid column keys for validation
+const VALID_COLUMN_KEYS = new Set(DEFAULT_COLUMNS.map((c) => c.key));
+
+// Always visible column keys
+const ALWAYS_VISIBLE_KEYS = DEFAULT_COLUMNS
+  .filter((c) => c.alwaysVisible)
+  .map((c) => c.key);
+
 export function useFileColumnVisibility(): UseFileColumnVisibilityReturn {
   // Initialize from localStorage or defaults
   const [visibleColumns, setVisibleColumns] = useState<Set<FileColumn>>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as FileColumn[];
-        return new Set(parsed);
+        const parsed = JSON.parse(stored) as string[];
+        // Validate stored keys - only keep valid ones
+        const validStoredKeys = parsed.filter((key) =>
+          VALID_COLUMN_KEYS.has(key as FileColumn)
+        ) as FileColumn[];
+
+        // If we have valid stored keys, use them (plus always visible)
+        if (validStoredKeys.length > 0) {
+          const result = new Set<FileColumn>(validStoredKeys);
+          // Always include alwaysVisible columns
+          ALWAYS_VISIBLE_KEYS.forEach((key) => result.add(key));
+          return result;
+        }
+        // If no valid keys, clear stale localStorage and use defaults
+        localStorage.removeItem(STORAGE_KEY);
       }
     } catch (err) {
       console.error("Error loading column visibility from localStorage:", err);
+      localStorage.removeItem(STORAGE_KEY);
     }
 
     // Return defaults

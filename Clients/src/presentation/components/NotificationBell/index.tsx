@@ -379,11 +379,12 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                py: 6,
+                pt: 6,
+                pb: '32px',
                 px: 2,
               }}
             >
-              <Bell size={32} color="#D1D5DB" />
+              <Bell size={24} strokeWidth={1.5} color="#D1D5DB" />
               <Typography
                 sx={{
                   fontSize: '14px',

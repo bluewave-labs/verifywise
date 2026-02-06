@@ -224,7 +224,11 @@ export const modelInventoryContent: ArticleContent = {
         { bold: 'Version', text: '— The version identifier for tracking dataset iterations' },
         { bold: 'Owner', text: '— The person or team responsible for maintaining the dataset' },
         { bold: 'Type', text: '— The purpose of the dataset (training, validation, testing, production, or reference)' },
+        { bold: 'Function', text: '— The dataset\'s role in AI model development' },
         { bold: 'Source', text: '— Where the data originated from' },
+        { bold: 'Classification', text: '— The sensitivity level of the data' },
+        { bold: 'Status', text: '— The current lifecycle stage of the dataset' },
+        { bold: 'Status date', text: '— When the current status was set' },
       ],
     },
     {
@@ -329,22 +333,30 @@ export const modelInventoryContent: ArticleContent = {
     },
     {
       type: 'heading',
-      id: 'dataset-documentation',
+      id: 'linking-projects',
       level: 3,
-      text: 'Attaching documentation',
+      text: 'Linking datasets to use cases',
     },
     {
       type: 'paragraph',
-      text: 'You can attach supporting documentation directly to each dataset record:',
+      text: 'In addition to models, datasets can be linked to specific use cases (projects) in your organization. This helps maintain a clear view of which data supports which business applications, supporting both governance oversight and impact analysis.',
     },
     {
-      type: 'checklist',
+      type: 'heading',
+      id: 'optional-fields',
+      level: 3,
+      text: 'Optional fields',
+    },
+    {
+      type: 'paragraph',
+      text: 'Beyond the required fields, you can document additional metadata to enhance governance:',
+    },
+    {
+      type: 'bullet-list',
       items: [
-        'Data dictionaries describing field definitions and formats',
-        'Data quality reports and validation results',
-        'Privacy impact assessments',
-        'Data sharing agreements and licenses',
-        'Collection methodology documentation',
+        { bold: 'License', text: 'The licensing terms governing data use (e.g., CC BY 4.0, MIT, proprietary)' },
+        { bold: 'Format', text: 'The data format (e.g., CSV, JSON, Parquet)' },
+        { bold: 'PII types', text: 'Specific types of personally identifiable information when PII is present' },
       ],
     },
     {

@@ -48,6 +48,11 @@ files
 ├── uploaded_time (DATE)
 ├── source (ENUM)
 ├── is_demo (BOOLEAN, default: false)
+├── tags (TEXT[], nullable) -- Categorization tags
+├── review_status (ENUM, nullable) -- Draft/Pending/Approved/Rejected/Expired
+├── version (VARCHAR, nullable) -- Document version
+├── expiry_date (TIMESTAMP, nullable) -- Document expiration
+├── description (TEXT, nullable) -- File description
 ├── created_at (TIMESTAMP)
 └── updated_at (TIMESTAMP)
 ```
@@ -96,6 +101,17 @@ enum EvidenceType {
   VENDOR_MODEL_DOCUMENTATION = "Vendor Model Documentation"
   INTERNAL_APPROVAL_RECORD = "Internal Approval Record"
 }
+```
+
+### File Review Status
+
+```typescript
+type ReviewStatus =
+  | "draft"           // Initial state, under development
+  | "pending_review"  // Submitted for review
+  | "approved"        // Reviewed and approved
+  | "rejected"        // Reviewed and rejected
+  | "expired"         // Past expiry date
 ```
 
 ### File Source
@@ -148,11 +164,18 @@ enum FileSource {
 |--------|----------|-------------|--------|
 | POST | `/file-manager/` | Upload file | Admin, Editor, Reviewer |
 | GET | `/file-manager/` | List all files | All authenticated |
+| GET | `/file-manager/with-metadata` | List files with full metadata | All authenticated |
+| GET | `/file-manager/highlighted` | Get highlighted files (due, pending, recent) | All authenticated |
 | GET | `/file-manager/:id` | Download file | All authenticated |
+| GET | `/file-manager/:id/metadata` | Get file metadata | All authenticated |
+| PATCH | `/file-manager/:id/metadata` | Update file metadata | Admin, Editor, Reviewer |
+| GET | `/file-manager/:id/preview` | Preview file (max 5MB) | All authenticated |
 | DELETE | `/file-manager/:id` | Delete file | Admin, Editor, Reviewer |
 
-Query params for POST: `model_id`, `source`
-Query params for GET list: `page`, `pageSize`
+**Query parameters:**
+- POST: `model_id`, `source`
+- GET list: `page`, `pageSize`
+- GET highlighted: `daysUntilExpiry` (default 30), `recentDays` (default 7)
 
 ### Files
 
@@ -184,6 +207,31 @@ interface IEvidenceHub {
   mapped_model_ids?: number[] | null;
   created_at?: Date;
   updated_at?: Date;
+}
+```
+
+## Highlighted Files Response
+
+The `/file-manager/highlighted` endpoint returns files that need attention:
+
+```typescript
+{
+  dueForUpdate: number[],      // Files expiring within daysUntilExpiry
+  pendingApproval: number[],   // Files with review_status = 'pending_review'
+  recentlyModified: number[]   // Files updated within recentDays
+}
+```
+
+## File Metadata Update Request
+
+```typescript
+PATCH /file-manager/:id/metadata
+{
+  tags?: string[],           // Array of categorization tags
+  review_status?: string,    // draft | pending_review | approved | rejected | expired
+  version?: string,          // Version identifier
+  expiry_date?: string,      // ISO date string
+  description?: string       // File description
 }
 ```
 
@@ -431,8 +479,9 @@ validateFileUpload(file) {
 | `utils/fileUpload.utils.ts` | Upload utilities |
 | `utils/validations/fileManagerValidation.utils.ts` | Validation |
 | `controllers/evidenceHub.ctrl.ts` | Evidence controller |
-| `controllers/fileManager.ctrl.ts` | File manager controller |
+| `controllers/fileManager.ctrl.ts` | File manager controller (upload, download, metadata, preview) |
 | `controllers/file.ctrl.ts` | File controller |
+| `repositories/file.repository.ts` | File database queries |
 | `routes/evidenceHub.route.ts` | Evidence routes |
 | `routes/fileManager.route.ts` | File manager routes |
 

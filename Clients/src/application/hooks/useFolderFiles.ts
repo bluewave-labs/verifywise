@@ -79,6 +79,8 @@ export function useFolderFiles(
     try {
       setLoading(true);
       setError(null);
+      // Clear files immediately to prevent flash of old content
+      setFiles([]);
 
       let filesData: IFileWithFolders[];
 

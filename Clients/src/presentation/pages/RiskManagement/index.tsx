@@ -35,7 +35,7 @@ import { useTableGrouping, useGroupByState } from "../../../application/hooks/us
 import { FilterBy, FilterColumn, FilterCondition } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
-import HistorySidebar from "../../components/Common/HistorySidebar";
+import { HistorySidebar } from "../../components/Common/HistorySidebar";
 import { useEntityChangeHistory } from "../../../application/hooks/useEntityChangeHistory";
 import { PluginSlot } from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";

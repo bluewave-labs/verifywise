@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import StandardModal from "../StandardModal";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
-import HistorySidebar from "../../Common/HistorySidebar";
+import { HistorySidebar } from "../../Common/HistorySidebar";
 import { useModelInventoryChangeHistory } from "../../../../application/hooks/useModelInventoryChangeHistory";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";

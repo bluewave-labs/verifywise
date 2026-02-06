@@ -63,7 +63,7 @@ import Select from "../Inputs/Select";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
 import { CustomizableButton } from "../button/customizable-button";
-import HistorySidebar from "../Common/HistorySidebar";
+import { HistorySidebar } from "../Common/HistorySidebar";
 import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChangeHistory";
 import {
   createPolicy,

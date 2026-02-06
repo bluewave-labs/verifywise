@@ -2,7 +2,8 @@
  * @fileoverview FilePreviewPanel Component
  *
  * A slide-out panel for quick preview of files.
- * Supports preview for PDFs, images, and text files.
+ * Supports preview for PDFs, images, text files, and Office documents (DOCX/XLSX/PPTX).
+ * Office files show their embedded thumbnail if available.
  *
  * @module presentation/pages/FileManager/components/FilePreviewPanel
  */
@@ -18,9 +19,14 @@ import {
   Chip,
   Divider,
 } from "@mui/material";
-import { X, Download, Pencil, FileText, Image, FileType } from "lucide-react";
+import { X, Download, Pencil, FileText, Image, FileType, FileSpreadsheet } from "lucide-react";
 import { FileMetadata, downloadFileFromManager } from "../../../../../application/repository/file.repository";
 import StatusBadge from "../StatusBadge";
+import {
+  getOfficeThumbnail,
+  isOfficeFile,
+  getOfficeFileLabel,
+} from "../../../../../application/utils/officePreview.utils";
 
 interface FilePreviewPanelProps {
   isOpen: boolean;
@@ -30,7 +36,7 @@ interface FilePreviewPanelProps {
   onDownload?: (file: FileMetadata) => void;
 }
 
-type PreviewType = "pdf" | "image" | "text" | "unsupported";
+type PreviewType = "pdf" | "image" | "text" | "office" | "unsupported";
 
 const getPreviewType = (mimetype?: string): PreviewType => {
   if (!mimetype) return "unsupported";
@@ -44,6 +50,7 @@ const getPreviewType = (mimetype?: string): PreviewType => {
   ) {
     return "text";
   }
+  if (isOfficeFile(mimetype)) return "office";
 
   return "unsupported";
 };
@@ -55,6 +62,11 @@ const getFileIcon = (mimetype?: string) => {
       return <FileType size={48} color="#EF4444" />;
     case "image":
       return <Image size={48} color="#3B82F6" />;
+    case "office":
+      if (mimetype?.includes("spreadsheetml")) {
+        return <FileSpreadsheet size={48} color="#217346" />;
+      }
+      return <FileText size={48} color="#2B579A" />;
     default:
       return <FileText size={48} color="#6B7280" />;
   }
@@ -139,6 +151,16 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
           const text = await blob.text();
           setPreviewText(text);
           setPreviewUrl(null);
+        } else if (previewType === "office") {
+          // Try to extract embedded thumbnail from Office files
+          const result = await getOfficeThumbnail(blob);
+          if (result.success && result.thumbnailUrl) {
+            setPreviewUrl(result.thumbnailUrl);
+            setPreviewText(null);
+          } else {
+            // No thumbnail embedded - show unsupported message
+            setError("No preview available");
+          }
         } else {
           const url = URL.createObjectURL(blob);
           setPreviewUrl(url);
@@ -313,6 +335,37 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
           }}
         >
           {previewText}
+        </Box>
+      );
+    }
+
+    if (previewType === "office" && previewUrl) {
+      return (
+        <Box>
+          <Box
+            component="img"
+            src={previewUrl}
+            alt={file?.filename}
+            sx={{
+              width: "100%",
+              maxHeight: 400,
+              objectFit: "contain",
+              border: "1px solid #E0E4E9",
+              borderRadius: "4px",
+              backgroundColor: "#F9FAFB",
+            }}
+          />
+          <Typography
+            sx={{
+              mt: 1,
+              fontSize: 11,
+              color: "#98A2B3",
+              fontStyle: "italic",
+              textAlign: "center",
+            }}
+          >
+            {getOfficeFileLabel(file?.mimetype)} preview
+          </Typography>
         </Box>
       );
     }

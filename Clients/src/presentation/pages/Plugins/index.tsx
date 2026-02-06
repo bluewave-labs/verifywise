@@ -264,7 +264,7 @@ const Plugins: React.FC = () => {
       />
 
       <TabContext value={activeTab}>
-        <Box sx={{ borderBottom: 1, borderColor: "#d0d5dd" }}>
+        <Box>
           <TabBar
             tabs={[
               { label: "Marketplace", value: "marketplace", icon: "Store" },

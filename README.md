@@ -79,6 +79,8 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
   - Risk and control mappings for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
   - CE Marking registry
   - Dataset registry
+  - Desktop notifications
+  - Approval workflows & approval requests
   - Detailed reports with PDF and DOCX export
   - Event logs (audits) for enterprise organizations
   - AI incident management

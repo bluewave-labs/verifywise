@@ -33,7 +33,7 @@ import DashboardErrorBoundary from "../../components/Dashboard/DashboardErrorBou
 import ChangeOrganizationNameModal from "../../components/Modals/ChangeOrganizationName";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import { DashboardCard } from "../../components/Cards/DashboardCard";
-import TaskRadarCard from "../../components/Cards/TaskRadarCard";
+import { TaskRadarCard } from "../../components/Cards/TaskRadarCard";
 import RiskDonutWithLegend from "../../components/Charts/RiskDonutWithLegend";
 import {
   TrainingCompletionCard,

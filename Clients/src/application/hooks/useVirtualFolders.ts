@@ -104,12 +104,14 @@ export function useVirtualFolders(): UseVirtualFoldersReturn {
    */
   const handleSetSelectedFolder = useCallback((folder: SelectedFolder) => {
     setSelectedFolder(folder);
-    // Clear breadcrumb immediately to prevent flash of old content
-    setBreadcrumb([]);
 
     if (typeof folder === "number") {
+      // Keep old breadcrumb visible while loading new one to prevent flash
       setLoadingBreadcrumb(true);
       loadBreadcrumb(folder);
+    } else {
+      // Only clear breadcrumb when going to "all" or "uncategorized"
+      setBreadcrumb([]);
     }
   }, [loadBreadcrumb]);
 

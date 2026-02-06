@@ -2,11 +2,17 @@ import { Stack, Typography } from "@mui/material";
 import { smallStatsCardHeader, smallStatsCardStyle } from "./style";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 
-const SmallStatsCard = ({
+interface SmallStatsCardProps {
+  attributeTitle?: string;
+  rate?: number;
+  progress?: string;
+}
+
+export function SmallStatsCard({
   attributeTitle = "Compliance tracker",
   rate = 60,
   progress = "90/100",
-}) => {
+}: SmallStatsCardProps) {
   return (
     <Stack className="small-stats-card" sx={smallStatsCardStyle}>
       <Stack className="small-stats-card-header" sx={smallStatsCardHeader}>
@@ -21,6 +27,4 @@ const SmallStatsCard = ({
       <ProgressBar progress={progress} />
     </Stack>
   );
-};
-
-export default SmallStatsCard;
+}

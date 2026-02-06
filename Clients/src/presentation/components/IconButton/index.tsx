@@ -276,13 +276,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   | "risk";
 
   const BUTTONS_BY_TYPE: Record<ButtonType, string[]> = {
-    report: (() => {
-      const items = ["preview", "download"];
-      if (onEditMetadata) items.push("edit_metadata");
-      if (onAssignToFolder) items.push("assign_folder");
-      items.push("linked_policies", "remove");
-      return items;
-    })(),
+    report: [], // Handled dynamically in getListOfButtons
     evidence: ["download", "remove"],
     resource: ["edit", "make visible", "download", "remove"],
     incident: ["edit", "view", "archive"],
@@ -291,7 +285,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     linkedobjectstype: ["remove"],
     risk: ["edit", "linked_policies", "remove"],
   };
-  
+
 
 
   const getListOfButtons = () => {
@@ -305,6 +299,15 @@ const IconButton: React.FC<IconButtonProps> = ({
 
     if (normalizedType === "vendor") {
       return canDelete ? ["edit", "remove"] : ["edit"];
+    }
+
+    // Handle "report" type dynamically to check props at render time
+    if (normalizedType === "report") {
+      const items = ["preview", "download"];
+      if (onEditMetadata) items.push("edit_metadata");
+      if (onAssignToFolder) items.push("assign_folder");
+      items.push("linked_policies", "remove");
+      return items;
     }
 
     if (normalizedType && normalizedType in BUTTONS_BY_TYPE) {

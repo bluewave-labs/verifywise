@@ -32,7 +32,7 @@ import AddNewRisk from "../../components/Modals/NewRisk";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import CustomizableSkeleton from "../../components/Skeletons";
 import CustomizableToast from "../../components/Toast";
-import RisksCard from "../../components/Cards/RisksCard";
+import { RisksCard } from "../../components/Cards/RisksCard";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";

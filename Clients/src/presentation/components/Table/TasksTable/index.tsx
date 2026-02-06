@@ -21,7 +21,7 @@ import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import CustomSelect from "../../CustomSelect";
 import IconButtonComponent from "../../IconButton";
 import Chip from "../../Chip";
-import DaysChip from "../../Chip/DaysChip";
+import { DaysChip } from "../../Chip/DaysChip";
 
 import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../types/interfaces/i.table";

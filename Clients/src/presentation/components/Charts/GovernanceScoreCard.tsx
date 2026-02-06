@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { DASHBOARD_COLORS, TEXT_STYLES } from "../../styles/colors";
 
@@ -23,7 +22,7 @@ const getScoreColor = (score: number): string => {
 };
 
 // Circular progress component for the main score (includes label)
-const ScoreGauge: React.FC<{ score: number; size?: number }> = ({ score, size = 100 }) => {
+function ScoreGauge({ score, size = 100 }: { score: number; size?: number }) {
   const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -46,7 +45,7 @@ const ScoreGauge: React.FC<{ score: number; size?: number }> = ({ score, size = 
   );
 };
 
-export const GovernanceScoreCard: React.FC<GovernanceScoreProps> = ({ score, modules }) => {
+export function GovernanceScoreCard({ score, modules }: GovernanceScoreProps) {
   return (
     <Stack direction="row" alignItems="center" justifyContent="space-between">
       <ScoreGauge score={score} size={100} />
@@ -62,6 +61,4 @@ export const GovernanceScoreCard: React.FC<GovernanceScoreProps> = ({ score, mod
       </Box>
     </Stack>
   );
-};
-
-export default GovernanceScoreCard;
+}

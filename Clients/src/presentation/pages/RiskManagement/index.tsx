@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { Box, Stack, Popover, Typography, IconButton, Tooltip, Fade } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import RisksCard from "../../components/Cards/RisksCard";
+import { RisksCard } from "../../components/Cards/RisksCard";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { BarChart3, ChevronDown, History as HistoryIcon } from "lucide-react"
 import ibmLogo from "../../assets/ibm_logo.svg";
@@ -35,7 +35,7 @@ import { useTableGrouping, useGroupByState } from "../../../application/hooks/us
 import { FilterBy, FilterColumn, FilterCondition } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
-import HistorySidebar from "../../components/Common/HistorySidebar";
+import { HistorySidebar } from "../../components/Common/HistorySidebar";
 import { useEntityChangeHistory } from "../../../application/hooks/useEntityChangeHistory";
 import { PluginSlot } from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";

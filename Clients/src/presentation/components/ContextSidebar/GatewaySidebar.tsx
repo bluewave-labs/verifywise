@@ -1,8 +1,7 @@
-import { FC } from "react";
 import { Stack, Typography, Box } from "@mui/material";
 import { Network } from "lucide-react";
 
-const GatewaySidebar: FC = () => {
+export function GatewaySidebar() {
   return (
     <Stack
       sx={{
@@ -57,6 +56,4 @@ const GatewaySidebar: FC = () => {
       </Box>
     </Stack>
   );
-};
-
-export default GatewaySidebar;
+}

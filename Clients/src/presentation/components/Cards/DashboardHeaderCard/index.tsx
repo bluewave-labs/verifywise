@@ -1,7 +1,8 @@
-import { Stack, Typography, Box } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight as RightArrow } from "lucide-react";
 import { useState, ReactNode } from "react";
+
+import { Stack, Typography, Box } from "@mui/material";
+import { ArrowRight as RightArrow } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface HeaderCardProps {
   title: string;
@@ -11,7 +12,7 @@ interface HeaderCardProps {
   navigateTo?: string;
 }
 
-const HeaderCard = ({ title, count, disableNavigation = false, icon, navigateTo }: HeaderCardProps) => {
+export function DashboardHeaderCard({ title, count, disableNavigation = false, icon, navigateTo }: HeaderCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -115,6 +116,4 @@ const HeaderCard = ({ title, count, disableNavigation = false, icon, navigateTo 
       ) : null}
     </Stack>
   );
-};
-
-export default HeaderCard;
+}

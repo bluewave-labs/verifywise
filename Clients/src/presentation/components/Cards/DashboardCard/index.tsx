@@ -1,23 +1,24 @@
-import React, { useState } from "react";
+import { ReactNode, useState } from "react";
+
 import { Card, CardContent, Stack, Typography } from "@mui/material";
 import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface DashboardCardProps {
   title: string;
-  children: React.ReactNode;
-  action?: React.ReactNode;
+  children: ReactNode;
+  action?: ReactNode;
   actionPosition?: "right" | "center";
   navigateTo?: string;
 }
 
-const DashboardCard: React.FC<DashboardCardProps> = ({
+export function DashboardCard({
   title,
   children,
   action,
   actionPosition = "right",
   navigateTo,
-}) => {
+}: DashboardCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -75,6 +76,4 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
       </CardContent>
     </Card>
   );
-};
-
-export default DashboardCard;
+}

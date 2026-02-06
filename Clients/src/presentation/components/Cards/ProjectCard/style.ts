@@ -35,7 +35,7 @@ export const projectCardSpecsStyle = {
 
 export const projectCardSpecKeyStyle = { fontSize: 11, color: "#8594AC" };
 
-export const projectCardSpecValueyStyle = { fontSize: 13, color: "#344054" };
+export const projectCardSpecValueStyle = { fontSize: 13, color: "#344054" };
 
 export const viewProjectButtonStyle = {
   backgroundColor: "#13715B",

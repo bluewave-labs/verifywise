@@ -35,14 +35,14 @@ import { SelectChangeEvent } from "@mui/material";
 import Select from "../Inputs/Select";
 import { CustomSelectProps } from "src/domain/types/widget.types";
 
-const CustomSelect: React.FC<CustomSelectProps> = React.memo(({
+function CustomSelectInner({
   currentValue,
   onValueChange,
   options,
   disabled = false,
   size = "small",
   sx = {},
-}) => {
+}: CustomSelectProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleChange = async (event: SelectChangeEvent<string | number>) => {
@@ -95,8 +95,7 @@ const CustomSelect: React.FC<CustomSelectProps> = React.memo(({
       }}
     />
   );
-});
+}
 
+export const CustomSelect = React.memo(CustomSelectInner);
 CustomSelect.displayName = "CustomSelect";
-
-export default CustomSelect;

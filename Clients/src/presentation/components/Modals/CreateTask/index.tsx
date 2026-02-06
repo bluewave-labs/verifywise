@@ -34,7 +34,7 @@ import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHa
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
-import CustomSelect from "../../CustomSelect";
+import { CustomSelect } from "../../CustomSelect";
 import { PRIORITY_COLOR_MAP, PRIORITY_DISPLAY_MAP, TASK_PRIORITY_OPTIONS } from "../../../constants/priorityOptions";
 
 const initialState: ICreateTaskFormValues = {

@@ -14,21 +14,22 @@
  */
 
 import { Box, Stack, Typography, useTheme } from "@mui/material";
-import "./index.css";
 
 import { Check as CheckIcon, Circle, X as XIcon } from "lucide-react";
 import { Square as CheckOutlined } from "lucide-react";
 import { CheckVariants } from "../../../domain/enums/checkVariants";
 
-const Check = ({
-  text,
-  variant = "info",
-  outlined = false,
-}: {
+interface CheckProps {
   text: string;
   variant?: CheckVariants;
-  outlined?: boolean;
-}) => {
+  isOutlined?: boolean;
+}
+
+export function Check({
+  text,
+  variant = "info",
+  isOutlined = false,
+}: CheckProps) {
   const theme = useTheme();
   const colors = {
     success: theme.palette.success.main,
@@ -39,7 +40,7 @@ const Check = ({
 
   // Render the appropriate icon based on variant
   const renderIcon = () => {
-    if (outlined) {
+    if (isOutlined) {
       return <CheckOutlined size={16} />;
     }
 
@@ -60,7 +61,7 @@ const Check = ({
     <Stack
       direction={"row"}
       className="check"
-      gap={outlined ? theme.spacing(6) : theme.spacing(4)}
+      gap={isOutlined ? theme.spacing(6) : theme.spacing(4)}
       alignItems={"center"}
     >
       <Box lineHeight={0}>
@@ -79,6 +80,4 @@ const Check = ({
       </Typography>
     </Stack>
   );
-};
-
-export default Check;
+}

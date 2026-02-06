@@ -5,7 +5,7 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import React, { useEffect, useState, useCallback } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
-import Check from "../../../components/Checks";
+import { Check } from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import { ArrowLeft as LeftArrowLong } from "lucide-react";
 import { Lock } from "lucide-react";

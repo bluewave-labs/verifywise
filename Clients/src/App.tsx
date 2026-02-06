@@ -22,7 +22,7 @@ import useUsers from "./application/hooks/useUsers";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useLocation } from "react-router-dom";
 import { DeploymentManager } from "./application/utils/deploymentHelpers";
-import CommandPalette from "./presentation/components/CommandPalette";
+import { CommandPalette } from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";

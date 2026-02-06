@@ -61,7 +61,8 @@ const ENTITY_ICONS: Record<string, LucideIcon> = {
 }
 
 // Welcome banner component
-const WiseSearchWelcomeBanner: React.FC<{ onDismiss: () => void }> = ({ onDismiss }) => (
+function WiseSearchWelcomeBanner({ onDismiss }: { onDismiss: () => void }) {
+  return (
   <Box
     sx={{
       background: 'linear-gradient(135deg, #1a1a1f 0%, #252530 100%)',
@@ -158,9 +159,10 @@ const WiseSearchWelcomeBanner: React.FC<{ onDismiss: () => void }> = ({ onDismis
       </Box>
     </Box>
   </Box>
-)
+  );
+}
 
-const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) => {
+export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { userRoleName } = useAuth()
@@ -647,4 +649,3 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
   )
 }
 
-export default CommandPalette

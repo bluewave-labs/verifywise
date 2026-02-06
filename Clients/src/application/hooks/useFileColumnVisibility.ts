@@ -46,6 +46,14 @@ export const DEFAULT_COLUMNS: ColumnConfig[] = [
 
 const STORAGE_KEY = "verifywise:file-column-visibility";
 
+// Always-visible column keys that must be included
+const ALWAYS_VISIBLE_KEYS = DEFAULT_COLUMNS
+  .filter((c) => c.alwaysVisible)
+  .map((c) => c.key);
+
+// Valid column keys for validation
+const VALID_COLUMN_KEYS = new Set(DEFAULT_COLUMNS.map((c) => c.key));
+
 /**
  * Table column format expected by FileTable/FileBasicTable
  */
@@ -88,7 +96,11 @@ export function useFileColumnVisibility(): UseFileColumnVisibilityReturn {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored) as FileColumn[];
-        return new Set(parsed);
+        // Filter out invalid keys (from old localStorage data)
+        const validKeys = parsed.filter((key) => VALID_COLUMN_KEYS.has(key));
+        // Always include alwaysVisible columns
+        const withRequired = new Set([...validKeys, ...ALWAYS_VISIBLE_KEYS]);
+        return withRequired;
       }
     } catch (err) {
       console.error("Error loading column visibility from localStorage:", err);

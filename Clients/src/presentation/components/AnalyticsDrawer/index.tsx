@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Drawer, Box, Typography, Stack, IconButton } from "@mui/material";
+import React, { useState, useEffect, memo } from "react";
+import { Drawer, Box, Typography, Stack, IconButton, useTheme } from "@mui/material";
 import { X as CloseIcon } from "lucide-react";
 import ModelInventoryHistoryChart from "../Charts/ModelInventoryHistoryChart";
 import RiskHistoryChart from "../Charts/RiskHistoryChart";
-import ButtonToggle from "../ButtonToggle";
+import { ButtonToggle } from "../button-toggle";
 
 interface ParameterOption {
   value: string;
@@ -62,6 +62,7 @@ const AnalyticsDrawer: React.FC<AnalyticsDrawerProps> = ({
   defaultParameter,
   chartType = "model", // Default to model chart for backward compatibility
 }) => {
+  const theme = useTheme();
   // Create localStorage key based on chartType for persistence
   const storageKey = `analytics_parameter_${chartType}`;
 
@@ -95,10 +96,11 @@ const AnalyticsDrawer: React.FC<AnalyticsDrawerProps> = ({
       anchor="right"
       open={open}
       onClose={onClose}
+      aria-label={`${title} drawer`}
       sx={{
         "& .MuiDrawer-paper": {
           width: { xs: "100%", sm: "600px", md: "800px" },
-          padding: "24px",
+          padding: theme.spacing(3),
         },
       }}
     >
@@ -111,19 +113,20 @@ const AnalyticsDrawer: React.FC<AnalyticsDrawerProps> = ({
           sx={{ mb: 3 }}
         >
           <Box>
-            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#2D3748" }}>
+            <Typography sx={{ fontSize: theme.typography.body1.fontSize, fontWeight: 700, color: theme.palette.text.primary }}>
               {title}
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#8594AC", mt: 0.5 }}>
+            <Typography sx={{ fontSize: theme.typography.body2.fontSize, color: theme.palette.text.secondary, mt: 0.5 }}>
               {description}
             </Typography>
           </Box>
           <IconButton
             onClick={onClose}
+            aria-label="Close drawer"
             sx={{
-              color: "#6B7280",
+              color: theme.palette.action.active,
               "&:hover": {
-                backgroundColor: "#F3F4F6",
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
@@ -133,7 +136,7 @@ const AnalyticsDrawer: React.FC<AnalyticsDrawerProps> = ({
 
         {/* Parameter Selection */}
         <Stack sx={{ mb: 3, gap: 2 }}>
-          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#2D3748" }}>
+          <Typography sx={{ fontSize: theme.typography.body1.fontSize, fontWeight: 700, color: theme.palette.text.primary }}>
             Historical trend: {entityName} {selectedParameterLabel.toLowerCase()} over time
           </Typography>
           <Box display="flex" justifyContent="flex-end">
@@ -164,4 +167,4 @@ const AnalyticsDrawer: React.FC<AnalyticsDrawerProps> = ({
   );
 };
 
-export default AnalyticsDrawer;
+export default memo(AnalyticsDrawer);

@@ -13,7 +13,7 @@ import Alert from "../../../components/Alert";
 import Toggle from "../../../components/Inputs/Toggle";
 import ToggleCard from "../../../components/Inputs/ToggleCard";
 import Checkbox from "../../../components/Inputs/Checkbox";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import {
   useAITrustCentreOverviewQuery,
   useAITrustCentreOverviewMutation,

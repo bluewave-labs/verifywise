@@ -5,7 +5,7 @@ import { useOnboarding } from "../../../application/hooks/useOnboarding";
 import { ONBOARDING_STEPS } from "./onboardingConstants";
 import ProgressDots from "./ProgressDots";
 import SkipConfirmation from "./SkipConfirmation";
-import CustomizableButton from "../Button/CustomizableButton";
+import { CustomizableButton } from "../button/customizable-button";
 import { OnboardingModalProps } from "../../types/interfaces/i.onboarding";
 import WelcomeStep from "./steps/WelcomeStep";
 import PreferencesStep from "./steps/PreferencesStep";

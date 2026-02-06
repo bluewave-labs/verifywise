@@ -39,7 +39,7 @@ async def create_project(
     if org_id:
         result = await db.execute(
             text(f'''
-                INSERT INTO "{tenant}".deepeval_projects
+                INSERT INTO "{tenant}".llm_evals_projects
                 (id, name, description, org_id, created_by, use_case)
                 VALUES (:id, :name, :description, :org_id, :created_by, :use_case)
                 RETURNING id, name, description, org_id, created_at, updated_at, created_by, use_case
@@ -56,7 +56,7 @@ async def create_project(
     else:
         result = await db.execute(
             text(f'''
-                INSERT INTO "{tenant}".deepeval_projects
+                INSERT INTO "{tenant}".llm_evals_projects
                 (id, name, description, created_by, use_case)
                 VALUES (:id, :name, :description, :created_by, :use_case)
                 RETURNING id, name, description, NULL::varchar as org_id, created_at, updated_at, created_by, use_case
@@ -100,7 +100,7 @@ async def get_all_projects(tenant: str, db: AsyncSession) -> List[Dict[str, Any]
     result = await db.execute(
         text(f'''
             SELECT id, name, description, org_id, created_at, updated_at, created_by, use_case
-            FROM "{tenant}".deepeval_projects
+            FROM "{tenant}".llm_evals_projects
             ORDER BY created_at DESC
         ''')
     )
@@ -141,7 +141,7 @@ async def get_project_by_id(
     result = await db.execute(
         text(f'''
             SELECT id, name, description, org_id, created_at, updated_at, created_by, use_case
-            FROM "{tenant}".deepeval_projects
+            FROM "{tenant}".llm_evals_projects
             WHERE id = :id
         '''),
         {"id": project_id}
@@ -209,7 +209,7 @@ async def update_project(
 
     result = await db.execute(
         text(f'''
-            UPDATE "{tenant}".deepeval_projects
+            UPDATE "{tenant}".llm_evals_projects
             SET {", ".join(updates)}
             WHERE id = :id
             RETURNING id, name, description, org_id, created_at, updated_at, created_by, use_case
@@ -251,7 +251,7 @@ async def delete_project(
 
     result = await db.execute(
         text(f'''
-            DELETE FROM "{tenant}".deepeval_projects
+            DELETE FROM "{tenant}".llm_evals_projects
             WHERE id = :id
             RETURNING id
         '''),

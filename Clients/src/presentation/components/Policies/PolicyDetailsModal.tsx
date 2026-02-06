@@ -2,7 +2,7 @@ import React, { CSSProperties, useEffect, useState, useCallback, useRef } from "
 import DOMPurify from "dompurify";
 import PolicyForm from "./PolicyForm";
 import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../types/interfaces/i.policy";
-import { Plate, PlateContent, createPlateEditor } from "platejs/react";
+import { Plate, PlateContent, createPlateEditor, ParagraphPlugin } from "platejs/react";
 import { serializeHtml } from "platejs/static";
 import { AutoformatPlugin } from "@platejs/autoformat";
 import { Range, Editor, BaseRange, Transforms, Path } from "slate";
@@ -62,7 +62,7 @@ import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import Select from "../Inputs/Select";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
-import CustomizableButton from "../Button/CustomizableButton";
+import { CustomizableButton } from "../button/customizable-button";
 import HistorySidebar from "../Common/HistorySidebar";
 import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChangeHistory";
 import {
@@ -266,6 +266,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     () =>
       createPlateEditor({
         plugins: [
+          ParagraphPlugin,
           BoldPlugin,
           ItalicPlugin,
           UnderlinePlugin,
@@ -599,6 +600,111 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     return normalized;
   };
 
+  // Convert Plate's serialized HTML output to standard semantic HTML for storage
+  // This ensures proper paragraph formatting when content is displayed outside the editor
+  const normalizeSerializedHtml = (html: string): string => {
+    let normalized = html;
+
+    // Remove nested span wrappers that Plate adds (data-slate-node="text", data-slate-leaf, data-slate-string)
+    // Keep the innermost text content and formatting tags like <strong>, <em>, etc.
+    normalized = normalized.replace(/<span[^>]*data-slate-string="true"[^>]*>([^<]*)<\/span>/gi, '$1');
+    normalized = normalized.replace(/<span[^>]*data-slate-leaf="true"[^>]*>/gi, '');
+    normalized = normalized.replace(/<span[^>]*data-slate-node="text"[^>]*>/gi, '');
+
+    // Remove orphaned closing </span> tags (from the spans we opened above)
+    // Count and remove only the extra ones
+    const spanOpenCount = (normalized.match(/<span[^>]*>/gi) || []).length;
+    let spanCloseCount = (normalized.match(/<\/span>/gi) || []).length;
+    while (spanCloseCount > spanOpenCount) {
+      normalized = normalized.replace(/<\/span>/, '');
+      spanCloseCount--;
+    }
+
+    // Convert element divs to proper semantic HTML based on block-id patterns
+    // Headings: data-block-id starting with "heading-" or "title-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="(?:title|heading)-[^"]*"[^>]*>/gi, '<h2>');
+
+    // Paragraphs: data-block-id starting with "paragraph-" or "summary-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="(?:paragraph|summary)-[^"]*"[^>]*>/gi, '<p>');
+
+    // List containers: data-block-id starting with "bullets-" or "numbered-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="bullets-[^"]*"[^>]*>/gi, '<ul>');
+    normalized = normalized.replace(/<div[^>]*data-block-id="numbered-[^"]*"[^>]*>/gi, '<ol>');
+
+    // List items: data-block-id starting with "li-"
+    normalized = normalized.replace(/<div[^>]*data-block-id="li-[^"]*"[^>]*>/gi, '<li>');
+
+    // Preserve heading tags that Plate's serializeHtml generates
+    // serializeHtml outputs <h1>, <h2>, <h3> for heading nodes - don't convert these to <p>
+    // First, temporarily mark existing heading tags so they don't get processed
+    normalized = normalized.replace(/<(h[1-3])([^>]*)>/gi, '<__HEADING_$1__$2>');
+
+    // Any remaining element divs become paragraphs (generic content blocks)
+    normalized = normalized.replace(/<div[^>]*data-slate-node="element"[^>]*>/gi, '<p>');
+
+    // Restore the heading tags
+    normalized = normalized.replace(/<__HEADING_(h[1-3])__([^>]*)>/gi, '<$1$2>');
+
+    // Now convert closing </div> tags to match the opening tags we converted
+    // Parse through and match them properly
+    const tokens = normalized.split(/(<[^>]+>)/);
+    const tagStack: string[] = [];
+    const result: string[] = [];
+
+    for (const token of tokens) {
+      if (token.startsWith('<') && !token.startsWith('</') && !token.endsWith('/>')) {
+        // Opening tag
+        const tagMatch = token.match(/^<(\w+)/);
+        if (tagMatch) {
+          tagStack.push(tagMatch[1]);
+        }
+        result.push(token);
+      } else if (token.startsWith('</')) {
+        // Closing tag
+        const tagMatch = token.match(/^<\/(\w+)/);
+        if (tagMatch) {
+          const closingTag = tagMatch[1].toLowerCase();
+          if (closingTag === 'div' && tagStack.length > 0) {
+            // Replace </div> with the appropriate closing tag
+            const openTag = tagStack.pop()!.toLowerCase();
+            if (['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'li', 'blockquote'].includes(openTag)) {
+              result.push(`</${openTag}>`);
+            } else {
+              result.push(token);
+            }
+          } else {
+            if (tagStack.length > 0) tagStack.pop();
+            result.push(token);
+          }
+        } else {
+          result.push(token);
+        }
+      } else {
+        result.push(token);
+      }
+    }
+
+    normalized = result.join('');
+
+    // Clean up any remaining data-* attributes
+    normalized = normalized.replace(/\s*data-[a-z-]+="[^"]*"/gi, '');
+
+    // Clean up style attributes with just position:relative
+    normalized = normalized.replace(/\s*style="position:\s*relative;?\s*"/gi, '');
+
+    // Clean up empty attributes
+    normalized = normalized.replace(/\s*style=""\s*/gi, ' ');
+    normalized = normalized.replace(/\s*class=""\s*/gi, ' ');
+
+    // Clean up multiple spaces
+    normalized = normalized.replace(/\s+/g, ' ');
+
+    // Trim whitespace around tags
+    normalized = normalized.replace(/>\s+</g, '><');
+
+    return normalized;
+  };
+
   useEffect(() => {
     if ((policy || template) && editor) {
       const api = editor.api.html;
@@ -657,6 +763,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                     "alt",
                     "src",
                     "data-src",
+                    "data-slate-type",
+                    "data-slate-node",
+                    "data-slate-id",
+                    "data-block-id",
                     "class",
                     "id",
                     "style",
@@ -666,7 +776,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                     "rowspan",
                   ],
                   ALLOWED_URI_REGEXP:
-                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+-]+(?:[^a-z.+-:]|$))/i,
+                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+\-]+(?:[^a-z.+\-:]|$))/i,
                   ADD_ATTR: ["target"],
                   FORBID_TAGS: [
                     "script",
@@ -919,6 +1029,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     tableMap.forEach((tableNode, placeholder) => {
       html = html.replace(placeholder, serializeTableToHtml(tableNode));
     });
+
+    // Normalize Slate's div-based output to proper semantic HTML with <p> tags
+    // This ensures proper paragraph formatting when displayed outside the editor
+    html = normalizeSerializedHtml(html);
 
     return html;
   };

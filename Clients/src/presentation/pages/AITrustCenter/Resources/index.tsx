@@ -14,10 +14,11 @@ import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import Toggle from "../../../components/Inputs/Toggle";
 import { useStyles } from "./styles";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import IconButtonComponent from "../../../components/IconButton";
 import Field from "../../../components/Inputs/Field";
 import StandardModal from "../../../components/Modals/StandardModal";
+import FileManagerUploadModal from "../../../components/Modals/FileManagerUpload";
 import {
   useAITrustCentreOverviewQuery,
   useAITrustCentreOverviewMutation,
@@ -198,6 +199,10 @@ const TrustCenterResources: React.FC = () => {
     file_id: undefined,
   });
 
+  // File upload modal states
+  const [addFileModalOpen, setAddFileModalOpen] = useState(false);
+  const [editFileModalOpen, setEditFileModalOpen] = useState(false);
+
   // Success/Error states
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -315,34 +320,6 @@ const TrustCenterResources: React.FC = () => {
       file_id: undefined,
     });
     setEditResourceError(null);
-  };
-
-
-  // File handling
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!formData?.info?.resources_visible) return;
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.type !== "application/pdf") {
-        setAddResourceError("Please upload a PDF file");
-        return;
-      }
-      setNewResource((prev) => ({ ...prev, file }));
-      setAddResourceError(null);
-    }
-  };
-
-  const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!formData?.info?.resources_visible) return;
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.type !== "application/pdf") {
-        setEditResourceError("Please upload a PDF file");
-        return;
-      }
-      setEditResource((prev) => ({ ...prev, file }));
-      setEditResourceError(null);
-    }
   };
 
   // Resource operations
@@ -716,11 +693,9 @@ const TrustCenterResources: React.FC = () => {
             />
             <Box>
               <CustomizableButton
-                text="Upload a file"
+                text={newResource.file ? "Change file" : "Upload a file"}
                 variant="outlined"
-                onClick={() =>
-                  document.getElementById("resource-file-input")?.click()
-                }
+                onClick={() => setAddFileModalOpen(true)}
                 isDisabled={!formData?.info?.resources_visible}
                 sx={{
                   border: "1px solid #D0D5DD",
@@ -731,14 +706,6 @@ const TrustCenterResources: React.FC = () => {
                   },
                 }}
               />
-              <input
-                id="resource-file-input"
-                type="file"
-                accept="application/pdf"
-                style={{ display: "none" }}
-                onChange={handleFileChange}
-                disabled={!formData?.info?.resources_visible}
-              />
               {newResource.file && (
                 <Typography sx={styles.fileName}>
                   {newResource.file.name}
@@ -747,6 +714,23 @@ const TrustCenterResources: React.FC = () => {
             </Box>
           </Stack>
         </StandardModal>
+
+        {/* File Upload Modal for Add Resource */}
+        <FileManagerUploadModal
+          open={addFileModalOpen}
+          onClose={() => setAddFileModalOpen(false)}
+          selectionOnly
+          multiple={false}
+          acceptedMimeTypes={["application/pdf"]}
+          title="Select PDF File"
+          onFileSelect={(files) => {
+            if (files[0]) {
+              setNewResource((r) => ({ ...r, file: files[0] }));
+              setAddResourceError(null);
+            }
+            setAddFileModalOpen(false);
+          }}
+        />
 
         {/* Edit Resource Modal */}
         <StandardModal
@@ -803,9 +787,7 @@ const TrustCenterResources: React.FC = () => {
               <CustomizableButton
                 text="Replace file"
                 variant="outlined"
-                onClick={() =>
-                  document.getElementById("edit-resource-file-input")?.click()
-                }
+                onClick={() => setEditFileModalOpen(true)}
                 isDisabled={!formData?.info?.resources_visible}
                 sx={{
                   border: "1px solid #D0D5DD",
@@ -815,14 +797,6 @@ const TrustCenterResources: React.FC = () => {
                     border: "1px solid #D0D5DD",
                   },
                 }}
-              />
-              <input
-                id="edit-resource-file-input"
-                type="file"
-                accept="application/pdf"
-                style={{ display: "none" }}
-                onChange={handleEditFileChange}
-                disabled={!formData?.info?.resources_visible}
               />
               {/* Show existing file name */}
               {!editResource.file && editResource.filename && (
@@ -839,6 +813,23 @@ const TrustCenterResources: React.FC = () => {
             </Box>
           </Stack>
         </StandardModal>
+
+        {/* File Upload Modal for Edit Resource */}
+        <FileManagerUploadModal
+          open={editFileModalOpen}
+          onClose={() => setEditFileModalOpen(false)}
+          selectionOnly
+          multiple={false}
+          acceptedMimeTypes={["application/pdf"]}
+          title="Select PDF File"
+          onFileSelect={(files) => {
+            if (files[0]) {
+              setEditResource((r) => ({ ...r, file: files[0] }));
+              setEditResourceError(null);
+            }
+            setEditFileModalOpen(false);
+          }}
+        />
       </Box>
 
       {alert && (

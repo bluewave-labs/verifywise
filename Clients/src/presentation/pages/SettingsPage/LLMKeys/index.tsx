@@ -9,7 +9,7 @@ import {
   Link,
 } from "@mui/material";
 import { useState, useCallback, useEffect, useMemo } from "react";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import {
   Plus as PlusIcon,
   Trash2 as DeleteIcon,
@@ -93,7 +93,7 @@ const LLMKeys = () => {
         );
         setKeys(llmKeyModel);
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert("error", "Error", "Failed to fetch LLM Keys");
     } finally {
       setIsLoading(false);
@@ -228,7 +228,7 @@ const LLMKeys = () => {
         showAlert("success", "Success", "LLM Key deleted successfully");
         fetchLLMKeys();
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert("error", "Error", "Failed to delete LLM Key");
     } finally {
       setIsLoading(false);

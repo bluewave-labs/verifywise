@@ -28,6 +28,7 @@ interface MetricsCache {
   organizationalFrameworks?: CacheEntry<any>;
   taskMetrics?: CacheEntry<any>;
   useCaseMetrics?: CacheEntry<any>;
+  governanceScoreMetrics?: CacheEntry<any>;
 }
 
 // Cache utility functions
@@ -230,6 +231,16 @@ export interface UseCaseMetrics {
   }>;
 }
 
+export interface GovernanceScoreMetrics {
+  score: number;
+  modules: Array<{
+    name: string;
+    score: number;
+    weight: number;
+  }>;
+  calculatedAt?: string;
+}
+
 export interface PolicyStatusMetrics {
   total: number;
   distribution: {
@@ -346,6 +357,9 @@ export const useDashboardMetrics = () => {
   );
   const [useCaseMetrics, setUseCaseMetrics] = useState<UseCaseMetrics | null>(
     () => getCachedValue<UseCaseMetrics>("useCaseMetrics").data
+  );
+  const [governanceScoreMetrics, setGovernanceScoreMetrics] = useState<GovernanceScoreMetrics | null>(
+    () => getCachedValue<GovernanceScoreMetrics>("governanceScoreMetrics").data
   );
   const [loading, setLoading] = useState(false);
   const [isRevalidating, setIsRevalidating] = useState(false);
@@ -869,6 +883,57 @@ export const useDashboardMetrics = () => {
     }
   }, [useCaseMetrics]);
 
+  // Fetch governance score metrics - for AI Governance Score card
+  const fetchGovernanceScoreMetrics = useCallback(async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/compliance/score" });
+      const data = response.data || response;
+
+      if (data && typeof data.overallScore === "number") {
+        const modules = data.modules || {};
+        const metrics: GovernanceScoreMetrics = {
+          score: data.overallScore,
+          modules: [
+            { name: "Risk management", score: modules.riskManagement?.score || 0, weight: modules.riskManagement?.weight || 0.3 },
+            { name: "Vendor management", score: modules.vendorManagement?.score || 0, weight: modules.vendorManagement?.weight || 0.3 },
+            { name: "Project governance", score: modules.projectGovernance?.score || 0, weight: modules.projectGovernance?.weight || 0.25 },
+            { name: "Model lifecycle", score: modules.modelLifecycle?.score || 0, weight: modules.modelLifecycle?.weight || 0.1 },
+            { name: "Policy & documentation", score: modules.policyDocumentation?.score || 0, weight: modules.policyDocumentation?.weight || 0.05 },
+          ],
+          calculatedAt: data.calculatedAt,
+        };
+        setGovernanceScoreMetrics(metrics);
+        setCachedValue("governanceScoreMetrics", metrics);
+      } else {
+        // Fallback to default values if API doesn't return expected format
+        setGovernanceScoreMetrics({
+          score: 0,
+          modules: [
+            { name: "Risk management", score: 0, weight: 0.3 },
+            { name: "Vendor management", score: 0, weight: 0.3 },
+            { name: "Project governance", score: 0, weight: 0.25 },
+            { name: "Model lifecycle", score: 0, weight: 0.1 },
+            { name: "Policy & documentation", score: 0, weight: 0.05 },
+          ],
+        });
+      }
+    } catch (err) {
+      console.warn("Failed to fetch governance score metrics:", err);
+      if (!governanceScoreMetrics) {
+        setGovernanceScoreMetrics({
+          score: 0,
+          modules: [
+            { name: "Risk management", score: 0, weight: 0.3 },
+            { name: "Vendor management", score: 0, weight: 0.3 },
+            { name: "Project governance", score: 0, weight: 0.25 },
+            { name: "Model lifecycle", score: 0, weight: 0.1 },
+            { name: "Policy & documentation", score: 0, weight: 0.05 },
+          ],
+        });
+      }
+    }
+  }, [governanceScoreMetrics]);
+
   // Fetch evidence hub metrics - for Evidence Coverage card
   const fetchEvidenceHubMetrics = useCallback(async () => {
     try {
@@ -1131,7 +1196,7 @@ export const useDashboardMetrics = () => {
 
     try {
       // Fetch each metric individually and catch errors
-      // 14 API calls (reduced by deduplicating policy and incident endpoints)
+      // 15 API calls (reduced by deduplicating policy and incident endpoints)
       const results = await Promise.allSettled([
         fetchRiskMetrics(),
         fetchEvidenceMetrics(),
@@ -1147,6 +1212,7 @@ export const useDashboardMetrics = () => {
         fetchOrganizationalFrameworks(),
         fetchTaskMetrics(),
         fetchUseCaseMetrics(),
+        fetchGovernanceScoreMetrics(),
       ]);
 
       // Log which ones failed (only in development)
@@ -1167,6 +1233,7 @@ export const useDashboardMetrics = () => {
             "organizationalFrameworks",
             "taskMetrics",
             "useCaseMetrics",
+            "governanceScoreMetrics",
           ];
 
           if (result.status === "rejected") {
@@ -1197,6 +1264,7 @@ export const useDashboardMetrics = () => {
     fetchOrganizationalFrameworks,
     fetchTaskMetrics,
     fetchUseCaseMetrics,
+    fetchGovernanceScoreMetrics,
   ]);
 
   // Initialize data on mount
@@ -1222,6 +1290,7 @@ export const useDashboardMetrics = () => {
     organizationalFrameworks,
     taskMetrics,
     useCaseMetrics,
+    governanceScoreMetrics,
 
     // State
     loading,
@@ -1244,5 +1313,6 @@ export const useDashboardMetrics = () => {
     fetchOrganizationalFrameworks,
     fetchTaskMetrics,
     fetchUseCaseMetrics,
+    fetchGovernanceScoreMetrics,
   };
 };

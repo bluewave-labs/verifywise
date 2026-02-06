@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Box, Typography, Stack, SelectChangeEvent } from "@mui/material";
 import { OnboardingStepProps } from "../../../types/interfaces/i.onboarding";
 import { UserPlus } from "lucide-react";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import Select from "../../Inputs/Select";
 import Field from "../../Inputs/Field";
 import { sendInviteEmail } from "../../../../application/repository/mail.repository";
@@ -41,7 +41,7 @@ const InviteTeamStep: React.FC<OnboardingStepProps> = () => {
 
     if (filledInvites.length > 0 && emptyInvites.length > 1) {
       // Keep filled invites and only one empty row
-      const finalInvites: TeamMemberInvite[] = [...filledInvites, { email: "", role: "editor" as "editor" }];
+      const finalInvites: TeamMemberInvite[] = [...filledInvites, { email: "", role: "editor" as const }];
       setInvites(finalInvites);
     } else {
       setInvites(newInvites);

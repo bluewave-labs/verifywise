@@ -7,7 +7,7 @@ import {
   Button as MUIButton,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import { Save as SaveIcon } from "lucide-react";
 import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
 import {
@@ -126,13 +126,13 @@ const Organization = () => {
               setLogoLoadError(true);
             }
           }
-        } catch (error) {
+        } catch (_error) {
           setLogoLoadError(true);
         } finally {
           setLogoLoading(false);
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setOrganizationExists(false);
       setOrganizationName("");
       setHasChanges(false);
@@ -316,7 +316,7 @@ const Organization = () => {
         setHasChanges(false);
       }
       await fetchOrganization();
-    } catch (error) {
+    } catch (_error) {
       showAlert("error", "Error", "Failed to create organization.");
     } finally {
       setTimeout(() => setIsLoading(false), 1500);
@@ -355,7 +355,7 @@ const Organization = () => {
         setHasChanges(false);
       }
       await fetchOrganization();
-    } catch (error) {
+    } catch (_error) {
       showAlert("error", "Error", "Failed to update organization.");
     } finally {
       setTimeout(() => setIsLoading(false), 1500);

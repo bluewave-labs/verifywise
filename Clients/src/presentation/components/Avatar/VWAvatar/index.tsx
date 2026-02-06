@@ -78,10 +78,7 @@ const getInitials = (firstname: string, lastname: string): string => {
   return firstInitial + lastInitial;
 };
 
-const AVATAR_COLORS = {
-  backgroundColor: "#12715B",
-  color: "white",
-} as const;
+// Note: Avatar colors are obtained from theme in component
 
 /**
  * Professional avatar component for displaying user profile images or initials.
@@ -133,7 +130,11 @@ const VWAvatar = ({
     [user.firstname, user.lastname]
   );
 
-  const avatarColors = AVATAR_COLORS;
+  // Use theme-based colors
+  const avatarColors = useMemo(() => ({
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.common.white,
+  }), [theme.palette.primary.main, theme.palette.common.white]);
 
   const shouldShowImage = Boolean(
     user.pathToImage && !imageError && !imageLoading
@@ -206,7 +207,7 @@ const VWAvatar = ({
       fontWeight: 600,
       ...sx,
     }),
-    [dimensions, shouldShowImage, showBorder, theme, onClick, sx]
+    [dimensions, shouldShowImage, showBorder, theme, onClick, sx, avatarColors]
   );
 
   const avatarProps = useMemo(() => {
@@ -267,13 +268,13 @@ const VWAvatar = ({
               style={{
                 fontSize: dimensions.fontSize * 0.7,
                 opacity: 0.7,
-                color: "white",
+                color: avatarColors.color,
               }}
             >
               ...
             </span>
           ) : (
-            <span aria-hidden="true" style={{ color: "white" }}>
+            <span aria-hidden="true" style={{ color: avatarColors.color }}>
               {initials}
             </span>
           )}

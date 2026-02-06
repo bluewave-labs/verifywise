@@ -18,7 +18,7 @@ import {
   ClassificationResult,
 } from "./iQuestion";
 import { useCallback, useState, useEffect } from "react";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import RiskAnalysisQuestion from "./RiskAnalysisQuestion";
 import Result from "./Result";
 import ProgressTracker from "./ProgressTracker";

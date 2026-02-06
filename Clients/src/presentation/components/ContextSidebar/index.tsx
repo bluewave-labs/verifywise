@@ -13,6 +13,8 @@ interface ContextSidebarProps {
   // Props for main Sidebar
   onOpenCreateDemoData?: () => void;
   onOpenDeleteDemoData?: () => void;
+  onDismissDemoDataButton?: () => void;
+  showDemoDataButton?: boolean;
   hasDemoData?: boolean;
   /** Only show demo data options to admins */
   isAdmin?: boolean;
@@ -29,6 +31,8 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
   activeModule,
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
+  onDismissDemoDataButton,
+  showDemoDataButton = true,
   hasDemoData,
   isAdmin = false,
 }) => {
@@ -60,6 +64,8 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
         <Sidebar
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
+          onDismissDemoDataButton={onDismissDemoDataButton}
+          showDemoDataButton={showDemoDataButton}
           hasDemoData={hasDemoData}
           isAdmin={isAdmin}
         />
@@ -73,6 +79,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
           experimentsCount={evalsSidebarContext?.experimentsCount ?? 0}
           datasetsCount={evalsSidebarContext?.datasetsCount ?? 0}
           scorersCount={evalsSidebarContext?.scorersCount ?? 0}
+          modelsCount={evalsSidebarContext?.modelsCount ?? 0}
           arenaCount={evalsSidebarContext?.arenaCount ?? 0}
           disabled={evalsSidebarContext?.disabled ?? true}
           recentExperiments={evalsSidebarContext?.recentExperiments ?? []}
@@ -89,10 +96,10 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
       const aiDetectionTab = location.pathname.includes("/ai-detection/history")
         ? "history"
         : location.pathname.includes("/ai-detection/settings")
-        ? "settings"
-        : location.pathname.includes("/ai-detection/scans/")
-        ? "history"
-        : "scan";
+          ? "settings"
+          : location.pathname.includes("/ai-detection/scans/")
+            ? "history"
+            : "scan";
 
       const handleAIDetectionTabChange = (newTab: string) => {
         if (newTab === "scan") {
@@ -121,6 +128,8 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
         <Sidebar
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
+          onDismissDemoDataButton={onDismissDemoDataButton}
+          showDemoDataButton={showDemoDataButton}
           hasDemoData={hasDemoData}
           isAdmin={isAdmin}
         />

@@ -136,7 +136,6 @@ const PageTour: React.FC<IPageTourProps> = ({
               spread: 12,
             },
           },
-          disableAnimation: false,
         }}
       />
     </>

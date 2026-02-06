@@ -12,7 +12,7 @@ import {
 import Alert from "../../components/Alert";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import NewExperimentModal from "./NewExperimentModal";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import { useNavigate } from "react-router-dom";
 import EvaluationTable from "../../components/Table/EvaluationTable";
 import PerformanceChart from "./components/PerformanceChart";
@@ -172,8 +172,8 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
           // Auto-dismiss success alerts after 5 seconds
           setTimeout(() => setAlert(null), 5000);
         } else {
-          // Error alerts persist until user dismisses them
           setAlert({ variant: "error", body: `Experiment "${exp.name}" failed. Check logs for details.` });
+          setTimeout(() => setAlert(null), 20000);
         }
       });
     }
@@ -191,18 +191,18 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         // Get prompt count from config or results
         const sampleCount = exp.results?.total_prompts || 
                            exp.config?.dataset?.count || 
-                           exp.config?.dataset?.prompts?.length || 
-                           0;
-        
+                                    exp.config?.dataset?.prompts?.length || 
+                                    0;
+          
         // Use pre-computed avg_scores from results (computed when experiment completes)
         // This eliminates N individual log requests!
         const avgMetrics = exp.results?.avg_scores || {};
 
-        return {
-          ...exp,
-          avgMetrics,
+            return {
+              ...exp,
+              avgMetrics,
           sampleCount,
-        };
+            };
       });
 
       setExperiments(experimentsWithMetrics);
@@ -248,7 +248,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       };
 
       setAlert({ variant: "success", body: "Starting new evaluation run..." });
-
+      
       const response = await createExperiment(payload);
 
       if (response?.experiment?.id) {
@@ -259,14 +259,14 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
           status: "running",
           created_at: new Date().toISOString(),
         });
-
+        
         setAlert({ variant: "success", body: `Rerun started: ${nextName}` });
         setTimeout(() => setAlert(null), 3000);
       }
     } catch (err) {
       console.error("Failed to rerun experiment:", err);
       setAlert({ variant: "error", body: "Failed to start rerun" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 
@@ -275,7 +275,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     const originalExp = experiments.find((e) => e.id === row.id);
     if (!originalExp) {
       setAlert({ variant: "error", body: "Could not find experiment to rerun" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
       return;
     }
 
@@ -324,7 +324,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       loadExperiments();
     } catch {
       setAlert({ variant: "error", body: "Failed to delete" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 
@@ -344,7 +344,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       setTimeout(() => setAlert(null), 3000);
     } catch {
       setAlert({ variant: "error", body: "Failed to download results" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 
@@ -356,7 +356,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       setTimeout(() => setAlert(null), 3000);
     } catch {
       setAlert({ variant: "error", body: "Failed to copy results" });
-      // Error alerts persist until user dismisses them
+      setTimeout(() => setAlert(null), 20000);
     }
   };
 

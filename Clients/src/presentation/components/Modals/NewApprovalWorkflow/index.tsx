@@ -4,7 +4,7 @@ import StandardModal from "../StandardModal";
 import Field from "../../Inputs/Field";
 import { fieldStyle } from "../../Reporting/GenerateReport/GenerateReportFrom/styles";
 import SelectComponent from "../../Inputs/Select";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-dark_grey.svg";
 import { ChevronDown } from "lucide-react";
 import {
@@ -275,13 +275,16 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                                     setWorkflowSteps(newSteps);
                                                 }}
                                                 getOptionLabel={(user) => `${user.name}${user.surname ? ` ${user.surname}` : ""}`}
-                                                renderOption={(props, option) => (
-                                                    <Box component="li" {...props}>
-                                                        <Typography sx={{ fontSize: "13px", color: "#1c2130" }}>
-                                                            {option.name}{option.surname ? ` ${option.surname}` : ""}
-                                                        </Typography>
-                                                    </Box>
-                                                )}
+                                                renderOption={(props, option) => {
+                                                    const { key, ...otherProps } = props;
+                                                    return (
+                                                        <Box component="li" key={key} {...otherProps}>
+                                                            <Typography sx={{ fontSize: "13px", color: "#1c2130" }}>
+                                                                {option.name}{option.surname ? ` ${option.surname}` : ""}
+                                                            </Typography>
+                                                        </Box>
+                                                    );
+                                                }}
                                                 filterSelectedOptions
                                                 noOptionsText={
                                                     (step.approver_ids || []).length === users.length

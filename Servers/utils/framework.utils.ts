@@ -86,9 +86,19 @@ const canRemoveFrameworkFromProjectQuery = async (
     return false; // Framework not found in the project
   }
 
+  // Count both system frameworks and custom frameworks (from plugin if installed) for the project
+  // A framework can only be removed if total count > 1
+  // Use safe query that handles missing plugin table
   const [[{ can_remove }]] = (await sequelize.query(
-    `SELECT (SELECT COUNT(*) FROM "${tenant}".projects_frameworks WHERE project_id = :projectId) > 1 AND EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS can_remove;`,
-    { replacements: { projectId, frameworkId }, transaction }
+    `SELECT (
+      (SELECT COUNT(*) FROM "${tenant}".projects_frameworks WHERE project_id = :projectId) +
+      CASE
+        WHEN EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = :tenant AND table_name = 'custom_framework_projects')
+        THEN (SELECT COUNT(*) FROM "${tenant}".custom_framework_projects WHERE project_id = :projectId)
+        ELSE 0
+      END
+    ) > 1 AND EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS can_remove;`,
+    { replacements: { projectId, frameworkId, tenant }, transaction }
   )) as [[{ can_remove: boolean }], number];
   return can_remove;
 };
@@ -165,6 +175,19 @@ const deleteFrameworkEvidenceFiles = async (
   tenant: string,
   transaction: Transaction
 ): Promise<void> => {
+  // First clean up any virtual folder mappings for these files
+  await sequelize.query(
+    `DELETE FROM "${tenant}".file_folder_mappings
+     WHERE file_id IN (
+       SELECT id FROM "${tenant}".files
+       WHERE project_id = :project_id AND source IN (:source)
+     )`,
+    {
+      replacements: { project_id: projectId, source },
+      transaction,
+    }
+  );
+
   await sequelize.query(
     `DELETE FROM "${tenant}".files WHERE project_id = :project_id AND source IN (:source)`,
     {

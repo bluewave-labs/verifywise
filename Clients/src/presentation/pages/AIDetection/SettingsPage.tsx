@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import TabBar from "../../components/TabBar";
 import Field from "../../components/Inputs/Field";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
 import {
   getGitHubTokenStatus,

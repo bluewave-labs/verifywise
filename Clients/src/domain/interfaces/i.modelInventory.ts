@@ -46,7 +46,7 @@ export interface ModelInventorySummary {
 
 export interface MLFlowModel {
   id: string;
-  name: string;
+  model_name: string;
   version: string;
   lifecycle_stage: string;
   creation_timestamp: number;
@@ -58,11 +58,9 @@ export interface MLFlowModel {
   tags?: Record<string, string>;
   metrics?: Record<string, number>;
   parameters?: Record<string, string>;
-  experiment_info?: {
-    experiment_id: string;
-    experiment_name: string;
-    artifact_location: string;
-  };
+  experiment_id?: string;
+  experiment_name?: string;
+  artifact_location?: string;
 }
 
 export interface ModelInventoryTableProps {
@@ -91,4 +89,6 @@ export interface ModelRisksTableProps {
 
 export interface ModelRiskSummaryProps {
   modelRisks: IModelRisk[];
+  onCardClick?: (riskLevelKey: string) => void;
+  selectedRiskLevel?: string | null;
 }

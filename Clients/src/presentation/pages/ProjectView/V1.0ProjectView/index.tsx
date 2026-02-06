@@ -18,11 +18,12 @@ import ProjectFrameworks from "../ProjectFrameworks";
 import CustomizableToast from "../../../components/Toast";
 import CEMarking from "../CEMarking";
 import Activity from "../Activity";
+import PostMarketMonitoring from "../PostMarketMonitoring";
 import allowedRoles from "../../../../application/constants/permissions";
-import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { IBreadcrumbItem } from "../../../types/interfaces/i.breadcrumbs";
-import { getRouteIcon } from "../../../components/Breadcrumbs/routeMapping";
+import { BreadcrumbItem } from "../../../types/interfaces/i.breadcrumbs";
+import { getRouteIcon } from "../../../components/breadcrumbs/routeMapping";
 import { FileText as FileTextIcon } from "lucide-react";
 import TabBar from "../../../components/TabBar";
 import { getAllProjectRisksByProjectId } from "../../../../application/repository/projectRisk.repository";
@@ -51,8 +52,8 @@ const VWProjectView = () => {
   const [isLoadingModels, setIsLoadingModels] = useState(false);
 
   // Create custom breadcrumb items
-  const breadcrumbItems: IBreadcrumbItem[] = useMemo(() => {
-    const items: IBreadcrumbItem[] = [
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    const items: BreadcrumbItem[] = [
       {
         label: "Dashboard",
         path: "/",
@@ -234,6 +235,12 @@ const VWProjectView = () => {
                 disabled: isApprovalBlocked,
               },
               {
+                label: "Monitoring",
+                value: "monitoring",
+                icon: "ClipboardCheck",
+                disabled: isApprovalBlocked,
+              },
+              {
                 label: "Settings",
                 value: "settings",
                 icon: "Settings",
@@ -330,6 +337,17 @@ const VWProjectView = () => {
           <TabPanel value="activity" sx={tabPanelStyle}>
             {project ? (
               <Activity entityType="use_case" entityId={parseInt(projectId)} />
+            ) : (
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
+            )}
+          </TabPanel>
+          <TabPanel value="monitoring" sx={tabPanelStyle}>
+            {project ? (
+              <PostMarketMonitoring />
             ) : (
               <CustomizableSkeleton
                 variant="rectangular"

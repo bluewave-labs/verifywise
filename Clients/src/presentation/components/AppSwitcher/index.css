@@ -1,11 +1,24 @@
+/* AppSwitcher styles with CSS custom properties for theming */
+:root {
+  --app-switcher-bg-start: #232340;
+  --app-switcher-bg-end: #1e1e36;
+  --app-switcher-border: #33334d;
+  --app-switcher-icon-color: rgba(255, 255, 255, 0.6);
+  --app-switcher-icon-hover-color: rgba(255, 255, 255, 0.9);
+  --app-switcher-icon-hover-bg: rgba(255, 255, 255, 0.1);
+  --app-switcher-active-bg: #13715B;
+  --app-switcher-active-color: #ffffff;
+  --app-switcher-disabled-opacity: 0.4;
+}
+
 .app-switcher {
   width: 40px;
   min-width: 40px;
   max-width: 40px;
   flex-shrink: 0;
   height: 100vh;
-  background: linear-gradient(180deg, #232340 0%, #1e1e36 100%);
-  border-right: 1px solid #33334d;
+  background: linear-gradient(180deg, var(--app-switcher-bg-start) 0%, var(--app-switcher-bg-end) 100%);
+  border-right: 1px solid var(--app-switcher-border);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -38,29 +51,34 @@
 }
 
 .app-switcher-icon svg {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--app-switcher-icon-color);
   transition: color 0.2s ease;
 }
 
 .app-switcher-icon:hover:not(.disabled) {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--app-switcher-icon-hover-bg);
 }
 
 .app-switcher-icon:hover:not(.disabled) svg {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--app-switcher-icon-hover-color);
+}
+
+.app-switcher-icon:focus-visible {
+  outline: 2px solid var(--app-switcher-active-bg);
+  outline-offset: 2px;
 }
 
 .app-switcher-icon.active {
-  background-color: #13715B;
+  background-color: var(--app-switcher-active-bg);
 }
 
 .app-switcher-icon.active svg {
-  color: #ffffff;
+  color: var(--app-switcher-active-color);
 }
 
 .app-switcher-icon.disabled {
   cursor: not-allowed;
-  opacity: 0.4;
+  opacity: var(--app-switcher-disabled-opacity);
 }
 
 .app-switcher-icon.disabled svg {

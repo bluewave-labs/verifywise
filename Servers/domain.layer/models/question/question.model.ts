@@ -16,6 +16,8 @@ import { IQuestion } from "../../interfaces/I.question";
 
 @Table({
   tableName: "questions",
+  timestamps: true,
+  underscored: true,
 })
 export class QuestionModel extends Model<QuestionModel> implements IQuestion {
   @Column({
@@ -101,8 +103,15 @@ export class QuestionModel extends Model<QuestionModel> implements IQuestion {
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   @Column({
     type: DataType.ENUM("Not started", "In progress", "Done"),
@@ -507,6 +516,7 @@ export class QuestionModel extends Model<QuestionModel> implements IQuestion {
       subtopic_id: this.subtopic_id,
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
+      updated_at: this.updated_at?.toISOString(),
       status: this.status,
       progressPercentage: this.getProgressPercentage(),
     };

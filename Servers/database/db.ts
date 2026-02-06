@@ -68,7 +68,6 @@ import { AutomationActionModel } from "../domain.layer/models/automationAction/a
 import { AutomationTriggerModel } from "../domain.layer/models/automationTrigger/automationTrigger.model";
 import { AutomationTriggerActionModel } from "../domain.layer/models/automationTriggerAction/automationTriggerAction.model";
 import { AIIncidentManagementModel } from "../domain.layer/models/incidentManagement/incidemtManagement.model";
-import { MLFlowIntegrationModel } from "../domain.layer/models/mlflowIntegration/mlflowIntegration.model";
 import { MLFlowModelRecordModel } from "../domain.layer/models/mlflowModelRecord/mlflowModelRecord.model";
 import { AutomationExecutionLogModel } from "../domain.layer/models/automationExecutionLog/automationExecutionLog.model";
 import { ModelInventoryHistoryModel } from "../domain.layer/models/modelInventoryHistory/modelInventoryHistory.model";
@@ -92,6 +91,7 @@ import { ApprovalRequestStepApprovalModel } from "../domain.layer/models/approva
 import { ApprovalStepApproversModel } from "../domain.layer/models/approvalWorkflow/approvalStepApprovers.model";
 import { ApprovalWorkflowModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflow.model";
 import { ApprovalWorkflowStepModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflowStep.model";
+import { DatasetModel } from "../domain.layer/models/dataset/dataset.model";
 
 dotenv.config();
 
@@ -170,7 +170,6 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     AutomationTriggerActionModel,
     AIIncidentManagementModel,
     EvidenceHubModel,
-    MLFlowIntegrationModel,
     MLFlowModelRecordModel,
     AutomationExecutionLogModel,
     ModelInventoryHistoryModel,
@@ -192,7 +191,8 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     ApprovalRequestStepApprovalModel,
     ApprovalStepApproversModel,
     ApprovalWorkflowModel,
-    ApprovalWorkflowStepModel
+    ApprovalWorkflowStepModel,
+    DatasetModel,
   ],
 }) as Sequelize;
 

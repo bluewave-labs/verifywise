@@ -67,6 +67,10 @@ const allowedRoles = {
     deleteDataset: ["Admin", "Editor"],
     manageApiKeys: ["Admin"],
   },
+  postMarketMonitoring: {
+    view: ["Admin", "Editor", "Auditor"],
+    edit: ["Admin", "Editor"],
+  },
 };
 
 export default allowedRoles;

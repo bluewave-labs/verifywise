@@ -24,7 +24,7 @@ import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import { Save as SaveIcon, Trash2 as DeleteIcon } from "lucide-react";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../components/Toast";
@@ -148,7 +148,7 @@ const ProfileForm: React.FC = () => {
         actualUserData?.surname || "",
         actualUserData?.email || ""
       );
-    } catch (error) {
+    } catch (_error) {
       logEngine({
         type: "error",
         message: "Failed to fetch user data.",
@@ -484,7 +484,7 @@ const ProfileForm: React.FC = () => {
         } else {
           showAlert("error", "Error", "Failed to upload profile photo");
         }
-      } catch (error) {
+      } catch (_error) {
         showAlert("error", "Error", "Failed to upload profile photo.");
       } finally {
         setImageUploading(false);
@@ -544,7 +544,7 @@ const ProfileForm: React.FC = () => {
           "Failed to remove profile photo. Please try again."
         );
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert(
         "error",
         "Remove Failed",

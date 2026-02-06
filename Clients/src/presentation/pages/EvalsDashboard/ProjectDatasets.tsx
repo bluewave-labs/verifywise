@@ -15,15 +15,12 @@ import {
   Button,
   useTheme,
   IconButton,
-  Popover,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
+  Menu,
+  MenuItem,
 } from "@mui/material";
-import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check, MessageSquare, GitBranch } from "lucide-react";
-import CustomizableButton from "../../components/Button/CustomizableButton";
-import ButtonToggle from "../../components/ButtonToggle";
+import { Upload, Download, X, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check, MessageSquare, GitBranch } from "lucide-react";
+import { CustomizableButton } from "../../components/button/customizable-button";
+import { ButtonToggle } from "../../components/button-toggle";
 import {
   listMyDatasets,
   listDatasets,
@@ -1630,75 +1627,33 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
         </Box>
       )}
 
-      {/* Action menu popover */}
-      <Popover
-        open={Boolean(actionAnchor)}
+      {/* Action menu */}
+      <Menu
         anchorEl={actionAnchor}
+        open={Boolean(actionAnchor)}
         onClose={handleActionMenuClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
         slotProps={{
           paper: {
-            sx: {
-              borderRadius: "4px",
-              border: "1px solid #d0d5dd",
-              boxShadow: "0px 4px 6px -2px rgba(16, 24, 40, 0.03), 0px 12px 16px -4px rgba(16, 24, 40, 0.08)",
-              minWidth: "160px",
-            },
+            sx: singleTheme.dropDownStyles.primary,
           },
         }}
       >
-        <List disablePadding>
-          <ListItemButton
-            onClick={() => actionDataset && handleViewPrompts(actionDataset)}
-            sx={{ py: 1, px: 2 }}
-          >
-            <ListItemIcon sx={{ minWidth: 28 }}>
-              <Eye size={16} color="#374151" />
-            </ListItemIcon>
-            <ListItemText
-              primary="View prompts"
-              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
-            />
-          </ListItemButton>
-          <ListItemButton
-            onClick={() => actionDataset && handleOpenInEditor(actionDataset)}
-            sx={{ py: 1, px: 2 }}
-          >
-            <ListItemIcon sx={{ minWidth: 28 }}>
-              <Edit3 size={16} color="#374151" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Open in editor"
-              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
-            />
-          </ListItemButton>
-          <ListItemButton
-            onClick={() => actionDataset && handleDownloadDataset(actionDataset)}
-            sx={{ py: 1, px: 2 }}
-          >
-            <ListItemIcon sx={{ minWidth: 28 }}>
-              <Download size={16} color="#374151" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Download JSON"
-              primaryTypographyProps={{ fontSize: "13px", color: "#374151" }}
-            />
-          </ListItemButton>
-          <ListItemButton
-            onClick={() => actionDataset && handleRemoveDataset(actionDataset)}
-            sx={{ py: 1, px: 2 }}
-          >
-            <ListItemIcon sx={{ minWidth: 28 }}>
-              <Trash2 size={16} color="#DC2626" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Remove dataset"
-              primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }}
-            />
-          </ListItemButton>
-        </List>
-      </Popover>
+        <MenuItem onClick={() => actionDataset && handleViewPrompts(actionDataset)}>
+          View prompts
+        </MenuItem>
+        <MenuItem onClick={() => actionDataset && handleOpenInEditor(actionDataset)}>
+          Open in editor
+        </MenuItem>
+        <MenuItem onClick={() => actionDataset && handleDownloadDataset(actionDataset)}>
+          Download
+        </MenuItem>
+        <MenuItem
+          onClick={() => actionDataset && handleRemoveDataset(actionDataset)}
+          sx={{ color: "#d32f2f" }}
+        >
+          Remove
+        </MenuItem>
+      </Menu>
 
       {/* Delete confirmation modal */}
       <ConfirmationModal

@@ -7,6 +7,7 @@ import { VendorRisk } from "../../../domain/types/VendorRisk";
 import { ITask } from "../../../domain/interfaces/i.task";
 import { IUser } from "../../../domain/interfaces/i.user";
 import { EventModel } from "../../../domain/models/Common/evenTracker/eventTracker.model";
+import { CustomSelectOptionWithIcon } from "../../../domain/types/widget.types";
 
 export interface IAITrustCenterTableColumn {
   id: string;
@@ -120,14 +121,19 @@ export interface IFileBasicTableProps {
   table: string;
   onFileDeleted?: () => void | Promise<void>;
   hidePagination?: boolean;
+  onAssignToFolder?: (fileId: number) => void;
+  onPreview?: (fileId: number | string) => void;
+  onEditMetadata?: (fileId: number | string) => void;
 }
 
 export interface IFileTableProps {
   cols: any[];
-
   files: FileModel[];
   onFileDeleted?: () => void | Promise<void>;
   hidePagination?: boolean;
+  onAssignToFolder?: (fileId: number) => void;
+  onPreview?: (fileId: number | string) => void;
+  onEditMetadata?: (fileId: number | string) => void;
 }
 
 export interface IProjectRiskTableBodyProps {
@@ -226,6 +232,9 @@ export interface ITasksTableProps {
   // Task archive/restore/hard delete props
   onRestore?: (taskId: number) => void;
   onHardDelete?: (taskId: number) => void;
+  // Priority change props
+  onPriorityChange: (taskId: number) => (newPriority: string) => Promise<boolean>;
+  priorityOptions: Array<string | CustomSelectOptionWithIcon>;
 }
 
 export interface ITableWithPlaceholderProps {

@@ -28,7 +28,7 @@ interface ChangeOrganizationNameModalProps {
   isOpen: boolean;
 
   /** Callback function called when modal should close */
-  onClose: () => void;
+  onClose?: () => void;
 
   /** Current organization name (auto-generated) */
   currentOrgName: string;
@@ -42,7 +42,6 @@ interface ChangeOrganizationNameModalProps {
 
 const ChangeOrganizationNameModal: React.FC<ChangeOrganizationNameModalProps> = ({
   isOpen,
-  onClose,
   currentOrgName: _currentOrgName, // Kept for API compatibility but not used - field starts empty
   organizationId,
   onSuccess,
@@ -89,7 +88,7 @@ const ChangeOrganizationNameModal: React.FC<ChangeOrganizationNameModalProps> = 
       setTimeout(() => {
         setAlert(null);
         onSuccess?.();
-        onClose();
+        // onClose();
       }, 1500);
     } catch (err) {
       logEngine({
@@ -109,10 +108,6 @@ const ChangeOrganizationNameModal: React.FC<ChangeOrganizationNameModalProps> = 
     }
   };
 
-  const handleSkip = () => {
-    onClose();
-  };
-
   return (
     <>
       {alert && (
@@ -128,12 +123,12 @@ const ChangeOrganizationNameModal: React.FC<ChangeOrganizationNameModalProps> = 
       )}
       <StandardModal
         isOpen={isOpen}
-        onClose={handleSkip}
+        onClose={() => {}}
         title="Name your organization"
         description="Enter a name for your organization to get started."
         onSubmit={handleSave}
         submitButtonText="Save"
-        cancelButtonText="Skip for now"
+        showCancelButton={false}
         isSubmitting={isSubmitting || !organizationName.trim()}
         maxWidth="600px"
       >

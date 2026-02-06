@@ -11,7 +11,7 @@ import {
 import { Pencil, Trash2, MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ScorerRow } from "./index";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 
 interface ScorersTableBodyProps {
   rows: ScorerRow[];
@@ -25,11 +25,11 @@ interface ScorersTableBodyProps {
 const formatDate = (dateStr?: string | null): string => {
   if (!dateStr) return "-";
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }) + ", " + date.toLocaleTimeString("en-US", {
+  }) + ", " + date.toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
   });

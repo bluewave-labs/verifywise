@@ -34,7 +34,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import { Save as SaveIcon, Trash2 as DeleteIcon } from "lucide-react";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
@@ -460,7 +460,7 @@ const ProjectSettings = React.memo(
                     });
                     return;
                   }
-                } catch (error) {
+                } catch (_error) {
                   logEngine({
                     type: "error",
                     message: "An error occurred while adding the framework.",
@@ -552,7 +552,7 @@ const ProjectSettings = React.memo(
             visible: true,
           });
         }
-      } catch (error) {
+      } catch (_error) {
         logEngine({
           type: "error",
           message: "An error occurred while removing the framework.",
@@ -793,7 +793,7 @@ const ProjectSettings = React.memo(
             setAlert(null);
           }, 3000);
         }
-      } catch (error) {
+      } catch (_error) {
         logEngine({
           type: "error",
           message: "An error occured while deleting the project.",

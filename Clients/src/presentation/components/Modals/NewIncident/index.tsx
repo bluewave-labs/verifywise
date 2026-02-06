@@ -16,7 +16,7 @@ import {
 import Toggle from "../../Inputs/Toggle";
 import Checkbox from "../../Inputs/Checkbox";
 import dayjs, { Dayjs } from "dayjs";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { History as HistoryIcon } from "lucide-react";
@@ -224,7 +224,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
         };
 
     const handleDateChange =
-        (prop: "occurred_date" | "detected_date" | "approval_date") =>
+        (prop: "occurred_date" | "date_detected" | "approval_date") =>
         (newDate: Dayjs | null) => {
             if (newDate?.isValid()) {
                 setValues((prev) => ({
@@ -497,7 +497,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                             label="Detected date"
                                             date={dayjs(values.date_detected)}
                                             handleDateChange={handleDateChange(
-                                                "detected_date"
+                                                "date_detected"
                                             )}
                                             isRequired
                                             error={errors.date_detected}

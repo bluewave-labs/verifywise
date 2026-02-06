@@ -70,6 +70,7 @@ const RisksView = ({
     }).length;
 
     return {
+      total: veryHighRisks + highRisks + mediumRisks + lowRisks + veryLowRisks,
       veryHighRisks,
       highRisks,
       mediumRisks,

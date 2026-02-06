@@ -1,6 +1,6 @@
 import { Stack } from "@mui/material";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { useState, useEffect } from "react";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
+import { useState } from "react";
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
 import WatchTowerEvents from "./Events";
@@ -19,14 +19,12 @@ const WatchTower = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  //tab from URL
+  //tab from URL - derive directly from URL state
   const isLogsPage = location.pathname.includes("/logs");
-  const [value, setValue] = useState(isLogsPage ? "2" : "1");
+  const tabValue = isLogsPage ? "2" : "1";
 
-  // Keep state in sync with URL
-  useEffect(() => {
-    setValue(isLogsPage ? "2" : "1");
-  }, [isLogsPage, location.pathname]);
+  // Keep local state only for controlled component behavior during navigation
+  const [, setValue] = useState(tabValue);
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -54,7 +52,7 @@ const WatchTower = () => {
              />
         <TipBox entityName="event-tracker" />
 
-        <TabContext value={value}>
+        <TabContext value={tabValue}>
           <TabBar
             tabs={[
               {
@@ -68,7 +66,7 @@ const WatchTower = () => {
                 icon: "FileText",
               },
             ]}
-            activeTab={value}
+            activeTab={tabValue}
             onChange={handleChange}
           />
 

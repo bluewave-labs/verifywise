@@ -77,7 +77,7 @@ export async function getAllIncidents(req: Request, res: Response) {
  * Get incident by ID
  */
 export async function getIncidentById(req: Request, res: Response) {
-  const incidentId = parseInt(req.params.id);
+  const incidentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   const idValidation = validateIncidentIdParam(incidentId);
   if (!idValidation.isValid) {
@@ -233,7 +233,7 @@ export async function createNewIncident(req: Request, res: Response) {
  * Update incident by ID
  */
 export async function updateIncidentById(req: Request, res: Response) {
-  const incidentId = parseInt(req.params.id);
+  const incidentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   const idValidation = validateIncidentIdParam(incidentId);
   if (!idValidation.isValid) {
@@ -263,20 +263,21 @@ export async function updateIncidentById(req: Request, res: Response) {
     existingIncident
   );
   if (validationErrors.length > 0) {
+    const errorDetails = validationErrors.map((err: ValidationError) => ({
+      field: err.field,
+      message: err.message,
+      code: err.code,
+    }));
     logStructured(
       "error",
-      `Incident update validation failed for ID ${incidentId}`,
+      `Incident update validation failed for ID ${incidentId}: ${JSON.stringify(errorDetails)}`,
       "updateIncidentById",
       "incidentManagement.controller.ts"
     );
     return res.status(400).json({
       status: "error",
       message: "Incident update validation failed",
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code,
-      })),
+      errors: errorDetails,
     });
   }
 
@@ -348,7 +349,7 @@ export async function updateIncidentById(req: Request, res: Response) {
  * Delete incident by ID
  */
 export async function deleteIncidentById(req: Request, res: Response) {
-  const incidentId = parseInt(req.params.id);
+  const incidentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   const idValidation = validateIncidentIdParam(incidentId);
   if (!idValidation.isValid) {
@@ -410,7 +411,7 @@ export async function deleteIncidentById(req: Request, res: Response) {
  * Archive incident by ID
  */
 export async function archiveIncidentById(req: Request, res: Response) {
-  const incidentId = parseInt(req.params.id);
+  const incidentId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   const idValidation = validateIncidentIdParam(incidentId);
   if (!idValidation.isValid) {

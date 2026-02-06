@@ -192,7 +192,8 @@ export async function getAnnotationByEntity(
   });
 
   try {
-    const { entityType, entityId } = req.params;
+    const entityType = Array.isArray(req.params.entityType) ? req.params.entityType[0] : req.params.entityType;
+    const entityId = Array.isArray(req.params.entityId) ? req.params.entityId[0] : req.params.entityId;
     const userId = req.userId!;
     const tenantId = req.tenantId!;
 
@@ -245,7 +246,7 @@ export async function getAnnotationByEntity(
  * @returns {Promise<any>} JSON response with success message or error
  */
 export async function deleteAnnotation(req: Request, res: Response): Promise<any> {
-  const annotationId = parseInt(req.params.id, 10);
+  const annotationId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const userId = req.userId!;
   const tenantId = req.tenantId!;
 
@@ -335,8 +336,8 @@ export async function deleteAnnotationByEntity(
 
     await EntityGraphAnnotationsService.deleteAnnotationByEntity(
       userId,
-      entityType,
-      entityId,
+      Array.isArray(entityType) ? entityType[0] : entityType,
+      Array.isArray(entityId) ? entityId[0] : entityId,
       tenantId
     );
 

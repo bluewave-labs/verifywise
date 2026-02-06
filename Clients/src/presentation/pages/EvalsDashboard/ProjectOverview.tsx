@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { Play, Beaker, Activity, CheckCircle, Clock, Star, Coins, LucideIcon } from "lucide-react";
 import { cardStyles } from "../../themes";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import EvaluationTable from "../../components/Table/EvaluationTable";
 import type { IEvaluationRow } from "../../types/interfaces/i.table";
 import {

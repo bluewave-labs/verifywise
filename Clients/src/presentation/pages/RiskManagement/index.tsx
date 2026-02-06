@@ -1,8 +1,8 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { Box, Stack, Popover, Typography, IconButton, Tooltip } from "@mui/material";
+import { Box, Stack, Popover, Typography, IconButton, Tooltip, Fade } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import { BarChart3, ChevronDown, History as HistoryIcon } from "lucide-react"
 import ibmLogo from "../../assets/ibm_logo.svg";
 import mitLogo from "../../assets/mit_logo.svg";
@@ -21,7 +21,7 @@ import AddNewRiskIBMModal from "../../components/AddNewRiskIBMForm";
 import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 import useUsers from "../../../application/hooks/useUsers";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
 import HelperIcon from "../../components/HelperIcon";
@@ -32,11 +32,15 @@ import AnalyticsDrawer from "../../components/AnalyticsDrawer";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
-import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { FilterBy, FilterColumn, FilterCondition } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import HistorySidebar from "../../components/Common/HistorySidebar";
 import { useEntityChangeHistory } from "../../../application/hooks/useEntityChangeHistory";
+import { PluginSlot } from "../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
+import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
+import { apiServices } from "../../../infrastructure/api/networkServices";
 
 /**
  * Set initial loading status for all CRUD process
@@ -67,6 +71,7 @@ const RiskManagement = () => {
     title?: string;
     body: string;
   } | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] =
     useState<LoadingStatus>(initialLoadingState);
@@ -99,6 +104,7 @@ const RiskManagement = () => {
 
   // Modal state for StandardModal pattern
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isAiRiskModalOpen, setIsAiRiskModalOpen] = useState(false);
   const [isSubmitting] = useState(false);
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
@@ -107,8 +113,15 @@ const RiskManagement = () => {
   const onSubmitRef = useRef<(() => void) | null>(null);
   const onAiRiskSubmitRef = useRef<(() => void) | null>(null);
 
+  // Check if risk-import plugin is installed via plugin registry
+  const { getComponentsForSlot } = usePluginRegistry();
+  const hasRiskImportPlugin = getComponentsForSlot(PLUGIN_SLOTS.RISKS_ACTIONS).length > 0;
+
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // Selected risk level for card filtering
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState<string | null>(null);
 
   // Prefetch history data when modal opens in edit mode
   useEntityChangeHistory(
@@ -228,23 +241,97 @@ const RiskManagement = () => {
     }
   }, []);
 
-  const { filterData, handleFilterChange: handleFilterByChange } = useFilterBy<RiskModel>(getRiskFieldValue);
+  const { filterData, handleFilterChange: handleFilterByChangeBase } = useFilterBy<RiskModel>(getRiskFieldValue);
+
+  // Wrapper to sync selected risk level card with filter conditions
+  const handleFilterByChange = useCallback(
+    (conditions: FilterCondition[], logic: "and" | "or") => {
+      // Sync selected risk level card with filter conditions
+      const riskLevelCondition = conditions.find(
+        (c) => c.columnId === "risk_level"
+      );
+      if (
+        riskLevelCondition &&
+        riskLevelCondition.operator === "is" &&
+        riskLevelCondition.value
+      ) {
+        setSelectedRiskLevel(riskLevelCondition.value);
+      } else {
+        setSelectedRiskLevel(null);
+      }
+
+      // Pass to base handler for client-side filtering
+      handleFilterByChangeBase(conditions, logic);
+    },
+    [handleFilterByChangeBase]
+  );
+
+  // Handle risk card click to filter risks by risk level
+  const handleRiskCardClick = useCallback((riskLevel: string) => {
+    if (!riskLevel || riskLevel === 'Total') {
+      setSelectedRiskLevel(null);
+      setAlert(null);
+      setShowAlert(false);
+    } else {
+      setSelectedRiskLevel(riskLevel);
+      setAlert({
+        variant: 'info',
+        title: `Filtering by ${riskLevel} risk level`,
+        body: 'Click the card again or click Total to see all risks.',
+      });
+    }
+  }, []);
+
+  // Auto-dismiss info alert after 3 seconds with fade animation
+  useEffect(() => {
+    if (alert && alert.variant === 'info') {
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [alert]);
 
   // Apply FilterBy and search filters
   const filteredRisks = useMemo(() => {
     // First apply FilterBy conditions
-    const filterByResults = filterData(projectRisks);
+    let filtered = filterData(projectRisks);
+
+    // Apply card filter for risk level (using same matching logic as summary at lines 298-318)
+    if (selectedRiskLevel) {
+      const levelLower = selectedRiskLevel.toLowerCase();
+      filtered = filtered.filter((risk) => {
+        const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+        switch (levelLower) {
+          case "very high":
+            return riskLevel.includes("very high");
+          case "high":
+            return riskLevel.includes("high") && !riskLevel.includes("very high");
+          case "medium":
+            return riskLevel.includes("medium");
+          case "low":
+            return riskLevel.includes("low") && !riskLevel.includes("very low");
+          case "very low":
+            return riskLevel.includes("very low") || riskLevel.includes("no risk");
+          default:
+            return true;
+        }
+      });
+    }
 
     // Then apply search term
     if (!searchTerm.trim()) {
-      return filterByResults;
+      return filtered;
     }
 
-    return filterByResults.filter((risk) =>
+    return filtered.filter((risk) =>
       risk.risk_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       risk.risk_description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [filterData, projectRisks, searchTerm]);
+  }, [filterData, projectRisks, selectedRiskLevel, searchTerm]);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -270,6 +357,7 @@ const RiskManagement = () => {
     }).length;
 
     return {
+      total: projectRisks.length,
       veryHighRisks,
       highRisks,
       mediumRisks,
@@ -596,20 +684,29 @@ const RiskManagement = () => {
 
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
-          <Box>
-            <Alert
-              variant={alert.variant}
-              title={alert.title}
-              body={alert.body}
-              isToast={true}
-              onClick={() => setAlert(null)}
-            />
-          </Box>
+          <Fade in={showAlert} timeout={300}>
+            <Box sx={{ position: 'fixed' }}>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body}
+                isToast={true}
+                onClick={() => {
+                  setShowAlert(false);
+                  setTimeout(() => setAlert(null), 300);
+                }}
+              />
+            </Box>
+          </Fade>
         </Suspense>
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
       <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }} data-joyride-id="risk-summary-cards">
-        <RisksCard risksSummary={risksSummary} />
+        <RisksCard
+          risksSummary={risksSummary}
+          onCardClick={handleRiskCardClick}
+          selectedLevel={selectedRiskLevel}
+        />
       </Stack>
 
       <Stack
@@ -792,7 +889,7 @@ const RiskManagement = () => {
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gridTemplateColumns: hasRiskImportPlugin ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
                       gap: 2,
                     }}
                   >
@@ -930,9 +1027,39 @@ const RiskManagement = () => {
                       Academic research-based risks covering AI safety, fairness, and societal impact
                     </Typography>
                   </Box>
+
+                  {/* Plugin Slot for Risk Import menu items */}
+                  <PluginSlot
+                    id={PLUGIN_SLOTS.RISKS_ACTIONS}
+                    renderType="menuitem"
+                    slotProps={{
+                      onMenuClose: handleInsertFromMenuClose,
+                      onImportComplete: () => setRefreshKey((prev) => prev + 1),
+                      onTriggerModal: (modalName: string) => {
+                        if (modalName === "RiskImportModal") {
+                          setIsImportModalOpen(true);
+                        }
+                      },
+                    }}
+                  />
                   </Box>
                 </Box>
               </Popover>
+
+              {/* Plugin modals rendered outside Popover so they persist when menu closes */}
+              <PluginSlot
+                id={PLUGIN_SLOTS.RISKS_ACTIONS}
+                renderType="modal"
+                slotProps={{
+                  open: isImportModalOpen,
+                  onClose: () => setIsImportModalOpen(false),
+                  onImportComplete: () => {
+                    setRefreshKey((prev) => prev + 1);
+                    setIsImportModalOpen(false);
+                  },
+                  apiServices,
+                }}
+              />
             </div>
           </Stack>
         </Stack>

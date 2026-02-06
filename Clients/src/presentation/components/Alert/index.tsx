@@ -8,7 +8,7 @@
  */
 
 import "./index.css";
-import React from "react";
+import React, { type JSX } from "react";
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -65,6 +65,9 @@ const Alert: React.FC<AlertProps> = ({
 
   return (
     <Stack
+      role="alert"
+      aria-live="polite"
+      aria-atomic="true"
       className="alert row-stack"
       direction={"row"}
       justifyContent={"flex-start"}
@@ -85,7 +88,7 @@ const Alert: React.FC<AlertProps> = ({
       }}
     >
       {hasIcon && (
-        <Box sx={{ color: text, maxHeight: "22.28px" }}> {icon} </Box>
+        <Box sx={{ color: text, maxHeight: "22.28px" }} aria-hidden="true"> {icon} </Box>
       )}
       <Stack direction={"column"} gap={"2px"} sx={{ flex: 1 }}>
         {title && (
@@ -97,6 +100,7 @@ const Alert: React.FC<AlertProps> = ({
         <IconButton
           disableRipple
           onClick={onClick}
+          aria-label="Close notification"
           sx={iconButtonStyles(hasIcon)}
         >
           <CloseButton text={text} />

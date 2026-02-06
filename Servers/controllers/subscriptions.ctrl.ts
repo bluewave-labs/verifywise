@@ -135,7 +135,7 @@ export async function updateSubscriptionController(
   req: Request,
   res: Response
 ) {
-  const subscriptionId = parseInt(req.params.id);
+  const subscriptionId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   // Get existing subscription for business rule validation
   try {
     await getSubscriptionById(subscriptionId);

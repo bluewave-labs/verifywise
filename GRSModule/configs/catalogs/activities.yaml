@@ -1,0 +1,16 @@
+version: activities_v0.1
+activities:
+  - activity_id: act_data_export_vendor
+    domain: privacy
+    description: "Export customer data to a third-party vendor"
+    verbs: ["export", "share", "send", "transfer"]
+
+  - activity_id: act_resume_screening
+    domain: hiring
+    description: "Screen resumes / shortlist candidates"
+    verbs: ["screen", "filter", "shortlist"]
+
+  - activity_id: act_loan_approval
+    domain: finance
+    description: "Approve or deny a loan application"
+    verbs: ["approve", "deny", "process"]

@@ -39,7 +39,7 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import TabBar from "../../TabBar";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { CustomizableButton } from "../../button/customizable-button";
 import Alert from "../../Alert";
 import StandardModal from "../../Modals/StandardModal";
 
@@ -1354,7 +1354,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
             onError={(error) => {
               handleAlert({
                 variant: "error",
-                body: error?.message || "Failed to update risk",
+                body: error || "Failed to update risk",
               });
             }}
             users={users}

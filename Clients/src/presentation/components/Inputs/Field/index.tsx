@@ -139,7 +139,7 @@ const Field = forwardRef(
           multiline={type === "description"}
           rows={type === "description" ? (rows || 4) : 1}
           value={value}
-          onInput={onInput}
+          onInput={onInput as React.FormEventHandler<HTMLDivElement>}
           onChange={onChange}
           onFocus={onFocus}
           onBlur={onBlur}

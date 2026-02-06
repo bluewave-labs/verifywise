@@ -1,0 +1,59 @@
+
+import React from "react";
+import { Stack, Box } from "@mui/material";
+import { PageBreadcrumbs } from "../breadcrumbs/PageBreadcrumbs";
+import HelperIcon from "../HelperIcon";
+import PageHeader from "./PageHeader";
+import TipBox from "../TipBox";
+import { pageHeaderTitleSectionStyle, pageHeaderSummaryCardsStyle } from "./style";
+import { PageHeaderExtendedProps } from "src/presentation/types/interfaces/i.header";
+
+const PageHeaderExtended: React.FC<PageHeaderExtendedProps> = ({
+    title,
+    description,
+    helpArticlePath,
+    tipBoxEntity,
+    summaryCards,
+    summaryCardsJoyrideId,
+    children,
+    alert,
+    loadingToast,
+}) => {
+    return (
+        <Stack className="vwhome" gap="16px">
+            <PageBreadcrumbs />
+
+            <Box sx={pageHeaderTitleSectionStyle}>
+                <PageHeader
+                    title={title}
+                    description={description}
+                    rightContent={
+                        helpArticlePath ? (
+                            <HelperIcon articlePath={helpArticlePath} size="small" />
+                        ) : undefined
+                    }
+                />
+            </Box>
+
+            <Stack gap="12px">
+                {tipBoxEntity && <TipBox entityName={tipBoxEntity} />}
+
+                {alert}
+                {loadingToast}
+
+                {summaryCards && (
+                    <Box
+                        data-joyride-id={summaryCardsJoyrideId}
+                        sx={pageHeaderSummaryCardsStyle}
+                    >
+                        {summaryCards}
+                    </Box>
+                )}
+
+                {children}
+            </Stack>
+        </Stack>
+    );
+};
+
+export default PageHeaderExtended;

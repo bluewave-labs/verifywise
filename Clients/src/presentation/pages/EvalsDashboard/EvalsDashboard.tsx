@@ -3,14 +3,14 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid } from "@mui/material";
 import { Check } from "lucide-react";
 import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound, Swords } from "lucide-react";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import { useEvalsSidebarContext } from "../../../application/contexts/EvalsSidebar.context";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
-import CustomizableButton from "../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import {
   getAllProjects,
   getProject,
@@ -35,6 +35,7 @@ import {
   type LLMApiKey,
 } from "../../../application/repository/deepEval.repository";
 import type { LLMProvider } from "../../../infrastructure/api/evaluationLlmApiKeysService";
+import { evalModelsService } from "../../../infrastructure/api/evalModelsService";
 import { Plus as PlusIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { Chip, Collapse, IconButton, CircularProgress } from "@mui/material";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
@@ -59,6 +60,7 @@ import ProjectOverview from "./ProjectOverview";
 import ProjectExperiments from "./ProjectExperiments";
 import { ProjectDatasets } from "./ProjectDatasets";
 import ProjectScorers from "./ProjectScorers";
+import ModelsPage from "./ModelsPage";
 import ExperimentDetailContent from "./ExperimentDetailContent";
 import ArenaPage from "./ArenaPage";
 import type { DeepEvalProject } from "./types";
@@ -134,7 +136,7 @@ function validateApiKeyFormat(provider: string, apiKey: string): string | null {
   }
 
   const trimmedKey = apiKey.trim();
-  
+
   if (!config.pattern.test(trimmedKey)) {
     return `Invalid format. ${config.description}`;
   }
@@ -209,6 +211,7 @@ export default function EvalsDashboard() {
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
   const [scorersCount, setScorersCount] = useState<number>(0);
+  const [modelsCount, setModelsCount] = useState<number>(0);
   const [arenaCount, setArenaCount] = useState<number>(0);
   // Skip initial loading state if we've loaded before AND we're on a specific project
   // If no projectId, we might redirect to last project, so keep loading to prevent flash
@@ -234,6 +237,7 @@ export default function EvalsDashboard() {
 
   // API key modal state
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [isEditingApiKey, setIsEditingApiKey] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [newApiKey, setNewApiKey] = useState("");
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
@@ -314,7 +318,7 @@ export default function EvalsDashboard() {
     if (projectId && currentProject) {
       addRecentProject({ id: currentProject.id, name: currentProject.name });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, currentProject?.id]);
 
   // Track experiment as recent when viewed
@@ -341,7 +345,7 @@ export default function EvalsDashboard() {
   useEffect(() => {
     const fixRecentExperimentNames = async () => {
       const needsUpdate: RecentExperiment[] = [];
-      
+
       for (const exp of recentExperiments) {
         // Check if name looks like an experiment ID (starts with "exp_")
         if (exp.name.startsWith("exp_")) {
@@ -359,7 +363,7 @@ export default function EvalsDashboard() {
           }
         }
       }
-      
+
       // Update the entries that need fixing
       if (needsUpdate.length > 0) {
         setRecentExperiments((prev) => {
@@ -372,12 +376,12 @@ export default function EvalsDashboard() {
         });
       }
     };
-    
+
     // Only run once on mount if there are experiments to check
     if (recentExperiments.some((exp) => exp.name.startsWith("exp_"))) {
       fixRecentExperimentNames();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount
 
   // Load LLM API keys when configuration tab is active
@@ -625,16 +629,16 @@ export default function EvalsDashboard() {
   // Handle saving configuration changes
   const handleSaveConfiguration = async () => {
     if (!projectId || !currentProject) return;
-    
+
     setSavingConfig(true);
     try {
       await updateProject(projectId, {
         useCase: currentProject.useCase,
       });
-      
+
       // Update the original use case to match the saved value
       setOriginalUseCase(currentProject.useCase || "chatbot");
-      
+
       setConfigAlert({
         variant: "success",
         body: "Configuration saved successfully",
@@ -675,6 +679,10 @@ export default function EvalsDashboard() {
         const scorersData = await listScorers({ org_id: orgId || undefined });
         setScorersCount(scorersData.scorers?.length || 0);
 
+        // Load saved models count
+        const modelsData = await evalModelsService.listModels();
+        setModelsCount(modelsData.length || 0);
+
         // Load arena battles count
         const arenaData = await listArenaComparisons();
         setArenaCount(arenaData.comparisons?.length || 0);
@@ -682,6 +690,7 @@ export default function EvalsDashboard() {
         console.error("Failed to load counts:", err);
         setDatasetsCount(0);
         setScorersCount(0);
+        setModelsCount(0);
         setArenaCount(0);
       }
     };
@@ -694,6 +703,7 @@ export default function EvalsDashboard() {
     sidebarContext.setExperimentsCount(experimentsCount);
     sidebarContext.setDatasetsCount(datasetsCount);
     sidebarContext.setScorersCount(scorersCount);
+    sidebarContext.setModelsCount(modelsCount);
     sidebarContext.setArenaCount(arenaCount);
     sidebarContext.setDisabled(!projectId && !currentProject);
     sidebarContext.setRecentExperiments(recentExperiments);
@@ -728,7 +738,7 @@ export default function EvalsDashboard() {
         navigate(`/evals/${newProjectId}#${tab}`);
       }
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [experimentsCount, datasetsCount, scorersCount, arenaCount, projectId, recentExperiments, recentProjects, currentProject, allProjects, tab, navigate, location.pathname]);
 
   // Note: Tab change is now handled via URL hash in ContextSidebar
@@ -820,7 +830,7 @@ export default function EvalsDashboard() {
           return;
         }
       }
-      
+
       const { org } = await getCurrentOrg();
       if (org) {
         setOrgId(org.id);
@@ -893,7 +903,7 @@ export default function EvalsDashboard() {
       // Reload projects
       const data = await getAllProjects();
       setAllProjects(data.projects);
-      
+
       // Navigate to the newly created project
       const createdProject = data.projects.find((p) => p.name === newProject.name);
       if (createdProject) {
@@ -934,13 +944,13 @@ export default function EvalsDashboard() {
   // Handle API key input change with validation
   const handleApiKeyInputChange = (value: string) => {
     setNewApiKey(value);
-    
+
     // Clear error if field is empty
     if (!value.trim()) {
       setApiKeyError(null);
       return;
     }
-    
+
     // Validate if provider is selected
     if (selectedProvider) {
       const error = validateApiKeyFormat(selectedProvider, value);
@@ -951,7 +961,7 @@ export default function EvalsDashboard() {
   // Handle provider selection with re-validation
   const handleProviderSelect = (providerId: string) => {
     setSelectedProvider(providerId);
-    
+
     // Re-validate existing API key with new provider
     if (newApiKey.trim() && providerId) {
       const error = validateApiKeyFormat(providerId, newApiKey);
@@ -1047,35 +1057,35 @@ export default function EvalsDashboard() {
   const breadcrumbItems =
     !orgId
       ? [
-          {
-            label: "LLM Evals",
-            path: "/evals",
-            icon: <FlaskConical size={14} strokeWidth={1.5} />,
-            onClick: async () => {
-              // When in Organizations view with no org selected, choose first org so ProjectsList can render
-              try {
-                const { org } = await getCurrentOrg();
-                if (!org) {
-                  const { orgs } = await getAllOrgs();
-                  if (orgs && orgs.length > 0) {
-                    await setCurrentOrg(orgs[0].id);
-                    setOrgId(orgs[0].id);
-                  }
+        {
+          label: "LLM Evals",
+          path: "/evals",
+          icon: <FlaskConical size={14} strokeWidth={1.5} />,
+          onClick: async () => {
+            // When in Organizations view with no org selected, choose first org so ProjectsList can render
+            try {
+              const { org } = await getCurrentOrg();
+              if (!org) {
+                const { orgs } = await getAllOrgs();
+                if (orgs && orgs.length > 0) {
+                  await setCurrentOrg(orgs[0].id);
+                  setOrgId(orgs[0].id);
                 }
-              } catch {
-                // ignore
               }
-              navigate("/evals");
-            },
+            } catch {
+              // ignore
+            }
+            navigate("/evals");
           },
-          { label: tabInfo.label, icon: tabInfo.icon },
-        ]
+        },
+        { label: tabInfo.label, icon: tabInfo.icon },
+      ]
       : projectId && currentProject
-      ? [
+        ? [
           { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
           { label: tabInfo.label, icon: tabInfo.icon },
         ]
-      : [
+        : [
           { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
           { label: tabInfo.label, icon: tabInfo.icon },
         ];
@@ -1139,8 +1149,8 @@ export default function EvalsDashboard() {
 
       {/* Main content */}
       <Box sx={{ flex: 1, margin: 0, padding: 0, minWidth: 0, overflow: "hidden" }}>
-          {/* Show nothing while initially loading to prevent flash */}
-          {initialLoading && !projectId ? null : (
+        {/* Show nothing while initially loading to prevent flash */}
+        {initialLoading && !projectId ? null : (
           /* Settings tab - always available regardless of project selection */
           tab === "settings" ? (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
@@ -1178,7 +1188,10 @@ export default function EvalsDashboard() {
                       variant="contained"
                       text="Add API key"
                       icon={<PlusIcon size={16} />}
-                      onClick={() => setApiKeyModalOpen(true)}
+                      onClick={() => {
+                        setIsEditingApiKey(false);
+                        setApiKeyModalOpen(true);
+                      }}
                       isDisabled={!canManageApiKeys}
                       sx={{
                         backgroundColor: "#13715B",
@@ -1228,7 +1241,10 @@ export default function EvalsDashboard() {
                       variant="contained"
                       text="Add API key"
                       icon={<PlusIcon size={16} />}
-                      onClick={() => setApiKeyModalOpen(true)}
+                      onClick={() => {
+                        setIsEditingApiKey(false);
+                        setApiKeyModalOpen(true);
+                      }}
                       isDisabled={!canManageApiKeys}
                       sx={{
                         backgroundColor: "#13715B",
@@ -1243,158 +1259,160 @@ export default function EvalsDashboard() {
                       const providerConfig = LLM_PROVIDERS.find(p => p._id === key.provider);
                       const ProviderLogo = providerConfig?.Logo;
                       return (
-                      <Collapse
-                        key={key.provider}
-                        in={deletingKeyProvider !== key.provider}
-                        timeout={300}
-                      >
-                        <Box
-                          sx={{
-                            border: "1.5px solid #eaecf0",
-                            borderRadius: "4px",
-                            p: 2,
-                            pl: 2.5,
-                            backgroundColor: "#ffffff",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            cursor: "default",
-                            opacity: deletingKeyProvider === key.provider ? 0 : 1,
-                            transform: deletingKeyProvider === key.provider ? "translateY(-20px)" : "translateY(0)",
-                            transition: "opacity 0.3s ease, transform 0.3s ease",
-                          }}
+                        <Collapse
+                          key={key.provider}
+                          in={deletingKeyProvider !== key.provider}
+                          timeout={300}
                         >
-                          <Stack direction="row" alignItems="center" spacing={2.5} sx={{ flex: 1 }}>
-                            {/* Provider Logo */}
-                            <Box
-                              sx={{
-                                width: 56,
-                                height: 56,
-                                minWidth: 56,
-                                minHeight: 56,
-                                borderRadius: "12px",
-                                backgroundColor: "#FAFAFA",
-                                border: "1px solid #E5E7EB",
-                                flexShrink: 0,
-                                overflow: "hidden",
-                                position: "relative",
-                              }}
-                            >
+                          <Box
+                            sx={{
+                              border: "1.5px solid #eaecf0",
+                              borderRadius: "4px",
+                              p: 2,
+                              pl: 2.5,
+                              backgroundColor: "#ffffff",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              cursor: "default",
+                              opacity: deletingKeyProvider === key.provider ? 0 : 1,
+                              transform: deletingKeyProvider === key.provider ? "translateY(-20px)" : "translateY(0)",
+                              transition: "opacity 0.3s ease, transform 0.3s ease",
+                            }}
+                          >
+                            <Stack direction="row" alignItems="center" spacing={2.5} sx={{ flex: 1 }}>
+                              {/* Provider Logo */}
                               <Box
                                 sx={{
-                                  position: "absolute",
-                                  top: "50%",
-                                  left: "50%",
-                                  transform: "translate(-50%, -50%)",
-                                  width: 32,
-                                  height: 32,
-                                  "& svg": {
-                                    width: "32px !important",
-                                    height: "32px !important",
-                                    maxWidth: "32px !important",
-                                    maxHeight: "32px !important",
-                                    display: "block !important",
+                                  width: 56,
+                                  height: 56,
+                                  minWidth: 56,
+                                  minHeight: 56,
+                                  borderRadius: "12px",
+                                  backgroundColor: "#FAFAFA",
+                                  border: "1px solid #E5E7EB",
+                                  flexShrink: 0,
+                                  overflow: "hidden",
+                                  position: "relative",
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    position: "absolute",
+                                    top: "50%",
+                                    left: "50%",
+                                    transform: "translate(-50%, -50%)",
+                                    width: 32,
+                                    height: 32,
+                                    "& svg": {
+                                      width: "32px !important",
+                                      height: "32px !important",
+                                      maxWidth: "32px !important",
+                                      maxHeight: "32px !important",
+                                      display: "block !important",
+                                    },
+                                  }}
+                                >
+                                  {ProviderLogo && <ProviderLogo />}
+                                </Box>
+                              </Box>
+
+                              {/* Provider Info - Better formatted */}
+                              <Box sx={{ flex: 1 }}>
+                                <Stack direction="row" alignItems="center" sx={{ mb: 1.5, gap: "10px" }}>
+                                  <Typography sx={{
+                                    fontSize: 15,
+                                    fontWeight: 600,
+                                    color: "#111827",
+                                  }}>
+                                    {getProviderDisplayName(key.provider)}
+                                  </Typography>
+                                  <Chip
+                                    label="ACTIVE"
+                                    sx={{
+                                      backgroundColor: "#dcfce7",
+                                      color: "#166534",
+                                      fontWeight: 600,
+                                      fontSize: "9px",
+                                      height: "18px",
+                                      borderRadius: "4px",
+                                      "& .MuiChip-label": {
+                                        padding: "0 6px",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.5px",
+                                      },
+                                    }}
+                                  />
+                                </Stack>
+                                <Stack direction="row" alignItems="center" sx={{ gap: "48px" }}>
+                                  <Box>
+                                    <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>API Key</Typography>
+                                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", fontFamily: "monospace" }}>
+                                      {key.maskedKey}
+                                    </Typography>
+                                  </Box>
+                                  <Box>
+                                    <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>Added</Typography>
+                                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+                                      {formatKeyDate(key.createdAt)}
+                                    </Typography>
+                                  </Box>
+                                </Stack>
+                              </Box>
+                            </Stack>
+
+                            {/* Action buttons */}
+                            <Stack direction="row" spacing={1} alignItems="center">
+                              <IconButton
+                                onClick={() => {
+                                  setIsEditingApiKey(true);
+                                  setSelectedProvider(key.provider);
+                                  setNewApiKey("");
+                                  setApiKeyModalOpen(true);
+                                }}
+                                disabled={!canManageApiKeys}
+                                sx={{
+                                  color: "#6B7280",
+                                  padding: "8px",
+                                  "&:hover": {
+                                    backgroundColor: "#F3F4F6",
+                                    color: "#374151",
+                                  },
+                                  "&.Mui-disabled": {
+                                    color: "#D1D5DB",
                                   },
                                 }}
                               >
-                                {ProviderLogo && <ProviderLogo />}
-                              </Box>
-                            </Box>
-                            
-                            {/* Provider Info - Better formatted */}
-                            <Box sx={{ flex: 1 }}>
-                              <Stack direction="row" alignItems="center" sx={{ mb: 1.5, gap: "10px" }}>
-                                <Typography sx={{
-                                  fontSize: 15,
-                                  fontWeight: 600,
-                                  color: "#111827",
-                                }}>
-                                  {getProviderDisplayName(key.provider)}
-                                </Typography>
-                                <Chip
-                                  label="ACTIVE"
-                                  sx={{
-                                    backgroundColor: "#dcfce7",
-                                    color: "#166534",
-                                    fontWeight: 600,
-                                    fontSize: "9px",
-                                    height: "18px",
-                                    borderRadius: "4px",
-                                    "& .MuiChip-label": {
-                                      padding: "0 6px",
-                                      textTransform: "uppercase",
-                                      letterSpacing: "0.5px",
-                                    },
-                                  }}
-                                />
-                              </Stack>
-                              <Stack direction="row" alignItems="center" sx={{ gap: "48px" }}>
-                                <Box>
-                                  <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>API Key</Typography>
-                                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", fontFamily: "monospace" }}>
-                                    {key.maskedKey}
-                                  </Typography>
-                                </Box>
-                                <Box>
-                                  <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>Added</Typography>
-                                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
-                                    {formatKeyDate(key.createdAt)}
-                                  </Typography>
-                                </Box>
-                              </Stack>
-                            </Box>
-                          </Stack>
-                          
-                          {/* Action buttons */}
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <IconButton
-                              onClick={() => {
-                                setSelectedProvider(key.provider);
-                                setNewApiKey("");
-                                setApiKeyModalOpen(true);
-                              }}
-                              disabled={!canManageApiKeys}
-                              sx={{
-                                color: "#6B7280",
-                                padding: "8px",
-                                "&:hover": {
-                                  backgroundColor: "#F3F4F6",
-                                  color: "#374151",
-                                },
-                                "&.Mui-disabled": {
-                                  color: "#D1D5DB",
-                                },
-                              }}
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                              </svg>
-                            </IconButton>
-                            <IconButton
-                              onClick={() => {
-                                setKeyToDelete(key);
-                                setDeleteKeyModalOpen(true);
-                              }}
-                              disabled={!canManageApiKeys}
-                              sx={{
-                                color: "#DC2626",
-                                padding: "8px",
-                                "&:hover": {
-                                  backgroundColor: "#FEF2F2",
-                                  color: "#B91C1C",
-                                },
-                                "&.Mui-disabled": {
-                                  color: "#D1D5DB",
-                                },
-                              }}
-                            >
-                              <DeleteIcon size={18} />
-                            </IconButton>
-                          </Stack>
-                        </Box>
-                      </Collapse>
-                    );})}
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                              </IconButton>
+                              <IconButton
+                                onClick={() => {
+                                  setKeyToDelete(key);
+                                  setDeleteKeyModalOpen(true);
+                                }}
+                                disabled={!canManageApiKeys}
+                                sx={{
+                                  color: "#DC2626",
+                                  padding: "8px",
+                                  "&:hover": {
+                                    backgroundColor: "#FEF2F2",
+                                    color: "#B91C1C",
+                                  },
+                                  "&.Mui-disabled": {
+                                    color: "#D1D5DB",
+                                  },
+                                }}
+                              >
+                                <DeleteIcon size={18} />
+                              </IconButton>
+                            </Stack>
+                          </Box>
+                        </Collapse>
+                      );
+                    })}
                   </Box>
                 )}
               </Box>
@@ -1467,7 +1485,7 @@ export default function EvalsDashboard() {
                         Local providers are only available for self-hosted deployments
                       </Typography>
                       <Typography sx={{ fontSize: 13, color: "#4F46E5", lineHeight: 1.5 }}>
-                        To use Ollama or other local models, deploy VerifyWise on your own infrastructure. 
+                        To use Ollama or other local models, deploy VerifyWise on your own infrastructure.
                         Local providers require direct access to your machine's network which isn't possible on the hosted demo.
                       </Typography>
                     </Box>
@@ -1524,8 +1542,8 @@ export default function EvalsDashboard() {
                               }}
                             >
                               <Box sx={{ width: 32, height: 32, "& svg": { width: "32px !important", height: "32px !important" } }}>
-                              {provider.type === "ollama" ? <OllamaLogo /> : <FolderFilledIcon />}
-                            </Box>
+                                {provider.type === "ollama" ? <OllamaLogo /> : <FolderFilledIcon />}
+                              </Box>
                             </Box>
                             <Box sx={{ flex: 1 }}>
                               <Stack direction="row" alignItems="center" sx={{ mb: 0.5, gap: "10px" }}>
@@ -1608,15 +1626,19 @@ export default function EvalsDashboard() {
               )}
 
               {tab === "datasets" && (
-                <ProjectDatasets projectId={projectId} orgId={orgId} />
+                <ProjectDatasets projectId={projectId} orgId={orgId || currentProject?.orgId || ""} />
               )}
 
               {tab === "scorers" && projectId && (
-                <ProjectScorers projectId={projectId} orgId={orgId} />
+                <ProjectScorers projectId={projectId} orgId={orgId || currentProject?.orgId || ""} />
+              )}
+
+              {tab === "models" && (
+                <ModelsPage orgId={orgId || currentProject?.orgId || ""} />
               )}
 
               {tab === "arena" && (
-                <ArenaPage orgId={orgId} />
+                <ArenaPage orgId={orgId || currentProject?.orgId || ""} />
               )}
 
               {tab === "configuration" && (
@@ -1659,7 +1681,7 @@ export default function EvalsDashboard() {
                         />
                       )}
                     </Stack>
-                    
+
                     {/* Locked notice when experiments exist */}
                     {experimentsCount > 0 && (
                       <Box
@@ -1682,7 +1704,7 @@ export default function EvalsDashboard() {
                             Use case is locked
                           </Typography>
                           <Typography sx={{ fontSize: "12px", color: "#B45309", lineHeight: 1.5, mb: 1.5 }}>
-                            This project has {experimentsCount} experiment{experimentsCount !== 1 ? "s" : ""}. 
+                            This project has {experimentsCount} experiment{experimentsCount !== 1 ? "s" : ""}.
                             To evaluate a different use case, create a new project. This ensures your metrics and results remain consistent and comparable.
                           </Typography>
                           <CustomizableButton
@@ -1706,7 +1728,7 @@ export default function EvalsDashboard() {
                         </Box>
                       </Box>
                     )}
-                    
+
                     <Box
                       sx={{
                         display: "grid",
@@ -1720,7 +1742,7 @@ export default function EvalsDashboard() {
                       <Box>
                         <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Use case type</Typography>
                         <Typography sx={{ fontSize: 12, color: "#888" }}>
-                          {experimentsCount > 0 
+                          {experimentsCount > 0
                             ? "Use case cannot be changed after experiments are created"
                             : "Select the type of LLM application you want to evaluate"
                           }
@@ -1858,7 +1880,7 @@ export default function EvalsDashboard() {
           {createProjectError && (
             <Alert variant="error" body={createProjectError} />
           )}
-          
+
           <Field
             label="Project name"
             value={newProject.name}
@@ -1901,7 +1923,7 @@ export default function EvalsDashboard() {
           </Box>
         </Stack>
       </ModalStandard>
-      
+
       {/* Onboarding Modal: Create First Project (org is auto-created) */}
       <ModalStandard
         isOpen={onboardingStep === "project"}
@@ -1953,24 +1975,29 @@ export default function EvalsDashboard() {
         </Stack>
       </ModalStandard>
 
-      {/* Add API Key Modal - Using ModalStandard like experiment creation */}
+      {/* Add/Edit API Key Modal - Using ModalStandard like experiment creation */}
       <ModalStandard
         isOpen={apiKeyModalOpen}
         onClose={() => {
           setApiKeyModalOpen(false);
+          setIsEditingApiKey(false);
           setSelectedProvider("");
           setNewApiKey("");
           setApiKeyError(null);
           setApiKeyAlert(null);
         }}
-        title="Add API key"
-        description="Configure API keys for LLM providers to run evaluations. Your keys are encrypted and stored securely."
+        title={isEditingApiKey ? "Edit API key" : "Add API key"}
+        description={isEditingApiKey
+          ? `Update the API key for ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || selectedProvider}. Your keys are encrypted and stored securely.`
+          : "Configure API keys for LLM providers to run evaluations. Your keys are encrypted and stored securely."
+        }
         onSubmit={handleAddApiKey}
-        submitButtonText={verifyingApiKey ? "Verifying..." : apiKeySaving ? "Saving..." : "Add API key"}
+        submitButtonText={verifyingApiKey ? "Verifying..." : apiKeySaving ? "Saving..." : isEditingApiKey ? "Update API key" : "Add API key"}
         isSubmitting={verifyingApiKey || apiKeySaving || !selectedProvider || !newApiKey.trim() || !!apiKeyError}
       >
         <Stack spacing={3}>
-          {/* Provider Selection Grid - show ALL providers */}
+          {/* Provider Selection Grid - show ALL providers (hidden when editing) */}
+          {!isEditingApiKey && (
           <Box>
             <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
               Select Provider
@@ -1980,7 +2007,7 @@ export default function EvalsDashboard() {
                 const { Logo } = provider;
                 const isSelected = selectedProvider === provider._id;
                 const hasKey = llmApiKeys.some(k => k.provider === provider._id);
-                
+
                 return (
                   <Grid size={{ xs: 4, sm: 4 }} key={provider._id}>
                     <Card
@@ -2031,7 +2058,7 @@ export default function EvalsDashboard() {
                             <Check size={12} color="#FFFFFF" strokeWidth={3} />
                           </Box>
                         )}
-                        
+
                         {/* Configured badge */}
                         {hasKey && !isSelected && (
                           <Box
@@ -2050,7 +2077,7 @@ export default function EvalsDashboard() {
                             </Typography>
                           </Box>
                         )}
-                        
+
                         {/* Provider Logo */}
                         <Box
                           sx={{
@@ -2068,7 +2095,7 @@ export default function EvalsDashboard() {
                         >
                           <Logo />
                         </Box>
-                        
+
                         {/* Provider Name */}
                         <Typography
                           sx={{
@@ -2087,6 +2114,7 @@ export default function EvalsDashboard() {
               })}
             </Grid>
           </Box>
+          )}
 
           {/* API Key Input */}
           {selectedProvider && (
@@ -2245,9 +2273,9 @@ export default function EvalsDashboard() {
                   },
                 }}
               >
-                <CardContent sx={{ 
-                  textAlign: "center", 
-                  py: 3, 
+                <CardContent sx={{
+                  textAlign: "center",
+                  py: 3,
                   px: 2,
                   display: "flex",
                   flexDirection: "column",
@@ -2303,9 +2331,9 @@ export default function EvalsDashboard() {
                   },
                 }}
               >
-                <CardContent sx={{ 
-                  textAlign: "center", 
-                  py: 3, 
+                <CardContent sx={{
+                  textAlign: "center",
+                  py: 3,
                   px: 2,
                   display: "flex",
                   flexDirection: "column",

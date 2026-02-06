@@ -142,7 +142,7 @@ export async function deleteGeneratedReportById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const reportId = parseInt(req.params.id);
+  const reportId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
   const transaction = await sequelize.transaction();
 
   logProcessing({

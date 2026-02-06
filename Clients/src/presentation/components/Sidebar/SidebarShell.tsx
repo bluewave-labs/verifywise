@@ -87,6 +87,8 @@ export interface SidebarShellProps {
   hasDemoData?: boolean;
   onOpenCreateDemoData?: () => void;
   onOpenDeleteDemoData?: () => void;
+  onDismissDemoDataButton?: () => void;
+  showDemoDataButton?: boolean;
   showReadyToSubscribe?: boolean;
   openUserGuide?: () => void;
   /** Only show demo data options to admins */
@@ -108,6 +110,8 @@ const SidebarShell: FC<SidebarShellProps> = ({
   hasDemoData = false,
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
+  onDismissDemoDataButton,
+  showDemoDataButton = true,
   showReadyToSubscribe = false,
   openUserGuide,
   isAdmin = false,
@@ -1005,6 +1009,8 @@ const SidebarShell: FC<SidebarShellProps> = ({
           hasDemoData={hasDemoData}
           onOpenCreateDemoData={onOpenCreateDemoData}
           onOpenDeleteDemoData={onOpenDeleteDemoData}
+          onDismissDemoDataButton={onDismissDemoDataButton}
+          showDemoDataButton={showDemoDataButton}
           showReadyToSubscribe={showReadyToSubscribe}
           openUserGuide={openUserGuide}
           isAdmin={isAdmin}

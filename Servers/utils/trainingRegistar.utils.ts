@@ -15,15 +15,15 @@ import {
  * Create a Training Registar
  */
 export const createNewTrainingRegistarQuery = async (
-  trainingRegistar: TrainingRegistarModel,
+  trainingRegistar: ITrainingRegister,
   tenant: string,
   transaction: Transaction
 ) => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".trainingregistar (
-            training_name, duration, provider, department, status, people, description
+            training_name, duration, provider, department, status, people, description, is_demo
         ) VALUES (
-            :training_name, :duration, :provider, :department, :status, :people, :description
+            :training_name, :duration, :provider, :department, :status, :people, :description, :is_demo
         ) RETURNING *`,
     {
       replacements: {
@@ -34,6 +34,7 @@ export const createNewTrainingRegistarQuery = async (
         status: trainingRegistar.status,
         people: trainingRegistar.numberOfPeople,
         description: trainingRegistar.description,
+        is_demo: trainingRegistar.is_demo || false,
       },
       mapToModel: true,
       model: TrainingRegistarModel,

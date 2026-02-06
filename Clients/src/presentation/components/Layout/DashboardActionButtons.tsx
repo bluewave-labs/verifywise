@@ -1,20 +1,18 @@
 import React, { useMemo, memo, useCallback, useEffect } from 'react';
-import { Stack, IconButton, ListItemIcon } from '@mui/material';
+import { Stack, IconButton } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Puzzle, Zap, Workflow } from 'lucide-react';
+import { Search, Zap, WorkflowIcon, Package } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
 import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
 import ApprovalButton from './ApprovalButton';
+import NotificationBell from '../NotificationBell';
 import {
   getPendingApprovals,
   getMyApprovalRequests,
 } from '../../../application/repository/approvalRequest.repository';
-import Button from '../Button';
-import { approvalButtonStyle } from './style';
-// SSE notifications disabled for now - can be re-enabled later if needed
-// import { useNotifications } from '../../../application/hooks/useNotifications';
+import { actionButtonsStyles } from './style';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -53,29 +51,6 @@ const WiseSearchTooltipContent: React.FC<{ isMac: boolean }> = ({ isMac }) => (
     </Box>
   </Box>
 );
-
-// Ghost style - transparent with borders
-const STYLE = {
-  search: {
-    backgroundColor: 'transparent',
-    color: '#666',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: '#d0d5dd' },
-  },
-  integrations: {
-    backgroundColor: 'transparent',
-    color: '#8B5CF6',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(139, 92, 246, 0.08)', borderColor: '#8B5CF6' },
-    '&.Mui-disabled': { backgroundColor: 'transparent', color: '#8B5CF6', opacity: 0.5 },
-  },
-  automations: {
-    backgroundColor: 'transparent',
-    color: '#F97316',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(249, 115, 22, 0.08)', borderColor: '#F97316' },
-  },
-};
 
 const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   hideOnMainDashboard = true
@@ -141,18 +116,6 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     }
   }, []);
 
-  // SSE notifications disabled for now - can be re-enabled later if needed
-  // useNotifications({
-  //   enabled: true,
-  //   onNotification: useCallback((notification: any) => {
-  //     // Refresh count when approval-related notifications are received
-  //     const approvalTypes = ['approval_request', 'approval_approved', 'approval_rejected', 'approval_complete'];
-  //     if (approvalTypes.includes(notification?.type)) {
-  //       fetchApprovalCounts();
-  //     }
-  //   }, [fetchApprovalCounts]),
-  // });
-
   // Initial fetch on mount
   useEffect(() => {
     fetchApprovalCounts();
@@ -173,30 +136,13 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     >
       {/* Wise Search */}
       <VWTooltip header="Wise Search" content={<WiseSearchTooltipContent isMac={isMac} />} placement="bottom" maxWidth={280}>
-        <IconButton size="small" onClick={handleOpenCommandPalette} sx={{ ...baseStyles, ...STYLE.search }}>
+        <IconButton size="small" onClick={handleOpenCommandPalette} sx={{ ...baseStyles, ...actionButtonsStyles.search }}>
           <Search size={16} />
         </IconButton>
       </VWTooltip>
 
-      <>
-        {isAdmin && <Button
-          variant="contained"
-          size="small"
-          onClick={() => navigate('/approval-workflows')}
-          sx={approvalButtonStyle}
-        >
-          {<ListItemIcon
-            sx={{
-              minWidth: '20px',
-              color: 'inherit',
-            }}
-            >
-              {<Workflow size={16} strokeWidth={1.5} />}
-            </ListItemIcon>}
-          Approval workflows
-        </Button>
-      }
-      </>
+      {/* Notifications Bell */}
+      <NotificationBell />
 
       <ApprovalButton
         label="Approval requests"
@@ -208,28 +154,47 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         }}
       />
 
-      {/* Integrations */}
-      <VWTooltip
-        header="Integrations"
-        content={isAdmin ? "Connect external tools and services." : "Admin access required."}
+      {/* Approval workflows */}
+      {isAdmin && <VWTooltip
+        header="Approval Workflows"
+        content={"Set up approval workflows."}
         placement="bottom"
         maxWidth={200}
       >
         <span>
           <IconButton
             size="small"
-            onClick={isAdmin ? () => navigate('/integrations') : undefined}
-            disabled={!isAdmin}
-            sx={{ ...baseStyles, ...STYLE.integrations }}
+            onClick={() => navigate('/approval-workflows')}
+            sx={{ ...baseStyles, ...actionButtonsStyles.approval_workflows }}
           >
-            <Puzzle size={16} />
+            <WorkflowIcon size={16} strokeWidth={2} />
+          </IconButton>
+        </span>
+      </VWTooltip>
+      }
+
+      {/* Integrations */}
+      <VWTooltip
+        header="Plugins"
+        content={isAdmin ? "Browse and manage plugins from the marketplace." : "Admin access required."}
+        placement="bottom"
+        maxWidth={200}
+      >
+        <span>
+          <IconButton
+            size="small"
+            onClick={isAdmin ? () => navigate('/plugins/marketplace') : undefined}
+            disabled={!isAdmin}
+            sx={{ ...baseStyles, ...actionButtonsStyles.integrations }}
+          >
+            <Package size={16} />
           </IconButton>
         </span>
       </VWTooltip>
 
       {/* Automations */}
       <VWTooltip header="Automations" content="Set up automated workflows." placement="bottom" maxWidth={200}>
-        <IconButton size="small" onClick={() => navigate('/automations')} sx={{ ...baseStyles, ...STYLE.automations }}>
+        <IconButton size="small" onClick={() => navigate('/automations')} sx={{ ...baseStyles, ...actionButtonsStyles.automations }}>
           <Zap size={16} />
         </IconButton>
       </VWTooltip>

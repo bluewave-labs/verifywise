@@ -5,6 +5,7 @@ import { exportToCSV, exportToExcel, exportToPDF, printTable } from '../../../ap
 import pdfIcon from '../../assets/icons/pdf_icon.svg';
 import csvIcon from '../../assets/icons/csv_icon.svg';
 import xlsIcon from '../../assets/icons/xls_icon.svg';
+import { singleTheme } from '../../themes';
 
 interface ExportColumn {
   id: string;
@@ -75,25 +76,9 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
         onClick={handleClick}
         aria-label="Export options"
         disabled={disabled}
-        sx={{
-          height: '34px',
-          width: '34px',
-          padding: '8px',
-          borderRadius: '4px',
-          border: '1px solid #e5e7eb',
-          backgroundColor: '#ffffff',
-          '&:hover': {
-            backgroundColor: '#f9fafb',
-            borderColor: '#d1d5db',
-          },
-          '&.Mui-disabled': {
-            backgroundColor: '#f9fafb',
-            borderColor: '#e5e7eb',
-            opacity: 0.5,
-          },
-        }}
+        sx={singleTheme.iconButtonsRectangle}
       >
-        <MoreVertical size={16} color={disabled ? "#d1d5db" : "#6b7280"} />
+        <MoreVertical size={16} color={disabled ? singleTheme.iconButtonsRectangle.iconColorDisabled : singleTheme.iconButtonsRectangle.iconColor} />
       </IconButton>
       {/* Main Menu */}
       <Menu
@@ -144,7 +129,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: Boolean(exportAnchorEl) ? '#f9fafb' : 'transparent',
+            backgroundColor: exportAnchorEl ? '#f9fafb' : 'transparent',
             '&:hover': {
               backgroundColor: '#f9fafb !important',
             }

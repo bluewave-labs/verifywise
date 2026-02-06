@@ -6,14 +6,13 @@ import {
   Chip,
   IconButton,
   Typography,
-  Popover,
-  Stack,
+  Menu,
+  MenuItem,
   CircularProgress,
 } from "@mui/material";
-import { Trash2, MoreVertical, Eye, Edit3, Download } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { DatasetRow } from "./index";
-import CustomizableButton from "../../Button/CustomizableButton";
 
 interface DatasetsTableBodyProps {
   rows: DatasetRow[];
@@ -81,11 +80,11 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
   const formatDate = (dateStr?: string | null): string => {
     if (!dateStr) return "-";
     const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
       year: "numeric",
-    }) + ", " + date.toLocaleTimeString("en-US", {
+    }) + ", " + date.toLocaleTimeString(undefined, {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -304,119 +303,38 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
         })}
 
       {/* Action Menu */}
-      <Popover
-        open={Boolean(menuAnchorEl)}
+      <Menu
         anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        sx={{
-          "& .MuiPopover-paper": {
-            minWidth: 120,
-            borderRadius: "4px",
-            border: "1px solid #d0d5dd",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            overflow: "hidden",
-            mt: 0.5,
-            p: 1,
+        slotProps={{
+          paper: {
+            sx: singleTheme.dropDownStyles.primary,
           },
         }}
       >
-        <Stack spacing={1}>
-          {onView && (
-            <CustomizableButton
-              variant="outlined"
-              onClick={handleViewClick}
-              startIcon={<Eye size={14} />}
-              sx={{
-                height: "34px",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
-                backgroundColor: "transparent",
-                justifyContent: "flex-start",
-                "&:hover": {
-                  backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
-                },
-              }}
-            >
-              View prompts
-            </CustomizableButton>
-          )}
-          {onEdit && (
-            <CustomizableButton
-              variant="outlined"
-              onClick={handleEditClick}
-              startIcon={<Edit3 size={14} />}
-              sx={{
-                height: "34px",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
-                backgroundColor: "transparent",
-                justifyContent: "flex-start",
-                "&:hover": {
-                  backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
-                },
-              }}
-            >
-              Open in editor
-            </CustomizableButton>
-          )}
-          {onDownload && (
-            <CustomizableButton
-              variant="outlined"
-              onClick={handleDownloadClick}
-              startIcon={<Download size={14} />}
-              sx={{
-                height: "34px",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
-                backgroundColor: "transparent",
-                justifyContent: "flex-start",
-                "&:hover": {
-                  backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
-                },
-              }}
-            >
-              Download JSON
-            </CustomizableButton>
-          )}
-          {onDelete && (
-            <CustomizableButton
-              variant="outlined"
-              onClick={handleDeleteClick}
-              startIcon={<Trash2 size={14} />}
-              sx={{
-                height: "34px",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#DC2626",
-                borderColor: "#d0d5dd",
-                backgroundColor: "transparent",
-                justifyContent: "flex-start",
-                "&:hover": {
-                  backgroundColor: "#FEF2F2",
-                  borderColor: "#DC2626",
-                },
-              }}
-            >
-              Delete
-            </CustomizableButton>
-          )}
-        </Stack>
-      </Popover>
+        {onView && (
+          <MenuItem onClick={handleViewClick}>
+            View prompts
+          </MenuItem>
+        )}
+        {onEdit && (
+          <MenuItem onClick={handleEditClick}>
+            Open in editor
+          </MenuItem>
+        )}
+        {onDownload && (
+          <MenuItem onClick={handleDownloadClick}>
+            Download
+          </MenuItem>
+        )}
+        {onDelete && (
+          <MenuItem onClick={handleDeleteClick} sx={{ color: "#d32f2f" }}>
+            Delete
+          </MenuItem>
+        )}
+      </Menu>
     </TableBody>
   );
 };

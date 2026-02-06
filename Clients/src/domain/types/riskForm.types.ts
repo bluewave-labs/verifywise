@@ -46,14 +46,12 @@ export interface MitigationFormValues {
  */
 export interface AddNewRiskFormCorePropsBase {
   closePopup: () => void;
-  popupStatus: string;
+  popupStatus: "new" | "edit";
   initialRiskValues?: RiskFormValues;
   initialMitigationValues?: MitigationFormValues;
   onSuccess: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onError?: (message: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onLoading?: (message: any) => void;
+  onError?: (message: string) => void;
+  onLoading?: (message: string) => void;
   users?: User[];
   usersLoading?: boolean;
   compactMode?: boolean;
@@ -72,7 +70,7 @@ export interface AddNewRiskFormCorePropsBase {
 export interface RiskSectionProps {
   closePopup: () => void;
   onSuccess: () => void;
-  popupStatus: string;
+  popupStatus: "new" | "edit";
 }
 
 /**

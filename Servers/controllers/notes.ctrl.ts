@@ -140,7 +140,8 @@ export async function getNotes(req: Request, res: Response): Promise<any> {
   });
 
   try {
-    const { attachedTo, attachedToId } = req.query;
+    const attachedTo = Array.isArray(req.query.attachedTo) ? req.query.attachedTo[0] : req.query.attachedTo;
+    const attachedToId = Array.isArray(req.query.attachedToId) ? req.query.attachedToId[0] : req.query.attachedToId;
     const organization_id = req.organizationId!;
     const tenant_id = req.tenantId!;
 
@@ -209,7 +210,7 @@ export async function getNotes(req: Request, res: Response): Promise<any> {
  * @returns {Promise<any>} JSON response with updated note or error
  */
 export async function updateNote(req: Request, res: Response): Promise<any> {
-  const noteId = parseInt(req.params.id, 10);
+  const noteId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const { content } = req.body;
   const userId = req.userId!;
   const userRole = req.role!;
@@ -285,7 +286,7 @@ export async function updateNote(req: Request, res: Response): Promise<any> {
  * @returns {Promise<any>} JSON response with success message or error
  */
 export async function deleteNote(req: Request, res: Response): Promise<any> {
-  const noteId = parseInt(req.params.id, 10);
+  const noteId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const userId = req.userId!;
   const userRole = req.role!;
   const tenant_id = req.tenantId!;

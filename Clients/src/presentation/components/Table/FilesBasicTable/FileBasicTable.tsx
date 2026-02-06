@@ -162,6 +162,9 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   table,
   onFileDeleted,
   hidePagination = false,
+  onAssignToFolder,
+  onPreview,
+  onEditMetadata,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -482,6 +485,9 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     }
                     onDelete={createDeleteHandler(row.id)}
                     openLinkedPolicies={() => handleViewLinkedPolicies(Number(row.id!))}
+                    onAssignToFolder={onAssignToFolder ? () => onAssignToFolder(Number(row.id)) : undefined}
+                    onPreview={onPreview ? () => onPreview(row.id) : undefined}
+                    onEditMetadata={onEditMetadata ? () => onEditMetadata(row.id) : undefined}
                     warningTitle="Delete this file?"
                     warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
                     onMouseEvent={() => {}}

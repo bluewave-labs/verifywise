@@ -1,5 +1,5 @@
 # Step 1: Use a Node.js base image
-FROM node:20-alpine AS build
+FROM node:25-alpine AS build
 
 # Increase Node.js memory limit for the build
 # ENV NODE_OPTIONS="--max_old_space_size=4096"
@@ -37,7 +37,7 @@ ENV VITE_APP_VERSION=$VITE_APP_VERSION
 RUN npm run build
 
 # Step 9: Use a lightweight web server for production
-FROM nginx:1.25-alpine
+FROM nginx:1.29-alpine
 
 # Step 10: Copy the build output to NGINX's default public directory
 COPY --from=build /app/src/dist /usr/share/nginx/html

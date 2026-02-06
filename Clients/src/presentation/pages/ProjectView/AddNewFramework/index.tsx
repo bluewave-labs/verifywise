@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { Check as CheckGreenIcon } from "lucide-react";
 import StandardModal from "../../../components/Modals/StandardModal";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import {
@@ -24,6 +24,8 @@ import Alert from "../../../components/Alert";
 import CustomizableToast from "../../../components/Toast";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
+import { PluginSlot } from "../../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
 
 interface AddFrameworkModalProps {
   open: boolean;
@@ -55,6 +57,28 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
     null
   );
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+  const [customFrameworkCount, setCustomFrameworkCount] = useState(0);
+
+  // Listen for custom framework count changes from plugins (event-based communication)
+  useEffect(() => {
+    const handleCustomFrameworkCount = (event: CustomEvent) => {
+      if (event.detail?.projectId === project.id) {
+        setCustomFrameworkCount(event.detail.count || 0);
+      }
+    };
+
+    window.addEventListener(
+      "customFrameworkCountChanged" as any,
+      handleCustomFrameworkCount as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "customFrameworkCountChanged" as any,
+        handleCustomFrameworkCount as EventListener
+      );
+    };
+  }, [project.id]);
 
   const handleAddFramework = async (fw: Framework) => {
     setIsLoading(true);
@@ -79,7 +103,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
           visible: true,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       logEngine({
         type: "error",
         message: "An error occurred while adding the framework.",
@@ -120,7 +144,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
           visible: true,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       logEngine({
         type: "error",
         message: "An error occurred while removing the framework.",
@@ -187,8 +211,9 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
         <Stack spacing={6}>
             {frameworks.map((fw) => {
               const isAdded = isFrameworkAdded(fw);
-              const onlyOneFramework =
-                project.framework?.length === 1 && isAdded;
+              // Total frameworks = system frameworks + custom frameworks (from plugin events)
+              const totalFrameworkCount = (project.framework?.length || 0) + customFrameworkCount;
+              const onlyOneFramework = totalFrameworkCount === 1 && isAdded;
               return (
                 <Box key={fw.id} sx={frameworkCardStyle}>
                   <Box
@@ -259,6 +284,19 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
                 </Box>
               );
             })}
+            {/* Plugin slot for custom frameworks */}
+            <PluginSlot
+              id={PLUGIN_SLOTS.FRAMEWORK_SELECTION}
+              slotProps={{
+                project,
+                isLoading,
+                onFrameworkAdded: () => onFrameworksChanged?.("add"),
+                onFrameworkRemoved: (frameworkId: number) =>
+                  onFrameworksChanged?.("remove", frameworkId),
+                setAlert,
+                setIsLoading,
+              }}
+            />
         </Stack>
         {isRemoveModalOpen && frameworkToRemove && (
           <ConfirmationModal

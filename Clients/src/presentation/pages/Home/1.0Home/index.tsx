@@ -12,8 +12,8 @@ import HelperIcon from "../../../components/HelperIcon";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
-import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import StandardModal from "../../../components/Modals/StandardModal";
@@ -70,7 +70,7 @@ const Home = () => {
     fetchProgressData();
   }, [setDashboardValues, fetchDashboard, refreshProjectsFlag]);
 
-  const submitFormRef = useRef<(() => void) | undefined>();
+  const submitFormRef = useRef<(() => void) | undefined>(undefined);
 
   // Auto-open create modal when navigating from "Add new..." dropdown
   useEffect(() => {

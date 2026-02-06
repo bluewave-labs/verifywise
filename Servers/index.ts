@@ -29,6 +29,7 @@ import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
 import modelInventoryHistoryRoutes from "./routes/modelInventoryHistory.route";
 import modelInventoryChangeHistoryRoutes from "./routes/modelInventoryChangeHistory.route";
+import datasetRoutes from "./routes/dataset.route";
 import riskHistoryRoutes from "./routes/riskHistory.route";
 import modelRiskRoutes from "./routes/modelRisk.route";
 import tiersRoutes from "./routes/tiers.route";
@@ -36,10 +37,10 @@ import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
+import pluginRoutes from "./routes/plugin.route";
 import tokenRoutes from "./routes/tokens.route";
 import shareLinkRoutes from "./routes/shareLink.route";
 import automation from "./routes/automation.route.js";
-import integrationsRoutes from "./routes/integrations.route.js";
 import fileManagerRoutes from "./routes/fileManager.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
@@ -67,6 +68,9 @@ import approvalRequestRoutes from "./routes/approvalRequest.route";
 import aiDetectionRoutes from "./routes/aiDetection.route";
 import githubIntegrationRoutes from "./routes/githubIntegration.route";
 import notificationRoutes from "./routes/notification.route";
+import postMarketMonitoringRoutes from "./routes/postMarketMonitoring.route";
+import complianceRoutes from "./routes/compliance.route";
+import virtualFolderRoutes, { filesFolderRouter } from "./routes/virtualFolder.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -170,6 +174,7 @@ try {
     "/api/model-inventory-change-history",
     modelInventoryChangeHistoryRoutes
   );
+  app.use("/api/datasets", datasetRoutes);
   app.use("/api/riskHistory", riskHistoryRoutes);
   app.use("/api/modelRisks", modelRiskRoutes);
   app.use("/api/reporting", reportRoutes);
@@ -180,11 +185,11 @@ try {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
+  app.use("/api/plugins", pluginRoutes);
   app.use("/api/tokens", tokenRoutes);
   app.use("/api/shares", shareLinkRoutes);
   app.use("/api/file-manager", fileManagerRoutes);
   app.use("/api/automations", automation);
-  app.use("/api/integrations/mlflow", integrationsRoutes);
   app.use("/api/user-preferences", userPreferenceRouter);
   app.use("/api/llm-keys", llmKeyRouter);
   app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
@@ -213,6 +218,10 @@ try {
   app.use("/api/ai-detection", aiDetectionRoutes);
   app.use("/api/integrations/github", githubIntegrationRoutes);
   app.use("/api/notifications", notificationRoutes);
+  app.use("/api/pmm", postMarketMonitoringRoutes);
+  app.use("/api/compliance", complianceRoutes);
+  app.use("/api/virtual-folders", virtualFolderRoutes);
+  app.use("/api/files", filesFolderRouter); // Additional file-folder routes
 
   // Setup notification subscriber for real-time notifications
   (async () => {

@@ -2,28 +2,24 @@
  * @fileoverview FileMetadataEditor Component
  *
  * A modal dialog for editing file metadata (tags, status, version, expiry date, description).
+ * Uses VerifyWise components for consistent styling.
  *
  * @module presentation/pages/FileManager/components/FileMetadataEditor
  */
 
 import React, { useState, useEffect } from "react";
-import {
-  Stack,
-  Box,
-  Typography,
-  TextField,
-  Chip,
-  MenuItem,
-  Select,
-  FormControl,
-  OutlinedInput,
-} from "@mui/material";
+import { Stack, Box, Typography } from "@mui/material";
+import dayjs, { Dayjs } from "dayjs";
 import StandardModal from "../../../../components/Modals/StandardModal";
 import {
   FileMetadata,
   ReviewStatus,
   UpdateFileMetadataInput,
 } from "../../../../../application/repository/file.repository";
+import Field from "../../../../components/Inputs/Field";
+import Select from "../../../../components/Inputs/Select";
+import DatePicker from "../../../../components/Inputs/Datepicker";
+import ChipInput from "../../../../components/Inputs/ChipInput";
 import StatusBadge from "../StatusBadge";
 
 interface FileMetadataEditorProps {
@@ -34,12 +30,12 @@ interface FileMetadataEditorProps {
   isSubmitting?: boolean;
 }
 
-const REVIEW_STATUS_OPTIONS: { value: ReviewStatus; label: string }[] = [
-  { value: "draft", label: "Draft" },
-  { value: "pending_review", label: "Pending review" },
-  { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
-  { value: "expired", label: "Expired" },
+const REVIEW_STATUS_OPTIONS = [
+  { _id: "draft", name: "Draft" },
+  { _id: "pending_review", name: "Pending review" },
+  { _id: "approved", name: "Approved" },
+  { _id: "rejected", name: "Rejected" },
+  { _id: "expired", name: "Expired" },
 ];
 
 /**
@@ -53,10 +49,9 @@ export const FileMetadataEditor: React.FC<FileMetadataEditorProps> = ({
   isSubmitting,
 }) => {
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus>("draft");
   const [version, setVersion] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
+  const [expiryDate, setExpiryDate] = useState<Dayjs | null>(null);
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -64,33 +59,13 @@ export const FileMetadataEditor: React.FC<FileMetadataEditorProps> = ({
   useEffect(() => {
     if (isOpen && file) {
       setTags(file.tags || []);
-      setTagInput("");
       setReviewStatus(file.review_status || "draft");
       setVersion(file.version || "1.0");
-      setExpiryDate(file.expiry_date || "");
+      setExpiryDate(file.expiry_date ? dayjs(file.expiry_date) : null);
       setDescription(file.description || "");
       setErrors({});
     }
   }, [isOpen, file]);
-
-  const handleAddTag = () => {
-    const trimmedTag = tagInput.trim();
-    if (trimmedTag && !tags.includes(trimmedTag)) {
-      setTags([...tags, trimmedTag]);
-      setTagInput("");
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
-  };
-
-  const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -98,11 +73,6 @@ export const FileMetadataEditor: React.FC<FileMetadataEditorProps> = ({
     // Validate version format (X.Y or X.Y.Z)
     if (version && !/^[0-9]+\.[0-9]+(\.[0-9]+)?$/.test(version)) {
       newErrors.version = "Version must be in X.Y or X.Y.Z format";
-    }
-
-    // Validate expiry date format
-    if (expiryDate && !/^\d{4}-\d{2}-\d{2}$/.test(expiryDate)) {
-      newErrors.expiryDate = "Date must be in YYYY-MM-DD format";
     }
 
     setErrors(newErrors);
@@ -116,7 +86,7 @@ export const FileMetadataEditor: React.FC<FileMetadataEditorProps> = ({
       tags,
       review_status: reviewStatus,
       version: version || undefined,
-      expiry_date: expiryDate || null,
+      expiry_date: expiryDate ? expiryDate.format("YYYY-MM-DD") : null,
       description: description || null,
     };
 
@@ -138,235 +108,64 @@ export const FileMetadataEditor: React.FC<FileMetadataEditorProps> = ({
     >
       <Stack spacing={3}>
         {/* Tags */}
-        <Stack spacing={1}>
-          <Typography
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "#344054",
-            }}
-          >
-            Tags
-          </Typography>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
-            {tags.map((tag) => (
-              <Chip
-                key={tag}
-                label={tag}
-                size="small"
-                onDelete={() => handleRemoveTag(tag)}
-                sx={{
-                  backgroundColor: "#F2F4F7",
-                  color: "#344054",
-                  fontSize: "12px",
-                  "& .MuiChip-deleteIcon": {
-                    color: "#667085",
-                    "&:hover": {
-                      color: "#344054",
-                    },
-                  },
-                }}
-              />
-            ))}
-          </Box>
-          <TextField
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={handleTagInputKeyDown}
-            onBlur={handleAddTag}
-            placeholder="Type a tag and press Enter"
-            fullWidth
-            size="small"
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "4px",
-                "& fieldset": {
-                  borderColor: "#D0D5DD",
-                },
-                "&:hover fieldset": {
-                  borderColor: "#98A2B3",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#13715B",
-                },
-              },
-              "& .MuiInputBase-input": {
-                fontSize: 13,
-                padding: "10px 12px",
-              },
-            }}
-          />
-        </Stack>
+        <ChipInput
+          id="file-tags"
+          label="Tags"
+          value={tags}
+          onChange={setTags}
+          placeholder="Type a tag and press Enter"
+        />
 
         {/* Review Status */}
-        <Stack spacing={1}>
-          <Typography
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "#344054",
-            }}
-          >
-            Review status
-          </Typography>
-          <FormControl fullWidth size="small">
-            <Select
-              value={reviewStatus}
-              onChange={(e) => setReviewStatus(e.target.value as ReviewStatus)}
-              input={<OutlinedInput />}
-              sx={{
-                borderRadius: "4px",
-                fontSize: 13,
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#D0D5DD",
-                },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#98A2B3",
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#13715B",
-                },
-              }}
-              renderValue={(value) => <StatusBadge status={value} size="small" />}
-            >
-              {REVIEW_STATUS_OPTIONS.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  <StatusBadge status={option.value} size="small" />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Stack>
+        <Select
+          id="review-status"
+          label="Review status"
+          value={reviewStatus}
+          items={REVIEW_STATUS_OPTIONS}
+          onChange={(e) => setReviewStatus(e.target.value as ReviewStatus)}
+          customRenderValue={(value) => {
+            const status = value as ReviewStatus;
+            return <StatusBadge status={status} size="small" />;
+          }}
+        />
 
         {/* Version */}
-        <Stack spacing={1}>
-          <Typography
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "#344054",
-            }}
-          >
-            Version
-          </Typography>
-          <TextField
-            value={version}
-            onChange={(e) => {
-              setVersion(e.target.value);
-              if (errors.version) {
-                setErrors((prev) => ({ ...prev, version: "" }));
-              }
-            }}
-            placeholder="1.0"
-            fullWidth
-            size="small"
-            error={!!errors.version}
-            helperText={errors.version || "Format: X.Y or X.Y.Z (e.g., 1.0 or 2.1.3)"}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "4px",
-                "& fieldset": {
-                  borderColor: errors.version ? "#EF4444" : "#D0D5DD",
-                },
-                "&:hover fieldset": {
-                  borderColor: errors.version ? "#EF4444" : "#98A2B3",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: errors.version ? "#EF4444" : "#13715B",
-                },
-              },
-              "& .MuiInputBase-input": {
-                fontSize: 13,
-                padding: "10px 12px",
-              },
-            }}
-          />
-        </Stack>
+        <Field
+          id="version"
+          label="Version"
+          value={version}
+          onChange={(e) => {
+            setVersion(e.target.value);
+            if (errors.version) {
+              setErrors((prev) => ({ ...prev, version: "" }));
+            }
+          }}
+          placeholder="1.0"
+          error={errors.version}
+          helperText="Format: X.Y or X.Y.Z (e.g., 1.0 or 2.1.3)"
+        />
 
         {/* Expiry Date */}
-        <Stack spacing={1}>
-          <Typography
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "#344054",
-            }}
-          >
-            Expiry date
-          </Typography>
-          <TextField
-            type="date"
-            value={expiryDate}
-            onChange={(e) => {
-              setExpiryDate(e.target.value);
-              if (errors.expiryDate) {
-                setErrors((prev) => ({ ...prev, expiryDate: "" }));
-              }
-            }}
-            fullWidth
-            size="small"
-            error={!!errors.expiryDate}
-            helperText={errors.expiryDate || "Optional: Set when the document needs review"}
-            InputLabelProps={{ shrink: true }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "4px",
-                "& fieldset": {
-                  borderColor: errors.expiryDate ? "#EF4444" : "#D0D5DD",
-                },
-                "&:hover fieldset": {
-                  borderColor: errors.expiryDate ? "#EF4444" : "#98A2B3",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: errors.expiryDate ? "#EF4444" : "#13715B",
-                },
-              },
-              "& .MuiInputBase-input": {
-                fontSize: 13,
-                padding: "10px 12px",
-              },
-            }}
-          />
-        </Stack>
+        <DatePicker
+          label="Expiry date"
+          date={expiryDate}
+          handleDateChange={(value) => setExpiryDate(value)}
+          isOptional
+          optionalLabel="(optional)"
+        />
 
         {/* Description */}
-        <Stack spacing={1}>
-          <Typography
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "#344054",
-            }}
-          >
-            Description
-          </Typography>
-          <TextField
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter file description (optional)"
-            fullWidth
-            multiline
-            rows={3}
-            size="small"
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "4px",
-                "& fieldset": {
-                  borderColor: "#D0D5DD",
-                },
-                "&:hover fieldset": {
-                  borderColor: "#98A2B3",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#13715B",
-                },
-              },
-              "& .MuiInputBase-input": {
-                fontSize: 13,
-              },
-            }}
-          />
-        </Stack>
+        <Field
+          id="description"
+          type="description"
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Enter file description"
+          isOptional
+          optionalLabel="(optional)"
+          rows={3}
+        />
 
         {/* File info */}
         <Box

@@ -17,6 +17,9 @@ import jpgIcon from "../../assets/icons/file-types/jpg.svg";
 import jpegIcon from "../../assets/icons/file-types/jpeg.svg";
 import pngIcon from "../../assets/icons/file-types/png.svg";
 import gifIcon from "../../assets/icons/file-types/gif.svg";
+import jsonIcon from "../../assets/icons/file-types/json.svg";
+import xmlIcon from "../../assets/icons/file-types/xml.svg";
+import mdIcon from "../../assets/icons/file-types/md.svg";
 import defaultIcon from "../../assets/icons/file-types/default.svg";
 
 // Map file extensions to their corresponding icons
@@ -50,6 +53,14 @@ const FILE_ICON_MAP: Record<string, string> = {
   jpeg: jpegIcon,
   png: pngIcon,
   gif: gifIcon,
+
+  // Data & markup
+  json: jsonIcon,
+  xml: xmlIcon,
+  md: mdIcon,
+  markdown: mdIcon,
+  yaml: defaultIcon,
+  yml: defaultIcon,
 };
 
 /**

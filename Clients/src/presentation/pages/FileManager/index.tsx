@@ -387,6 +387,11 @@ const FileManager: React.FC = (): JSX.Element => {
 
   // Get active files based on selected folder
   const activeFilesData = useMemo(() => {
+    // When loading folder files, return empty to prevent flash of stale data
+    if (loadingFolderFiles && selectedFolder !== "all") {
+      return [];
+    }
+
     // When viewing "all", use the original filesData
     // When viewing a folder or "uncategorized", use folderFiles converted to FileModel format
     if (selectedFolder === "all") {
@@ -410,7 +415,7 @@ const FileManager: React.FC = (): JSX.Element => {
         source: file.source || "File Manager",
       });
     });
-  }, [selectedFolder, filesData, folderFiles]);
+  }, [selectedFolder, filesData, folderFiles, loadingFolderFiles]);
 
   // Assign to folder modal handlers
   const handleOpenAssignFolder = useCallback(async (fileId: number) => {

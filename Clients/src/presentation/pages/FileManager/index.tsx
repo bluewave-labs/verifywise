@@ -66,31 +66,6 @@ const FILE_MANAGER_CONTEXT = "FileManager";
 const AUDITOR_ROLE = "Auditor";
 const MANAGE_ROLES = ["Admin", "Editor"];
 
-const COLUMN_NAMES = [
-  "File",
-  "Project Name",
-  "Upload Date",
-  "Uploader",
-  "Source",
-  "Action",
-];
-
-interface Column {
-  id: number;
-  name: string;
-  sx: { width: string };
-}
-
-const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
-  id: index + 1,
-  name,
-  sx: {
-    minWidth: "fit-content",
-    width: "fit-content",
-    maxWidth: "50%",
-  },
-}));
-
 /**
  * Main component for managing files with virtual folder support.
  */
@@ -161,6 +136,8 @@ const FileManager: React.FC = (): JSX.Element => {
     availableColumns,
     toggleColumn,
     resetToDefaults: resetColumnsToDefaults,
+    getTableColumns,
+    visibleColumnKeys,
   } = useFileColumnVisibility();
 
   // Files with metadata for enhanced view
@@ -410,6 +387,11 @@ const FileManager: React.FC = (): JSX.Element => {
 
   // Get active files based on selected folder
   const activeFilesData = useMemo(() => {
+    // When loading folder files, return empty to prevent flash of stale data
+    if (loadingFolderFiles && selectedFolder !== "all") {
+      return [];
+    }
+
     // When viewing "all", use the original filesData
     // When viewing a folder or "uncategorized", use folderFiles converted to FileModel format
     if (selectedFolder === "all") {
@@ -433,7 +415,7 @@ const FileManager: React.FC = (): JSX.Element => {
         source: file.source || "File Manager",
       });
     });
-  }, [selectedFolder, filesData, folderFiles]);
+  }, [selectedFolder, filesData, folderFiles, loadingFolderFiles]);
 
   // Assign to folder modal handlers
   const handleOpenAssignFolder = useCallback(async (fileId: number) => {
@@ -574,7 +556,8 @@ const FileManager: React.FC = (): JSX.Element => {
     getGroupKey: getFileGroupKey,
   });
 
-  const isLoading = loadingProjects || loadingFiles || (selectedFolder !== "all" && loadingFolderFiles);
+  // Always show loading when folder files are loading (covers both folder and uncategorized views)
+  const isLoading = loadingProjects || loadingFiles || loadingFolderFiles;
 
   const boxStyles = useMemo(
     () => ({
@@ -707,7 +690,13 @@ const FileManager: React.FC = (): JSX.Element => {
           </Box>
 
           {/* File table */}
-          <Box sx={{ flex: 1, overflow: "auto", padding: "16px" }}>
+          <Box
+            sx={{
+              flex: 1,
+              overflow: "auto",
+              padding: "16px",
+            }}
+          >
             {isLoading ? (
               <Box sx={{ padding: "24px", textAlign: "center" }}>
                 <Typography sx={{ color: "#667085" }}>Loading files...</Typography>
@@ -720,13 +709,14 @@ const FileManager: React.FC = (): JSX.Element => {
                   ungroupedData={filteredFiles}
                   renderTable={(data, options) => (
                     <FileTable
-                      cols={COLUMNS}
+                      cols={getTableColumns()}
                       files={data}
                       onFileDeleted={handleFileDeleted}
                       hidePagination={options?.hidePagination}
                       onAssignToFolder={canManageFolders ? handleOpenAssignFolder : undefined}
                       onPreview={handleOpenPreview}
                       onEditMetadata={canManageFolders ? handleOpenMetadataEditor : undefined}
+                      visibleColumnKeys={visibleColumnKeys}
                     />
                   )}
                 />

@@ -155,6 +155,9 @@ const SortableTableHead: React.FC<{
   );
 };
 
+// Default visible columns (all columns)
+const ALL_COLUMN_KEYS = ["file", "project_name", "upload_date", "uploader", "source", "action"] as const;
+
 const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   data,
   bodyData,
@@ -165,6 +168,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   onAssignToFolder,
   onPreview,
   onEditMetadata,
+  visibleColumnKeys = ALL_COLUMN_KEYS as unknown as string[],
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -365,134 +369,157 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
             onSort={handleSort}
           />
           <TableBody>
-            {paginatedRows.map((row) => (
-              <TableRow
-                key={`${row.id}-${row.fileName}`}
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.row,
-                }}
-              >
-                <TableCell
+            {paginatedRows.map((row) => {
+              // Track column index for sort highlighting (only visible columns)
+              let colIndex = 0;
+              return (
+                <TableRow
+                  key={`${row.id}-${row.fileName}`}
                   sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[0]?.name,
-                      sortConfig
-                    )
-                      ? "#e8e8e8"
-                      : "#fafafa",
+                    ...singleTheme.tableStyles.primary.body.row,
+                    height: "36px",
+                    "&:hover": { backgroundColor: "#f5f5f5" },
                   }}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <FileIcon fileName={row.fileName} />
-                    {row.fileName}
-                  </Box>
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[1]?.name,
-                      sortConfig
-                    )
-                      ? "#f5f5f5"
-                      : "inherit",
-                  }}
-                >
-                  {row.projectTitle}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[2]?.name,
-                      sortConfig
-                    )
-                      ? "#f5f5f5"
-                      : "inherit",
-                  }}
-                >
-                  {row.getFormattedUploadDate()}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[3]?.name,
-                      sortConfig
-                    )
-                      ? "#f5f5f5"
-                      : "inherit",
-                  }}
-                >
-                  {row.uploaderName || row.uploader}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[4]?.name,
-                      sortConfig
-                    )
-                      ? "#f5f5f5"
-                      : "inherit",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "flex-end",
-                      gap: "4px",
-                      textDecoration: "underline",
-                      "& svg": { visibility: "hidden" },
-                      "&:hover": {
-                        cursor: "pointer",
-                        "& svg": { visibility: "visible" },
-                      },
-                    }}
-                    onClick={(event) => handleRowClick(row, event)}
-                  >
-                    {row.source}
-                  </Box>
-                </TableCell>
-                {/* Add any additional cells here */}
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    minWidth: "50px",
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[data.cols.length - 1]?.name,
-                      sortConfig
-                    )
-                      ? "#f5f5f5"
-                      : "inherit",
-                  }}
-                >
-                  <IconButton
-                    id={Number(row.id)}
-                    type="report"
-                    onEdit={() => {}}
-                    onDownload={() =>
-                      handleDownload(row.id, row.fileName)
-                    }
-                    onDelete={createDeleteHandler(row.id)}
-                    openLinkedPolicies={() => handleViewLinkedPolicies(Number(row.id!))}
-                    onAssignToFolder={onAssignToFolder ? () => onAssignToFolder(Number(row.id)) : undefined}
-                    onPreview={onPreview ? () => onPreview(row.id) : undefined}
-                    onEditMetadata={onEditMetadata ? () => onEditMetadata(row.id) : undefined}
-                    warningTitle="Delete this file?"
-                    warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
-                    onMouseEvent={() => {}}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
+                  {/* File column */}
+                  {visibleColumnKeys.includes("file") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#e8e8e8"
+                          : "#fafafa",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <FileIcon fileName={row.fileName} />
+                        {row.fileName}
+                      </Box>
+                    </TableCell>
+                  )}
+                  {/* Project Name column */}
+                  {visibleColumnKeys.includes("project_name") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      {row.projectTitle}
+                    </TableCell>
+                  )}
+                  {/* Upload Date column */}
+                  {visibleColumnKeys.includes("upload_date") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      {row.getFormattedUploadDate()}
+                    </TableCell>
+                  )}
+                  {/* Uploader column */}
+                  {visibleColumnKeys.includes("uploader") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      {row.uploaderName || row.uploader}
+                    </TableCell>
+                  )}
+                  {/* Source column */}
+                  {visibleColumnKeys.includes("source") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-end",
+                          gap: "4px",
+                          textDecoration: "underline",
+                          "& svg": { visibility: "hidden" },
+                          "&:hover": {
+                            cursor: "pointer",
+                            "& svg": { visibility: "visible" },
+                          },
+                        }}
+                        onClick={(event) => handleRowClick(row, event)}
+                      >
+                        {row.source}
+                      </Box>
+                    </TableCell>
+                  )}
+                  {/* Action column */}
+                  {visibleColumnKeys.includes("action") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        minWidth: "50px",
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[data.cols.length - 1]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      <IconButton
+                        id={Number(row.id)}
+                        type="report"
+                        onEdit={() => {}}
+                        onDownload={() =>
+                          handleDownload(row.id, row.fileName)
+                        }
+                        onDelete={createDeleteHandler(row.id)}
+                        openLinkedPolicies={() => handleViewLinkedPolicies(Number(row.id!))}
+                        onAssignToFolder={onAssignToFolder ? () => onAssignToFolder(Number(row.id)) : undefined}
+                        onPreview={onPreview ? () => onPreview(row.id) : undefined}
+                        onEditMetadata={onEditMetadata ? () => onEditMetadata(row.id) : undefined}
+                        warningTitle="Delete this file?"
+                        warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
+                        onMouseEvent={() => {}}
+                      />
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
           {paginated && (
             <TableFooter>

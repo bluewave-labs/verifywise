@@ -6,23 +6,19 @@
  * @module application/hooks/useFileColumnVisibility
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 
 /**
  * Available columns for the file table
+ * Keys match the display names used in the table for consistency
  */
 export type FileColumn =
-  | "filename"
-  | "size"
+  | "file"
+  | "project_name"
   | "upload_date"
   | "uploader"
-  | "tags"
-  | "review_status"
-  | "version"
-  | "expiry_date"
-  | "description"
-  | "folders"
-  | "source";
+  | "source"
+  | "action";
 
 /**
  * Column configuration with display name and default visibility
@@ -37,27 +33,40 @@ export interface ColumnConfig {
 
 /**
  * Default column configurations
+ * These match the columns currently used in the file manager table
  */
 export const DEFAULT_COLUMNS: ColumnConfig[] = [
-  { key: "filename", label: "File name", defaultVisible: true, alwaysVisible: true },
-  { key: "size", label: "Size", defaultVisible: true, width: 100 },
-  { key: "upload_date", label: "Upload date", defaultVisible: true, width: 120 },
-  { key: "uploader", label: "Uploaded by", defaultVisible: true, width: 150 },
-  { key: "tags", label: "Tags", defaultVisible: false, width: 200 },
-  { key: "review_status", label: "Status", defaultVisible: true, width: 120 },
-  { key: "version", label: "Version", defaultVisible: false, width: 80 },
-  { key: "expiry_date", label: "Expiry date", defaultVisible: false, width: 120 },
-  { key: "description", label: "Description", defaultVisible: false, width: 200 },
-  { key: "folders", label: "Folders", defaultVisible: true, width: 150 },
-  { key: "source", label: "Source", defaultVisible: false, width: 150 },
+  { key: "file", label: "File", defaultVisible: true, alwaysVisible: true },
+  { key: "project_name", label: "Project name", defaultVisible: true },
+  { key: "upload_date", label: "Upload date", defaultVisible: true },
+  { key: "uploader", label: "Uploader", defaultVisible: true },
+  { key: "source", label: "Source", defaultVisible: true },
+  { key: "action", label: "Action", defaultVisible: true, alwaysVisible: true },
 ];
 
 const STORAGE_KEY = "verifywise:file-column-visibility";
 
+// Always-visible column keys that must be included
+const ALWAYS_VISIBLE_KEYS = DEFAULT_COLUMNS
+  .filter((c) => c.alwaysVisible)
+  .map((c) => c.key);
+
+// Valid column keys for validation
+const VALID_COLUMN_KEYS = new Set(DEFAULT_COLUMNS.map((c) => c.key));
+
+/**
+ * Table column format expected by FileTable/FileBasicTable
+ */
+export interface TableColumn {
+  id: number;
+  name: string;
+  sx: { minWidth: string; width: string; maxWidth: string };
+}
+
 interface UseFileColumnVisibilityReturn {
   // Current visibility state
   visibleColumns: Set<FileColumn>;
-  columnConfigs: ColumnConfig[];
+  columnConfigs: (ColumnConfig & { visible: boolean })[];
 
   // Actions
   toggleColumn: (column: FileColumn) => void;
@@ -67,6 +76,12 @@ interface UseFileColumnVisibilityReturn {
 
   // For column selector UI
   availableColumns: ColumnConfig[];
+
+  // For table rendering - returns columns in the format expected by the table
+  getTableColumns: () => TableColumn[];
+
+  // For FileBasicTable - which columns are visible (for conditional cell rendering)
+  visibleColumnKeys: FileColumn[];
 }
 
 /**
@@ -81,7 +96,11 @@ export function useFileColumnVisibility(): UseFileColumnVisibilityReturn {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored) as FileColumn[];
-        return new Set(parsed);
+        // Filter out invalid keys (from old localStorage data)
+        const validKeys = parsed.filter((key) => VALID_COLUMN_KEYS.has(key));
+        // Always include alwaysVisible columns
+        const withRequired = new Set([...validKeys, ...ALWAYS_VISIBLE_KEYS]);
+        return withRequired;
       }
     } catch (err) {
       console.error("Error loading column visibility from localStorage:", err);
@@ -157,10 +176,38 @@ export function useFileColumnVisibility(): UseFileColumnVisibilityReturn {
   );
 
   // Get column configs with current visibility
-  const columnConfigs = DEFAULT_COLUMNS.map((config) => ({
-    ...config,
-    visible: visibleColumns.has(config.key),
-  }));
+  const columnConfigs = useMemo(
+    () =>
+      DEFAULT_COLUMNS.map((config) => ({
+        ...config,
+        visible: visibleColumns.has(config.key),
+      })),
+    [visibleColumns]
+  );
+
+  // Get visible column keys in order (for conditional cell rendering)
+  const visibleColumnKeys = useMemo(
+    () => DEFAULT_COLUMNS.filter((c) => visibleColumns.has(c.key)).map((c) => c.key),
+    [visibleColumns]
+  );
+
+  /**
+   * Get table columns in the format expected by FileTable/FileBasicTable
+   * Only returns visible columns with proper IDs and styling
+   */
+  const getTableColumns = useCallback((): TableColumn[] => {
+    return DEFAULT_COLUMNS.filter((col) => visibleColumns.has(col.key)).map(
+      (col, index) => ({
+        id: index + 1,
+        name: col.label,
+        sx: {
+          minWidth: "fit-content",
+          width: "fit-content",
+          maxWidth: "50%",
+        },
+      })
+    );
+  }, [visibleColumns]);
 
   return {
     visibleColumns,
@@ -170,6 +217,8 @@ export function useFileColumnVisibility(): UseFileColumnVisibilityReturn {
     resetToDefaults,
     isColumnVisible,
     availableColumns: DEFAULT_COLUMNS,
+    getTableColumns,
+    visibleColumnKeys,
   };
 }
 

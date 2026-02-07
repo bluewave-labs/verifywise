@@ -3,12 +3,14 @@ import React, {
   useContext,
   useState,
   useCallback,
-  useEffect,
   ReactNode,
 } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PluginInstallation } from "../../domain/types/plugins";
 import { getInstalledPlugins } from "../repository/plugin.repository";
 import { PluginRenderType } from "../../domain/constants/pluginSlots";
+
+const PLUGINS_QUERY_KEY = ['plugins', 'installations'] as const;
 
 // Get the backend API base URL for dynamic imports
 // Dynamic import() bypasses Vite's proxy, so we need the actual backend URL
@@ -114,34 +116,27 @@ interface PluginRegistryProviderProps {
 export function PluginRegistryProvider({
   children,
 }: PluginRegistryProviderProps) {
-  const [installedPlugins, setInstalledPlugins] = useState<PluginInstallation[]>(
-    []
-  );
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [loadedComponents, setLoadedComponents] = useState<
     Map<string, LoadedPluginComponent[]>
   >(new Map());
   // Use ref for loadedBundles to avoid stale closure issues in loadPluginUI callback
   const loadedBundlesRef = React.useRef<Set<string>>(new Set());
 
-  // Fetch installed plugins on mount
-  const refreshPlugins = useCallback(async () => {
-    setIsLoading(true);
-    try {
+  // Fetch installed plugins with React Query caching
+  const { data: installedPlugins = [], isLoading } = useQuery({
+    queryKey: PLUGINS_QUERY_KEY,
+    queryFn: async () => {
       const plugins = await getInstalledPlugins({});
-      setInstalledPlugins(
-        plugins.filter((p) => p.status === "installed")
-      );
-    } catch (error) {
-      console.error("Failed to fetch installed plugins:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      return plugins.filter((p) => p.status === "installed");
+    },
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+  });
 
-  useEffect(() => {
-    refreshPlugins();
-  }, [refreshPlugins]);
+  const refreshPlugins = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: PLUGINS_QUERY_KEY });
+  }, [queryClient]);
 
   // Check if a plugin is installed
   const isPluginInstalled = useCallback(

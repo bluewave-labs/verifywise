@@ -43,6 +43,11 @@ import {
   riskFilterRowStyle,
   analyticsIconButtonStyle,
   addNewRiskButtonStyle,
+  riskPopoverStyle,
+  riskPopoverContentStyle,
+  riskMenuItemStyle,
+  riskMenuItemTitleStyle,
+  riskMenuItemSubtitleStyle,
 } from "./style";
 
 /**
@@ -773,23 +778,12 @@ const RiskManagement = () => {
                   vertical: "top",
                   horizontal: "right",
                 }}
-                sx={{
-                  mt: 1,
-                  "& .MuiPopover-paper": {
-                    borderRadius: "4px",
-                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
-                    overflow: "visible",
-                    backgroundColor: "#fff",
-                  },
-                }}
+                sx={riskPopoverStyle}
               >
                 <Box
                   role="menu"
                   aria-label="Add new risk menu"
-                  sx={{
-                    p: 2,
-                    width: "420px",
-                  }}
+                  sx={riskPopoverContentStyle}
                 >
                   {/* Add new risk option */}
                   <Box
@@ -807,37 +801,16 @@ const RiskManagement = () => {
                         setIsRiskModalOpen(true);
                       }
                     }}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "12px 16px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
-                      backgroundColor: "#fff",
-                      transition: "all 0.2s ease",
-                      mb: 2,
-                      "&:hover": {
-                        backgroundColor: "#f9fafb",
-                        border: "1px solid rgba(0, 0, 0, 0.12)",
-                      },
-                    }}
+                    sx={riskMenuItemStyle}
                   >
                     <Box>
                       <Typography
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: "13px",
-                          color: "rgba(0, 0, 0, 0.85)",
-                        }}
+                        sx={riskMenuItemTitleStyle}
                       >
                         Add new risk
                       </Typography>
                       <Typography
-                        sx={{
-                          fontSize: "11px",
-                          color: "rgba(0, 0, 0, 0.6)",
-                        }}
+                        sx={riskMenuItemSubtitleStyle}
                       >
                         Create a custom risk manually
                       </Typography>

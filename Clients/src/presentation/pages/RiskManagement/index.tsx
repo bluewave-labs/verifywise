@@ -38,6 +38,10 @@ import { PluginSlot } from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
 import { apiServices } from "../../../infrastructure/api/networkServices";
+import {
+  riskMainStackStyle,
+  riskFilterRowStyle,
+} from "./style";
 
 /**
  * Set initial loading status for all CRUD process
@@ -696,16 +700,14 @@ const RiskManagement = () => {
 
       <Stack
         className="risk-management-row"
-        sx={{
-          gap: 10,
-        }}
+        sx={riskMainStackStyle}
       >
         <Stack
           direction="row"
           justifyContent="space-between"
           alignItems="flex-end"
         >
-          <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <Box sx={riskFilterRowStyle}>
             <div data-joyride-id="risk-filters">
               <FilterBy
                 columns={filterColumns}

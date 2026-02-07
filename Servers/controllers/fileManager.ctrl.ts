@@ -27,6 +27,7 @@ import {
   getFileWithMetadata,
   getHighlightedFiles,
   getFilePreview,
+  getFileVersionHistory as getFileVersionHistoryRepo,
   FileSource,
   UpdateFileMetadataInput,
   ReviewStatus,
@@ -1264,6 +1265,82 @@ export const previewFile = async (
       eventType: "Error",
       description: "Failed to get file preview",
       functionName: "previewFile",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get file version history (all files in the same file group)
+ *
+ * GET /file-manager/:id/versions
+ *
+ * @param {Request} req - Express request with file ID in params
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} List of file versions in the same group
+ */
+export const getFileVersionHistory = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+
+  if (!Number.isSafeInteger(fileId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { tenant } = auth;
+
+  logProcessing({
+    description: `Getting version history for file ID ${fileId}`,
+    functionName: "getFileVersionHistory",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    // Get the file to extract file_group_id
+    const file = await getFileWithMetadata(fileId, tenant);
+
+    if (!file) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    if (!file.file_group_id) {
+      // No group ID means no version history — return just this file
+      return res.status(200).json(STATUS_CODE[200]({ versions: [file] }));
+    }
+
+    const versions = await getFileVersionHistoryRepo(file.file_group_id, tenant);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved ${versions.length} versions for file group: ${file.file_group_id}`,
+      functionName: "getFileVersionHistory",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200]({ versions }));
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to get file version history",
+      functionName: "getFileVersionHistory",
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
       userId: req.userId!,

@@ -49,16 +49,26 @@ export function GovernanceScoreCard({ score, modules }: GovernanceScoreProps) {
   return (
     <Stack direction="row" alignItems="center" justifyContent="space-between">
       <ScoreGauge score={score} size={100} />
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+      <Stack spacing={2} sx={{ minWidth: 160 }}>
         {modules.map((module) => {
           const scoreColor = getScoreColor(module.score);
           return (
-            <Typography key={module.name} sx={{ fontSize: 12, color: C.textSecondary }}>
-              {module.name} <span style={{ fontWeight: 600, color: scoreColor }}>{module.score}%</span>
+            <Typography
+              key={module.name}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                fontSize: 12,
+                color: C.textSecondary,
+              }}
+            >
+              <span>{module.name}</span>
+              <span style={{ fontWeight: 600, color: scoreColor }}>{module.score}%</span>
             </Typography>
           );
         })}
-      </Box>
+      </Stack>
     </Stack>
   );
 }

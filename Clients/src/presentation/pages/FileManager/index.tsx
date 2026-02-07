@@ -60,6 +60,7 @@ import { useFileColumnVisibility } from "../../../application/hooks/useFileColum
 import { ColumnSelector } from "./components/ColumnSelector";
 import { FilePreviewPanel } from "./components/FilePreviewPanel";
 import { FileMetadataEditor } from "./components/FileMetadataEditor";
+import { FileVersionHistoryDrawer } from "./components/FileVersionHistoryDrawer";
 
 // Constants
 const FILE_MANAGER_CONTEXT = "FileManager";
@@ -152,6 +153,10 @@ const FileManager: React.FC = (): JSX.Element => {
   const [editingFile, setEditingFile] = useState<FileMetadata | null>(null);
   const [isMetadataEditorOpen, setIsMetadataEditorOpen] = useState(false);
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
+
+  // Version history drawer state
+  const [versionHistoryFileId, setVersionHistoryFileId] = useState<string | number | null>(null);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
 
   // Auto-dismiss alerts
   useEffect(() => {
@@ -295,6 +300,17 @@ const FileManager: React.FC = (): JSX.Element => {
       setIsSubmittingMetadata(false);
     }
   }, [editingFile, fetchFilesWithMetadata, handleCloseMetadataEditor]);
+
+  // Version history handlers
+  const handleOpenVersionHistory = useCallback((fileId: number | string) => {
+    setVersionHistoryFileId(fileId);
+    setIsVersionHistoryOpen(true);
+  }, []);
+
+  const handleCloseVersionHistory = useCallback(() => {
+    setIsVersionHistoryOpen(false);
+    setVersionHistoryFileId(null);
+  }, []);
 
   // Folder management handlers
   const handleOpenCreateFolder = useCallback((parentId: number | null) => {
@@ -737,6 +753,7 @@ const FileManager: React.FC = (): JSX.Element => {
                       onAssignToFolder={canManageFolders ? handleOpenAssignFolder : undefined}
                       onPreview={handleOpenPreview}
                       onEditMetadata={canManageFolders ? handleOpenMetadataEditor : undefined}
+                      onViewHistory={handleOpenVersionHistory}
                       visibleColumnKeys={visibleColumnKeys}
                     />
                   )}
@@ -817,6 +834,13 @@ const FileManager: React.FC = (): JSX.Element => {
         onSubmit={handleSubmitMetadata}
         file={editingFile}
         isSubmitting={isSubmittingMetadata}
+      />
+
+      {/* File Version History Drawer */}
+      <FileVersionHistoryDrawer
+        isOpen={isVersionHistoryOpen}
+        onClose={handleCloseVersionHistory}
+        fileId={versionHistoryFileId}
       />
 
       {/* Toast Alert */}

@@ -19,6 +19,7 @@ const FileTable: React.FC<IFileTableProps> = ({
   onAssignToFolder,
   onPreview,
   onEditMetadata,
+  onViewHistory,
   visibleColumnKeys,
 }) => {
   const [sortField, setSortField] = useState<keyof FileModel | null>(null);
@@ -107,6 +108,7 @@ const FileTable: React.FC<IFileTableProps> = ({
       onAssignToFolder={onAssignToFolder}
       onPreview={onPreview}
       onEditMetadata={onEditMetadata}
+      onViewHistory={onViewHistory}
       visibleColumnKeys={visibleColumnKeys}
     />
   );

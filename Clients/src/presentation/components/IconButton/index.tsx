@@ -56,6 +56,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   // File metadata props
   onPreview,
   onEditMetadata,
+  onViewHistory,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -305,6 +306,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     if (normalizedType === "report") {
       const items = ["preview", "download"];
       if (onEditMetadata) items.push("edit_metadata");
+      if (onViewHistory) items.push("version_history");
       if (onAssignToFolder) items.push("assign_folder");
       items.push("linked_policies", "remove");
       return items;
@@ -350,6 +352,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       assign_folder: "Assign to folder",
       preview: "Preview",
       edit_metadata: "Edit metadata",
+      version_history: "Version history",
     };
   
     // Type-specific
@@ -446,6 +449,11 @@ const IconButton: React.FC<IconButtonProps> = ({
               } else if (item === "edit_metadata") {
                 if (onEditMetadata) {
                   onEditMetadata();
+                }
+                if (e) closeDropDownMenu(e);
+              } else if (item === "version_history") {
+                if (onViewHistory) {
+                  onViewHistory();
                 }
                 if (e) closeDropDownMenu(e);
               } else if (item === "delete" && (type === "Task" || type === "task")) {

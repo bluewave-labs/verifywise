@@ -172,6 +172,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   onAssignToFolder,
   onPreview,
   onEditMetadata,
+  onViewHistory,
   visibleColumnKeys = ALL_COLUMN_KEYS as unknown as string[],
 }) => {
   const theme = useTheme();
@@ -556,6 +557,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                         onAssignToFolder={onAssignToFolder ? () => onAssignToFolder(Number(row.id)) : undefined}
                         onPreview={onPreview ? () => onPreview(row.id) : undefined}
                         onEditMetadata={onEditMetadata ? () => onEditMetadata(row.id) : undefined}
+                        onViewHistory={onViewHistory ? () => onViewHistory(row.id) : undefined}
                         warningTitle="Delete this file?"
                         warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
                         onMouseEvent={() => {}}

@@ -71,6 +71,7 @@ export interface IconButtonProps {
   // File metadata props
   onPreview?: () => void;
   onEditMetadata?: () => void;
+  onViewHistory?: () => void;
 }
 
 /**

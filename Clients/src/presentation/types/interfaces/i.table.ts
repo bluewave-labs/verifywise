@@ -125,6 +125,7 @@ export interface IFileBasicTableProps {
   onAssignToFolder?: (fileId: number) => void;
   onPreview?: (fileId: number | string) => void;
   onEditMetadata?: (fileId: number | string) => void;
+  onViewHistory?: (fileId: number | string) => void;
   /** Column keys that are visible (for conditional cell rendering) */
   visibleColumnKeys?: FileColumn[];
 }
@@ -137,6 +138,7 @@ export interface IFileTableProps {
   onAssignToFolder?: (fileId: number) => void;
   onPreview?: (fileId: number | string) => void;
   onEditMetadata?: (fileId: number | string) => void;
+  onViewHistory?: (fileId: number | string) => void;
   /** Column keys that are visible (for conditional cell rendering) */
   visibleColumnKeys?: FileColumn[];
 }

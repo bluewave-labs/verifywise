@@ -41,6 +41,8 @@ import { apiServices } from "../../../infrastructure/api/networkServices";
 import {
   riskMainStackStyle,
   riskFilterRowStyle,
+  analyticsIconButtonStyle,
+  addNewRiskButtonStyle,
 } from "./style";
 
 /**
@@ -742,17 +744,7 @@ const RiskManagement = () => {
               <IconButton
                 onClick={() => setIsAnalyticsDrawerOpen(true)}
                 aria-label="Analytics"
-                sx={{
-                  height: '34px',
-                  width: '34px',
-                  padding: '8px',
-                  borderRadius: '4px',
-                  border: '1px solid #e5e7eb',
-                  backgroundColor: '#ffffff',
-                  '&:hover': {
-                    backgroundColor: '#f9fafb',
-                  },
-                }}
+                sx={analyticsIconButtonStyle}
               >
                 <BarChart3 size={16} color="#344054" />
               </IconButton>
@@ -761,11 +753,7 @@ const RiskManagement = () => {
               <CustomizableButton
                 variant="contained"
                 text="Add new risk"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
+                sx={addNewRiskButtonStyle}
                 onClick={handleInsertFromMenuOpen as (event: unknown) => void}
                 icon={<ChevronDown size={16} />}
                 isDisabled={

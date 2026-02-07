@@ -43,6 +43,10 @@ import {
 } from "../utils/logger/logHelper";
 import { getUserProjects } from "../utils/user.utils";
 import { getProjectByIdQuery } from "../utils/project.utils";
+import {
+  trackEntityChanges,
+  recordMultipleFieldChanges,
+} from "../utils/changeHistory.base.utils";
 
 /**
  * Helper function to validate and parse request authentication data
@@ -948,10 +952,36 @@ export const updateMetadata = async (
     if (expiry_date !== undefined) updates.expiry_date = expiry_date;
     if (description !== undefined) updates.description = description;
 
+    // Fetch current metadata state before update (for change tracking)
+    const beforeState = await getFileWithMetadata(fileId, tenant);
+
     const updatedFile = await updateFileMetadata(fileId, updates, tenant);
 
     if (!updatedFile) {
       return res.status(404).json(STATUS_CODE[404]("File not found after update"));
+    }
+
+    // Record changes in file change history
+    try {
+      if (beforeState) {
+        const changes = await trackEntityChanges(
+          "file",
+          beforeState,
+          updatedFile
+        );
+        if (changes.length > 0) {
+          await recordMultipleFieldChanges(
+            "file",
+            fileId,
+            userId,
+            tenant,
+            changes
+          );
+        }
+      }
+    } catch (historyError) {
+      // Don't fail the update if history recording fails
+      console.error("Failed to record file change history:", historyError);
     }
 
     await logSuccess({

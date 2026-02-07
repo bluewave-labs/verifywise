@@ -62,6 +62,7 @@ import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
 import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
+import fileChangeHistoryRoutes from "./routes/fileChangeHistory.route";
 import policyLinkedObjects from "./routes/policyLinkedObjects.route";
 import approvalWorkflowRoutes from "./routes/approvalWorkflow.route";
 import approvalRequestRoutes from "./routes/approvalRequest.route";
@@ -213,6 +214,7 @@ try {
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
   app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
   app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
+  app.use("/api/file-change-history", fileChangeHistoryRoutes);
   app.use("/api/approval-workflows", approvalWorkflowRoutes);
   app.use("/api/approval-requests", approvalRequestRoutes);
   app.use("/api/ai-detection", aiDetectionRoutes);

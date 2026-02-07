@@ -895,7 +895,7 @@ export const updateMetadata = async (
     const { tags, review_status, version, expiry_date, description } = req.body;
 
     // Validate review_status if provided
-    const validStatuses: ReviewStatus[] = ['draft', 'pending_review', 'approved', 'rejected', 'expired'];
+    const validStatuses: ReviewStatus[] = ['draft', 'pending_review', 'approved', 'rejected', 'expired', 'superseded'];
     if (review_status && !validStatuses.includes(review_status)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid review status"));
     }

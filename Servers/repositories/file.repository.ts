@@ -35,7 +35,7 @@ export interface FileMetadata {
   uploader_surname?: string;
 }
 
-export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired';
+export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired' | 'superseded';
 
 export interface OrganizationFileMetadata {
   id: number;

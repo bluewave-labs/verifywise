@@ -2,7 +2,7 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 // Review status type
-export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired';
+export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired' | 'superseded';
 
 // Type definitions for API responses
 export interface FileMetadata {
@@ -30,6 +30,7 @@ export interface FileMetadata {
   last_modifier_name?: string;
   last_modifier_surname?: string;
   description?: string;
+  file_group_id?: string;
 }
 
 // Input for updating file metadata
@@ -299,6 +300,7 @@ export async function getFilesWithMetadata({
       last_modifier_name: f?.last_modifier_name,
       last_modifier_surname: f?.last_modifier_surname,
       description: f?.description,
+      file_group_id: f?.file_group_id,
     })),
     pagination: data?.pagination,
   };
@@ -434,4 +436,41 @@ export async function getFilePreview({
     responseType: "blob",
   });
   return response.data;
+}
+
+/**
+ * Get file version history (all files in the same group)
+ *
+ * @param {string} id - File ID
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<FileMetadata[]>} Array of file versions
+ */
+export async function getFileVersionHistory({
+  id,
+  signal,
+}: {
+  id: string;
+  signal?: AbortSignal;
+}): Promise<FileMetadata[]> {
+  const response = await apiServices.get<any>(`/file-manager/${id}/versions`, { signal });
+  const data = response.data?.data || response.data;
+  const versions = data?.versions || [];
+
+  return versions.map((f: any) => ({
+    id: String(f.id),
+    filename: f.filename,
+    size: f?.size,
+    mimetype: f?.mimetype,
+    upload_date: f?.upload_date,
+    uploaded_by: String(f?.uploaded_by),
+    uploader_name: f?.uploader_name,
+    uploader_surname: f?.uploader_surname,
+    source: f?.source,
+    tags: f?.tags || [],
+    review_status: f?.review_status,
+    version: f?.version,
+    expiry_date: f?.expiry_date,
+    description: f?.description,
+    file_group_id: f?.file_group_id,
+  }));
 }

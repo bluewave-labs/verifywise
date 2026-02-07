@@ -15,7 +15,8 @@ export type EntityType =
   | "risk"
   | "vendor_risk"
   | "policy"
-  | "incident";
+  | "incident"
+  | "file";
 
 export interface EntityHistoryConfig {
   entityName: string; // Display name (e.g., "Model", "Vendor")
@@ -85,6 +86,12 @@ export const ENTITY_HISTORY_CONFIGS: {
     emptyStateTitle: "Activity history",
     emptyStateMessage:
       "Automatically tracks every change to this incident. See what your team is working on and what updates they've made, in real time.",
+  },
+  file: {
+    entityName: "File",
+    emptyStateTitle: "Activity history",
+    emptyStateMessage:
+      "Automatically tracks every change to this file. See what your team is working on and what updates they've made, in real time.",
   },
 };
 

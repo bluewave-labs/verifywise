@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { Box, Stack, Popover, Typography, IconButton, Tooltip, Fade } from "@mui/material";
+import { Box, Stack, Popover, Typography, IconButton, Tooltip } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { RisksCard } from "../../components/Cards/RisksCard";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -68,7 +68,7 @@ const RiskManagement = () => {
     title?: string;
     body: string;
   } | null>(null);
-  const [showAlert, setShowAlert] = useState(false);
+  const [, setShowAlert] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] =
     useState<LoadingStatus>(initialLoadingState);

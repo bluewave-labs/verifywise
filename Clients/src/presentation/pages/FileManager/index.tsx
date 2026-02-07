@@ -385,17 +385,37 @@ const FileManager: React.FC = (): JSX.Element => {
     }
   }, [folderToDelete, handleDeleteFolder, handleCloseDeleteFolder, selectedFolder, setSelectedFolder]);
 
-  // Get active files based on selected folder
+  // Build a metadata lookup map for O(1) access
+  const metadataMap = useMemo(() => {
+    const map = new Map<string, FileMetadata>();
+    for (const meta of filesWithMetadata) {
+      map.set(String(meta.id), meta);
+    }
+    return map;
+  }, [filesWithMetadata]);
+
+  // Get active files based on selected folder, enriched with metadata
   const activeFilesData = useMemo(() => {
     // When loading folder files, return empty to prevent flash of stale data
     if (loadingFolderFiles && selectedFolder !== "all") {
       return [];
     }
 
+    // Helper to enrich a FileModel with metadata
+    const enrichWithMetadata = (file: FileModel): FileModel => {
+      const meta = metadataMap.get(String(file.id));
+      if (meta) {
+        file.version = meta.version;
+        file.reviewStatus = meta.review_status;
+        file.fileGroupId = meta.file_group_id;
+      }
+      return file;
+    };
+
     // When viewing "all", use the original filesData
     // When viewing a folder or "uncategorized", use folderFiles converted to FileModel format
     if (selectedFolder === "all") {
-      return filesData;
+      return filesData.map(enrichWithMetadata);
     }
 
     // Convert folder files to FileModel instances for compatibility with existing table
@@ -403,7 +423,7 @@ const FileManager: React.FC = (): JSX.Element => {
       const uploaderName = file.uploader_name && file.uploader_surname
         ? `${file.uploader_name} ${file.uploader_surname}`
         : file.uploader_name || file.uploader_surname || "Unknown";
-      return FileModel.createNewFile({
+      const fileModel = FileModel.createNewFile({
         id: file.id.toString(),
         fileName: file.filename,
         size: file.size,
@@ -414,8 +434,9 @@ const FileManager: React.FC = (): JSX.Element => {
         projectTitle: file.project_title,
         source: file.source || "File Manager",
       });
+      return enrichWithMetadata(fileModel);
     });
-  }, [selectedFolder, filesData, folderFiles, loadingFolderFiles]);
+  }, [selectedFolder, filesData, folderFiles, loadingFolderFiles, metadataMap]);
 
   // Assign to folder modal handlers
   const handleOpenAssignFolder = useCallback(async (fileId: number) => {

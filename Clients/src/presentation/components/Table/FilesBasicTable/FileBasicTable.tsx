@@ -18,6 +18,8 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import IconButton from "../../IconButton";
 import FileIcon from "../../FileIcon";
+import VersionBadge from "../../../pages/FileManager/components/VersionBadge";
+import StatusBadge from "../../../pages/FileManager/components/StatusBadge";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { deleteFileFromManager } from "../../../../application/repository/file.repository";
 import { FileModel } from "../../../../domain/models/Common/file/file.model";
@@ -62,7 +64,9 @@ const getSortMatchForColumn = (
     ((sortKey.includes("uploader") || sortKey.includes("user")) &&
       (colName.includes("uploader") || colName.includes("user"))) ||
     ((sortKey.includes("source") || sortKey.includes("type")) &&
-      (colName.includes("source") || colName.includes("type")))
+      (colName.includes("source") || colName.includes("type"))) ||
+    (sortKey.includes("version") && colName.includes("version")) ||
+    (sortKey.includes("status") && colName.includes("status"))
   );
 };
 
@@ -156,7 +160,7 @@ const SortableTableHead: React.FC<{
 };
 
 // Default visible columns (all columns)
-const ALL_COLUMN_KEYS = ["file", "project_name", "upload_date", "uploader", "source", "action"] as const;
+const ALL_COLUMN_KEYS = ["file", "project_name", "upload_date", "uploader", "source", "version", "status", "action"] as const;
 
 const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   data,
@@ -261,6 +265,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
       } else if (sortKey.includes("source") || sortKey.includes("type")) {
         aValue = a.source?.toLowerCase() || "";
         bValue = b.source?.toLowerCase() || "";
+      } else if (sortKey.includes("version")) {
+        aValue = (a as any).version?.toLowerCase() || "";
+        bValue = (b as any).version?.toLowerCase() || "";
+      } else if (sortKey.includes("status")) {
+        aValue = (a as any).reviewStatus?.toLowerCase() || "";
+        bValue = (b as any).reviewStatus?.toLowerCase() || "";
       } else {
         // Try to handle unknown columns by checking if they're properties of the row
         if (sortKey && sortKey in a && sortKey in b) {
@@ -483,6 +493,41 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                       >
                         {row.source}
                       </Box>
+                    </TableCell>
+                  )}
+                  {/* Version column */}
+                  {visibleColumnKeys.includes("version") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      <VersionBadge
+                        version={(row as any).version}
+                        reviewStatus={(row as any).reviewStatus}
+                      />
+                    </TableCell>
+                  )}
+                  {/* Status column */}
+                  {visibleColumnKeys.includes("status") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      <StatusBadge status={(row as any).reviewStatus} />
                     </TableCell>
                   )}
                   {/* Action column */}

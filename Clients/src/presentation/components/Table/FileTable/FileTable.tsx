@@ -85,6 +85,8 @@ const FileTable: React.FC<IFileTableProps> = ({
         uploadDate: file.getFormattedUploadDate(),
         uploader: file.uploaderName || file.uploader,
         source: file.source,
+        version: file.version,
+        reviewStatus: file.reviewStatus,
       })),
     [sortedFiles]
   );

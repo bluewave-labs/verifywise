@@ -58,6 +58,9 @@ import {
   aiRiskCardLogoStyle,
   aiRiskCardTitleStyle,
   aiRiskCardCaptionStyle,
+  historyToggleButtonStyle,
+  riskModalContentRowStyle,
+  riskModalFormContainerStyle,
 } from "./style";
 
 /**
@@ -978,15 +981,7 @@ const RiskManagement = () => {
               <IconButton
                 onClick={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
                 size="small"
-                sx={{
-                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
-                  padding: "4px",
-                  borderRadius: "4px",
-                  backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
-                  "&:hover": {
-                    backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
-                  },
-                }}
+                sx={historyToggleButtonStyle(isHistorySidebarOpen)}
               >
                 <HistoryIcon size={20} />
               </IconButton>
@@ -995,23 +990,9 @@ const RiskManagement = () => {
         >
           <Stack
             direction="row"
-            sx={{
-              width: "100%",
-              minHeight: 0,
-              alignItems: "stretch",
-              overflow: "hidden",
-              position: "relative"
-            }}
+            sx={riskModalContentRowStyle}
           >
-            <Box sx={{
-              flex: isHistorySidebarOpen ? "0 0 auto" : 1,
-              minWidth: 0,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-              overflowX: "hidden",
-              overflowY: "auto"
-            }}>
+            <Box sx={riskModalFormContainerStyle(isHistorySidebarOpen)}>
               <AddNewRiskForm
                 closePopup={handleRiskModalClose}
                 popupStatus={selectedRow.length > 0 ? "edit" : "new"}

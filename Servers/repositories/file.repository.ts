@@ -59,6 +59,7 @@ export interface OrganizationFileMetadata {
   last_modifier_name?: string;
   last_modifier_surname?: string;
   description?: string;
+  file_group_id?: string;
 }
 
 export interface UpdateFileMetadataInput {
@@ -315,9 +316,9 @@ export async function uploadOrganizationFile(
 
   const query = `
     INSERT INTO ${escapePgIdentifier(tenant)}.files
-      (filename, size, type, file_path, content, uploaded_by, uploaded_time, model_id, org_id, is_demo, source, project_id)
+      (filename, size, type, file_path, content, uploaded_by, uploaded_time, model_id, org_id, is_demo, source, project_id, file_group_id)
     VALUES
-      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source, NULL)
+      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source, NULL, gen_random_uuid())
     RETURNING *`;
 
   const result = await sequelize.query(query, {
@@ -701,6 +702,7 @@ export async function getFileWithMetadata(
       f.expiry_date,
       f.last_modified_by,
       f.description,
+      f.file_group_id,
       u.name AS uploader_name,
       u.surname AS uploader_surname,
       m.name AS last_modifier_name,
@@ -752,6 +754,7 @@ export async function getOrganizationFilesWithMetadata(
       f.expiry_date,
       f.last_modified_by,
       f.description,
+      f.file_group_id,
       u.name AS uploader_name,
       u.surname AS uploader_surname,
       m.name AS last_modifier_name,

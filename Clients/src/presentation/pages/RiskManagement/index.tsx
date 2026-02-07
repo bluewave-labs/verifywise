@@ -52,6 +52,12 @@ import {
   riskDividerLineStyle,
   riskDividerTextStyle,
   riskCardsGridStyle,
+  aiRiskCardBaseStyle,
+  aiRiskCardIbmStyle,
+  aiRiskCardRecommendedBadgeStyle,
+  aiRiskCardLogoStyle,
+  aiRiskCardTitleStyle,
+  aiRiskCardCaptionStyle,
 } from "./style";
 
 /**
@@ -847,67 +853,23 @@ const RiskManagement = () => {
                         handleIBMModalOpen();
                       }
                     }}
-                    sx={{
-                      background: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
-                      borderRadius: "4px",
-                      padding: "20px 16px",
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "flex-start",
-                      gap: 1.5,
-                      border: "1px solid rgba(0, 0, 0, 0.04)",
-                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                      minHeight: "140px",
-                      position: "relative",
-                      "&:hover": {
-                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-                        border: "1px solid rgba(0, 0, 0, 0.08)",
-                        background: "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(250, 250, 250, 1) 100%)",
-                      },
-                      "&:active": {
-                        transform: "scale(0.98)",
-                      },
-                    }}
+                    sx={aiRiskCardIbmStyle}
                   >
                     <Box
-                      sx={{
-                        position: "absolute",
-                        top: 8,
-                        right: 8,
-                        backgroundColor: "#10B981",
-                        color: "white",
-                        fontSize: "9px",
-                        fontWeight: 600,
-                        padding: "2px 6px",
-                        borderRadius: "3px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
+                      sx={aiRiskCardRecommendedBadgeStyle}
                     >
                       Recommended
                     </Box>
-                    <img src={ibmLogo} alt="IBM Logo" style={{ height: 24 }} />
+                    <img src={ibmLogo} alt="IBM Logo" style={aiRiskCardLogoStyle} />
                     <Typography
                       variant="body2"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: "13px",
-                        color: "rgba(0, 0, 0, 0.85)",
-                        textAlign: "center",
-                      }}
+                      sx={aiRiskCardTitleStyle}
                     >
                       IBM AI Risk database
                     </Typography>
                     <Typography
                       variant="caption"
-                      sx={{
-                        fontSize: "11px",
-                        color: "rgba(0, 0, 0, 0.6)",
-                        textAlign: "center",
-                        lineHeight: 1.4,
-                      }}
+                      sx={aiRiskCardCaptionStyle}
                     >
                       113 risks covering agentic AI, data privacy, inference attacks, and operational failures
                     </Typography>
@@ -923,49 +885,18 @@ const RiskManagement = () => {
                         handleMITModalOpen();
                       }
                     }}
-                    sx={{
-                      background: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
-                      borderRadius: "4px",
-                      padding: "20px 16px",
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "flex-start",
-                      gap: 1.5,
-                      border: "1px solid rgba(0, 0, 0, 0.04)",
-                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                      minHeight: "140px",
-                      "&:hover": {
-                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-                        border: "1px solid rgba(0, 0, 0, 0.08)",
-                        background: "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(250, 250, 250, 1) 100%)",
-                      },
-                      "&:active": {
-                        transform: "scale(0.98)",
-                      },
-                    }}
+                    sx={aiRiskCardBaseStyle}
                   >
-                    <img src={mitLogo} alt="MIT Logo" style={{ height: 24 }} />
+                    <img src={mitLogo} alt="MIT Logo" style={aiRiskCardLogoStyle} />
                     <Typography
                       variant="body2"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: "13px",
-                        color: "rgba(0, 0, 0, 0.85)",
-                        textAlign: "center",
-                      }}
+                      sx={aiRiskCardTitleStyle}
                     >
                       MIT AI Risk database
                     </Typography>
                     <Typography
                       variant="caption"
-                      sx={{
-                        fontSize: "11px",
-                        color: "rgba(0, 0, 0, 0.6)",
-                        textAlign: "center",
-                        lineHeight: 1.4,
-                      }}
+                      sx={aiRiskCardCaptionStyle}
                     >
                       Academic research-based risks covering AI safety, fairness, and societal impact
                     </Typography>

@@ -1,3 +1,4 @@
+import React from "react";
 import singleTheme from "../../themes/v1SingleTheme";
 
 // A. Main Layout
@@ -96,3 +97,66 @@ export const riskCardsGridStyle = (hasPlugin: boolean) => ({
   gridTemplateColumns: hasPlugin ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
   gap: 2,
 });
+
+// F. AI Risk Cards (deduplicated IBM/MIT)
+export const aiRiskCardBaseStyle = {
+  background:
+    "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
+  borderRadius: singleTheme.borderRadius,
+  padding: "20px 16px",
+  cursor: "pointer",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "flex-start",
+  gap: 1.5,
+  border: "1px solid rgba(0, 0, 0, 0.04)",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  minHeight: "140px",
+  "&:hover": {
+    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
+    border: "1px solid rgba(0, 0, 0, 0.08)",
+    background:
+      "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(250, 250, 250, 1) 100%)",
+  },
+  "&:active": {
+    transform: "scale(0.98)",
+  },
+};
+
+export const aiRiskCardIbmStyle = {
+  ...aiRiskCardBaseStyle,
+  position: "relative" as const,
+};
+
+export const aiRiskCardRecommendedBadgeStyle = {
+  position: "absolute",
+  top: 8,
+  right: 8,
+  backgroundColor: "#10B981",
+  color: "white",
+  fontSize: "9px",
+  fontWeight: 600,
+  padding: "2px 6px",
+  borderRadius: "3px",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.5px",
+};
+
+export const aiRiskCardLogoStyle: React.CSSProperties = {
+  height: 24,
+};
+
+export const aiRiskCardTitleStyle = {
+  fontWeight: 600,
+  fontSize: singleTheme.fontSizes.medium,
+  color: "rgba(0, 0, 0, 0.85)",
+  textAlign: "center",
+};
+
+export const aiRiskCardCaptionStyle = {
+  fontSize: singleTheme.fontSizes.small,
+  color: "rgba(0, 0, 0, 0.6)",
+  textAlign: "center",
+  lineHeight: 1.4,
+};

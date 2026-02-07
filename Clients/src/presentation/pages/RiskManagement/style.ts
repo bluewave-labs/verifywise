@@ -68,3 +68,31 @@ export const riskMenuItemSubtitleStyle = {
   fontSize: singleTheme.fontSizes.small,
   color: "rgba(0, 0, 0, 0.6)",
 };
+
+// E. Divider ("Or Import From")
+export const riskDividerContainerStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: 1.5,
+  mb: 2,
+};
+
+export const riskDividerLineStyle = {
+  flex: 1,
+  height: "1px",
+  backgroundColor: "rgba(0, 0, 0, 0.08)",
+};
+
+export const riskDividerTextStyle = {
+  fontSize: singleTheme.fontSizes.small,
+  color: "rgba(0, 0, 0, 0.45)",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.5px",
+};
+
+// F. AI Risk Cards Grid
+export const riskCardsGridStyle = (hasPlugin: boolean) => ({
+  display: "grid",
+  gridTemplateColumns: hasPlugin ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
+  gap: 2,
+});

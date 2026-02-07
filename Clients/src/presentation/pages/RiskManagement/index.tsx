@@ -48,6 +48,10 @@ import {
   riskMenuItemStyle,
   riskMenuItemTitleStyle,
   riskMenuItemSubtitleStyle,
+  riskDividerContainerStyle,
+  riskDividerLineStyle,
+  riskDividerTextStyle,
+  riskCardsGridStyle,
 } from "./style";
 
 /**
@@ -819,27 +823,18 @@ const RiskManagement = () => {
 
                   {/* Divider with text */}
                   <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.5,
-                      mb: 2,
-                    }}
+                    sx={riskDividerContainerStyle}
                   >
-                    <Box sx={{ flex: 1, height: "1px", backgroundColor: "rgba(0, 0, 0, 0.08)" }} />
-                    <Typography sx={{ fontSize: "11px", color: "rgba(0, 0, 0, 0.45)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    <Box sx={riskDividerLineStyle} />
+                    <Typography sx={riskDividerTextStyle}>
                       Or import from
                     </Typography>
-                    <Box sx={{ flex: 1, height: "1px", backgroundColor: "rgba(0, 0, 0, 0.08)" }} />
+                    <Box sx={riskDividerLineStyle} />
                   </Box>
 
                   {/* AI Risk databases grid */}
                   <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: hasRiskImportPlugin ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
-                      gap: 2,
-                    }}
+                    sx={riskCardsGridStyle(hasRiskImportPlugin)}
                   >
                   <Box
                     role="menuitem"

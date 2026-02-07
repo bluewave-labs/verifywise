@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
 import { Box, Stack, Typography } from "@mui/material";
-import RisksCard from "../Cards/RisksCard";
+import { RisksCard } from "../Cards/RisksCard";
 import RiskVisualizationTabs from "../RiskVisualization/RiskVisualizationTabs";
 import RiskFilters from "../RiskVisualization/RiskFilters";
 import VWProjectRisksTable from "../Table/VWProjectRisksTable";

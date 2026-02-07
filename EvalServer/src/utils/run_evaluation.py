@@ -26,6 +26,7 @@ from crud import evaluation_logs as crud
 from crud.deepeval_scorers import list_scorers
 from deepeval_engine.gatekeeper import evaluate_gate
 from utils.run_custom_scorer import run_custom_scorer, ScorerResult
+from utils.error_detection import FatalErrorTracker, detect_fatal_error
 
 
 async def run_evaluation(
@@ -402,7 +403,10 @@ async def run_evaluation(
             # IMPORTANT: We run the MODEL to generate assistant responses, not use pre-written ones!
             print(f"\n🗣️ Detected conversational dataset with {len(conversations)} scenarios.")
             print(f"   🔄 MODEL WILL GENERATE RESPONSES for each conversation turn...\n")
-            
+
+            # Initialize fatal error tracker for early termination
+            fatal_error_tracker = FatalErrorTracker(threshold=2)
+
             for s_idx, convo in enumerate(conversations, 1):
                 scenario = convo.get("scenario") or f"scenario_{s_idx}"
                 expected_outcome = convo.get("expected_outcome", "")
@@ -467,11 +471,31 @@ async def run_evaluation(
                         
                         if not assistant_response:
                             assistant_response = "[Model returned empty response]"
-                            
+
+                        # Track success to reset fatal error counter
+                        fatal_error_tracker.track_success()
+
                     except Exception as gen_err:
                         print(f"    ⚠️ Generation error on turn {turn_idx + 1}: {gen_err}")
                         assistant_response = f"[Generation error: {str(gen_err)[:100]}]"
-                    
+
+                        # Check if this is a fatal error that should stop the experiment
+                        should_stop = fatal_error_tracker.track_error(str(gen_err))
+                        if should_stop:
+                            termination_reason = fatal_error_tracker.get_termination_reason()
+                            print(f"\n🛑 FATAL ERROR DETECTED: {termination_reason}")
+                            print(f"   Stopping experiment early to avoid wasting time on unrecoverable errors.\n")
+
+                            # Update experiment status to failed
+                            await crud.update_experiment_status(
+                                db=db,
+                                experiment_id=experiment_id,
+                                tenant=tenant,
+                                status="failed",
+                                error_message=termination_reason,
+                            )
+                            return {"error": termination_reason, "early_termination": True}
+
                     # Add generated assistant turn
                     turn_objects.append(Turn(role="assistant", content=assistant_response))
                     conversation_history.append({"role": "assistant", "content": assistant_response})
@@ -544,6 +568,10 @@ async def run_evaluation(
         else:
             # 3B. Single-turn path (existing)
             print(f"\n🤖 Generating {len(prompts)} responses...\n")
+
+            # Initialize fatal error tracker for early termination
+            fatal_error_tracker = FatalErrorTracker(threshold=2)
+
             for idx, prompt_data in enumerate(prompts, 1):
                 start_time = datetime.now()  # Set before try block so it's always defined
                 try:
@@ -629,9 +657,12 @@ async def run_evaluation(
                             "log_id": created_log.get("id") if created_log else None,
                         }
                     })
-                    
+
                     print(f"     ✓ Generated ({latency_ms}ms)")
-                    
+
+                    # Track success to reset fatal error counter
+                    fatal_error_tracker.track_success()
+
                 except Exception as e:
                     print(f"     ❌ Error: {e}")
 
@@ -651,6 +682,24 @@ async def run_evaluation(
                         status="error",
                         error_message=str(e),
                     )
+
+                    # Check if this is a fatal error that should stop the experiment
+                    should_stop = fatal_error_tracker.track_error(str(e))
+                    if should_stop:
+                        termination_reason = fatal_error_tracker.get_termination_reason()
+                        print(f"\n🛑 FATAL ERROR DETECTED: {termination_reason}")
+                        print(f"   Stopping experiment early to avoid wasting time on unrecoverable errors.\n")
+
+                        # Update experiment status to failed
+                        await crud.update_experiment_status(
+                            db=db,
+                            experiment_id=experiment_id,
+                            tenant=tenant,
+                            status="failed",
+                            error_message=termination_reason,
+                        )
+                        return {"error": termination_reason, "early_termination": True}
+
                     continue
         
         if not test_cases_data:

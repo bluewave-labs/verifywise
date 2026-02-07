@@ -1,18 +1,20 @@
+import { ReactNode } from "react";
+
 import { Stack, Typography, Box, IconButton, Tooltip } from "@mui/material";
+
 import { infoCardbodyStyle, infoCardStyle, infoCardTitleStyle } from "./style";
-import React from "react";
 
 interface InfoCardProps {
   title: string;
   body: string;
-  icon?: React.ReactNode;
-  actionIcon?: React.ReactNode;
+  icon?: ReactNode;
+  actionIcon?: ReactNode;
   actionTooltip?: string;
   onActionClick?: () => void;
   isActionActive?: boolean;
 }
 
-const InfoCard = ({
+export function InfoCard({
   title,
   body,
   icon,
@@ -20,7 +22,7 @@ const InfoCard = ({
   actionTooltip,
   onActionClick,
   isActionActive = false
-}: InfoCardProps) => {
+}: InfoCardProps) {
   return (
     <Stack sx={infoCardStyle}>
       {icon && !actionIcon && (
@@ -62,6 +64,4 @@ const InfoCard = ({
       <Typography sx={infoCardbodyStyle}>{body}</Typography>
     </Stack>
   );
-};
-
-export default InfoCard;
+}

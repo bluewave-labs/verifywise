@@ -1,5 +1,4 @@
 import React, {
-  FC,
   useState,
   useMemo,
   useCallback,
@@ -25,7 +24,6 @@ import { extractUserToken } from "../../../application/tools/extractToken";
 import useUsers from "../../../application/hooks/useUsers";
 import { CreateProjectFormValues } from "../../../domain/interfaces/i.form";
 import { CreateProjectFormErrors } from "../../types/form.props";
-// import { CreateProjectFormUser } from "../../../domain/interfaces/i.user";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";
@@ -74,10 +72,10 @@ interface CreateProjectFormProps {
  * @returns {JSX.Element} The rendered component.
  */
 
-const CreateProjectForm: FC<CreateProjectFormProps> = ({
+export function CreateProjectForm({
   closePopup,
   onNewProject,
-}) => {
+}: CreateProjectFormProps) {
   const theme = useTheme();
   const { userRoleName } = useAuth();
   const [values, setValues] = useState<CreateProjectFormValues>(initialState);
@@ -453,6 +451,4 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
       </Stack>
     </Stack>
   );
-};
-
-export default CreateProjectForm;
+}

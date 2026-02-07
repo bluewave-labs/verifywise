@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { User } from '../../domain/types/User';
 import { getAllUsers } from '../repository/user.repository';
 import { useAuth } from './useAuth';
@@ -14,17 +14,16 @@ interface ApiResponse {
   data: ApiUser[];
 }
 
+const USERS_QUERY_KEY = ['users'] as const;
+
 const useUsers = () => {
   const { userId } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
+  const { data: users = [], isLoading: loading, error } = useQuery({
+    queryKey: USERS_QUERY_KEY,
+    queryFn: async () => {
       const response = await getAllUsers();
-
       // Convert role_id to roleId
       const formattedUsers: User[] = (response as ApiResponse).data.map((user: ApiUser): User => ({
         id: user.id,
@@ -33,23 +32,23 @@ const useUsers = () => {
         email: user.email,
         roleId: user.role_id
       }));
+      return formattedUsers;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+  });
 
-      setUsers(formattedUsers);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch users');
-    } finally {
-      setLoading(false);
-    }
+  const refreshUsers = async () => {
+    await queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
   };
 
-  useEffect(() => {
-    if (userId) {
-      fetchUsers();
-    }
-  }, [userId]);
-
-  return { users, loading, error, refreshUsers: fetchUsers };
+  return {
+    users,
+    loading,
+    error: error instanceof Error ? error.message : error ? String(error) : null,
+    refreshUsers
+  };
 };
 
 export default useUsers;

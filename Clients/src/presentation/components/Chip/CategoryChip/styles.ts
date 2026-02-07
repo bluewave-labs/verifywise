@@ -1,6 +1,6 @@
 import { useTheme } from "@mui/material";
 
-export const CategoryStyles = () => {
+export const useCategoryStyles = () => {
     const theme = useTheme();
 
     return {

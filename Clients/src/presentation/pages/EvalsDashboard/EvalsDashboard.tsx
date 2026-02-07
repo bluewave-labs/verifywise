@@ -237,6 +237,7 @@ export default function EvalsDashboard() {
 
   // API key modal state
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [isEditingApiKey, setIsEditingApiKey] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [newApiKey, setNewApiKey] = useState("");
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
@@ -1187,7 +1188,10 @@ export default function EvalsDashboard() {
                       variant="contained"
                       text="Add API key"
                       icon={<PlusIcon size={16} />}
-                      onClick={() => setApiKeyModalOpen(true)}
+                      onClick={() => {
+                        setIsEditingApiKey(false);
+                        setApiKeyModalOpen(true);
+                      }}
                       isDisabled={!canManageApiKeys}
                       sx={{
                         backgroundColor: "#13715B",
@@ -1237,7 +1241,10 @@ export default function EvalsDashboard() {
                       variant="contained"
                       text="Add API key"
                       icon={<PlusIcon size={16} />}
-                      onClick={() => setApiKeyModalOpen(true)}
+                      onClick={() => {
+                        setIsEditingApiKey(false);
+                        setApiKeyModalOpen(true);
+                      }}
                       isDisabled={!canManageApiKeys}
                       sx={{
                         backgroundColor: "#13715B",
@@ -1358,6 +1365,7 @@ export default function EvalsDashboard() {
                             <Stack direction="row" spacing={1} alignItems="center">
                               <IconButton
                                 onClick={() => {
+                                  setIsEditingApiKey(true);
                                   setSelectedProvider(key.provider);
                                   setNewApiKey("");
                                   setApiKeyModalOpen(true);
@@ -1967,24 +1975,29 @@ export default function EvalsDashboard() {
         </Stack>
       </ModalStandard>
 
-      {/* Add API Key Modal - Using ModalStandard like experiment creation */}
+      {/* Add/Edit API Key Modal - Using ModalStandard like experiment creation */}
       <ModalStandard
         isOpen={apiKeyModalOpen}
         onClose={() => {
           setApiKeyModalOpen(false);
+          setIsEditingApiKey(false);
           setSelectedProvider("");
           setNewApiKey("");
           setApiKeyError(null);
           setApiKeyAlert(null);
         }}
-        title="Add API key"
-        description="Configure API keys for LLM providers to run evaluations. Your keys are encrypted and stored securely."
+        title={isEditingApiKey ? "Edit API key" : "Add API key"}
+        description={isEditingApiKey
+          ? `Update the API key for ${LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name || selectedProvider}. Your keys are encrypted and stored securely.`
+          : "Configure API keys for LLM providers to run evaluations. Your keys are encrypted and stored securely."
+        }
         onSubmit={handleAddApiKey}
-        submitButtonText={verifyingApiKey ? "Verifying..." : apiKeySaving ? "Saving..." : "Add API key"}
+        submitButtonText={verifyingApiKey ? "Verifying..." : apiKeySaving ? "Saving..." : isEditingApiKey ? "Update API key" : "Add API key"}
         isSubmitting={verifyingApiKey || apiKeySaving || !selectedProvider || !newApiKey.trim() || !!apiKeyError}
       >
         <Stack spacing={3}>
-          {/* Provider Selection Grid - show ALL providers */}
+          {/* Provider Selection Grid - show ALL providers (hidden when editing) */}
+          {!isEditingApiKey && (
           <Box>
             <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
               Select Provider
@@ -2101,6 +2114,7 @@ export default function EvalsDashboard() {
               })}
             </Grid>
           </Box>
+          )}
 
           {/* API Key Input */}
           {selectedProvider && (

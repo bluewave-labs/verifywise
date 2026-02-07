@@ -462,7 +462,7 @@ const ProjectForm = ({
 
   const renderForm = () => (
     <Stack
-      component="form"
+      {...(!useStandardModal && { component: "form" })}
       onSubmit={(e) => {
         e.preventDefault();
         handleSubmit();

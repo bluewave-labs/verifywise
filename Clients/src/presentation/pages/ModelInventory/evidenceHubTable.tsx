@@ -368,7 +368,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                   onEdit?.(Number(evidence.id));
                 }}
               >
-                <TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <Box
                     sx={{
                       display: "flex",
@@ -387,10 +387,10 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                     {evidence.evidence_name}
                   </Box>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <TooltipCell value={evidence.evidence_type} />
                 </TableCell>
-                <TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <TooltipCell
                     value={
                       evidence.mapped_model_ids?.length
@@ -401,7 +401,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                     }
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <TooltipCell
                     value={
                       evidence.evidence_files &&
@@ -414,19 +414,19 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                   />
                 </TableCell>
 
-                <TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {evidence.evidence_files && evidence.evidence_files.length > 0
                     ? dayjs
                         .utc(evidence.evidence_files[0].upload_date)
                         .format("YYYY-MM-DD")
                     : "-"}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {evidence.expiry_date
                     ? dayjs.utc(evidence.expiry_date).format("YYYY-MM-DD")
                     : "-"}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <Stack direction="row" spacing={1}>
                     <CustomIconButton
                       id={evidence.id || 0}

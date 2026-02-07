@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserPreferencesModel } from "../../domain/models/Common/userPreferences/userPreferences.model";
 import { getUserPreferencesByUserId } from "../repository/userPreferences.repository";
 import { useAuth } from "./useAuth";
@@ -8,45 +8,33 @@ const defaultUserPreferences: Omit<UserPreferencesModel, "id" | "user_id"> = {
   date_format: UserDateFormat.DD_MM_YYYY_DASH,
 };
 
+const USER_PREFERENCES_QUERY_KEY = ['userPreferences'] as const;
+
 const useUserPreferences = () => {
   const { userId } = useAuth();
-  const [userPreferences, setUserPreferences] = useState<
-    Omit<UserPreferencesModel, "id" | "user_id">
-  >(defaultUserPreferences);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isDefault, setIsDefault] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
-  const fetchUserPreferences = async () => {
-    try {
-      setLoading(true);
+  const { data, isLoading: loading, error, isError } = useQuery({
+    queryKey: [...USER_PREFERENCES_QUERY_KEY, userId],
+    queryFn: async () => {
       const response = await getUserPreferencesByUserId(userId!);
+      return response.data as Omit<UserPreferencesModel, "id" | "user_id">;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+  });
 
-      setUserPreferences(response.data);
-      setError(null);
-      setIsDefault(false);
-    } catch (err) {
-      setIsDefault(true);
-      setError(
-        err instanceof Error ? err.message : "Failed to fetch user preferences"
-      );
-    } finally {
-      setLoading(false);
-    }
+  const refreshUserPreferences = async () => {
+    await queryClient.invalidateQueries({ queryKey: [...USER_PREFERENCES_QUERY_KEY, userId] });
   };
 
-  useEffect(() => {
-    if (userId) {
-      fetchUserPreferences();
-    }
-  }, [userId]);
-
   return {
-    userPreferences,
-    isDefault,
+    userPreferences: data ?? defaultUserPreferences,
+    isDefault: isError || !data,
     loading,
-    error,
-    refreshUserPreferences: fetchUserPreferences,
+    error: error instanceof Error ? error.message : error ? String(error) : null,
+    refreshUserPreferences,
   };
 };
 

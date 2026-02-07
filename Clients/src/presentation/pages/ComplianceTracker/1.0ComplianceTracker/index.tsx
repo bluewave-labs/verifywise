@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
-import StatsCard from "../../../components/Cards/StatsCard";
+import { StatsCard } from "../../../components/Cards/StatsCard";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import ControlCategoryTile from "./ControlCategory";

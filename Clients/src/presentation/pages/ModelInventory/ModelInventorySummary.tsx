@@ -1,5 +1,5 @@
 import React from "react";
-import StatusTileCards, { StatusTileItem } from "../../components/Cards/StatusTileCards";
+import { StatusTileCards, StatusTileItem } from "../../components/Cards/StatusTileCards";
 import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 
 interface ModelInventorySummaryProps {

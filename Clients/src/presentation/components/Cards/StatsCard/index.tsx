@@ -4,7 +4,7 @@ import ProgressBar from "../../ProjectCard/ProgressBar";
 import { useMemo } from "react";
 import { StatsCardProps } from "../../../types/interfaces/i.statsCard";
 
-const StatsCard = ({ title, completed, total }: StatsCardProps) => {
+export function StatsCard({ title, completed, total }: StatsCardProps) {
   // Convert to numbers and ensure they are non-negative
   const completedNum = useMemo(() => {
     const num = Number(completed);
@@ -50,6 +50,4 @@ const StatsCard = ({ title, completed, total }: StatsCardProps) => {
       <Typography sx={StatsCardRate}>{`${percentage}%`}</Typography>
     </Stack>
   );
-};
-
-export default StatsCard;
+}

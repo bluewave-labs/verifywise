@@ -24,7 +24,7 @@ export const tableStyles = {
         color: "#475467",
         fontSize: fontSizes.medium,
         fontWeight: 400,
-        padding: "12px 10px",
+        padding: "14px 12px",
         whiteSpace: "nowrap",
         "&:not(:lastChild)": {
           minWidth: "120px",
@@ -36,9 +36,12 @@ export const tableStyles = {
       backgroundColor: "white",
       row: {
         textTransform: "none",
-        borderBottom: "1px solid #d0d5dd",
+        borderBottom: "1px solid #eaecf0",
         backgroundColor: "white",
-        transition: "background-color 0.3s ease-in-out",
+        transition: "background-color 0.2s ease-in-out",
+        "&:nth-of-type(even)": {
+          backgroundColor: "#fafbfc",
+        },
         "&:last-child": {
           borderBottom: "none", // Prevent double border with table frame
         },
@@ -51,7 +54,7 @@ export const tableStyles = {
       },
       cell: {
         fontSize: fontSizes.medium,
-        padding: "12px 10px",
+        padding: "14px 12px",
         whiteSpace: "nowrap",
         "&:not(:lastChild)": {
           minWidth: "120px",

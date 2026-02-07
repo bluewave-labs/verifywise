@@ -97,7 +97,7 @@ export const capabilityChipExtraStyle = {
 };
 
 export const tableRowHoverStyle = {
-  "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
+  "&:hover": { backgroundColor: "#f5f5f5", cursor: "pointer" },
 };
 
 export const tableRowDeletingStyle = {

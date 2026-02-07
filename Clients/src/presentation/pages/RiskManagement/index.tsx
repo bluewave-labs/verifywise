@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { Box, Stack, Popover, Typography, IconButton, Tooltip, Fade } from "@mui/material";
+import { Box, Stack, Popover, Typography, IconButton, Tooltip } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { RisksCard } from "../../components/Cards/RisksCard";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -21,10 +21,7 @@ import AddNewRiskIBMModal from "../../components/AddNewRiskIBMForm";
 import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 import useUsers from "../../../application/hooks/useUsers";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
-import TipBox from "../../components/TipBox";
-import HelperIcon from "../../components/HelperIcon";
+import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
 import PageTour from "../../components/PageTour";
 import RiskManagementSteps from "./RiskManagementSteps";
 import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
@@ -41,6 +38,30 @@ import { PluginSlot } from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
 import { apiServices } from "../../../infrastructure/api/networkServices";
+import {
+  riskMainStackStyle,
+  riskFilterRowStyle,
+  analyticsIconButtonStyle,
+  addNewRiskButtonStyle,
+  riskPopoverStyle,
+  riskPopoverContentStyle,
+  riskMenuItemStyle,
+  riskMenuItemTitleStyle,
+  riskMenuItemSubtitleStyle,
+  riskDividerContainerStyle,
+  riskDividerLineStyle,
+  riskDividerTextStyle,
+  riskCardsGridStyle,
+  aiRiskCardBaseStyle,
+  aiRiskCardIbmStyle,
+  aiRiskCardRecommendedBadgeStyle,
+  aiRiskCardLogoStyle,
+  aiRiskCardTitleStyle,
+  aiRiskCardCaptionStyle,
+  historyToggleButtonStyle,
+  riskModalContentRowStyle,
+  riskModalFormContainerStyle,
+} from "./style";
 
 /**
  * Set initial loading status for all CRUD process
@@ -71,7 +92,7 @@ const RiskManagement = () => {
     title?: string;
     body: string;
   } | null>(null);
-  const [showAlert, setShowAlert] = useState(false);
+  const [, setShowAlert] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] =
     useState<LoadingStatus>(initialLoadingState);
@@ -666,61 +687,47 @@ const RiskManagement = () => {
   });
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
-
-      <Stack gap={"16px"} key={refreshKey}>
-        <PageHeader
-          title="Risk Management"
-          description="Manage and monitor risks across all your projects"
-          rightContent={
-            <HelperIcon
-              articlePath="risk-management/risk-assessment"
-              size="small"
-            />
-          }
-        />
-        <TipBox entityName="risk-management" />
-
-      {alert && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Fade in={showAlert} timeout={300}>
-            <Box sx={{ position: 'fixed' }}>
-              <Alert
-                variant={alert.variant}
-                title={alert.title}
-                body={alert.body}
-                isToast={true}
-                onClick={() => {
-                  setShowAlert(false);
-                  setTimeout(() => setAlert(null), 300);
-                }}
-              />
-            </Box>
-          </Fade>
-        </Suspense>
-      )}
-      {isLoading.loading && <CustomizableToast title={isLoading.message} />}
-      <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }} data-joyride-id="risk-summary-cards">
+    <PageHeaderExtended
+      title="Risk Management"
+      description="Manage and monitor risks across all your projects"
+      helpArticlePath="risk-management/risk-assessment"
+      tipBoxEntity="risk-management"
+      summaryCards={
         <RisksCard
           risksSummary={risksSummary}
           onCardClick={handleRiskCardClick}
           selectedLevel={selectedRiskLevel}
         />
-      </Stack>
+      }
+      summaryCardsJoyrideId="risk-summary-cards"
+      alert={
+        alert && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Box>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body}
+                isToast={true}
+                onClick={() => setAlert(null)}
+              />
+            </Box>
+          </Suspense>
+        )
+      }
+      loadingToast={isLoading.loading && <CustomizableToast title={isLoading.message} />}
+    >
 
       <Stack
         className="risk-management-row"
-        sx={{
-          gap: 10,
-        }}
+        sx={riskMainStackStyle}
       >
         <Stack
           direction="row"
           justifyContent="space-between"
           alignItems="flex-end"
         >
-          <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <Box sx={riskFilterRowStyle}>
             <div data-joyride-id="risk-filters">
               <FilterBy
                 columns={filterColumns}
@@ -755,17 +762,7 @@ const RiskManagement = () => {
               <IconButton
                 onClick={() => setIsAnalyticsDrawerOpen(true)}
                 aria-label="Analytics"
-                sx={{
-                  height: '34px',
-                  width: '34px',
-                  padding: '8px',
-                  borderRadius: '4px',
-                  border: '1px solid #e5e7eb',
-                  backgroundColor: '#ffffff',
-                  '&:hover': {
-                    backgroundColor: '#f9fafb',
-                  },
-                }}
+                sx={analyticsIconButtonStyle}
               >
                 <BarChart3 size={16} color="#344054" />
               </IconButton>
@@ -774,11 +771,7 @@ const RiskManagement = () => {
               <CustomizableButton
                 variant="contained"
                 text="Add new risk"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
+                sx={addNewRiskButtonStyle}
                 onClick={handleInsertFromMenuOpen as (event: unknown) => void}
                 icon={<ChevronDown size={16} />}
                 isDisabled={
@@ -798,23 +791,12 @@ const RiskManagement = () => {
                   vertical: "top",
                   horizontal: "right",
                 }}
-                sx={{
-                  mt: 1,
-                  "& .MuiPopover-paper": {
-                    borderRadius: "4px",
-                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
-                    overflow: "visible",
-                    backgroundColor: "#fff",
-                  },
-                }}
+                sx={riskPopoverStyle}
               >
                 <Box
                   role="menu"
                   aria-label="Add new risk menu"
-                  sx={{
-                    p: 2,
-                    width: "420px",
-                  }}
+                  sx={riskPopoverContentStyle}
                 >
                   {/* Add new risk option */}
                   <Box
@@ -832,37 +814,16 @@ const RiskManagement = () => {
                         setIsRiskModalOpen(true);
                       }
                     }}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "12px 16px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
-                      backgroundColor: "#fff",
-                      transition: "all 0.2s ease",
-                      mb: 2,
-                      "&:hover": {
-                        backgroundColor: "#f9fafb",
-                        border: "1px solid rgba(0, 0, 0, 0.12)",
-                      },
-                    }}
+                    sx={riskMenuItemStyle}
                   >
                     <Box>
                       <Typography
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: "13px",
-                          color: "rgba(0, 0, 0, 0.85)",
-                        }}
+                        sx={riskMenuItemTitleStyle}
                       >
                         Add new risk
                       </Typography>
                       <Typography
-                        sx={{
-                          fontSize: "11px",
-                          color: "rgba(0, 0, 0, 0.6)",
-                        }}
+                        sx={riskMenuItemSubtitleStyle}
                       >
                         Create a custom risk manually
                       </Typography>
@@ -871,27 +832,18 @@ const RiskManagement = () => {
 
                   {/* Divider with text */}
                   <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.5,
-                      mb: 2,
-                    }}
+                    sx={riskDividerContainerStyle}
                   >
-                    <Box sx={{ flex: 1, height: "1px", backgroundColor: "rgba(0, 0, 0, 0.08)" }} />
-                    <Typography sx={{ fontSize: "11px", color: "rgba(0, 0, 0, 0.45)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    <Box sx={riskDividerLineStyle} />
+                    <Typography sx={riskDividerTextStyle}>
                       Or import from
                     </Typography>
-                    <Box sx={{ flex: 1, height: "1px", backgroundColor: "rgba(0, 0, 0, 0.08)" }} />
+                    <Box sx={riskDividerLineStyle} />
                   </Box>
 
                   {/* AI Risk databases grid */}
                   <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: hasRiskImportPlugin ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
-                      gap: 2,
-                    }}
+                    sx={riskCardsGridStyle(hasRiskImportPlugin)}
                   >
                   <Box
                     role="menuitem"
@@ -904,67 +856,23 @@ const RiskManagement = () => {
                         handleIBMModalOpen();
                       }
                     }}
-                    sx={{
-                      background: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
-                      borderRadius: "4px",
-                      padding: "20px 16px",
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "flex-start",
-                      gap: 1.5,
-                      border: "1px solid rgba(0, 0, 0, 0.04)",
-                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                      minHeight: "140px",
-                      position: "relative",
-                      "&:hover": {
-                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-                        border: "1px solid rgba(0, 0, 0, 0.08)",
-                        background: "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(250, 250, 250, 1) 100%)",
-                      },
-                      "&:active": {
-                        transform: "scale(0.98)",
-                      },
-                    }}
+                    sx={aiRiskCardIbmStyle}
                   >
                     <Box
-                      sx={{
-                        position: "absolute",
-                        top: 8,
-                        right: 8,
-                        backgroundColor: "#10B981",
-                        color: "white",
-                        fontSize: "9px",
-                        fontWeight: 600,
-                        padding: "2px 6px",
-                        borderRadius: "3px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
+                      sx={aiRiskCardRecommendedBadgeStyle}
                     >
                       Recommended
                     </Box>
-                    <img src={ibmLogo} alt="IBM Logo" style={{ height: 24 }} />
+                    <img src={ibmLogo} alt="IBM Logo" style={aiRiskCardLogoStyle} />
                     <Typography
                       variant="body2"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: "13px",
-                        color: "rgba(0, 0, 0, 0.85)",
-                        textAlign: "center",
-                      }}
+                      sx={aiRiskCardTitleStyle}
                     >
                       IBM AI Risk database
                     </Typography>
                     <Typography
                       variant="caption"
-                      sx={{
-                        fontSize: "11px",
-                        color: "rgba(0, 0, 0, 0.6)",
-                        textAlign: "center",
-                        lineHeight: 1.4,
-                      }}
+                      sx={aiRiskCardCaptionStyle}
                     >
                       113 risks covering agentic AI, data privacy, inference attacks, and operational failures
                     </Typography>
@@ -980,49 +888,18 @@ const RiskManagement = () => {
                         handleMITModalOpen();
                       }
                     }}
-                    sx={{
-                      background: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
-                      borderRadius: "4px",
-                      padding: "20px 16px",
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "flex-start",
-                      gap: 1.5,
-                      border: "1px solid rgba(0, 0, 0, 0.04)",
-                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                      minHeight: "140px",
-                      "&:hover": {
-                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-                        border: "1px solid rgba(0, 0, 0, 0.08)",
-                        background: "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(250, 250, 250, 1) 100%)",
-                      },
-                      "&:active": {
-                        transform: "scale(0.98)",
-                      },
-                    }}
+                    sx={aiRiskCardBaseStyle}
                   >
-                    <img src={mitLogo} alt="MIT Logo" style={{ height: 24 }} />
+                    <img src={mitLogo} alt="MIT Logo" style={aiRiskCardLogoStyle} />
                     <Typography
                       variant="body2"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: "13px",
-                        color: "rgba(0, 0, 0, 0.85)",
-                        textAlign: "center",
-                      }}
+                      sx={aiRiskCardTitleStyle}
                     >
                       MIT AI Risk database
                     </Typography>
                     <Typography
                       variant="caption"
-                      sx={{
-                        fontSize: "11px",
-                        color: "rgba(0, 0, 0, 0.6)",
-                        textAlign: "center",
-                        lineHeight: 1.4,
-                      }}
+                      sx={aiRiskCardCaptionStyle}
                     >
                       Academic research-based risks covering AI safety, fairness, and societal impact
                     </Typography>
@@ -1104,15 +981,7 @@ const RiskManagement = () => {
               <IconButton
                 onClick={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
                 size="small"
-                sx={{
-                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
-                  padding: "4px",
-                  borderRadius: "4px",
-                  backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
-                  "&:hover": {
-                    backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
-                  },
-                }}
+                sx={historyToggleButtonStyle(isHistorySidebarOpen)}
               >
                 <HistoryIcon size={20} />
               </IconButton>
@@ -1121,23 +990,9 @@ const RiskManagement = () => {
         >
           <Stack
             direction="row"
-            sx={{
-              width: "100%",
-              minHeight: 0,
-              alignItems: "stretch",
-              overflow: "hidden",
-              position: "relative"
-            }}
+            sx={riskModalContentRowStyle}
           >
-            <Box sx={{
-              flex: isHistorySidebarOpen ? "0 0 auto" : 1,
-              minWidth: 0,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-              overflowX: "hidden",
-              overflowY: "auto"
-            }}>
+            <Box sx={riskModalFormContainerStyle(isHistorySidebarOpen)}>
               <AddNewRiskForm
                 closePopup={handleRiskModalClose}
                 popupStatus={selectedRow.length > 0 ? "edit" : "new"}
@@ -1212,8 +1067,7 @@ const RiskManagement = () => {
       />
 
       <PageTour steps={RiskManagementSteps} run={true} tourKey="risk-management-tour" />
-      </Stack>
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

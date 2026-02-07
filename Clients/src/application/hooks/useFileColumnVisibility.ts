@@ -18,6 +18,8 @@ export type FileColumn =
   | "upload_date"
   | "uploader"
   | "source"
+  | "version"
+  | "status"
   | "action";
 
 /**
@@ -41,6 +43,8 @@ export const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: "upload_date", label: "Upload date", defaultVisible: true },
   { key: "uploader", label: "Uploader", defaultVisible: true },
   { key: "source", label: "Source", defaultVisible: true },
+  { key: "version", label: "Version", defaultVisible: true },
+  { key: "status", label: "Status", defaultVisible: true },
   { key: "action", label: "Action", defaultVisible: true, alwaysVisible: true },
 ];
 

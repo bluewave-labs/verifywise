@@ -175,11 +175,21 @@ const IconButton: React.FC<IconButtonProps> = ({
   };
 
   const handleDownload = async (e?: React.SyntheticEvent) => {
-    if (onDownload) {
-      await onDownload();
-    }
-    if (e) {
-      closeDropDownMenu(e);
+    try {
+      if (onDownload) {
+        await onDownload();
+      }
+    } catch (error) {
+      console.error("Download failed:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to download file. Please try again.",
+        isToast: true,
+      });
+    } finally {
+      if (e) {
+        closeDropDownMenu(e);
+      }
     }
   };
 

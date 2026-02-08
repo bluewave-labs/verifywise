@@ -452,15 +452,23 @@ const IconButton: React.FC<IconButtonProps> = ({
                 }
                 if (e) closeDropDownMenu(e);
               } else if (item === "preview") {
+                if (e) closeDropDownMenu(e);
                 if (onPreview) {
-                  onPreview();
+                  try {
+                    await onPreview();
+                  } catch (error) {
+                    console.error("Preview failed:", error);
+                  }
                 }
-                if (e) closeDropDownMenu(e);
               } else if (item === "edit_metadata") {
-                if (onEditMetadata) {
-                  onEditMetadata();
-                }
                 if (e) closeDropDownMenu(e);
+                if (onEditMetadata) {
+                  try {
+                    await onEditMetadata();
+                  } catch (error) {
+                    console.error("Edit metadata failed:", error);
+                  }
+                }
               } else if (item === "version_history") {
                 if (onViewHistory) {
                   onViewHistory();

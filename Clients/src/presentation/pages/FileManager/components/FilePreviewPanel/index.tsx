@@ -19,7 +19,7 @@ import {
   Divider,
 } from "@mui/material";
 import { X, Download, Pencil, FileText, Image, FileType, FileSpreadsheet } from "lucide-react";
-import { FileMetadata, downloadFileFromManager } from "../../../../../application/repository/file.repository";
+import { FileMetadata, downloadFileFromManager, getFilePreview } from "../../../../../application/repository/file.repository";
 import StatusBadge from "../StatusBadge";
 import {
   getOfficeThumbnail,
@@ -119,8 +119,8 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
     }
   }, [file, previewType]);
 
-  // Load preview when file changes - uses the download endpoint directly
-  // This avoids needing a separate preview endpoint and works with all files
+  // Load preview when file changes - uses the dedicated preview endpoint
+  // which has XSS protections and MIME allowlisting
   useEffect(() => {
     if (!isOpen || !file || previewType === "unsupported") {
       setPreviewUrl(null);
@@ -136,9 +136,9 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
         setLoading(true);
         setError(null);
 
-        // Use the download endpoint to get file content for preview
-        // This works for all files that can be downloaded
-        const blob = await downloadFileFromManager({ id: file.id });
+        // Use the dedicated preview endpoint which has XSS protections,
+        // MIME allowlisting, and a 5MB size check built in
+        const blob = await getFilePreview({ id: file.id });
 
         if (cancelled) return;
 

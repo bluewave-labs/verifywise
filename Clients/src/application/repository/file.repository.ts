@@ -341,6 +341,7 @@ export async function getFileMetadata({
     last_modifier_name: f?.last_modifier_name,
     last_modifier_surname: f?.last_modifier_surname,
     description: f?.description,
+    file_group_id: f?.file_group_id,
   };
 }
 

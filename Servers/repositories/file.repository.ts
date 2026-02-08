@@ -35,7 +35,7 @@ export interface FileMetadata {
   uploader_surname?: string;
 }
 
-export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired';
+export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired' | 'superseded';
 
 export interface OrganizationFileMetadata {
   id: number;
@@ -59,6 +59,7 @@ export interface OrganizationFileMetadata {
   last_modifier_name?: string;
   last_modifier_surname?: string;
   description?: string;
+  file_group_id?: string;
 }
 
 export interface UpdateFileMetadataInput {
@@ -315,9 +316,9 @@ export async function uploadOrganizationFile(
 
   const query = `
     INSERT INTO ${escapePgIdentifier(tenant)}.files
-      (filename, size, type, file_path, content, uploaded_by, uploaded_time, model_id, org_id, is_demo, source, project_id)
+      (filename, size, type, file_path, content, uploaded_by, uploaded_time, model_id, org_id, is_demo, source, project_id, file_group_id)
     VALUES
-      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source, NULL)
+      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source, NULL, gen_random_uuid())
     RETURNING *`;
 
   const result = await sequelize.query(query, {
@@ -701,6 +702,7 @@ export async function getFileWithMetadata(
       f.expiry_date,
       f.last_modified_by,
       f.description,
+      f.file_group_id,
       u.name AS uploader_name,
       u.surname AS uploader_surname,
       m.name AS last_modifier_name,
@@ -752,6 +754,7 @@ export async function getOrganizationFilesWithMetadata(
       f.expiry_date,
       f.last_modified_by,
       f.description,
+      f.file_group_id,
       u.name AS uploader_name,
       u.surname AS uploader_surname,
       m.name AS last_modifier_name,
@@ -934,6 +937,61 @@ export async function getFilePreview(
     canPreview,
     content: canPreview ? file.content : Buffer.alloc(0),
   };
+}
+
+// ============================================================================
+// File Version History
+// ============================================================================
+
+/**
+ * Gets all file versions in the same file group, ordered by upload time descending
+ *
+ * @param fileGroupId - The file group UUID to query
+ * @param tenant - Tenant schema identifier
+ * @returns Array of file records in the same version group
+ */
+export async function getFileVersionHistory(
+  fileGroupId: string,
+  tenant: string
+): Promise<OrganizationFileMetadata[]> {
+  validateTenant(tenant);
+
+  // Validate UUID format
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(fileGroupId)) {
+    return [];
+  }
+
+  const query = `
+    SELECT
+      f.id,
+      f.filename,
+      f.size,
+      f.type AS mimetype,
+      f.uploaded_time AS upload_date,
+      f.uploaded_by,
+      f.org_id,
+      f.model_id,
+      f.source,
+      f.tags,
+      f.review_status,
+      f.version,
+      f.expiry_date,
+      f.last_modified_by,
+      f.description,
+      f.file_group_id,
+      u.name AS uploader_name,
+      u.surname AS uploader_surname
+    FROM ${escapePgIdentifier(tenant)}.files f
+    JOIN public.users u ON f.uploaded_by = u.id
+    WHERE f.file_group_id = :fileGroupId
+    ORDER BY f.uploaded_time DESC`;
+
+  const result = await sequelize.query(query, {
+    replacements: { fileGroupId },
+    type: QueryTypes.SELECT,
+  });
+
+  return result as OrganizationFileMetadata[];
 }
 
 // ============================================================================

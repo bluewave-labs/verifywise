@@ -27,6 +27,7 @@ import {
   getFileWithMetadata,
   getHighlightedFiles,
   getFilePreview,
+  getFileVersionHistory as getFileVersionHistoryRepo,
   FileSource,
   UpdateFileMetadataInput,
   ReviewStatus,
@@ -42,6 +43,10 @@ import {
 } from "../utils/logger/logHelper";
 import { getUserProjects } from "../utils/user.utils";
 import { getProjectByIdQuery } from "../utils/project.utils";
+import {
+  trackEntityChanges,
+  recordMultipleFieldChanges,
+} from "../utils/changeHistory.base.utils";
 
 /**
  * Helper function to validate and parse request authentication data
@@ -525,17 +530,17 @@ export const downloadFile = async (
     // Set headers for file download (unified files table uses 'type' for mimetype)
     res.setHeader("Content-Type", file.type || "application/octet-stream");
     res.setHeader("X-Content-Type-Options", "nosniff");
+    const safeFilename = file.filename
+      .replace(/["\r\n]/g, '')
+      .replace(/[^\x20-\x7E]/g, '_');
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${file.filename}"`
+      `attachment; filename="${safeFilename}"`
     );
 
     // Set Content-Length
-    const contentLength = file.size || (file.content ? file.content.length : 0);
+    const contentLength = file.content ? file.content.length : 0;
     res.setHeader("Content-Length", contentLength);
-
-    // Send file content from database
-    res.send(file.content);
 
     await logSuccess({
       eventType: "Read",
@@ -545,6 +550,9 @@ export const downloadFile = async (
       userId: req.userId!,
       tenantId: req.tenantId!,
     });
+
+    // Send file content from database (after logging to avoid async interference)
+    res.end(file.content);
   } catch (error) {
     await logFailure({
       eventType: "Error",
@@ -895,7 +903,7 @@ export const updateMetadata = async (
     const { tags, review_status, version, expiry_date, description } = req.body;
 
     // Validate review_status if provided
-    const validStatuses: ReviewStatus[] = ['draft', 'pending_review', 'approved', 'rejected', 'expired'];
+    const validStatuses: ReviewStatus[] = ['draft', 'pending_review', 'approved', 'rejected', 'expired', 'superseded'];
     if (review_status && !validStatuses.includes(review_status)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid review status"));
     }
@@ -947,10 +955,36 @@ export const updateMetadata = async (
     if (expiry_date !== undefined) updates.expiry_date = expiry_date;
     if (description !== undefined) updates.description = description;
 
+    // Fetch current metadata state before update (for change tracking)
+    const beforeState = await getFileWithMetadata(fileId, tenant);
+
     const updatedFile = await updateFileMetadata(fileId, updates, tenant);
 
     if (!updatedFile) {
       return res.status(404).json(STATUS_CODE[404]("File not found after update"));
+    }
+
+    // Record changes in file change history
+    try {
+      if (beforeState) {
+        const changes = await trackEntityChanges(
+          "file",
+          beforeState,
+          updatedFile
+        );
+        if (changes.length > 0) {
+          await recordMultipleFieldChanges(
+            "file",
+            fileId,
+            userId,
+            tenant,
+            changes
+          );
+        }
+      }
+    } catch (historyError) {
+      // Don't fail the update if history recording fails
+      console.error("Failed to record file change history:", historyError);
     }
 
     await logSuccess({
@@ -1264,6 +1298,82 @@ export const previewFile = async (
       eventType: "Error",
       description: "Failed to get file preview",
       functionName: "previewFile",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get file version history (all files in the same file group)
+ *
+ * GET /file-manager/:id/versions
+ *
+ * @param {Request} req - Express request with file ID in params
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} List of file versions in the same group
+ */
+export const getFileVersionHistory = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+
+  if (!Number.isSafeInteger(fileId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { tenant } = auth;
+
+  logProcessing({
+    description: `Getting version history for file ID ${fileId}`,
+    functionName: "getFileVersionHistory",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    // Get the file to extract file_group_id
+    const file = await getFileWithMetadata(fileId, tenant);
+
+    if (!file) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    if (!file.file_group_id) {
+      // No group ID means no version history — return just this file
+      return res.status(200).json(STATUS_CODE[200]({ versions: [file] }));
+    }
+
+    const versions = await getFileVersionHistoryRepo(file.file_group_id, tenant);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved ${versions.length} versions for file group: ${file.file_group_id}`,
+      functionName: "getFileVersionHistory",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200]({ versions }));
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to get file version history",
+      functionName: "getFileVersionHistory",
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
       userId: req.userId!,

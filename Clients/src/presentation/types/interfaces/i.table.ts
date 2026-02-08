@@ -123,8 +123,9 @@ export interface IFileBasicTableProps {
   onFileDeleted?: () => void | Promise<void>;
   hidePagination?: boolean;
   onAssignToFolder?: (fileId: number) => void;
-  onPreview?: (fileId: number | string) => void;
-  onEditMetadata?: (fileId: number | string) => void;
+  onPreview?: (fileId: number | string) => void | Promise<void>;
+  onEditMetadata?: (fileId: number | string) => void | Promise<void>;
+  onViewHistory?: (fileId: number | string) => void;
   /** Column keys that are visible (for conditional cell rendering) */
   visibleColumnKeys?: FileColumn[];
 }
@@ -135,8 +136,9 @@ export interface IFileTableProps {
   onFileDeleted?: () => void | Promise<void>;
   hidePagination?: boolean;
   onAssignToFolder?: (fileId: number) => void;
-  onPreview?: (fileId: number | string) => void;
-  onEditMetadata?: (fileId: number | string) => void;
+  onPreview?: (fileId: number | string) => void | Promise<void>;
+  onEditMetadata?: (fileId: number | string) => void | Promise<void>;
+  onViewHistory?: (fileId: number | string) => void;
   /** Column keys that are visible (for conditional cell rendering) */
   visibleColumnKeys?: FileColumn[];
 }

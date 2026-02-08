@@ -12,6 +12,7 @@ import FileTable from "../../components/Table/FileTable/FileTable";
 import {
   getUserFilesMetaData,
   getFilesWithMetadata,
+  getFileMetadata,
   updateFileMetadata,
   FileMetadata,
   UpdateFileMetadataInput,
@@ -60,6 +61,7 @@ import { useFileColumnVisibility } from "../../../application/hooks/useFileColum
 import { ColumnSelector } from "./components/ColumnSelector";
 import { FilePreviewPanel } from "./components/FilePreviewPanel";
 import { FileMetadataEditor } from "./components/FileMetadataEditor";
+import { FileVersionHistoryDrawer } from "./components/FileVersionHistoryDrawer";
 
 // Constants
 const FILE_MANAGER_CONTEXT = "FileManager";
@@ -153,6 +155,10 @@ const FileManager: React.FC = (): JSX.Element => {
   const [isMetadataEditorOpen, setIsMetadataEditorOpen] = useState(false);
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
 
+  // Version history drawer state
+  const [versionHistoryFileId, setVersionHistoryFileId] = useState<string | number | null>(null);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
+
   // Auto-dismiss alerts
   useEffect(() => {
     if (alert) {
@@ -198,7 +204,11 @@ const FileManager: React.FC = (): JSX.Element => {
       setLoadingMetadata(true);
       const response = await getFilesWithMetadata();
       setFilesWithMetadata(response.files);
+      if (response.files.length === 0) {
+        console.warn("[FileManager] Metadata endpoint returned 0 files — preview and edit metadata will use fallback fetch");
+      }
     } catch (error) {
+      console.warn("[FileManager] Failed to fetch files with metadata — preview and edit metadata will use fallback fetch:", error);
       secureLogError("Error fetching files with metadata", FILE_MANAGER_CONTEXT);
       setFilesWithMetadata([]);
     } finally {
@@ -249,12 +259,23 @@ const FileManager: React.FC = (): JSX.Element => {
   }, [refetch, fetchFilesWithMetadata, refreshFolders, refreshFiles, selectedFolder]);
 
   // Preview panel handlers
-  const handleOpenPreview = useCallback((fileId: number | string) => {
+  const handleOpenPreview = useCallback(async (fileId: number | string) => {
     const idStr = String(fileId);
     const file = filesWithMetadata.find((f) => String(f.id) === idStr);
     if (file) {
       setPreviewFile(file);
       setIsPreviewOpen(true);
+    } else {
+      // Fallback: fetch metadata directly from server
+      console.warn(`[FileManager] Preview: file ID ${idStr} not found in cached metadata, fetching directly...`);
+      try {
+        const metadata = await getFileMetadata({ id: idStr });
+        setPreviewFile(metadata);
+        setIsPreviewOpen(true);
+      } catch (error) {
+        console.error(`[FileManager] Preview: failed to fetch metadata for file ID ${idStr}:`, error);
+        setAlert({ variant: "error", body: "Unable to preview file. Metadata not available.", isToast: true });
+      }
     }
   }, [filesWithMetadata]);
 
@@ -264,12 +285,23 @@ const FileManager: React.FC = (): JSX.Element => {
   }, []);
 
   // Metadata editor handlers
-  const handleOpenMetadataEditor = useCallback((fileId: number | string) => {
+  const handleOpenMetadataEditor = useCallback(async (fileId: number | string) => {
     const idStr = String(fileId);
     const file = filesWithMetadata.find((f) => String(f.id) === idStr);
     if (file) {
       setEditingFile(file);
       setIsMetadataEditorOpen(true);
+    } else {
+      // Fallback: fetch metadata directly from server
+      console.warn(`[FileManager] Edit metadata: file ID ${idStr} not found in cached metadata, fetching directly...`);
+      try {
+        const metadata = await getFileMetadata({ id: idStr });
+        setEditingFile(metadata);
+        setIsMetadataEditorOpen(true);
+      } catch (error) {
+        console.error(`[FileManager] Edit metadata: failed to fetch metadata for file ID ${idStr}:`, error);
+        setAlert({ variant: "error", body: "Unable to edit metadata. File data not available.", isToast: true });
+      }
     }
   }, [filesWithMetadata]);
 
@@ -295,6 +327,17 @@ const FileManager: React.FC = (): JSX.Element => {
       setIsSubmittingMetadata(false);
     }
   }, [editingFile, fetchFilesWithMetadata, handleCloseMetadataEditor]);
+
+  // Version history handlers
+  const handleOpenVersionHistory = useCallback((fileId: number | string) => {
+    setVersionHistoryFileId(fileId);
+    setIsVersionHistoryOpen(true);
+  }, []);
+
+  const handleCloseVersionHistory = useCallback(() => {
+    setIsVersionHistoryOpen(false);
+    setVersionHistoryFileId(null);
+  }, []);
 
   // Folder management handlers
   const handleOpenCreateFolder = useCallback((parentId: number | null) => {
@@ -385,17 +428,37 @@ const FileManager: React.FC = (): JSX.Element => {
     }
   }, [folderToDelete, handleDeleteFolder, handleCloseDeleteFolder, selectedFolder, setSelectedFolder]);
 
-  // Get active files based on selected folder
+  // Build a metadata lookup map for O(1) access
+  const metadataMap = useMemo(() => {
+    const map = new Map<string, FileMetadata>();
+    for (const meta of filesWithMetadata) {
+      map.set(String(meta.id), meta);
+    }
+    return map;
+  }, [filesWithMetadata]);
+
+  // Get active files based on selected folder, enriched with metadata
   const activeFilesData = useMemo(() => {
     // When loading folder files, return empty to prevent flash of stale data
     if (loadingFolderFiles && selectedFolder !== "all") {
       return [];
     }
 
+    // Helper to enrich a FileModel with metadata
+    const enrichWithMetadata = (file: FileModel): FileModel => {
+      const meta = metadataMap.get(String(file.id));
+      if (meta) {
+        file.version = meta.version;
+        file.reviewStatus = meta.review_status;
+        file.fileGroupId = meta.file_group_id;
+      }
+      return file;
+    };
+
     // When viewing "all", use the original filesData
     // When viewing a folder or "uncategorized", use folderFiles converted to FileModel format
     if (selectedFolder === "all") {
-      return filesData;
+      return filesData.map(enrichWithMetadata);
     }
 
     // Convert folder files to FileModel instances for compatibility with existing table
@@ -403,7 +466,7 @@ const FileManager: React.FC = (): JSX.Element => {
       const uploaderName = file.uploader_name && file.uploader_surname
         ? `${file.uploader_name} ${file.uploader_surname}`
         : file.uploader_name || file.uploader_surname || "Unknown";
-      return FileModel.createNewFile({
+      const fileModel = FileModel.createNewFile({
         id: file.id.toString(),
         fileName: file.filename,
         size: file.size,
@@ -414,8 +477,9 @@ const FileManager: React.FC = (): JSX.Element => {
         projectTitle: file.project_title,
         source: file.source || "File Manager",
       });
+      return enrichWithMetadata(fileModel);
     });
-  }, [selectedFolder, filesData, folderFiles, loadingFolderFiles]);
+  }, [selectedFolder, filesData, folderFiles, loadingFolderFiles, metadataMap]);
 
   // Assign to folder modal handlers
   const handleOpenAssignFolder = useCallback(async (fileId: number) => {
@@ -716,6 +780,7 @@ const FileManager: React.FC = (): JSX.Element => {
                       onAssignToFolder={canManageFolders ? handleOpenAssignFolder : undefined}
                       onPreview={handleOpenPreview}
                       onEditMetadata={canManageFolders ? handleOpenMetadataEditor : undefined}
+                      onViewHistory={handleOpenVersionHistory}
                       visibleColumnKeys={visibleColumnKeys}
                     />
                   )}
@@ -796,6 +861,13 @@ const FileManager: React.FC = (): JSX.Element => {
         onSubmit={handleSubmitMetadata}
         file={editingFile}
         isSubmitting={isSubmittingMetadata}
+      />
+
+      {/* File Version History Drawer */}
+      <FileVersionHistoryDrawer
+        isOpen={isVersionHistoryOpen}
+        onClose={handleCloseVersionHistory}
+        fileId={versionHistoryFileId}
       />
 
       {/* Toast Alert */}

@@ -32,6 +32,7 @@ import {
   listFilesWithMetadata,
   getHighlighted,
   previewFile,
+  getFileVersionHistory,
 } from "../controllers/fileManager.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 import authorize from "../middleware/accessControl.middleware";
@@ -192,6 +193,17 @@ router.get("/:id", fileOperationsLimiter, authenticateJWT, downloadFile);
  * @returns {500} Server error
  */
 router.get("/:id/metadata", fileOperationsLimiter, authenticateJWT, getFileMetadata);
+
+/**
+ * @route   GET /file-manager/:id/versions
+ * @desc    Get version history for a file (all files in the same group)
+ * @access  All authenticated users
+ * @param   id - File ID
+ * @returns {200} List of file versions
+ * @returns {404} File not found
+ * @returns {500} Server error
+ */
+router.get("/:id/versions", fileOperationsLimiter, authenticateJWT, getFileVersionHistory);
 
 /**
  * @route   PATCH /file-manager/:id/metadata

@@ -56,6 +56,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   // File metadata props
   onPreview,
   onEditMetadata,
+  onViewHistory,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -174,11 +175,21 @@ const IconButton: React.FC<IconButtonProps> = ({
   };
 
   const handleDownload = async (e?: React.SyntheticEvent) => {
-    if (onDownload) {
-      await onDownload();
-    }
-    if (e) {
-      closeDropDownMenu(e);
+    try {
+      if (onDownload) {
+        await onDownload();
+      }
+    } catch (error) {
+      console.error("Download failed:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to download file. Please try again.",
+        isToast: true,
+      });
+    } finally {
+      if (e) {
+        closeDropDownMenu(e);
+      }
     }
   };
 
@@ -306,6 +317,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       const items = ["preview", "download"];
       if (onEditMetadata) items.push("edit_metadata");
       if (onAssignToFolder) items.push("assign_folder");
+      if (onViewHistory) items.push("version_history");
       items.push("linked_policies", "remove");
       return items;
     }
@@ -350,6 +362,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       assign_folder: "Assign to folder",
       preview: "Preview",
       edit_metadata: "Edit metadata",
+      version_history: "Version history",
     };
   
     // Type-specific
@@ -439,13 +452,26 @@ const IconButton: React.FC<IconButtonProps> = ({
                 }
                 if (e) closeDropDownMenu(e);
               } else if (item === "preview") {
-                if (onPreview) {
-                  onPreview();
-                }
                 if (e) closeDropDownMenu(e);
+                if (onPreview) {
+                  try {
+                    await onPreview();
+                  } catch (error) {
+                    console.error("Preview failed:", error);
+                  }
+                }
               } else if (item === "edit_metadata") {
+                if (e) closeDropDownMenu(e);
                 if (onEditMetadata) {
-                  onEditMetadata();
+                  try {
+                    await onEditMetadata();
+                  } catch (error) {
+                    console.error("Edit metadata failed:", error);
+                  }
+                }
+              } else if (item === "version_history") {
+                if (onViewHistory) {
+                  onViewHistory();
                 }
                 if (e) closeDropDownMenu(e);
               } else if (item === "delete" && (type === "Task" || type === "task")) {

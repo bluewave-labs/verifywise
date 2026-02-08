@@ -52,6 +52,12 @@ const STATUS_CONFIGS: Record<ReviewStatus, StatusConfig> = {
     color: "#B54708",
     borderColor: "#FEDF89",
   },
+  superseded: {
+    label: "Superseded",
+    backgroundColor: "#F2F4F7",
+    color: "#667085",
+    borderColor: "#D0D5DD",
+  },
 };
 
 /**

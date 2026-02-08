@@ -36,6 +36,7 @@ const REVIEW_STATUS_OPTIONS = [
   { _id: "approved", name: "Approved" },
   { _id: "rejected", name: "Rejected" },
   { _id: "expired", name: "Expired" },
+  { _id: "superseded", name: "Superseded" },
 ];
 
 /**

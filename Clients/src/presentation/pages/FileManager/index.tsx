@@ -204,7 +204,11 @@ const FileManager: React.FC = (): JSX.Element => {
       setLoadingMetadata(true);
       const response = await getFilesWithMetadata();
       setFilesWithMetadata(response.files);
+      if (response.files.length === 0) {
+        console.warn("[FileManager] Metadata endpoint returned 0 files — preview and edit metadata will use fallback fetch");
+      }
     } catch (error) {
+      console.warn("[FileManager] Failed to fetch files with metadata — preview and edit metadata will use fallback fetch:", error);
       secureLogError("Error fetching files with metadata", FILE_MANAGER_CONTEXT);
       setFilesWithMetadata([]);
     } finally {

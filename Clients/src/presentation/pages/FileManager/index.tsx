@@ -12,6 +12,7 @@ import FileTable from "../../components/Table/FileTable/FileTable";
 import {
   getUserFilesMetaData,
   getFilesWithMetadata,
+  getFileMetadata,
   updateFileMetadata,
   FileMetadata,
   UpdateFileMetadataInput,
@@ -254,15 +255,23 @@ const FileManager: React.FC = (): JSX.Element => {
   }, [refetch, fetchFilesWithMetadata, refreshFolders, refreshFiles, selectedFolder]);
 
   // Preview panel handlers
-  const handleOpenPreview = useCallback((fileId: number | string) => {
+  const handleOpenPreview = useCallback(async (fileId: number | string) => {
     const idStr = String(fileId);
     const file = filesWithMetadata.find((f) => String(f.id) === idStr);
     if (file) {
       setPreviewFile(file);
       setIsPreviewOpen(true);
     } else {
-      console.warn(`[FileManager] Preview: file ID ${idStr} not found in metadata (${filesWithMetadata.length} files loaded)`);
-      setAlert({ variant: "error", body: "Unable to preview file. Metadata not available.", isToast: true });
+      // Fallback: fetch metadata directly from server
+      console.warn(`[FileManager] Preview: file ID ${idStr} not found in cached metadata, fetching directly...`);
+      try {
+        const metadata = await getFileMetadata({ id: idStr });
+        setPreviewFile(metadata);
+        setIsPreviewOpen(true);
+      } catch (error) {
+        console.error(`[FileManager] Preview: failed to fetch metadata for file ID ${idStr}:`, error);
+        setAlert({ variant: "error", body: "Unable to preview file. Metadata not available.", isToast: true });
+      }
     }
   }, [filesWithMetadata]);
 

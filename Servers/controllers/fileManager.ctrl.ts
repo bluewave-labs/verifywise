@@ -536,7 +536,7 @@ export const downloadFile = async (
     );
 
     // Set Content-Length
-    const contentLength = file.size || (file.content ? file.content.length : 0);
+    const contentLength = file.content ? file.content.length : 0;
     res.setHeader("Content-Length", contentLength);
 
     // Send file content from database

@@ -69,8 +69,8 @@ export interface IconButtonProps {
   // Virtual folder props
   onAssignToFolder?: () => void;
   // File metadata props
-  onPreview?: () => void;
-  onEditMetadata?: () => void;
+  onPreview?: () => void | Promise<void>;
+  onEditMetadata?: () => void | Promise<void>;
   onViewHistory?: () => void;
 }
 

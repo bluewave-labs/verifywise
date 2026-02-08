@@ -542,9 +542,6 @@ export const downloadFile = async (
     const contentLength = file.content ? file.content.length : 0;
     res.setHeader("Content-Length", contentLength);
 
-    // Send file content from database
-    res.end(file.content);
-
     await logSuccess({
       eventType: "Read",
       description: `File downloaded successfully: ${file.filename}`,
@@ -553,6 +550,9 @@ export const downloadFile = async (
       userId: req.userId!,
       tenantId: req.tenantId!,
     });
+
+    // Send file content from database (after logging to avoid async interference)
+    res.end(file.content);
   } catch (error) {
     await logFailure({
       eventType: "Error",

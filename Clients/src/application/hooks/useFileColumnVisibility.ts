@@ -48,7 +48,9 @@ export const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: "action", label: "Action", defaultVisible: true, alwaysVisible: true },
 ];
 
+const SCHEMA_VERSION = 2;
 const STORAGE_KEY = "verifywise:file-column-visibility";
+const VERSION_KEY = "verifywise:file-column-visibility-version";
 
 // Always-visible column keys that must be included
 const ALWAYS_VISIBLE_KEYS = DEFAULT_COLUMNS
@@ -100,9 +102,20 @@ export function useFileColumnVisibility(): UseFileColumnVisibilityReturn {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored) as FileColumn[];
-        // Filter out invalid keys (from old localStorage data)
         const validKeys = parsed.filter((key) => VALID_COLUMN_KEYS.has(key));
-        // Always include alwaysVisible columns
+
+        // Check if schema version has changed (new columns added)
+        const storedVersion = Number(localStorage.getItem(VERSION_KEY) || "0");
+        if (storedVersion < SCHEMA_VERSION) {
+          // Add any new defaultVisible columns that weren't in the stored set
+          const storedSet = new Set(validKeys);
+          const newDefaults = DEFAULT_COLUMNS
+            .filter((c) => c.defaultVisible && !storedSet.has(c.key))
+            .map((c) => c.key);
+          localStorage.setItem(VERSION_KEY, String(SCHEMA_VERSION));
+          return new Set([...validKeys, ...newDefaults, ...ALWAYS_VISIBLE_KEYS]);
+        }
+
         const withRequired = new Set([...validKeys, ...ALWAYS_VISIBLE_KEYS]);
         return withRequired;
       }
@@ -110,7 +123,8 @@ export function useFileColumnVisibility(): UseFileColumnVisibilityReturn {
       console.error("Error loading column visibility from localStorage:", err);
     }
 
-    // Return defaults
+    // First visit — save current version
+    localStorage.setItem(VERSION_KEY, String(SCHEMA_VERSION));
     return new Set(
       DEFAULT_COLUMNS.filter((c) => c.defaultVisible).map((c) => c.key)
     );

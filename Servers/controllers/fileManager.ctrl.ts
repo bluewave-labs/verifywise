@@ -543,7 +543,7 @@ export const downloadFile = async (
     res.setHeader("Content-Length", contentLength);
 
     // Send file content from database
-    res.send(file.content);
+    res.end(file.content);
 
     await logSuccess({
       eventType: "Read",

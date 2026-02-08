@@ -530,9 +530,12 @@ export const downloadFile = async (
     // Set headers for file download (unified files table uses 'type' for mimetype)
     res.setHeader("Content-Type", file.type || "application/octet-stream");
     res.setHeader("X-Content-Type-Options", "nosniff");
+    const safeFilename = file.filename
+      .replace(/["\r\n]/g, '')
+      .replace(/[^\x20-\x7E]/g, '_');
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${file.filename}"`
+      `attachment; filename="${safeFilename}"`
     );
 
     // Set Content-Length

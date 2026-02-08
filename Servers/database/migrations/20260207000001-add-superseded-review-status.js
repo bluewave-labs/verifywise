@@ -5,16 +5,6 @@
  * Drops and recreates the chk_review_status constraint with the new value.
  */
 
-function validateTenantHash(hash) {
-  if (!hash || typeof hash !== 'string') {
-    throw new Error('Invalid tenant hash: must be a non-empty string');
-  }
-  if (!/^_[a-f0-9]+$/i.test(hash)) {
-    throw new Error(`Invalid tenant hash format: ${hash}`);
-  }
-  return hash;
-}
-
 module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
@@ -27,7 +17,7 @@ module.exports = {
       const { getTenantHash } = require("../../dist/tools/getTenantHash");
 
       for (const organization of organizations) {
-        const tenantHash = validateTenantHash(getTenantHash(organization.id));
+        const tenantHash = getTenantHash(organization.id);
 
         // Check if files table exists
         const [tableExists] = await queryInterface.sequelize.query(
@@ -83,7 +73,7 @@ module.exports = {
       const { getTenantHash } = require("../../dist/tools/getTenantHash");
 
       for (const organization of organizations) {
-        const tenantHash = validateTenantHash(getTenantHash(organization.id));
+        const tenantHash = getTenantHash(organization.id);
 
         // Drop constraint with 'superseded'
         await queryInterface.sequelize.query(

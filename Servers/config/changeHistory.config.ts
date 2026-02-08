@@ -42,7 +42,8 @@ export type EntityType =
   | "vendor_risk"
   | "policy"
   | "incident"
-  | "file";
+  | "file"
+  | "model_lifecycle";
 
 /**
  * Field formatter function type
@@ -619,6 +620,22 @@ export const ENTITY_CONFIGS: { [key in EntityType]: EntityConfig } = {
     fieldFormatters: {
       tags: GENERIC_FORMATTERS.array,
       expiry_date: GENERIC_FORMATTERS.date,
+    },
+  },
+
+  model_lifecycle: {
+    tableName: "model_lifecycle_change_history",
+    foreignKeyField: "model_lifecycle_value_id",
+    fieldsToTrack: [
+      "value_text",
+      "value_json",
+    ],
+    fieldLabels: {
+      value_text: "Value",
+      value_json: "Value (structured)",
+    },
+    fieldFormatters: {
+      value_json: GENERIC_FORMATTERS.text,
     },
   },
 };

@@ -281,15 +281,23 @@ const FileManager: React.FC = (): JSX.Element => {
   }, []);
 
   // Metadata editor handlers
-  const handleOpenMetadataEditor = useCallback((fileId: number | string) => {
+  const handleOpenMetadataEditor = useCallback(async (fileId: number | string) => {
     const idStr = String(fileId);
     const file = filesWithMetadata.find((f) => String(f.id) === idStr);
     if (file) {
       setEditingFile(file);
       setIsMetadataEditorOpen(true);
     } else {
-      console.warn(`[FileManager] Edit metadata: file ID ${idStr} not found in metadata (${filesWithMetadata.length} files loaded)`);
-      setAlert({ variant: "error", body: "Unable to edit metadata. File data not available.", isToast: true });
+      // Fallback: fetch metadata directly from server
+      console.warn(`[FileManager] Edit metadata: file ID ${idStr} not found in cached metadata, fetching directly...`);
+      try {
+        const metadata = await getFileMetadata({ id: idStr });
+        setEditingFile(metadata);
+        setIsMetadataEditorOpen(true);
+      } catch (error) {
+        console.error(`[FileManager] Edit metadata: failed to fetch metadata for file ID ${idStr}:`, error);
+        setAlert({ variant: "error", body: "Unable to edit metadata. File data not available.", isToast: true });
+      }
     }
   }, [filesWithMetadata]);
 

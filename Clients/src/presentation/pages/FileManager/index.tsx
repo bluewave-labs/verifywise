@@ -260,6 +260,9 @@ const FileManager: React.FC = (): JSX.Element => {
     if (file) {
       setPreviewFile(file);
       setIsPreviewOpen(true);
+    } else {
+      console.warn(`[FileManager] Preview: file ID ${idStr} not found in metadata (${filesWithMetadata.length} files loaded)`);
+      setAlert({ variant: "error", body: "Unable to preview file. Metadata not available.", isToast: true });
     }
   }, [filesWithMetadata]);
 

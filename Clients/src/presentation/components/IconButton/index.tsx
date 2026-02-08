@@ -306,8 +306,8 @@ const IconButton: React.FC<IconButtonProps> = ({
     if (normalizedType === "report") {
       const items = ["preview", "download"];
       if (onEditMetadata) items.push("edit_metadata");
-      if (onViewHistory) items.push("version_history");
       if (onAssignToFolder) items.push("assign_folder");
+      if (onViewHistory) items.push("version_history");
       items.push("linked_policies", "remove");
       return items;
     }

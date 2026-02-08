@@ -278,6 +278,9 @@ const FileManager: React.FC = (): JSX.Element => {
     if (file) {
       setEditingFile(file);
       setIsMetadataEditorOpen(true);
+    } else {
+      console.warn(`[FileManager] Edit metadata: file ID ${idStr} not found in metadata (${filesWithMetadata.length} files loaded)`);
+      setAlert({ variant: "error", body: "Unable to edit metadata. File data not available.", isToast: true });
     }
   }, [filesWithMetadata]);
 

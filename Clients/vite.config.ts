@@ -26,6 +26,12 @@ export default defineConfig({
         target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
+        timeout: 120000,
+        configure: (proxy) => {
+          proxy.on('error', (err) => {
+            console.error('[vite proxy error]', err.message);
+          });
+        },
       },
     },
   },

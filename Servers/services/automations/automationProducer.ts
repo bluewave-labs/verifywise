@@ -61,3 +61,51 @@ export async function schedulePMMHourlyCheck() {
     },
   );
 }
+
+export async function scheduleShadowAiJobs() {
+  logger.info("Adding Shadow AI scheduled jobs to the queue...");
+
+  // Daily rollup: aggregate yesterday's raw events at 1:00 AM
+  await automationQueue.add(
+    "shadow_ai_daily_rollup",
+    { type: "shadow_ai" },
+    {
+      repeat: { pattern: "0 1 * * *" },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  );
+
+  // Monthly rollup: aggregate last month's daily rollups at 1:00 AM on 1st
+  await automationQueue.add(
+    "shadow_ai_monthly_rollup",
+    { type: "shadow_ai" },
+    {
+      repeat: { pattern: "0 1 1 * *" },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  );
+
+  // Nightly risk scoring: recalculate all tool risk scores at 1:30 AM
+  await automationQueue.add(
+    "shadow_ai_risk_scoring",
+    { type: "shadow_ai" },
+    {
+      repeat: { pattern: "30 1 * * *" },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  );
+
+  // Purge old events: delete events older than 30 days at 2:00 AM
+  await automationQueue.add(
+    "shadow_ai_purge_events",
+    { type: "shadow_ai" },
+    {
+      repeat: { pattern: "0 2 * * *" },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  );
+}

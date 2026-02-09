@@ -20,6 +20,7 @@ interface UseModelLifecycleResult {
   loading: boolean;
   error: string | null;
   refresh: () => void;
+  setPhases: React.Dispatch<React.SetStateAction<LifecyclePhase[]>>;
 }
 
 /**
@@ -48,7 +49,7 @@ export function useModelLifecycle(modelId: number | null): UseModelLifecycleResu
     fetchData();
   }, [fetchData]);
 
-  return { phases, loading, error, refresh: fetchData };
+  return { phases, loading, error, refresh: fetchData, setPhases };
 }
 
 interface UseLifecycleConfigResult {
@@ -56,6 +57,7 @@ interface UseLifecycleConfigResult {
   loading: boolean;
   error: string | null;
   refresh: () => void;
+  setPhases: React.Dispatch<React.SetStateAction<LifecyclePhase[]>>;
 }
 
 /**
@@ -85,7 +87,7 @@ export function useLifecycleConfig(
     fetchData();
   }, [fetchData]);
 
-  return { phases, loading, error, refresh: fetchData };
+  return { phases, loading, error, refresh: fetchData, setPhases };
 }
 
 interface UseLifecycleProgressResult {

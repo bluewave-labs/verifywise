@@ -24,9 +24,9 @@ import {
 import {
   Plus,
   Trash2,
-  ChevronUp,
-  ChevronDown,
-  GripVertical,
+  ArrowUp,
+  ArrowDown,
+  ChevronRight,
   X,
 } from "lucide-react";
 import {
@@ -66,7 +66,7 @@ const ITEM_TYPES: { value: LifecycleItemType; label: string }[] = [
 
 const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) => {
   const theme = useTheme();
-  const { phases, loading, refresh } = useLifecycleConfig(true);
+  const { phases, loading, refresh, setPhases } = useLifecycleConfig(true);
   const [saving, setSaving] = useState(false);
 
   // New phase form
@@ -152,17 +152,22 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
 
   const handleTogglePhaseActive = useCallback(
     async (phaseId: number, isActive: boolean) => {
-      setSaving(true);
+      // Optimistic update — change local state immediately so the phase
+      // stays visible (just dimmed) instead of vanishing during a reload.
+      setPhases((prev) =>
+        prev.map((p) => (p.id === phaseId ? { ...p, is_active: isActive } : p))
+      );
       try {
         await updatePhase(phaseId, { is_active: isActive });
-        refresh();
       } catch (err) {
         console.error("Failed to toggle phase:", err);
-      } finally {
-        setSaving(false);
+        // Revert on failure
+        setPhases((prev) =>
+          prev.map((p) => (p.id === phaseId ? { ...p, is_active: !isActive } : p))
+        );
       }
     },
-    [refresh]
+    [setPhases]
   );
 
   // ============================================================================
@@ -211,17 +216,31 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
 
   const handleToggleItemRequired = useCallback(
     async (itemId: number, isRequired: boolean) => {
-      setSaving(true);
+      // Optimistic update
+      setPhases((prev) =>
+        prev.map((p) => ({
+          ...p,
+          items: p.items?.map((i) =>
+            i.id === itemId ? { ...i, is_required: isRequired } : i
+          ),
+        }))
+      );
       try {
         await updateItem(itemId, { is_required: isRequired });
-        refresh();
       } catch (err) {
         console.error("Failed to toggle item required:", err);
-      } finally {
-        setSaving(false);
+        // Revert on failure
+        setPhases((prev) =>
+          prev.map((p) => ({
+            ...p,
+            items: p.items?.map((i) =>
+              i.id === itemId ? { ...i, is_required: !isRequired } : i
+            ),
+          }))
+        );
       }
     },
-    [refresh]
+    [setPhases]
   );
 
   const handleMoveItem = useCallback(
@@ -270,12 +289,12 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       </DialogTitle>
 
       <DialogContent dividers>
-        {loading ? (
+        {loading && phases.length === 0 ? (
           <Stack alignItems="center" sx={{ py: 4 }}>
             <CircularProgress />
           </Stack>
         ) : (
-          <Stack spacing={2}>
+          <Stack sx={{ gap: "12px" }}>
             {/* Existing phases */}
             {phases.map((phase, phaseIdx) => (
               <Box
@@ -291,16 +310,25 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                 <Stack
                   direction="row"
                   alignItems="center"
-                  spacing={1}
                   sx={{
+                    gap: "8px",
                     px: "16px",
-                    py: "8px",
+                    py: "10px",
                     backgroundColor: theme.palette.background.accent,
                     cursor: "pointer",
+                    userSelect: "none",
                   }}
                   onClick={() => toggleExpanded(phase.id)}
                 >
-                  <GripVertical size={14} color={theme.palette.text.tertiary} />
+                  <ChevronRight
+                    size={16}
+                    color={theme.palette.text.secondary}
+                    style={{
+                      transform: expandedPhases.has(phase.id) ? "rotate(90deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s ease",
+                      flexShrink: 0,
+                    }}
+                  />
                   <Typography variant="body2" sx={{ flex: 1, fontWeight: 600, fontSize: "13px" }}>
                     {phase.name}
                   </Typography>
@@ -326,10 +354,10 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                       e.stopPropagation();
                       handleMovePhase(phase.id, "up");
                     }}
-                    aria-label="Move up"
+                    aria-label="Move phase up"
                     sx={{ opacity: phaseIdx === 0 ? 0.4 : 1 }}
                   >
-                    <ChevronUp size={16} />
+                    <ArrowUp size={16} />
                   </IconButton>
                   <IconButton
                     size="small"
@@ -338,10 +366,10 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                       e.stopPropagation();
                       handleMovePhase(phase.id, "down");
                     }}
-                    aria-label="Move down"
+                    aria-label="Move phase down"
                     sx={{ opacity: phaseIdx === phases.length - 1 ? 0.4 : 1 }}
                   >
-                    <ChevronDown size={16} />
+                    <ArrowDown size={16} />
                   </IconButton>
                   <IconButton
                     size="small"
@@ -358,15 +386,15 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
 
                 {/* Phase items (expanded) */}
                 {expandedPhases.has(phase.id) && (
-                  <Stack spacing={0} sx={{ px: "16px", py: "8px" }}>
+                  <Stack spacing={0} sx={{ px: "16px", py: "12px" }}>
                     {(phase.items ?? []).map((item, itemIdx) => (
                       <Stack
                         key={item.id}
                         direction="row"
                         alignItems="center"
-                        spacing={1}
                         sx={{
-                          py: 0.75,
+                          gap: "8px",
+                          py: "8px",
                           borderBottom: `1px solid ${theme.palette.border.light}`,
                         }}
                       >
@@ -393,10 +421,10 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                           onClick={() =>
                             handleMoveItem(phase.id, phase.items ?? [], item.id, "up")
                           }
-                          aria-label="Move up"
+                          aria-label="Move item up"
                           sx={{ opacity: itemIdx === 0 ? 0.4 : 1 }}
                         >
-                          <ChevronUp size={16} />
+                          <ArrowUp size={16} />
                         </IconButton>
                         <IconButton
                           size="small"
@@ -404,10 +432,10 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                           onClick={() =>
                             handleMoveItem(phase.id, phase.items ?? [], item.id, "down")
                           }
-                          aria-label="Move down"
+                          aria-label="Move item down"
                           sx={{ opacity: itemIdx === (phase.items?.length ?? 0) - 1 ? 0.4 : 1 }}
                         >
-                          <ChevronDown size={16} />
+                          <ArrowDown size={16} />
                         </IconButton>
                         <IconButton
                           size="small"
@@ -422,7 +450,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
 
                     {/* Add item form */}
                     {addingItemForPhase === phase.id ? (
-                      <Stack direction="row" spacing={1} sx={{ pt: 1 }} alignItems="center">
+                      <Stack direction="row" sx={{ gap: "8px", pt: "12px" }} alignItems="center">
                         <Stack sx={{ ...getInputStyles(theme), flex: 1 }}>
                           <TextField
                             size="small"
@@ -486,7 +514,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                         startIcon={<Plus size={16} />}
                         onClick={() => setAddingItemForPhase(phase.id)}
                         ariaLabel="Add item"
-                        sx={{ alignSelf: "flex-start", mt: 1, textTransform: "none" }}
+                        sx={{ alignSelf: "flex-start", mt: "12px", textTransform: "none" }}
                       >
                         Add item
                       </CustomizableButton>
@@ -504,10 +532,10 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                 p: "16px",
               }}
             >
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: "8px" }}>
                 Add new phase
               </Typography>
-              <Stack spacing={1}>
+              <Stack sx={{ gap: "8px" }}>
                 <Stack sx={getInputStyles(theme)}>
                   <TextField
                     size="small"

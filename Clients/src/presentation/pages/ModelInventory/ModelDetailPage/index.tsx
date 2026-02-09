@@ -214,7 +214,7 @@ const ModelDetailPage = () => {
       </Box>
 
       {/* Lifecycle phases */}
-      {lifecycleLoading ? (
+      {lifecycleLoading && phases.length === 0 ? (
         <Stack alignItems="center" sx={{ py: 4 }}>
           <CircularProgress size={24} />
         </Stack>

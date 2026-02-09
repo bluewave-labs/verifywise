@@ -7,7 +7,6 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Stack,
-  Box,
   Typography,
   Paper,
   Skeleton,
@@ -36,12 +35,20 @@ import {
   ShadowAiDepartmentActivity,
 } from "../../../domain/interfaces/i.shadowAi";
 import EmptyState from "../../components/EmptyState";
+import RiskBadge from "../../components/RiskBadge";
 
 const PERIOD_OPTIONS = [
   { _id: "7d", name: "Last 7 days" },
   { _id: "30d", name: "Last 30 days" },
   { _id: "90d", name: "Last 90 days" },
 ];
+
+interface UserDetailData {
+  email: string;
+  department: string;
+  tools: { tool_name: string; event_count: number; last_used: string }[];
+  total_prompts: number;
+}
 
 type ViewMode = "users" | "departments" | "detail";
 
@@ -54,7 +61,7 @@ export default function UserActivityPage() {
   const [page, setPage] = useState(1);
   const [departments, setDepartments] = useState<ShadowAiDepartmentActivity[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
-  const [userDetail, setUserDetail] = useState<any>(null);
+  const [userDetail, setUserDetail] = useState<UserDetailData | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
   const fetchUsers = useCallback(async () => {
@@ -182,7 +189,7 @@ export default function UserActivityPage() {
                     </TableHead>
                     <TableBody>
                       {userDetail.tools.map(
-                        (t: { tool_name: string; event_count: number; last_used: string }) => (
+                        (t) => (
                           <MuiTableRow key={t.tool_name}>
                             <TableCell sx={{ fontSize: 13 }}>{t.tool_name}</TableCell>
                             <TableCell sx={{ fontSize: 13 }}>{t.event_count}</TableCell>
@@ -327,38 +334,3 @@ export default function UserActivityPage() {
   );
 }
 
-function RiskBadge({ score }: { score: number }) {
-  const color =
-    score >= 70
-      ? "#DC2626"
-      : score >= 40
-        ? "#F59E0B"
-        : "#10B981";
-
-  return (
-    <Box
-      sx={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 0.5,
-        px: 1,
-        py: 0.25,
-        borderRadius: "4px",
-        backgroundColor: `${color}14`,
-        border: `1px solid ${color}33`,
-      }}
-    >
-      <Box
-        sx={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          backgroundColor: color,
-        }}
-      />
-      <Typography sx={{ fontSize: 12, fontWeight: 500, color }}>
-        {score}
-      </Typography>
-    </Box>
-  );
-}

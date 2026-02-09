@@ -1,8 +1,8 @@
 /**
  * Shadow AI Insights Page
  *
- * Dashboard showing summary metrics, tool usage charts,
- * department breakdown, and trend over time.
+ * Dashboard showing summary metrics, tool risk rankings,
+ * department breakdown pie chart, and top tool charts.
  */
 
 import { useState, useEffect } from "react";
@@ -22,32 +22,34 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import {
   AppWindow,
   Users,
   AlertTriangle,
   Building2,
-  TrendingUp,
 } from "lucide-react";
 import {
   getInsightsSummary,
   getToolsByEvents,
   getToolsByUsers,
   getUsersByDepartment,
-  getTrend,
+  getTools,
 } from "../../../application/repository/shadowAi.repository";
 import {
   ShadowAiInsightsSummary,
   ShadowAiToolByEvents,
   ShadowAiToolByUsers,
   ShadowAiUsersByDepartment,
-  ShadowAiTrendPoint,
+  IShadowAiTool,
 } from "../../../domain/interfaces/i.shadowAi";
 import EmptyState from "../../components/EmptyState";
 import Select from "../../components/Inputs/Select";
+import { CustomizableButton } from "../../components/button/customizable-button";
+import { useNavigate } from "react-router-dom";
 
 const PERIOD_OPTIONS = [
   { _id: "7d", name: "Last 7 days" },
@@ -55,34 +57,46 @@ const PERIOD_OPTIONS = [
   { _id: "90d", name: "Last 90 days" },
 ];
 
+const DEPT_COLORS = [
+  "#6366F1", // indigo
+  "#F59E0B", // amber
+  "#10B981", // emerald
+  "#EF4444", // red
+  "#8B5CF6", // purple
+  "#06B6D4", // cyan
+  "#EC4899", // pink
+  "#84CC16", // lime
+];
+
 export default function InsightsPage() {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState("30d");
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<ShadowAiInsightsSummary | null>(null);
   const [toolsByEvents, setToolsByEvents] = useState<ShadowAiToolByEvents[]>([]);
   const [toolsByUsers, setToolsByUsers] = useState<ShadowAiToolByUsers[]>([]);
   const [departments, setDepartments] = useState<ShadowAiUsersByDepartment[]>([]);
-  const [trend, setTrend] = useState<ShadowAiTrendPoint[]>([]);
+  const [topRiskTools, setTopRiskTools] = useState<IShadowAiTool[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [summaryData, eventsData, usersData, deptData, trendData] =
+        const [summaryData, eventsData, usersData, deptData, toolsData] =
           await Promise.all([
             getInsightsSummary(period),
-            getToolsByEvents(period, 10),
-            getToolsByUsers(period, 10),
+            getToolsByEvents(period, 5),
+            getToolsByUsers(period, 5),
             getUsersByDepartment(period),
-            getTrend(period, "daily"),
+            getTools({ sort_by: "risk_score", order: "desc", limit: 5 }),
           ]);
         if (cancelled) return;
         setSummary(summaryData);
         setToolsByEvents(eventsData);
         setToolsByUsers(usersData);
         setDepartments(deptData);
-        setTrend(trendData);
+        setTopRiskTools(toolsData.tools);
       } catch (error) {
         console.error("Failed to load insights:", error);
       } finally {
@@ -125,190 +139,268 @@ export default function InsightsPage() {
         />
       </Stack>
 
-      {/* Summary cards */}
+      {/* Summary cards - top row */}
       <Stack direction="row" gap={2} flexWrap="wrap">
         <MetricCard
           icon={<AppWindow size={16} strokeWidth={1.5} />}
-          label="AI tools detected"
+          label="Unique apps"
           value={summary?.unique_apps}
           loading={loading}
         />
         <MetricCard
           icon={<Users size={16} strokeWidth={1.5} />}
-          label="Active users"
+          label="AI users"
           value={summary?.total_ai_users}
           loading={loading}
         />
+      </Stack>
+
+      {/* Summary cards - second row */}
+      <Stack direction="row" gap={2} flexWrap="wrap">
         <MetricCard
           icon={<AlertTriangle size={16} strokeWidth={1.5} />}
           label="Highest risk tool"
           value={summary?.highest_risk_tool?.name ?? "—"}
           subtitle={
             summary?.highest_risk_tool
-              ? `Risk score: ${summary.highest_risk_tool.risk_score}`
+              ? `Risk: ${summary.highest_risk_tool.risk_score}`
               : undefined
           }
           loading={loading}
         />
         <MetricCard
           icon={<Building2 size={16} strokeWidth={1.5} />}
-          label="Departments using AI"
-          value={summary?.departments_using_ai}
+          label="Most active department"
+          value={summary?.most_active_department ?? "—"}
           loading={loading}
         />
       </Stack>
 
-      {/* Charts row */}
+      {/* Main content: left = risk list + dept chart, right = bar charts */}
       <Stack direction={{ xs: "column", md: "row" }} gap={2}>
-        {/* Tools by events */}
-        <ChartCard title="Top tools by activity" flex={1} loading={loading}>
-          {toolsByEvents.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart
-                data={toolsByEvents}
-                layout="vertical"
-                margin={{ left: 80, right: 16, top: 8, bottom: 8 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis
-                  type="category"
-                  dataKey="tool_name"
-                  tick={{ fontSize: 12 }}
-                  width={75}
-                />
-                <Tooltip
-                  contentStyle={{ fontSize: 12, borderRadius: 4 }}
-                  formatter={(value: number) => [value, "Events"]}
-                />
-                <Bar dataKey="event_count" fill="#13715B" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <NoChartData />
-          )}
-        </ChartCard>
-
-        {/* Tools by users */}
-        <ChartCard title="Top tools by users" flex={1} loading={loading}>
-          {toolsByUsers.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart
-                data={toolsByUsers}
-                layout="vertical"
-                margin={{ left: 80, right: 16, top: 8, bottom: 8 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis
-                  type="category"
-                  dataKey="tool_name"
-                  tick={{ fontSize: 12 }}
-                  width={75}
-                />
-                <Tooltip
-                  contentStyle={{ fontSize: 12, borderRadius: 4 }}
-                  formatter={(value: number) => [value, "Users"]}
-                />
-                <Bar dataKey="user_count" fill="#3B82F6" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <NoChartData />
-          )}
-        </ChartCard>
-      </Stack>
-
-      {/* Trend + Departments row */}
-      <Stack direction={{ xs: "column", md: "row" }} gap={2}>
-        {/* Trend chart */}
-        <ChartCard title="Activity trend" flex={2} loading={loading}>
-          {trend.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={trend} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(d: string) => {
-                    const date = new Date(d);
-                    return `${date.getMonth() + 1}/${date.getDate()}`;
-                  }}
-                />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{ fontSize: 12, borderRadius: 4 }}
-                  labelFormatter={(d: string) => new Date(d).toLocaleDateString()}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="total_events"
-                  stroke="#13715B"
-                  strokeWidth={2}
-                  dot={false}
-                  name="Events"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="unique_users"
-                  stroke="#3B82F6"
-                  strokeWidth={2}
-                  dot={false}
-                  name="Users"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <NoChartData />
-          )}
-        </ChartCard>
-
-        {/* Department breakdown */}
-        <ChartCard title="Users by department" flex={1} loading={loading}>
-          {departments.length > 0 ? (
-            <Stack gap={1.5} sx={{ pt: 1 }}>
-              {departments.map((dept) => (
-                <Stack key={dept.department} gap={0.5}>
-                  <Stack direction="row" justifyContent="space-between">
-                    <Typography sx={{ fontSize: 12, color: "#374151" }}>
-                      {dept.department}
-                    </Typography>
-                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#111827" }}>
-                      {dept.user_count}
+        {/* Left column */}
+        <Stack gap={2} sx={{ flex: 1 }}>
+          {/* Accessed tools with highest risk */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              border: "1px solid #d0d5dd",
+              borderRadius: "4px",
+            }}
+          >
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 2 }}>
+              Accessed tools with highest risk
+            </Typography>
+            {loading ? (
+              <Skeleton variant="rectangular" height={200} sx={{ borderRadius: "4px" }} />
+            ) : topRiskTools.length > 0 ? (
+              <Stack gap={1.5}>
+                {topRiskTools.map((tool) => (
+                  <Stack
+                    key={tool.id}
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
+                    <Stack direction="row" alignItems="center" gap={1.5}>
+                      <RiskScoreBadge score={tool.risk_score ?? 0} />
+                      <Typography sx={{ fontSize: 13, color: "#374151" }}>
+                        {tool.name}
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+                      {tool.total_events.toLocaleString()} events
                     </Typography>
                   </Stack>
-                  <Box
-                    sx={{
-                      height: 6,
-                      borderRadius: 3,
-                      backgroundColor: "#F3F4F6",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        height: "100%",
-                        width: `${Math.min(
-                          100,
-                          (dept.user_count /
-                            Math.max(
-                              ...departments.map((d) => d.user_count),
-                              1
-                            )) *
-                            100
-                        )}%`,
-                        backgroundColor: "#13715B",
-                        borderRadius: 3,
-                      }}
-                    />
-                  </Box>
+                ))}
+                <CustomizableButton
+                  text="Go to AI tools"
+                  variant="text"
+                  sx={{
+                    fontSize: 12,
+                    color: "#6B7280",
+                    alignSelf: "flex-start",
+                    mt: 0.5,
+                    p: 0,
+                    minWidth: 0,
+                    "&:hover": { color: "#374151", backgroundColor: "transparent" },
+                  }}
+                  onClick={() => navigate("/shadow-ai/tools")}
+                />
+              </Stack>
+            ) : (
+              <NoChartData />
+            )}
+          </Paper>
+
+          {/* AI users by department - pie chart */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              border: "1px solid #d0d5dd",
+              borderRadius: "4px",
+            }}
+          >
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 2 }}>
+              AI users by department
+            </Typography>
+            {loading ? (
+              <Skeleton variant="rectangular" height={250} sx={{ borderRadius: "4px" }} />
+            ) : departments.length > 0 ? (
+              <Stack direction="row" alignItems="center" gap={3}>
+                <Box sx={{ width: 200, height: 200 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={departments}
+                        dataKey="user_count"
+                        nameKey="department"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={90}
+                        innerRadius={0}
+                      >
+                        {departments.map((_dept, index) => (
+                          <Cell
+                            key={index}
+                            fill={DEPT_COLORS[index % DEPT_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ fontSize: 12, borderRadius: 4 }}
+                        formatter={(value: number, name: string) => [value, name]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+                <Stack gap={1}>
+                  {departments.map((dept, index) => (
+                    <Stack key={dept.department} direction="row" alignItems="center" gap={1}>
+                      <Box
+                        sx={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          backgroundColor: DEPT_COLORS[index % DEPT_COLORS.length],
+                          flexShrink: 0,
+                        }}
+                      />
+                      <Typography sx={{ fontSize: 12, color: "#374151" }}>
+                        {dept.department}
+                      </Typography>
+                    </Stack>
+                  ))}
                 </Stack>
-              ))}
-            </Stack>
-          ) : (
-            <NoChartData />
-          )}
-        </ChartCard>
+              </Stack>
+            ) : (
+              <NoChartData />
+            )}
+          </Paper>
+        </Stack>
+
+        {/* Right column - bar charts */}
+        <Stack gap={2} sx={{ flex: 1 }}>
+          {/* Most accessed tools by events */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              border: "1px solid #d0d5dd",
+              borderRadius: "4px",
+            }}
+          >
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 2 }}>
+              Most accessed tools by events
+            </Typography>
+            {loading ? (
+              <Skeleton variant="rectangular" height={220} sx={{ borderRadius: "4px" }} />
+            ) : toolsByEvents.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart
+                    data={toolsByEvents}
+                    layout="vertical"
+                    margin={{ left: 80, right: 16, top: 8, bottom: 8 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis type="number" tick={{ fontSize: 12 }} />
+                    <YAxis
+                      type="category"
+                      dataKey="tool_name"
+                      tick={{ fontSize: 12 }}
+                      width={75}
+                    />
+                    <Tooltip
+                      contentStyle={{ fontSize: 12, borderRadius: 4 }}
+                      formatter={(value: number) => [value, "Events"]}
+                    />
+                    <Bar dataKey="event_count" fill="#6366F1" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+                <CustomizableButton
+                  text="Go to AI tools"
+                  variant="text"
+                  sx={{
+                    fontSize: 12,
+                    color: "#6B7280",
+                    alignSelf: "flex-start",
+                    mt: 1,
+                    p: 0,
+                    minWidth: 0,
+                    "&:hover": { color: "#374151", backgroundColor: "transparent" },
+                  }}
+                  onClick={() => navigate("/shadow-ai/tools")}
+                />
+              </>
+            ) : (
+              <NoChartData />
+            )}
+          </Paper>
+
+          {/* Most accessed tools by users */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              border: "1px solid #d0d5dd",
+              borderRadius: "4px",
+            }}
+          >
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 2 }}>
+              Most accessed tools by users
+            </Typography>
+            {loading ? (
+              <Skeleton variant="rectangular" height={220} sx={{ borderRadius: "4px" }} />
+            ) : toolsByUsers.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart
+                  data={toolsByUsers}
+                  layout="vertical"
+                  margin={{ left: 80, right: 16, top: 8, bottom: 8 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis type="number" tick={{ fontSize: 12 }} />
+                  <YAxis
+                    type="category"
+                    dataKey="tool_name"
+                    tick={{ fontSize: 12 }}
+                    width={75}
+                  />
+                  <Tooltip
+                    contentStyle={{ fontSize: 12, borderRadius: 4 }}
+                    formatter={(value: number) => [value, "Users"]}
+                  />
+                  <Bar dataKey="user_count" fill="#6366F1" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <NoChartData />
+            )}
+          </Paper>
+        </Stack>
       </Stack>
     </Stack>
   );
@@ -362,40 +454,32 @@ function MetricCard({
   );
 }
 
-function ChartCard({
-  title,
-  children,
-  flex,
-  loading,
-}: {
-  title: string;
-  children: React.ReactNode;
-  flex?: number;
-  loading: boolean;
-}) {
+function RiskScoreBadge({ score }: { score: number }) {
+  const color =
+    score >= 70
+      ? "#DC2626"
+      : score >= 40
+        ? "#F59E0B"
+        : "#10B981";
+
   return (
-    <Paper
-      elevation={0}
+    <Box
       sx={{
-        flex,
-        p: 2,
-        border: "1px solid #d0d5dd",
-        borderRadius: "4px",
-        minWidth: 0,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 28,
+        height: 28,
+        borderRadius: "50%",
+        backgroundColor: `${color}14`,
+        border: `1px solid ${color}33`,
+        flexShrink: 0,
       }}
     >
-      <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 2 }}>
-        <TrendingUp size={14} strokeWidth={1.5} color="#6B7280" />
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
-          {title}
-        </Typography>
-      </Stack>
-      {loading ? (
-        <Skeleton variant="rectangular" height={250} sx={{ borderRadius: "4px" }} />
-      ) : (
-        children
-      )}
-    </Paper>
+      <Typography sx={{ fontSize: 11, fontWeight: 600, color }}>
+        {score}
+      </Typography>
+    </Box>
   );
 }
 
@@ -403,7 +487,7 @@ function NoChartData() {
   return (
     <Box
       sx={{
-        height: 250,
+        height: 200,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

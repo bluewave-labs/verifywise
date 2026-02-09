@@ -155,7 +155,12 @@ export async function getUserDetail(email: string, period?: string): Promise<{
   total_prompts: number;
 }> {
   const params = period ? `?period=${period}` : "";
-  const response = await apiServices.get<{ data: any }>(
+  const response = await apiServices.get<{ data: {
+    email: string;
+    department: string;
+    tools: { tool_name: string; event_count: number; last_used: string }[];
+    total_prompts: number;
+  } }>(
     `${BASE_URL}/users/${encodeURIComponent(email)}/activity${params}`
   );
   return response.data.data;
@@ -208,7 +213,10 @@ export async function getToolById(id: number): Promise<IShadowAiTool & {
   departments: { department: string; user_count: number }[];
   top_users: { user_email: string; event_count: number }[];
 }> {
-  const response = await apiServices.get<{ data: any }>(
+  const response = await apiServices.get<{ data: IShadowAiTool & {
+    departments: { department: string; user_count: number }[];
+    top_users: { user_email: string; event_count: number }[];
+  } }>(
     `${BASE_URL}/tools/${id}`
   );
   return response.data.data;

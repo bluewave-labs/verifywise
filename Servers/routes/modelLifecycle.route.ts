@@ -20,13 +20,13 @@ import {
 // Full config (phases + items) - all authenticated users
 router.get("/config", authenticateJWT, getLifecycleConfig);
 
-// Phase CRUD
+// Phase CRUD — reorder must come before :id to avoid Express matching "reorder" as :id
 router.get("/phases", authenticateJWT, getLifecyclePhases);
+router.patch("/phases/reorder", authenticateJWT, authorize(["Admin"]), reorderLifecyclePhases);
 router.get("/phases/:id", authenticateJWT, getLifecyclePhaseById);
 router.post("/phases", authenticateJWT, authorize(["Admin"]), createLifecyclePhase);
 router.patch("/phases/:id", authenticateJWT, authorize(["Admin"]), updateLifecyclePhase);
 router.delete("/phases/:id", authenticateJWT, authorize(["Admin"]), deleteLifecyclePhase);
-router.patch("/phases/reorder", authenticateJWT, authorize(["Admin"]), reorderLifecyclePhases);
 
 // Item CRUD
 router.get("/phases/:phaseId/items", authenticateJWT, getLifecycleItems);

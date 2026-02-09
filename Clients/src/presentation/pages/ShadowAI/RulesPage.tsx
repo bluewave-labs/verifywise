@@ -10,7 +10,6 @@ import {
   Typography,
   Paper,
   Skeleton,
-  Chip,
   Switch,
   IconButton,
   Select as MuiSelect,
@@ -22,8 +21,11 @@ import {
   TableCell,
   TableContainer,
   TablePagination,
+  Chip,
 } from "@mui/material";
-import { Trash2, Bell, History } from "lucide-react";
+import TabContext from "@mui/lab/TabContext";
+import { Trash2 } from "lucide-react";
+import TabBar from "../../components/TabBar";
 import {
   getRules,
   createRule,
@@ -155,45 +157,24 @@ export default function RulesPage() {
     setFormActive(true);
   };
 
+  const TABS = [
+    { label: "Rules", value: "rules", icon: "Bell" as const },
+    { label: "Alert history", value: "history", icon: "History" as const },
+  ];
+
   return (
+    <TabContext value={viewMode}>
     <Stack gap={2}>
       {/* Controls */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Stack direction="row" gap={1}>
-          <Chip
-            icon={<Bell size={12} />}
-            label="Rules"
-            variant={viewMode === "rules" ? "filled" : "outlined"}
-            onClick={() => setViewMode("rules")}
-            sx={{
-              fontSize: 12,
-              height: 28,
-              ...(viewMode === "rules" && {
-                backgroundColor: "#13715B",
-                color: "#fff",
-                "& .MuiChip-icon": { color: "#fff" },
-              }),
-            }}
-          />
-          <Chip
-            icon={<History size={12} />}
-            label="Alert history"
-            variant={viewMode === "history" ? "filled" : "outlined"}
-            onClick={() => setViewMode("history")}
-            sx={{
-              fontSize: 12,
-              height: 28,
-              ...(viewMode === "history" && {
-                backgroundColor: "#13715B",
-                color: "#fff",
-                "& .MuiChip-icon": { color: "#fff" },
-              }),
-            }}
-          />
-        </Stack>
+        <TabBar
+          tabs={TABS}
+          activeTab={viewMode}
+          onChange={(_e, newValue) => setViewMode(newValue as ViewMode)}
+        />
         {viewMode === "rules" && (
           <CustomizableButton
-            label="Create rule"
+            text="Create rule"
             variant="contained"
             sx={{
               backgroundColor: "#13715B",
@@ -418,5 +399,6 @@ export default function RulesPage() {
         </Typography>
       </StandardModal>
     </Stack>
+    </TabContext>
   );
 }

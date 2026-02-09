@@ -9,7 +9,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Stack,
   Typography,
-  Paper,
   Skeleton,
   Box,
   IconButton,
@@ -21,8 +20,9 @@ import {
   TableCell,
   TableContainer,
   Chip,
+  useTheme,
 } from "@mui/material";
-import { Key, Trash2, Copy, Check, Server } from "lucide-react";
+import { Trash2, Copy, Check } from "lucide-react";
 import {
   createApiKey,
   listApiKeys,
@@ -39,18 +39,40 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 
+const useStyles = () => {
+  const theme = useTheme();
+
+  return {
+    card: {
+      background: theme.palette.background.paper,
+      border: `1.5px solid ${theme.palette.border.light}`,
+      borderRadius: theme.shape.borderRadius,
+      padding: theme.spacing(5, 6),
+      boxShadow: "none",
+      width: "100%",
+    },
+    sectionTitle: {
+      fontWeight: 600,
+      fontSize: 16,
+      color: theme.palette.text.primary,
+    },
+  };
+};
+
 export default function SettingsPage() {
+  const styles = useStyles();
+
   return (
-    <Stack gap={3}>
-      <ApiKeysSection />
-      <SyslogConfigSection />
+    <Stack gap={4}>
+      <ApiKeysSection styles={styles} />
+      <SyslogConfigSection styles={styles} />
     </Stack>
   );
 }
 
 // ─── API Keys Section ───────────────────────────────────────────────
 
-function ApiKeysSection() {
+function ApiKeysSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
   const [loading, setLoading] = useState(true);
   const [keys, setKeys] = useState<IShadowAiApiKey[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -111,19 +133,11 @@ function ApiKeysSection() {
   };
 
   return (
-    <Paper
-      elevation={0}
-      sx={{ p: 3, border: "1px solid #d0d5dd", borderRadius: "4px" }}
-    >
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Stack direction="row" alignItems="center" gap={1}>
-          <Key size={16} strokeWidth={1.5} color="#374151" />
-          <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
-            API keys
-          </Typography>
-        </Stack>
+    <Box sx={styles.card}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+        <Typography sx={styles.sectionTitle}>API keys</Typography>
         <CustomizableButton
-          label="Create API key"
+          text="Create API key"
           variant="contained"
           sx={{
             backgroundColor: "#13715B",
@@ -135,7 +149,7 @@ function ApiKeysSection() {
         />
       </Stack>
 
-      <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 2 }}>
+      <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 3 }}>
         API keys are used to authenticate Shadow AI event ingestion from your
         network proxy, SIEM, or browser extension.
       </Typography>
@@ -306,13 +320,13 @@ function ApiKeysSection() {
           working.
         </Typography>
       </StandardModal>
-    </Paper>
+    </Box>
   );
 }
 
 // ─── Syslog Config Section ──────────────────────────────────────────
 
-function SyslogConfigSection() {
+function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
   const [loading, setLoading] = useState(true);
   const [configs, setConfigs] = useState<IShadowAiSyslogConfig[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -376,19 +390,11 @@ function SyslogConfigSection() {
   };
 
   return (
-    <Paper
-      elevation={0}
-      sx={{ p: 3, border: "1px solid #d0d5dd", borderRadius: "4px" }}
-    >
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Stack direction="row" alignItems="center" gap={1}>
-          <Server size={16} strokeWidth={1.5} color="#374151" />
-          <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
-            Syslog sources
-          </Typography>
-        </Stack>
+    <Box sx={styles.card}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+        <Typography sx={styles.sectionTitle}>Syslog sources</Typography>
         <CustomizableButton
-          label="Add source"
+          text="Add source"
           variant="contained"
           sx={{
             backgroundColor: "#13715B",
@@ -400,7 +406,7 @@ function SyslogConfigSection() {
         />
       </Stack>
 
-      <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 2 }}>
+      <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 3 }}>
         Configure syslog sources to ingest network traffic data from your proxy
         or firewall.
       </Typography>
@@ -546,6 +552,6 @@ function SyslogConfigSection() {
           This will stop processing events from this source.
         </Typography>
       </StandardModal>
-    </Paper>
+    </Box>
   );
 }

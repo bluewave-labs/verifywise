@@ -14,7 +14,6 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
-  Chip,
   IconButton,
   Table,
   TableHead,
@@ -24,7 +23,9 @@ import {
   TableContainer,
   TablePagination,
 } from "@mui/material";
+import TabContext from "@mui/lab/TabContext";
 import { ArrowLeft, Mail, Building2 } from "lucide-react";
+import TabBar from "../../components/TabBar";
 import {
   getUsers,
   getUserDetail,
@@ -212,38 +213,21 @@ export default function UserActivityPage() {
   // ─── List views ───
   const hasData = viewMode === "users" ? users.length > 0 : departments.length > 0;
 
+  const TABS = [
+    { label: "Users", value: "users", icon: "Users" as const },
+    { label: "Departments", value: "departments", icon: "Building2" as const },
+  ];
+
   return (
+    <TabContext value={viewMode === "detail" ? "users" : viewMode}>
     <Stack gap={2}>
       {/* Controls */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Stack direction="row" gap={1}>
-          <Chip
-            label="Users"
-            variant={viewMode === "users" ? "filled" : "outlined"}
-            onClick={() => setViewMode("users")}
-            sx={{
-              fontSize: 12,
-              height: 28,
-              ...(viewMode === "users" && {
-                backgroundColor: "#13715B",
-                color: "#fff",
-              }),
-            }}
-          />
-          <Chip
-            label="Departments"
-            variant={viewMode === "departments" ? "filled" : "outlined"}
-            onClick={() => setViewMode("departments")}
-            sx={{
-              fontSize: 12,
-              height: 28,
-              ...(viewMode === "departments" && {
-                backgroundColor: "#13715B",
-                color: "#fff",
-              }),
-            }}
-          />
-        </Stack>
+        <TabBar
+          tabs={TABS}
+          activeTab={viewMode === "detail" ? "users" : viewMode}
+          onChange={(_e, newValue) => setViewMode(newValue as ViewMode)}
+        />
         <Select
           value={period}
           onChange={handlePeriodChange}
@@ -345,6 +329,7 @@ export default function UserActivityPage() {
         </Paper>
       )}
     </Stack>
+    </TabContext>
   );
 }
 

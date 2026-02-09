@@ -275,7 +275,7 @@ export default function AIToolsPage() {
 
                   {!selectedTool.model_inventory_id && (
                     <CustomizableButton
-                      label="Start governance"
+                      text="Start governance"
                       variant="contained"
                       sx={{
                         backgroundColor: "#13715B",

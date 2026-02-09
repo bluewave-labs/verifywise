@@ -19,6 +19,7 @@ import {
   TableCell,
   TableContainer,
   TablePagination,
+  Box,
 } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
 import { ArrowLeft, Mail, Building2 } from "lucide-react";
@@ -234,13 +235,15 @@ export default function UserActivityPage() {
           activeTab={viewMode === "detail" ? "users" : viewMode}
           onChange={(_e, newValue) => setViewMode(newValue as ViewMode)}
         />
-        <Select
-          id="period-select"
-          value={period}
-          onChange={handlePeriodChange}
-          items={PERIOD_OPTIONS}
-          sx={{ width: 160, position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)" }}
-        />
+        <Box sx={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)" }}>
+          <Select
+            id="period-select"
+            value={period}
+            onChange={handlePeriodChange}
+            items={PERIOD_OPTIONS}
+            sx={{ width: 160 }}
+          />
+        </Box>
       </Stack>
 
       {/* Content */}

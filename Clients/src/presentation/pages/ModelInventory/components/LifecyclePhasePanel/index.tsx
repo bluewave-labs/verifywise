@@ -3,7 +3,6 @@
  * Shows phase name, description, completion indicator, and item fields.
  */
 
-import { useState } from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -11,28 +10,30 @@ import {
   Stack,
   Typography,
   Box,
-  Chip,
   useTheme,
 } from "@mui/material";
 import { ChevronRight } from "lucide-react";
 import { LifecyclePhase } from "../../../../../domain/interfaces/i.modelLifecycle";
 import LifecycleItemField from "../LifecycleItemField";
+import Chip from "../../../../components/Chip";
+import EmptyStateMessage from "../../../../components/EmptyStateMessage";
 
 interface LifecyclePhasePanelProps {
   phase: LifecyclePhase;
   modelId: number;
-  defaultExpanded?: boolean;
+  expanded: boolean;
+  onToggle: () => void;
   onValueChanged?: () => void;
 }
 
 const LifecyclePhasePanel = ({
   phase,
   modelId,
-  defaultExpanded = false,
+  expanded,
+  onToggle,
   onValueChanged,
 }: LifecyclePhasePanelProps) => {
   const theme = useTheme();
-  const [expanded, setExpanded] = useState(defaultExpanded);
 
   const items = phase.items ?? [];
   const totalItems = items.length;
@@ -46,37 +47,26 @@ const LifecyclePhasePanel = ({
   }).length;
 
   const isComplete = totalItems > 0 && filledItems === totalItems;
-
-  const getCompletionColor = () => {
-    if (isComplete) return theme.palette.status.success.text;
-    if (filledItems > 0) return theme.palette.status.info.text;
-    return theme.palette.text.tertiary;
-  };
-
-  const getCompletionBg = () => {
-    if (isComplete) return theme.palette.status.success.bg;
-    if (filledItems > 0) return theme.palette.status.info.bg;
-    return theme.palette.background.fill;
-  };
+  const chipVariant = isComplete ? "success" : filledItems > 0 ? "info" : "default";
 
   return (
     <Accordion
       expanded={expanded}
-      onChange={() => setExpanded(!expanded)}
+      onChange={onToggle}
       disableGutters
       sx={{
         border: `1px solid ${theme.palette.border.light}`,
-        borderRadius: "8px !important",
+        borderRadius: "4px !important",
         "&:before": { display: "none" },
         boxShadow: "none",
-        mb: 1.5,
+        mb: "12px",
         overflow: "hidden",
       }}
     >
       <AccordionSummary
         expandIcon={
           <ChevronRight
-            size={18}
+            size={16}
             style={{
               transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
               transition: "transform 0.2s",
@@ -89,8 +79,8 @@ const LifecyclePhasePanel = ({
             ? theme.palette.background.accent
             : theme.palette.background.main,
           "&:hover": { backgroundColor: theme.palette.background.accent },
-          px: 2,
-          py: 0.5,
+          px: "16px",
+          py: "8px",
         }}
       >
         <Stack
@@ -125,14 +115,7 @@ const LifecyclePhasePanel = ({
           </Stack>
           <Chip
             label={`${filledItems} / ${totalItems}`}
-            size="small"
-            sx={{
-              backgroundColor: getCompletionBg(),
-              color: getCompletionColor(),
-              fontWeight: 600,
-              fontSize: "12px",
-              minWidth: 48,
-            }}
+            variant={chipVariant}
           />
         </Stack>
       </AccordionSummary>
@@ -142,7 +125,7 @@ const LifecyclePhasePanel = ({
           {items.map((item) => (
             <Stack
               key={item.id}
-              sx={{ px: 2, py: 1.5 }}
+              sx={{ px: "16px", py: "12px" }}
             >
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
                 <Typography
@@ -185,12 +168,7 @@ const LifecyclePhasePanel = ({
             </Stack>
           ))}
           {items.length === 0 && (
-            <Typography
-              variant="body2"
-              sx={{ p: 2, color: theme.palette.text.tertiary, textAlign: "center" }}
-            >
-              No items configured for this phase
-            </Typography>
+            <EmptyStateMessage message="No items configured for this phase" />
           )}
         </Stack>
       </AccordionDetails>

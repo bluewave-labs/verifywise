@@ -42,6 +42,8 @@ import {
   ShadowAiToolStatus,
 } from "../../../domain/interfaces/i.shadowAi";
 import EmptyState from "../../components/EmptyState";
+import CustomizableButton from "../../components/Buttons/CustomizableButton";
+import GovernanceWizardModal from "./GovernanceWizardModal";
 
 const STATUS_OPTIONS: { value: ShadowAiToolStatus | "all"; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -76,6 +78,7 @@ export default function AIToolsPage() {
     top_users?: { user_email: string; event_count: number }[];
   }) | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [governanceModalOpen, setGovernanceModalOpen] = useState(false);
 
   const fetchTools = useCallback(async () => {
     setLoading(true);
@@ -269,9 +272,46 @@ export default function AIToolsPage() {
                       </MenuItem>
                     ))}
                   </Select>
+
+                  {!selectedTool.model_inventory_id && (
+                    <CustomizableButton
+                      label="Start governance"
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#13715B",
+                        "&:hover": { backgroundColor: "#0F5A47" },
+                        height: 30,
+                        fontSize: 12,
+                      }}
+                      onClick={() => setGovernanceModalOpen(true)}
+                    />
+                  )}
+                  {selectedTool.model_inventory_id && (
+                    <Chip
+                      label="Governed"
+                      size="small"
+                      sx={{
+                        fontSize: 11,
+                        height: 22,
+                        backgroundColor: "#ECFDF5",
+                        color: "#10B981",
+                      }}
+                    />
+                  )}
                 </Stack>
               </Stack>
             </Paper>
+
+            {/* Governance wizard modal */}
+            <GovernanceWizardModal
+              isOpen={governanceModalOpen}
+              onClose={() => setGovernanceModalOpen(false)}
+              tool={selectedTool}
+              onSuccess={async () => {
+                const detail = await getToolById(selectedTool.id);
+                setSelectedTool(detail);
+              }}
+            />
 
             {/* Departments */}
             {selectedTool.departments && selectedTool.departments.length > 0 && (

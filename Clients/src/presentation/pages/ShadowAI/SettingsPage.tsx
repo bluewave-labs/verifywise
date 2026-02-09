@@ -64,7 +64,7 @@ export default function SettingsPage() {
   const styles = useStyles();
 
   return (
-    <Stack gap={4}>
+    <Stack gap="32px">
       <ApiKeysSection styles={styles} />
       <SyslogConfigSection styles={styles} />
     </Stack>
@@ -162,14 +162,14 @@ function ApiKeysSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
           sx={{ mb: 2, fontSize: 13 }}
           onClose={() => setNewlyCreatedKey(null)}
         >
-          <Stack gap={1}>
+          <Stack gap="8px">
             <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
               API key created successfully
             </Typography>
             <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
               Copy this key now. You won't be able to see it again.
             </Typography>
-            <Stack direction="row" alignItems="center" gap={1}>
+            <Stack direction="row" alignItems="center" gap="8px">
               <Box
                 sx={{
                   fontFamily: "monospace",
@@ -500,7 +500,7 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
         isSubmitting={creating}
         maxWidth="400px"
       >
-        <Stack gap={2}>
+        <Stack gap="16px">
           <Field
             label="Source identifier"
             value={formSource}

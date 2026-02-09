@@ -98,7 +98,7 @@ export default function GovernanceWizardModal({
       isSubmitting={submitting}
       maxWidth="520px"
     >
-      <Stack gap={2}>
+      <Stack gap="16px">
         {error && (
           <Alert severity="error" sx={{ fontSize: 13 }}>
             {error}
@@ -109,7 +109,7 @@ export default function GovernanceWizardModal({
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
           Model inventory
         </Typography>
-        <Stack direction="row" gap={2}>
+        <Stack direction="row" gap="16px">
           <Box sx={{ flex: 1 }}>
             <Field
               label="Provider"

@@ -126,7 +126,7 @@ export default function InsightsPage() {
   }
 
   return (
-    <Stack gap={3}>
+    <Stack gap="24px">
       {/* Period selector */}
       <Stack direction="row" justifyContent="flex-end">
         <Select
@@ -139,7 +139,7 @@ export default function InsightsPage() {
       </Stack>
 
       {/* Summary cards - top row */}
-      <Stack direction="row" gap={2} flexWrap="wrap">
+      <Stack direction="row" gap="16px" flexWrap="wrap">
         <MetricCard
           icon={<AppWindow size={16} strokeWidth={1.5} />}
           label="Unique apps"
@@ -155,7 +155,7 @@ export default function InsightsPage() {
       </Stack>
 
       {/* Summary cards - second row */}
-      <Stack direction="row" gap={2} flexWrap="wrap">
+      <Stack direction="row" gap="16px" flexWrap="wrap">
         <MetricCard
           icon={<AlertTriangle size={16} strokeWidth={1.5} />}
           label="Highest risk tool"
@@ -176,9 +176,9 @@ export default function InsightsPage() {
       </Stack>
 
       {/* Main content: left = risk list + dept chart, right = bar charts */}
-      <Stack direction={{ xs: "column", md: "row" }} gap={2}>
+      <Stack direction={{ xs: "column", md: "row" }} gap="16px">
         {/* Left column */}
-        <Stack gap={2} sx={{ flex: 1 }}>
+        <Stack gap="16px" sx={{ flex: 1 }}>
           {/* Accessed tools with highest risk */}
           <Paper
             elevation={0}
@@ -194,7 +194,7 @@ export default function InsightsPage() {
             {loading ? (
               <Skeleton variant="rectangular" height={200} sx={{ borderRadius: "4px" }} />
             ) : topRiskTools.length > 0 ? (
-              <Stack gap={1.5}>
+              <Stack gap="12px">
                 {topRiskTools.map((tool) => (
                   <Stack
                     key={tool.id}
@@ -202,7 +202,7 @@ export default function InsightsPage() {
                     alignItems="center"
                     justifyContent="space-between"
                   >
-                    <Stack direction="row" alignItems="center" gap={1.5}>
+                    <Stack direction="row" alignItems="center" gap="12px">
                       <RiskScoreBadge score={tool.risk_score ?? 0} />
                       <Typography sx={{ fontSize: 13, color: "#374151" }}>
                         {tool.name}
@@ -248,7 +248,7 @@ export default function InsightsPage() {
             {loading ? (
               <Skeleton variant="rectangular" height={250} sx={{ borderRadius: "4px" }} />
             ) : departments.length > 0 ? (
-              <Stack direction="row" alignItems="center" gap={3}>
+              <Stack direction="row" alignItems="center" gap="24px">
                 <Box sx={{ width: 200, height: 200 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -275,9 +275,9 @@ export default function InsightsPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 </Box>
-                <Stack gap={1}>
+                <Stack gap="8px">
                   {departments.map((dept, index) => (
-                    <Stack key={dept.department} direction="row" alignItems="center" gap={1}>
+                    <Stack key={dept.department} direction="row" alignItems="center" gap="8px">
                       <Box
                         sx={{
                           width: 10,
@@ -301,7 +301,7 @@ export default function InsightsPage() {
         </Stack>
 
         {/* Right column - bar charts */}
-        <Stack gap={2} sx={{ flex: 1 }}>
+        <Stack gap="16px" sx={{ flex: 1 }}>
           {/* Most accessed tools by events */}
           <Paper
             elevation={0}
@@ -431,7 +431,7 @@ function MetricCard({
         borderRadius: "4px",
       }}
     >
-      <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 1 }}>
+      <Stack direction="row" alignItems="center" gap="8px" sx={{ mb: 1 }}>
         <Box sx={{ color: "#6B7280" }}>{icon}</Box>
         <Typography sx={{ fontSize: 12, color: "#6B7280" }}>{label}</Typography>
       </Stack>

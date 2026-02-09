@@ -142,8 +142,8 @@ export default function AIToolsPage() {
   if (selectedTool) {
     const cfg = STATUS_CONFIG[selectedTool.status];
     return (
-      <Stack gap={2}>
-        <Stack direction="row" alignItems="center" gap={1}>
+      <Stack gap="16px">
+        <Stack direction="row" alignItems="center" gap="8px">
           <IconButton onClick={handleBack} size="small">
             <ArrowLeft size={16} strokeWidth={1.5} />
           </IconButton>
@@ -166,14 +166,14 @@ export default function AIToolsPage() {
         {detailLoading ? (
           <Skeleton height={300} />
         ) : (
-          <Stack gap={2}>
+          <Stack gap="16px">
             {/* Info card */}
             <Paper
               elevation={0}
               sx={{ p: 2, border: "1px solid #d0d5dd", borderRadius: "4px" }}
             >
-              <Stack gap={2}>
-                <Stack direction="row" gap={4} flexWrap="wrap">
+              <Stack gap="16px">
+                <Stack direction="row" gap="32px" flexWrap="wrap">
                   <InfoItem label="Vendor" value={selectedTool.vendor || "Unknown"} />
                   <InfoItem label="Total users" value={selectedTool.total_users} />
                   <InfoItem label="Total events" value={selectedTool.total_events} />
@@ -201,11 +201,11 @@ export default function AIToolsPage() {
 
                 {/* Domains */}
                 {selectedTool.domains?.length > 0 && (
-                  <Stack gap={0.5}>
+                  <Stack gap="4px">
                     <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
                       Domains
                     </Typography>
-                    <Stack direction="row" gap={0.5} flexWrap="wrap">
+                    <Stack direction="row" gap="4px" flexWrap="wrap">
                       {selectedTool.domains.map((d) => (
                         <Chip
                           key={d}
@@ -221,11 +221,11 @@ export default function AIToolsPage() {
                 )}
 
                 {/* Security flags */}
-                <Stack gap={0.5}>
+                <Stack gap="4px">
                   <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
                     Security & compliance
                   </Typography>
-                  <Stack direction="row" gap={1.5} flexWrap="wrap">
+                  <Stack direction="row" gap="12px" flexWrap="wrap">
                     <SecurityFlag
                       label="SOC 2"
                       value={selectedTool.soc2_certified}
@@ -251,7 +251,7 @@ export default function AIToolsPage() {
                 </Stack>
 
                 {/* Status change */}
-                <Stack direction="row" alignItems="center" gap={1}>
+                <Stack direction="row" alignItems="center" gap="8px">
                   <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
                     Change status:
                   </Typography>
@@ -378,7 +378,7 @@ export default function AIToolsPage() {
 
   // ─── List view ───
   return (
-    <Stack gap={2}>
+    <Stack gap="16px">
       <Stack direction="row" justifyContent="flex-end">
         <Select
           id="tools-status-filter"
@@ -505,7 +505,7 @@ function SecurityFlag({
   );
 
   return (
-    <Stack direction="row" alignItems="center" gap={0.5}>
+    <Stack direction="row" alignItems="center" gap="4px">
       {icon}
       <Typography sx={{ fontSize: 12, color: "#374151" }}>{label}</Typography>
     </Stack>

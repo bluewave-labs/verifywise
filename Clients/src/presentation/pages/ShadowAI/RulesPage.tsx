@@ -164,7 +164,7 @@ export default function RulesPage() {
 
   return (
     <TabContext value={viewMode}>
-    <Stack gap={2}>
+    <Stack gap="16px">
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
         <TabBar
@@ -201,7 +201,7 @@ export default function RulesPage() {
             showBorder
           />
         ) : (
-          <Stack gap={1.5}>
+          <Stack gap="12px">
             {rules.map((rule) => (
               <Paper
                 key={rule.id}
@@ -218,8 +218,8 @@ export default function RulesPage() {
                   justifyContent="space-between"
                   alignItems="flex-start"
                 >
-                  <Stack gap={0.5} flex={1}>
-                    <Stack direction="row" alignItems="center" gap={1}>
+                  <Stack gap="4px" flex={1}>
+                    <Stack direction="row" alignItems="center" gap="8px">
                       <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
                         {rule.name}
                       </Typography>
@@ -243,7 +243,7 @@ export default function RulesPage() {
                         "None"}
                     </Typography>
                   </Stack>
-                  <Stack direction="row" alignItems="center" gap={1}>
+                  <Stack direction="row" alignItems="center" gap="8px">
                     <Switch
                       checked={rule.is_active}
                       onChange={() => handleToggleActive(rule)}
@@ -335,7 +335,7 @@ export default function RulesPage() {
         isSubmitting={creating}
         maxWidth="480px"
       >
-        <Stack gap={2}>
+        <Stack gap="16px">
           <Field
             label="Rule name"
             value={formName}
@@ -360,7 +360,7 @@ export default function RulesPage() {
               name: label,
             }))}
           />
-          <Stack direction="row" alignItems="center" gap={1}>
+          <Stack direction="row" alignItems="center" gap="8px">
             <Typography sx={{ fontSize: 13 }}>Active</Typography>
             <Switch
               checked={formActive}

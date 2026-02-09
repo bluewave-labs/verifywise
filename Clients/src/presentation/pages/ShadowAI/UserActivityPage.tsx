@@ -133,8 +133,8 @@ export default function UserActivityPage() {
   // ─── Detail view ───
   if (viewMode === "detail") {
     return (
-      <Stack gap={2}>
-        <Stack direction="row" alignItems="center" gap={1}>
+      <Stack gap="16px">
+        <Stack direction="row" alignItems="center" gap="8px">
           <IconButton onClick={handleBack} size="small">
             <ArrowLeft size={16} strokeWidth={1.5} />
           </IconButton>
@@ -144,22 +144,22 @@ export default function UserActivityPage() {
         </Stack>
 
         {detailLoading ? (
-          <Stack gap={2}>
+          <Stack gap="16px">
             <Skeleton height={80} />
             <Skeleton height={200} />
           </Stack>
         ) : userDetail ? (
-          <Stack gap={2}>
+          <Stack gap="16px">
             <Paper
               elevation={0}
               sx={{ p: 2, border: "1px solid #d0d5dd", borderRadius: "4px" }}
             >
-              <Stack direction="row" gap={3} flexWrap="wrap">
-                <Stack direction="row" alignItems="center" gap={1}>
+              <Stack direction="row" gap="24px" flexWrap="wrap">
+                <Stack direction="row" alignItems="center" gap="8px">
                   <Mail size={14} strokeWidth={1.5} color="#6B7280" />
                   <Typography sx={{ fontSize: 13 }}>{userDetail.email}</Typography>
                 </Stack>
-                <Stack direction="row" alignItems="center" gap={1}>
+                <Stack direction="row" alignItems="center" gap="8px">
                   <Building2 size={14} strokeWidth={1.5} color="#6B7280" />
                   <Typography sx={{ fontSize: 13 }}>
                     {userDetail.department || "Unknown"}
@@ -227,7 +227,7 @@ export default function UserActivityPage() {
 
   return (
     <TabContext value={viewMode === "detail" ? "users" : viewMode}>
-    <Stack gap={2}>
+    <Stack gap="16px">
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
         <TabBar

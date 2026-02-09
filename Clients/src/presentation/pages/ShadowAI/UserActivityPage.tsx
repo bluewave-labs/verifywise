@@ -228,7 +228,7 @@ export default function UserActivityPage() {
     <TabContext value={viewMode === "detail" ? "users" : viewMode}>
     <Stack gap={2}>
       {/* Controls */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
+      <Stack sx={{ position: "relative" }}>
         <TabBar
           tabs={TABS}
           activeTab={viewMode === "detail" ? "users" : viewMode}
@@ -239,7 +239,7 @@ export default function UserActivityPage() {
           value={period}
           onChange={handlePeriodChange}
           items={PERIOD_OPTIONS}
-          sx={{ width: 160 }}
+          sx={{ width: 160, position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)" }}
         />
       </Stack>
 

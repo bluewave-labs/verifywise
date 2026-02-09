@@ -166,7 +166,7 @@ export default function RulesPage() {
     <TabContext value={viewMode}>
     <Stack gap={2}>
       {/* Controls */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
+      <Stack sx={{ position: "relative" }}>
         <TabBar
           tabs={TABS}
           activeTab={viewMode}
@@ -181,6 +181,10 @@ export default function RulesPage() {
               "&:hover": { backgroundColor: "#0F5A47" },
               height: 34,
               fontSize: 13,
+              position: "absolute",
+              right: 0,
+              top: "50%",
+              transform: "translateY(-50%)",
             }}
             onClick={() => setCreateModalOpen(true)}
           />

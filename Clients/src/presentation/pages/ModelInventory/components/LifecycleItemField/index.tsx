@@ -8,7 +8,6 @@ import {
   TextField,
   Typography,
   Box,
-  Chip,
   Checkbox,
   FormControlLabel,
   RadioGroup,
@@ -16,7 +15,6 @@ import {
   Select,
   MenuItem,
   IconButton,
-  Button,
   CircularProgress,
   useTheme,
 } from "@mui/material";
@@ -39,7 +37,11 @@ import {
   addFileToItem,
   removeFileFromItem,
 } from "../../../../../application/repository/modelLifecycle.repository";
+import { uploadFileToManager } from "../../../../../application/repository/file.repository";
 import useUsers from "../../../../../application/hooks/useUsers";
+import { getInputStyles, getSelectStyles } from "../../../../utils/inputStyles";
+import Chip from "../../../../components/Chip";
+import { CustomizableButton } from "../../../../components/button/customizable-button";
 
 interface LifecycleItemFieldProps {
   modelId: number;
@@ -149,6 +151,7 @@ const TextFieldRenderer = ({
   multiline,
   onValueChanged,
 }: TextFieldRendererProps) => {
+  const theme = useTheme();
   const config = item.config as TextItemConfig | TextareaItemConfig;
   const [text, setText] = useState(value?.value_text ?? "");
   const [saving, setSaving] = useState(false);
@@ -169,23 +172,31 @@ const TextFieldRenderer = ({
   }, [text, modelId, item.id, onValueChanged]);
 
   return (
-    <TextField
-      fullWidth
-      size="small"
-      multiline={multiline}
-      minRows={multiline ? 3 : undefined}
-      maxRows={multiline ? 8 : undefined}
-      placeholder={config?.placeholder || `Enter ${item.name.toLowerCase()}`}
-      value={text}
-      onChange={(e) => setText(e.target.value)}
-      onBlur={handleBlur}
-      inputProps={{ maxLength: config?.maxLength }}
-      InputProps={{
-        endAdornment: saving ? (
-          <CircularProgress size={16} />
-        ) : undefined,
-      }}
-    />
+    <Stack sx={getInputStyles(theme)}>
+      <TextField
+        fullWidth
+        size="small"
+        multiline={multiline}
+        minRows={multiline ? 3 : undefined}
+        maxRows={multiline ? 8 : undefined}
+        placeholder={config?.placeholder || `Enter ${item.name.toLowerCase()}`}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={handleBlur}
+        inputProps={{ maxLength: config?.maxLength }}
+        InputProps={{
+          endAdornment: saving ? (
+            <CircularProgress size={14} />
+          ) : undefined,
+        }}
+        sx={{
+          "& .MuiInputBase-root": {
+            height: multiline ? "auto" : "34px",
+            fontSize: "13px",
+          },
+        }}
+      />
+    </Stack>
   );
 };
 
@@ -216,21 +227,21 @@ const DocumentsFieldRenderer = ({
       const selectedFiles = e.target.files;
       if (!selectedFiles || selectedFiles.length === 0) return;
 
-      // For now, we expect files to be already uploaded to the file system.
-      // This component links existing files. Real file upload would go through
-      // the file manager first, then link via addFileToItem.
-      // Placeholder: show that files would be uploaded
       setUploading(true);
       try {
-        // In a real implementation, you'd upload through the file manager API
-        // and then call addFileToItem with the returned file ID
+        for (const file of Array.from(selectedFiles)) {
+          const result = await uploadFileToManager({ file, source: "File Manager" });
+          await addFileToItem(modelId, item.id, result.data.id);
+        }
         onValueChanged?.();
+      } catch {
+        // upload failed — user can retry
       } finally {
         setUploading(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
     },
-    [onValueChanged]
+    [modelId, item.id, onValueChanged]
   );
 
   const handleRemoveFile = useCallback(
@@ -256,17 +267,17 @@ const DocumentsFieldRenderer = ({
               alignItems="center"
               spacing={1}
               sx={{
-                p: 1,
-                borderRadius: 1,
+                p: "8px",
+                borderRadius: "4px",
                 border: `1px solid ${theme.palette.border.light}`,
-                backgroundColor: theme.palette.background.fill,
+                backgroundColor: "#f9fafb",
               }}
             >
               <FileText size={16} color={theme.palette.text.tertiary} />
               <Typography variant="body2" sx={{ flex: 1 }}>
                 {file.filename || `File #${file.file_id}`}
               </Typography>
-              <IconButton size="small" onClick={() => handleRemoveFile(file.file_id)}>
+              <IconButton size="small" onClick={() => handleRemoveFile(file.file_id)} aria-label="Remove file">
                 <Trash2 size={14} />
               </IconButton>
             </Stack>
@@ -275,9 +286,9 @@ const DocumentsFieldRenderer = ({
       )}
       <Box
         sx={{
-          border: `1px dashed ${theme.palette.border.dark}`,
-          borderRadius: 1,
-          p: 2,
+          border: "1px dashed #d0d5dd",
+          borderRadius: "4px",
+          p: "16px",
           textAlign: "center",
           cursor: "pointer",
           "&:hover": { backgroundColor: theme.palette.background.accent },
@@ -363,6 +374,10 @@ const PeopleFieldRenderer = ({
           const val = e.target.value;
           handleChange(typeof val === "string" ? [] : val as number[]);
         }}
+        sx={{
+          ...getSelectStyles(theme),
+          "& .MuiInputBase-root": { minHeight: "34px" },
+        }}
         renderValue={(selected) => (
           <Stack direction="row" spacing={0.5} flexWrap="wrap">
             {(selected as number[]).map((id) => {
@@ -387,7 +402,7 @@ const PeopleFieldRenderer = ({
           </MenuItem>
         ))}
       </Select>
-      {saving && <CircularProgress size={16} />}
+      {saving && <CircularProgress size={14} />}
     </Stack>
   );
 };
@@ -439,16 +454,30 @@ const ClassificationFieldRenderer = ({
         value={selected}
         onChange={(e) => handleChange(e.target.value)}
       >
-        {levels.map((level) => (
-          <FormControlLabel
-            key={level}
-            value={level}
-            control={<Radio size="small" />}
-            label={<Typography variant="body2">{level}</Typography>}
-          />
-        ))}
+        <Stack sx={{ gap: "8px" }}>
+          {levels.map((level) => (
+            <FormControlLabel
+              key={level}
+              value={level}
+              control={
+                <Radio
+                  size="small"
+                  sx={{
+                    color: "#d0d5dd",
+                    "&.Mui-checked": { color: "#13715B" },
+                  }}
+                />
+              }
+              label={
+                <Typography variant="body2" sx={{ fontSize: "13px" }}>
+                  {level}
+                </Typography>
+              }
+            />
+          ))}
+        </Stack>
       </RadioGroup>
-      {saving && <CircularProgress size={16} />}
+      {saving && <CircularProgress size={14} />}
     </Stack>
   );
 };
@@ -543,6 +572,7 @@ const ChecklistFieldRenderer = ({
               <Typography
                 variant="body2"
                 sx={{
+                  fontSize: "13px",
                   textDecoration: it.checked ? "line-through" : "none",
                   color: it.checked
                     ? theme.palette.text.tertiary
@@ -554,25 +584,38 @@ const ChecklistFieldRenderer = ({
             }
             sx={{ flex: 1 }}
           />
-          <IconButton size="small" onClick={() => removeItem(index)}>
+          <IconButton size="small" onClick={() => removeItem(index)} aria-label="Remove item">
             <X size={14} />
           </IconButton>
         </Stack>
       ))}
       <Stack direction="row" spacing={1}>
-        <TextField
+        <Stack sx={{ ...getInputStyles(theme), flex: 1 }}>
+          <TextField
+            size="small"
+            fullWidth
+            placeholder="Add checklist item..."
+            value={newItemText}
+            onChange={(e) => setNewItemText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addItem()}
+            sx={{
+              "& .MuiInputBase-root": {
+                height: "34px",
+                fontSize: "13px",
+              },
+            }}
+          />
+        </Stack>
+        <CustomizableButton
+          variant="outlined"
           size="small"
-          fullWidth
-          placeholder="Add checklist item..."
-          value={newItemText}
-          onChange={(e) => setNewItemText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addItem()}
-        />
-        <Button size="small" variant="outlined" onClick={addItem}>
+          onClick={addItem}
+          ariaLabel="Add checklist item"
+        >
           Add
-        </Button>
+        </CustomizableButton>
       </Stack>
-      {saving && <CircularProgress size={16} />}
+      {saving && <CircularProgress size={14} />}
     </Stack>
   );
 };
@@ -643,28 +686,6 @@ const ApprovalFieldRenderer = ({
     [approvals, saveApprovals]
   );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return theme.palette.status.success.bg;
-      case "rejected":
-        return theme.palette.status.error.bg;
-      default:
-        return theme.palette.background.fill;
-    }
-  };
-
-  const getStatusTextColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return theme.palette.status.success.text;
-      case "rejected":
-        return theme.palette.status.error.text;
-      default:
-        return theme.palette.text.secondary;
-    }
-  };
-
   return (
     <Stack spacing={1}>
       {approvals.map((approval) => {
@@ -676,30 +697,22 @@ const ApprovalFieldRenderer = ({
             alignItems="center"
             spacing={1}
             sx={{
-              p: 1,
-              borderRadius: 1,
+              p: "12px",
+              borderRadius: "4px",
               border: `1px solid ${theme.palette.border.light}`,
-              backgroundColor: getStatusColor(approval.status),
             }}
           >
-            <Typography variant="body2" sx={{ flex: 1, color: getStatusTextColor(approval.status) }}>
+            <Typography variant="body2" sx={{ flex: 1 }}>
               {user ? `${user.name} ${user.surname}` : `User #${approval.userId}`}
             </Typography>
-            <Chip
-              label={approval.status}
-              size="small"
-              sx={{
-                backgroundColor: getStatusColor(approval.status),
-                color: getStatusTextColor(approval.status),
-                fontWeight: 500,
-              }}
-            />
+            <Chip label={approval.status} />
             {approval.status === "pending" && (
               <>
                 <IconButton
                   size="small"
                   onClick={() => handleStatusChange(approval.userId, "approved")}
                   sx={{ color: theme.palette.status.success.text }}
+                  aria-label="Approve"
                 >
                   <Check size={16} />
                 </IconButton>
@@ -707,6 +720,7 @@ const ApprovalFieldRenderer = ({
                   size="small"
                   onClick={() => handleStatusChange(approval.userId, "rejected")}
                   sx={{ color: theme.palette.status.error.text }}
+                  aria-label="Reject"
                 >
                   <X size={16} />
                 </IconButton>
@@ -724,6 +738,10 @@ const ApprovalFieldRenderer = ({
           const userId = Number(e.target.value);
           if (userId) addApprover(userId);
         }}
+        sx={{
+          ...getSelectStyles(theme),
+          "& .MuiInputBase-root": { height: "34px" },
+        }}
         renderValue={() => (
           <Typography variant="body2" color="text.secondary">
             Add approver...
@@ -738,7 +756,7 @@ const ApprovalFieldRenderer = ({
             </MenuItem>
           ))}
       </Select>
-      {saving && <CircularProgress size={16} />}
+      {saving && <CircularProgress size={14} />}
     </Stack>
   );
 };

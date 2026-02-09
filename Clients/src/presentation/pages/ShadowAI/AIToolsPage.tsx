@@ -42,7 +42,7 @@ import {
   ShadowAiToolStatus,
 } from "../../../domain/interfaces/i.shadowAi";
 import EmptyState from "../../components/EmptyState";
-import CustomizableButton from "../../components/Buttons/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import GovernanceWizardModal from "./GovernanceWizardModal";
 
 const STATUS_OPTIONS: { value: ShadowAiToolStatus | "all"; label: string }[] = [

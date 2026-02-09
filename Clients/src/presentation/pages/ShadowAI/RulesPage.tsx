@@ -37,7 +37,7 @@ import {
   ShadowAiTriggerType,
 } from "../../../domain/interfaces/i.shadowAi";
 import EmptyState from "../../components/EmptyState";
-import CustomizableButton from "../../components/Buttons/CustomizableButton";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 

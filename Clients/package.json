@@ -22,7 +22,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.14.1",
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^10.0.1",
     "@monaco-editor/react": "^4.7.0",
     "@mui/lab": "^7.0.1-beta.20",
     "@mui/material": "^7.3.6",

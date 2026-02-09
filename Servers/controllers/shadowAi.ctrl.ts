@@ -57,7 +57,15 @@ function isWriteRole(role: string): boolean {
 function parsePeriod(period?: string): number {
   if (!period) return 30;
   const match = period.match(/^(\d+)d$/);
-  return match ? parseInt(match[1], 10) : 30;
+  if (!match) return 30;
+  const days = parseInt(match[1], 10);
+  return Math.min(Math.max(days, 1), 365);
+}
+
+function parsePageLimit(value: string | undefined, defaultVal: number, max: number = 100): number {
+  const parsed = parseInt(value || String(defaultVal), 10);
+  if (isNaN(parsed) || parsed < 1) return defaultVal;
+  return Math.min(parsed, max);
 }
 
 // ─── Insights ───────────────────────────────────────────────────────────
@@ -167,8 +175,8 @@ export async function getUsers(req: Request, res: Response) {
 
   try {
     const data = await getUserActivityQuery(tenantId, {
-      page: parseInt((req.query.page as string) || "1", 10),
-      limit: parseInt((req.query.limit as string) || "20", 10),
+      page: parsePageLimit(req.query.page as string, 1),
+      limit: parsePageLimit(req.query.limit as string, 20),
       sort: req.query.sort as string,
       department: req.query.department as string,
     });
@@ -229,8 +237,8 @@ export async function getTools(req: Request, res: Response) {
     const data = await getAllToolsQuery(tenantId, {
       status: req.query.status as ShadowAiToolStatus | undefined,
       sort: req.query.sort as string,
-      page: parseInt((req.query.page as string) || "1", 10),
-      limit: parseInt((req.query.limit as string) || "20", 10),
+      page: parsePageLimit(req.query.page as string, 1),
+      limit: parsePageLimit(req.query.limit as string, 20),
     });
     await logSuccess({ eventType: "Read", description: "shadow AI tools fetched", functionName: fn, fileName: FILE_NAME, userId, tenantId });
     return res.status(200).json(STATUS_CODE[200](data));
@@ -343,6 +351,11 @@ export async function startGovernance(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Missing required fields: model_inventory.provider, model_inventory.model, governance_owner_id"));
     }
 
+    const ownerId = parseInt(governance_owner_id, 10);
+    if (isNaN(ownerId) || ownerId <= 0) {
+      return res.status(400).json(STATUS_CODE[400]("governance_owner_id must be a positive integer"));
+    }
+
     let transaction: Transaction | null = null;
 
     try {
@@ -375,7 +388,7 @@ export async function startGovernance(req: Request, res: Response) {
          SET governance_owner_id = :ownerId, status = 'under_review', updated_at = NOW()
          WHERE id = :toolId`,
         {
-          replacements: { ownerId: governance_owner_id, toolId },
+          replacements: { ownerId, toolId },
           transaction,
         }
       );
@@ -392,7 +405,7 @@ export async function startGovernance(req: Request, res: Response) {
       );
     } catch (innerError) {
       if (transaction) {
-        try { await transaction.rollback(); } catch (rbErr) { console.warn("Rollback failed:", rbErr); }
+        try { await transaction.rollback(); } catch (rbErr) { logFailure({ eventType: "Create", description: "governance rollback failed", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: rbErr as Error }); }
       }
       throw innerError;
     }
@@ -527,8 +540,8 @@ export async function getAlertHistory(req: Request, res: Response) {
 
   try {
     const data = await getAlertHistoryQuery(tenantId, {
-      page: parseInt((req.query.page as string) || "1", 10),
-      limit: parseInt((req.query.limit as string) || "20", 10),
+      page: parsePageLimit(req.query.page as string, 1),
+      limit: parsePageLimit(req.query.limit as string, 20),
       ruleId: req.query.ruleId ? parseInt(req.query.ruleId as string, 10) : undefined,
     });
     await logSuccess({ eventType: "Read", description: "alert history fetched", functionName: fn, fileName: FILE_NAME, userId, tenantId });

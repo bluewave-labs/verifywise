@@ -141,6 +141,7 @@ interface CachedKey {
 
 const keyCache = new Map<string, CachedKey>();
 const KEY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const KEY_CACHE_MAX_SIZE = 10000;
 
 /**
  * Validate an API key with caching.
@@ -149,6 +150,9 @@ const KEY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 export async function validateApiKeyWithCache(
   key: string
 ): Promise<string | null> {
+  // Validate full key format: vw_sk_{10-char-hash}_{48-char-hex}
+  if (!/^vw_sk_[a-zA-Z0-9]{10}_[a-f0-9]{48}$/.test(key)) return null;
+
   const tenant = extractTenantFromKey(key);
   if (!tenant) return null;
 
@@ -170,13 +174,27 @@ export async function validateApiKeyWithCache(
     return null;
   }
 
+  // Evict oldest entries if cache is full
+  if (keyCache.size >= KEY_CACHE_MAX_SIZE) {
+    const firstKey = keyCache.keys().next().value;
+    if (firstKey) keyCache.delete(firstKey);
+  }
   keyCache.set(hash, { tenant, validatedAt: now });
   return tenant;
 }
 
 /**
- * Clear the key validation cache (e.g. after revoking a key).
+ * Clear the key validation cache for a specific tenant,
+ * or all tenants if no tenant is specified.
  */
-export function clearApiKeyCache(): void {
-  keyCache.clear();
+export function clearApiKeyCache(tenant?: string): void {
+  if (!tenant) {
+    keyCache.clear();
+    return;
+  }
+  for (const [hash, cached] of keyCache.entries()) {
+    if (cached.tenant === tenant) {
+      keyCache.delete(hash);
+    }
+  }
 }

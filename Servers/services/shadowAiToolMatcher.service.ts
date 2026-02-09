@@ -74,6 +74,7 @@ export async function matchDomain(
 /**
  * Ensure a tool exists in the tenant's shadow_ai_tools table.
  * If the tool doesn't exist, create it from the registry entry.
+ * Uses INSERT ... ON CONFLICT to avoid race conditions.
  * Returns the tenant tool ID.
  */
 export async function ensureTenantTool(
@@ -81,21 +82,7 @@ export async function ensureTenantTool(
   registryEntry: IShadowAiToolRegistry,
   transaction?: any
 ): Promise<number> {
-  // Check if tool already exists in tenant by name
-  const [existing] = await sequelize.query(
-    `SELECT id FROM "${tenant}".shadow_ai_tools WHERE name = :name LIMIT 1`,
-    {
-      replacements: { name: registryEntry.name },
-      ...(transaction ? { transaction } : {}),
-    }
-  );
-
-  if ((existing as any[]).length > 0) {
-    return (existing as any[])[0].id;
-  }
-
-  // Create new tenant tool from registry
-  const [created] = await sequelize.query(
+  const [rows] = await sequelize.query(
     `INSERT INTO "${tenant}".shadow_ai_tools
        (name, vendor, domains, status, risk_score,
         first_detected_at, last_seen_at, total_users, total_events,
@@ -104,6 +91,7 @@ export async function ensureTenantTool(
        (:name, :vendor, :domains, 'detected', NULL,
         NOW(), NOW(), 0, 0,
         :trains_on_data, :soc2_certified, :gdpr_compliant)
+     ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
      RETURNING id`,
     {
       replacements: {
@@ -118,7 +106,7 @@ export async function ensureTenantTool(
     }
   );
 
-  return (created as any[])[0].id;
+  return (rows as any[])[0].id;
 }
 
 /**
@@ -128,22 +116,21 @@ export async function updateToolCounters(
   tenant: string,
   toolId: number,
   eventCount: number,
-  _uniqueEmails: Set<string>,
+  uniqueEmails: Set<string>,
   transaction?: any
 ): Promise<void> {
+  // Use the pre-computed unique email count from the batch to avoid a full table scan.
+  // total_users is approximated by adding new unique users from this batch.
+  // Periodic reconciliation via aggregation service will correct any drift.
   await sequelize.query(
     `UPDATE "${tenant}".shadow_ai_tools
      SET last_seen_at = NOW(),
          total_events = total_events + :eventCount,
-         total_users = (
-           SELECT COUNT(DISTINCT user_email)
-           FROM "${tenant}".shadow_ai_events
-           WHERE detected_tool_id = :toolId
-         ),
+         total_users = GREATEST(total_users, :uniqueUserCount),
          updated_at = NOW()
      WHERE id = :toolId`,
     {
-      replacements: { toolId, eventCount },
+      replacements: { toolId, eventCount, uniqueUserCount: uniqueEmails.size },
       ...(transaction ? { transaction } : {}),
     }
   );

@@ -12,6 +12,18 @@ import {
 } from "../domain.layer/interfaces/i.shadowAi";
 
 /**
+ * Safely parse a JSON string, returning a fallback value on failure.
+ */
+function safeJsonParse<T>(value: unknown, fallback: T): T {
+  if (typeof value !== "string") return (value as T) ?? fallback;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
+/**
  * Get all rules for a tenant.
  */
 export async function getAllRulesQuery(
@@ -31,15 +43,9 @@ export async function getAllRulesQuery(
 
   return (rows as any[]).map((r) => ({
     ...r,
-    actions: typeof r.actions === "string" ? JSON.parse(r.actions) : r.actions,
-    trigger_config:
-      typeof r.trigger_config === "string"
-        ? JSON.parse(r.trigger_config)
-        : r.trigger_config,
-    notification_user_ids:
-      typeof r.notification_user_ids === "string"
-        ? JSON.parse(r.notification_user_ids)
-        : r.notification_user_ids || [],
+    actions: safeJsonParse(r.actions, []),
+    trigger_config: safeJsonParse(r.trigger_config, {}),
+    notification_user_ids: safeJsonParse(r.notification_user_ids, []),
   }));
 }
 
@@ -69,15 +75,9 @@ export async function getRuleByIdQuery(
   const r = results[0];
   return {
     ...r,
-    actions: typeof r.actions === "string" ? JSON.parse(r.actions) : r.actions,
-    trigger_config:
-      typeof r.trigger_config === "string"
-        ? JSON.parse(r.trigger_config)
-        : r.trigger_config,
-    notification_user_ids:
-      typeof r.notification_user_ids === "string"
-        ? JSON.parse(r.notification_user_ids)
-        : r.notification_user_ids || [],
+    actions: safeJsonParse(r.actions, []),
+    trigger_config: safeJsonParse(r.trigger_config, {}),
+    notification_user_ids: safeJsonParse(r.notification_user_ids, []),
   };
 }
 
@@ -137,14 +137,8 @@ export async function createRuleQuery(
 
   return {
     ...created,
-    actions:
-      typeof created.actions === "string"
-        ? JSON.parse(created.actions)
-        : created.actions,
-    trigger_config:
-      typeof created.trigger_config === "string"
-        ? JSON.parse(created.trigger_config)
-        : created.trigger_config,
+    actions: safeJsonParse(created.actions, []),
+    trigger_config: safeJsonParse(created.trigger_config, {}),
     notification_user_ids: rule.notification_user_ids || [],
   };
 }
@@ -235,11 +229,8 @@ export async function updateRuleQuery(
   const r = results[0];
   return {
     ...r,
-    actions: typeof r.actions === "string" ? JSON.parse(r.actions) : r.actions,
-    trigger_config:
-      typeof r.trigger_config === "string"
-        ? JSON.parse(r.trigger_config)
-        : r.trigger_config,
+    actions: safeJsonParse(r.actions, []),
+    trigger_config: safeJsonParse(r.trigger_config, {}),
     notification_user_ids: updates.notification_user_ids || [],
   };
 }
@@ -302,14 +293,8 @@ export async function getAlertHistoryQuery(
   return {
     alerts: (rows as any[]).map((r) => ({
       ...r,
-      trigger_data:
-        typeof r.trigger_data === "string"
-          ? JSON.parse(r.trigger_data)
-          : r.trigger_data,
-      actions_taken:
-        typeof r.actions_taken === "string"
-          ? JSON.parse(r.actions_taken)
-          : r.actions_taken,
+      trigger_data: safeJsonParse(r.trigger_data, {}),
+      actions_taken: safeJsonParse(r.actions_taken, {}),
     })),
     total: parseInt((countResult as any[])[0].total, 10),
   };
@@ -368,14 +353,8 @@ export async function getActiveRulesQuery(
 
   return (rows as any[]).map((r) => ({
     ...r,
-    actions: typeof r.actions === "string" ? JSON.parse(r.actions) : r.actions,
-    trigger_config:
-      typeof r.trigger_config === "string"
-        ? JSON.parse(r.trigger_config)
-        : r.trigger_config,
-    notification_user_ids:
-      typeof r.notification_user_ids === "string"
-        ? JSON.parse(r.notification_user_ids)
-        : r.notification_user_ids || [],
+    actions: safeJsonParse(r.actions, []),
+    trigger_config: safeJsonParse(r.trigger_config, {}),
+    notification_user_ids: safeJsonParse(r.notification_user_ids, []),
   }));
 }

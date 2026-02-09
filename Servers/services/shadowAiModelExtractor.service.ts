@@ -7,6 +7,7 @@
 
 import { sequelize } from "../database/db";
 import { IShadowAiModelPattern } from "../domain.layer/interfaces/i.shadowAi";
+import logger from "../utils/logger/fileLogger";
 
 let patternCache: IShadowAiModelPattern[] = [];
 let patternCacheLastRefreshed = 0;
@@ -72,8 +73,8 @@ export async function extractModel(
       if (match?.groups?.model) {
         return match.groups.model;
       }
-    } catch {
-      // Skip invalid regex patterns
+    } catch (error) {
+      logger.warn(`Invalid regex pattern in model extractor (id=${pattern.id}):`, error);
       continue;
     }
   }

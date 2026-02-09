@@ -77,7 +77,8 @@ export async function ingestEvents(req: Request, res: Response) {
       );
   }
 
-  // Validate required fields
+  // Validate required fields and basic formats
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   for (let i = 0; i < body.events.length; i++) {
     const evt = body.events[i];
     if (!evt.user_email || !evt.destination || !evt.timestamp) {
@@ -86,6 +87,15 @@ export async function ingestEvents(req: Request, res: Response) {
         .json(
           STATUS_CODE[400](
             `Event at index ${i} missing required field(s): user_email, destination, timestamp`
+          )
+        );
+    }
+    if (!EMAIL_REGEX.test(evt.user_email)) {
+      return res
+        .status(400)
+        .json(
+          STATUS_CODE[400](
+            `Event at index ${i} has invalid user_email format`
           )
         );
     }
@@ -202,7 +212,7 @@ export async function ingestEvents(req: Request, res: Response) {
       try {
         await transaction.rollback();
       } catch (rollbackError) {
-        console.warn("Transaction rollback failed:", rollbackError);
+        logger.error("Transaction rollback failed:", rollbackError);
       }
     }
 

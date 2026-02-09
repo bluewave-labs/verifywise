@@ -99,10 +99,11 @@ export async function getToolsByEventsQuery(
     `SELECT t.name as tool_name, COUNT(e.id) as event_count
      FROM "${tenant}".shadow_ai_events e
      JOIN "${tenant}".shadow_ai_tools t ON e.detected_tool_id = t.id
-     WHERE e.event_timestamp > NOW() - INTERVAL '${periodDays} days'
+     WHERE e.event_timestamp > NOW() - INTERVAL '1 day' * :periodDays
      GROUP BY t.name
      ORDER BY event_count DESC
-     LIMIT 10`
+     LIMIT 10`,
+    { replacements: { periodDays } }
   );
 
   return rows as ShadowAiToolByEvents[];
@@ -119,10 +120,11 @@ export async function getToolsByUsersQuery(
     `SELECT t.name as tool_name, COUNT(DISTINCT e.user_email) as user_count
      FROM "${tenant}".shadow_ai_events e
      JOIN "${tenant}".shadow_ai_tools t ON e.detected_tool_id = t.id
-     WHERE e.event_timestamp > NOW() - INTERVAL '${periodDays} days'
+     WHERE e.event_timestamp > NOW() - INTERVAL '1 day' * :periodDays
      GROUP BY t.name
      ORDER BY user_count DESC
-     LIMIT 10`
+     LIMIT 10`,
+    { replacements: { periodDays } }
   );
 
   return rows as ShadowAiToolByUsers[];
@@ -140,9 +142,10 @@ export async function getUsersByDepartmentQuery(
        COALESCE(department, 'Unknown') as department,
        COUNT(DISTINCT user_email) as user_count
      FROM "${tenant}".shadow_ai_events
-     WHERE event_timestamp > NOW() - INTERVAL '${periodDays} days'
+     WHERE event_timestamp > NOW() - INTERVAL '1 day' * :periodDays
      GROUP BY department
-     ORDER BY user_count DESC`
+     ORDER BY user_count DESC`,
+    { replacements: { periodDays } }
   );
 
   return rows as ShadowAiUsersByDepartment[];
@@ -156,16 +159,16 @@ export async function getTrendQuery(
   periodDays: number = 90,
   granularity: "daily" | "weekly" | "monthly" = "daily"
 ): Promise<ShadowAiTrendPoint[]> {
-  const dateFormat =
-    granularity === "monthly"
-      ? "YYYY-MM-01"
-      : granularity === "weekly"
-        ? "IYYY-IW"
-        : "YYYY-MM-DD";
+  const DATE_FORMAT_MAP: Record<string, string> = {
+    monthly: "YYYY-MM-01",
+    weekly: "IYYY-IW",
+    daily: "YYYY-MM-DD",
+  };
+  const dateFormat = DATE_FORMAT_MAP[granularity] || DATE_FORMAT_MAP.daily;
 
   const [rows] = await sequelize.query(
     `SELECT
-       TO_CHAR(event_timestamp, '${dateFormat}') as date,
+       TO_CHAR(event_timestamp, :dateFormat) as date,
        COUNT(*) as total_events,
        COUNT(DISTINCT user_email) as unique_users,
        COUNT(DISTINCT CASE
@@ -175,9 +178,10 @@ export async function getTrendQuery(
          ) THEN detected_tool_id
        END) as new_tools
      FROM "${tenant}".shadow_ai_events
-     WHERE event_timestamp > NOW() - INTERVAL '${periodDays} days'
-     GROUP BY TO_CHAR(event_timestamp, '${dateFormat}')
-     ORDER BY date ASC`
+     WHERE event_timestamp > NOW() - INTERVAL '1 day' * :periodDays
+     GROUP BY TO_CHAR(event_timestamp, :dateFormat)
+     ORDER BY date ASC`,
+    { replacements: { periodDays, dateFormat } }
   );
 
   return (rows as any[]).map((r) => ({
@@ -213,12 +217,11 @@ export async function getUserActivityQuery(
     replacements.department = options.department;
   }
 
-  const sortColumn =
-    options?.sort === "risk"
-      ? "risk_score DESC"
-      : options?.sort === "email"
-        ? "user_email ASC"
-        : "total_prompts DESC";
+  const SORT_MAP: Record<string, string> = {
+    risk: "risk_score DESC",
+    email: "user_email ASC",
+  };
+  const sortColumn = SORT_MAP[options?.sort || ""] || "total_prompts DESC";
 
   const [rows] = await sequelize.query(
     `SELECT
@@ -312,10 +315,10 @@ export async function getUserDetailQuery(
      FROM "${tenant}".shadow_ai_events e
      JOIN "${tenant}".shadow_ai_tools t ON e.detected_tool_id = t.id
      WHERE e.user_email = :userEmail
-       AND e.event_timestamp > NOW() - INTERVAL '${periodDays} days'
+       AND e.event_timestamp > NOW() - INTERVAL '1 day' * :periodDays
      GROUP BY t.name
      ORDER BY event_count DESC`,
-    { replacements: { userEmail } }
+    { replacements: { userEmail, periodDays } }
   );
 
   return rows as any[];

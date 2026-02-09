@@ -19,6 +19,7 @@ import {
   NotificationEntityType,
 } from "../domain.layer/interfaces/i.notification";
 import { insertAlertHistoryQuery } from "../utils/shadowAiRules.utils";
+import logger from "../utils/logger/fileLogger";
 
 const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
   new_tool_detected: "New AI tool detected",
@@ -52,7 +53,7 @@ export async function processTriggeredRules(
     try {
       await sendRuleAlert(tenant, rule, context);
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to process alert for rule ${rule.id}:`,
         error
       );
@@ -74,19 +75,22 @@ async function sendRuleAlert(
   const firedAt = new Date().toISOString();
 
   // 1. Record alert in history
-  await insertAlertHistoryQuery(
-    tenant,
-    rule.id,
-    rule.trigger_type,
-    {
+  await insertAlertHistoryQuery(tenant, {
+    rule_id: rule.id!,
+    rule_name: rule.name,
+    trigger_type: rule.trigger_type,
+    trigger_data: {
       tool_name: context.toolName,
       tool_id: context.toolId,
       user_email: context.userEmail,
       department: context.department,
       risk_score: context.riskScore,
     },
-    rule.actions?.map((a) => a.type) || []
-  );
+    actions_taken: {
+      types: rule.actions?.map((a) => a.type) || [],
+      fired_at: firedAt,
+    },
+  });
 
   // 2. Send notifications to configured users
   const userIds = rule.notification_user_ids || [];

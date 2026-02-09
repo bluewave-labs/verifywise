@@ -9,7 +9,14 @@ import { Transaction } from "sequelize";
 import { NormalizedShadowAiEvent } from "../domain.layer/interfaces/i.shadowAi";
 
 /**
+ * Maximum number of events to insert in a single SQL statement
+ * to prevent excessively large queries.
+ */
+const INSERT_CHUNK_SIZE = 500;
+
+/**
  * Insert a batch of events into the tenant's shadow_ai_events table.
+ * Large batches are automatically chunked to prevent oversized SQL statements.
  */
 export async function insertEventsQuery(
   tenant: string,
@@ -30,7 +37,32 @@ export async function insertEventsQuery(
 ): Promise<number> {
   if (events.length === 0) return 0;
 
-  // Build batch INSERT with VALUES list
+  // Process in chunks to avoid oversized SQL statements
+  for (let start = 0; start < events.length; start += INSERT_CHUNK_SIZE) {
+    const chunk = events.slice(start, start + INSERT_CHUNK_SIZE);
+    await insertEventChunk(tenant, chunk, transaction);
+  }
+
+  return events.length;
+}
+
+async function insertEventChunk(
+  tenant: string,
+  events: Array<{
+    user_email: string;
+    destination: string;
+    uri_path?: string;
+    http_method?: string;
+    action: string;
+    detected_tool_id?: number;
+    detected_model?: string;
+    event_timestamp: Date;
+    department?: string;
+    job_title?: string;
+    manager_email?: string;
+  }>,
+  transaction?: Transaction
+): Promise<void> {
   const values: string[] = [];
   const replacements: Record<string, any> = {};
 
@@ -65,8 +97,6 @@ export async function insertEventsQuery(
     replacements,
     ...(transaction ? { transaction } : {}),
   });
-
-  return events.length;
 }
 
 /**
@@ -79,7 +109,8 @@ export async function getNewlyDetectedToolIds(
 ): Promise<number[]> {
   const [rows] = await sequelize.query(
     `SELECT id FROM "${tenant}".shadow_ai_tools
-     WHERE first_detected_at > NOW() - INTERVAL '${sinceMinutes} minutes'`
+     WHERE first_detected_at > NOW() - INTERVAL '1 minute' * :sinceMinutes`,
+    { replacements: { sinceMinutes } }
   );
 
   return (rows as any[]).map((r) => r.id);

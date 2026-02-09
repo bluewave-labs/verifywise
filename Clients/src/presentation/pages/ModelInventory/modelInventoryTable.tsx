@@ -134,6 +134,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   onEdit,
   onDelete,
   onCheckModelHasRisks,
+  onViewDetails,
   paginated = true,
   deletingId,
   hidePagination = false,
@@ -423,7 +424,11 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onEdit?.(modelInventory.id?.toString() || "");
+                  if (onViewDetails) {
+                    onViewDetails(modelInventory.id?.toString() || "");
+                  } else {
+                    onEdit?.(modelInventory.id?.toString() || "");
+                  }
                 }}
               >
                 <TableCell

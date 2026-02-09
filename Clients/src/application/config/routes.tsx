@@ -30,6 +30,7 @@ import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
+import ModelDetailPage from "../../presentation/pages/ModelInventory/ModelDetailPage";
 import IncidentManagement from "../../presentation/pages/IncidentManagement";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
@@ -96,6 +97,7 @@ export const createRoutes = (
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
     <Route path="/model-inventory/datasets" element={<ModelInventory />} />
     <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
+    <Route path="/model-inventory/models/:id" element={<ModelDetailPage />} />
     {/* Dynamic route for plugin tabs (e.g., mlflow, other future plugins) */}
     <Route path="/model-inventory/:pluginTab" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />

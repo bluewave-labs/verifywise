@@ -69,6 +69,7 @@ export interface ModelInventoryTableProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string, deleteRisks?: boolean) => void;
   onCheckModelHasRisks?: (id: string) => Promise<boolean>;
+  onViewDetails?: (id: string) => void;
   paginated?: boolean;
   deletingId?: string | null;
   hidePagination?: boolean;

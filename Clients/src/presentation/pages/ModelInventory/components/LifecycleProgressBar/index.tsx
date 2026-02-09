@@ -39,9 +39,9 @@ const LifecycleProgressBar = ({
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography
           variant="body2"
-          sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: "13px" }}
+          sx={{ fontWeight: 600, color: "#1F2937", fontSize: "14px" }}
         >
-          Lifecycle progress
+          Lifecycle Progress
         </Typography>
         <Typography
           variant="body2"
@@ -69,8 +69,8 @@ const LifecycleProgressBar = ({
                 onClick={() => onPhaseClick?.(phase.phase_id)}
                 sx={{
                   flex: 1,
-                  height: 8,
-                  borderRadius: 4,
+                  height: 6,
+                  borderRadius: 3,
                   overflow: "hidden",
                   backgroundColor: theme.palette.border.light,
                   cursor: onPhaseClick ? "pointer" : "default",
@@ -83,7 +83,7 @@ const LifecycleProgressBar = ({
                     width: `${pct}%`,
                     height: "100%",
                     backgroundColor: color,
-                    borderRadius: 4,
+                    borderRadius: 3,
                     transition: "width 0.3s ease",
                   }}
                 />
@@ -102,7 +102,7 @@ const LifecycleProgressBar = ({
             sx={{
               flex: 1,
               textAlign: "center",
-              fontSize: "10px",
+              fontSize: "11px",
               color: theme.palette.text.tertiary,
               overflow: "hidden",
               textOverflow: "ellipsis",

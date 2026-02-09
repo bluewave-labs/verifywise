@@ -8,7 +8,7 @@ export interface IModelInventory {
   provider: string;
   model: string;
   version?: string;
-  approver: number;
+  approver?: number;
   capabilities: string[];
   security_assessment: boolean;
   status: ModelInventoryStatus;

@@ -398,7 +398,6 @@ export default function AIToolsPage() {
         <EmptyState
           message="No AI tools detected yet. Connect a data source to start monitoring."
           showBorder
-          showHalo
         />
       ) : (
         <Paper

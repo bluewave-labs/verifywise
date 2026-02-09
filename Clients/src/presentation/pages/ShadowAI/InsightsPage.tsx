@@ -121,7 +121,6 @@ export default function InsightsPage() {
       <EmptyState
         message="No Shadow AI activity detected yet. Connect a data source to start monitoring AI tool usage."
         showBorder
-        showHalo
       />
     );
   }

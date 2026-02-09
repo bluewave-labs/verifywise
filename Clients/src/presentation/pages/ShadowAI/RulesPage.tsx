@@ -195,7 +195,6 @@ export default function RulesPage() {
           <EmptyState
             message="No rules configured yet. Create a rule to get alerted about Shadow AI activity."
             showBorder
-            showHalo
           />
         ) : (
           <Stack gap={1.5}>
@@ -271,7 +270,6 @@ export default function RulesPage() {
         <EmptyState
           message="No alerts have been triggered yet."
           showBorder
-          showHalo
         />
       ) : (
         <Paper

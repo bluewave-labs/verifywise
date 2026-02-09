@@ -250,7 +250,6 @@ export default function UserActivityPage() {
         <EmptyState
           message="No user activity detected yet."
           showBorder
-          showHalo
         />
       ) : viewMode === "users" ? (
         <Paper

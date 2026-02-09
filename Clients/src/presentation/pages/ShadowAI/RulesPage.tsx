@@ -12,8 +12,7 @@ import {
   Skeleton,
   Switch,
   IconButton,
-  Select as MuiSelect,
-  MenuItem,
+  SelectChangeEvent,
   Table,
   TableHead,
   TableBody,
@@ -42,6 +41,7 @@ import EmptyState from "../../components/EmptyState";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
+import Select from "../../components/Inputs/Select";
 
 const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
   new_tool_detected: "New tool detected",
@@ -346,25 +346,18 @@ export default function RulesPage() {
             onChange={(e) => setFormDescription(e.target.value)}
             placeholder="Optional description"
           />
-          <Stack gap={0.5}>
-            <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-              Trigger type
-            </Typography>
-            <MuiSelect
-              value={formTrigger}
-              onChange={(e) =>
-                setFormTrigger(e.target.value as ShadowAiTriggerType)
-              }
-              size="small"
-              sx={{ fontSize: 13 }}
-            >
-              {Object.entries(TRIGGER_LABELS).map(([value, label]) => (
-                <MenuItem key={value} value={value} sx={{ fontSize: 13 }}>
-                  {label}
-                </MenuItem>
-              ))}
-            </MuiSelect>
-          </Stack>
+          <Select
+            id="trigger-type-select"
+            label="Trigger type"
+            value={formTrigger}
+            onChange={(e: SelectChangeEvent<string | number>) =>
+              setFormTrigger(e.target.value as ShadowAiTriggerType)
+            }
+            items={Object.entries(TRIGGER_LABELS).map(([value, label]) => ({
+              _id: value,
+              name: label,
+            }))}
+          />
           <Stack direction="row" alignItems="center" gap={1}>
             <Typography sx={{ fontSize: 13 }}>Active</Typography>
             <Switch

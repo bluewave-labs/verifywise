@@ -11,8 +11,6 @@ import {
   Typography,
   Paper,
   Skeleton,
-  Select,
-  MenuItem,
   SelectChangeEvent,
   IconButton,
   Table,
@@ -26,6 +24,7 @@ import {
 import TabContext from "@mui/lab/TabContext";
 import { ArrowLeft, Mail, Building2 } from "lucide-react";
 import TabBar from "../../components/TabBar";
+import Select from "../../components/Inputs/Select";
 import {
   getUsers,
   getUserDetail,
@@ -39,9 +38,9 @@ import {
 import EmptyState from "../../components/EmptyState";
 
 const PERIOD_OPTIONS = [
-  { value: "7d", label: "Last 7 days" },
-  { value: "30d", label: "Last 30 days" },
-  { value: "90d", label: "Last 90 days" },
+  { _id: "7d", name: "Last 7 days" },
+  { _id: "30d", name: "Last 30 days" },
+  { _id: "90d", name: "Last 90 days" },
 ];
 
 type ViewMode = "users" | "departments" | "detail";
@@ -118,8 +117,8 @@ export default function UserActivityPage() {
     setUserDetail(null);
   };
 
-  const handlePeriodChange = (e: SelectChangeEvent) => {
-    setPeriod(e.target.value);
+  const handlePeriodChange = (e: SelectChangeEvent<string | number>) => {
+    setPeriod(e.target.value as string);
     setPage(1);
   };
 
@@ -229,17 +228,12 @@ export default function UserActivityPage() {
           onChange={(_e, newValue) => setViewMode(newValue as ViewMode)}
         />
         <Select
+          id="period-select"
           value={period}
           onChange={handlePeriodChange}
-          size="small"
-          sx={{ minWidth: 150, fontSize: 13, height: 34 }}
-        >
-          {PERIOD_OPTIONS.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: 13 }}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
+          items={PERIOD_OPTIONS}
+          sx={{ width: 160 }}
+        />
       </Stack>
 
       {/* Content */}

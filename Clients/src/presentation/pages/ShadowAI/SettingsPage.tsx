@@ -38,6 +38,7 @@ import {
 import { CustomizableButton } from "../../components/button/customizable-button";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
+import Select from "../../components/Inputs/Select";
 
 const useStyles = () => {
   const theme = useTheme();
@@ -506,34 +507,18 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
             onChange={(e) => setFormSource(e.target.value)}
             placeholder="e.g., proxy-01.corp.com"
           />
-          <Stack gap={0.5}>
-            <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-              Parser type
-            </Typography>
-            <Box
-              component="select"
-              value={formParser}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setFormParser(e.target.value as IShadowAiSyslogConfig["parser_type"])
-              }
-              sx={{
-                height: 40,
-                px: 1.5,
-                fontSize: 13,
-                border: "1px solid #d0d5dd",
-                borderRadius: "4px",
-                backgroundColor: "#fff",
-                outline: "none",
-                "&:focus": { borderColor: "#13715B" },
-              }}
-            >
-              {Object.entries(PARSER_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </Box>
-          </Stack>
+          <Select
+            id="parser-type-select"
+            label="Parser type"
+            value={formParser}
+            onChange={(e) =>
+              setFormParser(e.target.value as IShadowAiSyslogConfig["parser_type"])
+            }
+            items={Object.entries(PARSER_LABELS).map(([value, label]) => ({
+              _id: value,
+              name: label,
+            }))}
+          />
         </Stack>
       </StandardModal>
 

@@ -12,8 +12,6 @@ import {
   Typography,
   Paper,
   Skeleton,
-  Select,
-  MenuItem,
   SelectChangeEvent,
 } from "@mui/material";
 import {
@@ -49,11 +47,12 @@ import {
   ShadowAiTrendPoint,
 } from "../../../domain/interfaces/i.shadowAi";
 import EmptyState from "../../components/EmptyState";
+import Select from "../../components/Inputs/Select";
 
 const PERIOD_OPTIONS = [
-  { value: "7d", label: "Last 7 days" },
-  { value: "30d", label: "Last 30 days" },
-  { value: "90d", label: "Last 90 days" },
+  { _id: "7d", name: "Last 7 days" },
+  { _id: "30d", name: "Last 30 days" },
+  { _id: "90d", name: "Last 90 days" },
 ];
 
 export default function InsightsPage() {
@@ -94,8 +93,8 @@ export default function InsightsPage() {
     return () => { cancelled = true; };
   }, [period]);
 
-  const handlePeriodChange = (e: SelectChangeEvent) => {
-    setPeriod(e.target.value);
+  const handlePeriodChange = (e: SelectChangeEvent<string | number>) => {
+    setPeriod(e.target.value as string);
   };
 
   const hasData = summary && (
@@ -118,17 +117,12 @@ export default function InsightsPage() {
       {/* Period selector */}
       <Stack direction="row" justifyContent="flex-end">
         <Select
+          id="insights-period-select"
           value={period}
           onChange={handlePeriodChange}
-          size="small"
-          sx={{ minWidth: 150, fontSize: 13, height: 34 }}
-        >
-          {PERIOD_OPTIONS.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: 13 }}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
+          items={PERIOD_OPTIONS}
+          sx={{ width: 160 }}
+        />
       </Stack>
 
       {/* Summary cards */}

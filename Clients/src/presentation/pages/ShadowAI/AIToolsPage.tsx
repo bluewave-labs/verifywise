@@ -10,8 +10,6 @@ import {
   Typography,
   Paper,
   Skeleton,
-  Select,
-  MenuItem,
   SelectChangeEvent,
   Box,
   IconButton,
@@ -43,16 +41,17 @@ import {
 } from "../../../domain/interfaces/i.shadowAi";
 import EmptyState from "../../components/EmptyState";
 import { CustomizableButton } from "../../components/button/customizable-button";
+import Select from "../../components/Inputs/Select";
 import GovernanceWizardModal from "./GovernanceWizardModal";
 
-const STATUS_OPTIONS: { value: ShadowAiToolStatus | "all"; label: string }[] = [
-  { value: "all", label: "All statuses" },
-  { value: "detected", label: "Detected" },
-  { value: "under_review", label: "Under review" },
-  { value: "approved", label: "Approved" },
-  { value: "restricted", label: "Restricted" },
-  { value: "blocked", label: "Blocked" },
-  { value: "dismissed", label: "Dismissed" },
+const STATUS_OPTIONS = [
+  { _id: "all", name: "All statuses" },
+  { _id: "detected", name: "Detected" },
+  { _id: "under_review", name: "Under review" },
+  { _id: "approved", name: "Approved" },
+  { _id: "restricted", name: "Restricted" },
+  { _id: "blocked", name: "Blocked" },
+  { _id: "dismissed", name: "Dismissed" },
 ];
 
 const STATUS_CONFIG: Record<
@@ -256,22 +255,20 @@ export default function AIToolsPage() {
                     Change status:
                   </Typography>
                   <Select
+                    id="tool-status-select"
                     value={selectedTool.status}
-                    onChange={(e) =>
+                    onChange={(e: SelectChangeEvent<string | number>) =>
                       handleStatusChange(
                         selectedTool.id,
                         e.target.value as ShadowAiToolStatus
                       )
                     }
-                    size="small"
-                    sx={{ fontSize: 12, height: 30, minWidth: 140 }}
-                  >
-                    {Object.entries(STATUS_CONFIG).map(([key, val]) => (
-                      <MenuItem key={key} value={key} sx={{ fontSize: 12 }}>
-                        {val.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                    items={Object.entries(STATUS_CONFIG).map(([key, val]) => ({
+                      _id: key,
+                      name: val.label,
+                    }))}
+                    sx={{ width: 160 }}
+                  />
 
                   {!selectedTool.model_inventory_id && (
                     <CustomizableButton
@@ -383,19 +380,14 @@ export default function AIToolsPage() {
     <Stack gap={2}>
       <Stack direction="row" justifyContent="flex-end">
         <Select
+          id="tools-status-filter"
           value={statusFilter}
-          onChange={(e: SelectChangeEvent) =>
+          onChange={(e: SelectChangeEvent<string | number>) =>
             setStatusFilter(e.target.value as ShadowAiToolStatus | "all")
           }
-          size="small"
-          sx={{ minWidth: 150, fontSize: 13, height: 34 }}
-        >
-          {STATUS_OPTIONS.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: 13 }}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
+          items={STATUS_OPTIONS}
+          sx={{ width: 160 }}
+        />
       </Stack>
 
       {loading ? (

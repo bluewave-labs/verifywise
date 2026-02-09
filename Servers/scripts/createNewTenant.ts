@@ -413,6 +413,7 @@ export const createNewTenant = async (
       last_modified_by integer,
       updated_at timestamp with time zone DEFAULT now(),
       description text,
+      file_group_id UUID DEFAULT gen_random_uuid(),
       CONSTRAINT files_pkey PRIMARY KEY (id),
       CONSTRAINT files_project_id_fkey FOREIGN KEY (project_id)
         REFERENCES "${tenantHash}".projects (id) MATCH SIMPLE
@@ -455,6 +456,10 @@ export const createNewTenant = async (
     );
     await sequelize.query(
       `CREATE INDEX IF NOT EXISTS idx_files_updated_at ON "${tenantHash}".files(updated_at DESC);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_file_group_id ON "${tenantHash}".files(file_group_id);`,
       { transaction }
     );
 

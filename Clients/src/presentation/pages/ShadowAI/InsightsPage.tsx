@@ -46,7 +46,6 @@ import {
   ShadowAiUsersByDepartment,
   IShadowAiTool,
 } from "../../../domain/interfaces/i.shadowAi";
-import EmptyState from "../../components/EmptyState";
 import Select from "../../components/Inputs/Select";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { useNavigate } from "react-router-dom";
@@ -110,20 +109,6 @@ export default function InsightsPage() {
   const handlePeriodChange = (e: SelectChangeEvent<string | number>) => {
     setPeriod(e.target.value as string);
   };
-
-  const hasData = summary && (
-    summary.unique_apps > 0 ||
-    summary.total_ai_users > 0
-  );
-
-  if (!loading && !hasData) {
-    return (
-      <EmptyState
-        message="No Shadow AI activity detected yet. Connect a data source to start monitoring AI tool usage."
-        showBorder
-      />
-    );
-  }
 
   return (
     <Stack gap="24px">

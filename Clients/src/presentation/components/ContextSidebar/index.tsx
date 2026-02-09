@@ -5,7 +5,6 @@ import { useAIDetectionSidebarContextSafe } from "../../../application/contexts/
 import Sidebar from "../Sidebar";
 import EvalsSidebar from "../../pages/EvalsDashboard/EvalsSidebar";
 import AIDetectionSidebar from "../../pages/AIDetection/AIDetectionSidebar";
-import { GatewaySidebar } from "./GatewaySidebar";
 
 interface ContextSidebarProps {
   activeModule: AppModule;
@@ -24,7 +23,6 @@ interface ContextSidebarProps {
  * - 'main': Renders the main VerifyWise sidebar
  * - 'evals': Renders EvalsSidebar (state provided via EvalsSidebarContext)
  * - 'ai-detection': Renders AIDetectionSidebar
- * - 'gateway': Renders the Gateway sidebar placeholder
  */
 export function ContextSidebar({
   activeModule,
@@ -120,8 +118,6 @@ export function ContextSidebar({
         />
       );
     }
-    case "gateway":
-      return <GatewaySidebar />;
     default:
       return (
         <Sidebar

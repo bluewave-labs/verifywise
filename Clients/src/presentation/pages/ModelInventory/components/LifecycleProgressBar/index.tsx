@@ -35,7 +35,7 @@ const LifecycleProgressBar = ({
   };
 
   return (
-    <Stack spacing={1.5}>
+    <Stack sx={{ gap: "12px" }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography
           variant="body2"
@@ -52,7 +52,7 @@ const LifecycleProgressBar = ({
       </Stack>
 
       {/* Segmented progress bar */}
-      <Stack direction="row" spacing={0.5} sx={{ width: "100%" }}>
+      <Stack direction="row" sx={{ gap: "4px", width: "100%" }}>
         {progress.phases.map((phase) => {
           const pct = phase.total_items > 0
             ? (phase.filled_items / phase.total_items) * 100
@@ -69,7 +69,7 @@ const LifecycleProgressBar = ({
                 onClick={() => onPhaseClick?.(phase.phase_id)}
                 sx={{
                   flex: 1,
-                  height: 6,
+                  height: 8,
                   borderRadius: 3,
                   overflow: "hidden",
                   backgroundColor: theme.palette.border.light,
@@ -94,7 +94,7 @@ const LifecycleProgressBar = ({
       </Stack>
 
       {/* Phase labels */}
-      <Stack direction="row" spacing={0.5} sx={{ width: "100%" }}>
+      <Stack direction="row" sx={{ gap: "4px", width: "100%" }}>
         {progress.phases.map((phase) => (
           <Typography
             key={phase.phase_id}

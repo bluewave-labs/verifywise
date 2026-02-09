@@ -69,7 +69,7 @@ const LifecyclePhasePanel = ({
             size={16}
             style={{
               transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
-              transition: "transform 0.2s",
+              transition: "transform 0.2s ease",
               color: theme.palette.text.secondary,
             }}
           />
@@ -80,14 +80,16 @@ const LifecyclePhasePanel = ({
             : theme.palette.background.main,
           "&:hover": { backgroundColor: theme.palette.background.accent },
           px: "16px",
-          py: "8px",
+          py: "10px",
+          "& .MuiAccordionSummary-expandIconWrapper": {
+            transform: "none !important",
+          },
         }}
       >
         <Stack
           direction="row"
           alignItems="center"
-          spacing={2}
-          sx={{ width: "100%" }}
+          sx={{ width: "100%", gap: "12px" }}
         >
           <Stack sx={{ flex: 1 }}>
             <Typography
@@ -106,7 +108,7 @@ const LifecyclePhasePanel = ({
                 sx={{
                   color: theme.palette.text.tertiary,
                   fontSize: "12px",
-                  mt: 0.25,
+                  mt: "4px",
                 }}
               >
                 {phase.description}
@@ -125,9 +127,9 @@ const LifecyclePhasePanel = ({
           {items.map((item) => (
             <Stack
               key={item.id}
-              sx={{ px: "16px", py: "12px" }}
+              sx={{ px: "16px", py: "16px" }}
             >
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+              <Stack direction="row" alignItems="center" sx={{ mb: "8px", gap: "8px" }}>
                 <Typography
                   variant="body2"
                   sx={{
@@ -152,7 +154,7 @@ const LifecyclePhasePanel = ({
                   variant="caption"
                   sx={{
                     color: theme.palette.text.tertiary,
-                    mb: 1,
+                    mb: "8px",
                     display: "block",
                     fontSize: "12px",
                   }}

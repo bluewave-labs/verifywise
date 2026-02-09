@@ -257,16 +257,16 @@ const DocumentsFieldRenderer = ({
   );
 
   return (
-    <Stack spacing={1}>
+    <Stack sx={{ gap: "12px" }}>
       {files.length > 0 && (
-        <Stack spacing={0.5}>
+        <Stack sx={{ gap: "8px" }}>
           {files.map((file) => (
             <Stack
               key={file.id}
               direction="row"
               alignItems="center"
-              spacing={1}
               sx={{
+                gap: "8px",
                 p: "8px",
                 borderRadius: "4px",
                 border: `1px solid ${theme.palette.border.light}`,
@@ -298,7 +298,7 @@ const DocumentsFieldRenderer = ({
         {uploading ? (
           <CircularProgress size={20} />
         ) : (
-          <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
+          <Stack direction="row" sx={{ gap: "8px", justifyContent: "center", alignItems: "center" }}>
             <Upload size={16} color={theme.palette.text.tertiary} />
             <Typography variant="body2" color="text.secondary">
               Click to upload documents
@@ -364,7 +364,7 @@ const PeopleFieldRenderer = ({
   );
 
   return (
-    <Stack spacing={1}>
+    <Stack sx={{ gap: "8px" }}>
       <Select
         multiple
         size="small"
@@ -379,7 +379,7 @@ const PeopleFieldRenderer = ({
           "& .MuiInputBase-root": { minHeight: "34px" },
         }}
         renderValue={(selected) => (
-          <Stack direction="row" spacing={0.5} flexWrap="wrap">
+          <Stack direction="row" sx={{ gap: "4px", flexWrap: "wrap" }}>
             {(selected as number[]).map((id) => {
               const user = users.find((u) => u.id === id);
               return (
@@ -449,7 +449,7 @@ const ClassificationFieldRenderer = ({
   );
 
   return (
-    <Stack spacing={0.5}>
+    <Stack sx={{ gap: "8px" }}>
       <RadioGroup
         value={selected}
         onChange={(e) => handleChange(e.target.value)}
@@ -557,9 +557,9 @@ const ChecklistFieldRenderer = ({
   );
 
   return (
-    <Stack spacing={1}>
+    <Stack sx={{ gap: "8px" }}>
       {items.map((it, index) => (
-        <Stack key={index} direction="row" alignItems="center" spacing={1}>
+        <Stack key={index} direction="row" alignItems="center" sx={{ gap: "8px" }}>
           <FormControlLabel
             control={
               <Checkbox
@@ -589,7 +589,7 @@ const ChecklistFieldRenderer = ({
           </IconButton>
         </Stack>
       ))}
-      <Stack direction="row" spacing={1}>
+      <Stack direction="row" sx={{ gap: "8px" }}>
         <Stack sx={{ ...getInputStyles(theme), flex: 1 }}>
           <TextField
             size="small"
@@ -687,7 +687,7 @@ const ApprovalFieldRenderer = ({
   );
 
   return (
-    <Stack spacing={1}>
+    <Stack sx={{ gap: "12px" }}>
       {approvals.map((approval) => {
         const user = users.find((u) => u.id === approval.userId);
         return (
@@ -695,8 +695,8 @@ const ApprovalFieldRenderer = ({
             key={approval.userId}
             direction="row"
             alignItems="center"
-            spacing={1}
             sx={{
+              gap: "8px",
               p: "12px",
               borderRadius: "4px",
               border: `1px solid ${theme.palette.border.light}`,

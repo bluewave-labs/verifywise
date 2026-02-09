@@ -5,7 +5,7 @@
  * Follows the SidebarShell pattern established by AIDetectionSidebar.
  */
 
-import { BarChart3, Users, Bot, ShieldAlert } from "lucide-react";
+import { BarChart3, Users, Bot, ShieldAlert, Settings } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
 } from "../../components/Sidebar/SidebarShell";
@@ -49,6 +49,12 @@ export default function ShadowAISidebar({
       value: "rules",
       icon: <ShieldAlert size={16} strokeWidth={1.5} />,
       count: alertsCount,
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      value: "settings",
+      icon: <Settings size={16} strokeWidth={1.5} />,
     },
   ];
 

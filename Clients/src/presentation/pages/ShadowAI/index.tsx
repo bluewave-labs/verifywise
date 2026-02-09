@@ -8,14 +8,15 @@
 
 import { useLocation, useNavigate } from "react-router-dom";
 import { Stack } from "@mui/material";
-import { Eye, BarChart3, Users, Bot, ShieldAlert } from "lucide-react";
+import { Eye, BarChart3, Users, Bot, ShieldAlert, Settings } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import InsightsPage from "./InsightsPage";
 import UserActivityPage from "./UserActivityPage";
 import AIToolsPage from "./AIToolsPage";
 import RulesPage from "./RulesPage";
+import SettingsPage from "./SettingsPage";
 
-type ActiveTab = "insights" | "users" | "tools" | "rules";
+type ActiveTab = "insights" | "users" | "tools" | "rules" | "settings";
 
 export default function ShadowAIPage() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function ShadowAIPage() {
     if (location.pathname.includes("/shadow-ai/users")) return "users";
     if (location.pathname.includes("/shadow-ai/tools")) return "tools";
     if (location.pathname.includes("/shadow-ai/rules")) return "rules";
+    if (location.pathname.includes("/shadow-ai/settings")) return "settings";
     return "insights";
   };
 
@@ -59,6 +61,11 @@ export default function ShadowAIPage() {
           baseItem,
           { label: "Rules", icon: <ShieldAlert size={14} strokeWidth={1.5} /> },
         ];
+      case "settings":
+        return [
+          baseItem,
+          { label: "Settings", icon: <Settings size={14} strokeWidth={1.5} /> },
+        ];
       default:
         return [baseItem];
     }
@@ -74,6 +81,8 @@ export default function ShadowAIPage() {
         return <AIToolsPage />;
       case "rules":
         return <RulesPage />;
+      case "settings":
+        return <SettingsPage />;
       default:
         return null;
     }

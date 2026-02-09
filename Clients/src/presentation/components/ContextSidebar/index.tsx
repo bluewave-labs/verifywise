@@ -128,7 +128,9 @@ export function ContextSidebar({
           ? "tools"
           : location.pathname.includes("/shadow-ai/rules")
             ? "rules"
-            : "insights";
+            : location.pathname.includes("/shadow-ai/settings")
+              ? "settings"
+              : "insights";
 
       const handleShadowAiTabChange = (newTab: string) => {
         if (newTab === "insights") {

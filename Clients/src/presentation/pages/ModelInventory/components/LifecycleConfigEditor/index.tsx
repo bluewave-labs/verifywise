@@ -7,7 +7,6 @@ import { useState, useCallback } from "react";
 import {
   Stack,
   Typography,
-  Button,
   TextField,
   Select,
   MenuItem,
@@ -46,6 +45,9 @@ import {
   deleteItem,
   reorderItems,
 } from "../../../../../application/repository/modelLifecycle.repository";
+import { getInputStyles } from "../../../../utils/inputStyles";
+import Chip from "../../../../components/Chip";
+import { CustomizableButton } from "../../../../components/button/customizable-button";
 
 interface LifecycleConfigEditorProps {
   open: boolean;
@@ -255,14 +257,14 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       maxWidth="md"
       fullWidth
       PaperProps={{
-        sx: { maxHeight: "85vh" },
+        sx: { maxHeight: "85vh", background: "#FCFCFD" },
       }}
     >
       <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <Typography sx={{ fontWeight: 600, fontSize: "16px", color: "#1c2130" }}>
           Configure Model Lifecycle
         </Typography>
-        <IconButton onClick={onClose} size="small">
+        <IconButton onClick={onClose} size="small" aria-label="Close">
           <X size={18} />
         </IconButton>
       </DialogTitle>
@@ -279,8 +281,8 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
               <Box
                 key={phase.id}
                 sx={{
-                  border: `1px solid ${theme.palette.border.light}`,
-                  borderRadius: 2,
+                  border: "1px solid #eaecf0",
+                  borderRadius: "4px",
                   overflow: "hidden",
                   opacity: phase.is_active ? 1 : 0.6,
                 }}
@@ -291,15 +293,15 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                   alignItems="center"
                   spacing={1}
                   sx={{
-                    px: 2,
-                    py: 1,
+                    px: "16px",
+                    py: "8px",
                     backgroundColor: theme.palette.background.accent,
                     cursor: "pointer",
                   }}
                   onClick={() => toggleExpanded(phase.id)}
                 >
                   <GripVertical size={14} color={theme.palette.text.tertiary} />
-                  <Typography variant="body2" sx={{ flex: 1, fontWeight: 600 }}>
+                  <Typography variant="body2" sx={{ flex: 1, fontWeight: 600, fontSize: "13px" }}>
                     {phase.name}
                   </Typography>
                   <FormControlLabel
@@ -324,8 +326,10 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                       e.stopPropagation();
                       handleMovePhase(phase.id, "up");
                     }}
+                    aria-label="Move up"
+                    sx={{ opacity: phaseIdx === 0 ? 0.4 : 1 }}
                   >
-                    <ChevronUp size={14} />
+                    <ChevronUp size={16} />
                   </IconButton>
                   <IconButton
                     size="small"
@@ -334,8 +338,10 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                       e.stopPropagation();
                       handleMovePhase(phase.id, "down");
                     }}
+                    aria-label="Move down"
+                    sx={{ opacity: phaseIdx === phases.length - 1 ? 0.4 : 1 }}
                   >
-                    <ChevronDown size={14} />
+                    <ChevronDown size={16} />
                   </IconButton>
                   <IconButton
                     size="small"
@@ -344,14 +350,15 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                       handleDeletePhase(phase.id);
                     }}
                     sx={{ color: theme.palette.status.error.text }}
+                    aria-label="Delete phase"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={16} />
                   </IconButton>
                 </Stack>
 
                 {/* Phase items (expanded) */}
                 {expandedPhases.has(phase.id) && (
-                  <Stack spacing={0} sx={{ px: 2, py: 1 }}>
+                  <Stack spacing={0} sx={{ px: "16px", py: "8px" }}>
                     {(phase.items ?? []).map((item, itemIdx) => (
                       <Stack
                         key={item.id}
@@ -366,18 +373,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                         <Typography variant="body2" sx={{ flex: 1, fontSize: "13px" }}>
                           {item.name}
                         </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            backgroundColor: theme.palette.background.fill,
-                            px: 1,
-                            py: 0.25,
-                            borderRadius: 1,
-                            fontSize: "11px",
-                          }}
-                        >
-                          {item.item_type}
-                        </Typography>
+                        <Chip label={item.item_type} size="small" variant="info" />
                         <FormControlLabel
                           control={
                             <Switch
@@ -397,8 +393,10 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                           onClick={() =>
                             handleMoveItem(phase.id, phase.items ?? [], item.id, "up")
                           }
+                          aria-label="Move up"
+                          sx={{ opacity: itemIdx === 0 ? 0.4 : 1 }}
                         >
-                          <ChevronUp size={12} />
+                          <ChevronUp size={16} />
                         </IconButton>
                         <IconButton
                           size="small"
@@ -406,15 +404,18 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                           onClick={() =>
                             handleMoveItem(phase.id, phase.items ?? [], item.id, "down")
                           }
+                          aria-label="Move down"
+                          sx={{ opacity: itemIdx === (phase.items?.length ?? 0) - 1 ? 0.4 : 1 }}
                         >
-                          <ChevronDown size={12} />
+                          <ChevronDown size={16} />
                         </IconButton>
                         <IconButton
                           size="small"
                           onClick={() => handleDeleteItem(item.id)}
                           sx={{ color: theme.palette.status.error.text }}
+                          aria-label="Delete item"
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={16} />
                         </IconButton>
                       </Stack>
                     ))}
@@ -422,13 +423,21 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                     {/* Add item form */}
                     {addingItemForPhase === phase.id ? (
                       <Stack direction="row" spacing={1} sx={{ pt: 1 }} alignItems="center">
-                        <TextField
-                          size="small"
-                          placeholder="Item name"
-                          value={newItemName}
-                          onChange={(e) => setNewItemName(e.target.value)}
-                          sx={{ flex: 1 }}
-                        />
+                        <Stack sx={{ ...getInputStyles(theme), flex: 1 }}>
+                          <TextField
+                            size="small"
+                            placeholder="Item name"
+                            value={newItemName}
+                            onChange={(e) => setNewItemName(e.target.value)}
+                            fullWidth
+                            sx={{
+                              "& .MuiInputBase-root": {
+                                height: "34px",
+                                fontSize: "13px",
+                              },
+                            }}
+                          />
+                        </Stack>
                         <Select
                           size="small"
                           value={newItemType}
@@ -451,15 +460,16 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                           }
                           label={<Typography variant="caption">Req</Typography>}
                         />
-                        <Button
-                          size="small"
+                        <CustomizableButton
                           variant="contained"
+                          size="small"
                           onClick={() => handleCreateItem(phase.id)}
-                          disabled={!newItemName.trim() || saving}
+                          isDisabled={!newItemName.trim() || saving}
                         >
                           Add
-                        </Button>
-                        <Button
+                        </CustomizableButton>
+                        <CustomizableButton
+                          variant="text"
                           size="small"
                           onClick={() => {
                             setAddingItemForPhase(null);
@@ -467,17 +477,19 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                           }}
                         >
                           Cancel
-                        </Button>
+                        </CustomizableButton>
                       </Stack>
                     ) : (
-                      <Button
+                      <CustomizableButton
+                        variant="text"
                         size="small"
-                        startIcon={<Plus size={14} />}
+                        startIcon={<Plus size={16} />}
                         onClick={() => setAddingItemForPhase(phase.id)}
+                        ariaLabel="Add item"
                         sx={{ alignSelf: "flex-start", mt: 1, textTransform: "none" }}
                       >
                         Add item
-                      </Button>
+                      </CustomizableButton>
                     )}
                   </Stack>
                 )}
@@ -488,40 +500,55 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
             <Box
               sx={{
                 border: `1px dashed ${theme.palette.border.dark}`,
-                borderRadius: 2,
-                p: 2,
+                borderRadius: "4px",
+                p: "16px",
               }}
             >
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Add new phase
               </Typography>
               <Stack spacing={1}>
-                <TextField
-                  size="small"
-                  fullWidth
-                  placeholder="Phase name"
-                  value={newPhaseName}
-                  onChange={(e) => setNewPhaseName(e.target.value)}
-                />
-                <TextField
-                  size="small"
-                  fullWidth
-                  multiline
-                  minRows={2}
-                  placeholder="Description (optional)"
-                  value={newPhaseDesc}
-                  onChange={(e) => setNewPhaseDesc(e.target.value)}
-                />
-                <Button
-                  size="small"
+                <Stack sx={getInputStyles(theme)}>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    placeholder="Phase name"
+                    value={newPhaseName}
+                    onChange={(e) => setNewPhaseName(e.target.value)}
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "34px",
+                        fontSize: "13px",
+                      },
+                    }}
+                  />
+                </Stack>
+                <Stack sx={getInputStyles(theme)}>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    placeholder="Description (optional)"
+                    value={newPhaseDesc}
+                    onChange={(e) => setNewPhaseDesc(e.target.value)}
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        fontSize: "13px",
+                      },
+                    }}
+                  />
+                </Stack>
+                <CustomizableButton
                   variant="contained"
-                  startIcon={<Plus size={14} />}
+                  size="small"
+                  startIcon={<Plus size={16} />}
                   onClick={handleCreatePhase}
-                  disabled={!newPhaseName.trim() || saving}
+                  isDisabled={!newPhaseName.trim() || saving}
                   sx={{ alignSelf: "flex-start", textTransform: "none" }}
                 >
                   Create phase
-                </Button>
+                </CustomizableButton>
               </Stack>
             </Box>
           </Stack>
@@ -529,7 +556,9 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Close</Button>
+        <CustomizableButton variant="text" onClick={onClose}>
+          Close
+        </CustomizableButton>
       </DialogActions>
     </Dialog>
   );

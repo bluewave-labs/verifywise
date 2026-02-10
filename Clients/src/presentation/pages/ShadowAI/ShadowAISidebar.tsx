@@ -8,13 +8,17 @@
 import { BarChart3, Users, Bot, ShieldAlert, Settings } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
+  RecentSection,
 } from "../../components/Sidebar/SidebarShell";
+import { RecentTool } from "../../../application/contexts/ShadowAISidebar.context";
 
 interface ShadowAISidebarProps {
   activeTab: string;
   onTabChange: (value: string) => void;
   toolsCount?: number;
   alertsCount?: number;
+  recentTools?: RecentTool[];
+  onToolClick?: (toolId: number) => void;
 }
 
 export default function ShadowAISidebar({
@@ -22,6 +26,8 @@ export default function ShadowAISidebar({
   onTabChange,
   toolsCount = 0,
   alertsCount = 0,
+  recentTools = [],
+  onToolClick,
 }: ShadowAISidebarProps) {
   const flatItems: SidebarMenuItem[] = [
     {
@@ -58,6 +64,19 @@ export default function ShadowAISidebar({
     },
   ];
 
+  const recentSections: RecentSection[] = recentTools.length > 0
+    ? [
+        {
+          title: "Recent tools",
+          items: recentTools.map((tool) => ({
+            id: tool.id.toString(),
+            name: tool.name,
+            onClick: () => onToolClick?.(tool.id),
+          })),
+        },
+      ]
+    : [];
+
   const isItemActive = (item: SidebarMenuItem): boolean => {
     return item.value === activeTab || item.id === activeTab;
   };
@@ -71,6 +90,7 @@ export default function ShadowAISidebar({
   return (
     <SidebarShell
       flatItems={flatItems}
+      recentSections={recentSections}
       isItemActive={isItemActive}
       onItemClick={handleItemClick}
       showReadyToSubscribe={false}

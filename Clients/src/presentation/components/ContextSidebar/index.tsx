@@ -148,6 +148,8 @@ export function ContextSidebar({
           onTabChange={handleShadowAiTabChange}
           toolsCount={shadowAiSidebarContext?.toolsCount ?? 0}
           alertsCount={shadowAiSidebarContext?.alertsCount ?? 0}
+          recentTools={shadowAiSidebarContext?.recentTools ?? []}
+          onToolClick={shadowAiSidebarContext?.onToolClick}
         />
       );
     }

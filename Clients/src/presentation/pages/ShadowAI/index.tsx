@@ -6,10 +6,13 @@
  * Follows the same pattern as AIDetectionPage.
  */
 
+import { useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Stack } from "@mui/material";
 import { Eye, BarChart3, Users, Bot, ShieldAlert, Settings } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
+import { useShadowAISidebarContextSafe } from "../../../application/contexts/ShadowAISidebar.context";
+import { getTools } from "../../../application/repository/shadowAi.repository";
 import InsightsPage from "./InsightsPage";
 import UserActivityPage from "./UserActivityPage";
 import AIToolsPage from "./AIToolsPage";
@@ -21,6 +24,10 @@ type ActiveTab = "insights" | "users" | "tools" | "rules" | "settings";
 export default function ShadowAIPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const sidebarContext = useShadowAISidebarContextSafe();
+  const setToolsCount = sidebarContext?.setToolsCount;
+  const setRecentTools = sidebarContext?.setRecentTools;
+  const setOnToolClick = sidebarContext?.setOnToolClick;
 
   const getActiveTab = (): ActiveTab => {
     if (location.pathname.includes("/shadow-ai/user-activity")) return "users";
@@ -31,6 +38,47 @@ export default function ShadowAIPage() {
   };
 
   const activeTab = getActiveTab();
+
+  // Load recent tools for sidebar
+  useEffect(() => {
+    if (!setToolsCount || !setRecentTools) return;
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const response = await getTools({
+          page: 1,
+          limit: 5,
+          sort_by: "last_seen_at",
+          order: "desc",
+        });
+        if (cancelled) return;
+        setToolsCount(response.total);
+        setRecentTools(
+          response.tools.map((t) => ({ id: t.id, name: t.name }))
+        );
+      } catch (error) {
+        console.error("Failed to load recent tools:", error);
+      }
+    };
+
+    load();
+    return () => { cancelled = true; };
+  }, [setToolsCount, setRecentTools]);
+
+  // Wire up tool click handler for sidebar
+  const handleToolClick = useCallback(
+    (toolId: number) => {
+      navigate(`/shadow-ai/tools/${toolId}`);
+    },
+    [navigate]
+  );
+
+  useEffect(() => {
+    if (setOnToolClick) {
+      setOnToolClick(() => handleToolClick);
+    }
+  }, [setOnToolClick, handleToolClick]);
 
   const getBreadcrumbItems = () => {
     const baseItem = {

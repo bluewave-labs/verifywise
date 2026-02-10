@@ -389,15 +389,26 @@ export async function startGovernance(req: Request, res: Response) {
       // Create model inventory entry
       const [miResult] = await sequelize.query(
         `INSERT INTO "${tenantId}".model_inventories
-           (provider, model, version, status, created_at, updated_at)
-         VALUES (:provider, :model, :version, :status, NOW(), NOW())
+           (provider, model, provider_model, version, status, status_date,
+            capabilities, reference_link, biases, limitations, hosting_provider,
+            approver, created_at, updated_at)
+         VALUES (:provider, :model, :provider_model, :version, :status, NOW(),
+            :capabilities, :reference_link, :biases, :limitations, :hosting_provider,
+            :approver, NOW(), NOW())
          RETURNING id`,
         {
           replacements: {
             provider: model_inventory.provider,
             model: model_inventory.model,
-            version: model_inventory.version || null,
-            status: model_inventory.status || "Pending",
+            provider_model: `${model_inventory.provider} / ${model_inventory.model}`,
+            version: model_inventory.version || "N/A",
+            status: ["Approved", "Restricted", "Pending", "Blocked"].includes(model_inventory.status) ? model_inventory.status : "Pending",
+            capabilities: "To be assessed",
+            reference_link: "",
+            biases: "",
+            limitations: "",
+            hosting_provider: model_inventory.provider,
+            approver: null,
           },
           transaction,
         }

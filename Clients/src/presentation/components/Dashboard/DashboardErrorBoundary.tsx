@@ -82,11 +82,9 @@ class DashboardErrorBoundary extends Component<Props, State> {
             }}
           >
             <CardContent sx={{ p: 4 }}>
-              <AlertCircle
-                size={64}
-                color="red"
-                style={{ marginBottom: 16 }}
-              />
+              <Box sx={{ color: 'error.main', display: 'inline-flex', mb: 2 }}>
+                <AlertCircle size={64} />
+              </Box>
 
               <Typography
                 variant="h5"

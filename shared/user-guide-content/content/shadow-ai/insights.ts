@@ -81,7 +81,7 @@ export const insightsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Use the period selector in the top-right corner to adjust the time window for all dashboard data. Available options include 7 days, 30 days, 90 days, and all time.',
+      text: 'Use the period selector in the top-right corner to adjust the time window for all dashboard data. Available options are last 7 days, last 30 days, and last 90 days.',
     },
     {
       type: 'article-links',

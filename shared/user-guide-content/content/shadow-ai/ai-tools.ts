@@ -75,7 +75,7 @@ export const aiToolsContent: ArticleContent = {
     {
       type: 'bullet-list',
       items: [
-        { bold: 'Blocked', text: 'Prohibited from use. Users will be flagged if detected.' },
+        { bold: 'Blocked', text: 'Prohibited from use. Access attempts can trigger alerts if a "Blocked tool attempt" rule is configured.' },
         { bold: 'Dismissed', text: 'Reviewed but deemed irrelevant (e.g., false positive).' },
       ],
     },

@@ -33,7 +33,7 @@ export const userActivityContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Click any column header to sort the table. Use the period selector to filter by time window (7 days, 30 days, 90 days, or all time).',
+      text: 'Click any column header to sort the table. Use the period selector to filter by time window (last 7 days, last 30 days, or last 90 days).',
     },
     {
       type: 'heading',

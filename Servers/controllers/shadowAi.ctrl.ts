@@ -81,7 +81,8 @@ export async function getInsightsSummary(req: Request, res: Response) {
   logProcessing({ description: "fetching insights summary", functionName: fn, fileName: FILE_NAME, userId, tenantId });
 
   try {
-    const summary = await getInsightsSummaryQuery(tenantId);
+    const period = parsePeriod(req.query.period as string);
+    const summary = await getInsightsSummaryQuery(tenantId, period);
     await logSuccess({ eventType: "Read", description: "insights summary fetched", functionName: fn, fileName: FILE_NAME, userId, tenantId });
     return res.status(200).json(STATUS_CODE[200](summary));
   } catch (error) {

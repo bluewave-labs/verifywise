@@ -13,6 +13,7 @@ import {
   createApiKeyQuery,
   listApiKeysQuery,
   revokeApiKeyQuery,
+  deleteApiKeyQuery,
   clearApiKeyCache,
 } from "../utils/shadowAiApiKey.utils";
 
@@ -192,6 +193,71 @@ export async function revokeApiKey(req: Request, res: Response) {
     await logFailure({
       eventType: "Delete",
       description: "failed to revoke Shadow AI API key",
+      functionName,
+      fileName: FILE_NAME,
+      userId,
+      tenantId,
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * DELETE /api/shadow-ai/api-keys/:id/permanent
+ * Permanently delete a revoked API key. Admin only.
+ */
+export async function deleteApiKey(req: Request, res: Response) {
+  const functionName = "deleteApiKey";
+  const userId = req.userId!;
+  const tenantId = req.tenantId!;
+  const keyId = parseInt(
+    Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+  );
+
+  logProcessing({
+    description: `permanently deleting Shadow AI API key: ${keyId}`,
+    functionName,
+    fileName: FILE_NAME,
+    userId,
+    tenantId,
+  });
+
+  try {
+    if (req.role !== "Admin") {
+      return res
+        .status(403)
+        .json(STATUS_CODE[403]("Only admins can manage API keys"));
+    }
+
+    if (isNaN(keyId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid key ID"));
+    }
+
+    const deleted = await deleteApiKeyQuery(tenantId, keyId);
+
+    if (!deleted) {
+      return res
+        .status(404)
+        .json(STATUS_CODE[404]("API key not found or still active. Revoke it first."));
+    }
+
+    await logSuccess({
+      eventType: "Delete",
+      description: `Shadow AI API key permanently deleted: ${keyId}`,
+      functionName,
+      fileName: FILE_NAME,
+      userId,
+      tenantId,
+    });
+
+    return res
+      .status(200)
+      .json(STATUS_CODE[200]("API key permanently deleted"));
+  } catch (error) {
+    await logFailure({
+      eventType: "Delete",
+      description: "failed to permanently delete Shadow AI API key",
       functionName,
       fileName: FILE_NAME,
       userId,

@@ -50,6 +50,10 @@ export async function revokeApiKey(id: number): Promise<void> {
   await apiServices.delete(`${BASE_URL}/api-keys/${id}`);
 }
 
+export async function deleteApiKey(id: number): Promise<void> {
+  await apiServices.delete(`${BASE_URL}/api-keys/${id}/permanent`);
+}
+
 // ============================================================================
 // Insights
 // ============================================================================

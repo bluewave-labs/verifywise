@@ -5,6 +5,7 @@ import {
   createApiKey,
   listApiKeys,
   revokeApiKey,
+  deleteApiKey,
 } from "../controllers/shadowAiApiKey.ctrl";
 import {
   getInsightsSummary,
@@ -36,6 +37,7 @@ import {
 router.post("/api-keys", authenticateJWT, createApiKey);
 router.get("/api-keys", authenticateJWT, listApiKeys);
 router.delete("/api-keys/:id", authenticateJWT, revokeApiKey);
+router.delete("/api-keys/:id/permanent", authenticateJWT, deleteApiKey);
 
 // ─── Insights ───────────────────────────────────────────────────────────
 router.get("/insights/summary", authenticateJWT, getInsightsSummary);

@@ -13,6 +13,7 @@
 import { sequelize } from "../database/db";
 import logger from "../utils/logger/fileLogger";
 import { calculateRiskScoresForTenant } from "./shadowAiRiskScoring.service";
+import { getSettingsQuery } from "../utils/shadowAiConfig.utils";
 
 /**
  * Get all tenant schemas that have shadow AI tables.
@@ -105,23 +106,56 @@ export async function runMonthlyRollup(): Promise<void> {
 }
 
 /**
- * Purge old events: Delete events older than 30 days.
+ * Purge old data based on per-tenant retention settings.
+ * Deletes raw events, daily rollups, and alert history older than configured days.
+ * A value of 0 means keep data indefinitely (no purge).
  * Runs at 2:00 AM daily.
  */
 export async function purgeOldEvents(): Promise<void> {
   const tenants = await getAllTenantSchemas();
-  logger.debug(`🔄 Purging shadow AI events older than 30 days for ${tenants.length} tenants`);
+  logger.debug(`🔄 Running data retention cleanup for ${tenants.length} tenants`);
 
   for (const tenant of tenants) {
     try {
-      const [, rowCount] = await sequelize.query(
-        `DELETE FROM "${tenant}".shadow_ai_events
-         WHERE event_timestamp < NOW() - INTERVAL '30 days'`
-      );
+      const settings = await getSettingsQuery(tenant);
 
-      logger.debug(`✅ Purged ${rowCount} old events for tenant ${tenant.substring(0, 4)}...`);
+      // Purge raw events
+      if (settings.retention_events_days > 0) {
+        const [, eventCount] = await sequelize.query(
+          `DELETE FROM "${tenant}".shadow_ai_events
+           WHERE event_timestamp < NOW() - INTERVAL '1 day' * :days`,
+          { replacements: { days: settings.retention_events_days } }
+        );
+        if ((eventCount as number) > 0) {
+          logger.debug(`✅ Purged ${eventCount} events older than ${settings.retention_events_days}d for tenant ${tenant.substring(0, 4)}...`);
+        }
+      }
+
+      // Purge daily rollups
+      if (settings.retention_daily_rollups_days > 0) {
+        const [, rollupCount] = await sequelize.query(
+          `DELETE FROM "${tenant}".shadow_ai_daily_rollups
+           WHERE rollup_date < NOW() - INTERVAL '1 day' * :days`,
+          { replacements: { days: settings.retention_daily_rollups_days } }
+        );
+        if ((rollupCount as number) > 0) {
+          logger.debug(`✅ Purged ${rollupCount} daily rollups older than ${settings.retention_daily_rollups_days}d for tenant ${tenant.substring(0, 4)}...`);
+        }
+      }
+
+      // Purge alert history
+      if (settings.retention_alert_history_days > 0) {
+        const [, alertCount] = await sequelize.query(
+          `DELETE FROM "${tenant}".shadow_ai_alert_history
+           WHERE fired_at < NOW() - INTERVAL '1 day' * :days`,
+          { replacements: { days: settings.retention_alert_history_days } }
+        );
+        if ((alertCount as number) > 0) {
+          logger.debug(`✅ Purged ${alertCount} alert records older than ${settings.retention_alert_history_days}d for tenant ${tenant.substring(0, 4)}...`);
+        }
+      }
     } catch (error) {
-      logger.error(`❌ Event purge failed for tenant ${tenant.substring(0, 4)}...:`, error);
+      logger.error(`❌ Data retention cleanup failed for tenant ${tenant.substring(0, 4)}...:`, error);
     }
   }
 }

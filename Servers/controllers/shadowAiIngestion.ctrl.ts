@@ -30,18 +30,31 @@ const MAX_EVENTS_PER_REQUEST = 10000;
 // ─── In-memory sliding window rate limiter ─────────────────────────────
 // Tracks event counts per tenant per hour window. Resets every hour.
 const rateLimitBuckets = new Map<string, { count: number; windowStart: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+let lastCleanup = Date.now();
 
 function checkRateLimit(tenant: string, maxPerHour: number, batchSize: number): boolean {
   if (maxPerHour <= 0) return true; // 0 = no limit
 
   const now = Date.now();
-  const windowMs = 60 * 60 * 1000; // 1 hour
+
+  // Prune expired buckets periodically (every 10 minutes)
+  if (now - lastCleanup > 10 * 60 * 1000) {
+    for (const [key, b] of rateLimitBuckets) {
+      if (now - b.windowStart >= RATE_LIMIT_WINDOW_MS) {
+        rateLimitBuckets.delete(key);
+      }
+    }
+    lastCleanup = now;
+  }
+
   const bucket = rateLimitBuckets.get(tenant);
 
-  if (!bucket || now - bucket.windowStart >= windowMs) {
-    // New window
+  if (!bucket || now - bucket.windowStart >= RATE_LIMIT_WINDOW_MS) {
+    // New window — only set count if within limit
+    if (batchSize > maxPerHour) return false;
     rateLimitBuckets.set(tenant, { count: batchSize, windowStart: now });
-    return batchSize <= maxPerHour;
+    return true;
   }
 
   if (bucket.count + batchSize > maxPerHour) {

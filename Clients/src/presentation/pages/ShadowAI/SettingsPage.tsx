@@ -21,11 +21,12 @@ import {
   TableContainer,
 } from "@mui/material";
 import Chip from "../../components/Chip";
-import { Trash2, Copy, Check, Pencil } from "lucide-react";
+import { Trash2, Copy, Check, Pencil, Ban } from "lucide-react";
 import {
   createApiKey,
   listApiKeys,
   revokeApiKey,
+  deleteApiKey,
   getSyslogConfigs,
   createSyslogConfig,
   updateSyslogConfig,
@@ -53,6 +54,26 @@ const sectionTitleSx = {
 };
 
 export default function SettingsPage() {
+  const [settings, setSettings] = useState<IShadowAiSettings | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const data = await getSettingsConfig();
+        if (cancelled) return;
+        setSettings(data);
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      } finally {
+        if (!cancelled) setSettingsLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <Stack gap="32px">
       <PageHeader
@@ -65,8 +86,8 @@ export default function SettingsPage() {
       <TipBox entityName="shadow-ai-settings" />
       <ApiKeysSection />
       <SyslogConfigSection />
-      <RateLimitSection />
-      <DataRetentionSection />
+      <RateLimitSection settings={settings} loading={settingsLoading} onSettingsUpdate={setSettings} />
+      <DataRetentionSection settings={settings} loading={settingsLoading} onSettingsUpdate={setSettings} />
     </Stack>
   );
 }
@@ -82,6 +103,7 @@ function ApiKeysSection() {
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [revokeTarget, setRevokeTarget] = useState<IShadowAiApiKey | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<IShadowAiApiKey | null>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cleanup copy timer on unmount
@@ -132,6 +154,17 @@ function ApiKeysSection() {
       fetchKeys();
     } catch (error) {
       console.error("Failed to revoke API key:", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteApiKey(deleteTarget.id);
+      setDeleteTarget(null);
+      fetchKeys();
+    } catch (error) {
+      console.error("Failed to delete API key:", error);
     }
   };
 
@@ -266,11 +299,21 @@ function ApiKeysSection() {
                       : "Never"}
                   </TableCell>
                   <TableCell align="right" sx={singleTheme.tableStyles.primary.body.cell}>
-                    {k.is_active && (
+                    {k.is_active ? (
                       <IconButton
                         size="small"
                         onClick={() => setRevokeTarget(k)}
+                        sx={{ color: "#F59E0B" }}
+                        title="Revoke key"
+                      >
+                        <Ban size={14} strokeWidth={1.5} />
+                      </IconButton>
+                    ) : (
+                      <IconButton
+                        size="small"
+                        onClick={() => setDeleteTarget(k)}
                         sx={{ color: "#DC2626" }}
+                        title="Delete key"
                       >
                         <Trash2 size={14} strokeWidth={1.5} />
                       </IconButton>
@@ -317,6 +360,22 @@ function ApiKeysSection() {
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
           This action cannot be undone. Any integrations using this key will stop
           working.
+        </Typography>
+      </StandardModal>
+
+      {/* Delete confirmation */}
+      <StandardModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title={`Delete "${deleteTarget?.label || deleteTarget?.key_prefix}"?`}
+        submitButtonText="Delete"
+        onSubmit={handleDelete}
+        submitButtonColor="#DC2626"
+        maxWidth="400px"
+      >
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          This will permanently remove this API key record. This action cannot be
+          undone.
         </Typography>
       </StandardModal>
     </Stack>
@@ -471,7 +530,11 @@ function SyslogConfigSection() {
             </TableHead>
             <TableBody>
               {configs.map((c) => (
-                <TableRow key={c.id} sx={singleTheme.tableStyles.primary.body.row}>
+                <TableRow
+                  key={c.id}
+                  sx={{ ...singleTheme.tableStyles.primary.body.row, cursor: "pointer" }}
+                  onClick={() => openEdit(c)}
+                >
                   <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
                     {c.source_identifier}
                   </TableCell>
@@ -493,14 +556,14 @@ function SyslogConfigSection() {
                     <Stack direction="row" gap="4px" justifyContent="flex-end">
                       <IconButton
                         size="small"
-                        onClick={() => openEdit(c)}
+                        onClick={(e) => { e.stopPropagation(); openEdit(c); }}
                         sx={{ color: "#6B7280" }}
                       >
                         <Pencil size={14} strokeWidth={1.5} />
                       </IconButton>
                       <IconButton
                         size="small"
-                        onClick={() => setDeleteTarget(c)}
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}
                         sx={{ color: "#DC2626" }}
                       >
                         <Trash2 size={14} strokeWidth={1.5} />
@@ -602,33 +665,27 @@ function SyslogConfigSection() {
 
 // ─── Rate Limit Section ─────────────────────────────────────────────
 
-function RateLimitSection() {
-  const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState<IShadowAiSettings | null>(null);
+function RateLimitSection({
+  settings,
+  loading,
+  onSettingsUpdate,
+}: {
+  settings: IShadowAiSettings | null;
+  loading: boolean;
+  onSettingsUpdate: (s: IShadowAiSettings) => void;
+}) {
   const [rateLimit, setRateLimit] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const data = await getSettingsConfig();
-        if (cancelled) return;
-        setSettings(data);
-        setRateLimit(
-          data.rate_limit_max_events_per_hour === 0
-            ? ""
-            : String(data.rate_limit_max_events_per_hour)
-        );
-      } catch (error) {
-        console.error("Failed to load settings:", error);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    load();
-    return () => { cancelled = true; };
-  }, []);
+    if (settings) {
+      setRateLimit(
+        settings.rate_limit_max_events_per_hour === 0
+          ? ""
+          : String(settings.rate_limit_max_events_per_hour)
+      );
+    }
+  }, [settings]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -638,7 +695,7 @@ function RateLimitSection() {
       const updated = await updateSettingsConfig({
         rate_limit_max_events_per_hour: value,
       });
-      setSettings(updated);
+      onSettingsUpdate(updated);
     } catch (error) {
       console.error("Failed to update rate limit:", error);
     } finally {
@@ -701,33 +758,27 @@ function RateLimitSection() {
 
 // ─── Data Retention Section ─────────────────────────────────────────
 
-function DataRetentionSection() {
-  const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState<IShadowAiSettings | null>(null);
+function DataRetentionSection({
+  settings,
+  loading,
+  onSettingsUpdate,
+}: {
+  settings: IShadowAiSettings | null;
+  loading: boolean;
+  onSettingsUpdate: (s: IShadowAiSettings) => void;
+}) {
   const [eventsDays, setEventsDays] = useState("");
   const [rollupsDays, setRollupsDays] = useState("");
   const [alertsDays, setAlertsDays] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const data = await getSettingsConfig();
-        if (cancelled) return;
-        setSettings(data);
-        setEventsDays(data.retention_events_days === 0 ? "" : String(data.retention_events_days));
-        setRollupsDays(data.retention_daily_rollups_days === 0 ? "" : String(data.retention_daily_rollups_days));
-        setAlertsDays(data.retention_alert_history_days === 0 ? "" : String(data.retention_alert_history_days));
-      } catch (error) {
-        console.error("Failed to load settings:", error);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    load();
-    return () => { cancelled = true; };
-  }, []);
+    if (settings) {
+      setEventsDays(settings.retention_events_days === 0 ? "" : String(settings.retention_events_days));
+      setRollupsDays(settings.retention_daily_rollups_days === 0 ? "" : String(settings.retention_daily_rollups_days));
+      setAlertsDays(settings.retention_alert_history_days === 0 ? "" : String(settings.retention_alert_history_days));
+    }
+  }, [settings]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -741,7 +792,7 @@ function DataRetentionSection() {
         retention_daily_rollups_days: parseVal(rollupsDays),
         retention_alert_history_days: parseVal(alertsDays),
       });
-      setSettings(updated);
+      onSettingsUpdate(updated);
     } catch (error) {
       console.error("Failed to update retention settings:", error);
     } finally {

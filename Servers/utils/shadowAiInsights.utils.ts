@@ -20,18 +20,20 @@ import {
  * Get summary stats for the insights dashboard.
  */
 export async function getInsightsSummaryQuery(
-  tenant: string
+  tenant: string,
+  periodDays: number = 30
 ): Promise<ShadowAiInsightsSummary> {
   const [rows] = await sequelize.query(
     `SELECT
        (SELECT COUNT(*) FROM "${tenant}".shadow_ai_tools) as unique_apps,
        (SELECT COUNT(DISTINCT user_email)
         FROM "${tenant}".shadow_ai_events
-        WHERE event_timestamp > NOW() - INTERVAL '30 days') as total_ai_users,
+        WHERE event_timestamp > NOW() - INTERVAL '1 day' * :periodDays) as total_ai_users,
        (SELECT COUNT(DISTINCT department)
         FROM "${tenant}".shadow_ai_events
         WHERE department IS NOT NULL
-          AND event_timestamp > NOW() - INTERVAL '30 days') as departments_using_ai`
+          AND event_timestamp > NOW() - INTERVAL '1 day' * :periodDays) as departments_using_ai`,
+    { replacements: { periodDays } }
   );
 
   const stats = (rows as any[])[0];
@@ -50,10 +52,11 @@ export async function getInsightsSummaryQuery(
     `SELECT department
      FROM "${tenant}".shadow_ai_events
      WHERE department IS NOT NULL
-       AND event_timestamp > NOW() - INTERVAL '30 days'
+       AND event_timestamp > NOW() - INTERVAL '1 day' * :periodDays
      GROUP BY department
      ORDER BY COUNT(*) DESC
-     LIMIT 1`
+     LIMIT 1`,
+    { replacements: { periodDays } }
   );
 
   return {

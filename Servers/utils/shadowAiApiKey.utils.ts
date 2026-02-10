@@ -110,6 +110,27 @@ export async function revokeApiKeyQuery(
 }
 
 /**
+ * Permanently delete a revoked API key.
+ * Only allows deletion of keys that have already been revoked (is_active = false).
+ */
+export async function deleteApiKeyQuery(
+  tenant: string,
+  keyId: number,
+  transaction?: Transaction
+): Promise<boolean> {
+  const [, rowCount] = await sequelize.query(
+    `DELETE FROM "${tenant}".shadow_ai_api_keys
+     WHERE id = :keyId AND is_active = false`,
+    {
+      replacements: { keyId },
+      ...(transaction ? { transaction } : {}),
+    }
+  );
+
+  return (rowCount as number) > 0;
+}
+
+/**
  * Validate an API key: find the active key record by its hash.
  * Updates last_used_at on successful validation.
  */

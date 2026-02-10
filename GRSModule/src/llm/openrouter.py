@@ -52,7 +52,10 @@ class OpenRouterChatClient:
         resp = self._client.post("/chat/completions", json=payload)
         latency_ms = int((time.time() - t0) * 1000)
 
-        resp.raise_for_status()
+        if resp.status_code >= 400:
+            raise RuntimeError(
+                f"OpenRouter API error {resp.status_code} for model '{self.model_id}': {resp.text}"
+            )
         data = resp.json()
 
         choice = data["choices"][0]

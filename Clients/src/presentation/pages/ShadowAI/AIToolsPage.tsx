@@ -28,7 +28,9 @@ import Chip from "../../components/Chip";
 import {
   ArrowLeft,
   Globe,
+  Bot,
 } from "lucide-react";
+import { PROVIDER_ICONS, VENDOR_ICON_MAP } from "../../components/ProviderIcons";
 import {
   getTools,
   getToolById,
@@ -80,6 +82,14 @@ const STATUS_CONFIG: Record<
   blocked: { label: "Blocked", color: "#DC2626", bg: "#FEF2F2" },
   dismissed: { label: "Dismissed", color: "#6B7280", bg: "#F9FAFB" },
 };
+
+function ToolIcon({ vendor, size = 18 }: { vendor?: string; size?: number }) {
+  if (!vendor) return <Bot size={size} strokeWidth={1.5} color="#9CA3AF" />;
+  const iconKey = VENDOR_ICON_MAP[vendor];
+  const IconComponent = iconKey ? PROVIDER_ICONS[iconKey] : null;
+  if (!IconComponent) return <Bot size={size} strokeWidth={1.5} color="#9CA3AF" />;
+  return <IconComponent width={size} height={size} />;
+}
 
 export default function AIToolsPage() {
   const theme = useTheme();
@@ -224,6 +234,7 @@ export default function AIToolsPage() {
           <IconButton onClick={handleBack} size="small">
             <ArrowLeft size={16} strokeWidth={1.5} />
           </IconButton>
+          <ToolIcon vendor={selectedTool.vendor} size={22} />
           <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
             {selectedTool.name}
           </Typography>
@@ -490,7 +501,10 @@ export default function AIToolsPage() {
                 return (
                   <TableRow key={t.id} hover sx={{ ...singleTheme.tableStyles.primary.body.row, cursor: "pointer" }} onClick={() => handleToolClick(t)}>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      {t.name}
+                      <Stack direction="row" alignItems="center" gap="6px">
+                        <ToolIcon vendor={t.vendor} />
+                        {t.name}
+                      </Stack>
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Chip

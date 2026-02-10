@@ -30,6 +30,8 @@ from seeds.index import ObligationIndex
 from validate.enrich import enrich_with_obligations
 
 from infer.runner import run_inference, InferConfig
+from infer.load_models import load_models_config
+from infer.paths import model_output_path
 from llm.mock import MockChatClient
 from llm.openrouter import OpenRouterChatClient
 
@@ -307,6 +309,36 @@ def _cmd_generate(args: argparse.Namespace) -> int:
 
         scenarios = list(read_jsonl(scenarios_in))
 
+        if args.limit is not None:
+            scenarios = scenarios[:args.limit]
+            console.print(f"[yellow]Limiting to {len(scenarios)} scenario(s)[/yellow]")
+
+        if args.models_config:
+            cfg_file = Path(args.models_config)
+            models_cfg = load_models_config(cfg_file)
+
+            for spec in models_cfg.models:
+                if spec.provider != "openrouter":
+                    console.print(f"[yellow]Skipping unsupported provider in v0.1:[/yellow] {spec.provider}")
+                    continue
+
+                client = OpenRouterChatClient(model_id=spec.model_id)
+                cfg = InferConfig(
+                    model_id=spec.model_id,
+                    provider=spec.provider,
+                    temperature=float(args.temperature),
+                    max_tokens=int(args.max_tokens),
+                )
+
+                responses = run_inference(scenarios=scenarios, client=client, cfg=cfg)
+
+                out_path = model_output_path(final_dir, spec.model_id)
+                write_jsonl(out_path, responses)
+
+                console.print(f"[green]Done:[/green] {spec.model_id} -> {out_path}")
+
+            return 0
+
         if args.provider == "openrouter":
             client = OpenRouterChatClient(model_id=args.model_id)
         else:
@@ -357,6 +389,8 @@ def main() -> None:
     gen.add_argument("--provider", default="mock")
     gen.add_argument("--temperature", default="0.2")
     gen.add_argument("--max-tokens", default="500")
+    gen.add_argument("--limit", type=int, default=None, help="Max number of scenarios to run inference on")
+    gen.add_argument("--models-config", default=None)
     gen.add_argument("--dataset-version", default="grs_scenarios_v0.1")
     gen.add_argument("--obligations", default="configs/obligations.yaml")
     gen.add_argument("--out-dir", default="datasets")

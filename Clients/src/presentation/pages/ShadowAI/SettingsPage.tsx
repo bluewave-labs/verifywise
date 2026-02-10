@@ -55,7 +55,7 @@ const useStyles = () => {
     },
     sectionTitle: {
       fontWeight: 600,
-      fontSize: 16,
+      fontSize: 15,
       color: theme.palette.text.primary,
     },
   };

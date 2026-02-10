@@ -12,7 +12,6 @@ import {
   Typography,
   Paper,
   Skeleton,
-  Switch,
   IconButton,
   SelectChangeEvent,
   Table,
@@ -22,7 +21,11 @@ import {
   TableCell,
   TableContainer,
   TablePagination,
+  TableFooter,
+  useTheme,
 } from "@mui/material";
+import { ChevronsUpDown } from "lucide-react";
+import Toggle from "../../components/Inputs/Toggle";
 import Chip from "../../components/Chip";
 import TabContext from "@mui/lab/TabContext";
 import { Trash2 } from "lucide-react";
@@ -59,6 +62,15 @@ const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
 type ViewMode = "rules" | "history";
 
 const ALERTS_PER_PAGE = 10;
+
+const TABS = [
+  { label: "Rules", value: "rules", icon: "Bell" as const },
+  { label: "Alert history", value: "history", icon: "History" as const },
+];
+
+const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
 export default function RulesPage() {
   const location = useLocation();
@@ -177,10 +189,7 @@ export default function RulesPage() {
     setFormActive(true);
   };
 
-  const TABS = [
-    { label: "Rules", value: "rules", icon: "Bell" as const },
-    { label: "Alert history", value: "history", icon: "History" as const },
-  ];
+  const theme = useTheme();
 
   return (
     <TabContext value={viewMode}>
@@ -267,18 +276,10 @@ export default function RulesPage() {
                     </Typography>
                   </Stack>
                   <Stack direction="row" alignItems="center" gap="8px">
-                    <Switch
+                    <Toggle
                       checked={rule.is_active}
                       onChange={() => handleToggleActive(rule)}
                       size="small"
-                      sx={{
-                        "& .MuiSwitch-switchBase.Mui-checked": {
-                          color: "#13715B",
-                        },
-                        "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                          backgroundColor: "#13715B",
-                        },
-                      }}
                     />
                     <IconButton
                       size="small"
@@ -299,71 +300,118 @@ export default function RulesPage() {
           showBorder
         />
       ) : (
-        <>
-          <TableContainer sx={singleTheme.tableStyles.primary.frame}>
-            <Table>
-              <TableHead>
-                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                  {["Rule", "Trigger", "Fired at"].map((h) => (
-                    <TableCell
-                      key={h}
-                      sx={singleTheme.tableStyles.primary.header.cell}
-                    >
-                      {h}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {alerts.map((a) => (
-                  <TableRow key={a.id} sx={singleTheme.tableStyles.primary.body.row}>
-                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      {a.rule_name || `Rule #${a.rule_id}`}
-                    </TableCell>
-                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      <Chip
-                        label={
-                          TRIGGER_LABELS[a.trigger_type as ShadowAiTriggerType] ||
-                          a.trigger_type ||
-                          "—"
-                        }
-                        size="small"
-                        variant="info"
-                        uppercase={false}
-                      />
-                    </TableCell>
-                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      {a.fired_at ? new Date(a.fired_at).toLocaleString() : "—"}
-                    </TableCell>
-                  </TableRow>
+        <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+          <Table>
+            <TableHead>
+              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                {["Rule", "Trigger", "Fired at"].map((h) => (
+                  <TableCell
+                    key={h}
+                    sx={singleTheme.tableStyles.primary.header.cell}
+                  >
+                    {h}
+                  </TableCell>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{ px: 2 }}
-          >
-            <Typography sx={{ fontSize: 12, opacity: 0.7 }}>
-              Showing {alertsPage * ALERTS_PER_PAGE + 1} -{" "}
-              {Math.min((alertsPage + 1) * ALERTS_PER_PAGE, alertsTotal)} of{" "}
-              {alertsTotal} items
-            </Typography>
-            <TablePagination
-              component="div"
-              count={alertsTotal}
-              page={alertsPage}
-              onPageChange={(_e, newPage) => setAlertsPage(newPage)}
-              rowsPerPage={ALERTS_PER_PAGE}
-              rowsPerPageOptions={[ALERTS_PER_PAGE]}
-              ActionsComponent={TablePaginationActions as any}
-              labelRowsPerPage=""
-              sx={{ "& .MuiTablePagination-selectLabel": { display: "none" }, "& .MuiTablePagination-select": { display: "none" } }}
-            />
-          </Stack>
-        </>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {alerts.map((a) => (
+                <TableRow key={a.id} sx={singleTheme.tableStyles.primary.body.row}>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                    {a.rule_name || `Rule #${a.rule_id}`}
+                  </TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                    <Chip
+                      label={
+                        TRIGGER_LABELS[a.trigger_type as ShadowAiTriggerType] ||
+                        a.trigger_type ||
+                        "—"
+                      }
+                      size="small"
+                      variant="info"
+                      uppercase={false}
+                    />
+                  </TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                    {a.fired_at ? new Date(a.fired_at).toLocaleString() : "—"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow
+                sx={{
+                  "& .MuiTableCell-root.MuiTableCell-footer": {
+                    paddingX: theme.spacing(8),
+                    paddingY: theme.spacing(4),
+                  },
+                }}
+              >
+                <TableCell
+                  sx={{
+                    paddingX: theme.spacing(2),
+                    fontSize: 12,
+                    opacity: 0.7,
+                  }}
+                >
+                  Showing {alertsPage * ALERTS_PER_PAGE + 1} -{" "}
+                  {Math.min((alertsPage + 1) * ALERTS_PER_PAGE, alertsTotal)} of{" "}
+                  {alertsTotal} items
+                </TableCell>
+                <TablePagination
+                  count={alertsTotal}
+                  page={alertsPage}
+                  onPageChange={(_e, newPage) => setAlertsPage(newPage)}
+                  rowsPerPage={ALERTS_PER_PAGE}
+                  rowsPerPageOptions={[ALERTS_PER_PAGE]}
+                  ActionsComponent={(props) => (
+                    <TablePaginationActions {...props} />
+                  )}
+                  labelRowsPerPage=""
+                  labelDisplayedRows={({ page, count }) =>
+                    `Page ${page + 1} of ${Math.max(0, Math.ceil(count / ALERTS_PER_PAGE))}`
+                  }
+                  slotProps={{
+                    select: {
+                      MenuProps: {
+                        keepMounted: true,
+                        PaperProps: {
+                          className: "pagination-dropdown",
+                          sx: { mt: 0, mb: theme.spacing(2) },
+                        },
+                        transformOrigin: { vertical: "bottom", horizontal: "left" },
+                        anchorOrigin: { vertical: "top", horizontal: "left" },
+                        sx: { mt: theme.spacing(-2) },
+                      },
+                      inputProps: { id: "pagination-dropdown" },
+                      IconComponent: SelectorVertical,
+                      sx: {
+                        ml: theme.spacing(4),
+                        mr: theme.spacing(12),
+                        minWidth: theme.spacing(20),
+                        textAlign: "left",
+                        "&.Mui-focused > div": {
+                          backgroundColor: theme.palette.background.main,
+                        },
+                      },
+                    },
+                  }}
+                  sx={{
+                    mt: theme.spacing(6),
+                    color: theme.palette.text.secondary,
+                    "& .MuiSelect-icon": { width: "24px", height: "fit-content" },
+                    "& .MuiSelect-select": {
+                      width: theme.spacing(10),
+                      borderRadius: theme.shape.borderRadius,
+                      border: `1px solid ${theme.palette.border.light}`,
+                      padding: theme.spacing(4),
+                    },
+                  }}
+                />
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </TableContainer>
       )}
 
       {/* Create rule modal */}
@@ -406,16 +454,10 @@ export default function RulesPage() {
           />
           <Stack direction="row" alignItems="center" gap="8px">
             <Typography sx={{ fontSize: 13 }}>Active</Typography>
-            <Switch
+            <Toggle
               checked={formActive}
               onChange={(e) => setFormActive(e.target.checked)}
               size="small"
-              sx={{
-                "& .MuiSwitch-switchBase.Mui-checked": { color: "#13715B" },
-                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                  backgroundColor: "#13715B",
-                },
-              }}
             />
           </Stack>
         </Stack>

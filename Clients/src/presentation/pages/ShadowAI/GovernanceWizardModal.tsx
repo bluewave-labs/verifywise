@@ -10,8 +10,8 @@ import {
   Stack,
   Typography,
   Box,
-  Switch,
   Alert,
+  SelectChangeEvent,
 } from "@mui/material";
 import { startGovernance } from "../../../application/repository/shadowAi.repository";
 import {
@@ -20,6 +20,9 @@ import {
 } from "../../../domain/interfaces/i.shadowAi";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
+import Select from "../../components/Inputs/Select";
+import Toggle from "../../components/Inputs/Toggle";
+import useUsers from "../../../application/hooks/useUsers";
 
 interface GovernanceWizardModalProps {
   isOpen: boolean;
@@ -34,23 +37,29 @@ export default function GovernanceWizardModal({
   tool,
   onSuccess,
 }: GovernanceWizardModalProps) {
+  const { users } = useUsers();
   const [provider, setProvider] = useState(tool.vendor || tool.name);
   const [model, setModel] = useState(tool.name);
   const [version, setVersion] = useState("");
-  const [ownerId, setOwnerId] = useState("");
+  const [ownerId, setOwnerId] = useState<string>("");
   const [dataSensitivity, setDataSensitivity] = useState("");
   const [riskDescription, setRiskDescription] = useState("");
   const [startLifecycle, setStartLifecycle] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const userItems = users.map((u) => ({
+    _id: String(u.id),
+    name: `${u.name} ${u.surname}`,
+  }));
+
   const handleSubmit = async () => {
     if (!provider.trim() || !model.trim()) {
       setError("Provider and model name are required.");
       return;
     }
-    if (!ownerId.trim()) {
-      setError("Governance owner ID is required.");
+    if (!ownerId) {
+      setError("Governance owner is required.");
       return;
     }
 
@@ -138,11 +147,15 @@ export default function GovernanceWizardModal({
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mt: 1 }}>
           Governance owner
         </Typography>
-        <Field
-          label="Owner user ID"
+        <Select
+          id="governance-owner-select"
+          label="Owner"
           value={ownerId}
-          onChange={(e) => setOwnerId(e.target.value)}
-          placeholder="User ID of the governance owner"
+          onChange={(e: SelectChangeEvent<string | number>) =>
+            setOwnerId(String(e.target.value))
+          }
+          items={userItems}
+          placeholder="Select an owner"
         />
 
         {/* Risk assessment */}
@@ -172,16 +185,10 @@ export default function GovernanceWizardModal({
               Automatically create a lifecycle entry for this model
             </Typography>
           </Stack>
-          <Switch
+          <Toggle
             checked={startLifecycle}
             onChange={(e) => setStartLifecycle(e.target.checked)}
             size="small"
-            sx={{
-              "& .MuiSwitch-switchBase.Mui-checked": { color: "#13715B" },
-              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                backgroundColor: "#13715B",
-              },
-            }}
           />
         </Stack>
       </Stack>

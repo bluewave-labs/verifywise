@@ -16,10 +16,12 @@ import {
   Table,
   TableHead,
   TableBody,
-  TableRow as MuiTableRow,
+  TableRow,
   TableCell,
   TableContainer,
   TablePagination,
+  TableFooter,
+  useTheme,
 } from "@mui/material";
 import Chip from "../../components/Chip";
 import {
@@ -28,6 +30,7 @@ import {
   CheckCircle2,
   XCircle,
   MinusCircle,
+  ChevronsUpDown,
 } from "lucide-react";
 import {
   getTools,
@@ -44,7 +47,15 @@ import EmptyState from "../../components/EmptyState";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Select from "../../components/Inputs/Select";
 import RiskBadge from "../../components/RiskBadge";
+import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
+import TablePaginationActions from "../../components/TablePagination";
 import GovernanceWizardModal from "./GovernanceWizardModal";
+
+const ROWS_PER_PAGE = 20;
+
+const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
 const STATUS_OPTIONS = [
   { _id: "all", name: "All statuses" },
@@ -69,6 +80,7 @@ const STATUS_CONFIG: Record<
 };
 
 export default function AIToolsPage() {
+  const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [tools, setTools] = useState<IShadowAiTool[]>([]);
   const [total, setTotal] = useState(0);
@@ -86,7 +98,7 @@ export default function AIToolsPage() {
     try {
       const params: GetToolsParams = {
         page,
-        limit: 20,
+        limit: ROWS_PER_PAGE,
         sort_by: "risk_score",
         order: "desc",
       };
@@ -164,38 +176,64 @@ export default function AIToolsPage() {
           <Skeleton height={300} />
         ) : (
           <Stack gap="16px">
-            {/* Info card */}
+            {/* Summary cards */}
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "16px",
+                "& > *": {
+                  flex: "1 1 0",
+                  minWidth: "120px",
+                },
+              }}
+            >
+              <DashboardHeaderCard
+                title="Vendor"
+                count={selectedTool.vendor || "Unknown"}
+                disableNavigation
+              />
+              <DashboardHeaderCard
+                title="Total users"
+                count={selectedTool.total_users}
+                disableNavigation
+              />
+              <DashboardHeaderCard
+                title="Total events"
+                count={selectedTool.total_events}
+                disableNavigation
+              />
+              <DashboardHeaderCard
+                title="Risk score"
+                count={selectedTool.risk_score ?? "—"}
+                disableNavigation
+              />
+              <DashboardHeaderCard
+                title="First detected"
+                count={
+                  selectedTool.first_detected_at
+                    ? new Date(selectedTool.first_detected_at).toLocaleDateString()
+                    : "—"
+                }
+                disableNavigation
+              />
+              <DashboardHeaderCard
+                title="Last seen"
+                count={
+                  selectedTool.last_seen_at
+                    ? new Date(selectedTool.last_seen_at).toLocaleDateString()
+                    : "—"
+                }
+                disableNavigation
+              />
+            </Box>
+
+            {/* Tool details card */}
             <Paper
               elevation={0}
               sx={{ p: 2, border: "1px solid #d0d5dd", borderRadius: "4px" }}
             >
               <Stack gap="16px">
-                <Stack direction="row" gap="32px" flexWrap="wrap">
-                  <InfoItem label="Vendor" value={selectedTool.vendor || "Unknown"} />
-                  <InfoItem label="Total users" value={selectedTool.total_users} />
-                  <InfoItem label="Total events" value={selectedTool.total_events} />
-                  <InfoItem
-                    label="Risk score"
-                    value={selectedTool.risk_score ?? "—"}
-                  />
-                  <InfoItem
-                    label="First detected"
-                    value={
-                      selectedTool.first_detected_at
-                        ? new Date(selectedTool.first_detected_at).toLocaleDateString()
-                        : "—"
-                    }
-                  />
-                  <InfoItem
-                    label="Last seen"
-                    value={
-                      selectedTool.last_seen_at
-                        ? new Date(selectedTool.last_seen_at).toLocaleDateString()
-                        : "—"
-                    }
-                  />
-                </Stack>
-
                 {/* Domains */}
                 {selectedTool.domains?.length > 0 && (
                   <Stack gap="4px">
@@ -322,20 +360,20 @@ export default function AIToolsPage() {
                 <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1.5 }}>
                   Departments
                 </Typography>
-                <TableContainer>
-                  <Table size="small">
+                <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+                  <Table>
                     <TableHead>
-                      <MuiTableRow>
-                        <TableCell sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>Department</TableCell>
-                        <TableCell sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>Users</TableCell>
-                      </MuiTableRow>
+                      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                        <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Department</TableCell>
+                        <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Users</TableCell>
+                      </TableRow>
                     </TableHead>
                     <TableBody>
                       {selectedTool.departments.map((d) => (
-                        <MuiTableRow key={d.department}>
-                          <TableCell sx={{ fontSize: 13 }}>{d.department}</TableCell>
-                          <TableCell sx={{ fontSize: 13 }}>{d.user_count}</TableCell>
-                        </MuiTableRow>
+                        <TableRow key={d.department} sx={singleTheme.tableStyles.primary.body.row}>
+                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{d.department}</TableCell>
+                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{d.user_count}</TableCell>
+                        </TableRow>
                       ))}
                     </TableBody>
                   </Table>
@@ -352,20 +390,20 @@ export default function AIToolsPage() {
                 <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1.5 }}>
                   Top users
                 </Typography>
-                <TableContainer>
-                  <Table size="small">
+                <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+                  <Table>
                     <TableHead>
-                      <MuiTableRow>
-                        <TableCell sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>User</TableCell>
-                        <TableCell sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>Events</TableCell>
-                      </MuiTableRow>
+                      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                        <TableCell sx={singleTheme.tableStyles.primary.header.cell}>User</TableCell>
+                        <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Events</TableCell>
+                      </TableRow>
                     </TableHead>
                     <TableBody>
                       {selectedTool.top_users.map((u) => (
-                        <MuiTableRow key={u.user_email}>
-                          <TableCell sx={{ fontSize: 13 }}>{u.user_email}</TableCell>
-                          <TableCell sx={{ fontSize: 13 }}>{u.event_count}</TableCell>
-                        </MuiTableRow>
+                        <TableRow key={u.user_email} sx={singleTheme.tableStyles.primary.body.row}>
+                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{u.user_email}</TableCell>
+                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{u.event_count}</TableCell>
+                        </TableRow>
                       ))}
                     </TableBody>
                   </Table>
@@ -402,85 +440,131 @@ export default function AIToolsPage() {
           showBorder
         />
       ) : (
-        <Paper
-          elevation={0}
-          sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", overflow: "hidden" }}
-        >
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <MuiTableRow>
-                  {["Tool", "Status", "Users", "Events", "Risk score", "Last seen"].map((h) => (
-                    <TableCell key={h} sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{h}</TableCell>
-                  ))}
-                </MuiTableRow>
-              </TableHead>
-              <TableBody>
-                {tools.map((t) => {
-                  const cfg = STATUS_CONFIG[t.status];
-                  return (
-                    <MuiTableRow key={t.id} hover sx={{ cursor: "pointer" }}>
-                      <TableCell>
-                        <Typography
-                          sx={{
-                            fontSize: 13,
-                            color: "#13715B",
-                            cursor: "pointer",
-                            "&:hover": { textDecoration: "underline" },
-                          }}
-                          onClick={() => handleToolClick(t)}
-                        >
-                          {t.name}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={cfg.label}
-                          size="small"
-                          backgroundColor={cfg.bg}
-                          textColor={cfg.color}
-                          uppercase={false}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 13 }}>{t.total_users}</TableCell>
-                      <TableCell sx={{ fontSize: 13 }}>{t.total_events}</TableCell>
-                      <TableCell><RiskBadge score={t.risk_score ?? 0} /></TableCell>
-                      <TableCell sx={{ fontSize: 13 }}>
-                        {t.last_seen_at ? new Date(t.last_seen_at).toLocaleDateString() : "—"}
-                      </TableCell>
-                    </MuiTableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            component="div"
-            count={total}
-            page={page - 1}
-            onPageChange={(_e, newPage) => setPage(newPage + 1)}
-            rowsPerPage={20}
-            rowsPerPageOptions={[20]}
-            sx={{ fontSize: 12 }}
-          />
-        </Paper>
+        <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+          <Table>
+            <TableHead>
+              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                {["Tool", "Status", "Users", "Events", "Risk score", "Last seen"].map((h) => (
+                  <TableCell key={h} sx={singleTheme.tableStyles.primary.header.cell}>{h}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {tools.map((t) => {
+                const cfg = STATUS_CONFIG[t.status];
+                return (
+                  <TableRow key={t.id} hover sx={{ ...singleTheme.tableStyles.primary.body.row, cursor: "pointer" }}>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      <Typography
+                        sx={{
+                          fontSize: 13,
+                          color: "#13715B",
+                          cursor: "pointer",
+                          "&:hover": { textDecoration: "underline" },
+                        }}
+                        onClick={() => handleToolClick(t)}
+                      >
+                        {t.name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      <Chip
+                        label={cfg.label}
+                        size="small"
+                        backgroundColor={cfg.bg}
+                        textColor={cfg.color}
+                        uppercase={false}
+                      />
+                    </TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{t.total_users}</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{t.total_events}</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}><RiskBadge score={t.risk_score ?? 0} /></TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      {t.last_seen_at ? new Date(t.last_seen_at).toLocaleDateString() : "—"}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+            <TableFooter>
+              <TableRow
+                sx={{
+                  "& .MuiTableCell-root.MuiTableCell-footer": {
+                    paddingX: theme.spacing(8),
+                    paddingY: theme.spacing(4),
+                  },
+                }}
+              >
+                <TableCell
+                  sx={{
+                    paddingX: theme.spacing(2),
+                    fontSize: 12,
+                    opacity: 0.7,
+                  }}
+                >
+                  Showing {(page - 1) * ROWS_PER_PAGE + 1} -{" "}
+                  {Math.min(page * ROWS_PER_PAGE, total)} of {total} tool(s)
+                </TableCell>
+                <TablePagination
+                  count={total}
+                  page={page - 1}
+                  onPageChange={(_e, newPage) => setPage(newPage + 1)}
+                  rowsPerPage={ROWS_PER_PAGE}
+                  rowsPerPageOptions={[ROWS_PER_PAGE]}
+                  ActionsComponent={(props) => (
+                    <TablePaginationActions {...props} />
+                  )}
+                  labelRowsPerPage=""
+                  labelDisplayedRows={({ page: p, count }) =>
+                    `Page ${p + 1} of ${Math.max(0, Math.ceil(count / ROWS_PER_PAGE))}`
+                  }
+                  slotProps={{
+                    select: {
+                      MenuProps: {
+                        keepMounted: true,
+                        PaperProps: {
+                          className: "pagination-dropdown",
+                          sx: { mt: 0, mb: theme.spacing(2) },
+                        },
+                        transformOrigin: { vertical: "bottom", horizontal: "left" },
+                        anchorOrigin: { vertical: "top", horizontal: "left" },
+                        sx: { mt: theme.spacing(-2) },
+                      },
+                      inputProps: { id: "pagination-dropdown" },
+                      IconComponent: SelectorVertical,
+                      sx: {
+                        ml: theme.spacing(4),
+                        mr: theme.spacing(12),
+                        minWidth: theme.spacing(20),
+                        textAlign: "left",
+                        "&.Mui-focused > div": {
+                          backgroundColor: theme.palette.background.main,
+                        },
+                      },
+                    },
+                  }}
+                  sx={{
+                    mt: theme.spacing(6),
+                    color: theme.palette.text.secondary,
+                    "& .MuiSelect-icon": { width: "24px", height: "fit-content" },
+                    "& .MuiSelect-select": {
+                      width: theme.spacing(10),
+                      borderRadius: theme.shape.borderRadius,
+                      border: `1px solid ${theme.palette.border.light}`,
+                      padding: theme.spacing(4),
+                    },
+                  }}
+                />
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </TableContainer>
       )}
     </Stack>
   );
 }
 
 // ─── Sub-components ─────────────────────────────────────────────────
-
-function InfoItem({ label, value }: { label: string; value: string | number }) {
-  return (
-    <Stack>
-      <Typography sx={{ fontSize: 11, color: "#9CA3AF" }}>{label}</Typography>
-      <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#111827" }}>
-        {value}
-      </Typography>
-    </Stack>
-  );
-}
 
 function SecurityFlag({
   label,

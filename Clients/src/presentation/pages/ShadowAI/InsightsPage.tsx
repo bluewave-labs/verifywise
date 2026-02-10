@@ -50,6 +50,7 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import { DashboardCard } from "../../components/Cards/DashboardCard";
 import { useNavigate } from "react-router-dom";
+import RiskBadge from "../../components/RiskBadge";
 
 const PERIOD_OPTIONS = [
   { _id: "7d", name: "Last 7 days" },
@@ -180,7 +181,7 @@ export default function InsightsPage() {
                     justifyContent="space-between"
                   >
                     <Stack direction="row" alignItems="center" gap="12px">
-                      <RiskScoreBadge score={tool.risk_score ?? 0} />
+                      <RiskBadge score={tool.risk_score ?? 0} />
                       <Typography sx={{ fontSize: 13, color: "#374151" }}>
                         {tool.name}
                       </Typography>
@@ -353,35 +354,6 @@ export default function InsightsPage() {
 }
 
 // ─── Sub-components ─────────────────────────────────────────────────
-
-function RiskScoreBadge({ score }: { score: number }) {
-  const color =
-    score >= 70
-      ? "#DC2626"
-      : score >= 40
-        ? "#F59E0B"
-        : "#10B981";
-
-  return (
-    <Box
-      sx={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: 28,
-        height: 28,
-        borderRadius: "50%",
-        backgroundColor: `${color}14`,
-        border: `1px solid ${color}33`,
-        flexShrink: 0,
-      }}
-    >
-      <Typography sx={{ fontSize: 11, fontWeight: 600, color }}>
-        {score}
-      </Typography>
-    </Box>
-  );
-}
 
 function NoChartData() {
   return (

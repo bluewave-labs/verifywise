@@ -6,6 +6,7 @@ import { sendSlackNotification } from "./slackNotificationService";
 import { SlackNotificationRoutingType } from "../../domain.layer/enums/slack.enum";
 import logger from "../../utils/logger/fileLogger";
 import { getAllUsersQuery } from "../../utils/user.utils";
+import { notifyPolicyDueSoon } from "../inAppNotification.service";
 
 export const sendPolicyDueSoonNotification = async (): Promise<number> => {
   // const functionName = "sendPolicyDueSoonNotification";
@@ -82,6 +83,28 @@ export const sendPolicyDueSoonNotification = async (): Promise<number> => {
                     },
                     message,
                   );
+
+                  // Send in-app + email notification
+                  const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+                  try {
+                    await notifyPolicyDueSoon(
+                      tenantId,
+                      userToNotify,
+                      {
+                        id: policy.id!,
+                        name: policy.title,
+                        projectName: "",
+                        dueDate: reviewDate,
+                      },
+                      baseUrl,
+                    );
+                  } catch (emailError) {
+                    logger.error(
+                      `Failed to send email notification for policy ${policy.id}:`,
+                      emailError,
+                    );
+                  }
+
                   totalPoliciesProcessed += 1;
                   return userToNotify;
                 } catch (notificationError) {

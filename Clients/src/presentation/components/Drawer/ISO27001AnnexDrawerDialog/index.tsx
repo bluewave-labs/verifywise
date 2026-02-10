@@ -45,10 +45,37 @@ import {
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { GetAnnexControlISO27001ById } from "../../../../application/repository/annex_struct_iso.repository";
 import Alert from "../../Alert";
+import { SelectChangeEvent } from "@mui/material";
+import { RiskFormValues } from "../../AddNewRiskForm/interface";
 const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
+
+interface AnnexControlData {
+  id: number;
+  title: string;
+  requirement_summary: string;
+  key_questions: string[];
+  evidence_examples: string[];
+  implementation_description: string;
+  status: string;
+  owner: number | null;
+  reviewer: number | null;
+  approver: number | null;
+  auditor_feedback: string;
+  risks: number[];
+  due_date: string | null;
+  evidence_links: FileData[];
+}
+
+interface AnnexControlResponse {
+  data: AnnexControlData;
+}
+
+interface AnnexRef {
+  id: number;
+}
 
 interface Control {
   id: number;
@@ -65,7 +92,7 @@ interface LinkedRisk {
   risk_name: string;
   risk_level: string;
   description?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 interface VWISO27001AnnexDrawerDialogProps {
@@ -73,7 +100,7 @@ interface VWISO27001AnnexDrawerDialogProps {
   open: boolean;
   onClose: () => void;
   control: Control;
-  annex: any;
+  annex: AnnexRef;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
   projectFrameworkId: number;
@@ -92,14 +119,14 @@ const VWISO27001AnnexDrawerDialog = ({
   onSaveSuccess,
 }: VWISO27001AnnexDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
-  const [fetchedAnnex, setFetchedAnnex] = useState<any>();
+  const [fetchedAnnex, setFetchedAnnex] = useState<AnnexControlData>();
   const [isLoading, setIsLoading] = useState(false);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [activeTab, setActiveTab] = useState("details");
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
     useState<boolean>(false);
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
-  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | null>(null);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
   const theme = useTheme();
@@ -163,9 +190,9 @@ const VWISO27001AnnexDrawerDialog = ({
       if (open && annex?.id) {
         setIsLoading(true);
         try {
-          const response: any = await GetAnnexControlISO27001ById({
+          const response = await GetAnnexControlISO27001ById({
             routeUrl: `/iso-27001/annexControl/byId/${control.id}?projectFrameworkId=${projectFrameworkId}`,
-          });
+          }) as AnnexControlResponse;
           setFetchedAnnex(response.data);
 
           // Initialize form data with fetched values
@@ -299,14 +326,14 @@ const VWISO27001AnnexDrawerDialog = ({
     }
   };
 
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: string | number | Dayjs | null) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleSelectChange = (field: string) => (event: any) => {
+  const handleSelectChange = (field: string) => (event: SelectChangeEvent<string | number>) => {
     const value = event.target.value.toString();
     if (
       field === "status" &&
@@ -500,7 +527,7 @@ const VWISO27001AnnexDrawerDialog = ({
           typeof apiError === "object" &&
           "response" in apiError
         ) {
-          const axiosError = apiError as any;
+          const axiosError = apiError as { response?: { status: number; data?: { message?: string } }; message?: string };
           const errorMessage =
             axiosError.response?.data?.message ||
             axiosError.response?.data ||

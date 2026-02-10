@@ -3,7 +3,7 @@ import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { Box, IconButton, Tooltip } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { Button, CircularProgress, useTheme } from "@mui/material";
+import { Button, CircularProgress, SelectChangeEvent, useTheme } from "@mui/material";
 import { Stack } from "@mui/material";
 import { Divider, Drawer, Typography } from "@mui/material";
 import { X as CloseIcon, Save as SaveIcon, Trash2 as DeleteIcon, Eye as ViewIcon, Download as DownloadIcon, FileText as FileIcon } from "lucide-react";
@@ -73,7 +73,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   // Risk detail modal state
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
   const [selectedRiskForView, setSelectedRiskForView] = useState<LinkedRisk | null>(null);
-  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const [riskFormData, setRiskFormData] = useState<Record<string, string> | null>(null);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   const { userRoleName, userId } = useAuth();
@@ -113,7 +113,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
             routeUrl: `/nist-ai-rmf/subcategories/${subcategory.id}/risks`,
           });
           if (response.data) {
-            const riskIds = response.data.map((risk: any) => risk.id);
+            const riskIds = response.data.map((risk: { id: number }) => risk.id);
             setCurrentRisks(riskIds);
             // Store full risk objects for display
             setLinkedRiskObjects(response.data as LinkedRisk[]);
@@ -240,7 +240,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     }));
   };
 
-  const handleSelectChange = (field: string) => (event: any) => {
+  const handleSelectChange = (field: string) => (event: SelectChangeEvent<string | number>) => {
     const value = event.target.value.toString();
     setFormData((prev) => ({
       ...prev,
@@ -423,7 +423,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
             routeUrl: `/nist-ai-rmf/subcategories/${subcategory.id}/risks`,
           });
           if (risksResponse.data) {
-            const riskIds = risksResponse.data.map((risk: any) => risk.id);
+            const riskIds = risksResponse.data.map((risk: { id: number }) => risk.id);
             setCurrentRisks(riskIds);
             setLinkedRiskObjects(risksResponse.data as LinkedRisk[]);
           }
@@ -440,10 +440,11 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
           response.data?.message || "Failed to update subcategory"
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
       const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
+        err.response?.data?.message ||
+        err.message ||
         "Failed to update subcategory";
       setAlert({
         variant: "error",
@@ -510,7 +511,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
         routeUrl: `/nist-ai-rmf/subcategories/${subcategory.id}/risks`,
       }).then((response) => {
         if (response.data) {
-          const riskIds = response.data.map((risk: any) => risk.id);
+          const riskIds = response.data.map((risk: { id: number }) => risk.id);
           setCurrentRisks(riskIds);
           setLinkedRiskObjects(response.data as LinkedRisk[]);
         }

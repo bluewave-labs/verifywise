@@ -46,6 +46,7 @@ import allowedRoles from "../../../../application/constants/permissions";
 import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 import { ISO27001GetSubClauseById } from "../../../../application/repository/subClause_iso.repository";
+import { RiskFormValues } from "../../../../domain/types/riskForm.types";
 
 export const inputStyles = {
   minWidth: 200,
@@ -54,11 +55,41 @@ export const inputStyles = {
   height: 34,
 };
 
+interface ISO27001SubClauseData {
+  id?: number;
+  title?: string;
+  status?: string;
+  implementation_description?: string;
+  owner?: number;
+  reviewer?: number;
+  approver?: number;
+  due_date?: string;
+  auditor_feedback?: string;
+  evidence_links?: FileData[];
+  risks?: number[];
+  requirement_summary?: string;
+  key_questions?: string[];
+  evidence_examples?: string[];
+}
+
+interface ISO27001ClauseRef {
+  id?: number;
+  title?: string;
+  arrangement?: number;
+  clause_no?: number;
+}
+
+interface LinkedRiskObject {
+  id: number;
+  risk_name: string;
+  risk_level?: string;
+}
+
 interface VWISO27001ClauseDrawerDialogProps {
   open: boolean;
-  onClose: (event?: any, reason?: string) => void;
-  subClause: any;
-  clause: any;
+  onClose: (event?: React.SyntheticEvent | Record<string, never>, reason?: string) => void;
+  subClause: ISO27001SubClauseData;
+  clause: ISO27001ClauseRef;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
   projectFrameworkId: number;
@@ -94,7 +125,7 @@ const VWISO27001ClauseDrawerDialog = ({
   // STATE - FORM DATA
   // ========================================================================
 
-  const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
+  const [fetchedSubClause, setFetchedSubClause] = useState<ISO27001SubClauseData | null>(null);
   const [formData, setFormData] = useState({
     implementation_description: "",
     status: "",
@@ -119,17 +150,17 @@ const VWISO27001ClauseDrawerDialog = ({
   // ========================================================================
 
   const [currentRisks, setCurrentRisks] = useState<number[]>([]);
-  const [linkedRiskObjects, setLinkedRiskObjects] = useState<any[]>([]);
+  const [linkedRiskObjects, setLinkedRiskObjects] = useState<LinkedRiskObject[]>([]);
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState(false);
 
   // Risk detail modal state
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
-  const [selectedRiskForView, setSelectedRiskForView] = useState<any | null>(
+  const [selectedRiskForView, setSelectedRiskForView] = useState<LinkedRiskObject | null>(
     null
   );
-  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | null>(null);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   // Audit status modal
@@ -425,7 +456,7 @@ const VWISO27001ClauseDrawerDialog = ({
   // EVENT HANDLERS - RISK MANAGEMENT
   // ========================================================================
 
-  const handleViewRiskDetails = async (risk: any) => {
+  const handleViewRiskDetails = async (risk: LinkedRiskObject) => {
     setSelectedRiskForView(risk);
     try {
       const response = await getEntityById({
@@ -748,7 +779,7 @@ const VWISO27001ClauseDrawerDialog = ({
                       </Typography>
                       <Stack spacing={1}>
                         {displayData.key_questions.map(
-                          (question: any, idx: any) => (
+                          (question: string, idx: number) => (
                             <Typography
                               key={idx}
                               fontSize={12}
@@ -782,7 +813,7 @@ const VWISO27001ClauseDrawerDialog = ({
                       </Typography>
                       <Stack spacing={1}>
                         {displayData.evidence_examples.map(
-                          (example: any, idx: any) => (
+                          (example: string, idx: number) => (
                             <Typography
                               key={idx}
                               fontSize={12}

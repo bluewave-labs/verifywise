@@ -5,6 +5,7 @@ import {
   Stack,
   Typography,
   CircularProgress,
+  SelectChangeEvent,
   Dialog,
   useTheme,
   Box,
@@ -68,7 +69,7 @@ interface LinkedRisk {
   risk_name: string;
   risk_level: string;
   description?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 interface VWISO42001ClauseDrawerDialogProps {
@@ -116,7 +117,7 @@ const VWISO42001AnnexDrawerDialog = ({
   const [linkedRiskObjects, setLinkedRiskObjects] = useState<LinkedRisk[]>([]);
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
   const [selectedRiskForView, setSelectedRiskForView] = useState<LinkedRisk | null>(null);
-  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const [riskFormData, setRiskFormData] = useState<Record<string, string | number | number[]> | null>(null);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   const { userId, userRoleName } = useAuth();
@@ -287,7 +288,7 @@ const VWISO42001AnnexDrawerDialog = ({
       });
 
       if (response.data) {
-        const riskIds = response.data.map((risk: any) => risk.id);
+        const riskIds = response.data.map((risk: { id: number }) => risk.id);
         setCurrentRisks(riskIds);
         setLinkedRiskObjects(response.data as LinkedRisk[]);
       }
@@ -311,9 +312,9 @@ const VWISO42001AnnexDrawerDialog = ({
       if (open && annex?.id) {
         setIsLoading(true);
         try {
-          const response: any = await GetAnnexCategoriesById({
+          const response = await GetAnnexCategoriesById({
             routeUrl: `/iso-42001/annexCategory/byId/${control.id}?projectFrameworkId=${projectFrameworkId}`,
-          });
+          }) as { data: AnnexCategoryISO & { evidence_links?: FileData[] } };
           setFetchedAnnex(response.data);
 
           // Initialize form data with fetched values
@@ -362,14 +363,14 @@ const VWISO42001AnnexDrawerDialog = ({
   }, [open, fetchedAnnex?.id]);
 
   // Handle form field changes
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: string | number | boolean | Dayjs | null) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleSelectChange = (field: string) => (event: any) => {
+  const handleSelectChange = (field: string) => (event: SelectChangeEvent<string | number>) => {
     const value = event.target.value.toString();
     if (
       field === "status" &&

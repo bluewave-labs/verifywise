@@ -23,6 +23,7 @@ import {
   Tooltip,
   Typography,
   useTheme,
+  SelectChangeEvent,
 } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
 import {
@@ -62,6 +63,7 @@ import {
 } from "../../../pages/Framework/ISO42001/types";
 
 // Hooks & Utilities
+import { RiskFormValues } from "../../../../domain/types/riskForm.types";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
@@ -142,7 +144,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
   const [selectedRiskForView, setSelectedRiskForView] =
     useState<LinkedRisk | null>(null);
-  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | null>(null);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   // ========================================================================
@@ -260,7 +262,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
       });
 
       if (response.data) {
-        const riskIds = response.data.map((risk: any) => risk.id);
+        const riskIds = response.data.map((risk: { id: number }) => risk.id);
         setCurrentRisks(riskIds);
         setLinkedRiskObjects(response.data as LinkedRisk[]);
       }
@@ -284,7 +286,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
     }));
   };
 
-  const handleSelectChange = (field: string) => (event: any) => {
+  const handleSelectChange = (field: string) => (event: SelectChangeEvent<string | number>) => {
     handleFieldChange(field, event.target.value.toString());
   };
 

@@ -19,6 +19,7 @@ import {
   Divider,
   Drawer,
   IconButton,
+  SelectChangeEvent,
   Stack,
   Tooltip,
   Typography,
@@ -54,6 +55,8 @@ import {
   EUAIACT_STATUS_OPTIONS,
 } from "./types";
 import { FileData } from "../../../../domain/types/File";
+import { Question } from "../../../../domain/types/Question";
+import { RiskFormValues } from "../../../../domain/types/riskForm.types";
 import { AlertProps } from "../../../types/alert.types";
 import { getPriorityColors } from "../../../pages/Assessment/1.0AssessmentTracker/euaiact.style";
 
@@ -131,7 +134,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [activeTab, setActiveTab] = useState("details");
-  const [fetchedQuestion, setFetchedQuestion] = useState<any>(null);
+  const [fetchedQuestion, setFetchedQuestion] = useState<Question | null>(null);
   const [editorKey, setEditorKey] = useState(0);
 
   // ========================================================================
@@ -165,7 +168,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
   const [selectedRiskForView, setSelectedRiskForView] =
     useState<LinkedRisk | null>(null);
-  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | null>(null);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   // ========================================================================
@@ -254,31 +257,31 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
 
       // Initialize evidence files
       if (question.evidence_files) {
-        // Normalize file structure
-        let files: any[] = [];
+        // Normalize file structure - evidence_files may arrive in various formats from the API
+        let files: Record<string, unknown>[] = [];
         if (Array.isArray(question.evidence_files)) {
-          files = question.evidence_files;
+          files = question.evidence_files as unknown as Record<string, unknown>[];
         } else if (typeof question.evidence_files === "string") {
           try {
-            files = JSON.parse(question.evidence_files);
+            files = JSON.parse(question.evidence_files as unknown as string);
           } catch {
             files = [];
           }
         } else if (question.evidence_files) {
-          files = [question.evidence_files];
+          files = [question.evidence_files as unknown as Record<string, unknown>];
         }
 
         // Normalize file structure to match FileData type
-        const normalizedFiles: FileData[] = files.map((file: any) => ({
-          id: file.id?.toString() || file.fileId?.toString() || "",
-          fileName: file.fileName || file.filename || file.file_name || "",
-          size: file.size || 0,
-          type: file.type || "",
+        const normalizedFiles: FileData[] = files.map((file: Record<string, unknown>) => ({
+          id: String(file.id ?? file.fileId ?? ""),
+          fileName: String(file.fileName ?? file.filename ?? file.file_name ?? ""),
+          size: (file.size as number) || 0,
+          type: String(file.type ?? ""),
           uploadDate:
-            file.uploadDate || file.uploaded_time || new Date().toISOString(),
-          uploader: file.uploader || file.uploaded_by?.toString() || "Unknown",
-          data: file.data,
-          source: file.source,
+            String(file.uploadDate ?? file.uploaded_time ?? new Date().toISOString()),
+          uploader: String(file.uploader ?? (file.uploaded_by != null ? String(file.uploaded_by) : "Unknown")),
+          data: file.data as Blob | undefined,
+          source: file.source as string | undefined,
         }));
 
         setEvidenceFiles(normalizedFiles);
@@ -324,7 +327,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
         for (const topicSubTopic of response.data.subTopics || []) {
           if (topicSubTopic.id === subtopic.id) {
             const question = (topicSubTopic.questions || []).find(
-              (q: any) => q.answer_id === questionProp.answer_id
+              (q: { answer_id: number }) => q.answer_id === questionProp.answer_id
             );
             if (question) {
               foundQuestion = question;
@@ -356,7 +359,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
           // Initialize evidence files
           if (foundQuestion.evidence_files) {
             // Normalize file structure
-            let files: any[] = [];
+            let files: Record<string, unknown>[] = [];
             if (Array.isArray(foundQuestion.evidence_files)) {
               files = foundQuestion.evidence_files;
             } else if (typeof foundQuestion.evidence_files === "string") {
@@ -366,23 +369,23 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                 files = [];
               }
             } else if (foundQuestion.evidence_files) {
-              files = [foundQuestion.evidence_files];
+              files = [foundQuestion.evidence_files as unknown as Record<string, unknown>];
             }
 
             // Normalize file structure to match FileData type
-            const normalizedFiles: FileData[] = files.map((file: any) => ({
-              id: file.id?.toString() || file.fileId?.toString() || "",
-              fileName: file.fileName || file.filename || file.file_name || "",
-              size: file.size || 0,
-              type: file.type || "",
+            const normalizedFiles: FileData[] = files.map((file: Record<string, unknown>) => ({
+              id: String(file.id ?? file.fileId ?? ""),
+              fileName: String(file.fileName ?? file.filename ?? file.file_name ?? ""),
+              size: (file.size as number) || 0,
+              type: String(file.type ?? ""),
               uploadDate:
-                file.uploadDate ||
-                file.uploaded_time ||
-                new Date().toISOString(),
+                String(file.uploadDate ??
+                file.uploaded_time ??
+                new Date().toISOString()),
               uploader:
-                file.uploader || file.uploaded_by?.toString() || "Unknown",
-              data: file.data,
-              source: file.source,
+                String(file.uploader ?? (file.uploaded_by != null ? String(file.uploaded_by) : "Unknown")),
+              data: file.data as Blob | undefined,
+              source: file.source as string | undefined,
             }));
 
             setEvidenceFiles(normalizedFiles);
@@ -489,7 +492,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
     handleFieldChange("answer", cleanedAnswer || "");
   };
 
-  const handleSelectChange = (field: keyof EUAIActFormData) => (event: any) => {
+  const handleSelectChange = (field: keyof EUAIActFormData) => (event: SelectChangeEvent<string | number>) => {
     handleFieldChange(field, event.target.value.toString());
   };
 
@@ -678,7 +681,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
         for (const topicSubTopic of response.data.subTopics || []) {
           if (topicSubTopic.id === subtopic.id) {
             const question = (topicSubTopic.questions || []).find(
-              (q: any) => q.answer_id === questionProp.answer_id
+              (q: { answer_id: number }) => q.answer_id === questionProp.answer_id
             );
             if (question) {
               foundQuestion = question;
@@ -691,7 +694,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
           // Update evidence files with fresh data from backend
           if (foundQuestion.evidence_files) {
             // Ensure evidence_files is an array and normalize the structure
-            let files: any[] = [];
+            let files: Record<string, unknown>[] = [];
             if (Array.isArray(foundQuestion.evidence_files)) {
               files = foundQuestion.evidence_files;
             } else if (typeof foundQuestion.evidence_files === "string") {
@@ -701,23 +704,23 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                 files = [];
               }
             } else if (foundQuestion.evidence_files) {
-              files = [foundQuestion.evidence_files];
+              files = [foundQuestion.evidence_files as unknown as Record<string, unknown>];
             }
 
             // Normalize file structure to match FileData type
-            const normalizedFiles: FileData[] = files.map((file: any) => ({
-              id: file.id?.toString() || file.fileId?.toString() || "",
-              fileName: file.fileName || file.filename || file.file_name || "",
-              size: file.size || 0,
-              type: file.type || "",
+            const normalizedFiles: FileData[] = files.map((file: Record<string, unknown>) => ({
+              id: String(file.id ?? file.fileId ?? ""),
+              fileName: String(file.fileName ?? file.filename ?? file.file_name ?? ""),
+              size: (file.size as number) || 0,
+              type: String(file.type ?? ""),
               uploadDate:
-                file.uploadDate ||
-                file.uploaded_time ||
-                new Date().toISOString(),
+                String(file.uploadDate ??
+                file.uploaded_time ??
+                new Date().toISOString()),
               uploader:
-                file.uploader || file.uploaded_by?.toString() || "Unknown",
-              data: file.data,
-              source: file.source,
+                String(file.uploader ?? (file.uploaded_by != null ? String(file.uploaded_by) : "Unknown")),
+              data: file.data as Blob | undefined,
+              source: file.source as string | undefined,
             }));
 
             setEvidenceFiles(normalizedFiles);

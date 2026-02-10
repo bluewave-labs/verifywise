@@ -18,7 +18,9 @@ import { processPMMHourlyCheck } from "../postMarketMonitoring/pmmScheduler";
 import { compileMjmlToHtml } from "../../tools/mjmlCompiler";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { notifyVendorReviewDue } from "../inAppNotification.service";
+import { notifyVendorReviewDue, notifyPolicyDueSoon } from "../inAppNotification.service";
+import { getAllPoliciesDueSoonQuery } from "../../utils/policyManager.utils";
+import { PolicyManagerModel } from "../../domain.layer/models/policy/policy.model";
 
 const handlers = {
   send_email: sendEmail,
@@ -113,6 +115,51 @@ async function sendVendorReviewDateNotification() {
           );
         }
       }
+    }
+  }
+}
+
+async function sendPolicyDueSoonEmailNotification() {
+  const organizations = await getAllOrganizationsQuery();
+  const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+
+  for (const org of organizations) {
+    const tenantHash = getTenantHash(org.id!);
+    try {
+      const policies: PolicyManagerModel[] = await getAllPoliciesDueSoonQuery(tenantHash);
+
+      for (const policy of policies) {
+        if (!policy.author_id) continue;
+
+        const reviewDate = policy.next_review_date
+          ? new Date(policy.next_review_date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : "Not set";
+
+        try {
+          await notifyPolicyDueSoon(
+            tenantHash,
+            policy.author_id,
+            {
+              id: policy.id!,
+              name: policy.title,
+              projectName: "",
+              dueDate: reviewDate,
+            },
+            baseUrl,
+          );
+        } catch (notifyError) {
+          console.error(
+            `Failed to send policy due soon notification for policy ${policy.id}:`,
+            notifyError,
+          );
+        }
+      }
+    } catch (orgError) {
+      console.error(`Error processing org ${org.id} for policy due soon:`, orgError);
     }
   }
 }
@@ -375,6 +422,8 @@ export const createAutomationWorker = () => {
       try {
         if (name === "send_vendor_notification") {
           await sendVendorReviewDateNotification();
+        } else if (name === "send_policy_due_soon_notification") {
+          await sendPolicyDueSoonEmailNotification();
         } else if (name === "send_report_notification") {
           await sendReportNotification();
         } else if (name === "send_report_notification_daily") {

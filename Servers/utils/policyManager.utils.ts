@@ -47,9 +47,6 @@ export const updatePolicyReviewStatusQuery = async (
      WHERE id = :policyId`,
     queryOptions
   );
-
-  const result = await getPolicyByIdQuery(tenant, policyId);
-  return result?.[0] || null;
 };
 
 export const getAllPoliciesQuery = async (tenant: string) => {

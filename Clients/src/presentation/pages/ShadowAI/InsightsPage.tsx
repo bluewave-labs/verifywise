@@ -52,6 +52,7 @@ import VWLink from "../../components/Link/VWLink";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import { useNavigate } from "react-router-dom";
+import TipBox from "../../components/TipBox";
 import { PERIOD_OPTIONS } from "./constants";
 
 const DEPT_COLORS = [
@@ -117,6 +118,7 @@ export default function InsightsPage() {
           <HelperIcon articlePath="shadow-ai/insights" size="small" />
         }
       />
+      <TipBox entityName="shadow-ai-insights" />
 
       {/* Period selector */}
       <Stack direction="row" justifyContent="flex-end">

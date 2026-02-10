@@ -5,7 +5,7 @@
  * Tabs use URL-based routing: /shadow-ai/rules and /shadow-ai/rules/alerts
  */
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Stack,
@@ -24,6 +24,8 @@ import {
   TableFooter,
   useTheme,
 } from "@mui/material";
+
+const Alert = React.lazy(() => import("../../components/Alert"));
 import Toggle from "../../components/Inputs/Toggle";
 import Chip from "../../components/Chip";
 import TabContext from "@mui/lab/TabContext";
@@ -50,6 +52,7 @@ import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import { SelectorVertical } from "./constants";
 
 const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
@@ -85,6 +88,7 @@ export default function RulesPage() {
   const [alertsPage, setAlertsPage] = useState(0);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<IShadowAiRule | null>(null);
+  const [toast, setToast] = useState<{ variant: "success" | "error"; body: string } | null>(null);
 
   // Create form state
   const [formName, setFormName] = useState("");
@@ -92,6 +96,14 @@ export default function RulesPage() {
   const [formTrigger, setFormTrigger] = useState<ShadowAiTriggerType>("new_tool_detected");
   const [formActive, setFormActive] = useState(true);
   const [creating, setCreating] = useState(false);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const fetchRules = useCallback(async () => {
     setLoading(true);
@@ -136,14 +148,20 @@ export default function RulesPage() {
 
   const handleToggleActive = async (rule: IShadowAiRule) => {
     try {
-      await updateRule(rule.id, { is_active: !rule.is_active });
+      const newState = !rule.is_active;
+      await updateRule(rule.id, { is_active: newState });
       setRules((prev) =>
         prev.map((r) =>
-          r.id === rule.id ? { ...r, is_active: !r.is_active } : r
+          r.id === rule.id ? { ...r, is_active: newState } : r
         )
       );
+      setToast({
+        variant: "success",
+        body: `Rule "${rule.name}" ${newState ? "enabled" : "disabled"} successfully`,
+      });
     } catch (error) {
       console.error("Failed to toggle rule:", error);
+      setToast({ variant: "error", body: "Failed to update rule" });
     }
   };
 
@@ -162,8 +180,10 @@ export default function RulesPage() {
       setCreateModalOpen(false);
       resetForm();
       fetchRules();
+      setToast({ variant: "success", body: "Rule created successfully" });
     } catch (error) {
       console.error("Failed to create rule:", error);
+      setToast({ variant: "error", body: "Failed to create rule" });
     } finally {
       setCreating(false);
     }
@@ -175,8 +195,10 @@ export default function RulesPage() {
       await deleteRule(deleteTarget.id);
       setDeleteTarget(null);
       fetchRules();
+      setToast({ variant: "success", body: "Rule deleted successfully" });
     } catch (error) {
       console.error("Failed to delete rule:", error);
+      setToast({ variant: "error", body: "Failed to delete rule" });
     }
   };
 
@@ -192,6 +214,16 @@ export default function RulesPage() {
   return (
     <TabContext value={viewMode}>
     <Stack gap="16px">
+      {toast && (
+        <Suspense fallback={null}>
+          <Alert
+            variant={toast.variant}
+            body={toast.body}
+            isToast={true}
+            onClick={() => setToast(null)}
+          />
+        </Suspense>
+      )}
       <PageHeader
         title="Rules"
         description="Configure alert rules to get notified about Shadow AI activity. Set triggers for new tool detection, usage thresholds, sensitive department usage, and more."
@@ -199,6 +231,7 @@ export default function RulesPage() {
           <HelperIcon articlePath="shadow-ai/rules" size="small" />
         }
       />
+      <TipBox entityName="shadow-ai-rules" />
 
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
@@ -435,6 +468,9 @@ export default function RulesPage() {
         maxWidth="480px"
       >
         <Stack gap="16px">
+          <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+            Create a rule to receive alerts when specific Shadow AI activity is detected. Choose a trigger type and the system will notify you when the condition is met.
+          </Typography>
           <Field
             label="Rule name"
             value={formName}

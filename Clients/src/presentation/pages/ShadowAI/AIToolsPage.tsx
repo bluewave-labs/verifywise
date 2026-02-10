@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Stack,
   Typography,
@@ -47,6 +48,7 @@ import TablePaginationActions from "../../components/TablePagination";
 import GovernanceWizardModal from "./GovernanceWizardModal";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import { SelectorVertical } from "./constants";
 
 const ROWS_PER_PAGE = 20;
@@ -75,6 +77,8 @@ const STATUS_CONFIG: Record<
 
 export default function AIToolsPage() {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const { toolId } = useParams<{ toolId?: string }>();
   const [loading, setLoading] = useState(true);
   const [tools, setTools] = useState<IShadowAiTool[]>([]);
   const [total, setTotal] = useState(0);
@@ -111,29 +115,39 @@ export default function AIToolsPage() {
     fetchTools();
   }, [fetchTools]);
 
-  const handleToolClick = async (tool: IShadowAiTool) => {
-    setDetailLoading(true);
-    try {
-      const detail = await getToolById(tool.id);
-      setSelectedTool(detail);
-    } catch (error) {
-      console.error("Failed to load tool detail:", error);
-    } finally {
-      setDetailLoading(false);
+  // Load tool detail when toolId is in the URL
+  useEffect(() => {
+    if (!toolId) {
+      setSelectedTool(null);
+      return;
     }
+    const loadTool = async () => {
+      setDetailLoading(true);
+      try {
+        const detail = await getToolById(parseInt(toolId, 10));
+        setSelectedTool(detail);
+      } catch (error) {
+        console.error("Failed to load tool detail:", error);
+      } finally {
+        setDetailLoading(false);
+      }
+    };
+    loadTool();
+  }, [toolId]);
+
+  const handleToolClick = (tool: IShadowAiTool) => {
+    navigate(`/shadow-ai/tools/${tool.id}`);
   };
 
   const handleStatusChange = async (
-    toolId: number,
+    id: number,
     newStatus: ShadowAiToolStatus
   ) => {
     try {
-      await updateToolStatus(toolId, newStatus);
-      // Refresh the list
+      await updateToolStatus(id, newStatus);
       fetchTools();
-      // If viewing detail, refresh it too
-      if (selectedTool?.id === toolId) {
-        const detail = await getToolById(toolId);
+      if (selectedTool?.id === id) {
+        const detail = await getToolById(id);
         setSelectedTool(detail);
       }
     } catch (error) {
@@ -142,7 +156,7 @@ export default function AIToolsPage() {
   };
 
   const handleBack = () => {
-    setSelectedTool(null);
+    navigate("/shadow-ai/tools");
   };
 
   // ─── Detail view ───
@@ -322,11 +336,11 @@ export default function AIToolsPage() {
                   Departments
                 </Typography>
                 <TableContainer sx={singleTheme.tableStyles.primary.frame}>
-                  <Table>
+                  <Table sx={{ tableLayout: "fixed" }}>
                     <TableHead>
                       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                        <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Department</TableCell>
-                        <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Users</TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70%" }}>Department</TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>Users</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -349,11 +363,11 @@ export default function AIToolsPage() {
                   Top users
                 </Typography>
                 <TableContainer sx={singleTheme.tableStyles.primary.frame}>
-                  <Table>
+                  <Table sx={{ tableLayout: "fixed" }}>
                     <TableHead>
                       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                        <TableCell sx={singleTheme.tableStyles.primary.header.cell}>User</TableCell>
-                        <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Events</TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70%" }}>User</TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>Events</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -384,6 +398,7 @@ export default function AIToolsPage() {
           <HelperIcon articlePath="shadow-ai/ai-tools" size="small" />
         }
       />
+      <TipBox entityName="shadow-ai-tools" />
 
       <Stack direction="row" justifyContent="flex-end">
         <Select

@@ -26,6 +26,7 @@ import {
   getAlertHistory,
   getSyslogConfigs,
   createSyslogConfig,
+  updateSyslogConfig,
   deleteSyslogConfig,
 } from "../controllers/shadowAi.ctrl";
 
@@ -62,6 +63,7 @@ router.get("/rules/alert-history", authenticateJWT, getAlertHistory);
 // ─── Configuration ──────────────────────────────────────────────────────
 router.get("/config/syslog", authenticateJWT, getSyslogConfigs);
 router.post("/config/syslog", authenticateJWT, createSyslogConfig);
+router.patch("/config/syslog/:id", authenticateJWT, updateSyslogConfig);
 router.delete("/config/syslog/:id", authenticateJWT, deleteSyslogConfig);
 
 export default router;

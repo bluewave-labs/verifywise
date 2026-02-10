@@ -315,6 +315,17 @@ export async function createSyslogConfig(
   return response.data.data;
 }
 
+export async function updateSyslogConfig(
+  id: number,
+  updates: Partial<Pick<IShadowAiSyslogConfig, "source_identifier" | "parser_type" | "is_active">>
+): Promise<IShadowAiSyslogConfig> {
+  const response = await apiServices.patch<{ data: IShadowAiSyslogConfig }>(
+    `${BASE_URL}/config/syslog/${id}`,
+    updates
+  );
+  return response.data.data;
+}
+
 export async function deleteSyslogConfig(id: number): Promise<void> {
   await apiServices.delete(`${BASE_URL}/config/syslog/${id}`);
 }

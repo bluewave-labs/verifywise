@@ -19,16 +19,16 @@ import {
   TableRow,
   TableCell,
   TableContainer,
-  useTheme,
 } from "@mui/material";
 import Chip from "../../components/Chip";
-import { Trash2, Copy, Check } from "lucide-react";
+import { Trash2, Copy, Check, Pencil } from "lucide-react";
 import {
   createApiKey,
   listApiKeys,
   revokeApiKey,
   getSyslogConfigs,
   createSyslogConfig,
+  updateSyslogConfig,
   deleteSyslogConfig,
 } from "../../../application/repository/shadowAi.repository";
 import {
@@ -42,30 +42,14 @@ import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 
-const useStyles = () => {
-  const theme = useTheme();
-
-  return {
-    card: {
-      background: theme.palette.background.paper,
-      border: `1.5px solid ${theme.palette.border.light}`,
-      borderRadius: theme.shape.borderRadius,
-      padding: theme.spacing(5, 6),
-      boxShadow: "none",
-      width: "100%",
-    },
-    sectionTitle: {
-      fontWeight: 600,
-      fontSize: 15,
-      color: theme.palette.text.primary,
-    },
-  };
+const sectionTitleSx = {
+  fontWeight: 600,
+  fontSize: 15,
 };
 
 export default function SettingsPage() {
-  const styles = useStyles();
-
   return (
     <Stack gap="32px">
       <PageHeader
@@ -75,15 +59,16 @@ export default function SettingsPage() {
           <HelperIcon articlePath="shadow-ai/settings" size="small" />
         }
       />
-      <ApiKeysSection styles={styles} />
-      <SyslogConfigSection styles={styles} />
+      <TipBox entityName="shadow-ai-settings" />
+      <ApiKeysSection />
+      <SyslogConfigSection />
     </Stack>
   );
 }
 
 // ─── API Keys Section ───────────────────────────────────────────────
 
-function ApiKeysSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
+function ApiKeysSection() {
   const [loading, setLoading] = useState(true);
   const [keys, setKeys] = useState<IShadowAiApiKey[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -144,9 +129,9 @@ function ApiKeysSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
   };
 
   return (
-    <Box sx={styles.card}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-        <Typography sx={styles.sectionTitle}>API keys</Typography>
+    <Stack gap="12px">
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography sx={sectionTitleSx}>API keys</Typography>
         <CustomizableButton
           text="Create API key"
           variant="contained"
@@ -160,7 +145,7 @@ function ApiKeysSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
         />
       </Stack>
 
-      <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 3 }}>
+      <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
         API keys are used to authenticate Shadow AI event ingestion from your
         network proxy, SIEM, or browser extension.
       </Typography>
@@ -316,13 +301,13 @@ function ApiKeysSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
           working.
         </Typography>
       </StandardModal>
-    </Box>
+    </Stack>
   );
 }
 
 // ─── Syslog Config Section ──────────────────────────────────────────
 
-function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
+function SyslogConfigSection() {
   const [loading, setLoading] = useState(true);
   const [configs, setConfigs] = useState<IShadowAiSyslogConfig[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -330,6 +315,10 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
   const [formParser, setFormParser] = useState<IShadowAiSyslogConfig["parser_type"]>("generic_kv");
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<IShadowAiSyslogConfig | null>(null);
+  const [editTarget, setEditTarget] = useState<IShadowAiSyslogConfig | null>(null);
+  const [editSource, setEditSource] = useState("");
+  const [editParser, setEditParser] = useState<IShadowAiSyslogConfig["parser_type"]>("generic_kv");
+  const [editing, setEditing] = useState(false);
 
   const fetchConfigs = useCallback(async () => {
     setLoading(true);
@@ -367,6 +356,29 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
     }
   };
 
+  const openEdit = (config: IShadowAiSyslogConfig) => {
+    setEditTarget(config);
+    setEditSource(config.source_identifier);
+    setEditParser(config.parser_type);
+  };
+
+  const handleEdit = async () => {
+    if (!editTarget || !editSource.trim()) return;
+    setEditing(true);
+    try {
+      await updateSyslogConfig(editTarget.id, {
+        source_identifier: editSource.trim(),
+        parser_type: editParser,
+      });
+      setEditTarget(null);
+      fetchConfigs();
+    } catch (error) {
+      console.error("Failed to update syslog config:", error);
+    } finally {
+      setEditing(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
@@ -386,9 +398,9 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
   };
 
   return (
-    <Box sx={styles.card}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-        <Typography sx={styles.sectionTitle}>Syslog sources</Typography>
+    <Stack gap="12px">
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography sx={sectionTitleSx}>Syslog sources</Typography>
         <CustomizableButton
           text="Add source"
           variant="contained"
@@ -402,7 +414,7 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
         />
       </Stack>
 
-      <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 3 }}>
+      <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
         Configure syslog sources to ingest network traffic data from your proxy
         or firewall.
       </Typography>
@@ -460,13 +472,22 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
                       : "—"}
                   </TableCell>
                   <TableCell align="right" sx={singleTheme.tableStyles.primary.body.cell}>
-                    <IconButton
-                      size="small"
-                      onClick={() => setDeleteTarget(c)}
-                      sx={{ color: "#DC2626" }}
-                    >
-                      <Trash2 size={14} strokeWidth={1.5} />
-                    </IconButton>
+                    <Stack direction="row" gap="4px" justifyContent="flex-end">
+                      <IconButton
+                        size="small"
+                        onClick={() => openEdit(c)}
+                        sx={{ color: "#6B7280" }}
+                      >
+                        <Pencil size={14} strokeWidth={1.5} />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => setDeleteTarget(c)}
+                        sx={{ color: "#DC2626" }}
+                      >
+                        <Trash2 size={14} strokeWidth={1.5} />
+                      </IconButton>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}
@@ -511,6 +532,38 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
         </Stack>
       </StandardModal>
 
+      {/* Edit modal */}
+      <StandardModal
+        isOpen={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        title="Edit syslog source"
+        submitButtonText="Save"
+        onSubmit={handleEdit}
+        isSubmitting={editing}
+        maxWidth="400px"
+      >
+        <Stack gap="16px">
+          <Field
+            label="Source identifier"
+            value={editSource}
+            onChange={(e) => setEditSource(e.target.value)}
+            placeholder="e.g., proxy-01.corp.com"
+          />
+          <Select
+            id="edit-parser-type-select"
+            label="Parser type"
+            value={editParser}
+            onChange={(e) =>
+              setEditParser(e.target.value as IShadowAiSyslogConfig["parser_type"])
+            }
+            items={Object.entries(PARSER_LABELS).map(([value, label]) => ({
+              _id: value,
+              name: label,
+            }))}
+          />
+        </Stack>
+      </StandardModal>
+
       {/* Delete confirmation */}
       <StandardModal
         isOpen={!!deleteTarget}
@@ -525,6 +578,6 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
           This will stop processing events from this source.
         </Typography>
       </StandardModal>
-    </Box>
+    </Stack>
   );
 }

@@ -117,6 +117,7 @@ export const createRoutes = (
     <Route path="/shadow-ai/user-activity/users" element={<ShadowAIPage />} />
     <Route path="/shadow-ai/user-activity/departments" element={<ShadowAIPage />} />
     <Route path="/shadow-ai/tools" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/tools/:toolId" element={<ShadowAIPage />} />
     <Route path="/shadow-ai/rules" element={<ShadowAIPage />} />
     <Route path="/shadow-ai/rules/alerts" element={<ShadowAIPage />} />
     <Route path="/shadow-ai/settings" element={<ShadowAIPage />} />

@@ -42,6 +42,7 @@ import {
 import {
   getSyslogConfigsQuery,
   createSyslogConfigQuery,
+  updateSyslogConfigQuery,
   deleteSyslogConfigQuery,
 } from "../utils/shadowAiConfig.utils";
 import { ShadowAiToolStatus } from "../domain.layer/interfaces/i.shadowAi";
@@ -628,6 +629,50 @@ export async function createSyslogConfig(req: Request, res: Response) {
     return res.status(201).json(STATUS_CODE[201](config));
   } catch (error) {
     await logFailure({ eventType: "Create", description: "failed to create syslog config", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function updateSyslogConfig(req: Request, res: Response) {
+  const fn = "updateSyslogConfig";
+  const userId = req.userId!;
+  const tenantId = req.tenantId!;
+  const configId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+
+  logProcessing({ description: `updating syslog config: ${configId}`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
+
+  try {
+    if (req.role !== "Admin") {
+      return res.status(403).json(STATUS_CODE[403]("Only admins can manage syslog configuration"));
+    }
+
+    if (isNaN(configId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid config ID"));
+    }
+
+    const { source_identifier, parser_type, is_active } = req.body;
+
+    if (parser_type) {
+      const validParsers = ["zscaler", "netskope", "squid", "generic_kv"];
+      if (!validParsers.includes(parser_type)) {
+        return res.status(400).json(STATUS_CODE[400](`Invalid parser_type. Must be one of: ${validParsers.join(", ")}`));
+      }
+    }
+
+    const updated = await updateSyslogConfigQuery(tenantId, configId, {
+      source_identifier,
+      parser_type,
+      is_active,
+    });
+
+    if (!updated) {
+      return res.status(404).json(STATUS_CODE[404]("Syslog config not found"));
+    }
+
+    await logSuccess({ eventType: "Update", description: `syslog config updated: ${configId}`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
+    return res.status(200).json(STATUS_CODE[200](updated));
+  } catch (error) {
+    await logFailure({ eventType: "Update", description: "failed to update syslog config", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

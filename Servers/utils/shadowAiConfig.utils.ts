@@ -56,6 +56,52 @@ export async function createSyslogConfigQuery(
 }
 
 /**
+ * Update a syslog configuration.
+ */
+export async function updateSyslogConfigQuery(
+  tenant: string,
+  configId: number,
+  updates: {
+    source_identifier?: string;
+    parser_type?: string;
+    is_active?: boolean;
+  },
+  transaction?: Transaction
+): Promise<IShadowAiSyslogConfig | null> {
+  const setClauses: string[] = [];
+  const replacements: Record<string, unknown> = { configId };
+
+  if (updates.source_identifier !== undefined) {
+    setClauses.push("source_identifier = :source_identifier");
+    replacements.source_identifier = updates.source_identifier;
+  }
+  if (updates.parser_type !== undefined) {
+    setClauses.push("parser_type = :parser_type");
+    replacements.parser_type = updates.parser_type;
+  }
+  if (updates.is_active !== undefined) {
+    setClauses.push("is_active = :is_active");
+    replacements.is_active = updates.is_active;
+  }
+
+  if (setClauses.length === 0) return null;
+
+  const [result] = await sequelize.query(
+    `UPDATE "${tenant}".shadow_ai_syslog_config
+     SET ${setClauses.join(", ")}
+     WHERE id = :configId
+     RETURNING *`,
+    {
+      replacements,
+      ...(transaction ? { transaction } : {}),
+    }
+  );
+
+  const rows = result as IShadowAiSyslogConfig[];
+  return rows.length > 0 ? rows[0] : null;
+}
+
+/**
  * Delete a syslog configuration.
  */
 export async function deleteSyslogConfigQuery(

@@ -4,7 +4,7 @@
  * Shows user-level activity, department breakdown, and user detail view.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Stack,
@@ -13,7 +13,6 @@ import {
   SelectChangeEvent,
   IconButton,
   Table,
-  TableHead,
   TableBody,
   TableRow,
   TableCell,
@@ -44,7 +43,14 @@ import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import TipBox from "../../components/TipBox";
-import { PERIOD_OPTIONS, SelectorVertical } from "./constants";
+import {
+  PERIOD_OPTIONS,
+  SelectorVertical,
+  SortableColumn,
+  useTableSort,
+  useSortedRows,
+  SortableTableHead,
+} from "./constants";
 
 interface UserDetailData {
   email: string;
@@ -80,6 +86,73 @@ export default function UserActivityPage() {
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
   const [userDetail, setUserDetail] = useState<UserDetailData | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  // ─── Sorting ───
+  const USERS_COLUMNS: SortableColumn[] = useMemo(() => [
+    { id: "user_email", label: "User" },
+    { id: "department", label: "Department" },
+    { id: "total_prompts", label: "Total prompts" },
+    { id: "risk_score", label: "Risk score" },
+  ], []);
+  const DEPT_COLUMNS: SortableColumn[] = useMemo(() => [
+    { id: "department", label: "Department" },
+    { id: "users", label: "Users" },
+    { id: "total_prompts", label: "Total prompts" },
+    { id: "top_tool", label: "Top tool" },
+    { id: "risk_score", label: "Risk score" },
+  ], []);
+  const DETAIL_TOOLS_COLUMNS: SortableColumn[] = useMemo(() => [
+    { id: "tool_name", label: "Tool" },
+    { id: "event_count", label: "Events" },
+    { id: "last_used", label: "Last used" },
+  ], []);
+
+  const { sortConfig: usersSortConfig, handleSort: handleUsersSort } =
+    useTableSort("vw_shadow_ai_users_sort");
+  const { sortConfig: deptSortConfig, handleSort: handleDeptSort } =
+    useTableSort("vw_shadow_ai_depts_sort");
+  const { sortConfig: detailToolsSortConfig, handleSort: handleDetailToolsSort } =
+    useTableSort("vw_shadow_ai_detail_tools_sort");
+
+  const getUserValue = useCallback(
+    (row: ShadowAiUserActivity, key: string): string | number => {
+      switch (key) {
+        case "user_email": return row.user_email;
+        case "department": return row.department || "Unknown";
+        case "total_prompts": return row.total_prompts;
+        case "risk_score": return row.risk_score ?? 0;
+        default: return "";
+      }
+    }, []
+  );
+  const getDeptValue = useCallback(
+    (row: ShadowAiDepartmentActivity, key: string): string | number => {
+      switch (key) {
+        case "department": return row.department;
+        case "users": return row.users;
+        case "total_prompts": return row.total_prompts;
+        case "top_tool": return row.top_tool || "";
+        case "risk_score": return row.risk_score ?? 0;
+        default: return "";
+      }
+    }, []
+  );
+  const getDetailToolValue = useCallback(
+    (row: { tool_name: string; event_count: number; last_used: string }, key: string): string | number => {
+      switch (key) {
+        case "tool_name": return row.tool_name;
+        case "event_count": return row.event_count;
+        case "last_used": return new Date(row.last_used).getTime();
+        default: return "";
+      }
+    }, []
+  );
+
+  const sortedUsers = useSortedRows(users, usersSortConfig, getUserValue);
+  const sortedDepts = useSortedRows(departments, deptSortConfig, getDeptValue);
+  const sortedDetailTools = useSortedRows(
+    userDetail?.tools ?? [], detailToolsSortConfig, getDetailToolValue
+  );
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -198,15 +271,13 @@ export default function UserActivityPage() {
             {userDetail.tools?.length > 0 ? (
               <TableContainer sx={singleTheme.tableStyles.primary.frame}>
                 <Table>
-                  <TableHead>
-                    <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                      {["Tool", "Events", "Last used"].map((h) => (
-                        <TableCell key={h} sx={singleTheme.tableStyles.primary.header.cell}>{h}</TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
+                  <SortableTableHead
+                    columns={DETAIL_TOOLS_COLUMNS}
+                    sortConfig={detailToolsSortConfig}
+                    onSort={handleDetailToolsSort}
+                  />
                   <TableBody>
-                    {userDetail.tools.map(
+                    {sortedDetailTools.map(
                       (t) => (
                         <TableRow key={t.tool_name} sx={singleTheme.tableStyles.primary.body.row}>
                           <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{t.tool_name}</TableCell>
@@ -285,15 +356,13 @@ export default function UserActivityPage() {
       ) : viewMode === "users" ? (
         <TableContainer sx={singleTheme.tableStyles.primary.frame}>
           <Table>
-            <TableHead>
-              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                {["User", "Department", "Total prompts", "Risk score"].map((h) => (
-                  <TableCell key={h} sx={singleTheme.tableStyles.primary.header.cell}>{h}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
+            <SortableTableHead
+              columns={USERS_COLUMNS}
+              sortConfig={usersSortConfig}
+              onSort={handleUsersSort}
+            />
             <TableBody>
-              {users.map((u) => (
+              {sortedUsers.map((u) => (
                 <TableRow key={u.user_email} sx={{ ...singleTheme.tableStyles.primary.body.row, cursor: "pointer" }} onClick={() => handleUserClick(u.user_email)}>
                   <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                     <Typography
@@ -387,15 +456,13 @@ export default function UserActivityPage() {
       ) : (
         <TableContainer sx={singleTheme.tableStyles.primary.frame}>
           <Table>
-            <TableHead>
-              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                {["Department", "Users", "Total prompts", "Top tool", "Risk score"].map((h) => (
-                  <TableCell key={h} sx={singleTheme.tableStyles.primary.header.cell}>{h}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
+            <SortableTableHead
+              columns={DEPT_COLUMNS}
+              sortConfig={deptSortConfig}
+              onSort={handleDeptSort}
+            />
             <TableBody>
-              {departments
+              {sortedDepts
                 .slice(deptPage * DEPT_PER_PAGE, (deptPage + 1) * DEPT_PER_PAGE)
                 .map((d) => (
                 <TableRow key={d.department} sx={{ ...singleTheme.tableStyles.primary.body.row, "&:hover": { cursor: "default" } }}>

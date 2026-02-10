@@ -5,7 +5,7 @@
  * Tabs use URL-based routing: /shadow-ai/rules and /shadow-ai/rules/alerts
  */
 
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Stack,
@@ -15,7 +15,6 @@ import {
   IconButton,
   SelectChangeEvent,
   Table,
-  TableHead,
   TableBody,
   TableRow,
   TableCell,
@@ -53,7 +52,13 @@ import Select from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
-import { SelectorVertical } from "./constants";
+import {
+  SelectorVertical,
+  SortableColumn,
+  useTableSort,
+  useSortedRows,
+  SortableTableHead,
+} from "./constants";
 
 const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
   new_tool_detected: "New tool detected",
@@ -96,6 +101,29 @@ export default function RulesPage() {
   const [formTrigger, setFormTrigger] = useState<ShadowAiTriggerType>("new_tool_detected");
   const [formActive, setFormActive] = useState(true);
   const [creating, setCreating] = useState(false);
+
+  // ─── Sorting ───
+  const ALERTS_COLUMNS: SortableColumn[] = useMemo(() => [
+    { id: "rule_name", label: "Rule" },
+    { id: "trigger_type", label: "Trigger" },
+    { id: "fired_at", label: "Fired at" },
+  ], []);
+
+  const { sortConfig: alertsSortConfig, handleSort: handleAlertsSort } =
+    useTableSort("vw_shadow_ai_alerts_sort");
+
+  const getAlertValue = useCallback(
+    (row: IShadowAiAlertHistory, key: string): string | number => {
+      switch (key) {
+        case "rule_name": return row.rule_name || `Rule #${row.rule_id}`;
+        case "trigger_type": return row.trigger_type || "";
+        case "fired_at": return row.fired_at ? new Date(row.fired_at).getTime() : 0;
+        default: return "";
+      }
+    }, []
+  );
+
+  const sortedAlerts = useSortedRows(alerts, alertsSortConfig, getAlertValue);
 
   // Auto-dismiss toast
   useEffect(() => {
@@ -342,20 +370,13 @@ export default function RulesPage() {
       ) : (
         <TableContainer sx={singleTheme.tableStyles.primary.frame}>
           <Table>
-            <TableHead>
-              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                {["Rule", "Trigger", "Fired at"].map((h) => (
-                  <TableCell
-                    key={h}
-                    sx={singleTheme.tableStyles.primary.header.cell}
-                  >
-                    {h}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
+            <SortableTableHead
+              columns={ALERTS_COLUMNS}
+              sortConfig={alertsSortConfig}
+              onSort={handleAlertsSort}
+            />
             <TableBody>
-              {alerts.map((a) => (
+              {sortedAlerts.map((a) => (
                 <TableRow key={a.id} sx={singleTheme.tableStyles.primary.body.row}>
                   <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                     {a.rule_name || `Rule #${a.rule_id}`}

@@ -4,7 +4,7 @@
  * Lists detected AI tools with status management and detail view.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Stack,
@@ -15,7 +15,6 @@ import {
   Box,
   IconButton,
   Table,
-  TableHead,
   TableBody,
   TableRow,
   TableCell,
@@ -49,7 +48,13 @@ import GovernanceWizardModal from "./GovernanceWizardModal";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
-import { SelectorVertical } from "./constants";
+import {
+  SelectorVertical,
+  SortableColumn,
+  useTableSort,
+  useSortedRows,
+  SortableTableHead,
+} from "./constants";
 
 const ROWS_PER_PAGE = 20;
 
@@ -90,6 +95,35 @@ export default function AIToolsPage() {
   }) | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [governanceModalOpen, setGovernanceModalOpen] = useState(false);
+
+  // ─── Sorting ───
+  const TOOLS_COLUMNS: SortableColumn[] = useMemo(() => [
+    { id: "name", label: "Tool" },
+    { id: "status", label: "Status" },
+    { id: "total_users", label: "Users" },
+    { id: "total_events", label: "Events" },
+    { id: "risk_score", label: "Risk score" },
+    { id: "last_seen_at", label: "Last seen" },
+  ], []);
+
+  const { sortConfig: toolsSortConfig, handleSort: handleToolsSort } =
+    useTableSort("vw_shadow_ai_tools_sort");
+
+  const getToolValue = useCallback(
+    (row: IShadowAiTool, key: string): string | number => {
+      switch (key) {
+        case "name": return row.name;
+        case "status": return row.status;
+        case "total_users": return row.total_users;
+        case "total_events": return row.total_events;
+        case "risk_score": return row.risk_score ?? 0;
+        case "last_seen_at": return row.last_seen_at ? new Date(row.last_seen_at).getTime() : 0;
+        default: return "";
+      }
+    }, []
+  );
+
+  const sortedTools = useSortedRows(tools, toolsSortConfig, getToolValue);
 
   const fetchTools = useCallback(async () => {
     setLoading(true);
@@ -423,15 +457,13 @@ export default function AIToolsPage() {
       ) : (
         <TableContainer sx={singleTheme.tableStyles.primary.frame}>
           <Table>
-            <TableHead>
-              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                {["Tool", "Status", "Users", "Events", "Risk score", "Last seen"].map((h) => (
-                  <TableCell key={h} sx={singleTheme.tableStyles.primary.header.cell}>{h}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
+            <SortableTableHead
+              columns={TOOLS_COLUMNS}
+              sortConfig={toolsSortConfig}
+              onSort={handleToolsSort}
+            />
             <TableBody>
-              {tools.map((t) => {
+              {sortedTools.map((t) => {
                 const cfg = STATUS_CONFIG[t.status];
                 return (
                   <TableRow key={t.id} hover sx={{ ...singleTheme.tableStyles.primary.body.row, cursor: "pointer" }} onClick={() => handleToolClick(t)}>

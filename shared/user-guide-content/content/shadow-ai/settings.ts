@@ -93,6 +93,170 @@ export const settingsContent: ArticleContent = {
       type: 'paragraph',
       text: 'To add a source, click "Add source", enter the source identifier (e.g., `proxy-01.corp.com`), and select the parser type. You can edit or delete sources at any time.',
     },
+
+    // ─── Data Formats ──────────────────────────────────────────────────
+
+    {
+      type: 'heading',
+      id: 'data-formats',
+      level: 2,
+      text: 'Data formats',
+    },
+    {
+      type: 'paragraph',
+      text: 'This section documents the exact data formats VerifyWise expects when ingesting Shadow AI events, whether through the REST API or via syslog forwarding.',
+    },
+
+    // REST API event schema
+    {
+      type: 'heading',
+      id: 'rest-api-schema',
+      level: 3,
+      text: 'REST API event schema',
+    },
+    {
+      type: 'paragraph',
+      text: 'Send events via `POST /api/v1/shadow-ai/events` with a JSON request body containing an `events` array. Authenticate using the `X-API-Key` header with a valid API key.',
+    },
+    {
+      type: 'code',
+      language: 'json',
+      code: `{
+  "events": [
+    {
+      "user_email": "alice@company.com",
+      "destination": "chat.openai.com",
+      "timestamp": "2026-02-09T14:32:00Z",
+      "uri_path": "/v1/chat",
+      "http_method": "POST",
+      "action": "allowed",
+      "department": "Engineering",
+      "job_title": "Senior Engineer",
+      "manager_email": "bob@company.com"
+    }
+  ]
+}`,
+    },
+    {
+      type: 'table',
+      columns: [
+        { key: 'field', label: 'Field', width: '25%' },
+        { key: 'required', label: 'Required', width: '15%' },
+        { key: 'description', label: 'Description', width: '60%' },
+      ],
+      rows: [
+        { field: 'user_email', required: 'Yes', description: 'Email address of the user who made the request' },
+        { field: 'destination', required: 'Yes', description: 'Hostname or domain of the AI tool (e.g., chat.openai.com)' },
+        { field: 'timestamp', required: 'Yes', description: 'ISO 8601 timestamp of the event' },
+        { field: 'uri_path', required: 'No', description: 'URL path of the request (e.g., /v1/chat)' },
+        { field: 'http_method', required: 'No', description: 'HTTP method (GET, POST, etc.)' },
+        { field: 'action', required: 'No', description: '"allowed" or "blocked" — whether the proxy permitted the request' },
+        { field: 'department', required: 'No', description: 'Department of the user (e.g., Engineering, Finance)' },
+        { field: 'job_title', required: 'No', description: 'Job title of the user' },
+        { field: 'manager_email', required: 'No', description: 'Email address of the user\'s manager' },
+      ],
+    },
+    {
+      type: 'callout',
+      variant: 'info',
+      title: 'Authentication',
+      text: 'All requests must include the `X-API-Key` header with a valid API key created from the API keys section above. Requests without a valid key receive a 401 response.',
+    },
+
+    // Syslog format examples
+    {
+      type: 'heading',
+      id: 'syslog-formats',
+      level: 3,
+      text: 'Syslog format examples',
+    },
+    {
+      type: 'paragraph',
+      text: 'Syslog messages are expected over UDP/TCP using RFC 3164 or RFC 5424 framing. The PRI, timestamp, and hostname header are stripped automatically before parsing. Below are example log lines for each supported parser.',
+    },
+    {
+      type: 'heading',
+      id: 'syslog-zscaler',
+      level: 3,
+      text: 'Zscaler (key=value)',
+    },
+    {
+      type: 'code',
+      language: 'text',
+      code: 'user=alice@company.com dst=chat.openai.com method=POST uri=https://chat.openai.com/v1/chat action=allowed department=Engineering',
+    },
+    {
+      type: 'heading',
+      id: 'syslog-netskope',
+      level: 3,
+      text: 'Netskope (JSON-in-syslog)',
+    },
+    {
+      type: 'code',
+      language: 'json',
+      code: `{
+  "user": "alice@company.com",
+  "url": "https://chat.openai.com/v1/chat",
+  "method": "POST",
+  "activity": "allowed",
+  "department": "Engineering",
+  "timestamp": "2026-02-09T14:32:00Z"
+}`,
+    },
+    {
+      type: 'heading',
+      id: 'syslog-squid',
+      level: 3,
+      text: 'Squid (space-delimited)',
+    },
+    {
+      type: 'code',
+      language: 'text',
+      code: '1707489120.000 200 10.0.0.1 TCP_MISS/200 1024 POST https://chat.openai.com/v1/chat alice@company.com DIRECT/chat.openai.com',
+    },
+    {
+      type: 'heading',
+      id: 'syslog-generic',
+      level: 3,
+      text: 'Generic key-value (CEF-like)',
+    },
+    {
+      type: 'code',
+      language: 'text',
+      code: 'suser=alice@company.com dhost=chat.openai.com requestMethod=POST act=allowed',
+    },
+
+    // Field mapping table
+    {
+      type: 'heading',
+      id: 'syslog-field-mapping',
+      level: 3,
+      text: 'Field mapping',
+    },
+    {
+      type: 'paragraph',
+      text: 'Each parser extracts fields from the source format and maps them to the normalized event schema:',
+    },
+    {
+      type: 'table',
+      columns: [
+        { key: 'normalized', label: 'Normalized field', width: '20%' },
+        { key: 'zscaler', label: 'Zscaler', width: '20%' },
+        { key: 'netskope', label: 'Netskope', width: '20%' },
+        { key: 'squid', label: 'Squid', width: '20%' },
+        { key: 'generic', label: 'Generic KV', width: '20%' },
+      ],
+      rows: [
+        { normalized: 'user_email', zscaler: 'user', netskope: 'user', squid: 'field 8', generic: 'suser' },
+        { normalized: 'destination', zscaler: 'dst', netskope: 'url (hostname)', squid: 'url (hostname)', generic: 'dhost' },
+        { normalized: 'uri_path', zscaler: 'uri (path)', netskope: 'url (path)', squid: 'url (path)', generic: '—' },
+        { normalized: 'http_method', zscaler: 'method', netskope: 'method', squid: 'field 6', generic: 'requestMethod' },
+        { normalized: 'action', zscaler: 'action', netskope: 'activity', squid: '—', generic: 'act' },
+        { normalized: 'timestamp', zscaler: 'syslog header', netskope: 'timestamp', squid: 'field 1 (epoch)', generic: 'syslog header' },
+        { normalized: 'department', zscaler: 'department', netskope: 'department', squid: '—', generic: '—' },
+      ],
+    },
+
     {
       type: 'heading',
       id: 'rate-limiting',

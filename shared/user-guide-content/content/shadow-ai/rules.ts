@@ -124,6 +124,63 @@ export const rulesContent: ArticleContent = {
       type: 'paragraph',
       text: 'Click the trash icon on a rule card to delete it. You will be asked to confirm. Deleting a rule removes the rule definition but preserves any alert history that was already generated.',
     },
+
+    // ─── Cooldowns & alert batching ──────────────────────────────────
+
+    {
+      type: 'heading',
+      id: 'cooldowns',
+      level: 2,
+      text: 'Cooldowns and alert batching',
+    },
+    {
+      type: 'paragraph',
+      text: 'To prevent alert fatigue, each rule has a configurable cooldown period and the system enforces a per-batch alert cap.',
+    },
+    {
+      type: 'heading',
+      id: 'cooldown-period',
+      level: 3,
+      text: 'Per-rule cooldown',
+    },
+    {
+      type: 'paragraph',
+      text: 'When you create a rule, you select a cooldown period that controls the minimum time between repeated alerts for the same trigger context (e.g., the same tool or the same user). If a rule fires for a given context, it will not fire again for that same context until the cooldown expires.',
+    },
+    {
+      type: 'table',
+      columns: [
+        { key: 'option', label: 'Cooldown option', width: '30%' },
+        { key: 'behavior', label: 'Behavior', width: '70%' },
+      ],
+      rows: [
+        { option: '1 hour', behavior: 'Alert suppressed for the same context for 60 minutes after firing' },
+        { option: '6 hours', behavior: 'Alert suppressed for the same context for 6 hours after firing' },
+        { option: '12 hours', behavior: 'Alert suppressed for the same context for 12 hours after firing' },
+        { option: '24 hours (default)', behavior: 'Alert suppressed for the same context for 24 hours after firing' },
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: 'The "context" that determines deduplication depends on the trigger type: for tool-based triggers (new tool detected, usage threshold, blocked attempt, risk score exceeded), the cooldown applies per tool per rule. For sensitive department triggers, it applies per department per rule. For new user detected, it applies per user email per rule.',
+    },
+    {
+      type: 'heading',
+      id: 'alert-cap',
+      level: 3,
+      text: 'Per-batch alert cap',
+    },
+    {
+      type: 'paragraph',
+      text: 'As a safety net, the system limits the number of alerts that can fire in a single ingestion batch to 50. If more than 50 alerts are triggered by a single batch of events, the excess alerts are silently dropped. This prevents a flood of notifications from a misconfigured rule or a sudden traffic spike.',
+    },
+    {
+      type: 'callout',
+      variant: 'tip',
+      title: 'Reducing noise',
+      text: 'If you are receiving too many alerts, increase the cooldown period on the affected rule or narrow the trigger criteria (e.g., raise the usage threshold or limit sensitive departments to fewer entries).',
+    },
+
     {
       type: 'heading',
       id: 'alert-history',

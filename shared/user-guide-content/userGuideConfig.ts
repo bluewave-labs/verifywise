@@ -349,7 +349,7 @@ export const collections: Collection[] = [
     title: 'Shadow AI',
     description: 'Detect and manage unauthorized AI tool usage across your organization through network traffic analysis.',
     icon: 'EyeOff',
-    articleCount: 5,
+    articleCount: 6,
     articles: [
       {
         id: 'insights',
@@ -380,6 +380,12 @@ export const collections: Collection[] = [
         title: 'Shadow AI settings',
         description: 'Manage API keys, syslog sources, rate limiting, data retention, and risk score calculation.',
         keywords: ['shadow', 'settings', 'api key', 'syslog', 'retention', 'rate limit', 'risk score'],
+      },
+      {
+        id: 'integration-guide',
+        title: 'Integration guide',
+        description: 'Step-by-step instructions for connecting your network proxy, SIEM, or custom integration to Shadow AI.',
+        keywords: ['shadow', 'integration', 'setup', 'syslog', 'zscaler', 'netskope', 'squid', 'api', 'proxy', 'troubleshooting'],
       },
     ],
   },

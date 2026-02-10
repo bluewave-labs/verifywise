@@ -43,6 +43,7 @@ import { aiToolsContent } from './shadow-ai/ai-tools';
 import { userActivityContent } from './shadow-ai/user-activity';
 import { rulesContent } from './shadow-ai/rules';
 import { settingsContent as shadowAiSettingsContent } from './shadow-ai/settings';
+import { integrationGuideContent } from './shadow-ai/integration-guide';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -103,6 +104,7 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'shadow-ai/user-activity': userActivityContent,
   'shadow-ai/rules': rulesContent,
   'shadow-ai/settings': shadowAiSettingsContent,
+  'shadow-ai/integration-guide': integrationGuideContent,
 };
 
 // Helper to get article content

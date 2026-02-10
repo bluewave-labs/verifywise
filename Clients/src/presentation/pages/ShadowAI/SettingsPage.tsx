@@ -46,11 +46,20 @@ import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
+import { useUserGuideSidebarContext } from "../../components/UserGuide";
 import TipBox from "../../components/TipBox";
 
 const sectionTitleSx = {
   fontWeight: 600,
   fontSize: 15,
+};
+
+const docLinkSx = {
+  fontSize: 13,
+  color: "#13715B",
+  cursor: "pointer",
+  textDecoration: "none",
+  "&:hover": { textDecoration: "underline" },
 };
 
 export default function SettingsPage() {
@@ -86,6 +95,7 @@ export default function SettingsPage() {
       <TipBox entityName="shadow-ai-settings" />
       <ApiKeysSection />
       <SyslogConfigSection />
+      <DataFormatsSection />
       <RateLimitSection settings={settings} loading={settingsLoading} onSettingsUpdate={setSettings} />
       <DataRetentionSection settings={settings} loading={settingsLoading} onSettingsUpdate={setSettings} />
       <RiskScoreSection />
@@ -96,6 +106,7 @@ export default function SettingsPage() {
 // ─── API Keys Section ───────────────────────────────────────────────
 
 function ApiKeysSection() {
+  const { open: openGuide } = useUserGuideSidebarContext();
   const [loading, setLoading] = useState(true);
   const [keys, setKeys] = useState<IShadowAiApiKey[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -116,20 +127,24 @@ function ApiKeysSection() {
     };
   }, []);
 
-  const fetchKeys = useCallback(async () => {
+  const fetchKeys = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     try {
       const data = await listApiKeys();
+      if (signal?.aborted) return;
       setKeys(data);
     } catch (error) {
+      if (signal?.aborted) return;
       console.error("Failed to load API keys:", error);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchKeys();
+    const controller = new AbortController();
+    fetchKeys(controller.signal);
+    return () => { controller.abort(); };
   }, [fetchKeys]);
 
   const handleCreate = async () => {
@@ -199,7 +214,14 @@ function ApiKeysSection() {
 
       <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
         API keys are used to authenticate Shadow AI event ingestion from your
-        network proxy, SIEM, or browser extension.
+        network proxy, SIEM, or browser extension.{" "}
+        <Typography
+          component="span"
+          sx={docLinkSx}
+          onClick={() => openGuide("shadow-ai/integration-guide")}
+        >
+          View integration guide
+        </Typography>
       </Typography>
 
       {/* Newly created key banner */}
@@ -386,6 +408,7 @@ function ApiKeysSection() {
 // ─── Syslog Config Section ──────────────────────────────────────────
 
 function SyslogConfigSection() {
+  const { open: openGuide } = useUserGuideSidebarContext();
   const [loading, setLoading] = useState(true);
   const [configs, setConfigs] = useState<IShadowAiSyslogConfig[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -398,20 +421,24 @@ function SyslogConfigSection() {
   const [editParser, setEditParser] = useState<IShadowAiSyslogConfig["parser_type"]>("generic_kv");
   const [editing, setEditing] = useState(false);
 
-  const fetchConfigs = useCallback(async () => {
+  const fetchConfigs = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     try {
       const data = await getSyslogConfigs();
+      if (signal?.aborted) return;
       setConfigs(data);
     } catch (error) {
+      if (signal?.aborted) return;
       console.error("Failed to load syslog configs:", error);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchConfigs();
+    const controller = new AbortController();
+    fetchConfigs(controller.signal);
+    return () => { controller.abort(); };
   }, [fetchConfigs]);
 
   const handleCreate = async () => {
@@ -494,7 +521,14 @@ function SyslogConfigSection() {
 
       <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
         Configure syslog sources to ingest network traffic data from your proxy
-        or firewall.
+        or firewall.{" "}
+        <Typography
+          component="span"
+          sx={docLinkSx}
+          onClick={() => openGuide("shadow-ai/integration-guide")}
+        >
+          View setup instructions
+        </Typography>
       </Typography>
 
       {loading ? (
@@ -660,6 +694,210 @@ function SyslogConfigSection() {
           This will stop processing events from this source.
         </Typography>
       </StandardModal>
+    </Stack>
+  );
+}
+
+// ─── Data Formats Section ────────────────────────────────────────────
+
+const REST_API_SCHEMA = `{
+  "events": [
+    {
+      "user_email": "alice@company.com",
+      "destination": "chat.openai.com",
+      "timestamp": "2026-02-09T14:32:00Z",
+      "uri_path": "/v1/chat",
+      "http_method": "POST",
+      "action": "allowed",
+      "department": "Engineering",
+      "job_title": "Senior Engineer",
+      "manager_email": "bob@company.com"
+    }
+  ]
+}`;
+
+const API_FIELDS = [
+  { field: "user_email", required: "Yes", description: "Email address of the user who made the request" },
+  { field: "destination", required: "Yes", description: "Hostname or domain of the AI tool (e.g., chat.openai.com)" },
+  { field: "timestamp", required: "Yes", description: "ISO 8601 timestamp of the event" },
+  { field: "uri_path", required: "No", description: "URL path of the request (e.g., /v1/chat)" },
+  { field: "http_method", required: "No", description: "HTTP method (GET, POST, etc.)" },
+  { field: "action", required: "No", description: '"allowed" or "blocked" — whether the proxy permitted the request' },
+  { field: "department", required: "No", description: "Department of the user (e.g., Engineering, Finance)" },
+  { field: "job_title", required: "No", description: "Job title of the user" },
+  { field: "manager_email", required: "No", description: "Email address of the user's manager" },
+];
+
+const SYSLOG_EXAMPLES: { label: string; format: string; example: string }[] = [
+  {
+    label: "Zscaler (key=value)",
+    format: "zscaler",
+    example: "user=alice@company.com dst=chat.openai.com method=POST uri=https://chat.openai.com/v1/chat action=allowed department=Engineering",
+  },
+  {
+    label: "Netskope (JSON-in-syslog)",
+    format: "netskope",
+    example: `{"user":"alice@company.com","url":"https://chat.openai.com/v1/chat","method":"POST","activity":"allowed","department":"Engineering","timestamp":"2026-02-09T14:32:00Z"}`,
+  },
+  {
+    label: "Squid (space-delimited)",
+    format: "squid",
+    example: "1707489120.000 200 10.0.0.1 TCP_MISS/200 1024 POST https://chat.openai.com/v1/chat alice@company.com DIRECT/chat.openai.com",
+  },
+  {
+    label: "Generic key-value (CEF-like)",
+    format: "generic_kv",
+    example: "suser=alice@company.com dhost=chat.openai.com requestMethod=POST act=allowed",
+  },
+];
+
+const FIELD_MAPPING = [
+  { normalized: "user_email", zscaler: "user", netskope: "user", squid: "field 8", generic: "suser" },
+  { normalized: "destination", zscaler: "dst", netskope: "url (host)", squid: "url (host)", generic: "dhost" },
+  { normalized: "uri_path", zscaler: "uri (path)", netskope: "url (path)", squid: "url (path)", generic: "—" },
+  { normalized: "http_method", zscaler: "method", netskope: "method", squid: "field 6", generic: "requestMethod" },
+  { normalized: "action", zscaler: "action", netskope: "activity", squid: "—", generic: "act" },
+  { normalized: "timestamp", zscaler: "syslog header", netskope: "timestamp", squid: "field 1 (epoch)", generic: "syslog header" },
+  { normalized: "department", zscaler: "department", netskope: "department", squid: "—", generic: "—" },
+];
+
+const codeBoxSx = {
+  fontFamily: "monospace",
+  fontSize: 12,
+  backgroundColor: "#F9FAFB",
+  border: "1px solid #d0d5dd",
+  borderRadius: "4px",
+  p: 2,
+  whiteSpace: "pre-wrap" as const,
+  wordBreak: "break-all" as const,
+  overflowX: "auto" as const,
+};
+
+function DataFormatsSection() {
+  const { open: openGuide } = useUserGuideSidebarContext();
+  return (
+    <Stack gap="16px">
+      <Typography sx={sectionTitleSx}>Data formats</Typography>
+      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+        Reference for the exact data formats VerifyWise expects when ingesting
+        Shadow AI events via the REST API or syslog forwarding.{" "}
+        <Typography
+          component="span"
+          sx={docLinkSx}
+          onClick={() => openGuide("shadow-ai/integration-guide")}
+        >
+          View full integration guide
+        </Typography>
+      </Typography>
+
+      {/* REST API */}
+      <Typography sx={{ fontSize: 14, fontWeight: 600, mt: 1 }}>
+        REST API event schema
+      </Typography>
+      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+        Send events via{" "}
+        <Typography component="span" sx={{ fontFamily: "monospace", fontSize: 12 }}>
+          POST /api/v1/shadow-ai/events
+        </Typography>{" "}
+        with a JSON body. Authenticate using the{" "}
+        <Typography component="span" sx={{ fontFamily: "monospace", fontSize: 12 }}>
+          X-API-Key
+        </Typography>{" "}
+        header.
+      </Typography>
+
+      <Box sx={codeBoxSx}>{REST_API_SCHEMA}</Box>
+
+      <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+              {["Field", "Required", "Description"].map((h) => (
+                <TableCell key={h} sx={singleTheme.tableStyles.primary.header.cell}>
+                  {h}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {API_FIELDS.map((f) => (
+              <TableRow key={f.field} sx={singleTheme.tableStyles.primary.body.row}>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
+                  {f.field}
+                </TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{f.required}</TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{f.description}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Syslog formats */}
+      <Typography sx={{ fontSize: 14, fontWeight: 600, mt: 2 }}>
+        Syslog format examples
+      </Typography>
+      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+        Syslog messages use RFC 3164 or 5424 framing. The PRI, timestamp, and
+        hostname header are stripped automatically before parsing. Below are
+        example log lines for each supported parser.
+      </Typography>
+
+      <Stack gap="12px">
+        {SYSLOG_EXAMPLES.map((ex) => (
+          <Box key={ex.format}>
+            <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 0.5 }}>
+              {ex.label}
+            </Typography>
+            <Box sx={codeBoxSx}>{ex.example}</Box>
+          </Box>
+        ))}
+      </Stack>
+
+      {/* Field mapping */}
+      <Typography sx={{ fontSize: 14, fontWeight: 600, mt: 2 }}>
+        Field mapping
+      </Typography>
+      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+        How each parser maps source fields to the normalized event schema:
+      </Typography>
+
+      <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+              {["Normalized field", "Zscaler", "Netskope", "Squid", "Generic KV"].map(
+                (h) => (
+                  <TableCell key={h} sx={singleTheme.tableStyles.primary.header.cell}>
+                    {h}
+                  </TableCell>
+                )
+              )}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {FIELD_MAPPING.map((row) => (
+              <TableRow key={row.normalized} sx={singleTheme.tableStyles.primary.body.row}>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace", fontWeight: 500 }}>
+                  {row.normalized}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
+                  {row.zscaler}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
+                  {row.netskope}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
+                  {row.squid}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
+                  {row.generic}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Stack>
   );
 }

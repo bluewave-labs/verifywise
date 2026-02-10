@@ -194,6 +194,19 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     localStorage.setItem(WISE_SEARCH_WELCOME_DISMISSED_KEY, 'true')
   }, [])
 
+  // Cycling hint text for the search input
+  const SEARCH_HINTS = useMemo(() => [
+    'Search for everything, everywhere...',
+    'Search vendors, policies, tasks...',
+    'Search review dates to find files by expiry...',
+    'Find risks, incidents, training records...',
+    'Search file names, tags, descriptions...',
+    'Search model inventories, evidence hub...',
+  ], [])
+
+  const [currentHintIndex, setCurrentHintIndex] = useState(0)
+  const [hintVisible, setHintVisible] = useState(true)
+
   // Wise Search integration
   const {
     query: search,
@@ -208,6 +221,29 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     reviewStatus,
     setReviewStatus,
   } = useWiseSearch()
+
+    // Cycle through hints every 3.5 seconds when input is empty and palette is open
+    useEffect(() => {
+      if (!open || search) return
+  
+      const interval = setInterval(() => {
+        setHintVisible(false) // Start fade out
+        setTimeout(() => {
+          setCurrentHintIndex((prev) => (prev + 1) % SEARCH_HINTS.length)
+          setHintVisible(true) // Fade in new hint
+        }, 300) // Wait for fade-out to complete
+      }, 3500)
+  
+      return () => clearInterval(interval)
+    }, [open, search, SEARCH_HINTS])
+  
+    // Reset hint index when palette opens
+    useEffect(() => {
+      if (open) {
+        setCurrentHintIndex(0)
+        setHintVisible(true)
+      }
+    }, [open])
 
   // Review Status filter options (values match file manager DB values)
   const REVIEW_STATUS_OPTIONS = [
@@ -394,17 +430,28 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           Use arrow keys to navigate, Enter to select, and Escape to close.
         </div>
 
-        <Command.Input
-          value={search}
-          onValueChange={setSearch}
-          placeholder="Search for everything, everywhere..."
-          className="command-input"
-          aria-label="Search commands"
-          aria-describedby="command-palette-help"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck="false"
-        />
+        <div className="command-input-wrapper">
+          <Command.Input
+            value={search}
+            onValueChange={setSearch}
+            placeholder=""
+            className="command-input"
+            aria-label="Search commands"
+            aria-describedby="command-palette-help"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="false"
+          />
+          {/* Cycling hint text overlay - visible only when input is empty */}
+          {!search && (
+            <span
+              className={`command-input-hint ${hintVisible ? 'hint-visible' : 'hint-hidden'}`}
+              aria-hidden="true"
+            >
+              {SEARCH_HINTS[currentHintIndex]}
+            </span>
+          )}
+        </div>
 
         <div id="command-palette-help" className="sr-only">
           {isSearchMode

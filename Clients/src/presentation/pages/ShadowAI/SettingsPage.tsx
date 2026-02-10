@@ -309,8 +309,7 @@ function ApiKeysSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
       <StandardModal
         isOpen={!!revokeTarget}
         onClose={() => setRevokeTarget(null)}
-        title="Revoke API key"
-        description={`Are you sure you want to revoke the key "${revokeTarget?.label || revokeTarget?.key_prefix}"?`}
+        title={`Revoke "${revokeTarget?.label || revokeTarget?.key_prefix}"?`}
         submitButtonText="Revoke"
         onSubmit={handleRevoke}
         submitButtonColor="#DC2626"
@@ -526,8 +525,7 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
       <StandardModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title="Remove syslog source"
-        description={`Remove "${deleteTarget?.source_identifier}"?`}
+        title={`Remove "${deleteTarget?.source_identifier}"?`}
         submitButtonText="Remove"
         onSubmit={handleDelete}
         submitButtonColor="#DC2626"

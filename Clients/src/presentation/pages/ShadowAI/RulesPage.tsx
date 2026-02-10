@@ -381,8 +381,7 @@ export default function RulesPage() {
       <StandardModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title="Delete rule"
-        description={`Are you sure you want to delete "${deleteTarget?.name}"?`}
+        title={`Delete "${deleteTarget?.name}"?`}
         submitButtonText="Delete"
         onSubmit={handleDelete}
         submitButtonColor="#DC2626"

@@ -174,12 +174,8 @@ export async function createNewTrainingRegistar(
           ? `${creatorUser.name} ${creatorUser.surname}`
           : "System";
 
-        // Get the created training's ID from the DB (utils returns boolean)
-        const allTrainings = await getAllTrainingRegistarQuery(req.tenantId!);
-        const createdTraining = allTrainings.find(
-          (t) => t.training_name === newTrainingRegistar.training_name
-        );
-        const trainingId = createdTraining?.id || 0;
+        const trainingData = createdNewTrainingRegistar?.dataValues || createdNewTrainingRegistar;
+        const trainingId = trainingData?.id || 0;
 
         for (const admin of admins) {
           await notifyTrainingAssigned(

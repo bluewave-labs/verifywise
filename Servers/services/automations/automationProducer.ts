@@ -29,6 +29,22 @@ export async function scheduleVendorReviewDateNotification() {
   );
 }
 
+export async function schedulePolicyDueSoonNotification() {
+  logger.info("Adding Policy Due Soon Notification jobs to the queue...");
+  // Policy Due Soon Notification every day at 8 AM
+  await automationQueue.add(
+    "send_policy_due_soon_notification",
+    { type: "policy_due_soon" },
+    {
+      repeat: {
+        pattern: "0 8 * * *",
+      },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  );
+}
+
 export async function scheduleReportNotification() {
   await automationQueue.obliterate({ force: true });
   logger.info("Adding Report Notification jobs to the queue...");

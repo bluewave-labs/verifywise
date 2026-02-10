@@ -10,6 +10,7 @@ import {
   updatePolicyReviewStatusQuery,
 } from "../utils/policyManager.utils";
 import { sequelize } from "../database/db";
+import { QueryTypes } from "sequelize";
 import {
   recordPolicyCreation,
   trackPolicyChanges,
@@ -312,8 +313,8 @@ export class PolicyController {
       const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
       const requesterUser = await sequelize.query(
         `SELECT name, surname FROM public.users WHERE id = :userId`,
-        { replacements: { userId }, type: "SELECT" as any }
-      ) as any[];
+        { replacements: { userId }, type: QueryTypes.SELECT }
+      ) as { name: string; surname: string }[];
       const requesterName = requesterUser[0]
         ? `${requesterUser[0].name} ${requesterUser[0].surname}`
         : "User";
@@ -383,8 +384,8 @@ export class PolicyController {
       const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
       const reviewerUser = await sequelize.query(
         `SELECT name, surname FROM public.users WHERE id = :reviewerId`,
-        { replacements: { reviewerId }, type: "SELECT" as any }
-      ) as any[];
+        { replacements: { reviewerId }, type: QueryTypes.SELECT }
+      ) as { name: string; surname: string }[];
       const reviewerName = reviewerUser[0]
         ? `${reviewerUser[0].name} ${reviewerUser[0].surname}`
         : "Reviewer";
@@ -457,8 +458,8 @@ export class PolicyController {
       const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
       const reviewerUser = await sequelize.query(
         `SELECT name, surname FROM public.users WHERE id = :reviewerId`,
-        { replacements: { reviewerId }, type: "SELECT" as any }
-      ) as any[];
+        { replacements: { reviewerId }, type: QueryTypes.SELECT }
+      ) as { name: string; surname: string }[];
       const reviewerName = reviewerUser[0]
         ? `${reviewerUser[0].name} ${reviewerUser[0].surname}`
         : "Reviewer";

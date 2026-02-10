@@ -46,7 +46,6 @@ import singleTheme from "../../themes/v1SingleTheme";
 import EmptyState from "../../components/EmptyState";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Select from "../../components/Inputs/Select";
-import RiskBadge from "../../components/RiskBadge";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import TablePaginationActions from "../../components/TablePagination";
 import GovernanceWizardModal from "./GovernanceWizardModal";
@@ -353,11 +352,8 @@ export default function AIToolsPage() {
 
             {/* Departments */}
             {selectedTool.departments && selectedTool.departments.length > 0 && (
-              <Paper
-                elevation={0}
-                sx={{ p: 2, border: "1px solid #d0d5dd", borderRadius: "4px" }}
-              >
-                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1.5 }}>
+              <Stack>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1 }}>
                   Departments
                 </Typography>
                 <TableContainer sx={singleTheme.tableStyles.primary.frame}>
@@ -378,16 +374,13 @@ export default function AIToolsPage() {
                     </TableBody>
                   </Table>
                 </TableContainer>
-              </Paper>
+              </Stack>
             )}
 
             {/* Top users */}
             {selectedTool.top_users && selectedTool.top_users.length > 0 && (
-              <Paper
-                elevation={0}
-                sx={{ p: 2, border: "1px solid #d0d5dd", borderRadius: "4px" }}
-              >
-                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1.5 }}>
+              <Stack>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1 }}>
                   Top users
                 </Typography>
                 <TableContainer sx={singleTheme.tableStyles.primary.frame}>
@@ -408,7 +401,7 @@ export default function AIToolsPage() {
                     </TableBody>
                   </Table>
                 </TableContainer>
-              </Paper>
+              </Stack>
             )}
           </Stack>
         )}
@@ -453,19 +446,9 @@ export default function AIToolsPage() {
               {tools.map((t) => {
                 const cfg = STATUS_CONFIG[t.status];
                 return (
-                  <TableRow key={t.id} hover sx={{ ...singleTheme.tableStyles.primary.body.row, cursor: "pointer" }}>
+                  <TableRow key={t.id} hover sx={{ ...singleTheme.tableStyles.primary.body.row, cursor: "pointer" }} onClick={() => handleToolClick(t)}>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      <Typography
-                        sx={{
-                          fontSize: 13,
-                          color: "#13715B",
-                          cursor: "pointer",
-                          "&:hover": { textDecoration: "underline" },
-                        }}
-                        onClick={() => handleToolClick(t)}
-                      >
-                        {t.name}
-                      </Typography>
+                      {t.name}
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Chip
@@ -478,7 +461,7 @@ export default function AIToolsPage() {
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{t.total_users}</TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{t.total_events}</TableCell>
-                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}><RiskBadge score={t.risk_score ?? 0} /></TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{t.risk_score ?? 0}</TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {t.last_seen_at ? new Date(t.last_seen_at).toLocaleDateString() : "—"}
                     </TableCell>

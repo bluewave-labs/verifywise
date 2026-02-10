@@ -162,17 +162,27 @@ export default function GovernanceWizardModal({
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mt: 1 }}>
           Risk assessment (optional)
         </Typography>
-        <Field
+        <Select
+          id="data-sensitivity-select"
           label="Data sensitivity"
           value={dataSensitivity}
-          onChange={(e) => setDataSensitivity(e.target.value)}
-          placeholder="e.g., High, Medium, Low"
+          onChange={(e: SelectChangeEvent<string | number>) =>
+            setDataSensitivity(String(e.target.value))
+          }
+          items={[
+            { _id: "High", name: "High" },
+            { _id: "Medium", name: "Medium" },
+            { _id: "Low", name: "Low" },
+          ]}
+          placeholder="Select sensitivity level"
         />
         <Field
           label="Risk description"
           value={riskDescription}
           onChange={(e) => setRiskDescription(e.target.value)}
           placeholder="Brief risk description"
+          type="description"
+          rows={3}
         />
 
         {/* Lifecycle option */}

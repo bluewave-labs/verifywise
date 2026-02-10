@@ -23,7 +23,7 @@ export default function ShadowAIPage() {
   const location = useLocation();
 
   const getActiveTab = (): ActiveTab => {
-    if (location.pathname.includes("/shadow-ai/users")) return "users";
+    if (location.pathname.includes("/shadow-ai/user-activity")) return "users";
     if (location.pathname.includes("/shadow-ai/tools")) return "tools";
     if (location.pathname.includes("/shadow-ai/rules")) return "rules"; // includes /rules/alerts
     if (location.pathname.includes("/shadow-ai/settings")) return "settings";

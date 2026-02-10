@@ -122,7 +122,7 @@ export function ContextSidebar({
       );
     }
     case "shadow-ai": {
-      const shadowAiTab = location.pathname.includes("/shadow-ai/users")
+      const shadowAiTab = location.pathname.includes("/shadow-ai/user-activity")
         ? "users"
         : location.pathname.includes("/shadow-ai/tools")
           ? "tools"
@@ -135,6 +135,8 @@ export function ContextSidebar({
       const handleShadowAiTabChange = (newTab: string) => {
         if (newTab === "insights") {
           navigate("/shadow-ai");
+        } else if (newTab === "users") {
+          navigate("/shadow-ai/user-activity/users");
         } else {
           navigate(`/shadow-ai/${newTab}`);
         }

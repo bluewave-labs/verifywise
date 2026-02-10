@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Stack,
   Typography,
@@ -50,11 +51,21 @@ interface UserDetailData {
   total_prompts: number;
 }
 
-type ViewMode = "users" | "departments" | "detail";
+type ViewMode = "users" | "departments";
+
+const TABS = [
+  { label: "Users", value: "users", icon: "Users" as const },
+  { label: "Departments", value: "departments", icon: "Building2" as const },
+];
 
 export default function UserActivityPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [period, setPeriod] = useState("30d");
-  const [viewMode, setViewMode] = useState<ViewMode>("users");
+
+  const viewMode: ViewMode = location.pathname.includes("/user-activity/departments")
+    ? "departments"
+    : "users";
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<ShadowAiUserActivity[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -106,7 +117,6 @@ export default function UserActivityPage() {
 
   const handleUserClick = async (email: string) => {
     setSelectedEmail(email);
-    setViewMode("detail");
     setDetailLoading(true);
     try {
       const detail = await getUserDetail(email, period);
@@ -119,9 +129,9 @@ export default function UserActivityPage() {
   };
 
   const handleBack = () => {
-    setViewMode("users");
     setSelectedEmail(null);
     setUserDetail(null);
+    navigate("/shadow-ai/user-activity/users");
   };
 
   const handlePeriodChange = (e: SelectChangeEvent<string | number>) => {
@@ -130,7 +140,7 @@ export default function UserActivityPage() {
   };
 
   // ─── Detail view ───
-  if (viewMode === "detail") {
+  if (selectedEmail) {
     return (
       <Stack gap="16px">
         <Stack direction="row" alignItems="center" gap="8px">
@@ -219,20 +229,23 @@ export default function UserActivityPage() {
   // ─── List views ───
   const hasData = viewMode === "users" ? users.length > 0 : departments.length > 0;
 
-  const TABS = [
-    { label: "Users", value: "users", icon: "Users" as const },
-    { label: "Departments", value: "departments", icon: "Building2" as const },
-  ];
+  const handleTabChange = (_e: React.SyntheticEvent, newValue: string) => {
+    if (newValue === "departments") {
+      navigate("/shadow-ai/user-activity/departments");
+    } else {
+      navigate("/shadow-ai/user-activity/users");
+    }
+  };
 
   return (
-    <TabContext value={viewMode === "detail" ? "users" : viewMode}>
+    <TabContext value={viewMode}>
     <Stack gap="16px">
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
         <TabBar
           tabs={TABS}
-          activeTab={viewMode === "detail" ? "users" : viewMode}
-          onChange={(_e, newValue) => setViewMode(newValue as ViewMode)}
+          activeTab={viewMode}
+          onChange={handleTabChange}
         />
         <Box sx={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)" }}>
           <Select

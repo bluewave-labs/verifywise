@@ -89,7 +89,7 @@ async function createShadowAiTablesForTenant(queryInterface, tenantHash, transac
   await queryInterface.sequelize.query(`
     CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_tools (
       id                  SERIAL PRIMARY KEY,
-      name                VARCHAR(255) NOT NULL,
+      name                VARCHAR(255) NOT NULL UNIQUE,
       vendor              VARCHAR(255),
       domains             TEXT[] NOT NULL,
       status              VARCHAR(50) DEFAULT 'detected',
@@ -121,7 +121,7 @@ async function createShadowAiTablesForTenant(queryInterface, tenantHash, transac
       uri_path        TEXT,
       http_method     VARCHAR(10),
       action          VARCHAR(20) DEFAULT 'allowed',
-      detected_tool_id INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id),
+      detected_tool_id INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id) ON DELETE SET NULL,
       detected_model  VARCHAR(255),
       event_timestamp TIMESTAMPTZ NOT NULL,
       ingested_at     TIMESTAMPTZ DEFAULT NOW(),
@@ -147,7 +147,7 @@ async function createShadowAiTablesForTenant(queryInterface, tenantHash, transac
       id              SERIAL PRIMARY KEY,
       rollup_date     DATE NOT NULL,
       user_email      VARCHAR(255) NOT NULL,
-      tool_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id),
+      tool_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id) ON DELETE CASCADE,
       department      VARCHAR(255),
       total_events    INTEGER DEFAULT 0,
       post_events     INTEGER DEFAULT 0,
@@ -169,7 +169,7 @@ async function createShadowAiTablesForTenant(queryInterface, tenantHash, transac
     CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_monthly_rollups (
       id              SERIAL PRIMARY KEY,
       rollup_month    DATE NOT NULL,
-      tool_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id),
+      tool_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id) ON DELETE CASCADE,
       department      VARCHAR(255),
       unique_users    INTEGER DEFAULT 0,
       total_events    INTEGER DEFAULT 0,
@@ -211,7 +211,7 @@ async function createShadowAiTablesForTenant(queryInterface, tenantHash, transac
   await queryInterface.sequelize.query(`
     CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_api_keys (
       id              SERIAL PRIMARY KEY,
-      key_hash        VARCHAR(255) NOT NULL,
+      key_hash        VARCHAR(255) NOT NULL UNIQUE,
       key_prefix      VARCHAR(20) NOT NULL,
       label           VARCHAR(255),
       created_by      INTEGER NOT NULL,
@@ -236,7 +236,7 @@ async function createShadowAiTablesForTenant(queryInterface, tenantHash, transac
   await queryInterface.sequelize.query(`
     CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_alert_history (
       id              SERIAL PRIMARY KEY,
-      rule_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_rules(id),
+      rule_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_rules(id) ON DELETE SET NULL,
       rule_name       VARCHAR(255),
       trigger_type    VARCHAR(100),
       trigger_data    JSONB,

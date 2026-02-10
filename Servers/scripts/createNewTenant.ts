@@ -2773,7 +2773,7 @@ export const createNewTenant = async (
     await sequelize.query(`
       CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_tools (
         id                  SERIAL PRIMARY KEY,
-        name                VARCHAR(255) NOT NULL,
+        name                VARCHAR(255) NOT NULL UNIQUE,
         vendor              VARCHAR(255),
         domains             TEXT[] NOT NULL,
         status              VARCHAR(50) DEFAULT 'detected',
@@ -2805,7 +2805,7 @@ export const createNewTenant = async (
         uri_path        TEXT,
         http_method     VARCHAR(10),
         action          VARCHAR(20) DEFAULT 'allowed',
-        detected_tool_id INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id),
+        detected_tool_id INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id) ON DELETE SET NULL,
         detected_model  VARCHAR(255),
         event_timestamp TIMESTAMPTZ NOT NULL,
         ingested_at     TIMESTAMPTZ DEFAULT NOW(),
@@ -2825,7 +2825,7 @@ export const createNewTenant = async (
         id              SERIAL PRIMARY KEY,
         rollup_date     DATE NOT NULL,
         user_email      VARCHAR(255) NOT NULL,
-        tool_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id),
+        tool_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id) ON DELETE CASCADE,
         department      VARCHAR(255),
         total_events    INTEGER DEFAULT 0,
         post_events     INTEGER DEFAULT 0,
@@ -2843,7 +2843,7 @@ export const createNewTenant = async (
       CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_monthly_rollups (
         id              SERIAL PRIMARY KEY,
         rollup_month    DATE NOT NULL,
-        tool_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id),
+        tool_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id) ON DELETE CASCADE,
         department      VARCHAR(255),
         unique_users    INTEGER DEFAULT 0,
         total_events    INTEGER DEFAULT 0,
@@ -2885,7 +2885,7 @@ export const createNewTenant = async (
     await sequelize.query(`
       CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_api_keys (
         id              SERIAL PRIMARY KEY,
-        key_hash        VARCHAR(255) NOT NULL,
+        key_hash        VARCHAR(255) NOT NULL UNIQUE,
         key_prefix      VARCHAR(20) NOT NULL,
         label           VARCHAR(255),
         created_by      INTEGER NOT NULL,
@@ -2910,7 +2910,7 @@ export const createNewTenant = async (
     await sequelize.query(`
       CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_alert_history (
         id              SERIAL PRIMARY KEY,
-        rule_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_rules(id),
+        rule_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_rules(id) ON DELETE SET NULL,
         rule_name       VARCHAR(255),
         trigger_type    VARCHAR(100),
         trigger_data    JSONB,
@@ -2918,6 +2918,38 @@ export const createNewTenant = async (
         fired_at        TIMESTAMPTZ DEFAULT NOW()
       );
     `, { transaction });
+
+    // 10. shadow_ai_settings
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_settings (
+        id SERIAL PRIMARY KEY,
+        rate_limit_max_events_per_hour INTEGER NOT NULL DEFAULT 0,
+        retention_events_days INTEGER NOT NULL DEFAULT 30,
+        retention_daily_rollups_days INTEGER NOT NULL DEFAULT 365,
+        retention_alert_history_days INTEGER NOT NULL DEFAULT 90,
+        updated_at TIMESTAMP DEFAULT NOW(),
+        updated_by INTEGER NULL REFERENCES public.users(id)
+      );
+    `, { transaction });
+
+    // Insert default settings row
+    await sequelize.query(`
+      INSERT INTO "${tenantHash}".shadow_ai_settings (id)
+      VALUES (1)
+      ON CONFLICT (id) DO NOTHING;
+    `, { transaction });
+
+    // Composite indexes for common query patterns
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_dept_ts ON "${tenantHash}".shadow_ai_events(department, event_timestamp DESC);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_user_ts ON "${tenantHash}".shadow_ai_events(user_email, event_timestamp DESC);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_tool_ts ON "${tenantHash}".shadow_ai_events(detected_tool_id, event_timestamp DESC);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_action_ts ON "${tenantHash}".shadow_ai_events(action, event_timestamp DESC);`, { transaction });
+    await sequelize.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_shadow_api_keys_hash_active ON "${tenantHash}".shadow_ai_api_keys(key_hash) WHERE is_active = true;`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_monthly_rollups_tool ON "${tenantHash}".shadow_ai_monthly_rollups(tool_id);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_alert_history_fired ON "${tenantHash}".shadow_ai_alert_history(fired_at DESC);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_alert_history_rule ON "${tenantHash}".shadow_ai_alert_history(rule_id);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_rules_active ON "${tenantHash}".shadow_ai_rules(is_active);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_rule_notifications_rule ON "${tenantHash}".shadow_ai_rule_notifications(rule_id);`, { transaction });
 
     console.log(`✅ Shadow AI tables created successfully for tenant: ${tenantHash}`);
 

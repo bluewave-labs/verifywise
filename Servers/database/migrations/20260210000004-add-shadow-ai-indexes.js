@@ -111,16 +111,34 @@ async function addIndexesForTenant(queryInterface, tenantHash, transaction) {
     ON "${tenantHash}".shadow_ai_api_keys(key_hash) WHERE is_active = true;
   `, { transaction });
 
+  // Index on monthly_rollups for FK lookups
+  await queryInterface.sequelize.query(`
+    CREATE INDEX IF NOT EXISTS idx_shadow_monthly_rollups_tool
+    ON "${tenantHash}".shadow_ai_monthly_rollups(tool_id);
+  `, { transaction });
+
   // Index on alert_history for paginated queries
   await queryInterface.sequelize.query(`
     CREATE INDEX IF NOT EXISTS idx_shadow_alert_history_fired
     ON "${tenantHash}".shadow_ai_alert_history(fired_at DESC);
   `, { transaction });
 
+  // Index on alert_history rule_id for FK lookups
+  await queryInterface.sequelize.query(`
+    CREATE INDEX IF NOT EXISTS idx_shadow_alert_history_rule
+    ON "${tenantHash}".shadow_ai_alert_history(rule_id);
+  `, { transaction });
+
   // Index on rules for active filter
   await queryInterface.sequelize.query(`
     CREATE INDEX IF NOT EXISTS idx_shadow_rules_active
     ON "${tenantHash}".shadow_ai_rules(is_active);
+  `, { transaction });
+
+  // Index on rule_notifications for FK lookups
+  await queryInterface.sequelize.query(`
+    CREATE INDEX IF NOT EXISTS idx_shadow_rule_notifications_rule
+    ON "${tenantHash}".shadow_ai_rule_notifications(rule_id);
   `, { transaction });
 
   console.log(`Added composite indexes for tenant: ${tenantHash}`);
@@ -133,8 +151,11 @@ async function dropIndexesForTenant(queryInterface, tenantHash, transaction) {
     'idx_shadow_events_tool_ts',
     'idx_shadow_events_action_ts',
     'idx_shadow_api_keys_hash_active',
+    'idx_shadow_monthly_rollups_tool',
     'idx_shadow_alert_history_fired',
+    'idx_shadow_alert_history_rule',
     'idx_shadow_rules_active',
+    'idx_shadow_rule_notifications_rule',
   ];
 
   for (const idx of indexes) {

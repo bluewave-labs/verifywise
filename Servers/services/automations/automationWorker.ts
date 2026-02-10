@@ -67,7 +67,7 @@ async function sendVendorReviewDateNotification() {
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      if (notificationDate.getDate() !== today.getDate()) {
+      if (notificationDate.getTime() !== today.getTime()) {
         continue;
       }
       const params = automation.params!;

@@ -196,7 +196,7 @@ export default function InsightsPage() {
                 <VWLink
                   onClick={() => navigate("/shadow-ai/tools")}
                   showIcon={false}
-                  sx={{ fontSize: 12, mt: 0.5 }}
+                  sx={{ fontSize: 12, mt: 0.5, alignSelf: "flex-end" }}
                 >
                   Go to AI tools
                 </VWLink>
@@ -275,27 +275,46 @@ export default function InsightsPage() {
                   <BarChart
                     data={toolsByEvents}
                     layout="vertical"
-                    margin={{ left: 8, right: 16, top: 8, bottom: 8 }}
+                    margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
+                    barCategoryGap="20%"
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis type="number" tick={{ fontSize: 12 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                    <XAxis
+                      type="number"
+                      tick={{ fontSize: 11, fill: "#9CA3AF" }}
+                      axisLine={{ stroke: "#e5e7eb" }}
+                      tickLine={false}
+                    />
                     <YAxis
                       type="category"
                       dataKey="tool_name"
-                      tick={{ fontSize: 12 }}
+                      tick={{ fontSize: 12, fill: "#374151" }}
                       width={90}
+                      axisLine={false}
+                      tickLine={false}
                     />
                     <Tooltip
-                      contentStyle={{ fontSize: 12, borderRadius: 4 }}
-                      formatter={(value: number) => [value, "Events"]}
+                      contentStyle={{
+                        fontSize: 12,
+                        borderRadius: 6,
+                        border: "1px solid #e5e7eb",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                      }}
+                      formatter={(value: number) => [value.toLocaleString(), "Events"]}
+                      cursor={{ fill: "rgba(19, 113, 91, 0.04)" }}
                     />
-                    <Bar dataKey="event_count" fill="#13715B" radius={[0, 4, 4, 0]} />
+                    <Bar
+                      dataKey="event_count"
+                      fill="#13715B"
+                      radius={[0, 4, 4, 0]}
+                      maxBarSize={28}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
                 <VWLink
                   onClick={() => navigate("/shadow-ai/tools")}
                   showIcon={false}
-                  sx={{ fontSize: 12, mt: 1 }}
+                  sx={{ fontSize: 12, mt: 1, alignSelf: "flex-end" }}
                 >
                   Go to AI tools
                 </VWLink>
@@ -314,21 +333,40 @@ export default function InsightsPage() {
                 <BarChart
                   data={toolsByUsers}
                   layout="vertical"
-                  margin={{ left: 8, right: 16, top: 8, bottom: 8 }}
+                  margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
+                  barCategoryGap="20%"
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis type="number" tick={{ fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 11, fill: "#9CA3AF" }}
+                    axisLine={{ stroke: "#e5e7eb" }}
+                    tickLine={false}
+                  />
                   <YAxis
                     type="category"
                     dataKey="tool_name"
-                    tick={{ fontSize: 12 }}
+                    tick={{ fontSize: 12, fill: "#374151" }}
                     width={90}
+                    axisLine={false}
+                    tickLine={false}
                   />
                   <Tooltip
-                    contentStyle={{ fontSize: 12, borderRadius: 4 }}
-                    formatter={(value: number) => [value, "Users"]}
+                    contentStyle={{
+                      fontSize: 12,
+                      borderRadius: 6,
+                      border: "1px solid #e5e7eb",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    }}
+                    formatter={(value: number) => [value.toLocaleString(), "Users"]}
+                    cursor={{ fill: "rgba(19, 113, 91, 0.04)" }}
                   />
-                  <Bar dataKey="user_count" fill="#13715B" radius={[0, 4, 4, 0]} />
+                  <Bar
+                    dataKey="user_count"
+                    fill="#13715B"
+                    radius={[0, 4, 4, 0]}
+                    maxBarSize={28}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

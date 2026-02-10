@@ -107,7 +107,10 @@ export async function getToolsByEventsQuery(
     { replacements: { periodDays, limit } }
   );
 
-  return rows as ShadowAiToolByEvents[];
+  return (rows as any[]).map((r) => ({
+    tool_name: r.tool_name,
+    event_count: parseInt(r.event_count, 10),
+  }));
 }
 
 /**
@@ -129,7 +132,10 @@ export async function getToolsByUsersQuery(
     { replacements: { periodDays, limit } }
   );
 
-  return rows as ShadowAiToolByUsers[];
+  return (rows as any[]).map((r) => ({
+    tool_name: r.tool_name,
+    user_count: parseInt(r.user_count, 10),
+  }));
 }
 
 /**
@@ -150,7 +156,10 @@ export async function getUsersByDepartmentQuery(
     { replacements: { periodDays } }
   );
 
-  return rows as ShadowAiUsersByDepartment[];
+  return (rows as any[]).map((r) => ({
+    department: r.department,
+    user_count: parseInt(r.user_count, 10),
+  }));
 }
 
 /**

@@ -52,7 +52,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   return createPortal(
     <>
       <Stack
-        onClick={stopPropagation}
+        onClick={onCancel}
         sx={{
           position: "fixed",
           top: 0,

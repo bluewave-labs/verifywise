@@ -1336,8 +1336,8 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
               variant="contained"
               text="Save"
               sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                backgroundColor: "primary.main",
+                border: `1px solid ${theme.palette.primary.main}`,
                 gap: 2,
                 minWidth: "120px",
                 height: "36px",

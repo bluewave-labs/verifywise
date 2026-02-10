@@ -203,7 +203,10 @@ const ENTITY_CONFIGS: Record<string, EntityConfig> = {
   },
   file_manager: {
     tableName: "files",
-    searchColumns: ["filename"],
+    // We keep filename as the title, but search across additional
+    // metadata fields (description, review_status, expiry_date, tags)
+    // so that files can be discovered by more than just their name.
+    searchColumns: ["filename", "description", "review_status", "expiry_date", "tags"],
     titleColumn: "filename",
     icon: "Folder",
     route: (id) => `/file-manager?fileId=${id}`,
@@ -347,7 +350,20 @@ async function searchEntity(
   const replacements: Record<string, any> = { searchPattern };
 
   // Add ILIKE search conditions
-  conditions.push(`(${buildILikeConditions(config.searchColumns, "searchPattern")})`);
+  if (entityType === "file_manager") {
+    // For file manager, search across filename and key metadata fields.
+    // tags is JSONB, so we cast to text for simple ILIKE matching.
+    const fileSearchConditions = [
+      "filename::text ILIKE :searchPattern",
+      "description::text ILIKE :searchPattern",
+      "review_status::text ILIKE :searchPattern",
+      "expiry_date::text ILIKE :searchPattern",
+      "tags::text ILIKE :searchPattern",
+    ];
+    conditions.push(`(${fileSearchConditions.join(" OR ")})`);
+  } else {
+    conditions.push(`(${buildILikeConditions(config.searchColumns, "searchPattern")})`);
+  }
 
   // Add organization filter if applicable
   if (config.organizationColumn) {

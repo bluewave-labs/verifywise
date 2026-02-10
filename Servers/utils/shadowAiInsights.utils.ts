@@ -93,7 +93,8 @@ export async function getInsightsSummaryQuery(
  */
 export async function getToolsByEventsQuery(
   tenant: string,
-  periodDays: number = 30
+  periodDays: number = 30,
+  limit: number = 6
 ): Promise<ShadowAiToolByEvents[]> {
   const [rows] = await sequelize.query(
     `SELECT t.name as tool_name, COUNT(e.id) as event_count
@@ -102,8 +103,8 @@ export async function getToolsByEventsQuery(
      WHERE e.event_timestamp > NOW() - INTERVAL '1 day' * :periodDays
      GROUP BY t.name
      ORDER BY event_count DESC
-     LIMIT 10`,
-    { replacements: { periodDays } }
+     LIMIT :limit`,
+    { replacements: { periodDays, limit } }
   );
 
   return rows as ShadowAiToolByEvents[];
@@ -114,7 +115,8 @@ export async function getToolsByEventsQuery(
  */
 export async function getToolsByUsersQuery(
   tenant: string,
-  periodDays: number = 30
+  periodDays: number = 30,
+  limit: number = 6
 ): Promise<ShadowAiToolByUsers[]> {
   const [rows] = await sequelize.query(
     `SELECT t.name as tool_name, COUNT(DISTINCT e.user_email) as user_count
@@ -123,8 +125,8 @@ export async function getToolsByUsersQuery(
      WHERE e.event_timestamp > NOW() - INTERVAL '1 day' * :periodDays
      GROUP BY t.name
      ORDER BY user_count DESC
-     LIMIT 10`,
-    { replacements: { periodDays } }
+     LIMIT :limit`,
+    { replacements: { periodDays, limit } }
   );
 
   return rows as ShadowAiToolByUsers[];

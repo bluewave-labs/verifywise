@@ -96,7 +96,8 @@ export async function getToolsByEvents(req: Request, res: Response) {
 
   try {
     const period = parsePeriod(req.query.period as string);
-    const data = await getToolsByEventsQuery(tenantId, period);
+    const limit = parseInt(req.query.limit as string, 10) || 6;
+    const data = await getToolsByEventsQuery(tenantId, period, limit);
     await logSuccess({ eventType: "Read", description: "tools by events fetched", functionName: fn, fileName: FILE_NAME, userId, tenantId });
     return res.status(200).json(STATUS_CODE[200](data));
   } catch (error) {
@@ -114,7 +115,8 @@ export async function getToolsByUsers(req: Request, res: Response) {
 
   try {
     const period = parsePeriod(req.query.period as string);
-    const data = await getToolsByUsersQuery(tenantId, period);
+    const limit = parseInt(req.query.limit as string, 10) || 6;
+    const data = await getToolsByUsersQuery(tenantId, period, limit);
     await logSuccess({ eventType: "Read", description: "tools by users fetched", functionName: fn, fileName: FILE_NAME, userId, tenantId });
     return res.status(200).json(STATUS_CODE[200](data));
   } catch (error) {
@@ -198,9 +200,28 @@ export async function getUserDetail(req: Request, res: Response) {
 
   try {
     const period = parsePeriod(req.query.period as string);
-    const data = await getUserDetailQuery(tenantId, email, period);
+    const tools = await getUserDetailQuery(tenantId, email, period);
+    const totalPrompts = tools.reduce((sum, t) => sum + parseInt(String(t.event_count), 10), 0);
+
+    // Get department from latest event for this user
+    const [deptRows] = await sequelize.query(
+      `SELECT COALESCE(department, 'Unknown') as department
+       FROM "${tenantId}".shadow_ai_events
+       WHERE user_email = :email
+       ORDER BY event_timestamp DESC LIMIT 1`,
+      { replacements: { email } }
+    );
+    const department = (deptRows as any[])[0]?.department || "Unknown";
+
+    const result = {
+      email,
+      department,
+      tools,
+      total_prompts: totalPrompts,
+    };
+
     await logSuccess({ eventType: "Read", description: `user detail fetched: ${email}`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
-    return res.status(200).json(STATUS_CODE[200](data));
+    return res.status(200).json(STATUS_CODE[200](result));
   } catch (error) {
     await logFailure({ eventType: "Read", description: "failed to fetch user detail", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

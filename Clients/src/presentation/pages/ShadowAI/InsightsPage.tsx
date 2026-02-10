@@ -133,6 +133,7 @@ export default function InsightsPage() {
           "& > *": {
             flex: "1 1 0",
             minWidth: "150px",
+            padding: "16px !important",
           },
         }}
       >

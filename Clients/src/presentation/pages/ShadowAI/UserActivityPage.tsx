@@ -15,7 +15,7 @@ import {
   Table,
   TableHead,
   TableBody,
-  TableRow as MuiTableRow,
+  TableRow,
   TableCell,
   TableContainer,
   TablePagination,
@@ -36,7 +36,6 @@ import {
   ShadowAiDepartmentActivity,
 } from "../../../domain/interfaces/i.shadowAi";
 import EmptyState from "../../components/EmptyState";
-import RiskBadge from "../../components/RiskBadge";
 
 const PERIOD_OPTIONS = [
   { _id: "7d", name: "Last 7 days" },
@@ -182,20 +181,20 @@ export default function UserActivityPage() {
                 <TableContainer>
                   <Table size="small">
                     <TableHead>
-                      <MuiTableRow>
+                      <TableRow>
                         {["Tool", "Events", "Last used"].map((h) => (
                           <TableCell key={h} sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{h}</TableCell>
                         ))}
-                      </MuiTableRow>
+                      </TableRow>
                     </TableHead>
                     <TableBody>
                       {userDetail.tools.map(
                         (t) => (
-                          <MuiTableRow key={t.tool_name}>
+                          <TableRow key={t.tool_name}>
                             <TableCell sx={{ fontSize: 13 }}>{t.tool_name}</TableCell>
                             <TableCell sx={{ fontSize: 13 }}>{t.event_count}</TableCell>
                             <TableCell sx={{ fontSize: 13 }}>{new Date(t.last_used).toLocaleDateString()}</TableCell>
-                          </MuiTableRow>
+                          </TableRow>
                         )
                       )}
                     </TableBody>
@@ -262,15 +261,15 @@ export default function UserActivityPage() {
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <MuiTableRow>
+                <TableRow>
                   {["User", "Department", "Total prompts", "Risk score"].map((h) => (
                     <TableCell key={h} sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{h}</TableCell>
                   ))}
-                </MuiTableRow>
+                </TableRow>
               </TableHead>
               <TableBody>
                 {users.map((u) => (
-                  <MuiTableRow key={u.user_email} hover sx={{ cursor: "pointer" }}>
+                  <TableRow key={u.user_email} hover sx={{ cursor: "pointer" }}>
                     <TableCell>
                       <Typography
                         sx={{
@@ -286,8 +285,8 @@ export default function UserActivityPage() {
                     </TableCell>
                     <TableCell sx={{ fontSize: 13 }}>{u.department || "Unknown"}</TableCell>
                     <TableCell sx={{ fontSize: 13 }}>{u.total_prompts}</TableCell>
-                    <TableCell><RiskBadge score={u.risk_score} /></TableCell>
-                  </MuiTableRow>
+                    <TableCell><Typography sx={{ fontSize: 13 }}>{u.risk_score ?? 0}</Typography></TableCell>
+                  </TableRow>
                 ))}
               </TableBody>
             </Table>
@@ -310,21 +309,21 @@ export default function UserActivityPage() {
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <MuiTableRow>
+                <TableRow>
                   {["Department", "Users", "Total prompts", "Top tool", "Risk score"].map((h) => (
                     <TableCell key={h} sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{h}</TableCell>
                   ))}
-                </MuiTableRow>
+                </TableRow>
               </TableHead>
               <TableBody>
                 {departments.map((d) => (
-                  <MuiTableRow key={d.department}>
+                  <TableRow key={d.department}>
                     <TableCell sx={{ fontSize: 13 }}>{d.department}</TableCell>
                     <TableCell sx={{ fontSize: 13 }}>{d.users}</TableCell>
                     <TableCell sx={{ fontSize: 13 }}>{d.total_prompts}</TableCell>
                     <TableCell sx={{ fontSize: 13 }}>{d.top_tool || "—"}</TableCell>
-                    <TableCell><RiskBadge score={d.risk_score} /></TableCell>
-                  </MuiTableRow>
+                    <TableCell><Typography sx={{ fontSize: 13 }}>{d.risk_score ?? 0}</Typography></TableCell>
+                  </TableRow>
                 ))}
               </TableBody>
             </Table>

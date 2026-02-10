@@ -10,7 +10,6 @@ import {
   Stack,
   Box,
   Typography,
-  Paper,
   Skeleton,
   SelectChangeEvent,
 } from "@mui/material";
@@ -48,6 +47,8 @@ import {
 } from "../../../domain/interfaces/i.shadowAi";
 import Select from "../../components/Inputs/Select";
 import { CustomizableButton } from "../../components/button/customizable-button";
+import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
+import { DashboardCard } from "../../components/Cards/DashboardCard";
 import { useNavigate } from "react-router-dom";
 
 const PERIOD_OPTIONS = [
@@ -123,59 +124,50 @@ export default function InsightsPage() {
         />
       </Stack>
 
-      {/* Summary cards - top row */}
-      <Stack direction="row" gap="16px" flexWrap="wrap">
-        <MetricCard
+      {/* Summary header cards */}
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "16px",
+          "& > *": {
+            flex: "1 1 0",
+            minWidth: "150px",
+          },
+        }}
+      >
+        <DashboardHeaderCard
+          title="Unique apps"
+          count={loading ? <Skeleton width={40} /> : (summary?.unique_apps ?? 0)}
           icon={<AppWindow size={16} strokeWidth={1.5} />}
-          label="Unique apps"
-          value={summary?.unique_apps}
-          loading={loading}
+          disableNavigation
         />
-        <MetricCard
+        <DashboardHeaderCard
+          title="AI users"
+          count={loading ? <Skeleton width={40} /> : (summary?.total_ai_users ?? 0)}
           icon={<Users size={16} strokeWidth={1.5} />}
-          label="AI users"
-          value={summary?.total_ai_users}
-          loading={loading}
+          disableNavigation
         />
-      </Stack>
-
-      {/* Summary cards - second row */}
-      <Stack direction="row" gap="16px" flexWrap="wrap">
-        <MetricCard
+        <DashboardHeaderCard
+          title="Highest risk tool"
+          count={loading ? <Skeleton width={80} /> : (summary?.highest_risk_tool?.name ?? "—")}
           icon={<AlertTriangle size={16} strokeWidth={1.5} />}
-          label="Highest risk tool"
-          value={summary?.highest_risk_tool?.name ?? "—"}
-          subtitle={
-            summary?.highest_risk_tool
-              ? `Risk: ${summary.highest_risk_tool.risk_score}`
-              : undefined
-          }
-          loading={loading}
+          disableNavigation
         />
-        <MetricCard
+        <DashboardHeaderCard
+          title="Most active department"
+          count={loading ? <Skeleton width={80} /> : (summary?.most_active_department ?? "—")}
           icon={<Building2 size={16} strokeWidth={1.5} />}
-          label="Most active department"
-          value={summary?.most_active_department ?? "—"}
-          loading={loading}
+          disableNavigation
         />
-      </Stack>
+      </Box>
 
       {/* Main content: left = risk list + dept chart, right = bar charts */}
       <Stack direction={{ xs: "column", md: "row" }} gap="16px">
         {/* Left column */}
         <Stack gap="16px" sx={{ flex: 1 }}>
           {/* Accessed tools with highest risk */}
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              border: "1px solid #d0d5dd",
-              borderRadius: "4px",
-            }}
-          >
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 2 }}>
-              Accessed tools with highest risk
-            </Typography>
+          <DashboardCard title="Accessed tools with highest risk">
             {loading ? (
               <Skeleton variant="rectangular" height={200} sx={{ borderRadius: "4px" }} />
             ) : topRiskTools.length > 0 ? (
@@ -216,20 +208,10 @@ export default function InsightsPage() {
             ) : (
               <NoChartData />
             )}
-          </Paper>
+          </DashboardCard>
 
           {/* AI users by department - pie chart */}
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              border: "1px solid #d0d5dd",
-              borderRadius: "4px",
-            }}
-          >
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 2 }}>
-              AI users by department
-            </Typography>
+          <DashboardCard title="AI users by department">
             {loading ? (
               <Skeleton variant="rectangular" height={250} sx={{ borderRadius: "4px" }} />
             ) : departments.length > 0 ? (
@@ -282,23 +264,13 @@ export default function InsightsPage() {
             ) : (
               <NoChartData />
             )}
-          </Paper>
+          </DashboardCard>
         </Stack>
 
         {/* Right column - bar charts */}
         <Stack gap="16px" sx={{ flex: 1 }}>
           {/* Most accessed tools by events */}
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              border: "1px solid #d0d5dd",
-              borderRadius: "4px",
-            }}
-          >
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 2 }}>
-              Most accessed tools by events
-            </Typography>
+          <DashboardCard title="Most accessed tools by events">
             {loading ? (
               <Skeleton variant="rectangular" height={220} sx={{ borderRadius: "4px" }} />
             ) : toolsByEvents.length > 0 ? (
@@ -342,20 +314,10 @@ export default function InsightsPage() {
             ) : (
               <NoChartData />
             )}
-          </Paper>
+          </DashboardCard>
 
           {/* Most accessed tools by users */}
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              border: "1px solid #d0d5dd",
-              borderRadius: "4px",
-            }}
-          >
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 2 }}>
-              Most accessed tools by users
-            </Typography>
+          <DashboardCard title="Most accessed tools by users">
             {loading ? (
               <Skeleton variant="rectangular" height={220} sx={{ borderRadius: "4px" }} />
             ) : toolsByUsers.length > 0 ? (
@@ -383,7 +345,7 @@ export default function InsightsPage() {
             ) : (
               <NoChartData />
             )}
-          </Paper>
+          </DashboardCard>
         </Stack>
       </Stack>
     </Stack>
@@ -391,52 +353,6 @@ export default function InsightsPage() {
 }
 
 // ─── Sub-components ─────────────────────────────────────────────────
-
-function MetricCard({
-  icon,
-  label,
-  value,
-  subtitle,
-  loading,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value?: string | number | null;
-  subtitle?: string;
-  loading: boolean;
-}) {
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        flex: 1,
-        minWidth: 180,
-        p: 2,
-        border: "1px solid #d0d5dd",
-        borderRadius: "4px",
-      }}
-    >
-      <Stack direction="row" alignItems="center" gap="8px" sx={{ mb: 1 }}>
-        <Box sx={{ color: "#6B7280" }}>{icon}</Box>
-        <Typography sx={{ fontSize: 12, color: "#6B7280" }}>{label}</Typography>
-      </Stack>
-      {loading ? (
-        <Skeleton width={60} height={32} />
-      ) : (
-        <>
-          <Typography sx={{ fontSize: 24, fontWeight: 600, color: "#111827" }}>
-            {value ?? 0}
-          </Typography>
-          {subtitle && (
-            <Typography sx={{ fontSize: 11, color: "#9CA3AF", mt: 0.5 }}>
-              {subtitle}
-            </Typography>
-          )}
-        </>
-      )}
-    </Paper>
-  );
-}
 
 function RiskScoreBadge({ score }: { score: number }) {
   const color =

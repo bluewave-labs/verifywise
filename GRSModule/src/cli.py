@@ -11,7 +11,7 @@ from seeds.load import load_obligations_yaml
 from seeds.export import export_obligations_jsonl
 from io_utils.manifest import write_manifest
 from io_utils.checksums import sha256_file
-from io_utils.jsonl import write_jsonl, read_jsonl
+from io_utils.jsonl import write_jsonl, read_jsonl, append_jsonl
 from reports.seed_report import build_seed_report
 from reports.render_report import build_render_report
 from reports.perturb_report import build_perturb_report
@@ -29,11 +29,13 @@ from reports.validate_report import build_validate_report
 from seeds.index import ObligationIndex
 from validate.enrich import enrich_with_obligations
 
-from infer.runner import run_inference, InferConfig
+from infer.runner import run_inference, run_inference_resumable, InferConfig
 from infer.load_models import load_models_config
 from infer.paths import model_output_path
 from llm.mock import MockChatClient
 from llm.openrouter import OpenRouterChatClient
+
+from infer.resume import load_completed_pairs
 
 import json
 
@@ -322,20 +324,38 @@ def _cmd_generate(args: argparse.Namespace) -> int:
                     console.print(f"[yellow]Skipping unsupported provider in v0.1:[/yellow] {spec.provider}")
                     continue
 
+                out_path = model_output_path(final_dir, spec.model_id)
+                fail_path = out_path.with_suffix(out_path.suffix + ".failures.jsonl")
+
+                skip = set()
+                if args.resume:
+                    skip = load_completed_pairs(out_path)
+
                 client = OpenRouterChatClient(model_id=spec.model_id)
-                cfg = InferConfig(
-                    model_id=spec.model_id,
-                    provider=spec.provider,
-                    temperature=float(args.temperature),
-                    max_tokens=int(args.max_tokens),
+                successes, failures = run_inference_resumable(
+                    scenarios=scenarios,
+                    client=client,
+                    cfg=InferConfig(
+                        model_id=spec.model_id,
+                        provider=spec.provider,
+                        temperature=float(args.temperature),
+                        max_tokens=int(args.max_tokens),
+                        retry_max_attempts=int(args.retry_max_attempts),
+                    ),
+                    skip_pairs=skip,
                 )
 
-                responses = run_inference(scenarios=scenarios, client=client, cfg=cfg)
-
-                out_path = model_output_path(final_dir, spec.model_id)
-                write_jsonl(out_path, responses)
+                if args.resume:
+                    append_jsonl(out_path, successes)
+                    append_jsonl(fail_path, failures)
+                else:
+                    write_jsonl(out_path, successes)
+                    write_jsonl(fail_path, failures)
 
                 console.print(f"[green]Done:[/green] {spec.model_id} -> {out_path}")
+                console.print(f"[yellow]- skipped: {len(skip)}[/yellow]")
+                console.print(f"[green]- successes: {len(successes)}[/green]")
+                console.print(f"[red]- failures: {len(failures)}[/red]")
 
             return 0
 
@@ -390,6 +410,8 @@ def main() -> None:
     gen.add_argument("--temperature", default="0.2")
     gen.add_argument("--max-tokens", default="500")
     gen.add_argument("--limit", type=int, default=None, help="Max number of scenarios to run inference on")
+    gen.add_argument("--resume", action="store_true")
+    gen.add_argument("--retry-max-attempts", default="5")
     gen.add_argument("--models-config", default=None)
     gen.add_argument("--dataset-version", default="grs_scenarios_v0.1")
     gen.add_argument("--obligations", default="configs/obligations.yaml")

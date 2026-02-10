@@ -19,6 +19,6 @@ infer-openrouter-gpt4:
 	uv run grs-scenarios generate --stage infer --provider openrouter --model-id openai/gpt-4o-mini 
 
 infer-multi-model:
-	uv run grs-scenarios generate --stage infer --models-config configs/models.yaml --temperature 0.2 --max-tokens 500 --limit 3
+	uv run grs-scenarios generate --stage infer --models-config configs/models.yaml --temperature 0.2 --max-tokens 500 --limit 3 --resume
 
 all: seeds render perturb validate

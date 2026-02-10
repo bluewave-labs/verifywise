@@ -83,6 +83,31 @@ export class PolicyManagerModel extends Model<PolicyManagerModel> implements IPo
   })
   updated_at?: Date;
 
+  @Column({
+    type: DataType.STRING(50),
+    allowNull: true,
+  })
+  review_status?: string | null;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+  })
+  review_comment?: string | null;
+
+  @ForeignKey(() => UserModel)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  reviewed_by?: number | null;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  reviewed_at?: Date | null;
+
   toJSON(): any {
     return {
       id: this.id,
@@ -94,6 +119,10 @@ export class PolicyManagerModel extends Model<PolicyManagerModel> implements IPo
       author_id: this.author_id,
       last_updated_by: this.last_updated_by,
       last_updated_at: this.last_updated_at,
+      review_status: this.review_status,
+      review_comment: this.review_comment,
+      reviewed_by: this.reviewed_by,
+      reviewed_at: this.reviewed_at,
       created_at: this.created_at?.toISOString(),
     };
   }

@@ -18,6 +18,7 @@ import { processPMMHourlyCheck } from "../postMarketMonitoring/pmmScheduler";
 import { compileMjmlToHtml } from "../../tools/mjmlCompiler";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { notifyVendorReviewDue } from "../inAppNotification.service";
 
 const handlers = {
   send_email: sendEmail,
@@ -79,6 +80,39 @@ async function sendVendorReviewDateNotification() {
         ...processedParams,
         tenant: tenantHash,
       });
+
+      // Send in-app + dedicated email notification
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const reviewerUserId = vendor.reviewer || vendor.assignee;
+      if (reviewerUserId) {
+        try {
+          const reviewDateStr = vendor.review_date
+            ? new Date(vendor.review_date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : "Not set";
+          await notifyVendorReviewDue(
+            tenantHash,
+            reviewerUserId,
+            {
+              id: vendor.id!,
+              name: vendor.vendor_name,
+              reviewDate: reviewDateStr,
+              riskLevel: vendor.risk_score != null ? `Score: ${vendor.risk_score}` : "Not assessed",
+              lastReviewDate: undefined,
+              projectCount: vendor.projects?.length || 0,
+            },
+            baseUrl,
+          );
+        } catch (notifyError) {
+          console.error(
+            `Failed to send vendor review due notification for vendor ${vendor.id}:`,
+            notifyError,
+          );
+        }
+      }
     }
   }
 }

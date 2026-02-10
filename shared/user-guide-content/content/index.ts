@@ -38,6 +38,11 @@ import { managingDatasetsContent } from './llm-evals/managing-datasets';
 import { configuringScorersContent } from './llm-evals/configuring-scorers';
 import { scanningContent } from './ai-detection/scanning';
 import { historyContent } from './ai-detection/history';
+import { insightsContent } from './shadow-ai/insights';
+import { aiToolsContent } from './shadow-ai/ai-tools';
+import { userActivityContent } from './shadow-ai/user-activity';
+import { rulesContent } from './shadow-ai/rules';
+import { settingsContent as shadowAiSettingsContent } from './shadow-ai/settings';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -92,6 +97,12 @@ export const articleContentMap: Record<string, ArticleContent> = {
   // AI Detection
   'ai-detection/scanning': scanningContent,
   'ai-detection/history': historyContent,
+  // Shadow AI
+  'shadow-ai/insights': insightsContent,
+  'shadow-ai/ai-tools': aiToolsContent,
+  'shadow-ai/user-activity': userActivityContent,
+  'shadow-ai/rules': rulesContent,
+  'shadow-ai/settings': shadowAiSettingsContent,
 };
 
 // Helper to get article content

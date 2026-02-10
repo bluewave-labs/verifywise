@@ -49,6 +49,8 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
+import PageHeader from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
 
 const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
   new_tool_detected: "New tool detected",
@@ -194,6 +196,14 @@ export default function RulesPage() {
   return (
     <TabContext value={viewMode}>
     <Stack gap="16px">
+      <PageHeader
+        title="Rules"
+        description="Configure alert rules to get notified about Shadow AI activity. Set triggers for new tool detection, usage thresholds, sensitive department usage, and more."
+        rightContent={
+          <HelperIcon articlePath="shadow-ai/rules" size="small" />
+        }
+      />
+
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
         <TabBar

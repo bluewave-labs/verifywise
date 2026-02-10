@@ -37,6 +37,8 @@ import {
   ShadowAiDepartmentActivity,
 } from "../../../domain/interfaces/i.shadowAi";
 import EmptyState from "../../components/EmptyState";
+import PageHeader from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
 
 const PERIOD_OPTIONS = [
   { _id: "7d", name: "Last 7 days" },
@@ -240,6 +242,14 @@ export default function UserActivityPage() {
   return (
     <TabContext value={viewMode}>
     <Stack gap="16px">
+      <PageHeader
+        title="User activity"
+        description="Monitor individual user and department-level AI tool usage across your organization. Track prompts, identify high-risk users, and review activity by department."
+        rightContent={
+          <HelperIcon articlePath="shadow-ai/user-activity" size="small" />
+        }
+      />
+
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
         <TabBar

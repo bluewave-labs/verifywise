@@ -49,6 +49,8 @@ import Select from "../../components/Inputs/Select";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import { DashboardCard } from "../../components/Cards/DashboardCard";
 import VWLink from "../../components/Link/VWLink";
+import PageHeader from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
 import { useNavigate } from "react-router-dom";
 
 const PERIOD_OPTIONS = [
@@ -113,6 +115,14 @@ export default function InsightsPage() {
 
   return (
     <Stack gap="24px">
+      <PageHeader
+        title="Insights"
+        description="Overview of Shadow AI activity across your organization. See summary metrics, top tools by usage, risk rankings, and department breakdown at a glance."
+        rightContent={
+          <HelperIcon articlePath="shadow-ai/insights" size="small" />
+        }
+      />
+
       {/* Period selector */}
       <Stack direction="row" justifyContent="flex-end">
         <Select

@@ -46,6 +46,8 @@ import Select from "../../components/Inputs/Select";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import TablePaginationActions from "../../components/TablePagination";
 import GovernanceWizardModal from "./GovernanceWizardModal";
+import PageHeader from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
 
 const ROWS_PER_PAGE = 20;
 
@@ -379,6 +381,14 @@ export default function AIToolsPage() {
   // ─── List view ───
   return (
     <Stack gap="16px">
+      <PageHeader
+        title="AI tools"
+        description="View and manage all AI tools detected in your organization's network traffic. Review risk scores, update tool statuses, and start formal governance for any discovered tool."
+        rightContent={
+          <HelperIcon articlePath="shadow-ai/ai-tools" size="small" />
+        }
+      />
+
       <Stack direction="row" justifyContent="flex-end">
         <Select
           id="tools-status-filter"

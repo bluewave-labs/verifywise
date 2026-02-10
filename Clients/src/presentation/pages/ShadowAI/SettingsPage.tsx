@@ -40,6 +40,8 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
+import PageHeader from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
 
 const useStyles = () => {
   const theme = useTheme();
@@ -66,6 +68,13 @@ export default function SettingsPage() {
 
   return (
     <Stack gap="32px">
+      <PageHeader
+        title="Settings"
+        description="Manage API keys for syslog integration and configure syslog sources to feed network traffic data into Shadow AI detection."
+        rightContent={
+          <HelperIcon articlePath="shadow-ai/settings" size="small" />
+        }
+      />
       <ApiKeysSection styles={styles} />
       <SyslogConfigSection styles={styles} />
     </Stack>

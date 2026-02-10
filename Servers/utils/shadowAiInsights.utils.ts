@@ -22,21 +22,21 @@ import {
 export async function getInsightsSummaryQuery(
   tenant: string
 ): Promise<ShadowAiInsightsSummary> {
-  // Unique apps
-  const [appsResult] = await sequelize.query(
-    `SELECT COUNT(*) as count FROM "${tenant}".shadow_ai_tools`
+  const [rows] = await sequelize.query(
+    `SELECT
+       (SELECT COUNT(*) FROM "${tenant}".shadow_ai_tools) as unique_apps,
+       (SELECT COUNT(DISTINCT user_email)
+        FROM "${tenant}".shadow_ai_events
+        WHERE event_timestamp > NOW() - INTERVAL '30 days') as total_ai_users,
+       (SELECT COUNT(DISTINCT department)
+        FROM "${tenant}".shadow_ai_events
+        WHERE department IS NOT NULL
+          AND event_timestamp > NOW() - INTERVAL '30 days') as departments_using_ai`
   );
-  const uniqueApps = parseInt((appsResult as any[])[0].count, 10);
 
-  // Total AI users (distinct emails in last 30 days)
-  const [usersResult] = await sequelize.query(
-    `SELECT COUNT(DISTINCT user_email) as count
-     FROM "${tenant}".shadow_ai_events
-     WHERE event_timestamp > NOW() - INTERVAL '30 days'`
-  );
-  const totalAiUsers = parseInt((usersResult as any[])[0].count, 10);
+  const stats = (rows as any[])[0];
 
-  // Highest risk tool
+  // Highest risk tool (small table, fast query)
   const [riskResult] = await sequelize.query(
     `SELECT name, risk_score
      FROM "${tenant}".shadow_ai_tools
@@ -44,47 +44,33 @@ export async function getInsightsSummaryQuery(
      ORDER BY risk_score DESC
      LIMIT 1`
   );
-  const highestRiskTool =
-    (riskResult as any[]).length > 0
-      ? {
-          name: (riskResult as any[])[0].name,
-          risk_score: (riskResult as any[])[0].risk_score,
-        }
-      : null;
 
-  // Most active department
+  // Most active department (uses composite index dept+timestamp)
   const [deptResult] = await sequelize.query(
-    `SELECT department, COUNT(*) as event_count
+    `SELECT department
      FROM "${tenant}".shadow_ai_events
      WHERE department IS NOT NULL
        AND event_timestamp > NOW() - INTERVAL '30 days'
      GROUP BY department
-     ORDER BY event_count DESC
+     ORDER BY COUNT(*) DESC
      LIMIT 1`
-  );
-  const mostActiveDepartment =
-    (deptResult as any[]).length > 0
-      ? (deptResult as any[])[0].department
-      : null;
-
-  // Departments using AI
-  const [deptCountResult] = await sequelize.query(
-    `SELECT COUNT(DISTINCT department) as count
-     FROM "${tenant}".shadow_ai_events
-     WHERE department IS NOT NULL
-       AND event_timestamp > NOW() - INTERVAL '30 days'`
-  );
-  const departmentsUsingAi = parseInt(
-    (deptCountResult as any[])[0].count,
-    10
   );
 
   return {
-    unique_apps: uniqueApps,
-    total_ai_users: totalAiUsers,
-    highest_risk_tool: highestRiskTool,
-    most_active_department: mostActiveDepartment,
-    departments_using_ai: departmentsUsingAi,
+    unique_apps: parseInt(stats.unique_apps, 10),
+    total_ai_users: parseInt(stats.total_ai_users, 10),
+    highest_risk_tool:
+      (riskResult as any[]).length > 0
+        ? {
+            name: (riskResult as any[])[0].name,
+            risk_score: (riskResult as any[])[0].risk_score,
+          }
+        : null,
+    most_active_department:
+      (deptResult as any[]).length > 0
+        ? (deptResult as any[])[0].department
+        : null,
+    departments_using_ai: parseInt(stats.departments_using_ai, 10),
   };
 }
 
@@ -178,19 +164,28 @@ export async function getTrendQuery(
   const dateFormat = DATE_FORMAT_MAP[granularity] || DATE_FORMAT_MAP.daily;
 
   const [rows] = await sequelize.query(
-    `SELECT
-       TO_CHAR(event_timestamp, :dateFormat) as date,
+    `WITH period_events AS (
+       SELECT event_timestamp, user_email, detected_tool_id
+       FROM "${tenant}".shadow_ai_events
+       WHERE event_timestamp > NOW() - INTERVAL '1 day' * :periodDays
+     ),
+     new_tool_dates AS (
+       SELECT id, DATE(first_detected_at) as detected_date
+       FROM "${tenant}".shadow_ai_tools
+       WHERE first_detected_at > NOW() - INTERVAL '1 day' * :periodDays
+     )
+     SELECT
+       TO_CHAR(pe.event_timestamp, :dateFormat) as date,
        COUNT(*) as total_events,
-       COUNT(DISTINCT user_email) as unique_users,
+       COUNT(DISTINCT pe.user_email) as unique_users,
        COUNT(DISTINCT CASE
-         WHEN detected_tool_id IN (
-           SELECT id FROM "${tenant}".shadow_ai_tools
-           WHERE DATE(first_detected_at) = DATE(event_timestamp)
-         ) THEN detected_tool_id
+         WHEN ntd.id IS NOT NULL THEN pe.detected_tool_id
        END) as new_tools
-     FROM "${tenant}".shadow_ai_events
-     WHERE event_timestamp > NOW() - INTERVAL '1 day' * :periodDays
-     GROUP BY TO_CHAR(event_timestamp, :dateFormat)
+     FROM period_events pe
+     LEFT JOIN new_tool_dates ntd
+       ON pe.detected_tool_id = ntd.id
+       AND ntd.detected_date = DATE(pe.event_timestamp)
+     GROUP BY TO_CHAR(pe.event_timestamp, :dateFormat)
      ORDER BY date ASC`,
     { replacements: { periodDays, dateFormat } }
   );
@@ -274,24 +269,29 @@ export async function getDepartmentActivityQuery(
   tenant: string
 ): Promise<ShadowAiDepartmentActivity[]> {
   const [rows] = await sequelize.query(
-    `SELECT
+    `WITH top_tools AS (
+       SELECT DISTINCT ON (department)
+         COALESCE(department, 'Unknown') as department,
+         detected_tool_id,
+         COUNT(*) as tool_events
+       FROM "${tenant}".shadow_ai_events
+       WHERE event_timestamp > NOW() - INTERVAL '30 days'
+         AND detected_tool_id IS NOT NULL
+       GROUP BY department, detected_tool_id
+       ORDER BY department, tool_events DESC
+     )
+     SELECT
        COALESCE(e.department, 'Unknown') as department,
        COUNT(DISTINCT e.user_email) as users,
        COUNT(CASE WHEN e.http_method = 'POST' THEN 1 END) as total_prompts,
-       (SELECT t2.name FROM "${tenant}".shadow_ai_tools t2
-        WHERE t2.id = (
-          SELECT e2.detected_tool_id FROM "${tenant}".shadow_ai_events e2
-          WHERE e2.department = e.department
-            AND e2.event_timestamp > NOW() - INTERVAL '30 days'
-          GROUP BY e2.detected_tool_id
-          ORDER BY COUNT(*) DESC LIMIT 1
-        )
-       ) as top_tool,
+       t2.name as top_tool,
        COALESCE(MAX(t.risk_score), 0) as risk_score
      FROM "${tenant}".shadow_ai_events e
      LEFT JOIN "${tenant}".shadow_ai_tools t ON e.detected_tool_id = t.id
+     LEFT JOIN top_tools tt ON COALESCE(e.department, 'Unknown') = tt.department
+     LEFT JOIN "${tenant}".shadow_ai_tools t2 ON tt.detected_tool_id = t2.id
      WHERE e.event_timestamp > NOW() - INTERVAL '30 days'
-     GROUP BY e.department
+     GROUP BY COALESCE(e.department, 'Unknown'), t2.name
      ORDER BY total_prompts DESC`
   );
 

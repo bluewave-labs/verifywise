@@ -2,9 +2,11 @@
  * Shadow AI Rules Page
  *
  * Manage alert rules and view alert history.
+ * Tabs use URL-based routing: /shadow-ai/rules and /shadow-ai/rules/alerts
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Stack,
   Typography,
@@ -20,11 +22,13 @@ import {
   TableCell,
   TableContainer,
   TablePagination,
-  Chip,
 } from "@mui/material";
+import Chip from "../../components/Chip";
 import TabContext from "@mui/lab/TabContext";
 import { Trash2 } from "lucide-react";
 import TabBar from "../../components/TabBar";
+import TablePaginationActions from "../../components/TablePagination";
+import singleTheme from "../../themes/v1SingleTheme";
 import {
   getRules,
   createRule,
@@ -54,13 +58,21 @@ const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
 
 type ViewMode = "rules" | "history";
 
+const ALERTS_PER_PAGE = 10;
+
 export default function RulesPage() {
-  const [viewMode, setViewMode] = useState<ViewMode>("rules");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const viewMode: ViewMode = location.pathname.includes("/rules/alerts")
+    ? "history"
+    : "rules";
+
   const [loading, setLoading] = useState(true);
   const [rules, setRules] = useState<IShadowAiRule[]>([]);
   const [alerts, setAlerts] = useState<IShadowAiAlertHistory[]>([]);
   const [alertsTotal, setAlertsTotal] = useState(0);
-  const [alertsPage, setAlertsPage] = useState(1);
+  const [alertsPage, setAlertsPage] = useState(0);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<IShadowAiRule | null>(null);
 
@@ -86,7 +98,7 @@ export default function RulesPage() {
   const fetchAlerts = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getAlertHistory(alertsPage, 20);
+      const data = await getAlertHistory(alertsPage + 1, ALERTS_PER_PAGE);
       setAlerts(data.alerts);
       setAlertsTotal(data.total);
     } catch (error) {
@@ -103,6 +115,14 @@ export default function RulesPage() {
       fetchAlerts();
     }
   }, [viewMode, fetchRules, fetchAlerts]);
+
+  const handleTabChange = (_e: React.SyntheticEvent, newValue: string) => {
+    if (newValue === "history") {
+      navigate("/shadow-ai/rules/alerts");
+    } else {
+      navigate("/shadow-ai/rules");
+    }
+  };
 
   const handleToggleActive = async (rule: IShadowAiRule) => {
     try {
@@ -170,7 +190,7 @@ export default function RulesPage() {
         <TabBar
           tabs={TABS}
           activeTab={viewMode}
-          onChange={(_e, newValue) => setViewMode(newValue as ViewMode)}
+          onChange={handleTabChange}
         />
         {viewMode === "rules" && (
           <CustomizableButton
@@ -228,8 +248,8 @@ export default function RulesPage() {
                           TRIGGER_LABELS[rule.trigger_type] || rule.trigger_type
                         }
                         size="small"
-                        variant="outlined"
-                        sx={{ fontSize: 11, height: 20 }}
+                        variant="info"
+                        uppercase={false}
                       />
                     </Stack>
                     {rule.description && (
@@ -239,8 +259,11 @@ export default function RulesPage() {
                     )}
                     <Typography sx={{ fontSize: 11, color: "#9CA3AF" }}>
                       Actions:{" "}
-                      {rule.actions?.map((a) => a.type.replace(/_/g, " ")).join(", ") ||
-                        "None"}
+                      {Array.isArray(rule.actions)
+                        ? rule.actions.map((a: { type: string }) => a.type.replace(/_/g, " ")).join(", ")
+                        : rule.actions && typeof rule.actions === "object"
+                          ? Object.keys(rule.actions).map((k) => k.replace(/_/g, " ")).join(", ")
+                          : "None"}
                     </Typography>
                   </Stack>
                   <Stack direction="row" alignItems="center" gap="8px">
@@ -276,16 +299,16 @@ export default function RulesPage() {
           showBorder
         />
       ) : (
-        <Paper
-          elevation={0}
-          sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", overflow: "hidden" }}
-        >
-          <TableContainer>
-            <Table size="small">
+        <>
+          <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+            <Table>
               <TableHead>
-                <TableRow>
+                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
                   {["Rule", "Trigger", "Fired at"].map((h) => (
-                    <TableCell key={h} sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
+                    <TableCell
+                      key={h}
+                      sx={singleTheme.tableStyles.primary.header.cell}
+                    >
                       {h}
                     </TableCell>
                   ))}
@@ -293,16 +316,23 @@ export default function RulesPage() {
               </TableHead>
               <TableBody>
                 {alerts.map((a) => (
-                  <TableRow key={a.id}>
-                    <TableCell sx={{ fontSize: 13 }}>
+                  <TableRow key={a.id} sx={singleTheme.tableStyles.primary.body.row}>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {a.rule_name || `Rule #${a.rule_id}`}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {TRIGGER_LABELS[a.trigger_type as ShadowAiTriggerType] ||
-                        a.trigger_type ||
-                        "—"}
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      <Chip
+                        label={
+                          TRIGGER_LABELS[a.trigger_type as ShadowAiTriggerType] ||
+                          a.trigger_type ||
+                          "—"
+                        }
+                        size="small"
+                        variant="info"
+                        uppercase={false}
+                      />
                     </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {a.fired_at ? new Date(a.fired_at).toLocaleString() : "—"}
                     </TableCell>
                   </TableRow>
@@ -310,16 +340,30 @@ export default function RulesPage() {
               </TableBody>
             </Table>
           </TableContainer>
-          <TablePagination
-            component="div"
-            count={alertsTotal}
-            page={alertsPage - 1}
-            onPageChange={(_e, newPage) => setAlertsPage(newPage + 1)}
-            rowsPerPage={20}
-            rowsPerPageOptions={[20]}
-            sx={{ fontSize: 12 }}
-          />
-        </Paper>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ px: 2 }}
+          >
+            <Typography sx={{ fontSize: 12, opacity: 0.7 }}>
+              Showing {alertsPage * ALERTS_PER_PAGE + 1} -{" "}
+              {Math.min((alertsPage + 1) * ALERTS_PER_PAGE, alertsTotal)} of{" "}
+              {alertsTotal} items
+            </Typography>
+            <TablePagination
+              component="div"
+              count={alertsTotal}
+              page={alertsPage}
+              onPageChange={(_e, newPage) => setAlertsPage(newPage)}
+              rowsPerPage={ALERTS_PER_PAGE}
+              rowsPerPageOptions={[ALERTS_PER_PAGE]}
+              ActionsComponent={TablePaginationActions as any}
+              labelRowsPerPage=""
+              sx={{ "& .MuiTablePagination-selectLabel": { display: "none" }, "& .MuiTablePagination-select": { display: "none" } }}
+            />
+          </Stack>
+        </>
       )}
 
       {/* Create rule modal */}

@@ -19,9 +19,9 @@ import {
   TableRow,
   TableCell,
   TableContainer,
-  Chip,
   useTheme,
 } from "@mui/material";
+import Chip from "../../components/Chip";
 import { Trash2, Copy, Check } from "lucide-react";
 import {
   createApiKey,
@@ -35,6 +35,7 @@ import {
   IShadowAiApiKey,
   IShadowAiSyslogConfig,
 } from "../../../domain/interfaces/i.shadowAi";
+import singleTheme from "../../themes/v1SingleTheme";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
@@ -213,15 +214,15 @@ function ApiKeysSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
           </Typography>
         </Box>
       ) : (
-        <TableContainer>
-          <Table size="small">
+        <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+          <Table>
             <TableHead>
-              <TableRow>
+              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
                 {["Key prefix", "Label", "Status", "Created", "Last used", ""].map(
                   (h) => (
                     <TableCell
                       key={h}
-                      sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}
+                      sx={singleTheme.tableStyles.primary.header.cell}
                     >
                       {h}
                     </TableCell>
@@ -231,42 +232,28 @@ function ApiKeysSection({ styles }: { styles: ReturnType<typeof useStyles> }) {
             </TableHead>
             <TableBody>
               {keys.map((k) => (
-                <TableRow key={k.id}>
-                  <TableCell>
-                    <Typography
-                      sx={{
-                        fontSize: 12,
-                        fontFamily: "monospace",
-                        color: "#374151",
-                      }}
-                    >
-                      {k.key_prefix}...
-                    </Typography>
+                <TableRow key={k.id} sx={singleTheme.tableStyles.primary.body.row}>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
+                    {k.key_prefix}...
                   </TableCell>
-                  <TableCell sx={{ fontSize: 13 }}>{k.label || "—"}</TableCell>
-                  <TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{k.label || "—"}</TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                     <Chip
                       label={k.is_active ? "Active" : "Revoked"}
                       size="small"
-                      sx={{
-                        fontSize: 11,
-                        height: 20,
-                        backgroundColor: k.is_active ? "#ECFDF5" : "#FEF2F2",
-                        color: k.is_active ? "#10B981" : "#DC2626",
-                      }}
                     />
                   </TableCell>
-                  <TableCell sx={{ fontSize: 13 }}>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                     {k.created_at
                       ? new Date(k.created_at).toLocaleDateString()
                       : "—"}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 13 }}>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                     {k.last_used_at
                       ? new Date(k.last_used_at).toLocaleDateString()
                       : "Never"}
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" sx={singleTheme.tableStyles.primary.body.cell}>
                     {k.is_active && (
                       <IconButton
                         size="small"
@@ -427,15 +414,15 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
           </Typography>
         </Box>
       ) : (
-        <TableContainer>
-          <Table size="small">
+        <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+          <Table>
             <TableHead>
-              <TableRow>
+              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
                 {["Source identifier", "Parser", "Status", "Created", ""].map(
                   (h) => (
                     <TableCell
                       key={h}
-                      sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}
+                      sx={singleTheme.tableStyles.primary.header.cell}
                     >
                       {h}
                     </TableCell>
@@ -445,31 +432,25 @@ function SyslogConfigSection({ styles }: { styles: ReturnType<typeof useStyles> 
             </TableHead>
             <TableBody>
               {configs.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell sx={{ fontSize: 13, fontFamily: "monospace" }}>
+                <TableRow key={c.id} sx={singleTheme.tableStyles.primary.body.row}>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
                     {c.source_identifier}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 13 }}>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                     {PARSER_LABELS[c.parser_type]}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                     <Chip
                       label={c.is_active ? "Active" : "Inactive"}
                       size="small"
-                      sx={{
-                        fontSize: 11,
-                        height: 20,
-                        backgroundColor: c.is_active ? "#ECFDF5" : "#F9FAFB",
-                        color: c.is_active ? "#10B981" : "#6B7280",
-                      }}
                     />
                   </TableCell>
-                  <TableCell sx={{ fontSize: 13 }}>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                     {c.created_at
                       ? new Date(c.created_at).toLocaleDateString()
                       : "—"}
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" sx={singleTheme.tableStyles.primary.body.cell}>
                     <IconButton
                       size="small"
                       onClick={() => setDeleteTarget(c)}

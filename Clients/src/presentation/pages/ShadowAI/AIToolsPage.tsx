@@ -13,7 +13,6 @@ import {
   SelectChangeEvent,
   Box,
   IconButton,
-  Chip,
   Table,
   TableHead,
   TableBody,
@@ -22,6 +21,7 @@ import {
   TableContainer,
   TablePagination,
 } from "@mui/material";
+import Chip from "../../components/Chip";
 import {
   ArrowLeft,
   Globe,
@@ -39,6 +39,7 @@ import {
   IShadowAiTool,
   ShadowAiToolStatus,
 } from "../../../domain/interfaces/i.shadowAi";
+import singleTheme from "../../themes/v1SingleTheme";
 import EmptyState from "../../components/EmptyState";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Select from "../../components/Inputs/Select";
@@ -153,13 +154,9 @@ export default function AIToolsPage() {
           <Chip
             label={cfg.label}
             size="small"
-            sx={{
-              fontSize: 11,
-              height: 22,
-              backgroundColor: cfg.bg,
-              color: cfg.color,
-              border: `1px solid ${cfg.color}33`,
-            }}
+            backgroundColor={cfg.bg}
+            textColor={cfg.color}
+            uppercase={false}
           />
         </Stack>
 
@@ -207,14 +204,25 @@ export default function AIToolsPage() {
                     </Typography>
                     <Stack direction="row" gap="4px" flexWrap="wrap">
                       {selectedTool.domains.map((d) => (
-                        <Chip
+                        <Stack
                           key={d}
-                          icon={<Globe size={12} />}
-                          label={d}
-                          size="small"
-                          variant="outlined"
-                          sx={{ fontSize: 11, height: 22 }}
-                        />
+                          direction="row"
+                          alignItems="center"
+                          gap="4px"
+                          sx={{
+                            display: "inline-flex",
+                            height: 24,
+                            px: 1,
+                            borderRadius: "4px",
+                            border: "1px solid #d0d5dd",
+                            backgroundColor: "#F9FAFB",
+                            fontSize: 11,
+                            color: "#374151",
+                          }}
+                        >
+                          <Globe size={12} />
+                          {d}
+                        </Stack>
                       ))}
                     </Stack>
                   </Stack>
@@ -288,12 +296,6 @@ export default function AIToolsPage() {
                     <Chip
                       label="Governed"
                       size="small"
-                      sx={{
-                        fontSize: 11,
-                        height: 22,
-                        backgroundColor: "#ECFDF5",
-                        color: "#10B981",
-                      }}
                     />
                   )}
                 </Stack>
@@ -435,13 +437,9 @@ export default function AIToolsPage() {
                         <Chip
                           label={cfg.label}
                           size="small"
-                          sx={{
-                            fontSize: 11,
-                            height: 22,
-                            backgroundColor: cfg.bg,
-                            color: cfg.color,
-                            border: `1px solid ${cfg.color}33`,
-                          }}
+                          backgroundColor={cfg.bg}
+                          textColor={cfg.color}
+                          uppercase={false}
                         />
                       </TableCell>
                       <TableCell sx={{ fontSize: 13 }}>{t.total_users}</TableCell>

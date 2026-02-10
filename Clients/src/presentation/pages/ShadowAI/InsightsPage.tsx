@@ -215,7 +215,7 @@ export default function InsightsPage() {
             {loading ? (
               <Skeleton variant="rectangular" height={250} sx={{ borderRadius: "4px" }} />
             ) : departments.length > 0 ? (
-              <Stack direction="row" alignItems="center" gap="24px">
+              <Stack direction="row" alignItems="center" justifyContent="center" gap="24px">
                 <Box sx={{ width: 200, height: 200 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -279,7 +279,7 @@ export default function InsightsPage() {
                   <BarChart
                     data={toolsByEvents}
                     layout="vertical"
-                    margin={{ left: 80, right: 16, top: 8, bottom: 8 }}
+                    margin={{ left: 8, right: 16, top: 8, bottom: 8 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis type="number" tick={{ fontSize: 12 }} />
@@ -325,7 +325,7 @@ export default function InsightsPage() {
                 <BarChart
                   data={toolsByUsers}
                   layout="vertical"
-                  margin={{ left: 80, right: 16, top: 8, bottom: 8 }}
+                  margin={{ left: 8, right: 16, top: 8, bottom: 8 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis type="number" tick={{ fontSize: 12 }} />

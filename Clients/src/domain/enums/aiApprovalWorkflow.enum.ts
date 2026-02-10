@@ -5,6 +5,6 @@ export enum ApprovalStatus {
 }
 
 export enum ApprovalStepStatus {
-    COMPLETED = "completed",
-    PENDING = "pending",
+    Completed = "completed",
+    Pending = "pending",
 }

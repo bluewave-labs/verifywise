@@ -39,12 +39,7 @@ import {
 import EmptyState from "../../components/EmptyState";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
-
-const PERIOD_OPTIONS = [
-  { _id: "7d", name: "Last 7 days" },
-  { _id: "30d", name: "Last 30 days" },
-  { _id: "90d", name: "Last 90 days" },
-];
+import { PERIOD_OPTIONS } from "./constants";
 
 interface UserDetailData {
   email: string;

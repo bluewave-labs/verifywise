@@ -52,12 +52,7 @@ import VWLink from "../../components/Link/VWLink";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import { useNavigate } from "react-router-dom";
-
-const PERIOD_OPTIONS = [
-  { _id: "7d", name: "Last 7 days" },
-  { _id: "30d", name: "Last 30 days" },
-  { _id: "90d", name: "Last 90 days" },
-];
+import { PERIOD_OPTIONS } from "./constants";
 
 const DEPT_COLORS = [
   "#6366F1", // indigo

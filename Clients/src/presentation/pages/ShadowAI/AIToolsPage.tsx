@@ -27,7 +27,6 @@ import Chip from "../../components/Chip";
 import {
   ArrowLeft,
   Globe,
-  ChevronsUpDown,
 } from "lucide-react";
 import {
   getTools,
@@ -48,12 +47,9 @@ import TablePaginationActions from "../../components/TablePagination";
 import GovernanceWizardModal from "./GovernanceWizardModal";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
+import { SelectorVertical } from "./constants";
 
 const ROWS_PER_PAGE = 20;
-
-const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
-  <ChevronsUpDown size={16} {...props} />
-);
 
 const STATUS_OPTIONS = [
   { _id: "all", name: "All statuses" },

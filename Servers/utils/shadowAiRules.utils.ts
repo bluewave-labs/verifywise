@@ -50,38 +50,6 @@ export async function getAllRulesQuery(
 }
 
 /**
- * Get a single rule by ID.
- */
-export async function getRuleByIdQuery(
-  tenant: string,
-  ruleId: number
-): Promise<IShadowAiRule | null> {
-  const [rows] = await sequelize.query(
-    `SELECT r.*,
-       COALESCE(
-         (SELECT json_agg(rn.user_id)
-          FROM "${tenant}".shadow_ai_rule_notifications rn
-          WHERE rn.rule_id = r.id),
-         '[]'
-       ) as notification_user_ids
-     FROM "${tenant}".shadow_ai_rules r
-     WHERE r.id = :ruleId`,
-    { replacements: { ruleId } }
-  );
-
-  const results = rows as any[];
-  if (results.length === 0) return null;
-
-  const r = results[0];
-  return {
-    ...r,
-    actions: safeJsonParse(r.actions, []),
-    trigger_config: safeJsonParse(r.trigger_config, {}),
-    notification_user_ids: safeJsonParse(r.notification_user_ids, []),
-  };
-}
-
-/**
  * Create a new rule.
  */
 export async function createRuleQuery(
@@ -332,29 +300,3 @@ export async function insertAlertHistoryQuery(
   );
 }
 
-/**
- * Get active rules for a tenant (used by the rules engine during ingestion).
- */
-export async function getActiveRulesQuery(
-  tenant: string
-): Promise<IShadowAiRule[]> {
-  const [rows] = await sequelize.query(
-    `SELECT r.*,
-       COALESCE(
-         (SELECT json_agg(rn.user_id)
-          FROM "${tenant}".shadow_ai_rule_notifications rn
-          WHERE rn.rule_id = r.id),
-         '[]'
-       ) as notification_user_ids
-     FROM "${tenant}".shadow_ai_rules r
-     WHERE r.is_active = true
-     ORDER BY r.created_at ASC`
-  );
-
-  return (rows as any[]).map((r) => ({
-    ...r,
-    actions: safeJsonParse(r.actions, []),
-    trigger_config: safeJsonParse(r.trigger_config, {}),
-    notification_user_ids: safeJsonParse(r.notification_user_ids, []),
-  }));
-}

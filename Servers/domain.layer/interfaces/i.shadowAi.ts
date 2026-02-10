@@ -90,32 +90,6 @@ export interface IShadowAiModelPattern {
   created_at?: Date;
 }
 
-// ─── Rollups ─────────────────────────────────────────────────────────
-
-export interface IShadowAiDailyRollup {
-  id?: number;
-  rollup_date: Date;
-  user_email: string;
-  tool_id?: number;
-  department?: string;
-  total_events: number;
-  post_events: number;
-  blocked_events: number;
-  created_at?: Date;
-}
-
-export interface IShadowAiMonthlyRollup {
-  id?: number;
-  rollup_month: Date;
-  tool_id?: number;
-  department?: string;
-  unique_users: number;
-  total_events: number;
-  post_events: number;
-  blocked_events: number;
-  created_at?: Date;
-}
-
 // ─── Rules ───────────────────────────────────────────────────────────
 
 export type ShadowAiTriggerType =
@@ -145,6 +119,7 @@ export interface IShadowAiRule {
   trigger_type: ShadowAiTriggerType;
   trigger_config: Record<string, unknown>;
   actions: IShadowAiRuleAction[];
+  notification_user_ids?: number[];
   created_by: number;
   created_at?: Date;
   updated_at?: Date;

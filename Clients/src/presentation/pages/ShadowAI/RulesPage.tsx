@@ -24,7 +24,6 @@ import {
   TableFooter,
   useTheme,
 } from "@mui/material";
-import { ChevronsUpDown } from "lucide-react";
 import Toggle from "../../components/Inputs/Toggle";
 import Chip from "../../components/Chip";
 import TabContext from "@mui/lab/TabContext";
@@ -51,6 +50,7 @@ import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
+import { SelectorVertical } from "./constants";
 
 const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
   new_tool_detected: "New tool detected",
@@ -69,10 +69,6 @@ const TABS = [
   { label: "Rules", value: "rules", icon: "Bell" as const },
   { label: "Alert history", value: "history", icon: "History" as const },
 ];
-
-const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
-  <ChevronsUpDown size={16} {...props} />
-);
 
 export default function RulesPage() {
   const location = useLocation();

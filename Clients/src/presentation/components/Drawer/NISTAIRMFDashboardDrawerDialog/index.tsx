@@ -578,7 +578,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                     padding: "5px",
                   }}
                 >
-                  <CloseIcon size={20} color="#667085" />
+                  <CloseIcon size={20} color={theme.palette.other.icon} />
                 </Button>
               </Stack>
 
@@ -601,7 +601,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                       sx={{
                         border: `1px solid #eee`,
                         padding: "10px",
-                        backgroundColor: "#f8f9fa",
+                        backgroundColor: "background.accent",
                         borderRadius: "4px",
                       }}
                     >
@@ -777,7 +777,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                       Evidence files
                     </Typography>
-                    <Typography variant="body2" color="#6B7280">
+                    <Typography variant="body2" color="text.tertiary">
                       Upload evidence files to document how this subcategory is being implemented.
                     </Typography>
 
@@ -808,9 +808,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                             width: 155,
                             height: 25,
                             fontSize: 11,
-                            border: "1px solid #D0D5DD",
-                            backgroundColor: "white",
-                            color: "#344054",
+                            border: `1px solid ${theme.palette.border.dark}`,
+                            backgroundColor: "background.main",
+                            color: "text.secondary",
                           }}
                           disableRipple={
                             theme.components?.MuiButton?.defaultProps?.disableRipple
@@ -822,7 +822,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                           <Typography
                             sx={{
                               fontSize: 11,
-                              color: "#344054",
+                              color: "text.secondary",
                               display: "flex",
                               alignItems: "center",
                             }}
@@ -833,7 +833,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                             <Typography
                               sx={{
                                 fontSize: 11,
-                                color: "#13715B",
+                                color: "primary.main",
                                 display: "flex",
                                 alignItems: "center",
                               }}
@@ -845,7 +845,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                             <Typography
                               sx={{
                                 fontSize: 11,
-                                color: "#D32F2F",
+                                color: "status.error.main",
                                 display: "flex",
                                 alignItems: "center",
                               }}
@@ -868,11 +868,11 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                               alignItems: "center",
                               justifyContent: "space-between",
                               padding: "10px 12px",
-                              border: "1px solid #EAECF0",
+                              border: `1px solid ${theme.palette.border.light}`,
                               borderRadius: "4px",
-                              backgroundColor: "#FFFFFF",
+                              backgroundColor: "background.main",
                               "&:hover": {
-                                backgroundColor: "#F9FAFB",
+                                backgroundColor: "background.accent",
                               },
                             }}
                           >
@@ -885,7 +885,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                 minWidth: 0,
                               }}
                             >
-                              <FileIcon size={18} color="#475467" />
+                              <FileIcon size={18} color={theme.palette.text.tertiary} />
                               <Box sx={{ minWidth: 0, flex: 1 }}>
                                 <Typography
                                   sx={{
@@ -903,7 +903,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                   <Typography
                                     sx={{
                                       fontSize: 11,
-                                      color: "#6B7280",
+                                      color: "text.tertiary",
                                     }}
                                   >
                                     {(file.size / 1024).toFixed(1)} KB
@@ -922,9 +922,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                     );
                                   }}
                                   sx={{
-                                    color: "#475467",
+                                    color: "text.tertiary",
                                     "&:hover": {
-                                      color: "#13715B",
+                                      color: "primary.main",
                                       backgroundColor: "rgba(19, 113, 91, 0.08)",
                                     },
                                   }}
@@ -940,13 +940,13 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                   }
                                   disabled={isEditingDisabled}
                                   sx={{
-                                    color: "#475467",
+                                    color: "text.tertiary",
                                     "&:hover": {
-                                      color: "#D32F2F",
+                                      color: "status.error.main",
                                       backgroundColor: "rgba(211, 47, 47, 0.08)",
                                     },
                                     "&:disabled": {
-                                      color: "#D1D5DB",
+                                      color: "border.dark",
                                     },
                                   }}
                                 >
@@ -979,9 +979,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                               alignItems: "center",
                               justifyContent: "space-between",
                               padding: "10px 12px",
-                              border: "1px solid #FEF3C7",
+                              border: `1px solid ${theme.palette.status.warning.border}`,
                               borderRadius: "4px",
-                              backgroundColor: "#FFFBEB",
+                              backgroundColor: "status.warning.bg",
                             }}
                           >
                             <Box
@@ -993,7 +993,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                 minWidth: 0,
                               }}
                             >
-                              <FileIcon size={18} color="#D97706" />
+                              <FileIcon size={18} color={theme.palette.status.warning.text} />
                               <Box sx={{ minWidth: 0, flex: 1 }}>
                                 <Typography
                                   sx={{
@@ -1026,7 +1026,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                 sx={{
                                   color: "#92400E",
                                   "&:hover": {
-                                    color: "#D32F2F",
+                                    color: "status.error.main",
                                     backgroundColor: "rgba(211, 47, 47, 0.08)",
                                   },
                                 }}
@@ -1044,10 +1044,10 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                         sx={{
                           textAlign: "center",
                           py: 4,
-                          color: "#6B7280",
-                          border: "2px dashed #D1D5DB",
+                          color: "text.tertiary",
+                          border: `2px dashed ${theme.palette.border.dark}`,
                           borderRadius: 1,
-                          backgroundColor: "#F9FAFB",
+                          backgroundColor: "background.accent",
                         }}
                       >
                         <Typography variant="body2" sx={{ mb: 1 }}>
@@ -1068,7 +1068,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                       Linked risks
                     </Typography>
-                    <Typography variant="body2" color="#6B7280">
+                    <Typography variant="body2" color="text.tertiary">
                       Link risks from your risk database to this subcategory to
                       track which risks are being addressed by this implementation.
                     </Typography>
@@ -1081,9 +1081,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                           width: 155,
                           height: 25,
                           fontSize: 11,
-                          border: "1px solid #D0D5DD",
-                          backgroundColor: "white",
-                          color: "#344054",
+                          border: `1px solid ${theme.palette.border.dark}`,
+                          backgroundColor: "background.main",
+                          color: "text.secondary",
                         }}
                         disableRipple={
                           theme.components?.MuiButton?.defaultProps?.disableRipple
@@ -1097,7 +1097,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                         <Typography
                           sx={{
                             fontSize: 11,
-                            color: "#344054",
+                            color: "text.secondary",
                             display: "flex",
                             alignItems: "center",
                           }}
@@ -1108,7 +1108,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                           <Typography
                             sx={{
                               fontSize: 11,
-                              color: "#13715B",
+                              color: "primary.main",
                               display: "flex",
                               alignItems: "center",
                             }}
@@ -1120,7 +1120,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                           <Typography
                             sx={{
                               fontSize: 11,
-                              color: "#D32F2F",
+                              color: "status.error.main",
                               display: "flex",
                               alignItems: "center",
                             }}
@@ -1144,11 +1144,11 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                 alignItems: "center",
                                 justifyContent: "space-between",
                                 padding: "10px 12px",
-                                border: "1px solid #EAECF0",
+                                border: `1px solid ${theme.palette.border.light}`,
                                 borderRadius: "4px",
-                                backgroundColor: "#FFFFFF",
+                                backgroundColor: "background.main",
                                 "&:hover": {
-                                  backgroundColor: "#F9FAFB",
+                                  backgroundColor: "background.accent",
                                 },
                               }}
                             >
@@ -1169,7 +1169,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                   <Typography
                                     sx={{
                                       fontSize: 11,
-                                      color: "#6B7280",
+                                      color: "text.tertiary",
                                     }}
                                   >
                                     Risk level: {risk.risk_level}
@@ -1182,9 +1182,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                     size="small"
                                     onClick={() => handleViewRiskDetails(risk)}
                                     sx={{
-                                      color: "#475467",
+                                      color: "text.tertiary",
                                       "&:hover": {
-                                        color: "#13715B",
+                                        color: "primary.main",
                                         backgroundColor: "rgba(19, 113, 91, 0.08)",
                                       },
                                     }}
@@ -1205,13 +1205,13 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                     }}
                                     disabled={isEditingDisabled}
                                     sx={{
-                                      color: "#475467",
+                                      color: "text.tertiary",
                                       "&:hover": {
-                                        color: "#D32F2F",
+                                        color: "status.error.main",
                                         backgroundColor: "rgba(211, 47, 47, 0.08)",
                                       },
                                       "&:disabled": {
-                                        color: "#D1D5DB",
+                                        color: "border.dark",
                                       },
                                     }}
                                   >
@@ -1230,10 +1230,10 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                           sx={{
                             textAlign: "center",
                             py: 4,
-                            color: "#6B7280",
-                            border: `2px dashed #D1D5DB`,
+                            color: "text.tertiary",
+                            border: `2px dashed ${theme.palette.border.dark}`,
                             borderRadius: 1,
-                            backgroundColor: "#F9FAFB",
+                            backgroundColor: "background.accent",
                           }}
                         >
                           <Typography variant="body2" sx={{ mb: 1 }}>
@@ -1293,8 +1293,8 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                   variant="contained"
                   text="Save"
                   sx={{
-                    backgroundColor: "#13715B",
-                    border: "1px solid #13715B",
+                    backgroundColor: "primary.main",
+                    border: `1px solid ${theme.palette.primary.main}`,
                     gap: 2,
                     minWidth: "120px",
                     height: "36px",

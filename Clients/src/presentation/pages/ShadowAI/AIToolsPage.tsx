@@ -27,9 +27,6 @@ import Chip from "../../components/Chip";
 import {
   ArrowLeft,
   Globe,
-  CheckCircle2,
-  XCircle,
-  MinusCircle,
   ChevronsUpDown,
 } from "lucide-react";
 import {
@@ -236,7 +233,7 @@ export default function AIToolsPage() {
                 {/* Domains */}
                 {selectedTool.domains?.length > 0 && (
                   <Stack gap="4px">
-                    <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+                    <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
                       Domains
                     </Typography>
                     <Stack direction="row" gap="4px" flexWrap="wrap">
@@ -265,39 +262,9 @@ export default function AIToolsPage() {
                   </Stack>
                 )}
 
-                {/* Security flags */}
-                <Stack gap="4px">
-                  <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
-                    Security & compliance
-                  </Typography>
-                  <Stack direction="row" gap="12px" flexWrap="wrap">
-                    <SecurityFlag
-                      label="SOC 2"
-                      value={selectedTool.soc2_certified}
-                    />
-                    <SecurityFlag
-                      label="GDPR"
-                      value={selectedTool.gdpr_compliant}
-                    />
-                    <SecurityFlag
-                      label="SSO"
-                      value={selectedTool.sso_support}
-                    />
-                    <SecurityFlag
-                      label="Encryption at rest"
-                      value={selectedTool.encryption_at_rest}
-                    />
-                    <SecurityFlag
-                      label="Trains on data"
-                      value={selectedTool.trains_on_data}
-                      inverted
-                    />
-                  </Stack>
-                </Stack>
-
                 {/* Status change */}
                 <Stack direction="row" alignItems="center" gap="8px">
-                  <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+                  <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
                     Change status:
                   </Typography>
                   <Select
@@ -353,7 +320,7 @@ export default function AIToolsPage() {
             {/* Departments */}
             {selectedTool.departments && selectedTool.departments.length > 0 && (
               <Stack>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1 }}>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 1 }}>
                   Departments
                 </Typography>
                 <TableContainer sx={singleTheme.tableStyles.primary.frame}>
@@ -380,7 +347,7 @@ export default function AIToolsPage() {
             {/* Top users */}
             {selectedTool.top_users && selectedTool.top_users.length > 0 && (
               <Stack>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1 }}>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 1 }}>
                   Top users
                 </Typography>
                 <TableContainer sx={singleTheme.tableStyles.primary.frame}>
@@ -547,33 +514,4 @@ export default function AIToolsPage() {
   );
 }
 
-// ─── Sub-components ─────────────────────────────────────────────────
-
-function SecurityFlag({
-  label,
-  value,
-  inverted = false,
-}: {
-  label: string;
-  value?: boolean;
-  inverted?: boolean;
-}) {
-  const isPositive = inverted ? value === false : value === true;
-  const isNegative = inverted ? value === true : value === false;
-
-  const icon = isPositive ? (
-    <CheckCircle2 size={12} color="#10B981" />
-  ) : isNegative ? (
-    <XCircle size={12} color="#DC2626" />
-  ) : (
-    <MinusCircle size={12} color="#9CA3AF" />
-  );
-
-  return (
-    <Stack direction="row" alignItems="center" gap="4px">
-      {icon}
-      <Typography sx={{ fontSize: 12, color: "#374151" }}>{label}</Typography>
-    </Stack>
-  );
-}
 

@@ -46,9 +46,9 @@ import {
   IShadowAiTool,
 } from "../../../domain/interfaces/i.shadowAi";
 import Select from "../../components/Inputs/Select";
-import { CustomizableButton } from "../../components/button/customizable-button";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import { DashboardCard } from "../../components/Cards/DashboardCard";
+import VWLink from "../../components/Link/VWLink";
 import { useNavigate } from "react-router-dom";
 
 const PERIOD_OPTIONS = [
@@ -86,8 +86,8 @@ export default function InsightsPage() {
         const [summaryData, eventsData, usersData, deptData, toolsData] =
           await Promise.all([
             getInsightsSummary(period),
-            getToolsByEvents(period, 5),
-            getToolsByUsers(period, 5),
+            getToolsByEvents(period, 6),
+            getToolsByUsers(period, 6),
             getUsersByDepartment(period),
             getTools({ sort_by: "risk_score", order: "desc", limit: 5 }),
           ]);
@@ -192,20 +192,13 @@ export default function InsightsPage() {
                     </Typography>
                   </Stack>
                 ))}
-                <CustomizableButton
-                  text="Go to AI tools"
-                  variant="text"
-                  sx={{
-                    fontSize: 12,
-                    color: "#6B7280",
-                    alignSelf: "flex-start",
-                    mt: 0.5,
-                    p: 0,
-                    minWidth: 0,
-                    "&:hover": { color: "#374151", backgroundColor: "transparent" },
-                  }}
+                <VWLink
                   onClick={() => navigate("/shadow-ai/tools")}
-                />
+                  showIcon={false}
+                  sx={{ fontSize: 12, mt: 0.5 }}
+                >
+                  Go to AI tools
+                </VWLink>
               </Stack>
             ) : (
               <NoChartData />
@@ -274,10 +267,10 @@ export default function InsightsPage() {
           {/* Most accessed tools by events */}
           <DashboardCard title="Most accessed tools by events">
             {loading ? (
-              <Skeleton variant="rectangular" height={220} sx={{ borderRadius: "4px" }} />
+              <Skeleton variant="rectangular" height={260} sx={{ borderRadius: "4px" }} />
             ) : toolsByEvents.length > 0 ? (
               <>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={260}>
                   <BarChart
                     data={toolsByEvents}
                     layout="vertical"
@@ -289,7 +282,7 @@ export default function InsightsPage() {
                       type="category"
                       dataKey="tool_name"
                       tick={{ fontSize: 12 }}
-                      width={75}
+                      width={90}
                     />
                     <Tooltip
                       contentStyle={{ fontSize: 12, borderRadius: 4 }}
@@ -298,20 +291,13 @@ export default function InsightsPage() {
                     <Bar dataKey="event_count" fill="#13715B" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-                <CustomizableButton
-                  text="Go to AI tools"
-                  variant="text"
-                  sx={{
-                    fontSize: 12,
-                    color: "#6B7280",
-                    alignSelf: "flex-start",
-                    mt: 1,
-                    p: 0,
-                    minWidth: 0,
-                    "&:hover": { color: "#374151", backgroundColor: "transparent" },
-                  }}
+                <VWLink
                   onClick={() => navigate("/shadow-ai/tools")}
-                />
+                  showIcon={false}
+                  sx={{ fontSize: 12, mt: 1 }}
+                >
+                  Go to AI tools
+                </VWLink>
               </>
             ) : (
               <NoChartData />
@@ -321,9 +307,9 @@ export default function InsightsPage() {
           {/* Most accessed tools by users */}
           <DashboardCard title="Most accessed tools by users">
             {loading ? (
-              <Skeleton variant="rectangular" height={220} sx={{ borderRadius: "4px" }} />
+              <Skeleton variant="rectangular" height={260} sx={{ borderRadius: "4px" }} />
             ) : toolsByUsers.length > 0 ? (
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={260}>
                 <BarChart
                   data={toolsByUsers}
                   layout="vertical"
@@ -335,7 +321,7 @@ export default function InsightsPage() {
                     type="category"
                     dataKey="tool_name"
                     tick={{ fontSize: 12 }}
-                    width={75}
+                    width={90}
                   />
                   <Tooltip
                     contentStyle={{ fontSize: 12, borderRadius: 4 }}

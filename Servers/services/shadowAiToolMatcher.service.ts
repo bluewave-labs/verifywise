@@ -75,13 +75,13 @@ export async function matchDomain(
  * Ensure a tool exists in the tenant's shadow_ai_tools table.
  * If the tool doesn't exist, create it from the registry entry.
  * Uses INSERT ... ON CONFLICT to avoid race conditions.
- * Returns the tenant tool ID.
+ * Returns the tenant tool ID and whether the tool was newly created.
  */
 export async function ensureTenantTool(
   tenant: string,
   registryEntry: IShadowAiToolRegistry,
   transaction?: any
-): Promise<number> {
+): Promise<{ id: number; isNew: boolean }> {
   const [rows] = await sequelize.query(
     `INSERT INTO "${tenant}".shadow_ai_tools
        (name, vendor, domains, status, risk_score,
@@ -92,7 +92,7 @@ export async function ensureTenantTool(
         NOW(), NOW(), 0, 0,
         :trains_on_data, :soc2_certified, :gdpr_compliant)
      ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-     RETURNING id`,
+     RETURNING id, (xmax = 0) AS is_new`,
     {
       replacements: {
         name: registryEntry.name,
@@ -106,7 +106,8 @@ export async function ensureTenantTool(
     }
   );
 
-  return (rows as any[])[0].id;
+  const row = (rows as any[])[0];
+  return { id: row.id, isNew: row.is_new === true };
 }
 
 /**

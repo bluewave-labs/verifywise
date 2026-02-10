@@ -22,6 +22,7 @@ import {
   updateToolCounters,
 } from "../services/shadowAiToolMatcher.service";
 import { extractModel } from "../services/shadowAiModelExtractor.service";
+import { evaluateRulesForBatch } from "../services/shadowAiAlertNotification.service";
 import { ShadowAiIngestionRequest } from "../domain.layer/interfaces/i.shadowAi";
 import { getSettingsQuery } from "../utils/shadowAiConfig.utils";
 
@@ -166,6 +167,15 @@ export async function ingestEvents(req: Request, res: Response) {
     const toolEventCounts = new Map<number, number>();
     const toolUserSets = new Map<number, Set<string>>();
 
+    // Track data for rule evaluation
+    const newToolIds = new Set<number>();
+    const newToolNames = new Map<number, string>();
+    const toolDepartments = new Map<number, Set<string>>();
+    const toolEmails = new Map<number, Set<string>>();
+    const blockedAttempts: { toolId: number; toolName: string; userEmail: string }[] = [];
+    const allDepartments = new Set<string>();
+    const allEmails = new Set<string>();
+
     // Normalize all events first
     const normalizedEvents = body.events.map(normalizeEvent);
 
@@ -204,13 +214,21 @@ export async function ingestEvents(req: Request, res: Response) {
 
       let detectedToolId: number | undefined;
 
+      if (normalized.department) allDepartments.add(normalized.department);
+      allEmails.add(normalized.user_email);
+
       if (registryMatch) {
-        const toolId = await ensureTenantTool(
+        const { id: toolId, isNew } = await ensureTenantTool(
           tenant,
           registryMatch,
           transaction
         );
         detectedToolId = toolId;
+
+        if (isNew) {
+          newToolIds.add(toolId);
+          newToolNames.set(toolId, registryMatch.name);
+        }
 
         toolEventCounts.set(
           toolId,
@@ -220,6 +238,23 @@ export async function ingestEvents(req: Request, res: Response) {
           toolUserSets.set(toolId, new Set());
         }
         toolUserSets.get(toolId)!.add(normalized.user_email);
+
+        // Track departments and emails per tool for rule evaluation
+        if (normalized.department) {
+          if (!toolDepartments.has(toolId)) toolDepartments.set(toolId, new Set());
+          toolDepartments.get(toolId)!.add(normalized.department);
+        }
+        if (!toolEmails.has(toolId)) toolEmails.set(toolId, new Set());
+        toolEmails.get(toolId)!.add(normalized.user_email);
+
+        // Track blocked attempts
+        if (normalized.action === "blocked") {
+          blockedAttempts.push({
+            toolId,
+            toolName: registryMatch.name,
+            userEmail: normalized.user_email,
+          });
+        }
       }
 
       processedEvents.push({
@@ -260,6 +295,20 @@ export async function ingestEvents(req: Request, res: Response) {
     logger.debug(
       `✅ Ingested ${insertedCount} shadow AI events for tenant ${tenant.substring(0, 4)}...`
     );
+
+    // Evaluate alert rules asynchronously (don't block the response)
+    evaluateRulesForBatch(tenant, {
+      newToolIds,
+      newToolNames,
+      toolEventCounts,
+      toolDepartments,
+      toolEmails,
+      blockedAttempts,
+      allDepartments,
+      allEmails,
+    }).catch((err) => {
+      logger.error("Rule evaluation failed:", err);
+    });
 
     return res.status(200).json(
       STATUS_CODE[200]({

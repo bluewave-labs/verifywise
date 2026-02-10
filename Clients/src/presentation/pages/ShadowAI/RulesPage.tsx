@@ -22,6 +22,8 @@ import {
   TablePagination,
   TableFooter,
   useTheme,
+  FormControlLabel,
+  Checkbox as MuiCheckbox,
 } from "@mui/material";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
@@ -39,6 +41,7 @@ import {
   deleteRule,
   getAlertHistory,
 } from "../../../application/repository/shadowAi.repository";
+import { getAllUsers } from "../../../application/repository/user.repository";
 import {
   IShadowAiRule,
   IShadowAiAlertHistory,
@@ -102,6 +105,15 @@ export default function RulesPage() {
   const [formActive, setFormActive] = useState(true);
   const [creating, setCreating] = useState(false);
 
+  // Trigger-specific config fields
+  const [formRiskScoreMin, setFormRiskScoreMin] = useState("70");
+  const [formUsageThreshold, setFormUsageThreshold] = useState("100");
+  const [formDepartments, setFormDepartments] = useState("");
+
+  // Notification recipients
+  const [teamMembers, setTeamMembers] = useState<{ id: number; name: string; email: string }[]>([]);
+  const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
+
   // ─── Sorting ───
   const ALERTS_COLUMNS: SortableColumn[] = useMemo(() => [
     { id: "rule_name", label: "Rule" },
@@ -124,6 +136,26 @@ export default function RulesPage() {
   );
 
   const sortedAlerts = useSortedRows(alerts, alertsSortConfig, getAlertValue);
+
+  // Load team members for notification recipients
+  useEffect(() => {
+    const loadMembers = async () => {
+      try {
+        const res = await getAllUsers();
+        const users = res?.data || [];
+        setTeamMembers(
+          users.map((u: any) => ({
+            id: u.id,
+            name: u.name || u.email,
+            email: u.email,
+          }))
+        );
+      } catch {
+        // Silently fail — recipients are optional
+      }
+    };
+    loadMembers();
+  }, []);
 
   // Auto-dismiss toast
   useEffect(() => {
@@ -196,6 +228,24 @@ export default function RulesPage() {
     }
   };
 
+  const buildTriggerConfig = (): Record<string, unknown> => {
+    switch (formTrigger) {
+      case "risk_score_exceeded":
+        return { risk_score_min: parseInt(formRiskScoreMin, 10) || 70 };
+      case "usage_threshold_exceeded":
+        return { event_count_threshold: parseInt(formUsageThreshold, 10) || 100 };
+      case "sensitive_department":
+        return {
+          departments: formDepartments
+            .split(",")
+            .map((d) => d.trim())
+            .filter(Boolean),
+        };
+      default:
+        return {};
+    }
+  };
+
   const handleCreate = async () => {
     if (!formName.trim()) return;
     setCreating(true);
@@ -205,8 +255,9 @@ export default function RulesPage() {
         description: formDescription.trim() || undefined,
         is_active: formActive,
         trigger_type: formTrigger,
-        trigger_config: {},
+        trigger_config: buildTriggerConfig(),
         actions: [{ type: "send_alert" }],
+        notification_user_ids: selectedRecipients.length > 0 ? selectedRecipients : undefined,
       });
       setCreateModalOpen(false);
       resetForm();
@@ -238,6 +289,10 @@ export default function RulesPage() {
     setFormDescription("");
     setFormTrigger("new_tool_detected");
     setFormActive(true);
+    setFormRiskScoreMin("70");
+    setFormUsageThreshold("100");
+    setFormDepartments("");
+    setSelectedRecipients([]);
   };
 
   const theme = useTheme();
@@ -350,6 +405,26 @@ export default function RulesPage() {
                   {rule.description && (
                     <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
                       {rule.description}
+                    </Typography>
+                  )}
+                  {/* Display trigger config summary */}
+                  {rule.trigger_config && Object.keys(rule.trigger_config).length > 0 && (
+                    <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+                      {rule.trigger_type === "risk_score_exceeded" && rule.trigger_config.risk_score_min != null && (
+                        <>Threshold: risk score &ge; {String(rule.trigger_config.risk_score_min)}</>
+                      )}
+                      {rule.trigger_type === "usage_threshold_exceeded" && rule.trigger_config.event_count_threshold != null && (
+                        <>Threshold: {String(rule.trigger_config.event_count_threshold)} events</>
+                      )}
+                      {rule.trigger_type === "sensitive_department" && Array.isArray(rule.trigger_config.departments) && (
+                        <>Departments: {(rule.trigger_config.departments as string[]).join(", ")}</>
+                      )}
+                    </Typography>
+                  )}
+                  {/* Notification recipients */}
+                  {rule.notification_user_ids && rule.notification_user_ids.length > 0 && (
+                    <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+                      Notifies {rule.notification_user_ids.length} user{rule.notification_user_ids.length > 1 ? "s" : ""} (in-app + email)
                     </Typography>
                   )}
                   <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
@@ -519,6 +594,85 @@ export default function RulesPage() {
               name: label,
             }))}
           />
+
+          {/* Trigger-specific config fields */}
+          {formTrigger === "risk_score_exceeded" && (
+            <Field
+              label="Minimum risk score"
+              type="number"
+              value={formRiskScoreMin}
+              onChange={(e) => setFormRiskScoreMin(e.target.value)}
+              placeholder="e.g., 70"
+            />
+          )}
+          {formTrigger === "usage_threshold_exceeded" && (
+            <Field
+              label="Event count threshold"
+              type="number"
+              value={formUsageThreshold}
+              onChange={(e) => setFormUsageThreshold(e.target.value)}
+              placeholder="e.g., 100"
+            />
+          )}
+          {formTrigger === "sensitive_department" && (
+            <Field
+              label="Departments (comma-separated)"
+              value={formDepartments}
+              onChange={(e) => setFormDepartments(e.target.value)}
+              placeholder="e.g., Finance, Legal, HR"
+            />
+          )}
+
+          {/* Notification recipients */}
+          {teamMembers.length > 0 && (
+            <Stack gap="4px">
+              <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                Notify these users
+              </Typography>
+              <Paper
+                elevation={0}
+                sx={{
+                  border: "1px solid #d0d5dd",
+                  borderRadius: "4px",
+                  maxHeight: 160,
+                  overflowY: "auto",
+                  p: "4px 8px",
+                }}
+              >
+                {teamMembers.map((m) => (
+                  <FormControlLabel
+                    key={m.id}
+                    control={
+                      <MuiCheckbox
+                        size="small"
+                        checked={selectedRecipients.includes(m.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedRecipients((prev) => [...prev, m.id]);
+                          } else {
+                            setSelectedRecipients((prev) =>
+                              prev.filter((id) => id !== m.id)
+                            );
+                          }
+                        }}
+                        sx={{ py: 0.5 }}
+                      />
+                    }
+                    label={
+                      <Typography sx={{ fontSize: 13 }}>
+                        {m.name} ({m.email})
+                      </Typography>
+                    }
+                    sx={{ display: "flex", m: 0 }}
+                  />
+                ))}
+              </Paper>
+              <Typography sx={{ fontSize: 11, color: "#9CA3AF" }}>
+                Selected users will receive in-app and email notifications when this rule fires.
+              </Typography>
+            </Stack>
+          )}
+
           <Stack direction="row" alignItems="center" gap="8px">
             <Typography sx={{ fontSize: 13 }}>Active</Typography>
             <Toggle

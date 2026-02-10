@@ -18,7 +18,8 @@ import {
   NotificationType,
   NotificationEntityType,
 } from "../domain.layer/interfaces/i.notification";
-import { insertAlertHistoryQuery } from "../utils/shadowAiRules.utils";
+import { insertAlertHistoryQuery, getActiveRulesQuery } from "../utils/shadowAiRules.utils";
+import { sequelize } from "../database/db";
 import logger from "../utils/logger/fileLogger";
 
 const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
@@ -169,5 +170,170 @@ function buildAlertDescription(
       return `New user "${context.userEmail || "Unknown"}" detected using AI tools in ${context.department || "your organization"}.`;
     default:
       return `Rule "${rule.name}" was triggered.`;
+  }
+}
+
+// ─── Batch Rule Evaluation ──────────────────────────────────────────
+
+export interface BatchContext {
+  newToolIds: Set<number>;
+  newToolNames: Map<number, string>;
+  toolEventCounts: Map<number, number>;
+  toolDepartments: Map<number, Set<string>>;
+  toolEmails: Map<number, Set<string>>;
+  blockedAttempts: { toolId: number; toolName: string; userEmail: string }[];
+  allDepartments: Set<string>;
+  allEmails: Set<string>;
+}
+
+/**
+ * Evaluate all active rules against the ingested batch data.
+ * Called asynchronously after event ingestion completes.
+ */
+export async function evaluateRulesForBatch(
+  tenant: string,
+  batch: BatchContext
+): Promise<void> {
+  let rules: IShadowAiRule[];
+  try {
+    rules = await getActiveRulesQuery(tenant);
+  } catch (error) {
+    logger.debug("Rule evaluation skipped (rules table unavailable)");
+    return;
+  }
+
+  if (rules.length === 0) return;
+
+  const triggered: { rule: IShadowAiRule; context: AlertContext }[] = [];
+
+  for (const rule of rules) {
+    switch (rule.trigger_type) {
+      case "new_tool_detected":
+        // Fire once per newly detected tool
+        for (const toolId of batch.newToolIds) {
+          triggered.push({
+            rule,
+            context: {
+              toolName: batch.newToolNames.get(toolId) || "Unknown",
+              toolId,
+            },
+          });
+        }
+        break;
+
+      case "usage_threshold_exceeded": {
+        const threshold = (rule.trigger_config?.event_count_threshold as number) || 100;
+        for (const [toolId, count] of batch.toolEventCounts) {
+          if (count >= threshold) {
+            triggered.push({
+              rule,
+              context: {
+                toolId,
+                toolName: batch.newToolNames.get(toolId) || `Tool #${toolId}`,
+                eventCount: count,
+                threshold,
+              },
+            });
+          }
+        }
+        break;
+      }
+
+      case "sensitive_department": {
+        const sensitiveList = (rule.trigger_config?.departments as string[]) || [];
+        if (sensitiveList.length === 0) break;
+        const sensitiveSet = new Set(sensitiveList.map((d) => d.toLowerCase()));
+        for (const dept of batch.allDepartments) {
+          if (sensitiveSet.has(dept.toLowerCase())) {
+            triggered.push({
+              rule,
+              context: { department: dept },
+            });
+          }
+        }
+        break;
+      }
+
+      case "blocked_attempt":
+        for (const attempt of batch.blockedAttempts) {
+          triggered.push({
+            rule,
+            context: {
+              toolId: attempt.toolId,
+              toolName: attempt.toolName,
+              userEmail: attempt.userEmail,
+            },
+          });
+        }
+        break;
+
+      case "risk_score_exceeded": {
+        const minScore = (rule.trigger_config?.risk_score_min as number) || 70;
+        // Check risk scores of tools that received events in this batch
+        for (const toolId of batch.toolEventCounts.keys()) {
+          try {
+            const [rows] = await sequelize.query(
+              `SELECT risk_score, name FROM "${tenant}".shadow_ai_tools WHERE id = :toolId`,
+              { replacements: { toolId } }
+            );
+            const tool = (rows as any[])[0];
+            if (tool && tool.risk_score != null && tool.risk_score >= minScore) {
+              triggered.push({
+                rule,
+                context: {
+                  toolId,
+                  toolName: tool.name,
+                  riskScore: tool.risk_score,
+                },
+              });
+            }
+          } catch {
+            // Skip if query fails
+          }
+        }
+        break;
+      }
+
+      case "new_user_detected":
+        // For simplicity, fire for each unique email in the batch.
+        // A production system would track known users and only fire for truly new ones.
+        // For now, this triggers when new events come from users not previously seen.
+        for (const email of batch.allEmails) {
+          try {
+            const [rows] = await sequelize.query(
+              `SELECT COUNT(*) as cnt FROM "${tenant}".shadow_ai_events
+               WHERE user_email = :email AND ingested_at < NOW() - INTERVAL '1 minute'`,
+              { replacements: { email } }
+            );
+            const count = parseInt((rows as any[])[0].cnt, 10);
+            if (count === 0) {
+              // First time seeing this user
+              const deptArr = [...batch.allDepartments];
+              triggered.push({
+                rule,
+                context: {
+                  userEmail: email,
+                  department: deptArr.length > 0 ? deptArr[0] : undefined,
+                },
+              });
+            }
+          } catch {
+            // Skip if query fails
+          }
+        }
+        break;
+    }
+  }
+
+  // Send alerts for all triggered rules
+  if (triggered.length > 0) {
+    logger.debug(`🔔 ${triggered.length} alert(s) triggered for tenant ${tenant.substring(0, 4)}...`);
+    for (const { rule, context } of triggered) {
+      try {
+        await sendRuleAlert(tenant, rule, context);
+      } catch (error) {
+        logger.error(`Failed to send alert for rule ${rule.id}:`, error);
+      }
+    }
   }
 }

@@ -24,6 +24,33 @@ function safeJsonParse<T>(value: unknown, fallback: T): T {
 }
 
 /**
+ * Get all active rules for a tenant.
+ */
+export async function getActiveRulesQuery(
+  tenant: string
+): Promise<IShadowAiRule[]> {
+  const [rows] = await sequelize.query(
+    `SELECT r.*,
+       COALESCE(
+         (SELECT json_agg(rn.user_id)
+          FROM "${tenant}".shadow_ai_rule_notifications rn
+          WHERE rn.rule_id = r.id),
+         '[]'
+       ) as notification_user_ids
+     FROM "${tenant}".shadow_ai_rules r
+     WHERE r.is_active = true
+     ORDER BY r.created_at DESC`
+  );
+
+  return (rows as any[]).map((r) => ({
+    ...r,
+    actions: safeJsonParse(r.actions, []),
+    trigger_config: safeJsonParse(r.trigger_config, {}),
+    notification_user_ids: safeJsonParse(r.notification_user_ids, []),
+  }));
+}
+
+/**
  * Get all rules for a tenant.
  */
 export async function getAllRulesQuery(

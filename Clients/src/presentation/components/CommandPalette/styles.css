@@ -190,6 +190,19 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 10px rgba(123, 154, 122, 0.08);
 }
 
+/* Filter bar */
+.command-filter-bar {
+  --filter-border: #e5e5e5;
+  --filter-bg: #fafafa;
+  --dropdown-bg: #ffffff;
+}
+
+/* Filter option hover state */
+.command-filter-option:focus-visible {
+  outline: 2px solid #007acc;
+  outline-offset: -2px;
+}
+
 /* Custom scrollbar */
 .command-list::-webkit-scrollbar {
   width: 6px;
@@ -398,6 +411,31 @@
 
   .command-list::-webkit-scrollbar-thumb:hover {
     background: #555;
+  }
+
+  /* Filter bar - Dark Mode */
+  .command-filter-bar {
+    --filter-border: #333;
+    --filter-bg: rgba(255, 255, 255, 0.02);
+    --dropdown-bg: #1a1a1a;
+  }
+
+  .command-filter-trigger {
+    color: #999 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .command-filter-trigger:hover {
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .command-filter-option {
+    color: #999 !important;
+  }
+
+  .command-filter-option:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
   }
 
   /* What's New Section - Dark Mode */

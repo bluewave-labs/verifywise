@@ -115,6 +115,8 @@ export interface SearchOptions {
   userId: number;
   limit?: number;
   offset?: number;
+  /** Optional review status filter (e.g. "draft", "pending_review", "approved", "rejected", "expired", "superseded") */
+  reviewStatus?: string;
 }
 
 /**
@@ -132,6 +134,8 @@ interface EntityConfig {
   organizationColumn?: string;
   projectColumn?: string;
   tenantColumn?: string;
+  /** Column name for review_status filtering (if the entity supports it) */
+  reviewStatusColumn?: string;
 }
 
 /**
@@ -163,6 +167,7 @@ const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     icon: "Building2",
     route: (id) => `/vendors?vendorId=${id}`,
     // No project access required - vendors are visible to all users in tenant (matches Vendors page behavior)
+    reviewStatusColumn: "review_status",
   },
   vendor_risks: {
     tableName: "vendor_risks",
@@ -213,6 +218,7 @@ const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     organizationColumn: "org_id",
     // Note: For file manager, we only search org-level files (project_id IS NULL)
     // This is handled via additionalWhereClause in the search query
+    reviewStatusColumn: "review_status",
   },
   policy_manager: {
     tableName: "policy_manager",
@@ -338,31 +344,41 @@ async function searchEntity(
   projectIds: number[],
   vendorIds: number[]
 ): Promise<SearchResult[]> {
-  const { query, tenantId, organizationId, limit = 20 } = options;
+  const { query, tenantId, organizationId, limit = 20, reviewStatus } = options;
+
+  // If a reviewStatus filter is active, skip entities that don't have a review_status column
+  if (reviewStatus && !config.reviewStatusColumn) {
+    return [];
+  }
 
   // Sanitize tenantId and escape query for ILIKE
   const safeTenantId = sanitizeTenantId(tenantId);
-  const escapedQuery = escapeILikePattern(query);
-  const searchPattern = `%${escapedQuery}%`;
+  const hasTextQuery = query && query.trim().length >= SEARCH_CONSTANTS.MIN_QUERY_LENGTH;
 
   // Build WHERE conditions
   const conditions: string[] = [];
-  const replacements: Record<string, any> = { searchPattern };
+  const replacements: Record<string, any> = {};
 
-  // Add ILIKE search conditions
-  if (entityType === "file_manager") {
-    // For file manager, search across filename and key metadata fields.
-    // tags is JSONB, so we cast to text for simple ILIKE matching.
-    const fileSearchConditions = [
-      "filename::text ILIKE :searchPattern",
-      "description::text ILIKE :searchPattern",
-      "review_status::text ILIKE :searchPattern",
-      "expiry_date::text ILIKE :searchPattern",
-      "tags::text ILIKE :searchPattern",
-    ];
-    conditions.push(`(${fileSearchConditions.join(" OR ")})`);
-  } else {
-    conditions.push(`(${buildILikeConditions(config.searchColumns, "searchPattern")})`);
+  // Add ILIKE search conditions only if there is a text query
+  if (hasTextQuery) {
+    const escapedQuery = escapeILikePattern(query);
+    const searchPattern = `%${escapedQuery}%`;
+    replacements.searchPattern = searchPattern;
+
+    if (entityType === "file_manager") {
+      // For file manager, search across filename and key metadata fields.
+      // tags is JSONB, so we cast to text for simple ILIKE matching.
+      const fileSearchConditions = [
+        "filename::text ILIKE :searchPattern",
+        "description::text ILIKE :searchPattern",
+        "review_status::text ILIKE :searchPattern",
+        "expiry_date::text ILIKE :searchPattern",
+        "tags::text ILIKE :searchPattern",
+      ];
+      conditions.push(`(${fileSearchConditions.join(" OR ")})`);
+    } else {
+      conditions.push(`(${buildILikeConditions(config.searchColumns, "searchPattern")})`);
+    }
   }
 
   // Add organization filter if applicable
@@ -406,6 +422,12 @@ async function searchEntity(
     replacements.vendorIds = vendorIds;
   }
 
+  // Add review status exact-match filter if provided
+  if (reviewStatus && config.reviewStatusColumn) {
+    conditions.push(`${config.reviewStatusColumn} = :reviewStatus`);
+    replacements.reviewStatus = reviewStatus;
+  }
+
   // For file_manager searches, only include org-level files (project_id IS NULL)
   if (entityType === "file_manager") {
     conditions.push(`project_id IS NULL`);
@@ -415,9 +437,10 @@ async function searchEntity(
   const safeTableName = validateTableName(config.tableName);
 
   // Build and execute query
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const sql = `
     SELECT DISTINCT * FROM "${safeTenantId}".${safeTableName}
-    WHERE ${conditions.join(" AND ")}
+    ${whereClause}
     LIMIT :limit
   `;
   replacements.limit = Math.min(limit, SEARCH_CONSTANTS.MAX_LIMIT);
@@ -452,10 +475,12 @@ async function searchEntity(
  * Search across all entities
  */
 export async function wiseSearch(options: SearchOptions): Promise<GroupedSearchResults> {
-  const { query, tenantId, userId } = options;
+  const { query, tenantId, userId, reviewStatus } = options;
 
-  // Minimum characters required for search
-  if (!query || query.trim().length < SEARCH_CONSTANTS.MIN_QUERY_LENGTH) {
+  // Minimum characters required for search (skip check if a reviewStatus filter is active)
+  const hasTextQuery = query && query.trim().length >= SEARCH_CONSTANTS.MIN_QUERY_LENGTH;
+  const hasFilter = !!reviewStatus;
+  if (!hasTextQuery && !hasFilter) {
     return {};
   }
 

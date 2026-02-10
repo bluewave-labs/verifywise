@@ -52,6 +52,10 @@ export interface UseWiseSearchReturn {
   removeFromRecent: (timestamp: number) => void;
   /** Whether search mode is active (query >= 3 chars) */
   isSearchMode: boolean;
+  /** Currently selected review status filter (empty string = no filter) */
+  reviewStatus: string;
+  /** Set the review status filter */
+  setReviewStatus: (status: string) => void;
 }
 
 const RECENT_SEARCHES_KEY = "verifywise_recent_searches";
@@ -127,27 +131,30 @@ export function useWiseSearch(): UseWiseSearchReturn {
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>(() => loadRecentSearches());
+  const [reviewStatus, setReviewStatus] = useState("");
 
   // AbortController for canceling in-flight requests
   const abortControllerRef = useRef<AbortController | null>(null);
   // Debounce timer
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Whether we're in search mode (query has enough characters)
-  const isSearchMode = query.trim().length >= MIN_QUERY_LENGTH;
+  // Whether we're in search mode (query has enough characters OR a filter is active)
+  const isSearchMode = query.trim().length >= MIN_QUERY_LENGTH || reviewStatus !== "";
 
   // Flatten results for easier iteration
   const flatResults: SearchResult[] = Object.values(results).flatMap((group) => group.results);
 
   // Perform the actual search
-  const performSearch = useCallback(async (searchQuery: string) => {
+  const performSearch = useCallback(async (searchQuery: string, statusFilter: string) => {
     // Cancel any existing request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
-    // Don't search if query is too short
-    if (searchQuery.trim().length < MIN_QUERY_LENGTH) {
+    // Don't search if query is too short AND no filter is active
+    const hasTextQuery = searchQuery.trim().length >= MIN_QUERY_LENGTH;
+    const hasFilter = !!statusFilter;
+    if (!hasTextQuery && !hasFilter) {
       setResults({});
       setTotalCount(0);
       setError(null);
@@ -162,10 +169,21 @@ export function useWiseSearch(): UseWiseSearchReturn {
     abortControllerRef.current = new AbortController();
 
     try {
+      // Build search params, including optional review status filter
+      const searchParams: Parameters<typeof performWiseSearch>[0] = {
+        q: searchQuery,
+        limit: 20,
+        signal: abortControllerRef.current?.signal,
+      };
+      if (statusFilter) {
+        searchParams.reviewStatus = statusFilter;
+      }
+
       // Perform API search and local policy templates search in parallel
+      // When reviewStatus filter is active, skip local policy templates (they don't have review status)
       const [apiResponse, policyTemplateResults] = await Promise.all([
-        performWiseSearch({ q: searchQuery, limit: 20, signal: abortControllerRef.current?.signal }),
-        Promise.resolve(searchPolicyTemplates(searchQuery)),
+        performWiseSearch(searchParams),
+        statusFilter ? Promise.resolve([]) : Promise.resolve(searchPolicyTemplates(searchQuery)),
       ]);
 
       // Check if this request was aborted
@@ -205,7 +223,7 @@ export function useWiseSearch(): UseWiseSearchReturn {
     }
   }, []);
 
-  // Debounced search effect
+  // Debounced search effect (re-runs when query or reviewStatus changes)
   useEffect(() => {
     // Clear existing timer
     if (debounceTimerRef.current) {
@@ -214,7 +232,7 @@ export function useWiseSearch(): UseWiseSearchReturn {
 
     // Set new debounced search
     debounceTimerRef.current = setTimeout(() => {
-      performSearch(query);
+      performSearch(query, reviewStatus);
     }, DEBOUNCE_MS);
 
     // Cleanup
@@ -223,7 +241,7 @@ export function useWiseSearch(): UseWiseSearchReturn {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [query, performSearch]);
+  }, [query, reviewStatus, performSearch]);
 
   // Add to recent searches
   const addToRecent = useCallback((searchQuery: string) => {
@@ -283,6 +301,8 @@ export function useWiseSearch(): UseWiseSearchReturn {
     addToRecent,
     removeFromRecent,
     isSearchMode,
+    reviewStatus,
+    setReviewStatus,
   };
 }
 

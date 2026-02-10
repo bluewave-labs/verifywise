@@ -703,7 +703,7 @@ async function seedShadowAiDemo() {
       `INSERT INTO "${tenant}".shadow_ai_rules
         (name, description, is_active, trigger_type, trigger_config, actions, created_by, created_at, updated_at)
        VALUES
-        (:name, :description, true, :trigger_type, :trigger_config, :actions, :created_by, NOW(), NOW())
+        (:name, :description, false, :trigger_type, :trigger_config, :actions, :created_by, NOW(), NOW())
        RETURNING id`,
       {
         type: QueryTypes.SELECT,

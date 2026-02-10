@@ -92,14 +92,14 @@ export default function UserActivityPage() {
     { id: "user_email", label: "User" },
     { id: "department", label: "Department" },
     { id: "total_prompts", label: "Total prompts" },
-    { id: "risk_score", label: "Risk score" },
+    { id: "risk_score", label: "Risk score", tooltip: "Calculated nightly (0–100). Weighted: approval status (40%), compliance (25%), usage volume (15%), department sensitivity (20%)." },
   ], []);
   const DEPT_COLUMNS: SortableColumn[] = useMemo(() => [
     { id: "department", label: "Department" },
     { id: "users", label: "Users" },
     { id: "total_prompts", label: "Total prompts" },
     { id: "top_tool", label: "Top tool" },
-    { id: "risk_score", label: "Risk score" },
+    { id: "risk_score", label: "Risk score", tooltip: "Calculated nightly (0–100). Weighted: approval status (40%), compliance (25%), usage volume (15%), department sensitivity (20%)." },
   ], []);
   const DETAIL_TOOLS_COLUMNS: SortableColumn[] = useMemo(() => [
     { id: "tool_name", label: "Tool" },

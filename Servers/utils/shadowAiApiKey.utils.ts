@@ -96,17 +96,18 @@ export async function revokeApiKeyQuery(
   keyId: number,
   transaction?: Transaction
 ): Promise<boolean> {
-  const [, rowCount] = await sequelize.query(
+  const [rows] = await sequelize.query(
     `UPDATE "${tenant}".shadow_ai_api_keys
      SET is_active = false
-     WHERE id = :keyId AND is_active = true`,
+     WHERE id = :keyId AND is_active = true
+     RETURNING id`,
     {
       replacements: { keyId },
       ...(transaction ? { transaction } : {}),
     }
   );
 
-  return (rowCount as number) > 0;
+  return (rows as any[]).length > 0;
 }
 
 /**
@@ -118,16 +119,17 @@ export async function deleteApiKeyQuery(
   keyId: number,
   transaction?: Transaction
 ): Promise<boolean> {
-  const [, rowCount] = await sequelize.query(
+  const [rows] = await sequelize.query(
     `DELETE FROM "${tenant}".shadow_ai_api_keys
-     WHERE id = :keyId AND is_active = false`,
+     WHERE id = :keyId AND is_active = false
+     RETURNING id`,
     {
       replacements: { keyId },
       ...(transaction ? { transaction } : {}),
     }
   );
 
-  return (rowCount as number) > 0;
+  return (rows as any[]).length > 0;
 }
 
 /**

@@ -88,6 +88,7 @@ export default function SettingsPage() {
       <SyslogConfigSection />
       <RateLimitSection settings={settings} loading={settingsLoading} onSettingsUpdate={setSettings} />
       <DataRetentionSection settings={settings} loading={settingsLoading} onSettingsUpdate={setSettings} />
+      <RiskScoreSection />
     </Stack>
   );
 }
@@ -878,6 +879,53 @@ function DataRetentionSection({
           />
         </Stack>
       )}
+    </Stack>
+  );
+}
+
+// ─── Risk Score Explanation ──────────────────────────────────────────
+
+const RISK_WEIGHTS = [
+  { factor: "Approval status", weight: "40%", description: "Unapproved tools (not in model inventory or not approved) receive the maximum score for this factor." },
+  { factor: "Data & compliance", weight: "25%", description: "Based on whether the tool trains on user data, has SOC 2 certification, GDPR compliance, SSO support, and encryption at rest." },
+  { factor: "Usage volume", weight: "15%", description: "Normalized against the organization average. Higher-than-average usage increases the score, capped at 100." },
+  { factor: "Department sensitivity", weight: "20%", description: "Uses the highest sensitivity score among departments accessing the tool. Finance, Legal, and HR are rated highest (80)." },
+];
+
+function RiskScoreSection() {
+  return (
+    <Stack gap="16px">
+      <Typography sx={sectionTitleSx}>Risk score calculation</Typography>
+      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+        Each AI tool receives a risk score from 0 to 100, recalculated nightly. The score is a weighted composite of four factors:
+      </Typography>
+      <Stack gap="8px">
+        {RISK_WEIGHTS.map((w) => (
+          <Stack
+            key={w.factor}
+            direction="row"
+            gap="12px"
+            sx={{
+              p: "12px 16px",
+              border: "1px solid #d0d5dd",
+              borderRadius: "4px",
+              alignItems: "flex-start",
+            }}
+          >
+            <Typography sx={{ fontSize: 13, fontWeight: 600, minWidth: 36, color: "#13715B" }}>
+              {w.weight}
+            </Typography>
+            <Stack gap="2px">
+              <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                {w.factor}
+              </Typography>
+              <Typography sx={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
+                {w.description}
+              </Typography>
+            </Stack>
+          </Stack>
+        ))}
+      </Stack>
     </Stack>
   );
 }

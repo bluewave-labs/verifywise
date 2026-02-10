@@ -238,15 +238,15 @@ export async function deleteRuleQuery(
   ruleId: number,
   transaction?: Transaction
 ): Promise<boolean> {
-  const [, rowCount] = await sequelize.query(
-    `DELETE FROM "${tenant}".shadow_ai_rules WHERE id = :ruleId`,
+  const [rows] = await sequelize.query(
+    `DELETE FROM "${tenant}".shadow_ai_rules WHERE id = :ruleId RETURNING id`,
     {
       replacements: { ruleId },
       ...(transaction ? { transaction } : {}),
     }
   );
 
-  return (rowCount as number) > 0;
+  return (rows as any[]).length > 0;
 }
 
 /**

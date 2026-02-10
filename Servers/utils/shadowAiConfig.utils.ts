@@ -109,15 +109,16 @@ export async function deleteSyslogConfigQuery(
   configId: number,
   transaction?: Transaction
 ): Promise<boolean> {
-  const [, rowCount] = await sequelize.query(
-    `DELETE FROM "${tenant}".shadow_ai_syslog_config WHERE id = :configId`,
+  const [rows] = await sequelize.query(
+    `DELETE FROM "${tenant}".shadow_ai_syslog_config WHERE id = :configId
+     RETURNING id`,
     {
       replacements: { configId },
       ...(transaction ? { transaction } : {}),
     }
   );
 
-  return (rowCount as number) > 0;
+  return (rows as any[]).length > 0;
 }
 
 // ─── Settings ──────────────────────────────────────────────────────

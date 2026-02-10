@@ -30,7 +30,7 @@ const Alert = React.lazy(() => import("../../components/Alert"));
 import Toggle from "../../components/Inputs/Toggle";
 import Chip from "../../components/Chip";
 import TabContext from "@mui/lab/TabContext";
-import { Trash2 } from "lucide-react";
+import { Trash2, Info } from "lucide-react";
 import TabBar from "../../components/TabBar";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -41,7 +41,7 @@ import {
   deleteRule,
   getAlertHistory,
 } from "../../../application/repository/shadowAi.repository";
-import { getAllUsers } from "../../../application/repository/user.repository";
+import { useAuth } from "../../../application/hooks/useAuth";
 import {
   IShadowAiRule,
   IShadowAiAlertHistory,
@@ -110,9 +110,12 @@ export default function RulesPage() {
   const [formUsageThreshold, setFormUsageThreshold] = useState("100");
   const [formDepartments, setFormDepartments] = useState("");
 
-  // Notification recipients
-  const [teamMembers, setTeamMembers] = useState<{ id: number; name: string; email: string }[]>([]);
-  const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
+  // Notification
+  const { userId } = useAuth();
+  const [notifyMe, setNotifyMe] = useState(true);
+
+  // Form validation errors
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // ─── Sorting ───
   const ALERTS_COLUMNS: SortableColumn[] = useMemo(() => [
@@ -136,26 +139,6 @@ export default function RulesPage() {
   );
 
   const sortedAlerts = useSortedRows(alerts, alertsSortConfig, getAlertValue);
-
-  // Load team members for notification recipients
-  useEffect(() => {
-    const loadMembers = async () => {
-      try {
-        const res = await getAllUsers();
-        const users = res?.data || [];
-        setTeamMembers(
-          users.map((u: any) => ({
-            id: u.id,
-            name: u.name || u.email,
-            email: u.email,
-          }))
-        );
-      } catch {
-        // Silently fail — recipients are optional
-      }
-    };
-    loadMembers();
-  }, []);
 
   // Auto-dismiss toast
   useEffect(() => {
@@ -246,10 +229,38 @@ export default function RulesPage() {
     }
   };
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!formName.trim()) {
+      errors.name = "Rule name is required";
+    }
+    if (formTrigger === "risk_score_exceeded") {
+      const val = parseInt(formRiskScoreMin, 10);
+      if (isNaN(val) || val < 1 || val > 100) {
+        errors.riskScoreMin = "Enter a value between 1 and 100";
+      }
+    }
+    if (formTrigger === "usage_threshold_exceeded") {
+      const val = parseInt(formUsageThreshold, 10);
+      if (isNaN(val) || val < 1) {
+        errors.usageThreshold = "Enter a positive number";
+      }
+    }
+    if (formTrigger === "sensitive_department") {
+      const depts = formDepartments.split(",").map((d) => d.trim()).filter(Boolean);
+      if (depts.length === 0) {
+        errors.departments = "Enter at least one department";
+      }
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleCreate = async () => {
-    if (!formName.trim()) return;
+    if (!validateForm()) return;
     setCreating(true);
     try {
+      const recipientIds = notifyMe && userId ? [userId] : [];
       await createRule({
         name: formName.trim(),
         description: formDescription.trim() || undefined,
@@ -257,7 +268,7 @@ export default function RulesPage() {
         trigger_type: formTrigger,
         trigger_config: buildTriggerConfig(),
         actions: [{ type: "send_alert" }],
-        notification_user_ids: selectedRecipients.length > 0 ? selectedRecipients : undefined,
+        notification_user_ids: recipientIds.length > 0 ? recipientIds : undefined,
       });
       setCreateModalOpen(false);
       resetForm();
@@ -292,7 +303,8 @@ export default function RulesPage() {
     setFormRiskScoreMin("70");
     setFormUsageThreshold("100");
     setFormDepartments("");
-    setSelectedRecipients([]);
+    setNotifyMe(true);
+    setFormErrors({});
   };
 
   const theme = useTheme();
@@ -421,10 +433,10 @@ export default function RulesPage() {
                       )}
                     </Typography>
                   )}
-                  {/* Notification recipients */}
+                  {/* Notification */}
                   {rule.notification_user_ids && rule.notification_user_ids.length > 0 && (
                     <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
-                      Notifies {rule.notification_user_ids.length} user{rule.notification_user_ids.length > 1 ? "s" : ""} (in-app + email)
+                      Notifies via in-app + email
                     </Typography>
                   )}
                   <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
@@ -573,8 +585,12 @@ export default function RulesPage() {
           <Field
             label="Rule name"
             value={formName}
-            onChange={(e) => setFormName(e.target.value)}
+            onChange={(e) => {
+              setFormName(e.target.value);
+              if (formErrors.name) setFormErrors((prev) => ({ ...prev, name: "" }));
+            }}
             placeholder="e.g., Alert on new AI tools"
+            error={formErrors.name}
           />
           <Field
             label="Description"
@@ -586,9 +602,10 @@ export default function RulesPage() {
             id="trigger-type-select"
             label="Trigger type"
             value={formTrigger}
-            onChange={(e: SelectChangeEvent<string | number>) =>
-              setFormTrigger(e.target.value as ShadowAiTriggerType)
-            }
+            onChange={(e: SelectChangeEvent<string | number>) => {
+              setFormTrigger(e.target.value as ShadowAiTriggerType);
+              setFormErrors({});
+            }}
             items={Object.entries(TRIGGER_LABELS).map(([value, label]) => ({
               _id: value,
               name: label,
@@ -597,81 +614,77 @@ export default function RulesPage() {
 
           {/* Trigger-specific config fields */}
           {formTrigger === "risk_score_exceeded" && (
-            <Field
-              label="Minimum risk score"
-              type="number"
-              value={formRiskScoreMin}
-              onChange={(e) => setFormRiskScoreMin(e.target.value)}
-              placeholder="e.g., 70"
-            />
+            <Stack gap="6px">
+              <Field
+                label="Minimum risk score"
+                type="number"
+                value={formRiskScoreMin}
+                onChange={(e) => {
+                  setFormRiskScoreMin(e.target.value);
+                  if (formErrors.riskScoreMin) setFormErrors((prev) => ({ ...prev, riskScoreMin: "" }));
+                }}
+                placeholder="e.g., 70"
+                error={formErrors.riskScoreMin}
+              />
+              <Stack direction="row" alignItems="flex-start" gap="6px" sx={{ p: "8px 12px", bgcolor: "#F9FAFB", borderRadius: "4px", border: "1px solid #E5E7EB" }}>
+                <Info size={14} strokeWidth={1.5} color="#6B7280" style={{ marginTop: 2, flexShrink: 0 }} />
+                <Typography sx={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
+                  Risk score (0–100) is calculated nightly using a weighted formula: approval status (40%), data &amp; compliance policies (25%), usage volume (15%), and department sensitivity (20%). Unapproved tools with weak compliance posture in sensitive departments score highest.
+                </Typography>
+              </Stack>
+            </Stack>
           )}
           {formTrigger === "usage_threshold_exceeded" && (
-            <Field
-              label="Event count threshold"
-              type="number"
-              value={formUsageThreshold}
-              onChange={(e) => setFormUsageThreshold(e.target.value)}
-              placeholder="e.g., 100"
-            />
+            <Stack gap="6px">
+              <Field
+                label="Event count threshold"
+                type="number"
+                value={formUsageThreshold}
+                onChange={(e) => {
+                  setFormUsageThreshold(e.target.value);
+                  if (formErrors.usageThreshold) setFormErrors((prev) => ({ ...prev, usageThreshold: "" }));
+                }}
+                placeholder="e.g., 100"
+                error={formErrors.usageThreshold}
+              />
+              <Stack direction="row" alignItems="flex-start" gap="6px" sx={{ p: "8px 12px", bgcolor: "#F9FAFB", borderRadius: "4px", border: "1px solid #E5E7EB" }}>
+                <Info size={14} strokeWidth={1.5} color="#6B7280" style={{ marginTop: 2, flexShrink: 0 }} />
+                <Typography sx={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
+                  This is the cumulative number of network events (API calls, page visits) recorded for a single AI tool across all users. For example, a threshold of 100 means the alert fires once a tool has been accessed 100 times total.
+                </Typography>
+              </Stack>
+            </Stack>
           )}
           {formTrigger === "sensitive_department" && (
             <Field
               label="Departments (comma-separated)"
               value={formDepartments}
-              onChange={(e) => setFormDepartments(e.target.value)}
+              onChange={(e) => {
+                setFormDepartments(e.target.value);
+                if (formErrors.departments) setFormErrors((prev) => ({ ...prev, departments: "" }));
+              }}
               placeholder="e.g., Finance, Legal, HR"
+              error={formErrors.departments}
             />
           )}
 
-          {/* Notification recipients */}
-          {teamMembers.length > 0 && (
-            <Stack gap="4px">
-              <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                Notify these users
+          {/* Notification */}
+          <FormControlLabel
+            control={
+              <MuiCheckbox
+                size="small"
+                checked={notifyMe}
+                onChange={(e) => setNotifyMe(e.target.checked)}
+                sx={{ py: 0.5 }}
+              />
+            }
+            label={
+              <Typography sx={{ fontSize: 13 }}>
+                Notify me when this rule fires (in-app + email)
               </Typography>
-              <Paper
-                elevation={0}
-                sx={{
-                  border: "1px solid #d0d5dd",
-                  borderRadius: "4px",
-                  maxHeight: 160,
-                  overflowY: "auto",
-                  p: "4px 8px",
-                }}
-              >
-                {teamMembers.map((m) => (
-                  <FormControlLabel
-                    key={m.id}
-                    control={
-                      <MuiCheckbox
-                        size="small"
-                        checked={selectedRecipients.includes(m.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedRecipients((prev) => [...prev, m.id]);
-                          } else {
-                            setSelectedRecipients((prev) =>
-                              prev.filter((id) => id !== m.id)
-                            );
-                          }
-                        }}
-                        sx={{ py: 0.5 }}
-                      />
-                    }
-                    label={
-                      <Typography sx={{ fontSize: 13 }}>
-                        {m.name} ({m.email})
-                      </Typography>
-                    }
-                    sx={{ display: "flex", m: 0 }}
-                  />
-                ))}
-              </Paper>
-              <Typography sx={{ fontSize: 11, color: "#9CA3AF" }}>
-                Selected users will receive in-app and email notifications when this rule fires.
-              </Typography>
-            </Stack>
-          )}
+            }
+            sx={{ m: 0 }}
+          />
 
           <Stack direction="row" alignItems="center" gap="8px">
             <Typography sx={{ fontSize: 13 }}>Active</Typography>

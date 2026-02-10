@@ -9,8 +9,9 @@ import {
   TableCell,
   Box,
   Typography,
+  Tooltip,
 } from "@mui/material";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, Info } from "lucide-react";
 import singleTheme from "../../themes/v1SingleTheme";
 
 /** Period filter options shared by InsightsPage and UserActivityPage. */
@@ -38,6 +39,7 @@ export interface SortableColumn {
   id: string;
   label: string;
   sortable?: boolean;
+  tooltip?: string;
 }
 
 /**
@@ -145,6 +147,20 @@ export function SortableTableHead({
               >
                 {col.label}
               </Typography>
+              {col.tooltip && (
+                <Tooltip
+                  title={col.tooltip}
+                  arrow
+                  placement="top"
+                  slotProps={{
+                    tooltip: { sx: { maxWidth: 280, fontSize: 12, lineHeight: 1.5 } },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", cursor: "help" }} onClick={(e) => e.stopPropagation()}>
+                    <Info size={13} strokeWidth={1.5} color="#9CA3AF" />
+                  </Box>
+                </Tooltip>
+              )}
               {col.sortable !== false && (
                 <Box
                   sx={{

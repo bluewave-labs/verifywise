@@ -9,7 +9,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   Stack,
   Typography,
-  Paper,
   Skeleton,
   SelectChangeEvent,
   Box,
@@ -23,11 +22,11 @@ import {
   TablePagination,
   TableFooter,
   useTheme,
+  Tooltip,
 } from "@mui/material";
 import Chip from "../../components/Chip";
 import {
   ArrowLeft,
-  Globe,
   Bot,
 } from "lucide-react";
 import { PROVIDER_ICONS, VENDOR_ICON_MAP } from "../../components/ProviderIcons";
@@ -113,7 +112,7 @@ export default function AIToolsPage() {
     { id: "status", label: "Status" },
     { id: "total_users", label: "Users" },
     { id: "total_events", label: "Events" },
-    { id: "risk_score", label: "Risk score" },
+    { id: "risk_score", label: "Risk score", tooltip: "Calculated nightly (0–100). Weighted formula: approval status (40%), data & compliance policies (25%), usage volume (15%), department sensitivity (20%)." },
     { id: "last_seen_at", label: "Last seen" },
   ], []);
 
@@ -278,11 +277,20 @@ export default function AIToolsPage() {
                 count={selectedTool.total_events}
                 disableNavigation
               />
-              <DashboardHeaderCard
-                title="Risk score"
-                count={selectedTool.risk_score ?? "—"}
-                disableNavigation
-              />
+              <Tooltip
+                title="Calculated nightly (0–100). Weighted formula: approval status (40%), data & compliance policies (25%), usage volume (15%), department sensitivity (20%)."
+                arrow
+                placement="bottom"
+                slotProps={{ tooltip: { sx: { maxWidth: 280, fontSize: 12, lineHeight: 1.5 } } }}
+              >
+                <Box>
+                  <DashboardHeaderCard
+                    title="Risk score"
+                    count={selectedTool.risk_score ?? "—"}
+                    disableNavigation
+                  />
+                </Box>
+              </Tooltip>
               <DashboardHeaderCard
                 title="First detected"
                 count={
@@ -303,87 +311,47 @@ export default function AIToolsPage() {
               />
             </Box>
 
-            {/* Tool details card */}
-            <Paper
-              elevation={0}
-              sx={{ p: 2, border: "1px solid #d0d5dd", borderRadius: "4px" }}
-            >
-              <Stack gap="16px">
-                {/* Domains */}
-                {selectedTool.domains?.length > 0 && (
-                  <Stack gap="4px">
-                    <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
-                      Domains
-                    </Typography>
-                    <Stack direction="row" gap="4px" flexWrap="wrap">
-                      {selectedTool.domains.map((d) => (
-                        <Stack
-                          key={d}
-                          direction="row"
-                          alignItems="center"
-                          gap="4px"
-                          sx={{
-                            display: "inline-flex",
-                            height: 24,
-                            px: 1,
-                            borderRadius: "4px",
-                            border: "1px solid #d0d5dd",
-                            backgroundColor: "#F9FAFB",
-                            fontSize: 11,
-                            color: "#374151",
-                          }}
-                        >
-                          <Globe size={12} />
-                          {d}
-                        </Stack>
-                      ))}
-                    </Stack>
-                  </Stack>
-                )}
+            {/* Status change */}
+            <Stack direction="row" alignItems="center" gap="8px">
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+                Status:
+              </Typography>
+              <Select
+                id="tool-status-select"
+                value={selectedTool.status}
+                onChange={(e: SelectChangeEvent<string | number>) =>
+                  handleStatusChange(
+                    selectedTool.id,
+                    e.target.value as ShadowAiToolStatus
+                  )
+                }
+                items={Object.entries(STATUS_CONFIG).map(([key, val]) => ({
+                  _id: key,
+                  name: val.label,
+                }))}
+                sx={{ width: 160 }}
+              />
 
-                {/* Status change */}
-                <Stack direction="row" alignItems="center" gap="8px">
-                  <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
-                    Change status:
-                  </Typography>
-                  <Select
-                    id="tool-status-select"
-                    value={selectedTool.status}
-                    onChange={(e: SelectChangeEvent<string | number>) =>
-                      handleStatusChange(
-                        selectedTool.id,
-                        e.target.value as ShadowAiToolStatus
-                      )
-                    }
-                    items={Object.entries(STATUS_CONFIG).map(([key, val]) => ({
-                      _id: key,
-                      name: val.label,
-                    }))}
-                    sx={{ width: 160 }}
-                  />
-
-                  {!selectedTool.model_inventory_id && (
-                    <CustomizableButton
-                      text="Start governance"
-                      variant="contained"
-                      sx={{
-                        backgroundColor: "#13715B",
-                        "&:hover": { backgroundColor: "#0F5A47" },
-                        height: 30,
-                        fontSize: 12,
-                      }}
-                      onClick={() => setGovernanceModalOpen(true)}
-                    />
-                  )}
-                  {selectedTool.model_inventory_id && (
-                    <Chip
-                      label="Governed"
-                      size="small"
-                    />
-                  )}
-                </Stack>
-              </Stack>
-            </Paper>
+              {!selectedTool.model_inventory_id && (
+                <CustomizableButton
+                  text="Start governance"
+                  variant="contained"
+                  sx={{
+                    backgroundColor: "#13715B",
+                    "&:hover": { backgroundColor: "#0F5A47" },
+                    height: 30,
+                    fontSize: 12,
+                  }}
+                  onClick={() => setGovernanceModalOpen(true)}
+                />
+              )}
+              {selectedTool.model_inventory_id && (
+                <Chip
+                  label="Governed"
+                  size="small"
+                />
+              )}
+            </Stack>
 
             {/* Governance wizard modal */}
             <GovernanceWizardModal

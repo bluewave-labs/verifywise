@@ -673,7 +673,7 @@ async function seedShadowAiDemo() {
     {
       name: "New AI tool alert",
       description:
-        "Fires when a previously unseen AI tool is detected in network traffic.",
+        "Triggers an alert whenever a previously unseen AI tool or service is detected in outbound network traffic. This helps the security team stay aware of new tools being adopted across the organization before they can be formally evaluated for compliance and data handling risks.",
       trigger_type: "new_tool_detected",
       trigger_config: {},
       actions: { notify: true, create_alert: true },
@@ -681,7 +681,7 @@ async function seedShadowAiDemo() {
     {
       name: "High risk tool alert",
       description:
-        "Fires when a detected tool has a risk score above the configured threshold.",
+        "Triggers an alert when any detected AI tool exceeds the configured risk score threshold (currently set to 70). Risk scores are calculated based on factors such as data retention policies, encryption standards, SOC 2 / GDPR compliance status, and whether the tool trains on user-submitted data.",
       trigger_type: "risk_score_exceeded",
       trigger_config: { risk_score_min: 70 },
       actions: { notify: true, create_alert: true, auto_block: false },
@@ -689,7 +689,7 @@ async function seedShadowAiDemo() {
     {
       name: "Sensitive department usage",
       description:
-        "Fires when employees in sensitive departments use shadow AI tools.",
+        "Triggers an alert when employees in departments that handle confidential or regulated data (Finance, Legal, HR) are detected using unapproved AI tools. These departments often process PII, financial records, and privileged legal information that could be exposed through unvetted AI services.",
       trigger_type: "sensitive_department",
       trigger_config: { departments: ["Finance", "Legal", "HR"] },
       actions: { notify: true, create_alert: true },

@@ -236,20 +236,21 @@ export default function RulesPage() {
                 key={rule.id}
                 elevation={0}
                 sx={{
-                  p: 2,
+                  p: "16px",
                   border: "1px solid #d0d5dd",
                   borderRadius: "4px",
                   opacity: rule.is_active ? 1 : 0.6,
+                  transition: "opacity 0.2s ease",
                 }}
               >
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="flex-start"
-                >
-                  <Stack gap="4px" flex={1}>
+                <Stack gap="12px">
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
                     <Stack direction="row" alignItems="center" gap="8px">
-                      <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
+                      <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
                         {rule.name}
                       </Typography>
                       <Chip
@@ -261,34 +262,34 @@ export default function RulesPage() {
                         uppercase={false}
                       />
                     </Stack>
-                    {rule.description && (
-                      <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
-                        {rule.description}
-                      </Typography>
-                    )}
-                    <Typography sx={{ fontSize: 11, color: "#9CA3AF" }}>
-                      Actions:{" "}
-                      {Array.isArray(rule.actions)
-                        ? rule.actions.map((a: { type: string }) => a.type.replace(/_/g, " ")).join(", ")
-                        : rule.actions && typeof rule.actions === "object"
-                          ? Object.keys(rule.actions).map((k) => k.replace(/_/g, " ")).join(", ")
-                          : "None"}
+                    <Stack direction="row" alignItems="center" gap="4px">
+                      <Toggle
+                        checked={rule.is_active}
+                        onChange={() => handleToggleActive(rule)}
+                        size="small"
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={() => setDeleteTarget(rule)}
+                        sx={{ color: "#DC2626" }}
+                      >
+                        <Trash2 size={14} strokeWidth={1.5} />
+                      </IconButton>
+                    </Stack>
+                  </Stack>
+                  {rule.description && (
+                    <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+                      {rule.description}
                     </Typography>
-                  </Stack>
-                  <Stack direction="row" alignItems="center" gap="8px">
-                    <Toggle
-                      checked={rule.is_active}
-                      onChange={() => handleToggleActive(rule)}
-                      size="small"
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() => setDeleteTarget(rule)}
-                      sx={{ color: "#DC2626" }}
-                    >
-                      <Trash2 size={14} strokeWidth={1.5} />
-                    </IconButton>
-                  </Stack>
+                  )}
+                  <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+                    Actions:{" "}
+                    {Array.isArray(rule.actions)
+                      ? rule.actions.map((a: { type: string }) => a.type.replace(/_/g, " ")).join(", ")
+                      : rule.actions && typeof rule.actions === "object"
+                        ? Object.keys(rule.actions).map((k) => k.replace(/_/g, " ")).join(", ")
+                        : "None"}
+                  </Typography>
                 </Stack>
               </Paper>
             ))}

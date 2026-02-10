@@ -50,7 +50,6 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import { DashboardCard } from "../../components/Cards/DashboardCard";
 import { useNavigate } from "react-router-dom";
-import RiskBadge from "../../components/RiskBadge";
 
 const PERIOD_OPTIONS = [
   { _id: "7d", name: "Last 7 days" },
@@ -181,7 +180,9 @@ export default function InsightsPage() {
                     justifyContent="space-between"
                   >
                     <Stack direction="row" alignItems="center" gap="12px">
-                      <RiskBadge score={tool.risk_score ?? 0} />
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                        {tool.risk_score ?? 0}
+                      </Typography>
                       <Typography sx={{ fontSize: 13, color: "#374151" }}>
                         {tool.name}
                       </Typography>
@@ -294,7 +295,7 @@ export default function InsightsPage() {
                       contentStyle={{ fontSize: 12, borderRadius: 4 }}
                       formatter={(value: number) => [value, "Events"]}
                     />
-                    <Bar dataKey="event_count" fill="#6366F1" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="event_count" fill="#13715B" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
                 <CustomizableButton
@@ -340,7 +341,7 @@ export default function InsightsPage() {
                     contentStyle={{ fontSize: 12, borderRadius: 4 }}
                     formatter={(value: number) => [value, "Users"]}
                   />
-                  <Bar dataKey="user_count" fill="#6366F1" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="user_count" fill="#13715B" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

@@ -23,8 +23,34 @@ import {
 } from "../services/shadowAiToolMatcher.service";
 import { extractModel } from "../services/shadowAiModelExtractor.service";
 import { ShadowAiIngestionRequest } from "../domain.layer/interfaces/i.shadowAi";
+import { getSettingsQuery } from "../utils/shadowAiConfig.utils";
 
 const MAX_EVENTS_PER_REQUEST = 10000;
+
+// ─── In-memory sliding window rate limiter ─────────────────────────────
+// Tracks event counts per tenant per hour window. Resets every hour.
+const rateLimitBuckets = new Map<string, { count: number; windowStart: number }>();
+
+function checkRateLimit(tenant: string, maxPerHour: number, batchSize: number): boolean {
+  if (maxPerHour <= 0) return true; // 0 = no limit
+
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000; // 1 hour
+  const bucket = rateLimitBuckets.get(tenant);
+
+  if (!bucket || now - bucket.windowStart >= windowMs) {
+    // New window
+    rateLimitBuckets.set(tenant, { count: batchSize, windowStart: now });
+    return batchSize <= maxPerHour;
+  }
+
+  if (bucket.count + batchSize > maxPerHour) {
+    return false;
+  }
+
+  bucket.count += batchSize;
+  return true;
+}
 
 /**
  * POST /api/v1/shadow-ai/events
@@ -77,6 +103,23 @@ export async function ingestEvents(req: Request, res: Response) {
       );
   }
 
+  // Check rate limit from tenant settings
+  try {
+    const settings = await getSettingsQuery(tenant);
+    if (!checkRateLimit(tenant, settings.rate_limit_max_events_per_hour, body.events.length)) {
+      return res
+        .status(429)
+        .json(
+          STATUS_CODE[429](
+            `Rate limit exceeded: max ${settings.rate_limit_max_events_per_hour} events/hour`
+          )
+        );
+    }
+  } catch (error) {
+    // If settings table doesn't exist yet, skip rate limiting
+    logger.debug("Rate limit check skipped (settings unavailable)");
+  }
+
   // Validate required fields and basic formats
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   for (let i = 0; i < body.events.length; i++) {
@@ -110,7 +153,24 @@ export async function ingestEvents(req: Request, res: Response) {
     const toolEventCounts = new Map<number, number>();
     const toolUserSets = new Map<number, Set<string>>();
 
-    // Process each event through the pipeline
+    // Normalize all events first
+    const normalizedEvents = body.events.map(normalizeEvent);
+
+    // Step 1: Parallelize domain matching and model extraction
+    // matchDomain and extractModel are read-only lookups (no DB writes)
+    const matchResults = await Promise.all(
+      normalizedEvents.map(async (normalized) => {
+        const [registryMatch, model] = await Promise.all([
+          matchDomain(normalized.destination),
+          normalized.uri_path
+            ? extractModel(normalized.destination, normalized.uri_path)
+            : Promise.resolve(null),
+        ]);
+        return { registryMatch, model };
+      })
+    );
+
+    // Step 2: Process results sequentially (ensureTenantTool does DB writes)
     const processedEvents: Array<{
       user_email: string;
       destination: string;
@@ -125,15 +185,13 @@ export async function ingestEvents(req: Request, res: Response) {
       manager_email?: string;
     }> = [];
 
-    for (const rawEvent of body.events) {
-      const normalized = normalizeEvent(rawEvent);
+    for (let i = 0; i < normalizedEvents.length; i++) {
+      const normalized = normalizedEvents[i];
+      const { registryMatch, model } = matchResults[i];
 
-      // Step 1: Match domain against tool registry
       let detectedToolId: number | undefined;
-      const registryMatch = await matchDomain(normalized.destination);
 
       if (registryMatch) {
-        // Step 2: Ensure tool exists in tenant's table
         const toolId = await ensureTenantTool(
           tenant,
           registryMatch,
@@ -141,7 +199,6 @@ export async function ingestEvents(req: Request, res: Response) {
         );
         detectedToolId = toolId;
 
-        // Track for batch counter updates
         toolEventCounts.set(
           toolId,
           (toolEventCounts.get(toolId) || 0) + 1
@@ -152,16 +209,6 @@ export async function ingestEvents(req: Request, res: Response) {
         toolUserSets.get(toolId)!.add(normalized.user_email);
       }
 
-      // Step 3: Extract model from URI path
-      let detectedModel: string | undefined;
-      if (normalized.uri_path) {
-        const model = await extractModel(
-          normalized.destination,
-          normalized.uri_path
-        );
-        if (model) detectedModel = model;
-      }
-
       processedEvents.push({
         user_email: normalized.user_email,
         destination: normalized.destination,
@@ -169,7 +216,7 @@ export async function ingestEvents(req: Request, res: Response) {
         http_method: normalized.http_method,
         action: normalized.action,
         detected_tool_id: detectedToolId,
-        detected_model: detectedModel,
+        detected_model: model || undefined,
         event_timestamp: normalized.event_timestamp,
         department: normalized.department,
         job_title: normalized.job_title,

@@ -156,6 +156,18 @@ export interface IShadowAiAlertHistory {
   fired_at?: string;
 }
 
+// ─── Settings ───────────────────────────────────────────────────────
+
+export interface IShadowAiSettings {
+  id: number;
+  rate_limit_max_events_per_hour: number;
+  retention_events_days: number;
+  retention_daily_rollups_days: number;
+  retention_alert_history_days: number;
+  updated_at?: string;
+  updated_by?: number;
+}
+
 // ─── Governance Wizard ──────────────────────────────────────────────
 
 export interface ShadowAiGovernanceRequest {

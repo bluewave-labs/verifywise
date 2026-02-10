@@ -22,6 +22,7 @@ import {
   ShadowAiGovernanceRequest,
   ShadowAiGovernanceResult,
   ShadowAiToolStatus,
+  IShadowAiSettings,
 } from "../../domain/interfaces/i.shadowAi";
 
 const BASE_URL = "/shadow-ai";
@@ -328,4 +329,30 @@ export async function updateSyslogConfig(
 
 export async function deleteSyslogConfig(id: number): Promise<void> {
   await apiServices.delete(`${BASE_URL}/config/syslog/${id}`);
+}
+
+// ============================================================================
+// Settings (Rate Limiting & Data Retention)
+// ============================================================================
+
+export async function getSettingsConfig(): Promise<IShadowAiSettings> {
+  const response = await apiServices.get<{ data: IShadowAiSettings }>(
+    `${BASE_URL}/settings`
+  );
+  return response.data.data;
+}
+
+export async function updateSettingsConfig(
+  updates: Partial<Pick<IShadowAiSettings,
+    "rate_limit_max_events_per_hour" |
+    "retention_events_days" |
+    "retention_daily_rollups_days" |
+    "retention_alert_history_days"
+  >>
+): Promise<IShadowAiSettings> {
+  const response = await apiServices.patch<{ data: IShadowAiSettings }>(
+    `${BASE_URL}/settings`,
+    updates
+  );
+  return response.data.data;
 }

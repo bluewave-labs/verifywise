@@ -44,6 +44,8 @@ import {
   createSyslogConfigQuery,
   updateSyslogConfigQuery,
   deleteSyslogConfigQuery,
+  getSettingsQuery,
+  updateSettingsQuery,
 } from "../utils/shadowAiConfig.utils";
 import { ShadowAiToolStatus } from "../domain.layer/interfaces/i.shadowAi";
 
@@ -703,6 +705,60 @@ export async function deleteSyslogConfig(req: Request, res: Response) {
     return res.status(200).json(STATUS_CODE[200]("Syslog config deleted successfully"));
   } catch (error) {
     await logFailure({ eventType: "Delete", description: "failed to delete syslog config", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+// ─── Settings (Rate Limiting & Data Retention) ──────────────────────────
+
+export async function getSettings(req: Request, res: Response) {
+  const fn = "getSettings";
+  const userId = req.userId!;
+  const tenantId = req.tenantId!;
+
+  logProcessing({ description: "fetching settings", functionName: fn, fileName: FILE_NAME, userId, tenantId });
+
+  try {
+    const settings = await getSettingsQuery(tenantId);
+    await logSuccess({ eventType: "Read", description: "settings fetched", functionName: fn, fileName: FILE_NAME, userId, tenantId });
+    return res.status(200).json(STATUS_CODE[200](settings));
+  } catch (error) {
+    await logFailure({ eventType: "Read", description: "failed to fetch settings", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function updateSettings(req: Request, res: Response) {
+  const fn = "updateSettings";
+  const userId = req.userId!;
+  const tenantId = req.tenantId!;
+
+  logProcessing({ description: "updating settings", functionName: fn, fileName: FILE_NAME, userId, tenantId });
+
+  try {
+    if (req.role !== "Admin") {
+      return res.status(403).json(STATUS_CODE[403]("Only admins can manage settings"));
+    }
+
+    const {
+      rate_limit_max_events_per_hour,
+      retention_events_days,
+      retention_daily_rollups_days,
+      retention_alert_history_days,
+    } = req.body;
+
+    const updated = await updateSettingsQuery(tenantId, {
+      rate_limit_max_events_per_hour,
+      retention_events_days,
+      retention_daily_rollups_days,
+      retention_alert_history_days,
+      updated_by: userId,
+    });
+
+    await logSuccess({ eventType: "Update", description: "settings updated", functionName: fn, fileName: FILE_NAME, userId, tenantId });
+    return res.status(200).json(STATUS_CODE[200](updated));
+  } catch (error) {
+    await logFailure({ eventType: "Update", description: "failed to update settings", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

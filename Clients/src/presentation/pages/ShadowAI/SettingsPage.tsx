@@ -2,10 +2,10 @@
  * Shadow AI Settings Page
  *
  * Configuration page with API key management, syslog config,
- * and connection status.
+ * rate limiting, data retention, and connection status.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Stack,
   Typography,
@@ -30,10 +30,13 @@ import {
   createSyslogConfig,
   updateSyslogConfig,
   deleteSyslogConfig,
+  getSettingsConfig,
+  updateSettingsConfig,
 } from "../../../application/repository/shadowAi.repository";
 import {
   IShadowAiApiKey,
   IShadowAiSyslogConfig,
+  IShadowAiSettings,
 } from "../../../domain/interfaces/i.shadowAi";
 import singleTheme from "../../themes/v1SingleTheme";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -62,6 +65,8 @@ export default function SettingsPage() {
       <TipBox entityName="shadow-ai-settings" />
       <ApiKeysSection />
       <SyslogConfigSection />
+      <RateLimitSection />
+      <DataRetentionSection />
     </Stack>
   );
 }
@@ -77,6 +82,16 @@ function ApiKeysSection() {
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [revokeTarget, setRevokeTarget] = useState<IShadowAiApiKey | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup copy timer on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+    };
+  }, []);
 
   const fetchKeys = useCallback(async () => {
     setLoading(true);
@@ -124,7 +139,10 @@ function ApiKeysSection() {
     if (newlyCreatedKey) {
       navigator.clipboard.writeText(newlyCreatedKey);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+      copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -578,6 +596,237 @@ function SyslogConfigSection() {
           This will stop processing events from this source.
         </Typography>
       </StandardModal>
+    </Stack>
+  );
+}
+
+// ─── Rate Limit Section ─────────────────────────────────────────────
+
+function RateLimitSection() {
+  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<IShadowAiSettings | null>(null);
+  const [rateLimit, setRateLimit] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const data = await getSettingsConfig();
+        if (cancelled) return;
+        setSettings(data);
+        setRateLimit(
+          data.rate_limit_max_events_per_hour === 0
+            ? ""
+            : String(data.rate_limit_max_events_per_hour)
+        );
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const value = rateLimit.trim() === "" ? 0 : parseInt(rateLimit, 10);
+      if (isNaN(value) || value < 0) return;
+      const updated = await updateSettingsConfig({
+        rate_limit_max_events_per_hour: value,
+      });
+      setSettings(updated);
+    } catch (error) {
+      console.error("Failed to update rate limit:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const currentValue = settings?.rate_limit_max_events_per_hour ?? 0;
+  const inputValue = rateLimit.trim() === "" ? 0 : parseInt(rateLimit, 10) || 0;
+  const hasChanged = inputValue !== currentValue;
+
+  return (
+    <Stack gap="12px">
+      <Typography sx={sectionTitleSx}>Rate limiting</Typography>
+      <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
+        Limit the number of events that can be ingested per hour. Leave empty or
+        set to 0 to allow unlimited ingestion.
+      </Typography>
+
+      {loading ? (
+        <Skeleton variant="rectangular" height={40} sx={{ borderRadius: "4px", maxWidth: 300 }} />
+      ) : (
+        <Stack direction="row" alignItems="flex-end" gap="12px">
+          <Field
+            label="Max events per hour"
+            value={rateLimit}
+            onChange={(e) => setRateLimit(e.target.value.replace(/[^0-9]/g, ""))}
+            placeholder="0 (unlimited)"
+            sx={{ maxWidth: 200 }}
+          />
+          <CustomizableButton
+            text={saving ? "Saving..." : "Save"}
+            variant="contained"
+            disabled={!hasChanged || saving}
+            sx={{
+              backgroundColor: "#13715B",
+              "&:hover": { backgroundColor: "#0F5A47" },
+              height: 34,
+              fontSize: 13,
+              mb: "2px",
+            }}
+            onClick={handleSave}
+          />
+        </Stack>
+      )}
+
+      {settings && currentValue > 0 && (
+        <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+          Currently limited to {currentValue.toLocaleString()} events/hour
+        </Typography>
+      )}
+      {settings && currentValue === 0 && (
+        <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+          No rate limit applied
+        </Typography>
+      )}
+    </Stack>
+  );
+}
+
+// ─── Data Retention Section ─────────────────────────────────────────
+
+function DataRetentionSection() {
+  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<IShadowAiSettings | null>(null);
+  const [eventsDays, setEventsDays] = useState("");
+  const [rollupsDays, setRollupsDays] = useState("");
+  const [alertsDays, setAlertsDays] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const data = await getSettingsConfig();
+        if (cancelled) return;
+        setSettings(data);
+        setEventsDays(data.retention_events_days === 0 ? "" : String(data.retention_events_days));
+        setRollupsDays(data.retention_daily_rollups_days === 0 ? "" : String(data.retention_daily_rollups_days));
+        setAlertsDays(data.retention_alert_history_days === 0 ? "" : String(data.retention_alert_history_days));
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const parseVal = (v: string) => {
+        const n = v.trim() === "" ? 0 : parseInt(v, 10);
+        return isNaN(n) || n < 0 ? 0 : n;
+      };
+      const updated = await updateSettingsConfig({
+        retention_events_days: parseVal(eventsDays),
+        retention_daily_rollups_days: parseVal(rollupsDays),
+        retention_alert_history_days: parseVal(alertsDays),
+      });
+      setSettings(updated);
+    } catch (error) {
+      console.error("Failed to update retention settings:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const parseOrZero = (v: string) => {
+    const n = v.trim() === "" ? 0 : parseInt(v, 10);
+    return isNaN(n) ? 0 : n;
+  };
+
+  const hasChanged = settings
+    ? parseOrZero(eventsDays) !== settings.retention_events_days ||
+      parseOrZero(rollupsDays) !== settings.retention_daily_rollups_days ||
+      parseOrZero(alertsDays) !== settings.retention_alert_history_days
+    : false;
+
+  const RETENTION_FIELDS = [
+    {
+      label: "Raw events",
+      description: "Individual event records from ingestion",
+      value: eventsDays,
+      setter: setEventsDays,
+      defaultVal: 30,
+    },
+    {
+      label: "Daily rollups",
+      description: "Aggregated daily statistics",
+      value: rollupsDays,
+      setter: setRollupsDays,
+      defaultVal: 365,
+    },
+    {
+      label: "Alert history",
+      description: "Records of triggered alerts",
+      value: alertsDays,
+      setter: setAlertsDays,
+      defaultVal: 90,
+    },
+  ];
+
+  return (
+    <Stack gap="12px">
+      <Typography sx={sectionTitleSx}>Data retention</Typography>
+      <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
+        Configure how long Shadow AI data is retained. Set to 0 or leave empty
+        to keep data indefinitely. Changes take effect on the next cleanup cycle.
+      </Typography>
+
+      {loading ? (
+        <Skeleton variant="rectangular" height={120} sx={{ borderRadius: "4px" }} />
+      ) : (
+        <Stack gap="16px">
+          {RETENTION_FIELDS.map((field) => (
+            <Stack key={field.label} direction="row" alignItems="flex-end" gap="12px">
+              <Box sx={{ flex: 1, maxWidth: 280 }}>
+                <Field
+                  label={`${field.label} (days)`}
+                  value={field.value}
+                  onChange={(e) => field.setter(e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder={`${field.defaultVal} (default)`}
+                />
+                <Typography sx={{ fontSize: 11, color: "#9CA3AF", mt: 0.5 }}>
+                  {field.description}
+                </Typography>
+              </Box>
+            </Stack>
+          ))}
+
+          <CustomizableButton
+            text={saving ? "Saving..." : "Save retention settings"}
+            variant="contained"
+            disabled={!hasChanged || saving}
+            sx={{
+              backgroundColor: "#13715B",
+              "&:hover": { backgroundColor: "#0F5A47" },
+              height: 34,
+              fontSize: 13,
+              alignSelf: "flex-start",
+            }}
+            onClick={handleSave}
+          />
+        </Stack>
+      )}
     </Stack>
   );
 }

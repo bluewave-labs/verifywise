@@ -77,7 +77,7 @@ export default function InsightsPage() {
   const [topRiskTools, setTopRiskTools] = useState<IShadowAiTool[]>([]);
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -89,20 +89,21 @@ export default function InsightsPage() {
             getUsersByDepartment(period),
             getTools({ sort_by: "risk_score", order: "desc", limit: 5 }),
           ]);
-        if (cancelled) return;
+        if (controller.signal.aborted) return;
         setSummary(summaryData);
         setToolsByEvents(eventsData);
         setToolsByUsers(usersData);
         setDepartments(deptData);
         setTopRiskTools(toolsData.tools);
       } catch (error) {
+        if (controller.signal.aborted) return;
         console.error("Failed to load insights:", error);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
     fetchData();
-    return () => { cancelled = true; };
+    return () => { controller.abort(); };
   }, [period]);
 
   const handlePeriodChange = (e: SelectChangeEvent<string | number>) => {

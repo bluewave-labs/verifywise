@@ -28,6 +28,8 @@ import {
   createSyslogConfig,
   updateSyslogConfig,
   deleteSyslogConfig,
+  getSettings,
+  updateSettings,
 } from "../controllers/shadowAi.ctrl";
 
 // ─── API Keys (Admin only) ─────────────────────────────────────────────
@@ -65,5 +67,9 @@ router.get("/config/syslog", authenticateJWT, getSyslogConfigs);
 router.post("/config/syslog", authenticateJWT, createSyslogConfig);
 router.patch("/config/syslog/:id", authenticateJWT, updateSyslogConfig);
 router.delete("/config/syslog/:id", authenticateJWT, deleteSyslogConfig);
+
+// ─── Settings (Rate Limiting & Data Retention) ─────────────────────────
+router.get("/settings", authenticateJWT, getSettings);
+router.patch("/settings", authenticateJWT, updateSettings);
 
 export default router;

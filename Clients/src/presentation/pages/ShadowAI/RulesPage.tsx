@@ -133,38 +133,41 @@ export default function RulesPage() {
     }
   }, [toast]);
 
-  const fetchRules = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        if (viewMode === "rules") {
+          const data = await getRules();
+          if (controller.signal.aborted) return;
+          setRules(data);
+        } else {
+          const data = await getAlertHistory(alertsPage + 1, ALERTS_PER_PAGE);
+          if (controller.signal.aborted) return;
+          setAlerts(data.alerts);
+          setAlertsTotal(data.total);
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Failed to load data:", error);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => { controller.abort(); };
+  }, [viewMode, alertsPage]);
+
+  // Simple refetch for mutation handlers
+  const fetchRules = async () => {
     try {
       const data = await getRules();
       setRules(data);
     } catch (error) {
-      console.error("Failed to load rules:", error);
-    } finally {
-      setLoading(false);
+      console.error("Failed to reload rules:", error);
     }
-  }, []);
-
-  const fetchAlerts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await getAlertHistory(alertsPage + 1, ALERTS_PER_PAGE);
-      setAlerts(data.alerts);
-      setAlertsTotal(data.total);
-    } catch (error) {
-      console.error("Failed to load alert history:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [alertsPage]);
-
-  useEffect(() => {
-    if (viewMode === "rules") {
-      fetchRules();
-    } else {
-      fetchAlerts();
-    }
-  }, [viewMode, fetchRules, fetchAlerts]);
+  };
 
   const handleTabChange = (_e: React.SyntheticEvent, newValue: string) => {
     if (newValue === "history") {

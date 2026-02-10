@@ -6,7 +6,7 @@
 
 import { sequelize } from "../database/db";
 import { Transaction } from "sequelize";
-import { IShadowAiSyslogConfig } from "../domain.layer/interfaces/i.shadowAi";
+import { IShadowAiSyslogConfig, IShadowAiSettings } from "../domain.layer/interfaces/i.shadowAi";
 
 // ─── Syslog Config ─────────────────────────────────────────────────────
 
@@ -118,4 +118,75 @@ export async function deleteSyslogConfigQuery(
   );
 
   return (rowCount as number) > 0;
+}
+
+// ─── Settings ──────────────────────────────────────────────────────
+
+/**
+ * Get tenant settings (always returns a row — created by migration).
+ */
+export async function getSettingsQuery(
+  tenant: string
+): Promise<IShadowAiSettings> {
+  const [rows] = await sequelize.query(
+    `SELECT * FROM "${tenant}".shadow_ai_settings WHERE id = 1`
+  );
+
+  // Return defaults if no row exists yet
+  if ((rows as any[]).length === 0) {
+    return {
+      rate_limit_max_events_per_hour: 0,
+      retention_events_days: 30,
+      retention_daily_rollups_days: 365,
+      retention_alert_history_days: 90,
+    };
+  }
+
+  return (rows as IShadowAiSettings[])[0];
+}
+
+/**
+ * Update tenant settings.
+ */
+export async function updateSettingsQuery(
+  tenant: string,
+  updates: Partial<Omit<IShadowAiSettings, "id" | "updated_at">>,
+  transaction?: Transaction
+): Promise<IShadowAiSettings> {
+  const setClauses: string[] = ["updated_at = NOW()"];
+  const replacements: Record<string, unknown> = {};
+
+  if (updates.rate_limit_max_events_per_hour !== undefined) {
+    setClauses.push("rate_limit_max_events_per_hour = :rate_limit");
+    replacements.rate_limit = Math.max(0, updates.rate_limit_max_events_per_hour);
+  }
+  if (updates.retention_events_days !== undefined) {
+    setClauses.push("retention_events_days = :ret_events");
+    replacements.ret_events = Math.max(0, updates.retention_events_days);
+  }
+  if (updates.retention_daily_rollups_days !== undefined) {
+    setClauses.push("retention_daily_rollups_days = :ret_rollups");
+    replacements.ret_rollups = Math.max(0, updates.retention_daily_rollups_days);
+  }
+  if (updates.retention_alert_history_days !== undefined) {
+    setClauses.push("retention_alert_history_days = :ret_alerts");
+    replacements.ret_alerts = Math.max(0, updates.retention_alert_history_days);
+  }
+  if (updates.updated_by !== undefined) {
+    setClauses.push("updated_by = :updated_by");
+    replacements.updated_by = updates.updated_by;
+  }
+
+  const [result] = await sequelize.query(
+    `UPDATE "${tenant}".shadow_ai_settings
+     SET ${setClauses.join(", ")}
+     WHERE id = 1
+     RETURNING *`,
+    {
+      replacements,
+      ...(transaction ? { transaction } : {}),
+    }
+  );
+
+  return (result as IShadowAiSettings[])[0];
 }

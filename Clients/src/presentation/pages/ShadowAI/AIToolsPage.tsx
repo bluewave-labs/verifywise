@@ -125,8 +125,35 @@ export default function AIToolsPage() {
 
   const sortedTools = useSortedRows(tools, toolsSortConfig, getToolValue);
 
-  const fetchTools = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const params: GetToolsParams = {
+          page,
+          limit: ROWS_PER_PAGE,
+          sort_by: "risk_score",
+          order: "desc",
+        };
+        if (statusFilter !== "all") params.status = statusFilter;
+        const result = await getTools(params);
+        if (controller.signal.aborted) return;
+        setTools(result.tools);
+        setTotal(result.total);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Failed to load tools:", error);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => { controller.abort(); };
+  }, [page, statusFilter]);
+
+  // Simple refetch for mutation handlers
+  const fetchTools = async () => {
     try {
       const params: GetToolsParams = {
         page,
@@ -139,15 +166,9 @@ export default function AIToolsPage() {
       setTools(result.tools);
       setTotal(result.total);
     } catch (error) {
-      console.error("Failed to load tools:", error);
-    } finally {
-      setLoading(false);
+      console.error("Failed to reload tools:", error);
     }
-  }, [page, statusFilter]);
-
-  useEffect(() => {
-    fetchTools();
-  }, [fetchTools]);
+  };
 
   // Load tool detail when toolId is in the URL
   useEffect(() => {

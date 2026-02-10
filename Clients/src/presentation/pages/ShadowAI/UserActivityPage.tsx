@@ -154,45 +154,38 @@ export default function UserActivityPage() {
     userDetail?.tools ?? [], detailToolsSortConfig, getDetailToolValue
   );
 
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: GetUsersParams = {
-        page,
-        limit: 20,
-        period,
-        sort_by: "total_prompts",
-        order: "desc",
-      };
-      const result = await getUsers(params);
-      setUsers(result.users);
-      setTotalUsers(result.total);
-    } catch (error) {
-      console.error("Failed to load users:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, period]);
-
-  const fetchDepartments = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await getDepartmentActivity(period);
-      setDepartments(result);
-    } catch (error) {
-      console.error("Failed to load departments:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
   useEffect(() => {
-    if (viewMode === "users") {
-      fetchUsers();
-    } else if (viewMode === "departments") {
-      fetchDepartments();
-    }
-  }, [viewMode, fetchUsers, fetchDepartments]);
+    const controller = new AbortController();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        if (viewMode === "users") {
+          const params: GetUsersParams = {
+            page,
+            limit: 20,
+            period,
+            sort_by: "total_prompts",
+            order: "desc",
+          };
+          const result = await getUsers(params);
+          if (controller.signal.aborted) return;
+          setUsers(result.users);
+          setTotalUsers(result.total);
+        } else if (viewMode === "departments") {
+          const result = await getDepartmentActivity(period);
+          if (controller.signal.aborted) return;
+          setDepartments(result);
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Failed to load data:", error);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => { controller.abort(); };
+  }, [viewMode, page, period]);
 
   const handleUserClick = async (email: string) => {
     setSelectedEmail(email);

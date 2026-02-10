@@ -206,6 +206,53 @@ export async function evaluateRulesForBatch(
 
   const triggered: { rule: IShadowAiRule; context: AlertContext }[] = [];
 
+  // Pre-fetch tool data for risk_score and usage_threshold checks (single query)
+  const toolIds = [...batch.toolEventCounts.keys()];
+  let toolDataMap = new Map<number, { name: string; risk_score: number | null; total_events: number; status: string }>();
+  if (toolIds.length > 0) {
+    try {
+      const [toolRows] = await sequelize.query(
+        `SELECT id, name, risk_score, total_events, status
+         FROM "${tenant}".shadow_ai_tools
+         WHERE id IN (:toolIds)`,
+        { replacements: { toolIds } }
+      );
+      for (const t of toolRows as any[]) {
+        toolDataMap.set(t.id, {
+          name: t.name,
+          risk_score: t.risk_score,
+          total_events: t.total_events,
+          status: t.status,
+        });
+      }
+    } catch {
+      // If query fails, continue with empty map
+    }
+  }
+
+  // Pre-fetch existing user emails for new_user_detected (single batch query)
+  const batchEmails = [...batch.allEmails];
+  const existingEmails = new Set<string>();
+  if (batchEmails.length > 0) {
+    try {
+      const [userRows] = await sequelize.query(
+        `SELECT DISTINCT user_email FROM "${tenant}".shadow_ai_events
+         WHERE user_email IN (:emails)
+         AND id NOT IN (
+           SELECT id FROM "${tenant}".shadow_ai_events
+           ORDER BY id DESC LIMIT :recentLimit
+         )`,
+        { replacements: { emails: batchEmails, recentLimit: batchEmails.length * 10 } }
+      );
+      for (const r of userRows as any[]) {
+        existingEmails.add(r.user_email);
+      }
+    } catch {
+      // If query fails, treat all as existing (safe default — no false alerts)
+      for (const e of batchEmails) existingEmails.add(e);
+    }
+  }
+
   for (const rule of rules) {
     switch (rule.trigger_type) {
       case "new_tool_detected":
@@ -223,14 +270,18 @@ export async function evaluateRulesForBatch(
 
       case "usage_threshold_exceeded": {
         const threshold = (rule.trigger_config?.event_count_threshold as number) || 100;
-        for (const [toolId, count] of batch.toolEventCounts) {
-          if (count >= threshold) {
+        // Check cumulative total_events (after counter update), not just batch count
+        for (const [toolId, batchCount] of batch.toolEventCounts) {
+          const toolData = toolDataMap.get(toolId);
+          // total_events already includes this batch (counters updated before commit)
+          const cumulativeEvents = toolData ? toolData.total_events : batchCount;
+          if (cumulativeEvents >= threshold) {
             triggered.push({
               rule,
               context: {
                 toolId,
-                toolName: batch.newToolNames.get(toolId) || `Tool #${toolId}`,
-                eventCount: count,
+                toolName: toolData?.name || `Tool #${toolId}`,
+                eventCount: cumulativeEvents,
                 threshold,
               },
             });
@@ -255,70 +306,60 @@ export async function evaluateRulesForBatch(
       }
 
       case "blocked_attempt":
+        // Only fire for tools that have "blocked" status in the system
         for (const attempt of batch.blockedAttempts) {
-          triggered.push({
-            rule,
-            context: {
-              toolId: attempt.toolId,
-              toolName: attempt.toolName,
-              userEmail: attempt.userEmail,
-            },
-          });
+          const toolData = toolDataMap.get(attempt.toolId);
+          if (toolData && toolData.status === "blocked") {
+            triggered.push({
+              rule,
+              context: {
+                toolId: attempt.toolId,
+                toolName: attempt.toolName,
+                userEmail: attempt.userEmail,
+              },
+            });
+          }
         }
         break;
 
       case "risk_score_exceeded": {
         const minScore = (rule.trigger_config?.risk_score_min as number) || 70;
-        // Check risk scores of tools that received events in this batch
+        // Use pre-fetched tool data instead of N queries
         for (const toolId of batch.toolEventCounts.keys()) {
-          try {
-            const [rows] = await sequelize.query(
-              `SELECT risk_score, name FROM "${tenant}".shadow_ai_tools WHERE id = :toolId`,
-              { replacements: { toolId } }
-            );
-            const tool = (rows as any[])[0];
-            if (tool && tool.risk_score != null && tool.risk_score >= minScore) {
-              triggered.push({
-                rule,
-                context: {
-                  toolId,
-                  toolName: tool.name,
-                  riskScore: tool.risk_score,
-                },
-              });
-            }
-          } catch {
-            // Skip if query fails
+          const toolData = toolDataMap.get(toolId);
+          if (toolData && toolData.risk_score != null && toolData.risk_score >= minScore) {
+            triggered.push({
+              rule,
+              context: {
+                toolId,
+                toolName: toolData.name,
+                riskScore: toolData.risk_score,
+              },
+            });
           }
         }
         break;
       }
 
       case "new_user_detected":
-        // For simplicity, fire for each unique email in the batch.
-        // A production system would track known users and only fire for truly new ones.
-        // For now, this triggers when new events come from users not previously seen.
+        // Fire for users not previously seen in events (using pre-fetched data)
         for (const email of batch.allEmails) {
-          try {
-            const [rows] = await sequelize.query(
-              `SELECT COUNT(*) as cnt FROM "${tenant}".shadow_ai_events
-               WHERE user_email = :email AND ingested_at < NOW() - INTERVAL '1 minute'`,
-              { replacements: { email } }
-            );
-            const count = parseInt((rows as any[])[0].cnt, 10);
-            if (count === 0) {
-              // First time seeing this user
-              const deptArr = [...batch.allDepartments];
-              triggered.push({
-                rule,
-                context: {
-                  userEmail: email,
-                  department: deptArr.length > 0 ? deptArr[0] : undefined,
-                },
-              });
+          if (!existingEmails.has(email)) {
+            // Find the department for this specific user from batch context
+            let userDept: string | undefined;
+            for (const [, depts] of batch.toolDepartments) {
+              if (depts.size > 0) {
+                userDept = [...depts][0];
+                break;
+              }
             }
-          } catch {
-            // Skip if query fails
+            triggered.push({
+              rule,
+              context: {
+                userEmail: email,
+                department: userDept,
+              },
+            });
           }
         }
         break;

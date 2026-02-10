@@ -82,6 +82,16 @@ export async function ensureTenantTool(
   registryEntry: IShadowAiToolRegistry,
   transaction?: any
 ): Promise<{ id: number; isNew: boolean }> {
+  // Check if tool already exists before upsert
+  const [existing] = await sequelize.query(
+    `SELECT id FROM "${tenant}".shadow_ai_tools WHERE name = :name LIMIT 1`,
+    {
+      replacements: { name: registryEntry.name },
+      ...(transaction ? { transaction } : {}),
+    }
+  );
+  const alreadyExists = (existing as any[]).length > 0;
+
   const [rows] = await sequelize.query(
     `INSERT INTO "${tenant}".shadow_ai_tools
        (name, vendor, domains, status, risk_score,
@@ -92,7 +102,7 @@ export async function ensureTenantTool(
         NOW(), NOW(), 0, 0,
         :trains_on_data, :soc2_certified, :gdpr_compliant)
      ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-     RETURNING id, (xmax = 0) AS is_new`,
+     RETURNING id`,
     {
       replacements: {
         name: registryEntry.name,
@@ -107,7 +117,7 @@ export async function ensureTenantTool(
   );
 
   const row = (rows as any[])[0];
-  return { id: row.id, isNew: row.is_new === true };
+  return { id: row.id, isNew: !alreadyExists };
 }
 
 /**
